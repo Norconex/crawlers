@@ -49,7 +49,7 @@ public class LocalCompute implements GridCompute {
     }
 
     @Override
-    public int getActivePipelineStageIndex(@NonNull String pipelineId) {
+    public int getPipelineActiveStageIndex(@NonNull String pipelineId) {
         return pipeCoord.getActiveStage(pipelineId);
     }
 

@@ -81,7 +81,7 @@ public class CrawlerWebPtProvider implements PolymorphicTypeProvider {
         addPolyType(map, WebUrlNormalizer.class);
         addPolyType(map, UrlScopeResolver.class);
 
-        //        map.put(CrawlerConfig.class, WebCrawlerConfig.class);
+        //        map.put(CrawlConfig.class, WebCrawlerConfig.class);
         map.putAll(Fetcher.class, List.of(
                 HttpClientFetcher.class,
                 WebDriverFetcher.class));

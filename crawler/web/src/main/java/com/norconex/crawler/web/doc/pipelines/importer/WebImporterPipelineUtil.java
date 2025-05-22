@@ -22,7 +22,7 @@ import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.WebCrawlDocStatus;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
-import com.norconex.crawler.web.fetch.HttpFetchResponse;
+import com.norconex.crawler.web.fetch.WebFetchResponse;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetchResponse;
 import com.norconex.crawler.web.util.Web;
 
@@ -37,11 +37,11 @@ public final class WebImporterPipelineUtil {
     // Synchronized to avoid redirect dups.
     public static synchronized void queueRedirectURL(
             ImporterPipelineContext context,
-            HttpFetchResponse response,
+            WebFetchResponse response,
             String redirectTargetURL) {
 
         var ctx = (WebImporterPipelineContext) context;
-        var docLedger = ctx.getCrawlerContext().getDocLedger();
+        var docLedger = ctx.getCrawlContext().getDocLedger();
         var docContext = (WebCrawlDocContext) ctx.getDoc().getDocContext();
         String sourceURL = docContext.getReference();
         docContext.setRedirectTarget(redirectTargetURL);
@@ -62,10 +62,10 @@ public final class WebImporterPipelineUtil {
                 .userAgent(response.getUserAgent())
                 .build();
 
-        ctx.getCrawlerContext().fire(
+        ctx.getCrawlContext().fire(
                 CrawlerEvent.builder()
                         .name(WebCrawlerEvent.REJECTED_REDIRECTED)
-                        .source(ctx.getCrawlerContext())
+                        .source(ctx.getCrawlContext())
                         .subject(newResponse)
                         .docContext(docContext)
                         .message(
@@ -139,15 +139,15 @@ public final class WebImporterPipelineUtil {
             return;
         }
 
-        var urlScope = Web.config(ctx.getCrawlerContext())
+        var urlScope = Web.config(ctx.getCrawlContext())
                 .getUrlScopeResolver().resolve(
                         docContext.getReference(), newRec);
-        Web.fireIfUrlOutOfScope(ctx.getCrawlerContext(), newRec, urlScope);
+        Web.fireIfUrlOutOfScope(ctx.getCrawlContext(), newRec, urlScope);
         if (urlScope.isInScope()) {
-            ctx.getCrawlerContext()
-                    .getPipelines()
+            ctx.getCrawlContext()
+                    .getDocPipelines()
                     .getQueuePipeline()
-                    .accept(new QueuePipelineContext(ctx.getCrawlerContext(),
+                    .accept(new QueuePipelineContext(ctx.getCrawlContext(),
                             newRec));
         } else {
             LOG.debug("URL redirect target not in scope: {}",

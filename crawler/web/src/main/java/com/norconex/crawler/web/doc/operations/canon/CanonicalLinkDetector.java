@@ -48,7 +48,7 @@ public interface CanonicalLinkDetector {
      * normally the HTTP header values.
      * @param reference document reference
      * @param metadata metadata object containing HTTP headers
-     * @return the detected canonical URL or <code>null</code> if none is found.
+     * @return the detected canonical URL or {@code null} if none is found.
      */
     String detectFromMetadata(String reference, Properties metadata);
 
@@ -59,7 +59,7 @@ public interface CanonicalLinkDetector {
      * @param reference document reference
      * @param is the document content input stream
      * @param contentType the document content type
-     * @return the detected canonical URL or <code>null</code> if none is found.
+     * @return the detected canonical URL or {@code null} if none is found.
      * @throws IOException problem reading content
      */
     String detectFromContent(

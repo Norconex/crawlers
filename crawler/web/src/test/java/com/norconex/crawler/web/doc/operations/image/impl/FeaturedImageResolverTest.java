@@ -38,10 +38,10 @@ import com.norconex.commons.lang.ResourceLoader;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.img.MutableImage;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.Quality;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.Storage;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.StorageDiskStructure;
@@ -56,7 +56,7 @@ class FeaturedImageResolverTest {
 
     @WebCrawlTest(focus = Focus.CONTEXT)
     void testProcessFeaturedImage(
-            ClientAndServer client, CrawlerContext ctx)
+            ClientAndServer client, CrawlContext ctx)
             throws IOException {
         MockWebsite.whenPNG(client, "/640x480.png", IMG_640X480_PNG);
         MockWebsite.whenPNG(client, "/page/320x240.png", IMG_320X240_PNG);

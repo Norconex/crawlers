@@ -29,9 +29,11 @@ import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
 import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.session.CrawlState;
 import com.norconex.crawler.core.util.LogUtil;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.compute.BaseGridTask.AllNodesTask;
+import com.norconex.grid.core.compute.GridTaskBuilder;
 import com.norconex.grid.core.util.ConcurrentUtil;
 import com.norconex.importer.doc.DocContext;
 
@@ -55,6 +57,7 @@ public class CrawlProcessTask extends AllNodesTask {
 
     private final ProcessQueueAction queueAction;
     private boolean stopRequested;
+    //    private boolean stopStateSaved;
 
     public CrawlProcessTask(String id, ProcessQueueAction queueAction) {
         super(id);
@@ -101,8 +104,17 @@ public class CrawlProcessTask extends AllNodesTask {
     }
 
     @Override
-    public void stop() {
+    public void stop(Grid grid) {
         stopRequested = true;
+        grid.getCompute().executeTask(GridTaskBuilder
+                .create("updateCrawlState")
+                .singleNode()
+                .once()
+                .processor(g -> CrawlContext
+                        .get(g)
+                        .getSessionProperties()
+                        .updateCrawlState(CrawlState.PAUSED))
+                .build());
     }
 
     // just invoked in its own thread
@@ -187,7 +199,7 @@ public class CrawlProcessTask extends AllNodesTask {
 
     // if not incremental, won't even attempt to go to cache
     private CrawlDoc createDocFromCache(
-            CrawlContext crawlCtx, DocContext docRec) {
+            CrawlContext crawlCtx, DocContext docCtx) {
 
         //TODO instead or in addition to get doc from cache as a separate
         // instance, populate the main one with relevant bits from the cache.
@@ -195,9 +207,9 @@ public class CrawlProcessTask extends AllNodesTask {
         // put timer for whole thread or closer to just importer
         // or have importer offer its own timer, in addition.
         // var elapsedTime = Timer.timeWatch(() ->
-        var cachedDocRec = crawlCtx.isIncrementalCrawl() ? crawlCtx
+        var cachedDocCtx = crawlCtx.isIncrementalCrawl() ? crawlCtx
                 .getDocLedger()
-                .getCached(docRec.getReference())
+                .getCached(docCtx.getReference())
                 .orElse(null)
                 : null;
 
@@ -209,12 +221,12 @@ public class CrawlProcessTask extends AllNodesTask {
         // (except for reference)?
         // Relevant to DocContext as well
         var doc = new CrawlDoc(
-                docRec,
-                cachedDocRec,
+                docCtx,
+                cachedDocCtx,
                 crawlCtx.getStreamFactory().newInputStream(),
                 false); //TODO handle orphan properly or make it an emum
         doc.getMetadata().set(
-                CrawlDocMetaConstants.IS_DOC_NEW, cachedDocRec == null);
+                CrawlDocMetaConstants.IS_DOC_NEW, cachedDocCtx == null);
         return doc;
     }
 

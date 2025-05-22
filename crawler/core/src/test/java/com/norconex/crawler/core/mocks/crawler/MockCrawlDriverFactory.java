@@ -32,7 +32,7 @@ public class MockCrawlDriverFactory implements Supplier<CrawlDriver> {
     public CrawlDriver get() {
         return CrawlDriver.builder()
                 .fetchDriver(new FetchDriver()
-                        .responseAggregator(responses -> responses.get(0))
+                        .responseAggregator((req, resps) -> resps.get(0))
                         .unsuccesfulResponseFactory((crawlState, msg,
                                 e) -> new MockFetchResponseImpl()
                                         .setException(e)

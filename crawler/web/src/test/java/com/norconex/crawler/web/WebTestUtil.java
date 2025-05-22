@@ -60,12 +60,13 @@ import com.norconex.commons.lang.CircularRange;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.doc.operations.DocumentConsumer;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
+import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.web.cases.recovery.TestCommitter;
 import com.norconex.crawler.web.doc.operations.delay.DelayResolver;
 import com.norconex.crawler.web.doc.operations.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
@@ -77,7 +78,6 @@ import com.norconex.crawler.web.doc.operations.recrawl.RecrawlableResolver;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxtProvider;
 import com.norconex.crawler.web.doc.operations.robot.impl.StandardRobotsTxtProvider;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapResolver;
-import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpAuthConfig;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpAuthMethod;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
@@ -164,7 +164,7 @@ public final class WebTestUtil {
                     .randomize(
                             CachedInputStream.class,
                             CachedInputStream::nullInputStream)
-                    .randomize(HttpFetcher.class, HttpClientFetcher::new)
+                    .randomize(Fetcher.class, HttpClientFetcher::new)
                     .randomize(
                             RobotsTxtProvider.class,
                             StandardRobotsTxtProvider::new)
@@ -224,7 +224,7 @@ public final class WebTestUtil {
      */
     public static MemoryCommitter firstCommitter(@NonNull Crawler crawler) {
         return (MemoryCommitter) crawler
-                .getCrawlerConfig()
+                .getCrawlConfig()
                 .getCommitters()
                 .get(0);
     }
@@ -236,7 +236,7 @@ public final class WebTestUtil {
      * @return Memory committer
      */
     public static MemoryCommitter memoryCommitter(
-            @NonNull CrawlerConfig config) {
+            @NonNull CrawlConfig config) {
         return (MemoryCommitter) config
                 .getCommitters()
                 .stream()
@@ -252,7 +252,7 @@ public final class WebTestUtil {
      * @return Test committer
      */
     public static TestCommitter
-            getTestCommitter(@NonNull CrawlerConfig config) {
+            getTestCommitter(@NonNull CrawlConfig config) {
         return (TestCommitter) config
                 .getCommitters()
                 .stream()
@@ -268,7 +268,7 @@ public final class WebTestUtil {
      * @param cfg crawler config
      */
     @SneakyThrows
-    public static void addTestCommitterOnce(@NonNull CrawlerConfig cfg) {
+    public static void addTestCommitterOnce(@NonNull CrawlConfig cfg) {
         if (cfg.getCommitters().isEmpty() || cfg.getCommitters()
                 .stream().noneMatch(TestCommitter.class::isInstance)) {
             var committer = new TestCommitter(
@@ -283,14 +283,14 @@ public final class WebTestUtil {
     public static HttpClientFetcher firstHttpFetcher(
             @NonNull Crawler crawler) {
         return (HttpClientFetcher) crawler
-                .getCrawlerConfig()
+                .getCrawlConfig()
                 .getFetchers()
                 .get(0);
     }
 
     public static HttpClientFetcherConfig firstHttpFetcherConfig(
-            @NonNull CrawlerConfig crawlerConfig) {
-        return ((HttpClientFetcher) crawlerConfig
+            @NonNull CrawlConfig crawlConfig) {
+        return ((HttpClientFetcher) crawlConfig
                 .getFetchers().get(0)).getConfiguration();
     }
 
@@ -336,7 +336,7 @@ public final class WebTestUtil {
     }
 
     public static void ignoreAllIgnorables(Crawler crawler) {
-        ignoreAllIgnorables((WebCrawlerConfig) crawler.getCrawlerConfig());
+        ignoreAllIgnorables((WebCrawlerConfig) crawler.getCrawlConfig());
     }
 
     public static void ignoreAllIgnorables(WebCrawlerConfig config) {

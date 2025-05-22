@@ -1,4 +1,4 @@
-/* Copyright 2018-2024 Norconex Inc.
+/* Copyright 2022-2023 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,21 @@
  */
 package com.norconex.crawler.web.fetch;
 
-import com.norconex.crawler.core.fetch.Fetcher;
+import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.fetch.FetchRequest;
+
+import lombok.Data;
+import lombok.NonNull;
 
 /**
- * Fetches HTTP resources.
- * @since 3.0.0
+ * HTTP Fetch request.
+ * @since 4.0.0
  */
-public interface HttpFetcher
-        extends Fetcher<HttpFetchRequest, HttpFetchResponse> {
+@Data
+public class WebFetchRequest implements FetchRequest {
 
+    @NonNull
+    private final CrawlDoc doc;
+    @NonNull
+    private final HttpMethod method;
 }

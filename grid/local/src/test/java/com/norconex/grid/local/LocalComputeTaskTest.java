@@ -232,7 +232,7 @@ public class LocalComputeTaskTest implements Serializable {
         }
 
         @Override
-        public void stop() {
+        public void stop(Grid grid) {
             stopRequested = true;
         }
     }

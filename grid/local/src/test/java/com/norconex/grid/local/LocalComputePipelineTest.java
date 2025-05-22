@@ -61,7 +61,7 @@ public class LocalComputePipelineTest implements Serializable {
                         .processor(g -> new Store(g)
                                 .set("whatStage", g
                                         .getCompute()
-                                        .getActivePipelineStageIndex(
+                                        .getPipelineActiveStageIndex(
                                                 "test-pipelineA"))
                                 .addOne("itemC"))
                         .build()),
@@ -189,7 +189,7 @@ public class LocalComputePipelineTest implements Serializable {
         ConcurrentUtil.waitUntil(nodeCreated::get);
         var grid = cluster.getLastNodeCreated();
         while (grid.getCompute()
-                .getActivePipelineStageIndex("test-pipelineD") < 1) {
+                .getPipelineActiveStageIndex("test-pipelineD") < 1) {
             Sleeper.sleepMillis(100);
         }
 

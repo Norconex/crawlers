@@ -20,24 +20,24 @@ import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
+import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxt;
 import com.norconex.crawler.web.doc.operations.robot.impl.StandardRobotsTxtProvider;
-import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.util.Web;
 
 class RobotsTxtFiltersStageTest {
 
     @WebCrawlTest(focus = Focus.CONTEXT)
-    void testAllow(CrawlerContext ctx) {
+    void testAllow(CrawlContext ctx) {
         Web.config(ctx).setRobotsTxtProvider(new StandardRobotsTxtProvider() {
             @Override
             public synchronized RobotsTxt getRobotsTxt(
-                    HttpFetcher fetcher, String url) {
+                    Fetcher fetcher, String url) {
                 try {
                     return parseRobotsTxt(
                             IOUtils.toInputStream("""
@@ -70,7 +70,7 @@ class RobotsTxtFiltersStageTest {
                 "No match in robot.txt");
     }
 
-    private boolean testAllow(CrawlerContext crawlerCtx, final String url) {
+    private boolean testAllow(CrawlContext crawlerCtx, final String url) {
         var queueCtx = new QueuePipelineContext(
                 crawlerCtx, new WebCrawlDocContext(url, 0));
         var filterStage = new RobotsTxtFiltersStage();

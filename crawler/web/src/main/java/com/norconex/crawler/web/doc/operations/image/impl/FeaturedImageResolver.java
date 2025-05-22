@@ -57,13 +57,11 @@ import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.operations.DocumentConsumer;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
-import com.norconex.crawler.core.fetch.FetchResponse;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.Storage;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.StorageDiskStructure;
-import com.norconex.crawler.web.fetch.HttpFetchRequest;
-import com.norconex.crawler.web.fetch.HttpFetcher;
+import com.norconex.crawler.web.fetch.WebFetchRequest;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.importer.doc.Doc;
 
@@ -179,9 +177,7 @@ public class FeaturedImageResolver
     //--- Process Document -----------------------------------------------------
 
     @Override
-    public void accept(Fetcher<?, ?> f, CrawlDoc doc) {
-
-        var fetcher = (HttpFetcher) f;
+    public void accept(Fetcher fetcher, CrawlDoc doc) {
 
         // Return if not valid content type
         if (StringUtils.isNotBlank(configuration.getPageContentTypePattern())
@@ -285,7 +281,7 @@ public class FeaturedImageResolver
     }
 
     private FeaturedImage findFeaturedImage(
-            Document dom, HttpFetcher fetcher, boolean largest) {
+            Document dom, Fetcher fetcher, boolean largest) {
         var els = isNotBlank(configuration.getDomSelector())
                 ? dom.select(configuration.getDomSelector())
                 : dom.getElementsByTag("img");
@@ -314,7 +310,7 @@ public class FeaturedImageResolver
         return largestImg;
     }
 
-    private FeaturedImage getImage(HttpFetcher fetcher, String url) {
+    private FeaturedImage getImage(Fetcher fetcher, String url) {
         try {
             FeaturedImage img = null;
             if (cache != null) {
@@ -399,13 +395,12 @@ public class FeaturedImageResolver
     }
 
     // make synchronized?
-    private BufferedImage fetchImage(HttpFetcher fetcher, String url) {
+    private BufferedImage fetchImage(Fetcher fetcher, String url) {
         try {
             var uri = HttpURL.toURI(url);
             var doc = new CrawlDoc(new WebCrawlDocContext(uri.toString()));
 
-            FetchResponse resp = fetcher.fetch(
-                    new HttpFetchRequest(doc, HttpMethod.GET));
+            var resp = fetcher.fetch(new WebFetchRequest(doc, HttpMethod.GET));
             if (resp != null
                     && resp.getResolutionStatus() != null
                     && resp.getResolutionStatus().isGoodState()) {
@@ -427,51 +422,4 @@ public class FeaturedImageResolver
                 "Image was not recognized or could not be downloaded: {}", url);
         return null;
     }
-
-    //    @Override
-    //    public void loadFromXML(XML xml) {
-    //        setPageContentTypePattern(xml.getString(
-    //                "pageContentTypePattern", pageContentTypePattern));
-    //        setDomSelector(xml.getString("domSelector", domSelector));
-    //        setMinDimensions(xml.getDimension("minDimensions", minDimensions));
-    //        setScaleDimensions(xml.getDimension(
-    //                "scaleDimensions", scaleDimensions));
-    //        setScaleStretch(xml.getBoolean("scaleStretch", scaleStretch));
-    //        setImageFormat(xml.getString("imageFormat", imageFormat));
-    //        setImageCacheSize(xml.getInteger("imageCacheSize", imageCacheSize));
-    //        setImageCacheDir(xml.getPath("imageCacheDir", imageCacheDir));
-    //        setLargest(xml.getBoolean("largest", largest));
-    //        setScaleQuality(xml.getEnum(
-    //                "scaleQuality", Quality.class, scaleQuality));
-    //        setStorage(xml.getDelimitedEnumList("storage", Storage.class, storage));
-    //        setStorageDiskDir(xml.getPath("storageDiskDir", storageDiskDir));
-    //        setStorageDiskStructure(
-    //                xml.getEnum("storageDiskDir/@structure",
-    //                        StorageDiskStructure.class, storageDiskStructure));
-    //        setStorageDiskField(xml.getString(
-    //                "storageDiskField", storageDiskField));
-    //        setStorageInlineField(xml.getString(
-    //                "storageInlineField", getStorageInlineField()));
-    //        setStorageUrlField(xml.getString(
-    //                "storageUrlField", getStorageUrlField()));
-    //    }
-    //    @Override
-    //    public void saveToXML(XML xml) {
-    //        xml.addElement("pageContentTypePattern", pageContentTypePattern);
-    //        xml.addElement("domSelector", domSelector);
-    //        xml.addElement("minDimensions", minDimensions);
-    //        xml.addElement("scaleDimensions", scaleDimensions);
-    //        xml.addElement("scaleStretch", isScaleStretch());
-    //        xml.addElement("imageFormat", imageFormat);
-    //        xml.addElement("imageCacheSize", imageCacheSize);
-    //        xml.addElement("imageCacheDir", imageCacheDir);
-    //        xml.addElement("largest", largest);
-    //        xml.addElement("scaleQuality", scaleQuality);
-    //        xml.addDelimitedElementList("storage", storage);
-    //        xml.addElement("storageDiskDir", storageDiskDir)
-    //                .setAttribute("structure", storageDiskStructure);
-    //        xml.addElement("storageDiskField", storageDiskField);
-    //        xml.addElement("storageInlineField", storageInlineField);
-    //        xml.addElement("storageUrlField", storageUrlField);
-    //    }
 }

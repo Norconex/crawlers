@@ -35,13 +35,13 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.commons.lang.file.FileUtil;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractor;
 import com.norconex.crawler.web.doc.operations.link.impl.TikaLinkExtractor;
-import com.norconex.crawler.web.fetch.HttpFetchResponse;
+import com.norconex.crawler.web.fetch.WebFetchResponse;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -126,7 +126,7 @@ public class UrlStatusCrawlerEventListener implements
     @Override
     public void accept(Event event) {
         if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
-            init((CrawlerContext) event.getSource());
+            init((CrawlContext) event.getSource());
             return;
         }
         if (event.is(CrawlerEvent.CRAWLER_CRAWL_END)) {
@@ -142,7 +142,7 @@ public class UrlStatusCrawlerEventListener implements
             return;
         }
 
-        if (((ce.getSubject() instanceof HttpFetchResponse response)
+        if (((ce.getSubject() instanceof WebFetchResponse response)
                 && (parsedCodes.isEmpty()
                         || parsedCodes.contains(response.getStatusCode())))
                 && (csvPrinter != null)) {
@@ -166,7 +166,7 @@ public class UrlStatusCrawlerEventListener implements
         }
     }
 
-    private void init(CrawlerContext crawler) {
+    private void init(CrawlContext crawler) {
 
         var baseDir = getBaseDir(crawler);
         var timestamp = "";
@@ -213,7 +213,7 @@ public class UrlStatusCrawlerEventListener implements
         }
     }
 
-    private Path getBaseDir(CrawlerContext crawler) {
+    private Path getBaseDir(CrawlContext crawler) {
         if (configuration.getOutputDir() == null) {
             return crawler.getWorkDir();
         }

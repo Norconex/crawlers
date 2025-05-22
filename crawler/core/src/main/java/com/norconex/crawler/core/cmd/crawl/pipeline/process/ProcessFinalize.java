@@ -40,7 +40,7 @@ final class ProcessFinalize {
     static void execute(ProcessContext ctx) {
 
         // only finalize a record if not already finalized and if
-        // there id a doc record (meaning a reference was loaded).
+        // there is a doc record (meaning a reference was loaded).
         if (ctx.finalized() || ctx.docContext() == null) {
             return;
         }
@@ -127,13 +127,13 @@ final class ProcessFinalize {
     // and we do not want to set one on context.
     private static void dealWithBadState(ProcessContext ctx) {
         var doc = ctx.doc();
-        var docRecord = ctx.docContext();
-        var cachedDocRecord =
+        var docContext = ctx.docContext();
+        var cachedDocContext =
                 ofNullable(doc.getCachedDocContext()).orElse(null);
 
         //--- Deal with bad states (if not already deleted) ----------------
-        if (!docRecord.getState().isGoodState()
-                && !docRecord.getState().isOneOf(CrawlDocStatus.DELETED)) {
+        if (!docContext.getState().isGoodState()
+                && !docContext.getState().isOneOf(CrawlDocStatus.DELETED)) {
 
             //TODO If duplicate, consider it as spoiled if a cache version
             // exists in a good state.
@@ -159,29 +159,29 @@ final class ProcessFinalize {
             if (strategy == SpoiledReferenceStrategy.IGNORE) {
                 LOG.debug(
                         "Ignoring spoiled reference: {}",
-                        docRecord.getReference());
+                        docContext.getReference());
             } else if (strategy == SpoiledReferenceStrategy.DELETE) {
                 // Delete if previous state exists and is not already
                 // marked as deleted.
-                if (cachedDocRecord != null
-                        && !cachedDocRecord.getState().isOneOf(
+                if (cachedDocContext != null
+                        && !cachedDocContext.getState().isOneOf(
                                 CrawlDocStatus.DELETED)) {
                     ProcessDelete.execute(ctx);
                 }
             } else // GRACE_ONCE:
             // Delete if previous state exists and is a bad state,
             // but not already marked as deleted.
-            if (cachedDocRecord != null
-                    && !cachedDocRecord.getState().isOneOf(
+            if (cachedDocContext != null
+                    && !cachedDocContext.getState().isOneOf(
                             CrawlDocStatus.DELETED)) {
-                if (!cachedDocRecord.getState().isGoodState()) {
+                if (!cachedDocContext.getState().isGoodState()) {
                     ProcessDelete.execute(ctx);
                 } else {
                     LOG.debug("""
                             This spoiled reference is\s\
                             being graced once (will be deleted\s\
                             next time if still spoiled): {}""",
-                            docRecord.getReference());
+                            docContext.getReference());
                 }
             }
         }

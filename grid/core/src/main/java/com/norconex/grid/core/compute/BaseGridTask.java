@@ -25,10 +25,12 @@ import com.norconex.grid.core.Grid;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Getter
+@ToString
 public abstract class BaseGridTask implements GridTask {
 
     private static final long serialVersionUID = 1L;
@@ -103,6 +105,7 @@ public abstract class BaseGridTask implements GridTask {
      * Process a task without returning a value. Same as invoking
      * {@link #execute(Grid)} and returning {@code null}.
      * Must implement one of {@link #execute(Grid)} or {@link #process(Grid)}.
+     * @param grid the grid processing this task
      */
     public void process(Grid grid) {
         throw new UnsupportedOperationException(
@@ -110,6 +113,7 @@ public abstract class BaseGridTask implements GridTask {
     }
 
     /**
+     * {@inheritDoc}
      * <p>
      * This implementation uses basic aggregation heuristics.
      * </p>
@@ -162,7 +166,7 @@ public abstract class BaseGridTask implements GridTask {
      * Default implementation for this base class ignores stop requests.
      */
     @Override
-    public void stop() {
+    public void stop(Grid grid) {
         LOG.debug("Task {} ignored request to stop.", getId());
     }
 }

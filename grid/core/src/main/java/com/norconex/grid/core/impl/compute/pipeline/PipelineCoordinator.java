@@ -62,8 +62,9 @@ public class PipelineCoordinator {
             LOG.debug("Non-coordinator node, waiting for "
                     + "coordinator for instructions.");
             TaskExecutionResult result = null;
+
             while ((result = localWorker.getPipelineDone(
-                    pipeline.getId())) == null && !pipeCtx.isStopRequested()) {
+                    pipeline.getId())) == null) {
                 Thread.sleep(grid.getConnectorConfig().getHeartbeatInterval()
                         .toMillis());
                 //TODO check for expiry here? either pipeline expiry
@@ -74,7 +75,6 @@ public class PipelineCoordinator {
 
         try {
             ensureValidePipeline(pipeline);
-
             monitorStopRequest(pipeCtx);
 
             pipeCtx.setStartIndex(getStartingStageIndex(pipeline));
@@ -114,7 +114,7 @@ public class PipelineCoordinator {
                 if (result.getState() != TaskState.COMPLETED) {
                     pipeCtx.setFailedIndex(pipeCtx.getCurrentIndex());
                     LOG.error("Pipeline {} stage index {} failed with "
-                            + "status: {}",
+                            + "result: {}",
                             pipeCtx.getPipeline().getId(),
                             pipeCtx.getCurrentIndex(),
                             result);

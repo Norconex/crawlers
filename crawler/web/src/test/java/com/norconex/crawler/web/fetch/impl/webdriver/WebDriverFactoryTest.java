@@ -20,16 +20,16 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.fetch.FetchException;
-import com.norconex.crawler.web.fetch.HttpFetchRequest;
+import com.norconex.crawler.web.fetch.WebFetchRequest;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
 
-class WebDriverTest {
+class WebDriverFactoryTest {
 
     @Test
     void testUnsupportedHttpMethod() throws FetchException {
         var response = new WebDriverFetcher().fetch(
-                new HttpFetchRequest(
+                new WebFetchRequest(
                         CrawlDocStubs.crawlDocHtml("http://example.com"),
                         HttpMethod.HEAD));
         assertThat(response.getReasonPhrase()).contains("To obtain headers");

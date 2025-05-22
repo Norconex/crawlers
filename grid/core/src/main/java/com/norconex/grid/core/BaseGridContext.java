@@ -18,13 +18,14 @@ import java.nio.file.Path;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 
-//TODO transform to a builder if getting too many fields
+//MAYBE: transform to a builder if getting too many fields
 @RequiredArgsConstructor
 @Getter
+@Accessors(chain = true)
 public class BaseGridContext implements GridContext {
 
     private final Path workDir;
 
-    //    private final Function<Grid, Object> taskContextProvider;
 }

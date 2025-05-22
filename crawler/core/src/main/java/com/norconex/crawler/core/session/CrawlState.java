@@ -18,5 +18,9 @@ public enum CrawlState {
     RUNNING,
     PAUSED,
     COMPLETED,
-    FAILED
+    FAILED;
+
+    public boolean isTerminal() {
+        return this == PAUSED || this == COMPLETED || this == FAILED;
+    }
 }

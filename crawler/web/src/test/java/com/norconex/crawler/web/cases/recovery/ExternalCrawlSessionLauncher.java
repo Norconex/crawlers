@@ -35,7 +35,7 @@ import com.norconex.commons.lang.SystemUtil;
 import com.norconex.commons.lang.SystemUtil.Captured;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
-import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.web.WebCrawler;
 import com.norconex.crawler.web.WebTestUtil;
 
@@ -50,32 +50,32 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ExternalCrawlSessionLauncher {
 
-    public static CrawlOutcome start(CrawlerConfig crawlerConfig) {
-        return launch(crawlerConfig, "start");
+    public static CrawlOutcome start(CrawlConfig crawlConfig) {
+        return launch(crawlConfig, "start");
     }
 
-    public static CrawlOutcome startClean(CrawlerConfig crawlerConfig) {
-        return launch(crawlerConfig, "start -clean");
+    public static CrawlOutcome startClean(CrawlConfig crawlConfig) {
+        return launch(crawlConfig, "start -clean");
     }
 
-    public static CrawlOutcome clean(CrawlerConfig crawlerConfig) {
-        return launch(crawlerConfig, "clean");
+    public static CrawlOutcome clean(CrawlConfig crawlConfig) {
+        return launch(crawlConfig, "clean");
     }
 
-    public static CrawlOutcome stop(CrawlerConfig crawlerConfig) {
-        return launch(crawlerConfig, "stop");
+    public static CrawlOutcome stop(CrawlConfig crawlConfig) {
+        return launch(crawlConfig, "stop");
     }
 
     public static CrawlOutcome launch(
-            CrawlerConfig crawlerConfig,
+            CrawlConfig crawlConfig,
             String action,
             String... extraArgs) {
         var executionId = UUID.randomUUID().toString();
         Captured<Integer> captured = SystemUtil.callAndCaptureOutput(
-                () -> doLaunch(crawlerConfig, action, executionId, extraArgs));
+                () -> doLaunch(crawlConfig, action, executionId, extraArgs));
         var outcome = new CrawlOutcome(captured);
         var c = new TestCommitter(
-                crawlerConfig.getWorkDir()
+                crawlConfig.getWorkDir()
                         .resolve(WebTestUtil.TEST_COMMITER_DIR));
         c.fillMemoryCommitters(outcome, executionId);
         try {
@@ -87,25 +87,25 @@ public class ExternalCrawlSessionLauncher {
     }
 
     private static int doLaunch(
-            CrawlerConfig crawlerConfig,
+            CrawlConfig crawlConfig,
             String action,
             String executionid,
             String... extraArgs) {
 
         if ("start".equalsIgnoreCase(action)) {
-            WebTestUtil.addTestCommitterOnce(crawlerConfig);
+            WebTestUtil.addTestCommitterOnce(crawlConfig);
         }
 
         // Save session config to file so it can be used from command-line
-        var configFile = crawlerConfig.getWorkDir().resolve("config.xml");
+        var configFile = crawlConfig.getWorkDir().resolve("config.xml");
         try (var writer = new FileWriter(configFile.toFile())) {
-            BeanMapper.DEFAULT.write(crawlerConfig, writer, Format.XML);
+            BeanMapper.DEFAULT.write(crawlConfig, writer, Format.XML);
         } catch (IOException e) {
             throw new UncheckedIOException("Could not save XML.", e);
         }
 
         var project = new Project();
-        project.setBaseDir(crawlerConfig.getWorkDir().toFile());
+        project.setBaseDir(crawlConfig.getWorkDir().toFile());
         project.init();
         var logger = new DefaultLogger();
         project.addBuildListener(logger);
@@ -156,7 +156,7 @@ public class ExternalCrawlSessionLauncher {
 
     //    // Add a file-based committer to first crawler if none is present
     //    @SneakyThrows
-    //    private static void addTestCommitterOnce(CrawlerConfig cfg) {
+    //    private static void addTestCommitterOnce(CrawlConfig cfg) {
     //        if (cfg.getCommitters().isEmpty() || cfg.getCommitters()
     //                .stream().noneMatch(TestCommitter.class::isInstance)) {
     //            var committer = new TestCommitter(

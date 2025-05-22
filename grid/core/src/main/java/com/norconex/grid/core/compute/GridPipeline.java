@@ -20,12 +20,14 @@ import java.util.stream.Stream;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.ToString;
 
 /**
  * A pipeline executed on a grid. For the pipeline to be resumable,
  * the same stages must be present on each execution.
  */
 @Getter
+@ToString
 public class GridPipeline {
 
     private final String id;

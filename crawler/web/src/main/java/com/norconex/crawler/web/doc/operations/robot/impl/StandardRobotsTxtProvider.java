@@ -29,25 +29,25 @@ import java.util.regex.Pattern;
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.hc.core5.http.HttpStatus;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
+import com.norconex.crawler.core.fetch.Fetcher;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxt;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxtFilter;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxtProvider;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
-import com.norconex.crawler.web.fetch.HttpFetchRequest;
-import com.norconex.crawler.web.fetch.HttpFetcher;
+import com.norconex.crawler.web.fetch.WebFetchRequest;
+import com.norconex.crawler.web.fetch.WebFetchResponse;
 import com.norconex.crawler.web.fetch.HttpMethod;
 
 import lombok.EqualsAndHashCode;
@@ -74,7 +74,7 @@ public class StandardRobotsTxtProvider
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @JsonIgnore
-    private CrawlerContext crawler;
+    private CrawlContext crawler;
 
     @Override
     protected void onCrawlerCrawlBegin(CrawlerEvent event) {
@@ -83,7 +83,7 @@ public class StandardRobotsTxtProvider
 
     @Override
     public synchronized RobotsTxt getRobotsTxt(
-            HttpFetcher fetcher, String url) {
+            Fetcher fetcher, String url) {
         var trimmedURL = StringUtils.trimToEmpty(url);
         var baseURL = getBaseURL(trimmedURL);
         var robotsTxt = robotsTxtCache.get(baseURL);
@@ -98,8 +98,8 @@ public class StandardRobotsTxtProvider
             doc = new CrawlDoc(
                     new WebCrawlDocContext(robotsURL),
                     CachedInputStream.nullInputStream());
-            var response = fetcher.fetch(
-                    new HttpFetchRequest(doc, HttpMethod.GET));
+            var response = (WebFetchResponse) fetcher.fetch(
+                    new WebFetchRequest(doc, HttpMethod.GET));
 
             //TODO handle better?
 
@@ -113,11 +113,11 @@ public class StandardRobotsTxtProvider
                 doc = new CrawlDoc(
                         new WebCrawlDocContext(redirURL),
                         CachedInputStream.nullInputStream());
-                response = fetcher.fetch(
-                        new HttpFetchRequest(doc, HttpMethod.GET));
+                response = (WebFetchResponse) fetcher.fetch(
+                        new WebFetchRequest(doc, HttpMethod.GET));
             }
 
-            if (response.getStatusCode() == HttpStatus.SC_OK) {
+            if (response.getStatusCode() > 0) {
                 robotsTxt = parseRobotsTxt(
                         doc.getInputStream(), trimmedURL,
                         response.getUserAgent());

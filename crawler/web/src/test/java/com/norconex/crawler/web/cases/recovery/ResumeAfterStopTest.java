@@ -73,7 +73,7 @@ class ResumeAfterStopTest {
         var executor = Executors.newFixedThreadPool(2);
 
         //--- Launch ---
-        LOG.debug("Launching crawler in its own thread...");
+        LOG.debug("Launching crawler in a separate process...");
         var futureCrawlOutcome =
                 executor.submit(() -> ExternalCrawlSessionLauncher.start(cfg));
         LOG.debug("Crawler launched...");

@@ -8,6 +8,9 @@
     </Console>
   </Appenders>
   <Loggers>
+    <Logger name="com.norconex.crawler.web" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
     <Logger name="com.norconex.crawler.core" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>

@@ -26,7 +26,7 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
 import com.norconex.committer.core.CommitterException;
-import com.norconex.crawler.core.CrawlerConfig.OrphansStrategy;
+import com.norconex.crawler.core.CrawlConfig.OrphansStrategy;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;

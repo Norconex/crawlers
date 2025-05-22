@@ -56,7 +56,7 @@ public abstract class GridComputePipelineTest implements Serializable {
                         .processor(g -> new Store(g)
                                 .set("whatStage", g
                                         .getCompute()
-                                        .getActivePipelineStageIndex(
+                                        .getPipelineActiveStageIndex(
                                                 "test_pipelineA"))
                                 .addOne("itemC"))
                         .build()),
@@ -240,7 +240,7 @@ public abstract class GridComputePipelineTest implements Serializable {
         ConcurrentUtil.waitUntil(nodeCreated::get);
         var grid = cluster.getLastNodeCreated();
         while (grid.getCompute()
-                .getActivePipelineStageIndex("test_pipelineD") < 1) {
+                .getPipelineActiveStageIndex("test_pipelineD") < 1) {
             Sleeper.sleepMillis(100);
         }
 

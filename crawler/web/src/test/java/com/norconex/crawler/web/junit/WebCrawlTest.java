@@ -26,11 +26,11 @@ import java.util.function.Supplier;
 
 import org.jeasy.random.EasyRandom;
 
-import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.WebCrawlerSpecProvider;
+import com.norconex.crawler.web.WebCrawlDriverFactory;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.doc.operations.delay.impl.GenericDelayResolver;
 import com.norconex.crawler.web.junit.WebCrawlTest.WebConfigRandomizer;
@@ -40,7 +40,7 @@ import com.norconex.grid.local.LocalGridConnector;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.TYPE, ElementType.ANNOTATION_TYPE })
 @CrawlTest(
-    specProvider = WebCrawlerSpecProvider.class,
+    driverFactory = WebCrawlDriverFactory.class,
     randomizer = WebConfigRandomizer.class
 )
 //NOTE: Attributes copied from @CrawlTest
@@ -65,7 +65,7 @@ public @interface WebCrawlTest {
     String[] vars() default {};
 
     Class<? extends Consumer<
-            ? extends CrawlerConfig>> configModifier() default DefaultWebCrawlerConfigModifier.class;
+            ? extends CrawlConfig>> configModifier() default DefaultWebCrawlerConfigModifier.class;
 
     public static final class WebConfigRandomizer
             implements Supplier<EasyRandom> {

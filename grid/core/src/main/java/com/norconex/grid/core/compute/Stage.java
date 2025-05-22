@@ -20,25 +20,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.With;
 
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Getter
+@ToString
 public class Stage {
-
-    //    /**
-    //     * Conditionally execute this stage.
-    //     */
-    //    @With
-    //    private Predicate<Grid> onlyIf;
-
-    //    /**
-    //     * Code meant to run on one or more server nodes (when in a clustered
-    //     * environment).
-    //     */
-    //    @NonNull
-    //    private final GridTask task;
 
     /**
      * Provides a task meant to run on one or more server nodes (when in a
@@ -48,6 +37,7 @@ public class Stage {
      * new task instances to ensure thread-safety
      */
     @NonNull
+    @ToString.Exclude
     private final StageTaskProvider taskProvider;
 
     /**
@@ -84,7 +74,6 @@ public class Stage {
          * @param previousResult the output value of the previous stage task
          * @return the task to execute or {@code null}
          */
-        //TODO make it string only for now?
         GridTask get(Grid grid, TaskExecutionResult previousResult);
     }
 }

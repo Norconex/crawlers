@@ -73,7 +73,7 @@ class CrawlActivityChecker {
     }
 
     private boolean isQueueInitializedAndEmpty() {
-        var sessionStore = ctx.getSessionStore();
+        var sessionStore = ctx.getSessionProperties();
         var queueEmpty = isQueueEmpty();
         if (queueEmpty) {
             var queueInitialized = sessionStore.isQueueInitialized();

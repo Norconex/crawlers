@@ -34,7 +34,7 @@ public class RobotsMetaCreateStage extends AbstractImporterStage {
     @Override
     protected boolean executeStage(ImporterPipelineContext context) {
         var ctx = (WebImporterPipelineContext) context;
-        if (Web.config(ctx.getCrawlerContext())
+        if (Web.config(ctx.getCrawlContext())
                 .getRobotsMetaProvider() == null) {
             return true;
         }
@@ -42,7 +42,7 @@ public class RobotsMetaCreateStage extends AbstractImporterStage {
         try (var reader = new InputStreamReader(
                 context.getDoc().getInputStream(), StandardCharsets.UTF_8)) {
             ctx.setRobotsMeta(
-                    Web.config(ctx.getCrawlerContext())
+                    Web.config(ctx.getCrawlContext())
                             .getRobotsMetaProvider()
                             .getRobotsMeta(
                                     reader, ctx
@@ -53,10 +53,10 @@ public class RobotsMetaCreateStage extends AbstractImporterStage {
                                             .getContentType(),
                                     ctx.getDoc().getMetadata()));
             if (ctx.getRobotsMeta() != null) {
-                ctx.getCrawlerContext().fire(
+                ctx.getCrawlContext().fire(
                         CrawlerEvent.builder()
                                 .name(WebCrawlerEvent.EXTRACTED_ROBOTS_META)
-                                .source(ctx.getCrawlerContext())
+                                .source(ctx.getCrawlContext())
                                 .subject(ctx.getRobotsMeta())
                                 .docContext(ctx.getDoc().getDocContext())
                                 .build());

@@ -31,15 +31,15 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
-import com.norconex.grid.core.storage.GridMap;
+import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapContext;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapRecord;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapResolver;
-import com.norconex.crawler.web.fetch.HttpFetchRequest;
-import com.norconex.crawler.web.fetch.HttpFetchResponse;
-import com.norconex.crawler.web.fetch.HttpFetcher;
+import com.norconex.crawler.web.fetch.WebFetchRequest;
+import com.norconex.crawler.web.fetch.WebFetchResponse;
 import com.norconex.crawler.web.fetch.HttpMethod;
+import com.norconex.grid.core.storage.GridMap;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -160,19 +160,17 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
     }
 
     // Follow redirects
-    private HttpFetchResponse httpGet(
-            HttpFetcher fetcher,
-            CrawlDoc doc) throws IOException {
+    private WebFetchResponse httpGet(
+            Fetcher fetcher, CrawlDoc doc) throws IOException {
         return httpGet(fetcher, doc, 0);
     }
 
-    private HttpFetchResponse httpGet(
-            HttpFetcher fetcher,
-            CrawlDoc doc,
-            int loop) throws IOException {
+    private WebFetchResponse httpGet(
+            Fetcher fetcher, CrawlDoc doc, int loop) throws IOException {
 
         var location = doc.getReference();
-        var response = fetcher.fetch(new HttpFetchRequest(doc, HttpMethod.GET));
+        var response = (WebFetchResponse) fetcher.fetch(
+                new WebFetchRequest(doc, HttpMethod.GET));
         var redirectUrl = response.getRedirectTarget();
         if (StringUtils.isNotBlank(redirectUrl)
                 && !redirectUrl.equalsIgnoreCase(location)) {

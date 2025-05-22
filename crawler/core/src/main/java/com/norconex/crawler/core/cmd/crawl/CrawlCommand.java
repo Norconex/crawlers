@@ -26,8 +26,10 @@ import com.norconex.crawler.core.cmd.crawl.pipeline.CrawlPipelineFactory;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.metrics.CrawlerMetricsJMX;
 import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.session.CrawlState;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.compute.BaseGridTask;
+import com.norconex.grid.core.compute.GridTaskBuilder;
 import com.norconex.grid.core.compute.TaskState;
 import com.norconex.grid.core.util.ConcurrentUtil;
 
@@ -61,12 +63,22 @@ public class CrawlCommand implements Command {
                 .getCompute()
                 .executePipeline(CrawlPipelineFactory.create(ctx));
 
-        if (result.getState() == TaskState.COMPLETED) {
-            LOG.info("Crawler completed execution.");
-        } else {
-            LOG.info("Crawler execution failed or otherwise ended "
-                    + "before completion.");
+        // If there is a terminal crawl state already set, we use it, else
+        // we rely on pipeline last task state
+        if (ctx.getSessionProperties()
+                .getCrawlState()
+                .map(state -> !state.isTerminal())
+                .orElse(false)) {
+            if (result.getState() == TaskState.COMPLETED) {
+                updateCrawlState(ctx, CrawlState.COMPLETED);
+                LOG.info("Crawler completed execution.");
+            } else {
+                updateCrawlState(ctx, CrawlState.FAILED);
+                LOG.info("Crawler execution failed or otherwise ended "
+                        + "before completion.");
+            }
         }
+
         ctx.getGrid().getCompute().stopTask(PROGRESS_LOGGER_KEY);
         ConcurrentUtil.get(pendingLoggerStopped, 60, TimeUnit.SECONDS);
         ctx.fire(CrawlerEvent.CRAWLER_CRAWL_END);
@@ -76,6 +88,17 @@ public class CrawlCommand implements Command {
             LOG.info("Unregistering JMX crawler MBeans.");
             swallow(() -> CrawlerMetricsJMX.unregister(ctx));
         }
+    }
+
+    private void updateCrawlState(CrawlContext ctx, CrawlState state) {
+        ctx.getGrid().getCompute().executeTask(GridTaskBuilder
+                .create("updateCrawlState")
+                .singleNode()
+                .processor(grid -> CrawlContext
+                        .get(grid)
+                        .getSessionProperties()
+                        .updateCrawlState(state))
+                .build());
     }
 
     private void trackProgress(CrawlContext ctx) {
@@ -105,7 +128,7 @@ public class CrawlCommand implements Command {
         }
 
         @Override
-        public void stop() {
+        public void stop(Grid grid) {
             if (logger != null) {
                 logger.stop();
             }

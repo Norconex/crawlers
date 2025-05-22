@@ -36,24 +36,27 @@ public class FsCrawlDriverFactory implements Supplier<CrawlDriver> {
     @Override
     public CrawlDriver get() {
         return CrawlDriver.builder()
-                .fetchDriver(new FetchDriver()
-                        .responseAggregator((req,
-                                resps) -> (req instanceof FileFetchRequest
-                                        ? new AggregatedFileFetchResponse(resps)
-                                        : new AggregatedFolderPathsResponse(
-                                                resps)))
-                        .unsuccesfulResponseFactory(
-                                (state, msg, e) -> GenericFileFetchResponse
-                                        .builder()
-                                        .resolutionStatus(state)
-                                        .reasonPhrase(msg)
-                                        .exception(e)
-                                        .build()))
+                .fetchDriver(createFetchDriver())
                 .callbacks(CrawlCallbacks.builder()
                         .beforeCommand(new BeforeFsCommand())
                         .build())
                 .docPipelines(FsPipelines.create())
                 .docContextType(FsCrawlDocContext.class)
                 .build();
+    }
+
+    private static FetchDriver createFetchDriver() {
+        return new FetchDriver()
+                .responseAggregator(
+                        (req, resps) -> (req instanceof FileFetchRequest
+                                ? new AggregatedFileFetchResponse(resps)
+                                : new AggregatedFolderPathsResponse(resps)))
+                .unsuccesfulResponseFactory(
+                        (state, msg, e) -> GenericFileFetchResponse
+                                .builder()
+                                .resolutionStatus(state)
+                                .reasonPhrase(msg)
+                                .exception(e)
+                                .build());
     }
 }

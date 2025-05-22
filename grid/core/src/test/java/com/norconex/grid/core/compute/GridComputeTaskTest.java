@@ -239,7 +239,7 @@ public abstract class GridComputeTaskTest implements Serializable {
         }
 
         @Override
-        public void stop() {
+        public void stop(Grid grid) {
             stopRequested = true;
         }
     }

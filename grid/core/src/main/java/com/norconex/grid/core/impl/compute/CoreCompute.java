@@ -102,17 +102,7 @@ public class CoreCompute implements GridCompute {
 
     // -1 if none active
     @Override
-    public int getActivePipelineStageIndex(String pipelineId) {
+    public int getPipelineActiveStageIndex(String pipelineId) {
         return pipeCoord.getActiveStageIndex(pipelineId);
     }
-
-    //    public void close() {
-    //        if (dispatcher != null)
-    //            try {
-    //                dispatcher.close();
-    //            } catch (IOException e) {
-    //                // TODO Auto-generated catch block
-    //                e.printStackTrace();
-    //            }
-    //    }
 }

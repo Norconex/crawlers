@@ -37,5 +37,5 @@ public interface GridCompute {
 
     void stopPipeline(@NonNull String pipelineId);
 
-    int getActivePipelineStageIndex(@NonNull String pipelineId);
+    int getPipelineActiveStageIndex(@NonNull String pipelineId);
 }

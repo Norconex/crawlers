@@ -27,7 +27,7 @@ final class LinkUtil {
      * Extracts the URL portion of an http-equiv refresh content attribute.
      * E.g.: &lt;meta http-equiv="refresh" content="...">
      * @param contentAttrib content attribute value
-     * @return the extracted URL, or <code>null</code>
+     * @return the extracted URL, or {@code null}
      */
     static String extractHttpEquivRefreshContentUrl(String contentAttrib) {
         return Optional.ofNullable(contentAttrib)

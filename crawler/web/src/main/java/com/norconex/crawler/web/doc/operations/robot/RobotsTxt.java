@@ -65,7 +65,7 @@ public class RobotsTxt {
 
     /**
      * Gets "Disallow" filters.
-     * @return disallow filters (never <code>null</code>)
+     * @return disallow filters (never {@code null})
      * @since 2.4.0
      */
     public List<RobotsTxtFilter> getDisallowFilters() {
@@ -74,7 +74,7 @@ public class RobotsTxt {
 
     /**
      * Gets "Allow" filters.
-     * @return allow filters (never <code>null</code>)
+     * @return allow filters (never {@code null})
      * @since 2.4.0
      */
     public List<RobotsTxtFilter> getAllowFilters() {

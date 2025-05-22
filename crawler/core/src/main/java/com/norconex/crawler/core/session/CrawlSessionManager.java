@@ -71,7 +71,7 @@ public final class CrawlSessionManager {
             // Schedule heartbeats at interval
             final var finalCtx = ctx;
             heartbeatScheduler.scheduleAtFixedRate(
-                    () -> updateHeartbeat(finalCtx, session),
+                    () -> updateHeartbeat(finalCtx),
                     0,
                     SESSION_HEARTBEAT_INTERVAL.toMillis(),
                     TimeUnit.MILLISECONDS);
@@ -84,22 +84,20 @@ public final class CrawlSessionManager {
         }
     }
 
-    private static void updateHeartbeat(
-            CrawlContext ctx, CrawlSession session) {
+    private static void updateHeartbeat(CrawlContext ctx) {
         // Used pretty much only for joining node to figure out the job
         // status (if one exists, is running, etc.).
         ctx.getGrid().getCompute().executeTask(GridTaskBuilder
                 .create("crawlerRunningHeartbeat")
                 .singleNode()
-                .processor(grid -> sessionStore(grid).put(SESSION_STORE_KEY,
-                        session))
+                .processor(grid -> sessionStore(grid)
+                        .update(ctx.getId(),
+                                sess -> sess.setLastUpdated(
+                                        System.currentTimeMillis())))
                 .build());
-        session.setLastUpdated(System.currentTimeMillis());
-        sessionStore(ctx.getGrid()).put(ctx.getId(), session);
     }
 
     static GridMap<CrawlSession> sessionStore(Grid grid) {
         return grid.getStorage().getMap(SESSION_STORE_KEY, CrawlSession.class);
     }
-
 }

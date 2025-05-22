@@ -20,15 +20,15 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import java.util.List;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.util.Web;
 
 class GenericSitemapLocatorTest {
 
     @WebCrawlTest(focus = Focus.CONTEXT)
-    void testGenericSitemapLocator(CrawlerContext ctx) {
+    void testGenericSitemapLocator(CrawlContext ctx) {
 
         var locator = new GenericSitemapLocator();
         assertThat(locator.getConfiguration().getPaths()).contains(

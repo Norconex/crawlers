@@ -30,7 +30,7 @@ import org.mockserver.model.MediaType;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.crawler.core.CrawlerConfig.OrphansStrategy;
+import com.norconex.crawler.core.CrawlConfig.OrphansStrategy;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapResolver;
 import com.norconex.crawler.web.junit.WebCrawlTest;

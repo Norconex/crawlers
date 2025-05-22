@@ -120,7 +120,8 @@ final class CrawlContextFactory {
                 .importer(new Importer(
                         config.getImporterConfig(), eventManager))
                 .resumeState(session.getResumeState())
-                .sessionStore(new SessionStore(grid))
+                .sessionProperties(
+                        new CrawlSessionProperties(grid, config.getId()))
                 .streamFactory(new CachedStreamFactory(
                         (int) config.getMaxStreamCachePoolSize(),
                         (int) config.getMaxStreamCacheSize(),

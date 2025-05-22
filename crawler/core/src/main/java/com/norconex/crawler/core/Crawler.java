@@ -95,10 +95,9 @@ public class Crawler {
 
     public void stop() {
         // Since we are stopping we are not initializing
-        // the context and not formally connecting to the grid
+        // the context and not explicitly connecting to the grid
         var gridWorkDir = ConfigUtil
                 .resolveWorkDir(crawlConfig).resolve(GRID_WORKDIR_NAME);
-        //TODO Provide task context instead of null
         crawlConfig.getGridConnector().shutdownGrid(
                 new BaseGridContext(gridWorkDir));
     }
@@ -122,19 +121,6 @@ public class Crawler {
         validateConfig(crawlConfig);
         LogUtil.logCommandIntro(LOG, crawlConfig);
         LOG.info("Executing command: {}", command.getClass().getSimpleName());
-
         sessionManager.withCrawlContext(command::execute);
-        //
-        //        var workDir = ConfigUtil.resolveWorkDir(crawlConfig);
-        //        try (var grid = crawlConfig
-        //                .getGridConnector()
-        //                .connect(workDir.resolve(GRID_WORKDIR_NAME))) {
-        //            // grid auto closes
-        //            try (var ctx = new CrawlContext(crawlDriver, crawlConfig, grid)) {
-        //                ctx.init();
-        //                command.execute(ctx);
-        //            }
-        //        }
     }
-
 }

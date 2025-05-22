@@ -26,8 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 final class CrawlSessionResolver {
 
-    private static final String SESSION_STORE_KEY = "crawlSession";
-
     private CrawlSessionResolver() {
     }
 
@@ -66,6 +64,10 @@ final class CrawlSessionResolver {
             } else {
                 LOG.info("Joining crawl session for crawler {}.", id);
             }
+        } else if (session.getCrawlState() == CrawlState.PAUSED) {
+            LOG.info("A previously paused crawl session was detected for. "
+                    + "crawler {}. Resuming it.", id);
+            session.setResumeState(ResumeState.RESUMED);
         } else if (session.getCrawlState() == CrawlState.COMPLETED) {
             LOG.info("A previously completed crawl session was detected for. "
                     + "crawler {}. Starting a new incremental crawl session.",
@@ -82,7 +84,7 @@ final class CrawlSessionResolver {
 
         session.setCrawlState(CrawlState.RUNNING);
         session.setLastUpdated(System.currentTimeMillis());
-        sessionStore.put(SESSION_STORE_KEY, session);
+        sessionStore.put(id, session);
         return session;
     }
 }

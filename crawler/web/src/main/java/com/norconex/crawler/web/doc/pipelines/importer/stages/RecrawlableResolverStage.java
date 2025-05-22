@@ -40,7 +40,7 @@ public class RecrawlableResolverStage extends AbstractImporterStage {
             return true;
         }
 
-        var crawlerCtx = pipeCtx.getCrawlerContext();
+        var crawlerCtx = pipeCtx.getCrawlContext();
         var rr = Web.config(crawlerCtx).getRecrawlableResolver();
         if (rr == null) {
             // no resolver means we process it.
@@ -77,7 +77,7 @@ public class RecrawlableResolverStage extends AbstractImporterStage {
                 crawlerCtx.getDocLedger()
                         .getCached(cachedDocContext.getRedirectTarget())
                         .ifPresent(targetDocInfo -> crawlerCtx
-                                .getPipelines()
+                                .getDocPipelines()
                                 .getQueuePipeline()
                                 .accept(new QueuePipelineContext(
                                         crawlerCtx, targetDocInfo)));

@@ -34,9 +34,9 @@ public enum SitemapChangeFrequency {
     /**
      * Gets the sitemap change frequency matching the supplied string.
      * Has the same effect as {@link #valueOf(String)} except that it will
-     * return <code>null</code> when no matches are found.
+     * return {@code null} when no matches are found.
      * @param frequency change frequency
-     * @return the matching sitemap change frequency, or <code>null</code>
+     * @return the matching sitemap change frequency, or {@code null}
      */
     public static SitemapChangeFrequency of(String frequency) {
         if (StringUtils.isBlank(frequency)) {

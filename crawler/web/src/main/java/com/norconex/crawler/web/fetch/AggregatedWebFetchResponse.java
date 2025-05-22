@@ -16,7 +16,8 @@ package com.norconex.crawler.web.fetch;
 
 import java.util.List;
 
-import com.norconex.crawler.core.fetch.MultiFetchResponse;
+import com.norconex.crawler.core.fetch.FetchResponse;
+import com.norconex.crawler.core.fetch.AggregatedFetchResponse;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -28,23 +29,27 @@ import lombok.ToString;
  */
 @EqualsAndHashCode
 @ToString
-public class HttpMultiFetchResponse
-        extends MultiFetchResponse<HttpFetchResponse>
-        implements HttpFetchResponse {
+public class AggregatedWebFetchResponse
+        extends AggregatedFetchResponse
+        implements WebFetchResponse {
 
-    public HttpMultiFetchResponse(List<HttpFetchResponse> fetchResponses) {
+    public AggregatedWebFetchResponse(List<FetchResponse> fetchResponses) {
         super(fetchResponses);
     }
 
     @Override
     public String getRedirectTarget() {
-        return getLastFetchResponse().map(
-                HttpFetchResponse::getRedirectTarget).orElse(null);
+        return getLastFetchResponse()
+                .map(WebFetchResponse.class::cast)
+                .map(WebFetchResponse::getRedirectTarget)
+                .orElse(null);
     }
 
     @Override
     public String getUserAgent() {
-        return getLastFetchResponse().map(
-                HttpFetchResponse::getUserAgent).orElse(null);
+        return getLastFetchResponse()
+                .map(WebFetchResponse.class::cast)
+                .map(WebFetchResponse::getUserAgent)
+                .orElse(null);
     }
 }

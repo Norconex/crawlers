@@ -54,7 +54,7 @@ public class CanonicalStage extends AbstractImporterStage {
         var ctx = (WebImporterPipelineContext) context;
 
         var detector =
-                Web.config(ctx.getCrawlerContext()).getCanonicalLinkDetector();
+                Web.config(ctx.getCrawlContext()).getCanonicalLinkDetector();
 
         //Return right away if canonical links are ignored or no detector.
         if (detector == null) {
@@ -108,7 +108,7 @@ public class CanonicalStage extends AbstractImporterStage {
         }
 
         var detector =
-                Web.config(ctx.getCrawlerContext()).getCanonicalLinkDetector();
+                Web.config(ctx.getCrawlContext()).getCanonicalLinkDetector();
         var docRec = (WebCrawlDocContext) ctx.getDoc().getDocContext();
         String reference = docRec.getReference();
 
@@ -119,7 +119,7 @@ public class CanonicalStage extends AbstractImporterStage {
         // normalization after a few other steps.
         var normalizedCanURL = WebUrlNormalizer.normalizeURL(
                 canURL,
-                Web.config(ctx.getCrawlerContext()).getUrlNormalizers());
+                Web.config(ctx.getCrawlContext()).getUrlNormalizers());
         if (normalizedCanURL == null) {
             LOG.info("""
                     Canonical URL detected is null after\s\
@@ -157,41 +157,39 @@ public class CanonicalStage extends AbstractImporterStage {
         newRecord.setReferrerReference(reference);
 
         var scopedUrlCtx = new WebCrawlDocContext(canURL);
-        var urlScope = Web.config(ctx.getCrawlerContext())
+        var urlScope = Web.config(ctx.getCrawlContext())
                 .getUrlScopeResolver()
                 .resolve(docRec.getReference(), scopedUrlCtx);
-        Web.fireIfUrlOutOfScope(ctx.getCrawlerContext(), scopedUrlCtx,
+        Web.fireIfUrlOutOfScope(ctx.getCrawlContext(), scopedUrlCtx,
                 urlScope);
         if (!urlScope.isInScope()) {
-            LOG.debug(
-                    "Canonical URL is out of scope and will be ignored: "
-                            + canURL);
+            LOG.debug("Canonical URL is out of scope and will be ignored: "
+                    + canURL);
             return true;
         }
         // Call Queue pipeline on Canonical URL
         LOG.debug(
                 """
-                        Canonical URL detected is different than\s\
-                        document URL. Document will be rejected while\s\
-                        canonical URL will be queued for processing: {}""",
+                Canonical URL detected is different than\s\
+                document URL. Document will be rejected while\s\
+                canonical URL will be queued for processing: {}""",
                 canURL);
 
-        ctx.getCrawlerContext()
-                .getPipelines()
+        ctx.getCrawlContext()
+                .getDocPipelines()
                 .getQueuePipeline()
-                .accept(new QueuePipelineContext(ctx.getCrawlerContext(),
+                .accept(new QueuePipelineContext(ctx.getCrawlContext(),
                         newRecord));
 
         docRec.setState(CrawlDocStatus.REJECTED);
-        ctx.getCrawlerContext().fire(
+        ctx.getCrawlContext().fire(
                 CrawlerEvent.builder()
                         .name(WebCrawlerEvent.REJECTED_NONCANONICAL)
-                        .source(ctx.getCrawlerContext())
+                        .source(ctx.getCrawlContext())
                         .subject(detector)
                         .docContext(docRec)
-                        .message(
-                                detector.getClass().getSimpleName()
-                                        + "[canonical=" + canURL + "]")
+                        .message(detector.getClass().getSimpleName()
+                                + "[canonical=" + canURL + "]")
                         .build());
         return false;
     }

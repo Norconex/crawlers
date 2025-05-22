@@ -29,11 +29,4 @@ public interface GridContext {
      * @return working directory
      */
     Path getWorkDir();
-
-    //    /**
-    //     * Supplies a task context created once per node and shared across all
-    //     * tasks executed on that node.
-    //     * @return task context
-    //     */
-    //    Function<Grid, Object> getTaskContextProvider();
 }

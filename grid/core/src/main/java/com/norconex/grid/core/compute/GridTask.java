@@ -59,10 +59,13 @@ public interface GridTask extends Serializable {
     TaskExecutionResult aggregate(List<TaskExecutionResult> results);
 
     /**
+     * <p>
      * Request for the task to stop. The request can be asynchronous and return
      * right away whether it actually stopped or not. In fact, it is not
-     * required for all tasks to be stoppable. Some will ignore the request
+     * required for a tasks to be stoppable. Some will ignore the request
      * and run until completion (especially short tasks).
+     * </p>
+     * @param grid the grid instance executing this task
      */
-    void stop();
+    void stop(Grid grid);
 }

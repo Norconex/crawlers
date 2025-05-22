@@ -182,7 +182,6 @@ public class Worker {
     public void setPipelineDone(
             String pipelineId, TaskExecutionResult result) {
         donePipelines.put(pipelineId, result);
-        System.err.println();
         LOG.debug("Node {} received notification of pipeline done: {}",
                 grid.getNodeAddress(), pipelineId);
     }
@@ -222,7 +221,7 @@ public class Worker {
         if (isNodeTaskStopRequested(task.getId())) {
             LOG.info("Node {} received request to stop task {}. Task notified.",
                     grid.getNodeAddress(), task.getId());
-            task.stop();
+            task.stop(grid);
         }
     }
 

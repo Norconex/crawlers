@@ -40,7 +40,7 @@ public class PostImportLinksStage
 
     @Override
     public boolean test(CommitterPipelineContext ctx) {
-        var cfg = Web.config(ctx.getCrawlerContext());
+        var cfg = Web.config(ctx.getCrawlContext());
 
         var fieldMatcher = cfg.getPostImportLinks();
         if (StringUtils.isBlank(fieldMatcher.getPattern())) {
@@ -77,10 +77,10 @@ public class PostImportLinksStage
         extractedURLs.addAll(inScopeUrls);
         docRecord.setReferencedUrls(new ArrayList<>(extractedURLs));
 
-        ctx.getCrawlerContext().fire(
+        ctx.getCrawlContext().fire(
                 CrawlerEvent.builder()
                         .name(WebCrawlerEvent.URLS_POST_IMPORTED)
-                        .source(ctx.getCrawlerContext())
+                        .source(ctx.getCrawlContext())
                         .subject(inScopeUrls)
                         .docContext(ctx.getDoc().getDocContext())
                         .build());
@@ -90,7 +90,7 @@ public class PostImportLinksStage
     private void handlePostImportLink(
             CommitterPipelineContext ctx, Set<String> inScopeUrls, String url) {
 
-        var cfg = Web.config(ctx.getCrawlerContext());
+        var cfg = Web.config(ctx.getCrawlContext());
         var doc = ctx.getDoc();
         var docRecord = (WebCrawlDocContext) ctx.getDoc().getDocContext();
 
@@ -98,7 +98,7 @@ public class PostImportLinksStage
             var scopedUrlCtx = new WebCrawlDocContext(url);
             var urlScope = cfg.getUrlScopeResolver().resolve(
                     doc.getReference(), scopedUrlCtx);
-            Web.fireIfUrlOutOfScope(ctx.getCrawlerContext(), scopedUrlCtx,
+            Web.fireIfUrlOutOfScope(ctx.getCrawlContext(), scopedUrlCtx,
                     urlScope);
             if (urlScope.isInScope()) {
                 LOG.trace("Post-import URL in crawl scope: {}", url);
@@ -107,11 +107,11 @@ public class PostImportLinksStage
                     var newDocRec = new WebCrawlDocContext(
                             url, docRecord.getDepth() + 1);
                     newDocRec.setReferrerReference(doc.getReference());
-                    ctx.getCrawlerContext()
-                            .getPipelines()
+                    ctx.getCrawlContext()
+                            .getDocPipelines()
                             .getQueuePipeline()
                             .accept(new QueuePipelineContext(
-                                    ctx.getCrawlerContext(),
+                                    ctx.getCrawlContext(),
                                     docRecord));
                     String afterQueueURL = newDocRec.getReference();
                     if (!url.equals(afterQueueURL)) {

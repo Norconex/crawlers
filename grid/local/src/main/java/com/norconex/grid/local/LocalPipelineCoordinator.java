@@ -90,7 +90,7 @@ public class LocalPipelineCoordinator {
                         if (ctx.isStopRequested()) {
                             // the next stage directives will also prevent from
                             // running the next stage.
-                            ctx.getActiveTask().stop();
+                            ctx.getActiveTask().stop(grid);
                         }
                     }
                 },

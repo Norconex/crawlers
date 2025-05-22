@@ -31,6 +31,7 @@ import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.crawler.core.fetch.BaseFetcherConfig;
 
 import lombok.Data;
+import lombok.NonNull;
 import lombok.experimental.Accessors;
 
 /**
@@ -71,7 +72,7 @@ public class WebDriverFetcherConfig extends BaseFetcherConfig {
      */
     private Browser browser = Browser.FIREFOX;
     /**
-     * Local path to driver executable or <code>null</code> to attempt
+     * Local path to driver executable or {@code null} to attempt
      * automatic detection of the driver path.
      * See web driver vendor documentation for the location facilitating
      * detection.
@@ -80,7 +81,7 @@ public class WebDriverFetcherConfig extends BaseFetcherConfig {
      */
     private Path driverPath;
     /**
-     * Local path to browser executable or <code>null</code> to attempt
+     * Local path to browser executable or {@code null} to attempt
      * automatic browser path detection. See browser vendor documentation
      * for the expected browser installed location.
      * Use {@link #setRemoteURL(URL)} instead when using
@@ -174,6 +175,32 @@ public class WebDriverFetcherConfig extends BaseFetcherConfig {
      * Default 'type' is 'tagName'.
      */
     private Duration waitForElementTimeout;
+
+    /**
+     * A maximum number of navigations at which we restart the browser. Applies
+     * to individual browser instances, typically one per crawl threads.
+     * After a while, browsers can accumulate a lot of data in memory and
+     * may start performing poorly or cause other issues. Restarting
+     * may help.
+     * Default is {@code -1} for unlimited navigation (no restart)
+     */
+    private int browserMaxNavigations;
+    /**
+     * A maximum duration at which we restart the browser. Applies
+     * to individual browser instances, typically one per crawl threads.
+     * After a while, browsers can accumulate a lot of data in memory and
+     * may start performing poorly or cause other issues. Restarting
+     * may help.
+     * Default is {@code null} (no restart)
+     */
+    private Duration browserMaxAge;
+    /**
+     * Amount of time between each check for unused browser instances and
+     * closing them.
+     * Defaults to 30 seconds. Cannot be {@code null}.
+     */
+    @NonNull
+    private Duration cleanupInterval = Duration.ofSeconds(30);
 
     /**
      * Gets optional capabilities (configuration options) for the web driver.

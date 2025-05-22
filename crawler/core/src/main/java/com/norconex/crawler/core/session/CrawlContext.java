@@ -91,7 +91,7 @@ public class CrawlContext {
     private final Class<? extends CrawlDocContext> docContextType;
     private final ResumeState resumeState;
     private final CrawlMode crawlMode;
-    private final SessionStore sessionStore;
+    private final CrawlSessionProperties sessionProperties;
     private final ScopedThreadFactoryCreator threadFactoryCreator;
 
     //--- Convenience methods --------------------------------------------------

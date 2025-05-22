@@ -22,16 +22,15 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.grid.core.storage.GridMap;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxt;
 import com.norconex.crawler.web.doc.operations.scope.UrlScope;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
-import com.norconex.crawler.web.fetch.HttpFetcher;
+import com.norconex.grid.core.storage.GridMap;
 
 import lombok.NonNull;
 
@@ -41,14 +40,14 @@ public final class Web {
     }
 
     public static <T> GridMap<T> gridCache(
-            @NonNull CrawlerContext crawlerContext,
+            @NonNull CrawlContext crawlContext,
             @NonNull String name,
             @NonNull Class<? extends T> type) {
-        return crawlerContext.getGrid().getStorage().getMap(name, type);
+        return crawlContext.getGrid().getStorage().getMap(name, type);
     }
 
     public static void fireIfUrlOutOfScope(
-            CrawlerContext crawler,
+            CrawlContext crawler,
             WebCrawlDocContext docContext,
             UrlScope urlScope) {
         if (!urlScope.isInScope()) {
@@ -63,12 +62,8 @@ public final class Web {
         }
     }
 
-    public static WebCrawlerConfig config(CrawlerContext crawlerContext) {
-        return (WebCrawlerConfig) crawlerContext.getConfiguration();
-    }
-
-    public static HttpFetcher fetcher(CrawlerContext crawlerContext) {
-        return (HttpFetcher) crawlerContext.getFetcher();
+    public static WebCrawlerConfig config(CrawlContext crawlContext) {
+        return (WebCrawlerConfig) crawlContext.getCrawlConfig();
     }
 
     public static WebCrawlDocContext docContext(@NonNull CrawlDoc crawlDoc) {
@@ -80,13 +75,10 @@ public final class Web {
         return (WebCrawlDocContext) crawlDoc.getCachedDocContext();
     }
 
-    public static RobotsTxt robotsTxt(CrawlerContext crawler,
-            String reference) {
+    public static RobotsTxt robotsTxt(CrawlContext crawler, String reference) {
         var cfg = Web.config(crawler);
         return Optional.ofNullable(cfg.getRobotsTxtProvider())
-                .map(rb -> rb.getRobotsTxt(
-                        (HttpFetcher) crawler.getFetcher(),
-                        reference))
+                .map(rb -> rb.getRobotsTxt(crawler.getFetcher(), reference))
                 .orElse(null);
     }
 
@@ -122,10 +114,10 @@ public final class Web {
      * first element encountered.
      * No attempt is made to first create a DOM model, so the string argument
      * does not have to be fully "valid" XML/HTML.
-     * If the attribute string is <code>null</code> or produces no match,
+     * If the attribute string is {@code null} or produces no match,
      * an empty {@link Properties} is returned.
      * @param attribsStr the string containing attributes
-     * @return attributes (never <code>null</code>)
+     * @return attributes (never {@code null})
      */
     public static Properties parseDomAttributes(String attribsStr) {
         return parseDomAttributes(attribsStr, false);
@@ -139,12 +131,12 @@ public final class Web {
      * first element encountered.
      * No attempt is made to first create a DOM model, so the string argument
      * does not have to be fully "valid" XML/HTML.
-     * If the attribute string is <code>null</code> or produces no match,
+     * If the attribute string is {@code null} or produces no match,
      * an empty {@link Properties} is returned.
      * @param attribsStr the string containing attributes
      * @param caseInsensitive whether the return properties
      *     has case-insensitive keys
-     * @return attributes (never <code>null</code>)
+     * @return attributes (never {@code null})
      */
     public static Properties parseDomAttributes(
             String attribsStr, boolean caseInsensitive) {

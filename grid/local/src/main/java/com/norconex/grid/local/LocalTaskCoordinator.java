@@ -102,7 +102,7 @@ public class LocalTaskCoordinator {
     void stopTask(String taskId) {
         for (Entry<String, GridTask> entry : activeTasks.entrySet()) {
             if ((taskId == null || entry.getKey().equals(taskId))) {
-                entry.getValue().stop();
+                entry.getValue().stop(grid);
             }
         }
     }

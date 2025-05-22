@@ -126,7 +126,7 @@ public class QueueBootstrapper implements CrawlBootstrapper {
                 Thread.currentThread().setName(ctx.getCrawlContext().getId());
                 callback.accept(ctx);
                 ctx.getCrawlContext()
-                        .getSessionStore()
+                        .getSessionProperties()
                         .setQueueInitialized(true);
             });
         } finally {
@@ -144,6 +144,6 @@ public class QueueBootstrapper implements CrawlBootstrapper {
             Consumer<QueueBootstrapContext> callback,
             QueueBootstrapContext ctx) {
         callback.accept(ctx);
-        ctx.getCrawlContext().getSessionStore().setQueueInitialized(true);
+        ctx.getCrawlContext().getSessionProperties().setQueueInitialized(true);
     }
 }

@@ -91,7 +91,11 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
 
     @Getter
     private final HttpSnifferConfig configuration = new HttpSnifferConfig();
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private final HttpProxyServer proxyServer;
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private final Host proxyHost;
 
     public HttpSniffer() {
@@ -125,6 +129,7 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
         proxyServer.stop();
     }
 
+    @JsonIgnore
     public InetSocketAddress getAddress() {
         return new InetSocketAddress(proxyHost.getName(), proxyHost.getPort());
     }

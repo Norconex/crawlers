@@ -38,7 +38,7 @@ import lombok.ToString;
  * </p>
  * <p>
  * This class is in effect by default. To skip its usage, you
- * can explicitly set the URL Normalizer to <code>null</code> in the
+ * can explicitly set the URL Normalizer to {@code null} in the
  * {@link WebCrawlerConfig}.
  * </p>
  * <p>

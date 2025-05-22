@@ -16,8 +16,8 @@ package com.norconex.crawler.web.junit;
 
 import com.norconex.crawler.core.junit.CrawlTestCapturer;
 import com.norconex.crawler.core.junit.CrawlTestCapturer.CrawlCaptures;
+import com.norconex.crawler.web.WebCrawlDriverFactory;
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.WebCrawlerSpecProvider;
 
 public final class WebCrawlTestCapturer {
 
@@ -26,6 +26,6 @@ public final class WebCrawlTestCapturer {
 
     public static CrawlCaptures crawlAndCapture(WebCrawlerConfig config) {
         return CrawlTestCapturer.crawlAndCapture(
-                config, WebCrawlerSpecProvider.class);
+                config, WebCrawlDriverFactory.create());
     }
 }

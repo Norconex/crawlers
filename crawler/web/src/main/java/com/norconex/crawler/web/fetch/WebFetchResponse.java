@@ -20,7 +20,7 @@ import com.norconex.crawler.core.fetch.FetchResponse;
  * HTTP response information obtained from fetching a document.
  * @since 4.0.0
  */
-public interface HttpFetchResponse extends FetchResponse {
+public interface WebFetchResponse extends FetchResponse {
     String getUserAgent();
 
     String getRedirectTarget();

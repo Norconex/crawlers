@@ -17,16 +17,16 @@ package com.norconex.crawler.web.mocks;
 import java.nio.file.Path;
 
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
-import com.norconex.crawler.web.WebCrawlerSpecProvider;
+import com.norconex.crawler.web.WebCrawlDriverFactory;
 
 /**
  * Same as {@link MockCrawlerBuilder}, but defaults to
- * {@link WebCrawlerSpecProvider}.
+ * {@link WebCrawlDriverFactory}.
  */
 public final class MockWebCrawlerBuilder extends MockCrawlerBuilder {
 
     public MockWebCrawlerBuilder(Path workDir) {
         super(workDir);
-        specProviderClass(WebCrawlerSpecProvider.class);
+        crawlDriver(WebCrawlDriverFactory.create());
     }
 }

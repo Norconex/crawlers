@@ -248,7 +248,7 @@ public final class ApacheHttpUtil {
     /**
      * Creates an HTTP request.
      * @param url the request target URL
-     * @param method HTTP method (defaults to GET if <code>null</code>)
+     * @param method HTTP method (defaults to GET if {@code null})
      * @return Apache HTTP request
      */
     public static HttpUriRequestBase createUriRequest(
@@ -260,7 +260,7 @@ public final class ApacheHttpUtil {
     /**
      * Creates an HTTP request.
      * @param url the request target URL
-     * @param method HTTP method (defaults to GET if <code>null</code>)
+     * @param method HTTP method (defaults to GET if {@code null})
      * @return Apache HTTP request
      */
     public static HttpUriRequestBase createUriRequest(

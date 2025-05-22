@@ -33,7 +33,7 @@ public class UrlStatusCrawlerEventListenerConfig {
 
     /**
      * The coma-separated list of status codes to listen to.
-     * Default is <code>null</code> (listens for all status codes).
+     * Default is {@code null} (listens for all status codes).
      * See class documentation for how to specify code ranges.
      */
     private String statusCodes;

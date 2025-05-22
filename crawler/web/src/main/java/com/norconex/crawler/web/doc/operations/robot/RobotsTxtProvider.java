@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.doc.operations.robot;
 
-import com.norconex.crawler.web.fetch.HttpFetcher;
+import com.norconex.crawler.core.fetch.Fetcher;
 
 /**
  * Given a URL, extract any "robots.txt" rules. Implementations are expected
@@ -30,6 +30,6 @@ public interface RobotsTxtProvider {
      * @param url the URL to derive the robots.txt from
      * @return robots.txt rules
      */
-    RobotsTxt getRobotsTxt(HttpFetcher fetchClient, String url);
+    RobotsTxt getRobotsTxt(Fetcher fetchClient, String url);
 
 }

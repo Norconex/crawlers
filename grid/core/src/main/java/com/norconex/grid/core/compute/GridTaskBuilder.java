@@ -121,11 +121,11 @@ public final class GridTaskBuilder implements Serializable {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void stop() {
+            public void stop(Grid grid) {
                 if (stopHandler != null) {
                     stopHandler.run();
                 } else {
-                    super.stop();
+                    super.stop(grid);
                 }
             }
 

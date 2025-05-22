@@ -55,7 +55,7 @@ public class GenericRecrawlableResolverConfig {
     }
 
     /**
-     * The sitemap support strategy. A <code>null</code> value
+     * The sitemap support strategy. A {@code null} value
      * is equivalent to specifying the default {@link SitemapSupport#FIRST}.
      */
     private SitemapSupport sitemapSupport = SitemapSupport.FIRST;

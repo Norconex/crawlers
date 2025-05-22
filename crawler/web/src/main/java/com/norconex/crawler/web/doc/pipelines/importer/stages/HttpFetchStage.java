@@ -28,9 +28,8 @@ import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchUtil;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.pipelines.importer.WebImporterPipelineUtil;
-import com.norconex.crawler.web.fetch.HttpFetchRequest;
-import com.norconex.crawler.web.fetch.HttpFetchResponse;
-import com.norconex.crawler.web.fetch.HttpFetcher;
+import com.norconex.crawler.web.fetch.WebFetchRequest;
+import com.norconex.crawler.web.fetch.WebFetchResponse;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.importer.doc.DocMetaConstants;
 
@@ -62,21 +61,19 @@ public class HttpFetchStage extends AbstractImporterStage {
         }
 
         var docRecord = ctx.getDoc().getDocContext();
-        var fetcher = (HttpFetcher) ctx.getCrawlerContext().getFetcher();
+        var fetcher = ctx.getCrawlContext().getFetcher();
 
         var httpMethod = FetchDirective.METADATA.is(getFetchDirective())
                 ? HttpMethod.HEAD
                 : HttpMethod.GET;
 
-        HttpFetchResponse response;
+        WebFetchResponse response;
         try {
-            response = fetcher.fetch(
-                    new HttpFetchRequest(ctx.getDoc(), httpMethod));
+            response = (WebFetchResponse) fetcher.fetch(
+                    new WebFetchRequest(ctx.getDoc(), httpMethod));
         } catch (FetchException e) {
-            throw new CrawlerException(
-                    "Could not fetch URL: "
-                            + ctx.getDoc().getDocContext().getReference(),
-                    e);
+            throw new CrawlerException("Could not fetch URL: "
+                    + ctx.getDoc().getDocContext().getReference(), e);
         }
         var originalCrawlDocState = docRecord.getState();
 
@@ -103,27 +100,25 @@ public class HttpFetchStage extends AbstractImporterStage {
         //TODO really do here??  or just do it if different than response?
         docRecord.setState(state);
         if (CrawlDocStatus.UNMODIFIED.equals(state)) {
-            ctx.getCrawlerContext().fire(
+            ctx.getCrawlContext().fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.REJECTED_UNMODIFIED)
-                            .source(ctx.getCrawlerContext())
+                            .source(ctx.getCrawlContext())
                             .subject(response)
                             .docContext(docRecord)
                             .build());
             return false;
         }
         if (state.isGoodState()) {
-            ctx.getCrawlerContext().fire(
-                    CrawlerEvent.builder()
-                            .name(
-                                    FetchDirective.METADATA
-                                            .is(getFetchDirective())
-                                                    ? CrawlerEvent.DOCUMENT_METADATA_FETCHED
-                                                    : CrawlerEvent.DOCUMENT_FETCHED)
-                            .source(ctx.getCrawlerContext())
-                            .subject(response)
-                            .docContext(docRecord)
-                            .build());
+            ctx.getCrawlContext().fire(CrawlerEvent.builder()
+                    .name(FetchDirective.METADATA.is(
+                            getFetchDirective())
+                                    ? CrawlerEvent.DOCUMENT_METADATA_FETCHED
+                                    : CrawlerEvent.DOCUMENT_FETCHED)
+                    .source(ctx.getCrawlContext())
+                    .subject(response)
+                    .docContext(docRecord)
+                    .build());
             return true;
         }
 
@@ -134,10 +129,10 @@ public class HttpFetchStage extends AbstractImporterStage {
             eventType = CrawlerEvent.REJECTED_BAD_STATUS;
         }
 
-        ctx.getCrawlerContext().fire(
+        ctx.getCrawlContext().fire(
                 CrawlerEvent.builder()
                         .name(eventType)
-                        .source(ctx.getCrawlerContext())
+                        .source(ctx.getCrawlContext())
                         .subject(response)
                         .docContext(docRecord)
                         .build());
@@ -146,7 +141,7 @@ public class HttpFetchStage extends AbstractImporterStage {
         // In either case, whether we break the pipeline or not (returning
         // false or true) depends on the fetch directives supported.
         return FetchUtil.shouldContinueOnBadStatus(
-                ctx.getCrawlerContext(), originalCrawlDocState,
+                ctx.getCrawlContext(), originalCrawlDocState,
                 getFetchDirective());
     }
 }

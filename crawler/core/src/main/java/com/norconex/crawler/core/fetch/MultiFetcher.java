@@ -84,23 +84,6 @@ public class MultiFetcher implements Fetcher {
                 builder.retryDelay);
     }
 
-    //    //    @Builder
-    //    private MultiFetcher(
-    //            @NonNull List<Fetcher> fetchers,
-    //            @NonNull ResponseAggregator responseAggregator,
-    //            @NonNull UnsuccessfulResponseFactory unsuccessfulResponseFactory,
-    //            int maxRetries,
-    //            Duration retryDelay) {
-    //        if (CollectionUtils.isEmpty(fetchers)) {
-    //            throw new IllegalArgumentException("Need at least 1 fetcher.");
-    //        }
-    //        this.responseAggregator = responseAggregator;
-    //        this.unsuccessfulResponseFactory = unsuccessfulResponseFactory;
-    //        this.fetchers = Collections.unmodifiableList(fetchers);
-    //        this.maxRetries = maxRetries;
-    //        this.retryDelay = retryDelay;
-    //    }
-
     public List<Fetcher> getFetchers() {
         return Collections.unmodifiableList(fetchers);
     }
