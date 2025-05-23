@@ -24,12 +24,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import org.apache.commons.io.input.NullInputStream;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
+import org.jeasy.random.api.Randomizer;
 import org.jeasy.random.randomizers.misc.BooleanRandomizer;
 import org.jeasy.random.randomizers.number.LongRandomizer;
 import org.jeasy.random.randomizers.text.StringRandomizer;
@@ -45,6 +47,16 @@ import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.doc.operations.DocumentConsumer;
+import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.impl.GenericMetadataChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.impl.Md5DocumentChecksummer;
+import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
+import com.norconex.crawler.core.doc.operations.filter.MetadataFilter;
+import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
+import com.norconex.crawler.core.doc.operations.filter.impl.ExtensionReferenceFilter;
+import com.norconex.crawler.core.doc.operations.filter.impl.GenericMetadataFilter;
+import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
@@ -66,7 +78,7 @@ public final class StubCrawlerConfig {
                     .seed(System.currentTimeMillis())
                     .collectionSizeRange(1, 5)
                     .randomizationDepth(5)
-                    .scanClasspathForConcreteTypes(true)
+                    .scanClasspathForConcreteTypes(false)
                     .overrideDefaultInitialization(true)
                     .randomize(
                             File.class,
@@ -103,6 +115,29 @@ public final class StubCrawlerConfig {
                     .randomize(
                             AtomicBoolean.class, () -> new AtomicBoolean(
                                     new BooleanRandomizer().getRandomValue()))
+                    .randomize(
+                            ReferenceFilter.class,
+                            randomInstanceOf(
+                                    ExtensionReferenceFilter.class,
+                                    GenericReferenceFilter.class))
+                    .randomize(
+                            MetadataFilter.class,
+                            randomInstanceOf(
+                                    ExtensionReferenceFilter.class,
+                                    GenericReferenceFilter.class,
+                                    GenericMetadataFilter.class))
+                    .randomize(
+                            DocumentFilter.class,
+                            randomInstanceOf(
+                                    ExtensionReferenceFilter.class,
+                                    GenericReferenceFilter.class,
+                                    GenericMetadataFilter.class))
+                    .randomize(
+                            MetadataChecksummer.class,
+                            GenericMetadataChecksummer::new)
+                    .randomize(
+                            DocumentChecksummer.class,
+                            Md5DocumentChecksummer::new)
                     .excludeType(DocumentConsumer.class::equals)
                     .excludeType(ReferencesProvider.class::equals)
                     .excludeType(Fetcher.class::equals));
@@ -196,4 +231,17 @@ public final class StubCrawlerConfig {
             throw new UncheckedIOException(e);
         }
     }
+
+    @SafeVarargs
+    private static <T> Randomizer<T> randomInstanceOf(
+            Class<? extends T>... subtypes) {
+        var easyRandom = new EasyRandom();
+        return () -> {
+            if (subtypes.length == 0)
+                return null;
+            var index = ThreadLocalRandom.current().nextInt(subtypes.length);
+            return easyRandom.nextObject(subtypes[index]);
+        };
+    }
+
 }

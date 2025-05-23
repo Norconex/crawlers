@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -37,6 +38,7 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.impl.StandardFileSystemManager;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
+import org.jeasy.random.api.Randomizer;
 import org.jeasy.random.randomizers.misc.BooleanRandomizer;
 import org.jeasy.random.randomizers.number.IntegerRandomizer;
 import org.jeasy.random.randomizers.number.LongRandomizer;
@@ -49,8 +51,17 @@ import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.impl.GenericMetadataChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.impl.Md5DocumentChecksummer;
+import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
+import com.norconex.crawler.core.doc.operations.filter.MetadataFilter;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
+import com.norconex.crawler.core.doc.operations.filter.impl.ExtensionReferenceFilter;
+import com.norconex.crawler.core.doc.operations.filter.impl.GenericMetadataFilter;
+import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
@@ -58,6 +69,7 @@ import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.junit.CrawlTestCapturer;
 import com.norconex.crawler.core.junit.CrawlTestCapturer.CrawlCaptures;
 import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.fs.doc.operations.checksum.FsMetadataChecksummer;
 import com.norconex.crawler.fs.mock.MockFsCrawlerBuilder;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridConnector;
@@ -80,7 +92,7 @@ public final class FsTestUtil {
                     .seed(System.currentTimeMillis())
                     .collectionSizeRange(1, 5)
                     .randomizationDepth(5)
-                    .scanClasspathForConcreteTypes(true)
+                    .scanClasspathForConcreteTypes(false)
                     .overrideDefaultInitialization(true)
                     .randomize(
                             File.class,
@@ -117,6 +129,31 @@ public final class FsTestUtil {
                     .randomize(
                             AtomicBoolean.class, () -> new AtomicBoolean(
                                     new BooleanRandomizer().getRandomValue()))
+                    .randomize(
+                            ReferenceFilter.class,
+                            randomInstanceOf(
+                                    ExtensionReferenceFilter.class,
+                                    GenericReferenceFilter.class))
+                    .randomize(
+                            MetadataFilter.class,
+                            randomInstanceOf(
+                                    ExtensionReferenceFilter.class,
+                                    GenericReferenceFilter.class,
+                                    GenericMetadataFilter.class))
+                    .randomize(
+                            DocumentFilter.class,
+                            randomInstanceOf(
+                                    ExtensionReferenceFilter.class,
+                                    GenericReferenceFilter.class,
+                                    GenericMetadataFilter.class))
+                    .randomize(
+                            MetadataChecksummer.class,
+                            randomInstanceOf(
+                                    GenericMetadataChecksummer.class,
+                                    FsMetadataChecksummer.class))
+                    .randomize(
+                            DocumentChecksummer.class,
+                            Md5DocumentChecksummer::new)
 
                     .excludeType(Grid.class::equals)
                     .excludeType(GridConnector.class::equals)
@@ -257,18 +294,23 @@ public final class FsTestUtil {
                 .crawler(), Crawler::crawl);
     }
 
-    //    public static MemoryCommitter runWithConfig(
-    //            @NonNull Path workDir, @NonNull Consumer<CrawlConfig> c) {
-    //        var crawler = CrawlerStubs.memoryCrawler(workDir, c);
-    //        crawler.crawl();
-    //        return firstCommitter(crawler);
-    //    }
-
     public static int freePort() {
         try (var serverSocket = new ServerSocket(0)) {
             return serverSocket.getLocalPort();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    @SafeVarargs
+    private static <T> Randomizer<T> randomInstanceOf(
+            Class<? extends T>... subtypes) {
+        var easyRandom = new EasyRandom();
+        return () -> {
+            if (subtypes.length == 0)
+                return null;
+            var index = ThreadLocalRandom.current().nextInt(subtypes.length);
+            return easyRandom.nextObject(subtypes[index]);
+        };
     }
 }
