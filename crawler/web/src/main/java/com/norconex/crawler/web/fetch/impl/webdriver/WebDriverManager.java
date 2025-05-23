@@ -60,10 +60,14 @@ public class WebDriverManager {
      * @return web driver
      */
     public WebDriver getDriver() {
-        var t = Thread.currentThread();
-        var entry = drivers.computeIfAbsent(
-                t, thread -> createAndRegisterDriver());
+        var entry = getDriverEntry();
         return entry.touchAndGet(config);
+    }
+
+    private DriverEntry getDriverEntry() {
+        var t = Thread.currentThread();
+        return drivers.computeIfAbsent(
+                t, thread -> createAndRegisterDriver());
     }
 
     /**
@@ -90,13 +94,13 @@ public class WebDriverManager {
      */
     public <T> T safeCall(Function<WebDriver, T> action) {
         var t = Thread.currentThread();
-        var entry = drivers.get(t);
+        var entry = getDriverEntry();
         if (entry == null) {
             throw new IllegalStateException(
                     "No WebDriver registered for thread " + t.getName());
         }
         try {
-            return action.apply(entry.driver);
+            return action.apply(entry.touchAndGet(config));
         } catch (WebDriverException e) {
             LOG.warn("WebDriverException on thread [{}]: — resetting driver "
                     + "and retrying.", t.getName(), e.getMessage());

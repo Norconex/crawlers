@@ -17,16 +17,24 @@ package com.norconex.crawler.web.fetch.impl.webdriver;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.firefox.FirefoxDriver;
 
-class WebDriverFactoryTest {
+import com.norconex.crawler.core.doc.CrawlDocStatus;
+import com.norconex.crawler.core.fetch.FetchException;
+import com.norconex.crawler.web.fetch.WebFetchRequest;
+import com.norconex.crawler.web.fetch.HttpMethod;
+import com.norconex.crawler.web.stubs.CrawlDocStubs;
+
+class WebDriverFetcherTest {
 
     @Test
-    void testCreate() {
-        var driver = WebDriverFactory.create(
-                new WebDriverFetcherConfig().setBrowser(Browser.FIREFOX));
-
-        assertThat(driver).isInstanceOf(FirefoxDriver.class);
+    void testUnsupportedHttpMethod() throws FetchException {
+        var response = new WebDriverFetcher().fetch(
+                new WebFetchRequest(
+                        CrawlDocStubs.crawlDocHtml("http://example.com"),
+                        HttpMethod.HEAD));
+        assertThat(response.getReasonPhrase()).contains("To obtain headers");
+        assertThat(response.getResolutionStatus()).isEqualTo(
+                CrawlDocStatus.UNSUPPORTED);
     }
 
 }

@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -44,12 +45,11 @@ import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchRequest;
-import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.web.doc.WebDocMetadata;
+import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.WebFetchRequest;
 import com.norconex.crawler.web.fetch.WebFetchResponse;
-import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetchResponse;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.fetch.impl.webdriver.HttpSniffer.SniffedResponseHeaders;
@@ -61,8 +61,6 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-
-//TODO lazy load driver like V3
 
 /**
  * <p>
@@ -110,8 +108,7 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 @ToString
 public class WebDriverFetcher
-        extends AbstractFetcher<WebDriverFetcherConfig>
-        implements Fetcher {
+        extends AbstractFetcher<WebDriverFetcherConfig> {
 
     @Getter
     private final WebDriverFetcherConfig configuration =
@@ -129,21 +126,25 @@ public class WebDriverFetcher
     @Override
     protected void fetcherStartup(CrawlContext c) {
         LOG.info("Starting WebDriver HTTP fetcher...");
+        if (configuration.getHttpSniffer() != null) {
+            httpSniffer = configuration.getHttpSniffer();
+            httpSniffer.start();
+            userAgent = httpSniffer.getConfiguration().getUserAgent();
+        }
         webDriverManager = new WebDriverManager(configuration);
-        userAgent = httpSniffer.getConfiguration().getUserAgent();
         if (StringUtils.isBlank(userAgent)) {
-            userAgent = webDriverManager
-                    .safeCall(driver -> (String) ((JavascriptExecutor) driver)
+            userAgent = webDriverManager.safeCall(
+                    driver -> (String) ((JavascriptExecutor) driver)
                             .executeScript("return navigator.userAgent;"));
         }
     }
 
     @Override
     protected void fetcherShutdown(CrawlContext c) {
-        if (configuration.getHttpSniffer() != null) {
+        if (httpSniffer != null) {
             LOG.info("Shutting down {} HTTP sniffer...");
             Sleeper.sleepSeconds(5);
-            configuration.getHttpSniffer().stop();
+            httpSniffer.stop();
         }
     }
 
@@ -172,23 +173,20 @@ public class WebDriverFetcher
 
         LOG.debug("Fetching document: {}", doc.getReference());
 
-        var fetchResponse = configuration.getHttpSniffer() == null
-                ? withoutSniffer(doc)
-                : withSniffer(doc);
-
-        if (configuration.getScreenshotHandler() != null) {
-            webDriverManager.safeCall(driver -> {
-                configuration.getScreenshotHandler().takeScreenshot(
-                        driver, doc);
-                return null;
-            });
-        }
-
-        return fetchResponse;
+        return webDriverManager.safeCall(driver -> {
+            var fetchResponse = httpSniffer == null
+                    ? withoutSniffer(driver, doc)
+                    : withSniffer(driver, doc);
+            if (configuration.getScreenshotHandler() != null) {
+                configuration.getScreenshotHandler()
+                        .takeScreenshot(driver, doc);
+            }
+            return fetchResponse;
+        });
     }
 
-    private WebFetchResponse withoutSniffer(CrawlDoc doc) {
-        doc.setInputStream(fetchDocumentContent(doc.getReference()));
+    private WebFetchResponse withoutSniffer(WebDriver driver, CrawlDoc doc) {
+        doc.setInputStream(fetchDocumentContent(driver, doc.getReference()));
         // We assume text/html until maybe WebDriver expands its
         // API to obtain different types of files.
         if (doc.getDocContext().getContentType() == null) {
@@ -203,7 +201,7 @@ public class WebDriverFetcher
                 .build();
     }
 
-    private WebFetchResponse withSniffer(CrawlDoc doc) {
+    private WebFetchResponse withSniffer(WebDriver driver, CrawlDoc doc) {
         var url = doc.getReference();
         var sniffer = configuration.getHttpSniffer();
         var crawlRequestId = UUID.randomUUID().toString();
@@ -214,7 +212,8 @@ public class WebDriverFetcher
         var b = HttpClientFetchResponse.builder();
 
         // Do fetch
-        doc.setInputStream(fetchDocumentContent(augmentedUrl.toString()));
+        doc.setInputStream(fetchDocumentContent(
+                driver, augmentedUrl.toString()));
 
         var sniffedResp = getFutureSniffedResponse(
                 respFuture, e -> buildFailedSniffedHttpFetchResponse(b, e));
@@ -308,65 +307,62 @@ public class WebDriverFetcher
         return resp;
     }
 
-    InputStream fetchDocumentContent(String url) {
-        return webDriverManager.safeCall(driver -> {
-            driver.get(url);
-            if (StringUtils.isNotBlank(configuration.getEarlyPageScript())) {
-                ((JavascriptExecutor) driver).executeScript(
-                        configuration.getEarlyPageScript());
-            }
+    InputStream fetchDocumentContent(WebDriver driver, String url) {
+        driver.get(url);
+        if (StringUtils.isNotBlank(configuration.getEarlyPageScript())) {
+            ((JavascriptExecutor) driver).executeScript(
+                    configuration.getEarlyPageScript());
+        }
 
-            if (configuration.getWindowSize() != null) {
-                driver.manage().window().setSize(
-                        new org.openqa.selenium.Dimension(
-                                configuration.getWindowSize().width,
-                                configuration.getWindowSize().height));
-            }
+        if (configuration.getWindowSize() != null) {
+            driver.manage().window().setSize(
+                    new org.openqa.selenium.Dimension(
+                            configuration.getWindowSize().width,
+                            configuration.getWindowSize().height));
+        }
 
-            var timeouts = driver.manage().timeouts();
-            if (configuration.getPageLoadTimeout() != null) {
-                timeouts.pageLoadTimeout(configuration.getPageLoadTimeout());
-            }
-            if (configuration.getImplicitlyWait() != null) {
-                timeouts.implicitlyWait(configuration.getImplicitlyWait());
-            }
-            if (configuration.getScriptTimeout() != null) {
-                timeouts.scriptTimeout(configuration.getScriptTimeout());
-            }
+        var timeouts = driver.manage().timeouts();
+        if (configuration.getPageLoadTimeout() != null) {
+            timeouts.pageLoadTimeout(configuration.getPageLoadTimeout());
+        }
+        if (configuration.getImplicitlyWait() != null) {
+            timeouts.implicitlyWait(configuration.getImplicitlyWait());
+        }
+        if (configuration.getScriptTimeout() != null) {
+            timeouts.scriptTimeout(configuration.getScriptTimeout());
+        }
 
-            if (configuration.getWaitForElementTimeout() != null
-                    && StringUtils.isNotBlank(
-                            configuration.getWaitForElementSelector())) {
-                var elType = ObjectUtils.defaultIfNull(
-                        configuration.getWaitForElementType(),
-                        WaitElementType.TAGNAME);
-                LOG.debug("Waiting for element '{}' of type '{}' for '{}'.",
-                        configuration.getWaitForElementSelector(), elType, url);
+        if (configuration.getWaitForElementTimeout() != null
+                && StringUtils.isNotBlank(
+                        configuration.getWaitForElementSelector())) {
+            var elType = ObjectUtils.defaultIfNull(
+                    configuration.getWaitForElementType(),
+                    WaitElementType.TAGNAME);
+            LOG.debug("Waiting for element '{}' of type '{}' for '{}'.",
+                    configuration.getWaitForElementSelector(), elType, url);
 
-                var wait = new WebDriverWait(
-                        driver, configuration.getWaitForElementTimeout());
-                wait.until(ExpectedConditions.presenceOfElementLocated(
-                        elType.getBy(
-                                configuration.getWaitForElementSelector())));
-                LOG.debug(
-                        "Done waiting for element '{}' of type '{}' for '{}'.",
-                        configuration.getWaitForElementSelector(), elType, url);
-            }
+            var wait = new WebDriverWait(
+                    driver, configuration.getWaitForElementTimeout());
+            wait.until(ExpectedConditions.presenceOfElementLocated(
+                    elType.getBy(
+                            configuration.getWaitForElementSelector())));
+            LOG.debug(
+                    "Done waiting for element '{}' of type '{}' for '{}'.",
+                    configuration.getWaitForElementSelector(), elType, url);
+        }
 
-            if (StringUtils.isNotBlank(configuration.getLatePageScript())) {
-                ((JavascriptExecutor) driver).executeScript(
-                        configuration.getLatePageScript());
-            }
+        if (StringUtils.isNotBlank(configuration.getLatePageScript())) {
+            ((JavascriptExecutor) driver).executeScript(
+                    configuration.getLatePageScript());
+        }
 
-            if (configuration.getThreadWait() != null) {
-                Sleeper.sleepMillis(configuration.getThreadWait().toMillis());
-            }
+        if (configuration.getThreadWait() != null) {
+            Sleeper.sleepMillis(configuration.getThreadWait().toMillis());
+        }
 
-            var pageSource = driver.getPageSource();
-            var len = pageSource == null ? "unknown" : pageSource.length();
-            LOG.debug("Fetched page source length: {}", len);
-            return IOUtils.toInputStream(pageSource, StandardCharsets.UTF_8);
-
-        });
+        var pageSource = driver.getPageSource();
+        var len = pageSource == null ? "unknown" : pageSource.length();
+        LOG.debug("Fetched page source length: {}", len);
+        return IOUtils.toInputStream(pageSource, StandardCharsets.UTF_8);
     }
 }

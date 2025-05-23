@@ -21,7 +21,6 @@ import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.model.MediaType.HTML_UTF_8;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.ServerSocket;
 import java.time.Duration;
 import java.util.List;
@@ -62,6 +61,9 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class AbstractWebDriverHttpFetcherTest
         implements ExecutionCondition {
 
+    private static final int SNIFFER_PORT_START = 50000;
+    private static final int SNIFFER_PORT_END = 50049; // 50 ports
+
     private static final int LARGE_CONTENT_MIN_SIZE = 3 * 1024 * 1024;
 
     private final Capabilities capabilities;
@@ -82,6 +84,11 @@ public abstract class AbstractWebDriverHttpFetcherTest
 
     @BeforeAll
     void beforeAll() {
+        // Expose all ports in the range for use by sniffer proxies
+        // Best done before starting the container.
+        for (var port = SNIFFER_PORT_START; port <= SNIFFER_PORT_END; port++) {
+            Testcontainers.exposeHostPorts(port);
+        }
         browser = createWebDriverContainer(capabilities);
         browser.start();
     }
@@ -181,12 +188,12 @@ public abstract class AbstractWebDriverHttpFetcherTest
 
         var sniffer = new HttpSniffer();
         var snifCfg = sniffer.getConfiguration();
+
         snifCfg.setHost("host.testcontainers.internal");
-        snifCfg.setPort(freePort());
+        snifCfg.setPort(freeSnifferPort());
         // also test sniffer with large content
         snifCfg.setMaxBufferSize(6 * 1024 * 1024);
         LOG.debug("Random HTTP Sniffer proxy port: {}", snifCfg.getPort());
-        Testcontainers.exposeHostPorts(client.getPort(), snifCfg.getPort());
         var fetcher = createWebDriverHttpFetcher();
         fetcher.getConfiguration().setHttpSniffer(sniffer);
         WebTestUtil.ignoreAllIgnorables(cfg);
@@ -293,12 +300,16 @@ public abstract class AbstractWebDriverHttpFetcherTest
                 client.getLocalPort(), path);
     }
 
-    private int freePort() {
-        try (var serverSocket = new ServerSocket(0)) {
-            return serverSocket.getLocalPort();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+    private int freeSnifferPort() {
+        for (var port = SNIFFER_PORT_START; port <= SNIFFER_PORT_END; port++) {
+            try (var serverSocket = new ServerSocket(port)) {
+                return port;
+            } catch (IOException e) {
+                // Port is in use, try next
+            }
         }
+        throw new IllegalStateException(
+                "No free sniffer port available in range.");
     }
 
     @SuppressWarnings("resource")
@@ -308,6 +319,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
         return new BrowserWebDriverContainer<>()
                 .withCapabilities(capabilities)
                 .withAccessToHost(true)
+                //                .withExtraHost("host.docker.internal", "172.17.0.1")
                 .withRecordingMode(VncRecordingMode.SKIP, null)
                 .withLogConsumer(new Slf4jLogConsumer(LOG))
                 .withEnv("SE_OPTS", "--tracing false")

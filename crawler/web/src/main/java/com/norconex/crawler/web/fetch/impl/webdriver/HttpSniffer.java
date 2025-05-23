@@ -93,17 +93,17 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
     private final HttpSnifferConfig configuration = new HttpSnifferConfig();
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private final HttpProxyServer proxyServer;
+    private HttpProxyServer proxyServer;
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private final Host proxyHost;
+    private Host proxyHost;
 
-    public HttpSniffer() {
-        var hostName = ofNullable(configuration.getHost()).orElse("localhost");
-
+    public void start() {
         var serverBootstrap = DefaultHttpProxyServer.bootstrap()
                 .withAddress(new InetSocketAddress(
-                        hostName, configuration.getPort()))
+                        ofNullable(configuration.getNetworkInterface())
+                                .orElse("0.0.0.0"), // binds to all
+                        configuration.getPort()))
                 .withAllowLocalOnly(false)
                 .withFiltersSource(new SniffingHttpFilter())
                 .withManInTheMiddle(new SelfSignedMitmManager(
@@ -121,7 +121,8 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
 
         proxyServer = serverBootstrap.start();
         proxyHost = new Host(
-                hostName, proxyServer.getListenAddress().getPort());
+                configuration.getHost(),
+                proxyServer.getListenAddress().getPort());
         LOG.info("SnifferProxy started as: {}.", proxyHost);
     }
 

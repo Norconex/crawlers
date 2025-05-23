@@ -39,7 +39,7 @@ public class HttpSnifferConfig {
             Duration.ofMinutes(2);
 
     /**
-     * The host name passed to the browser pointing to the sniffer proxy.
+     * The host port passed to the browser pointing to the sniffer proxy.
      * Defaults to 0 (random free port).
      */
     private int port;
@@ -70,6 +70,12 @@ public class HttpSnifferConfig {
      * Maximum wait time for the target host to respond.
      */
     private Duration responseTimeout = DEFAULT_RESPONSE_TIMEOUT;
+
+    /**
+     * Network interface address (IP) to be used by the sniffer proxy to
+     * listen for incoming connections. Defaults to "0.0.0.0" (all interfaces).
+     */
+    private String networkInterface;
 
     /**
      * Gets the request headers to add to every HTTP request.

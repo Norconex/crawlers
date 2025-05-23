@@ -44,7 +44,10 @@ public @interface ParameterizedGridConnectorTest {
                 ExtensionContext context) {
             return Stream.of(
                     arguments(named("📂On Local Grid",
-                            LocalGridConnector.class)));
+                            LocalGridConnector.class))
+            //                    arguments(named("🗄️On JDBC Grid",
+            //                            JdbcGridConnector.class))
+            );
         }
     }
 }

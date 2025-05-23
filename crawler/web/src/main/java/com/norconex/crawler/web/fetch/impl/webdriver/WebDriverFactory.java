@@ -22,11 +22,12 @@ import org.openqa.selenium.remote.CapabilityType;
 
 import com.norconex.crawler.core.CrawlerException;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class WebDriverFactory {
 
     public static WebDriver create(WebDriverFetcherConfig config) {
@@ -44,7 +45,6 @@ public final class WebDriverFactory {
             LOG.info("Starting {} HTTP sniffing proxy...", browser);
             var httpSniffer = config.getHttpSniffer();
             httpSniffer.configureBrowser(browser, options);
-            //            userAgent = httpSniffer.getConfiguration().getUserAgent();
         }
         options.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS, true);
         for (var en : config.getCapabilities().entrySet()) {
