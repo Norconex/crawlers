@@ -82,8 +82,8 @@ class LocalGridStorageConcurrencyTest {
             });
         }
 
-        // Wait a bit, then destroy the storage in parallel
-        Thread.sleep(50);
+        latch.await(5, TimeUnit.SECONDS);
+
         executor.submit(() -> {
             try {
                 storage.destroy();
@@ -92,7 +92,6 @@ class LocalGridStorageConcurrencyTest {
             }
         });
 
-        latch.await(5, TimeUnit.SECONDS);
         executor.shutdown();
         executor.awaitTermination(5, TimeUnit.SECONDS);
 
