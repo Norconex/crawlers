@@ -168,12 +168,12 @@ public final class ConcurrentUtil {
             return new CompletionException("Thread was interrupted.", ie);
         }
         if (e instanceof TimeoutException te) {
-            return new CompletionException("Task timed out", te);
+            return new CompletionException("Task timed out.", te);
         }
         if (e instanceof ExecutionException && e.getCause() != null) {
             return new CompletionException(
-                    "Task execution failed", e.getCause());
+                    "Task execution failed.", e.getCause());
         }
-        return new CompletionException("Task failed", e);
+        return new CompletionException("Task failed.", e);
     }
 }
