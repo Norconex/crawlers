@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import com.norconex.crawler.core.fetch.BaseFetcherConfig;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
+import com.norconex.crawler.fs.fetch.FolderPathsFetchRequest;
 import com.norconex.crawler.fs.stubs.CrawlDocStubs;
 import com.norconex.importer.doc.DocContext;
 
@@ -67,7 +68,8 @@ class AbstractVfsFetcherTest {
         fetcher.fetcherStartup(null);
         assertThatExceptionOfType(FetchException.class).isThrownBy( //NOSONAR
                 () -> {
-                    fetcher.fetchChildPaths("i/dont/exist");
+                    fetcher.fetch(new FolderPathsFetchRequest(
+                            new CrawlDoc(new DocContext("i/dont/exist"))));
                 }).withMessageContaining("Could not fetch child paths of:");
     }
 

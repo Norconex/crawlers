@@ -16,12 +16,12 @@ package com.norconex.crawler.core.cmd.crawl.pipeline;
 
 import org.apache.commons.lang3.mutable.MutableLong;
 
-import com.norconex.crawler.core.CrawlerConfig.OrphansStrategy;
-import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessTask;
+import com.norconex.crawler.core.CrawlConfig.OrphansStrategy;
 import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessTask.ProcessQueueAction;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
-import com.norconex.grid.core.pipeline.GridPipelineTask;
+import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.grid.core.Grid;
+import com.norconex.grid.core.compute.BaseGridTask.SingleNodeTask;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,61 +29,67 @@ import lombok.extern.slf4j.Slf4j;
  * Queue orphans for reprocessing or deletion.
  */
 @Slf4j
-public class CrawlHandleOrphansTask
-        implements GridPipelineTask<CrawlerContext> {
+public class CrawlHandleOrphansTask extends SingleNodeTask {
 
+    private static final long serialVersionUID = 1L;
+
+    public CrawlHandleOrphansTask(String id) {
+        super(id);
+    }
+
+    // returns the type of processing we do on orphans, or null if there
+    // is nothing to do
     @Override
-    public void execute(CrawlerContext ctx) {
+    public ProcessQueueAction execute(Grid grid) {
+        var ctx = CrawlContext.get(grid);
 
-        var strategy = ctx.getConfiguration().getOrphansStrategy();
+        var strategy = ctx.getCrawlConfig().getOrphansStrategy();
         if (strategy == null || strategy == OrphansStrategy.IGNORE) {
             LOG.info("Ignoring possible orphans as per orphan strategy.");
-            return;
+            return null;
         }
         var orphanCount = ctx.getDocLedger().getCachedCount();
         if (orphanCount == 0) {
             LOG.info("There are no orphans to process.");
-            return;
+            return null;
         }
 
-        ctx.getGrid().compute().runOnOneOnce("requeue-orphans", () -> {
-            // If PROCESS, we do not care to validate if really orphan since
-            // all cache items will be reprocessed regardless
-            if (strategy == OrphansStrategy.PROCESS) {
-                processOrphans(ctx);
-            } else if (strategy == OrphansStrategy.DELETE) {
-                deleteOrphans(ctx);
-            }
-            return null;
-        });
+        // If PROCESS, we do not care to validate if really orphan since
+        // all cache items will be reprocessed regardless
+        if (strategy == OrphansStrategy.PROCESS) {
+            queueForProcessing(ctx);
+            return ProcessQueueAction.CRAWL_ALL;
+        }
+        if (strategy == OrphansStrategy.DELETE) {
+            queueForDeletion(ctx);
+            return ProcessQueueAction.DELETE_ALL;
+        }
+        return null;
     }
 
-    boolean processOrphans(CrawlerContext ctx) {
+    void queueForProcessing(CrawlContext ctx) {
         if (ctx.getDocLedger().isMaxDocsProcessedReached()) {
             LOG.info("""
                 Max documents reached. \
                 Not reprocessing orphans (if any). \
                 Run the crawler again to resume.""");
-            return true;
+            return;
         }
         LOG.info("Queueing orphan references for processing...");
         var count = new MutableLong();
         ctx.getDocLedger().forEachCached((ref, docCtx) -> {
             docCtx.setOrphan(true);
-            ctx.getPipelines()
+            ctx.getDocPipelines()
                     .getQueuePipeline()
                     .accept(new QueuePipelineContext(ctx, docCtx));
             count.increment();
             return true;
         });
 
-        LOG.info("Reprocessing {} orphan references...", count);
-        new CrawlProcessTask(ProcessQueueAction.CRAWL_ALL).execute(ctx);
-        LOG.info("Reprocessed {} cached/orphan references.", count);
-        return true;
+        LOG.info("{} orphan references queued for processing.", count);
     }
 
-    boolean deleteOrphans(CrawlerContext ctx) {
+    void queueForDeletion(CrawlContext ctx) {
         LOG.info("Queueing orphan references for deletion...");
 
         var count = new MutableLong();
@@ -94,11 +100,6 @@ public class CrawlHandleOrphansTask
             count.increment();
             return true;
         });
-        LOG.info("Deleting {} orphan references...", count);
-        new CrawlProcessTask(ProcessQueueAction.DELETE_ALL).execute(ctx);
-        LOG.info("Deleted {} orphan references.", count);
-        return true;
-        
+        LOG.info("{} orphan references queued for deletion.", count);
     }
-
 }

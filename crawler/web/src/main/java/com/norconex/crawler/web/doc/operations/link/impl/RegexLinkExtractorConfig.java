@@ -61,7 +61,7 @@ public class RegexLinkExtractorConfig {
 
     /**
      * Gets the character set of pages on which link extraction is performed.
-     * Default is <code>null</code> (charset detection will be attempted).
+     * Default is {@code null} (charset detection will be attempted).
      */
     private Charset charset;
 

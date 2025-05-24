@@ -23,16 +23,16 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
-import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
 
 class QueueBootstrapperTest {
 
     public static class FromFilesConfigModifier
-            implements Consumer<CrawlerConfig> {
+            implements Consumer<CrawlConfig> {
         @Override
-        public void accept(CrawlerConfig cfg) {
+        public void accept(CrawlConfig cfg) {
             var file1 = cfg.getWorkDir().resolve("start-file1.txt");
             var file2 = cfg.getWorkDir().resolve("start-file2.txt");
             try {
@@ -46,9 +46,9 @@ class QueueBootstrapperTest {
     }
 
     public static class FromProvidersConfigModifier
-            implements Consumer<CrawlerConfig> {
+            implements Consumer<CrawlConfig> {
         @Override
-        public void accept(CrawlerConfig cfg) {
+        public void accept(CrawlConfig cfg) {
             cfg.setStartReferencesProviders(List.of(
                     () -> List.of("ref1", "ref2").iterator(),
                     () -> List.of("ref3", "ref4", "ref5").iterator()));

@@ -87,16 +87,17 @@ import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchException;
+import com.norconex.crawler.core.fetch.FetchRequest;
+import com.norconex.crawler.core.fetch.Fetcher;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.url.impl.GenericUrlNormalizerConfig.Normalization;
-import com.norconex.crawler.web.fetch.HttpFetchRequest;
-import com.norconex.crawler.web.fetch.HttpFetchResponse;
-import com.norconex.crawler.web.fetch.HttpFetcher;
+import com.norconex.crawler.web.fetch.WebFetchRequest;
+import com.norconex.crawler.web.fetch.WebFetchResponse;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.util.ApacheHttpUtil;
 import com.norconex.crawler.web.fetch.util.ApacheRedirectCaptureStrategy;
@@ -113,7 +114,8 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
- * Default implementation of {@link HttpFetcher}, based on Apache HttpClient.
+ * Default web crawler implementation of {@link Fetcher}, based on
+ * Apache HttpClient.
  * </p>
  *
  * <p>
@@ -187,9 +189,7 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
 public class HttpClientFetcher
-        extends AbstractFetcher<
-                HttpFetchRequest, HttpFetchResponse, HttpClientFetcherConfig>
-        implements HttpFetcher {
+        extends AbstractFetcher<HttpClientFetcherConfig> {
 
     private static final int FTP_PORT = 80;
 
@@ -217,10 +217,12 @@ public class HttpClientFetcher
     private Object userToken;
 
     @Override
-    public HttpFetchResponse fetch(HttpFetchRequest fetchRequest)
+    public WebFetchResponse fetch(FetchRequest fetchRequest)
             throws FetchException {
-        var doc = fetchRequest.getDoc();
-        var httpMethod = fetchRequest.getMethod();
+        var req = (WebFetchRequest) fetchRequest;
+
+        var doc = req.getDoc();
+        var httpMethod = req.getMethod();
 
         if (httpClient == null) {
             throw new IllegalStateException(
@@ -338,9 +340,9 @@ public class HttpClientFetcher
     }
 
     @Override
-    protected boolean acceptRequest(@NonNull HttpFetchRequest fetchRequest) {
+    protected boolean acceptRequest(@NonNull FetchRequest fetchRequest) {
         return configuration.getHttpMethods().contains(
-                fetchRequest.getMethod());
+                ((WebFetchRequest) fetchRequest).getMethod());
     }
 
     public HttpClient getHttpClient() {
@@ -348,7 +350,7 @@ public class HttpClientFetcher
     }
 
     @Override
-    protected void fetcherStartup(CrawlerContext crawler) {
+    protected void fetcherStartup(CrawlContext crawler) {
         httpClient = createHttpClient();
         var userAgent = configuration.getUserAgent();
         if (StringUtils.isBlank(userAgent)) {
@@ -369,7 +371,7 @@ public class HttpClientFetcher
     }
 
     @Override
-    protected void fetcherShutdown(CrawlerContext c) {
+    protected void fetcherShutdown(CrawlContext c) {
         if (httpClient instanceof CloseableHttpClient hc) {
             try {
                 hc.close();

@@ -1,4 +1,4 @@
-/* Copyright 2020-2024 Norconex Inc.
+/* Copyright 2020-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,14 +65,14 @@ public class IdolCommitterConfig extends BaseBatchCommitterConfig
 
     /**
      * The document field name containing the value to be stored
-     * in IDOL <code>DREREFERENCE</code> field. Set to <code>null</code>
+     * in IDOL <code>DREREFERENCE</code> field. Set to {@code null}
      * in order to use the document reference instead of a field (default).
      */
     private String sourceReferenceField;
 
     /**
      * The document field name containing the value to be stored
-     * in IDOL <code>DRECONTENT</code> field. Set to <code>null</code> in
+     * in IDOL <code>DRECONTENT</code> field. Set to {@code null} in
      * order to use the document content stream instead of a field (default).
      */
     private String sourceContentField;

@@ -1,4 +1,4 @@
-/* Copyright 2021-2024 Norconex Inc.
+/* Copyright 2021-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import lombok.experimental.FieldNameConstants;
  * For metadata fields,
  * control characters (char &lt;= 32) are removed before evaluating whether
  * their values are empty. Dealing with the document content will
- * instead check if it is <code>null</code> or empty (no bytes returned
+ * instead check if it is {@code null} or empty (no bytes returned
  * when read).
  * </p>
  *

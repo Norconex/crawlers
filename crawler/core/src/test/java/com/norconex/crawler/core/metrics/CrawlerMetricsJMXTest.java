@@ -16,14 +16,14 @@ package com.norconex.crawler.core.metrics;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.session.CrawlContext;
 
 class CrawlerMetricsJMXTest {
 
     @CrawlTest(focus = Focus.CONTEXT)
-    void testCrawlerMonitorJMX(CrawlerContext crawlCtx) {
+    void testCrawlerMonitorJMX(CrawlContext crawlCtx) {
         assertThatNoException().isThrownBy(() -> {
             CrawlerMetricsJMX.register(crawlCtx);
             CrawlerMetricsJMX.unregister(crawlCtx);

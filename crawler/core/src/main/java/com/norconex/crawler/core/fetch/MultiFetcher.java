@@ -29,21 +29,21 @@ import com.norconex.crawler.core.doc.CrawlDocStatus;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * @param <T> fetcher request type
- * @param <R> fetcher response type
+ * Implementation of {@link Fetcher} that groups multiple other fetcher
+ * to treat them as a single fetcher. It will try them all until a supporting
+ * fetcher succeeds in fetching a resource.
  */
 @Slf4j
-public class MultiFetcher<T extends FetchRequest, R extends FetchResponse>
-        implements Fetcher<T, R> {
+@Builder(builderClassName = "Builder", buildMethodName = "build")
+public class MultiFetcher implements Fetcher {
 
-    private final List<? extends Fetcher<T, R>> fetchers;
+    private final List<? extends Fetcher> fetchers;
 
-    private final ResponseListAdapter<R> responseListAdapter;
-    private final UnsuccessfulResponseFactory<R> unsuccessfulResponseFactory;
+    private final ResponseAggregator responseAggregator;
+    private final UnsuccessfulResponseFactory unsuccessfulResponseFactory;
 
     @Getter
     private final int maxRetries;
@@ -51,42 +51,46 @@ public class MultiFetcher<T extends FetchRequest, R extends FetchResponse>
     private final Duration retryDelay;
 
     @FunctionalInterface
-    public interface UnsuccessfulResponseFactory<R> {
-        R create(CrawlDocStatus crawlState, String message, Exception e);
+    public interface UnsuccessfulResponseFactory {
+        FetchResponse create(
+                CrawlDocStatus crawlState, String message, Exception e);
     }
 
     // this gives a chance to wrap the MultiFetchResponse into
     // a type appropriate to crawler impl
     // By default, no wrapping is done.
     @FunctionalInterface
-    public interface ResponseListAdapter<M extends FetchResponse> {
-        M adapt(List<M> multiResponse);
+    public interface ResponseAggregator {
+        /**
+         * Aggregate multiple results to produce a single one.
+         * @param request the original request
+         * @param multiResponse responses to aggregate
+         * @return new response
+         */
+        FetchResponse aggregate(
+                FetchRequest request, List<FetchResponse> multiResponse);
     }
 
-    @Builder
-    public MultiFetcher(
-            @NonNull List<? extends Fetcher<T, R>> fetchers,
-            @NonNull ResponseListAdapter<R> responseListAdapter,
-            @NonNull UnsuccessfulResponseFactory<R> unsuccessfulResponseAdaptor,
-            int maxRetries,
-            Duration retryDelay) {
-        if (CollectionUtils.isEmpty(fetchers)) {
+    @SuppressWarnings("unused") // used by lombok @Builder
+    private static MultiFetcher build(Builder builder) {
+        if (CollectionUtils.isEmpty(builder.fetchers)) {
             throw new IllegalArgumentException("Need at least 1 fetcher.");
         }
-        this.responseListAdapter = responseListAdapter;
-        this.unsuccessfulResponseFactory = unsuccessfulResponseAdaptor;
-        this.fetchers = Collections.unmodifiableList(fetchers);
-        this.maxRetries = maxRetries;
-        this.retryDelay = retryDelay;
+        return new MultiFetcher(
+                builder.fetchers,
+                builder.responseAggregator,
+                builder.unsuccessfulResponseFactory,
+                builder.maxRetries,
+                builder.retryDelay);
     }
 
-    public List<Fetcher<T, R>> getFetchers() {
+    public List<Fetcher> getFetchers() {
         return Collections.unmodifiableList(fetchers);
     }
 
     @Override
-    public boolean accept(T fetchRequest) {
-        // Each one will be tested individually in fetch method.
+    public boolean accept(FetchRequest fetchRequest) {
+        // This multi always accepts. Each one will be tested individually.
         return true;
     }
 
@@ -96,19 +100,18 @@ public class MultiFetcher<T extends FetchRequest, R extends FetchResponse>
      * @return fetch response
      */
     @Override
-    public R fetch(T fetchRequest) {
+    public FetchResponse fetch(FetchRequest fetchRequest) {
 
         var doc = fetchRequest.getDoc();
 
-        List<R> allResponses = new ArrayList<>();
+        List<FetchResponse> allResponses = new ArrayList<>();
         var accepted = false;
-        for (Fetcher<T, R> fetcher : fetchers) {
+        for (Fetcher fetcher : fetchers) {
             if (!fetcher.accept(fetchRequest)) {
                 continue;
             }
             if (LOG.isDebugEnabled()) {
-                LOG.debug(
-                        "Fetcher {} accepted this reference: \"{}\".",
+                LOG.debug("Fetcher {} accepted this reference: \"{}\".",
                         fetcher.getClass().getSimpleName(), doc.getReference());
             }
             accepted = true;
@@ -122,17 +125,15 @@ public class MultiFetcher<T extends FetchRequest, R extends FetchResponse>
 
                 if (fetchResponse.getResolutionStatus() != null
                         && fetchResponse.getResolutionStatus().isGoodState()) {
-                    return responseListAdapter.adapt(allResponses);
+                    return responseAggregator.aggregate(
+                            fetchRequest, allResponses);
                 }
-                LOG.debug(
-                        "Fetcher {} response returned a bad crawl "
-                                + "state: {}",
+                LOG.debug("Fetcher {} response returned a bad crawl state: {}",
                         fetcher.getClass().getSimpleName(),
                         fetchResponse.getResolutionStatus());
             }
         }
         if (!accepted) {
-            //            allResponses.put(unsuccessfulResponseAdaptor.create(
             allResponses.add(
                     unsuccessfulResponseFactory.create(
                             CrawlDocStatus.UNSUPPORTED,
@@ -149,11 +150,11 @@ public class MultiFetcher<T extends FetchRequest, R extends FetchResponse>
                 filters.""",
                     doc.getReference());
         }
-        return responseListAdapter.adapt(allResponses);
+        return responseAggregator.aggregate(fetchRequest, allResponses);
     }
 
-    private R doFetch(
-            Fetcher<T, R> fetcher, T fetchRequest, int retryCount) {
+    private FetchResponse doFetch(
+            Fetcher fetcher, FetchRequest fetchRequest, int retryCount) {
 
         if (retryCount > 0) {
             Sleeper.sleepMillis(
@@ -165,7 +166,7 @@ public class MultiFetcher<T extends FetchRequest, R extends FetchResponse>
                     fetcher.getClass().getSimpleName());
         }
 
-        R fetchResponse;
+        FetchResponse fetchResponse;
         try {
             fetchResponse = fetcher.fetch(fetchRequest);
         } catch (FetchException | RuntimeException e) {

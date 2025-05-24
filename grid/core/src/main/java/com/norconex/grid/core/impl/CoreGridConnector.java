@@ -14,15 +14,15 @@
  */
 package com.norconex.grid.core.impl;
 
-import java.nio.file.Path;
-
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridConnector;
+import com.norconex.grid.core.GridContext;
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.storage.GridStorage;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,19 +38,20 @@ public class CoreGridConnector
     private final GridStorage storage;
 
     @Override
-    public Grid connect(Path workDir) {
+    public Grid connect(@NonNull GridContext gridContext) {
         try {
-            LOG.info("Connecting to grid: \"{}\"", configuration.getGridName());
-            return new CoreGrid(configuration, storage);
+            LOG.info("🔗 Connecting to grid: \"{}\"",
+                    configuration.getGridName());
+            return new CoreGrid(configuration, storage, gridContext);
         } catch (Exception e) {
-            //TODO since a lib now, make checked exception?
+            //TODO make checked exception?
             throw new GridException("Could not connect to grid.", e);
         }
     }
 
     @Override
-    public void requestStop(Path workDir) {
-        try (var grid = connect(workDir)) {
+    public void shutdownGrid(@NonNull GridContext gridContext) {
+        try (var grid = connect(gridContext)) {
             grid.stop();
         }
     }

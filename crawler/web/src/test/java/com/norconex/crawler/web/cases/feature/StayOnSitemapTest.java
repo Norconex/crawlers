@@ -30,12 +30,12 @@ import org.mockserver.model.MediaType;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.crawler.core.fetch.FetchException;
+import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.operations.scope.impl.GenericUrlScopeResolver;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapLocator;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapResolver;
-import com.norconex.crawler.web.fetch.HttpFetchRequest;
-import com.norconex.crawler.web.fetch.HttpFetchResponse;
+import com.norconex.crawler.web.fetch.WebFetchResponse;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
@@ -85,11 +85,10 @@ class StayOnSitemapTest {
                 // and referrers
                 .setFetchers(List.of(new HttpClientFetcher() {
                     @Override
-                    public HttpFetchResponse fetch(HttpFetchRequest req)
+                    public WebFetchResponse fetch(FetchRequest req)
                             throws FetchException {
                         try {
-                            Optional.ofNullable(Web.docContext(
-                                    req.getDoc())
+                            Optional.ofNullable(Web.docContext(req.getDoc())
                                     .getReferrerReference())
                                     .ifPresent(referrers::add);
                             return super.fetch(req);

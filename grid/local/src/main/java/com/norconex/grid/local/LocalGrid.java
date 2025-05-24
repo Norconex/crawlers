@@ -14,21 +14,27 @@
  */
 package com.norconex.grid.local;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang3.StringUtils;
 import org.h2.mvstore.MVStore;
 
 import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.compute.GridCompute;
-import com.norconex.grid.core.impl.compute.ComputeStateStore;
-import com.norconex.grid.core.pipeline.GridPipeline;
+import com.norconex.grid.core.GridContext;
+import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.storage.GridStorage;
+import com.norconex.grid.local.storage.LocalStorage;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import lombok.experimental.Accessors;
 
 /**
  * A "local" grid implementation, using the host resources only and using an
@@ -41,75 +47,107 @@ import lombok.experimental.Accessors;
 @ToString
 public class LocalGrid implements Grid {
 
-    private final MVStore mvstore;
-    private final LocalGridStorage gridStorage;
-    private final LocalGridCompute gridCompute;
-    private final LocalGridPipeline gridPipeline;
-    @Getter
-    @Accessors(fluent = true)
-    private final ComputeStateStore computeStateStorage;
+    //TODO create an abstract BaseGrid and move at least the context map?
+
+    /**
+     * Key used to store a default context. This key is used to register
+     * a context under a {@code null} or blank key, or when specifying a
+     * {@code null} context key in a submitted grid task.
+     */
+    public static final String DEFAULT_CONTEXT_KEY = "default";
+
+    private final LocalStorage gridStorage;
+    private final LocalCompute gridCompute;
+    private final LocalStopHandler stopHandler;
+
     @Getter(value = AccessLevel.PACKAGE)
     private final Path storagePath;
-    private final LocalGridStopHandler stopHandler;
+    @Getter
+    private final String gridName;
+    @Getter
+    private final String nodeName;
+    // there should ever be only one node per JVM with this local grid,
+    // but in case this is attempted, we help a bit by giving a unique node
+    // name.
+    private static final AtomicInteger NODE_COUNT = new AtomicInteger();
 
-    public LocalGrid(MVStore mvstore) {
-        this.mvstore = mvstore;
-        gridStorage = new LocalGridStorage(mvstore);
-        gridCompute = new LocalGridCompute(this);
-        gridPipeline = new LocalGridPipeline(this);
-        computeStateStorage = new ComputeStateStore(this);
+    private final Map<String, Object> localContexts = new ConcurrentHashMap<>();
+
+    public LocalGrid(
+            MVStore mvstore, String gridName, GridContext gridContext) {
+        this.gridName = gridName;
+        nodeName = "local-node-" + NODE_COUNT.getAndIncrement();
+        gridStorage = new LocalStorage(mvstore);
+        gridCompute = new LocalCompute(this);
         storagePath = Path.of(mvstore.getFileStore().getFileName()).getParent();
-        stopHandler = new LocalGridStopHandler(this);
+        stopHandler = new LocalStopHandler(this);
         stopHandler.listenForStopRequest();
     }
 
     @Override
-    public GridStorage storage() {
+    public GridStorage getStorage() {
         return gridStorage;
-    }
-
-    @Override
-    public String getNodeName() {
-        return "local-node";
     }
 
     @Override
     public void close() {
         stopHandler.stopListening();
+        //        nodeExecutors.shutdown();
         if (!isClosed()) {
-            mvstore.close();
+            try {
+                getStorage().close();
+            } catch (IOException e) {
+                throw new GridException("Cannot close local database.", e);
+            }
         }
     }
 
     boolean isClosed() {
-        return mvstore.isClosed();
+        return gridStorage.isClosed();
     }
 
     @Override
-    public GridCompute compute() {
+    public LocalCompute getCompute() {
         return gridCompute;
     }
 
     @Override
-    public GridPipeline pipeline() {
-        return gridPipeline;
-    }
-
-    @Override
-    public String getGridName() {
-        return "local-grid";
-    }
-
-    @Override
-    public boolean resetSession() {
-        storage().getSessionAttributes().clear();
-        return computeStateStorage.reset();
+    public void resetSession() {
+        getStorage().getSessionAttributes().clear();
     }
 
     @Override
     public void stop() {
+        gridCompute.stopTask(null);
         stopHandler.stopListening();
-        pipeline().stop(null);
-        compute().stop(null);
+    }
+
+    @Override
+    public void registerContext(String contextKey, Object context) {
+        localContexts.put(StringUtils.isBlank(contextKey)
+                ? DEFAULT_CONTEXT_KEY
+                : contextKey,
+                context);
+    }
+
+    @Override
+    public Object getContext(String contextKey) {
+        return localContexts.get(
+                StringUtils.isBlank(contextKey) ? DEFAULT_CONTEXT_KEY
+                        : contextKey);
+    }
+
+    @Override
+    public Object unregisterContext(String contextKey) {
+        return localContexts.remove(contextKey);
+    }
+
+    /**
+     * <b>Not applicable to local grid.</b>
+     */
+    @Override
+    public CompletableFuture<Void> awaitMinimumNodes(
+            int count, Duration timeout) {
+        return CompletableFuture.completedFuture(null);
     }
 }

@@ -21,17 +21,17 @@ import static com.norconex.crawler.core.doc.pipelines.ChecksumStageUtil.resolveD
 import static com.norconex.crawler.core.doc.pipelines.ChecksumStageUtil.resolveMetaChecksum;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 
 class ChecksumStageUtilTest {
 
     @CrawlTest(focus = Focus.CONTEXT)
-    void testResolveMetaChecksum(CrawlerContext crawlCtx) {
+    void testResolveMetaChecksum(CrawlContext crawlCtx) {
         // true is new/modified
 
         var doc = CrawlDocStubs.crawlDoc("ref");
@@ -80,7 +80,7 @@ class ChecksumStageUtilTest {
     }
 
     @CrawlTest(focus = Focus.CONTEXT)
-    void testResolveDocumentChecksum(CrawlerContext crawlCtx) {
+    void testResolveDocumentChecksum(CrawlContext crawlCtx) {
         // true is new/modified
 
         var doc = CrawlDocStubs.crawlDoc("ref");

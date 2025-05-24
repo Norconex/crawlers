@@ -14,6 +14,7 @@
  */
 package com.norconex.grid.core.mocks;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -67,12 +68,12 @@ public class MockStorage implements GridStorage {
 
     @Override
     public GridMap<String> getSessionAttributes() {
-        return getMap("mock-session-map", String.class);
+        return getMap("mock_session_map", String.class);
     }
 
     @Override
     public GridMap<String> getDurableAttributes() {
-        return getMap("mock-durable-map", String.class);
+        return getMap("mock_durable_map", String.class);
     }
 
     @Override
@@ -115,5 +116,10 @@ public class MockStorage implements GridStorage {
             }
         });
         return future;
+    }
+
+    @Override
+    public void close() throws IOException {
+        //NOOP
     }
 }

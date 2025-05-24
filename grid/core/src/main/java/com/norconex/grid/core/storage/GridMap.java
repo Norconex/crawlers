@@ -52,8 +52,8 @@ public interface GridMap<T> extends GridStore<T> {
      * modifying the returned value, and calling {@link #put(String, Object)}
      * with the new value. The difference is it gives a chance to the cache
      * implementation do so atomically.
-     * If there are currently no value for the supplied key, <code>null</code>
-     * will be received. Returning <code>null</code> will effectively remove
+     * If there are currently no value for the supplied key, {@code null}
+     * will be received. Returning {@code null} will effectively remove
      * the existing entry (or do nothing if the entry was not there in the
      * first place).
      *
@@ -66,7 +66,7 @@ public interface GridMap<T> extends GridStore<T> {
     /**
      * Retrieve an object previously stored with the given key.
      * @param key the key of the object to retrieve
-     * @return optional containing the object, or <code>null</code> if not found
+     * @return the stored object or {@code null} if not found
      */
     T get(String key);
 

@@ -16,7 +16,7 @@ package com.norconex.crawler.web.doc.operations.sitemap;
 
 import java.util.List;
 
-import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.session.CrawlContext;
 
 /**
  * <p>
@@ -27,13 +27,13 @@ import com.norconex.crawler.core.CrawlerContext;
  * the following conditions.
  * </p>
  * <ul>
- *   <li>If the sitemap locator has been disabled (<code>null</code>).</li>
- *   <li>If the sitemap resolver has been disabled (<code>null</code>).</li>
+ *   <li>If the sitemap locator has been disabled ({@code null}).</li>
+ *   <li>If the sitemap resolver has been disabled ({@code null}).</li>
  *   <li>If a sitemap was specified as a start reference for the same
  *       URL web site.</li>
  * </ul>
  */
 @FunctionalInterface
 public interface SitemapLocator {
-    List<String> locations(String url, CrawlerContext crawler);
+    List<String> locations(String url, CrawlContext crawler);
 }

@@ -27,8 +27,10 @@
 
   <properties>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
+    
     <hikari.version>6.3.0</hikari.version>      
     <h2.version>2.3.232</h2.version>
+    <postgresql.version>42.7.5</postgresql.version>
   </properties>
 
   <inceptionYear>2025</inceptionYear>
@@ -95,6 +97,24 @@
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${testcontainers.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${postgresql.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
       <exclusions>
@@ -103,6 +123,12 @@
           <artifactId>junit</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <!-- To get aroung test containers wanting Junit 4 around. -->
+    <dependency>
+      <groupId>software.xdev</groupId>
+      <artifactId>testcontainers-junit4-mock</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.jeasy</groupId>

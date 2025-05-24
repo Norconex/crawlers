@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.cli;
 
-import com.norconex.crawler.core.CrawlerSpecProvider;
+import com.norconex.crawler.core.CrawlDriver;
 
 import lombok.NonNull;
 import picocli.CommandLine;
@@ -22,7 +22,8 @@ import picocli.CommandLine.PicocliException;
 
 /**
  * Launches a crawler command with given crawler specifications and
- * command-line arguments. Typically not invoked directly, and used by
+ * command-line arguments. Meant to be invoked from a
+ * <code>main(String[] args)</code> method, from
  * crawler implementations (e.g., FS, Web).
  */
 public final class CliCrawlerLauncher {
@@ -31,10 +32,9 @@ public final class CliCrawlerLauncher {
     }
 
     public static int launch(
-            @NonNull Class<? extends CrawlerSpecProvider> specProviderClass,
-            String... args) {
+            @NonNull CrawlDriver crawlDriver, String... args) {
 
-        var cmdLine = new CommandLine(new CliRunner(specProviderClass));
+        var cmdLine = new CommandLine(new CliRunner(crawlDriver));
 
         cmdLine.setExecutionExceptionHandler(
                 (var ex, var cli, var parseResult) -> {

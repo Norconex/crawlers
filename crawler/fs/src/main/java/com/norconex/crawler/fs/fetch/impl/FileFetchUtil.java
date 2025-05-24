@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.fs.fetch.FileFetchRequest;
+import com.norconex.crawler.core.fetch.FetchRequest;
 
 public final class FileFetchUtil {
 
@@ -36,10 +36,10 @@ public final class FileFetchUtil {
      *     of the supplied prefixes
      */
     public static boolean referenceStartsWith(
-            FileFetchRequest req, String... prefixes) {
+            FetchRequest req, String... prefixes) {
 
         return Optional.ofNullable(req)
-                .map(FileFetchRequest::getDoc)
+                .map(FetchRequest::getDoc)
                 .map(CrawlDoc::getReference)
                 .map(String::toLowerCase)
                 .filter(ref -> StringUtils.startsWithAny(ref, prefixes))

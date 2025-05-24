@@ -1,4 +1,4 @@
-/* Copyright 2015-2024 Norconex Inc.
+/* Copyright 2015-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ public class UrlStatusCrawlerEventListenerConfig {
 
     /**
      * The coma-separated list of status codes to listen to.
-     * Default is <code>null</code> (listens for all status codes).
+     * Default is {@code null} (listens for all status codes).
      * See class documentation for how to specify code ranges.
      */
     private String statusCodes;

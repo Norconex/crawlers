@@ -1,4 +1,4 @@
-/* Copyright 2020-2024 Norconex Inc.
+/* Copyright 2020-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.lang3.builder.ToStringExclude;
-
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.file.ContentType;
 
 import lombok.Data;
 import lombok.NonNull;
+import lombok.ToString;
 
 /**
  * Important information about a document that has specific meaning and purpose
@@ -67,7 +66,7 @@ public class DocContext implements Serializable {
 
     // trail of parent references (first one is root/top-level)
     //    @ToStringSummary
-    @ToStringExclude
+    @ToString.Exclude
     private List<String> embeddedParentReferences = new ArrayList<>();
 
     //MAYBE: above should just be parentReferences and below should be metadata?

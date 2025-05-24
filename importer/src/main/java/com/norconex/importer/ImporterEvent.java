@@ -1,4 +1,4 @@
-/* Copyright 2020-2024 Norconex Inc.
+/* Copyright 2020-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ public class ImporterEvent extends Event {
     public static final String IMPORTER_PARSER_ERROR = "IMPORTER_PARSER_ERROR";
 
     /**
-     * Gets the document parse state (never <code>null</code>).
+     * Gets the document parse state (never {@code null}).
      * @return parse state
      */
     @SuppressWarnings("javadoc")

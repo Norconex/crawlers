@@ -29,6 +29,13 @@
     <Logger name="com.norconex.grid" level="DEBUG" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
+    <Logger 
+      name="com.norconex.grid.core.util.ScopedThreadFactoryCreator" 
+      level="INFO" 
+      additivity="false"
+    >
+      <AppenderRef ref="Console"/>
+    </Logger>
     <Logger name="org.apache" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>

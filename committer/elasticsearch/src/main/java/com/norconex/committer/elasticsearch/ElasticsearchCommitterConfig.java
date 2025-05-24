@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ public class ElasticsearchCommitterConfig extends BaseBatchCommitterConfig {
 
     /**
      * The type name. Type name is deprecated if you
-     * are using Elasticsearch 7.0 or higher and should be <code>null</code>.
+     * are using Elasticsearch 7.0 or higher and should be {@code null}.
      */
     private String typeName;
 
@@ -78,14 +78,14 @@ public class ElasticsearchCommitterConfig extends BaseBatchCommitterConfig {
 
     /**
      * The character used to replace dots in field names.
-     * Default is <code>null</code> (does not replace dots).
+     * Default is {@code null} (does not replace dots).
      */
     private String dotReplacement;
 
     /**
      * The regular expression matching fields that contains a JSON
      * object for its value (as opposed to a regular string).
-     * Default is <code>null</code> (not matching any fields).
+     * Default is {@code null} (not matching any fields).
      */
     private String jsonFieldsPattern;
 
@@ -112,14 +112,14 @@ public class ElasticsearchCommitterConfig extends BaseBatchCommitterConfig {
 
     /**
      * The document field name containing the value to be stored
-     * in Elasticsearch "_id" field. Set to <code>null</code> to use the
+     * in Elasticsearch "_id" field. Set to {@code null} to use the
      * document reference instead of a field (default).
      */
     private String sourceIdField;
 
     /**
      * The name of the Elasticsearch field where content will be stored.
-     * Default is "content". A <code>null</code> value disables storing
+     * Default is "content". A {@code null} value disables storing
      * the content.
      */
     private String targetContentField = DEFAULT_ELASTICSEARCH_CONTENT_FIELD;

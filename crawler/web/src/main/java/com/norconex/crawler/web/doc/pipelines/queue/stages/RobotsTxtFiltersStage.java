@@ -19,7 +19,6 @@ import java.util.function.Predicate;
 import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxtFilter;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.util.Web;
@@ -43,7 +42,7 @@ public class RobotsTxtFiltersStage implements Predicate<QueuePipelineContext> {
 
     @Override
     public boolean test(QueuePipelineContext ctx) {
-        var cfg = (WebCrawlerConfig) ctx.getCrawlerContext().getConfiguration();
+        var cfg = Web.config(ctx.getCrawlContext());
 
         if (cfg.getRobotsTxtProvider() == null) {
             return true;
@@ -52,16 +51,14 @@ public class RobotsTxtFiltersStage implements Predicate<QueuePipelineContext> {
         var filter = findRejectingRobotsFilter(ctx);
         if (filter != null) {
             ctx.getDocContext().setState(CrawlDocStatus.REJECTED);
-            ctx.getCrawlerContext().fire(
+            ctx.getCrawlContext().fire(
                     CrawlerEvent.builder()
                             .name(WebCrawlerEvent.REJECTED_ROBOTS_TXT)
-                            .source(ctx.getCrawlerContext())
+                            .source(ctx.getCrawlContext())
                             .subject(filter)
                             .docContext(ctx.getDocContext())
                             .build());
-            LOG.debug(
-                    "REJECTED by robots.txt. "
-                            + ". Reference={} Filter={}",
+            LOG.debug("REJECTED by robots.txt. Reference={} Filter={}",
                     ctx.getDocContext().getReference(), filter);
             return false;
         }
@@ -77,7 +74,7 @@ public class RobotsTxtFiltersStage implements Predicate<QueuePipelineContext> {
             QueuePipelineContext ctx) {
 
         var robotsTxt = Web.robotsTxt(
-                ctx.getCrawlerContext(), ctx.getDocContext().getReference());
+                ctx.getCrawlContext(), ctx.getDocContext().getReference());
         if (robotsTxt == null) {
             return null;
         }

@@ -1,4 +1,4 @@
-/* Copyright 2020-2024 Norconex Inc.
+/* Copyright 2020-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -248,7 +248,7 @@ public final class ApacheHttpUtil {
     /**
      * Creates an HTTP request.
      * @param url the request target URL
-     * @param method HTTP method (defaults to GET if <code>null</code>)
+     * @param method HTTP method (defaults to GET if {@code null})
      * @return Apache HTTP request
      */
     public static HttpUriRequestBase createUriRequest(
@@ -260,7 +260,7 @@ public final class ApacheHttpUtil {
     /**
      * Creates an HTTP request.
      * @param url the request target URL
-     * @param method HTTP method (defaults to GET if <code>null</code>)
+     * @param method HTTP method (defaults to GET if {@code null})
      * @return Apache HTTP request
      */
     public static HttpUriRequestBase createUriRequest(

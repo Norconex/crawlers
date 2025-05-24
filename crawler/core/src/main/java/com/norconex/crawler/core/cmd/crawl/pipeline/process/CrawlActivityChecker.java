@@ -16,7 +16,7 @@ package com.norconex.crawler.core.cmd.crawl.pipeline.process;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.time.DurationFormatter;
-import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.session.CrawlContext;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 class CrawlActivityChecker {
-    private final CrawlerContext ctx;
+    private final CrawlContext ctx;
     @Getter
     private final boolean deleting;
 
@@ -69,14 +69,14 @@ class CrawlActivityChecker {
         if (deleting) {
             return false;
         }
-        return ctx.getDocLedger()
-                .isMaxDocsProcessedReached();
+        return ctx.getDocLedger().isMaxDocsProcessedReached();
     }
 
     private boolean isQueueInitializedAndEmpty() {
+        var sessionStore = ctx.getSessionProperties();
         var queueEmpty = isQueueEmpty();
         if (queueEmpty) {
-            var queueInitialized = ctx.isQueueInitialized();
+            var queueInitialized = sessionStore.isQueueInitialized();
             if (!queueInitialized) {
                 LOG.info("""
                     References are still being queued. \
@@ -85,7 +85,7 @@ class CrawlActivityChecker {
                 do {
                     Sleeper.sleepSeconds(1);
                     queueEmpty = isQueueEmpty();
-                    queueInitialized = ctx.isQueueInitialized();
+                    queueInitialized = sessionStore.isQueueInitialized();
                 } while (queueEmpty && !queueInitialized);
             }
         }
@@ -96,7 +96,7 @@ class CrawlActivityChecker {
     }
 
     private boolean isQueueStillEmptyAfterIdleTimeout() {
-        var duration = ctx.getConfiguration().getIdleTimeout();
+        var duration = ctx.getCrawlConfig().getIdleTimeout();
         if (duration == null || duration.isZero()) {
             return true;
         }
@@ -122,7 +122,7 @@ class CrawlActivityChecker {
 
     private String idleTimeoutAsText() {
         return DurationFormatter.FULL.format(
-                ctx.getConfiguration().getIdleTimeout());
+                ctx.getCrawlConfig().getIdleTimeout());
     }
 
 }

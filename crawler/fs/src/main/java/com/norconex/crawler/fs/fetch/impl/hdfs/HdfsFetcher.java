@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package com.norconex.crawler.fs.fetch.impl.hdfs;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.provider.hdfs.HdfsFileSystemConfigBuilder;
 
-import com.norconex.crawler.fs.fetch.FileFetchRequest;
+import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.fs.fetch.impl.AbstractVfsFetcher;
 import com.norconex.crawler.fs.fetch.impl.FileFetchUtil;
 
@@ -39,7 +39,7 @@ public class HdfsFetcher extends AbstractVfsFetcher<HdfsFetcherConfig> {
     private final HdfsFetcherConfig configuration = new HdfsFetcherConfig();
 
     @Override
-    protected boolean acceptRequest(@NonNull FileFetchRequest fetchRequest) {
+    protected boolean acceptRequest(@NonNull FetchRequest fetchRequest) {
         return FileFetchUtil.referenceStartsWith(fetchRequest, "hdfs://");
     }
 

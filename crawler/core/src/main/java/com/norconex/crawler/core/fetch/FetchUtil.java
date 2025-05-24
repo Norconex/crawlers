@@ -14,8 +14,8 @@
  */
 package com.norconex.crawler.core.fetch;
 
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDocStatus;
+import com.norconex.crawler.core.session.CrawlContext;
 
 import lombok.NonNull;
 
@@ -28,13 +28,13 @@ public final class FetchUtil {
     }
 
     public static boolean shouldContinueOnBadStatus(
-            @NonNull CrawlerContext crawler,
+            @NonNull CrawlContext crawler,
             CrawlDocStatus originalCrawlDocState,
             @NonNull FetchDirective fetchDirective) {
         // Note: a disabled directive should never get here,
         // and when both are enabled, DOCUMENT always comes after METADATA.
-        var metaSupport = crawler.getConfiguration().getMetadataFetchSupport();
-        var docSupport = crawler.getConfiguration().getDocumentFetchSupport();
+        var metaSupport = crawler.getCrawlConfig().getMetadataFetchSupport();
+        var docSupport = crawler.getCrawlConfig().getDocumentFetchSupport();
 
         //--- HEAD ---
         if (FetchDirective.METADATA.is(fetchDirective)) {

@@ -1,4 +1,4 @@
-/* Copyright 2015-2024 Norconex Inc.
+/* Copyright 2015-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ public interface RedirectUrlProvider {
     /**
      * Provides the redirect URL that the crawler must follow. This method
      * is only invoked when a redirect has been detected. As such, it should
-     * rarely return <code>null</code>. Returning <code>null</code> effectively
+     * rarely return {@code null}. Returning {@code null} effectively
      * prevents a redirect from happening, but it is an efficient way to
      * disable redirects. The recommended approach to disable redirects is to
      * set zero on {@link HttpClientFetcherConfig#setMaxRedirects(int)}

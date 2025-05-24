@@ -32,7 +32,8 @@ public class DocumentChecksumStage
 
     @Override
     public boolean test(CommitterPipelineContext ctx) {
-        var checksummer = ctx.getCrawlerContext().getConfiguration()
+        var checksummer = ctx.getCrawlContext()
+                .getCrawlConfig()
                 .getDocumentChecksummer();
         var docContext = ctx.getDoc().getDocContext();
 
@@ -57,10 +58,10 @@ public class DocumentChecksumStage
                     .append(" - ")
                     .append("Checksum=")
                     .append(StringUtils.abbreviate(newDocChecksum, 200));
-            ctx.getCrawlerContext().fire(
+            ctx.getCrawlContext().fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.REJECTED_UNMODIFIED)
-                            .source(ctx.getCrawlerContext())
+                            .source(ctx.getCrawlContext())
                             .docContext(ctx.getDoc().getDocContext())
                             .subject(checksummer)
                             .message(s.toString())

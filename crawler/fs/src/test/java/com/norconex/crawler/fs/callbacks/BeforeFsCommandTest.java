@@ -16,14 +16,14 @@ package com.norconex.crawler.fs.callbacks;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.session.CrawlContext;
 
 class BeforeFsCommandTest {
 
     @CrawlTest(focus = Focus.CONTEXT)
-    void testAccept(CrawlerContext ctx) {
+    void testAccept(CrawlContext ctx) {
         assertThatNoException()
                 .isThrownBy(() -> new BeforeFsCommand().accept(ctx));
     }

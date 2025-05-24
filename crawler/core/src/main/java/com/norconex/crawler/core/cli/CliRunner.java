@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2019-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.cli;
 
-import com.norconex.crawler.core.CrawlerSpecProvider;
+import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.util.About;
 
 import lombok.EqualsAndHashCode;
@@ -66,7 +66,7 @@ public class CliRunner implements Runnable {
 
     @Getter
     @NonNull
-    private final Class<? extends CrawlerSpecProvider> specProviderClass;
+    private final CrawlDriver crawlDriver;
 
     @Option(
         names = { "-h", "-help" },

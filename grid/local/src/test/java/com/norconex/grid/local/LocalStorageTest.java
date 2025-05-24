@@ -14,12 +14,12 @@
  */
 package com.norconex.grid.local;
 
-import com.norconex.grid.core.GridConnector;
+import com.norconex.grid.core.cluster.WithCluster;
 import com.norconex.grid.core.storage.GridStorageTest;
 
+@WithCluster(connectorFactory = LocalClusterTestConnectorFactory.class)
 class LocalStorageTest extends GridStorageTest {
-    @Override
-    protected GridConnector getGridConnector() {
-        return new LocalGridConnector();
-    }
+
+    private static final long serialVersionUID = 1L;
+
 }

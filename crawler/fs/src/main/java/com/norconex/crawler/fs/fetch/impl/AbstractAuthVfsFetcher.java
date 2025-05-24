@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,12 @@ import org.apache.commons.vfs2.impl.DefaultFileSystemConfigBuilder;
 import org.apache.commons.vfs2.util.EncryptUtil;
 
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
-import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.fetch.FetchRequest;
+import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.fs.fetch.FileFetchRequest;
 
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 import lombok.ToString;
 
 /**
@@ -48,10 +51,22 @@ public abstract class AbstractAuthVfsFetcher<C extends BaseAuthVfsFetcherConfig>
         extends AbstractVfsFetcher<C> {
 
     @Override
-    protected void fetcherStartup(CrawlerContext crawler) {
+    protected void fetcherStartup(CrawlContext crawler) {
         super.fetcherStartup(crawler);
         applyAuthenticationOptions(getFsOptions());
     }
+
+    @Override
+    protected final boolean acceptRequest(@NonNull FetchRequest fetchRequest) {
+        if (fetchRequest instanceof FileFetchRequest fileReq) {
+            return acceptFileRequest(fileReq);
+        }
+        //TODO always support getting FolderPathsFetchRequest?
+        return true;
+    }
+
+    protected abstract boolean acceptFileRequest(
+            @NonNull FileFetchRequest fetchRequest);
 
     /**
      * Applies options that exists in each Commons VFS implementations.

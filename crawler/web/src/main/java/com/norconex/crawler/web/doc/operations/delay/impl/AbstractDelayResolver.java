@@ -118,9 +118,9 @@ public abstract class AbstractDelayResolver<T extends BaseDelayResolverConfig>
      * Resolves explicitly specified delay, in milliseconds.
      * This method is only invoked when there are no delays from robots.txt.
      * If the implementing class does not have a delay resolution, -1
-     * or <code>null</code> is returned (the default delay will be used).
+     * or {@code null} is returned (the default delay will be used).
      * @param url URL for which to resolve delay
-     * @return delay in millisecond, or -1 or <code>null</code>
+     * @return delay in millisecond, or -1 or {@code null}
      */
     protected abstract Duration resolveExplicitDelay(String url);
 

@@ -24,7 +24,7 @@ import java.util.Set;
 import com.norconex.commons.lang.bean.jackson.JsonXmlCollection;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.doc.operations.checksum.impl.Md5DocumentChecksummer;
@@ -66,7 +66,7 @@ import lombok.experimental.FieldNameConstants;
 /**
  * <p>
  * Web Crawler configuration, adding more options to the base
- * {@link CrawlerConfig}.
+ * {@link CrawlConfig}.
  * </p>
  * <h2>Start URLs</h2>
  * <p>
@@ -328,7 +328,7 @@ import lombok.experimental.FieldNameConstants;
  * <p>
  * By default, the crawler tries to respect instructions a web site has put
  * in place for the benefit of crawlers. The following is a list of some of the
- * popular ones. Where <code>null</code> can be set to disable support
+ * popular ones. Where {@code null} can be set to disable support
  * for specific instructions, you can achieve the equivalent in XML
  * configuration by declaring the corresponding option as a self-closed tag.
  * </p>
@@ -337,7 +337,7 @@ import lombok.experimental.FieldNameConstants;
  *     <b>"robots.txt" rules:</b> Rules defined in a "robots.txt" file at the
  *     root of a web site.
  *     Defaults to {@link StandardRobotsTxtProvider}.
- *     Set to <code>null</code> via
+ *     Set to {@code null} via
  *     {@link #setRobotsTxtProvider(RobotsTxtProvider)} to disable
  *     support for "robots.txt" rules.
  *   </li>
@@ -345,7 +345,7 @@ import lombok.experimental.FieldNameConstants;
  *     <b>Robots metadata rules:</b> Rules provided via the HTTP response
  *     header <code>X-Robots-Tag</code> for a given document.
  *     Defaults to {@link StandardRobotsMetaProvider}.
- *     Set to <code>null</code> via
+ *     Set to {@code null} via
  *     {@link #setRobotsMetaProvider(RobotsMetaProvider)} to disable
  *     support for robots metadata rules.
  *   </li>
@@ -363,7 +363,7 @@ import lombok.experimental.FieldNameConstants;
  *     Defaults to {@link GenericSitemapResolver}, which
  *     offers support for disabling sitemap detection to rely only
  *     on sitemap start references.
- *     Setting it to <code>null</code> via
+ *     Setting it to {@code null} via
  *     {@link #setSitemapResolver(SitemapResolver)} effectively disables
  *     sitemap support altogether, and is thus incompatible with sitemaps
  *     specified as start references.
@@ -373,7 +373,7 @@ import lombok.experimental.FieldNameConstants;
  *     non-canonical, as per HTML <code>&lt;meta ...&gt;</code> or
  *     HTTP response instructions.
  *     Defaults to {@link GenericCanonicalLinkDetector}.
- *     Set to <code>null</code> via
+ *     Set to {@code null} via
  *     {@link #setCanonicalLinkDetector(CanonicalLinkDetector)} to disable
  *     support canonical links (increasing the chance of getting duplicates).
  *     </li>
@@ -424,7 +424,7 @@ import lombok.experimental.FieldNameConstants;
  * {@link #setMetadataDeduplicate(boolean)} and/or
  * {@link #setDocumentDeduplicate(boolean)} to <code>true</code>. Setting
  * those will have no effect if the corresponding checksummers are
- * <code>null</code> or checksums are otherwise not are being generated.
+ * {@code null} or checksums are otherwise not are being generated.
  * </p>
  * <p>
  * Deduplication can impact crawl performance.  It is recommended you
@@ -456,7 +456,7 @@ import lombok.experimental.FieldNameConstants;
 @Accessors(chain = true)
 @FieldNameConstants
 //@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME)
-public class WebCrawlerConfig extends CrawlerConfig {
+public class WebCrawlerConfig extends CrawlConfig {
 
     /**
      * Flags for storing as metadata a page referenced links.
@@ -511,7 +511,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
     /**
      * The provider of robots.txt rules for a site (if applicable).
      * Defaults to {@link StandardRobotsTxtProvider}.
-     * Set to <code>null</code> to disable.
+     * Set to {@code null} to disable.
      * @see #setIgnoreRobotsTxt(boolean)
      */
     private RobotsTxtProvider robotsTxtProvider =
@@ -520,7 +520,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
     /**
      * The provider of robots metadata rules for a page (if applicable).
      * Defaults to {@link StandardRobotsMetaProvider}.
-     * Set to <code>null</code> to disable.
+     * Set to {@code null} to disable.
      * @see #setIgnoreRobotsMeta(boolean)
      */
     private RobotsMetaProvider robotsMetaProvider =
@@ -529,7 +529,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
     /**
      * The resolver of web site sitemaps (if applicable).
      * Defaults to {@link GenericSitemapResolver}.
-     * Set to <code>null</code> to disable all sitemap support, or
+     * Set to {@code null} to disable all sitemap support, or
      * see class documentation to disable sitemap detection only.
      * @see SitemapLocator
      */
@@ -538,7 +538,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
     /**
      * The locator of sitemaps (if applicable).
      * Defaults to {@link GenericSitemapLocator}.
-     * Set to <code>null</code> to disable locating sitemaps
+     * Set to {@code null} to disable locating sitemaps
      * (relying on sitemaps defined as start reference, if any).
      * @see SitemapResolver
      */
@@ -562,7 +562,7 @@ public class WebCrawlerConfig extends CrawlerConfig {
 
     /**
      * Gets sitemap URLs to be used as starting points for crawling.
-     * @return sitemap URLs (never <code>null</code>)
+     * @return sitemap URLs (never {@code null})
      * @since 2.3.0
      */
     public List<String> getStartReferencesSitemaps() {

@@ -28,7 +28,7 @@ final class ProcessDelete {
         LOG.debug("Deleting reference: {}", ctx.doc().getReference());
         ctx.doc().getDocContext().setState(CrawlDocStatus.DELETED);
         // Event triggered by service
-        ctx.crawlerContext().getCommitterService().delete(ctx.doc());
+        ctx.crawlContext().getCommitterService().delete(ctx.doc());
         ProcessFinalize.execute(ctx);
     }
 }

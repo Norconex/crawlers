@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@ package com.norconex.crawler.web.junit;
 
 import com.norconex.crawler.core.junit.CrawlTestCapturer;
 import com.norconex.crawler.core.junit.CrawlTestCapturer.CrawlCaptures;
+import com.norconex.crawler.web.WebCrawlDriverFactory;
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.WebCrawlerSpecProvider;
 
 public final class WebCrawlTestCapturer {
 
@@ -26,6 +26,6 @@ public final class WebCrawlTestCapturer {
 
     public static CrawlCaptures crawlAndCapture(WebCrawlerConfig config) {
         return CrawlTestCapturer.crawlAndCapture(
-                config, WebCrawlerSpecProvider.class);
+                config, WebCrawlDriverFactory.create());
     }
 }

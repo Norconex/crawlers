@@ -23,18 +23,18 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 
 class ImportModuleStageTest {
 
     @CrawlTest(focus = Focus.CONTEXT)
-    void testImportModuleStage(CrawlerContext crawlCtx) throws IOException {
+    void testImportModuleStage(CrawlContext crawlCtx) throws IOException {
         var doc = CrawlDocStubs.crawlDoc("ref", "tomato");
-        crawlCtx.getConfiguration().getImporterConfig().setHandlers(
+        crawlCtx.getCrawlConfig().getImporterConfig().setHandlers(
                 List.of(hctx -> {
                     try {
                         hctx.output().asWriter().write("potato");

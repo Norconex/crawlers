@@ -1,4 +1,4 @@
-/* Copyright 2020-2024 Norconex Inc.
+/* Copyright 2020-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * The top-level queue directory is the one defined in the
  * {@link CommitterContext} initialization argument or the system
- * temporary directory if <code>null</code>. A "queue" sub-folder will be
+ * temporary directory if {@code null}. A "queue" sub-folder will be
  * created for queued requests, while an "error" one will also be created
  * for failed batches.
  * </p>

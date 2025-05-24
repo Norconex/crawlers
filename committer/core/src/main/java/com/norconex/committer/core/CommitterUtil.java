@@ -1,4 +1,4 @@
-/* Copyright 2020-2024 Norconex Inc.
+/* Copyright 2020-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ public final class CommitterUtil {
      * Gets the request content as a string. Only applicable to
      * {@link UpsertRequest} instances.
      * @param req committer request
-     * @return content as string, or <code>null</code>
+     * @return content as string, or {@code null}
      * @throws CommitterException could not get content as string
      */
     public static String getContentAsString(CommitterRequest req)
@@ -109,7 +109,7 @@ public final class CommitterUtil {
     /**
      * Applies the document content (input stream) to the target
      * field name. If the <code>targetContentField</code> argument is
-     * <code>null</code> or blank, the document content is ignored (not set).
+     * {@code null} or blank, the document content is ignored (not set).
      * Only applicable to {@link UpsertRequest} instances.
      * @param req committer request
      * @param targetContentField name of the target field holding the document
@@ -129,7 +129,7 @@ public final class CommitterUtil {
      * Applies the source ID field value after extracting it using
      * {@link #extractSourceIdValue(CommitterRequest, String)},
      * to the target ID ID field supplied.
-     * If <code>targetIdField</code> or source ID value, is <code>null</code>
+     * If <code>targetIdField</code> or source ID value, is {@code null}
      * or blank, the document ID is ignored (not set).
      * @param req committer request
      * @param sourceIdField name of the source field holding the document ID

@@ -3,3 +3,5 @@
 /.project
 /.settings/
 /target/
+/littleproxy_cert
+/littleproxy_keystore.jks

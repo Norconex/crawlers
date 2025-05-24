@@ -1,4 +1,4 @@
-/* Copyright 2016-2024 Norconex Inc.
+/* Copyright 2016-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,14 +69,14 @@ public class AmazonCloudSearchCommitterConfig
     private String signingRegion;
 
     /**
-     * The CloudSearch access key. If <code>null</code>, the access key
+     * The CloudSearch access key. If {@code null}, the access key
      * will be obtained from the environment, as detailed in
      * {@link DefaultAWSCredentialsProviderChain}.
      */
     private String accessKey;
 
     /**
-     * The CloudSearch secret key. If <code>null</code>, the secret key
+     * The CloudSearch secret key. If {@code null}, the secret key
      * will be obtained from the environment, as detailed in
      * {@link DefaultAWSCredentialsProviderChain}.
      */
@@ -96,7 +96,7 @@ public class AmazonCloudSearchCommitterConfig
      * The document field name containing the value to be stored
      * in CloudSearch "id" field. Default is not a field, but rather
      * the document reference.
-     * A <code>null</code> value indicate to use the
+     * A {@code null} value indicate to use the
      * document reference instead of a field (default).
      */
     private String sourceIdField;
@@ -104,7 +104,7 @@ public class AmazonCloudSearchCommitterConfig
     /**
      * The name of the CloudSearch field where content will be stored.
      * Default is "content".
-     * Specifying a <code>null</code> value will disable storing the content.
+     * Specifying a {@code null} value will disable storing the content.
      */
     private String targetContentField = DEFAULT_COULDSEARCH_CONTENT_FIELD;
 

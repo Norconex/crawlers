@@ -19,10 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 import java.util.function.Consumer;
 
-import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.CrawlerContext;
+import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 import com.norconex.importer.response.ImporterResponse;
 import com.norconex.importer.response.ImporterResponseProcessor;
@@ -41,9 +41,9 @@ public class ProcessUpsertTest {
         }
     }
 
-    public static class TestConfigModifier implements Consumer<CrawlerConfig> {
+    public static class TestConfigModifier implements Consumer<CrawlConfig> {
         @Override
-        public void accept(CrawlerConfig cfg) {
+        public void accept(CrawlConfig cfg) {
             cfg.getImporterConfig().setResponseProcessors(
                     List.of(new TestResponseProcessor()));
         }
@@ -53,12 +53,12 @@ public class ProcessUpsertTest {
         focus = Focus.CONTEXT,
         configModifier = TestConfigModifier.class
     )
-    void testThreadActionUpsert(CrawlerContext crawler) {
+    void testThreadActionUpsert(CrawlContext crawler) {
 
         var doc = CrawlDocStubs.crawlDoc("ref");
         var ctx = new ProcessContext();
         ctx.finalized(false);
-        ctx.crawlerContext(crawler);
+        ctx.crawlContext(crawler);
         ctx.doc(doc);
         ctx.docContext(doc.getDocContext());
 

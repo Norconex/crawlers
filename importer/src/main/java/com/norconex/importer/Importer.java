@@ -14,6 +14,7 @@
  */
 package com.norconex.importer;
 
+import java.io.Closeable;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -58,7 +59,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @ToString
 @EqualsAndHashCode
-public class Importer implements AutoCloseable {
+public class Importer implements Closeable {
 
     @Getter
     private final ImporterConfig configuration;
@@ -109,7 +110,7 @@ public class Importer implements AutoCloseable {
      */
     public Importer(ImporterConfig importerConfig, EventManager eventManager) {
         if (importerConfig != null) {
-            configuration = importerConfig;
+            configuration = importerConfig; //TODO make defensive copy?
         } else {
             configuration = new ImporterConfig();
         }
@@ -336,7 +337,6 @@ public class Importer implements AutoCloseable {
 
     private ImporterResponse executeHandlers(
             Doc doc, List<Doc> childDocsHolder) throws ImporterException {
-
         var resp = new ImporterResponse(doc);
 
         if (configuration.getHandlers() == null) {

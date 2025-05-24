@@ -1,4 +1,4 @@
-/* Copyright 2021-2024 Norconex Inc.
+/* Copyright 2021-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public class DeleteRejectedEventListenerConfig {
      * Gets the event matcher used to identify which events can trigger
      * a deletion request. Default is regular expression
      * <code>REJECTED_.*</code>.
-     * @return text matcher, never <code>null</code>
+     * @return text matcher, never {@code null}
      */
     public TextMatcher getEventMatcher() {
         return eventMatcher;

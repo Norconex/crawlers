@@ -1,4 +1,4 @@
-/* Copyright 2020-2024 Norconex Inc.
+/* Copyright 2020-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,9 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Setter(AccessLevel.NONE)
 public class CommitterService<T> implements Closeable {
+
+    //NOTE: Takes a generic type given it may sometimes be used
+    // for other types than CrawlDoc from the crawler-core project
 
     @Default
     private List<Committer> committers = Collections.emptyList();

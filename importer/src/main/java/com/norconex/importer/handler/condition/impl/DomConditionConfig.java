@@ -1,4 +1,4 @@
-/* Copyright 2021-2024 Norconex Inc.
+/* Copyright 2021-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -205,7 +205,7 @@ public class DomConditionConfig {
 
     /**
      * Gets what should be extracted for the value. One of
-     * "text" (default), "html", or "outerHtml". <code>null</code> means
+     * "text" (default), "html", or "outerHtml". {@code null} means
      * this class will use the default ("text").
      * @return what should be extracted for the value
      */
@@ -215,7 +215,7 @@ public class DomConditionConfig {
 
     /**
      * Sets what should be extracted for the value. One of
-     * "text" (default), "html", or "outerHtml". <code>null</code> means
+     * "text" (default), "html", or "outerHtml". {@code null} means
      * this class will use the default ("text").
      * @param extract what should be extracted for the value
      */

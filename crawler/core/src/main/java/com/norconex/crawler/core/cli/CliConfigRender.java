@@ -1,4 +1,4 @@
-/* Copyright 2020-2024 Norconex Inc.
+/* Copyright 2020-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.crawler.core.Crawler;
@@ -71,11 +70,9 @@ public class CliConfigRender extends CliBase {
                     .findFirst()
                     .orElse(Format.JSON);
 
-            ClassUtil
-                    .newInstance(crawler.getCrawlerSpecProviderClass())
-                    .get()
+            crawler.getCrawlDriver()
                     .beanMapper()
-                    .write(crawler.getCrawlerConfig(), out, f);
+                    .write(crawler.getCrawlConfig(), out, f);
             if (output == null) {
                 out().println(((StringWriter) out).toString());
             }

@@ -30,15 +30,15 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
+import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.fs.FsTestUtil;
-import com.norconex.crawler.fs.fetch.FileFetcher;
 
 public abstract class AbstractFileFetcherTest {
 
     @TempDir
     private Path tempDir;
 
-    protected abstract FileFetcher fetcher();
+    protected abstract Fetcher fetcher();
 
     @Test
     void testFetchFiles() throws Exception {

@@ -23,7 +23,6 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
 import com.norconex.crawler.core.doc.operations.checksum.impl.GenericMetadataChecksummer;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
@@ -32,6 +31,7 @@ import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 
 class MetadataChecksumStageTest {
@@ -40,10 +40,10 @@ class MetadataChecksumStageTest {
     private Path tempDir;
 
     @CrawlTest(focus = Focus.CONTEXT)
-    void testMetadataChecksumStage(CrawlerContext crawlCtx) {
+    void testMetadataChecksumStage(CrawlContext crawlCtx) {
         var doc = CrawlDocStubs.crawlDoc(
                 "ref", "content", "myfield", "somevalue");
-        crawlCtx.getConfiguration().setMetadataFetchSupport(
+        crawlCtx.getCrawlConfig().setMetadataFetchSupport(
                 FetchDirectiveSupport.REQUIRED);
 
         // without a checksummer
@@ -57,7 +57,7 @@ class MetadataChecksumStageTest {
         checksummer.getConfiguration()
                 .setFieldMatcher(TextMatcher.basic("myfield"))
                 .setKeep(true);
-        crawlCtx.getConfiguration().setMetadataChecksummer(checksummer);
+        crawlCtx.getCrawlConfig().setMetadataChecksummer(checksummer);
         new MetadataChecksumStage(FetchDirective.METADATA).test(ctx);
         assertThat(doc.getMetadata().getString(
                 CrawlDocMetaConstants.CHECKSUM_METADATA)).isEqualTo(
@@ -80,7 +80,7 @@ class MetadataChecksumStageTest {
                     cfg.setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED)
                             .setMetadataChecksummer(checksummer);
                 })
-                .withCrawlerContext(crawlCtx -> {
+                .withCrawlContext(crawlCtx -> {
                     var doc = CrawlDocStubs.crawlDocWithCache(
                             "ref", "content", "key", "value");
                     doc.getDocContext().setMetaChecksum(

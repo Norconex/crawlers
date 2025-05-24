@@ -1,4 +1,4 @@
-/* Copyright 2020-2024 Norconex Inc.
+/* Copyright 2020-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,11 +38,11 @@ public class BaseFsCommitterConfig extends BaseCommitterConfig {
     private boolean compress;
     private boolean splitUpsertDelete;
     /**
-     * The file name prefix (default is <code>null</code>).
+     * The file name prefix (default is {@code null}).
      */
     private String fileNamePrefix;
     /**
-     * The file name suffix (default is <code>null</code>).
+     * The file name suffix (default is {@code null}).
      */
     private String fileNameSuffix;
 

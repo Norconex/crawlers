@@ -25,11 +25,11 @@ public class DelayResolverStage extends AbstractImporterStage {
     @Override
     protected boolean executeStage(ImporterPipelineContext ctx) {
         var delayResolver =
-                Web.config(ctx.getCrawlerContext()).getDelayResolver();
+                Web.config(ctx.getCrawlContext()).getDelayResolver();
         if (delayResolver != null) {
             String reference = ctx.getDoc().getDocContext().getReference();
             delayResolver.delay(
-                    Web.robotsTxt(ctx.getCrawlerContext(), reference),
+                    Web.robotsTxt(ctx.getCrawlContext(), reference),
                     reference);
         }
         return true;

@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.crawler.core.fetch.FetchDirective;
+import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.fs.FsTestUtil;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
-import com.norconex.crawler.fs.fetch.FileFetcher;
 import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 import com.norconex.crawler.fs.stubs.CrawlDocStubs;
 
@@ -35,7 +35,7 @@ class LocalFetcherTest extends AbstractFileFetcherTest {
     }
 
     @Override
-    protected FileFetcher fetcher() {
+    protected Fetcher fetcher() {
         return fetcherClient();
     }
 

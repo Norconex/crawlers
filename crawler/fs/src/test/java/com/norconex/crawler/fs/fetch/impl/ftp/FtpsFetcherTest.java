@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.fs.fetch.FileFetcher;
+import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 
 class FtpsFetcherTest extends AbstractFileFetcherTest {
@@ -40,7 +40,7 @@ class FtpsFetcherTest extends AbstractFileFetcherTest {
     }
 
     @Override
-    protected FileFetcher fetcher() {
+    protected Fetcher fetcher() {
         return MockFtpServer.fetcherClient();
     }
 

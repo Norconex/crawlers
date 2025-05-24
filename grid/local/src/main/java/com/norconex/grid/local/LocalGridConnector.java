@@ -25,27 +25,41 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.unit.DataUnit;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridConnector;
+import com.norconex.grid.core.GridContext;
 import com.norconex.grid.core.GridException;
 
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 @EqualsAndHashCode
 @ToString
 @Slf4j
+@NoArgsConstructor
 public class LocalGridConnector
         implements GridConnector, Configurable<LocalGridConnectorConfig> {
 
+    public static final String DEFAULT_GRID_NAME = "local-grid";
     private static final String STORE_DIR_NAME = "localStore";
+
+    // Grid name not configurable, available via package scope for testing.
+    @Getter(value = AccessLevel.PACKAGE)
+    private String gridName = DEFAULT_GRID_NAME;
+
+    LocalGridConnector(@NonNull String gridName) {
+        this.gridName = gridName;
+    }
 
     @Getter
     private final LocalGridConnectorConfig configuration =
             new LocalGridConnectorConfig();
 
     @Override
-    public Grid connect(Path workDir) {
+    public Grid connect(GridContext gridContext) {
         var builder = new MVStore.Builder();
         if (configuration.getPageSplitSize() != null) {
             //MVStore expects it as bytes
@@ -85,7 +99,7 @@ public class LocalGridConnector
         if (configuration.isEphemeral()) {
             builder.fileName(null);
         } else {
-            storeDir = workDir.resolve(STORE_DIR_NAME);
+            storeDir = gridContext.getWorkDir().resolve(STORE_DIR_NAME);
             try {
                 FileUtils.forceMkdir(storeDir.toFile());
             } catch (IOException e) {
@@ -130,12 +144,13 @@ public class LocalGridConnector
         }
         mvstore.commit();
 
-        return new LocalGrid(mvstore);
+        return new LocalGrid(mvstore, gridName, gridContext);
     }
 
     @Override
-    public void requestStop(Path workDir) {
-        LocalGridStopHandler.requestStop(workDir.resolve(STORE_DIR_NAME));
+    public void shutdownGrid(GridContext gridContext) {
+        LocalStopHandler
+                .requestStop(gridContext.getWorkDir().resolve(STORE_DIR_NAME));
     }
 
     private Integer asInt(Long l) {

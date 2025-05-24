@@ -89,7 +89,7 @@ public class HtmlLinkExtractorConfig {
 
     /**
      * The character set to use for pages on which link extraction is performed.
-     * When <code>null</code> (default), character set detection will be
+     * When {@code null} (default), character set detection will be
      * attempted.
      */
     private Charset charset;

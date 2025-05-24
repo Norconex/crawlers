@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,9 +89,9 @@ public class ReadAdapter {
      * memory exceptions when read as a string. An alternative is
      * using {@link #asChunkedText(FailableBiFunction)} instead.
      * The supplied {@link Charset} will be used as the input character set
-     * if not <code>null</code>. Else, it is presumed to be the one passed in
+     * if not {@code null}. Else, it is presumed to be the one passed in
      * the constructor or if not set there either, then UTF-8.
-     * @param charset the character set of the input or <code>null</code>
+     * @param charset the character set of the input or {@code null}
      * @return input as string
      * @throws IOException could not read input
      */

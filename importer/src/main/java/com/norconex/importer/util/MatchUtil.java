@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ public final class MatchUtil {
      * @param matcher text matcher
      * @param docRecord the document record on which to assess the content type
      * @return <code>true</code> if matches or if either arguments or content
-     *      type are <code>null</code>
+     *      type are {@code null}
      */
     public static boolean matchesContentType(
             TextMatcher matcher, DocContext docRecord) {
@@ -43,7 +43,7 @@ public final class MatchUtil {
      * @param matcher text matcher
      * @param contentType the content type to match
      * @return <code>true</code> if matches or if either arguments are
-     *      <code>null</code>
+     *      {@code null}
      */
     public static boolean matchesContentType(
             TextMatcher matcher, ContentType contentType) {

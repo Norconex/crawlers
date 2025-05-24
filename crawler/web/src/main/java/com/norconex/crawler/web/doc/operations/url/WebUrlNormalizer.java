@@ -25,7 +25,7 @@ import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
  * that points to the same content (e.g. URL carrying temporary session
  * information).  This action takes place right after URLs are extracted
  * from a document, before each of these URLs is even considered
- * for further processing.  Returning <code>null</code> will effectively
+ * for further processing.  Returning {@code null} will effectively
  * tell the crawler to not even consider it for processing
  * (it won't go through the regular document processing flow).  You may want
  * to consider {@link ReferenceFilter}

@@ -1,4 +1,4 @@
-/* Copyright 2010-2024 Norconex Inc.
+/* Copyright 2010-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.tika.exception.ZeroByteFileException;
@@ -64,17 +65,21 @@ public class DefaultParser
     @Getter
     private final DefaultParserConfig configuration = new DefaultParserConfig();
     private AutoDetectParser tikaParser;
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private AtomicBoolean initialized = new AtomicBoolean();
 
     @Override
     public void init() throws IOException {
+
         fixTikaInitWarning();
         tikaParser = new AutoDetectParser(
                 DefTikaConfigurer.configure(configuration));
+        initialized.set(true);
     }
 
     @Override
     public boolean handle(DocHandlerContext ctx) throws IOException {
-
         var tikaMetadata = new Metadata();
         var contentType = ctx.docContext().getContentType();
 
@@ -93,14 +98,14 @@ public class DefaultParser
                         .map(Charset::toString)
                         .orElse(null));
 
+        Parser recursiveParser = null;
         try (var input = CachedInputStream.cache(ctx.input().asInputStream());
                 var output = ctx.output().asWriter(UTF_8)) {
 
             tikaMetadata.set(
                     HttpHeaders.CONTENT_LENGTH,
                     Long.toString(input.length()));
-
-            var recursiveParser =
+            recursiveParser =
                     createRecursiveParser(ctx, output, embeddedDocs);
             var context = new ParseContext();
             context.set(Parser.class, recursiveParser);
@@ -113,6 +118,7 @@ public class DefaultParser
             }
             pdfConfig.setSuppressDuplicateOverlappingText(true);
             context.set(PDFParserConfig.class, pdfConfig);
+
             recursiveParser.parse(
                     input,
                     new BodyContentHandler(output), tikaMetadata, context);

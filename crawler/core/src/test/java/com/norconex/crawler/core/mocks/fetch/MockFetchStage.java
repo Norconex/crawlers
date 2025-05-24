@@ -50,10 +50,10 @@ public class MockFetchStage extends AbstractImporterStage {
 
         try {
             var docContext = ctx.getDoc().getDocContext();
-            var response = ((MockFetcher) ctx
-                    .getCrawlerContext()
-                    .getFetcher())
-                            .fetch(new MockFetchRequest(ctx.getDoc()));
+            var response = ctx
+                    .getCrawlContext()
+                    .getFetcher()
+                    .fetch(new MockFetchRequest(ctx.getDoc()));
             var state = response.getResolutionStatus();
             docContext.setState(state);
             ctx.getDoc().getMetadata().set(

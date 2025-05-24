@@ -16,8 +16,6 @@ package com.norconex.crawler.core.doc;
 
 import java.time.ZonedDateTime;
 
-import org.apache.commons.lang3.builder.ToStringExclude;
-
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.importer.doc.DocContext;
 
@@ -25,6 +23,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * Holds minimal meta information and state necessary to the proper
@@ -45,14 +44,14 @@ public class CrawlDocContext extends DocContext {
 
     private String originalReference; //TODO keep the trail if it changes often?
 
-    @ToStringExclude
+    @ToString.Exclude
     private String parentRootReference;
     private CrawlDocStatus resolutionStatus;
-    @ToStringExclude
+    @ToString.Exclude
     private String metaChecksum;
-    @ToStringExclude
+    @ToString.Exclude
     private String contentChecksum;
-    @ToStringExclude
+    @ToString.Exclude
     private ZonedDateTime crawlDate;
     private ZonedDateTime lastModified;
     @Setter

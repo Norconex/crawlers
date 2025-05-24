@@ -14,14 +14,21 @@
  */
 package com.norconex.crawler.core.cmd.crawl.pipeline;
 
-import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.grid.core.pipeline.GridPipelineTask;
+import org.apache.commons.lang3.NotImplementedException;
 
-public class CrawlShutdownTask implements GridPipelineTask<CrawlerContext> {
+import com.norconex.grid.core.Grid;
+import com.norconex.grid.core.compute.BaseGridTask.SingleNodeTask;
+
+public class CrawlShutdownTask extends SingleNodeTask {
+
+    private static final long serialVersionUID = 1L;
+
+    public CrawlShutdownTask() {
+        super("crawlShutdownTask");
+    }
 
     @Override
-    public void execute(CrawlerContext ctx) {
-        // TODO finalization stuff
-
+    public void process(Grid grid) {
+        throw new NotImplementedException("Implement me or delete me");
     }
 }

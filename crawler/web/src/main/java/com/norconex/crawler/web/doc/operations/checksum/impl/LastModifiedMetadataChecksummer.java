@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
  * Default implementation of {@link MetadataChecksummer} for the
  * Norconex Web Crawler which simply
  * returns the exact value of the "Last-Modified" HTTP header field, or
- * <code>null</code> if not present.
+ * {@code null} if not present.
  * </p>
  * <p>
  * You have the option to keep the checksum as a document metadata field.

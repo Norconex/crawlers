@@ -1,4 +1,4 @@
-/* Copyright 2020-2024 Norconex Inc.
+/* Copyright 2020-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@ package com.norconex.committer.core;
 
 import java.io.InputStream;
 
-import org.apache.commons.lang3.builder.ToStringExclude;
-
 import com.norconex.commons.lang.map.Properties;
 
 import lombok.Data;
 import lombok.NonNull;
+import lombok.ToString;
 
 /**
  * A committer upsert request (update or insert).
@@ -30,9 +29,9 @@ import lombok.NonNull;
 public class UpsertRequest implements CommitterRequest {
 
     private final String reference;
-    @ToStringExclude
+    @ToString.Exclude
     private final Properties metadata = new Properties();
-    @ToStringExclude
+    @ToString.Exclude
     private final InputStream content;
 
     public UpsertRequest(

@@ -16,22 +16,24 @@ package com.norconex.grid.jdbc;
 
 import static com.norconex.grid.core.util.SerialUtil.toJsonString;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.storage.GridMap;
 import com.norconex.grid.core.storage.GridQueue;
 import com.norconex.grid.core.storage.GridSet;
 import com.norconex.grid.core.storage.GridStorage;
 import com.norconex.grid.core.storage.GridStore;
-import com.norconex.grid.core.util.ConcurrentUtil;
 import com.norconex.grid.core.util.SerialUtil;
 
 import lombok.AccessLevel;
@@ -61,13 +63,15 @@ public class JdbcGridStorage implements GridStorage {
     @Getter(value = AccessLevel.PROTECTED)
     private final DbAdapter dbAdapter;
 
-    private final GridMap<String> storeTypes;
+    private GridMap<String> storeTypes;
 
     private final Map<String, GridStore<?>> openedStores = new HashMap<>();
 
-    public JdbcGridStorage(
-            @NonNull DbAdapter dbAdapter) {
+    public JdbcGridStorage(@NonNull DbAdapter dbAdapter) {
         this.dbAdapter = dbAdapter;
+    }
+
+    public void init(Grid grid) {
         storeTypes = getMap(STORE_TYPES_KEY, String.class);
     }
 
@@ -155,8 +159,8 @@ public class JdbcGridStorage implements GridStorage {
 
     @Override
     public <T> Future<T> runInTransactionAsync(Callable<T> callable) {
-        return ConcurrentUtil.supplyOneFixedThread("jdbc-grid-transac",
-                () -> runInTransaction(callable));
+        return Executors.newSingleThreadExecutor()
+                .submit(() -> runInTransaction(callable));
     }
 
     @SuppressWarnings("unchecked")
@@ -183,6 +187,11 @@ public class JdbcGridStorage implements GridStorage {
             return new JdbcGridSet(dbAdapter, storeName);
         }
         return new JdbcGridMap<>(dbAdapter, storeName, objectType);
+    }
+
+    @Override
+    public void close() throws IOException {
+        dbAdapter.close();
     }
 
     @Data

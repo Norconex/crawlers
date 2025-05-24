@@ -33,22 +33,10 @@ public abstract class CrawlerLifeCycleListener
             return;
         }
         onCrawlerEvent(event);
-        if (event.is(CrawlerEvent.CRAWLER_CONTEXT_INIT_BEGIN)) {
-            onCrawlerContextInitBegin(event);
-        } else if (event.is(CrawlerEvent.CRAWLER_CONTEXT_INIT_END)) {
-            onCrawlerContextInitEnd(event);
-        } else if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
+        if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
             onCrawlerCrawlBegin(event);
         } else if (event.is(CrawlerEvent.CRAWLER_CRAWL_END)) {
             onCrawlerCrawlEnd(event);
-            //        } else if (event.is(CrawlerEvent.TASK_RUN_BEGIN)) {
-            //            onTaskRunBegin(event);
-            //        } else if (event.is(CrawlerEvent.TASK_RUN_END)) {
-            //            onTaskRunEnd(event);
-        } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)) {
-            onCrawlerRunThreadBegin(event);
-        } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_END)) {
-            onCrawlerRunThreadEnd(event);
         } else if (event.is(CrawlerEvent.CRAWLER_STOP_REQUEST_BEGIN)) {
             onCrawlerStopBegin(event);
         } else if (event.is(CrawlerEvent.CRAWLER_STOP_REQUEST_END)) {
@@ -66,14 +54,6 @@ public abstract class CrawlerLifeCycleListener
         //NOOP
     }
 
-    protected void onCrawlerContextInitBegin(CrawlerEvent event) {
-        //NOOP
-    }
-
-    protected void onCrawlerContextInitEnd(CrawlerEvent event) {
-        //NOOP
-    }
-
     protected void onCrawlerCrawlBegin(CrawlerEvent event) {
         //NOOP
     }
@@ -83,22 +63,6 @@ public abstract class CrawlerLifeCycleListener
     }
 
     protected void onCrawlerError(CrawlerEvent event) {
-        //NOOP
-    }
-
-    //    protected void onTaskRunEnd(CrawlerEvent event) {
-    //        //NOOP
-    //    }
-    //
-    //    protected void onTaskRunBegin(CrawlerEvent event) {
-    //        //NOOP
-    //    }
-
-    protected void onCrawlerRunThreadBegin(CrawlerEvent event) {
-        //NOOP
-    }
-
-    protected void onCrawlerRunThreadEnd(CrawlerEvent event) {
         //NOOP
     }
 

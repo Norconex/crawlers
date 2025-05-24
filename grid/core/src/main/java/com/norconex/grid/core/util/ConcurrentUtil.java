@@ -18,13 +18,14 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.IntFunction;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
-import java.util.stream.IntStream;
+
+import com.norconex.commons.lang.Sleeper;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -34,14 +35,48 @@ public final class ConcurrentUtil {
     private ConcurrentUtil() {
     }
 
+    public static CompletableFuture<Void> runWithAutoShutdown(
+            @NonNull Runnable task, @NonNull ExecutorService executor) {
+        return withAutoShutdown(
+                CompletableFuture.runAsync(task, executor), executor);
+    }
+
+    public static <T> CompletableFuture<T> supplyWithAutoShutdown(
+            @NonNull Supplier<T> task, @NonNull ExecutorService executor) {
+        return withAutoShutdown(
+                CompletableFuture.supplyAsync(task, executor), executor);
+    }
+
+    public static <T> CompletableFuture<T> callWithAutoShutdown(
+            @NonNull Callable<T> task, @NonNull ExecutorService executor) {
+        return withAutoShutdown(CompletableFuture.supplyAsync(() -> {
+            try {
+                return task.call();
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        }, executor), executor);
+    }
+
+    public static <T> CompletableFuture<T> withAutoShutdown(
+            @NonNull CompletableFuture<T> future,
+            @NonNull ExecutorService executor) {
+        return future.handle((res, ex) -> {
+            if (ex != null) {
+                throw new CompletionException(ex);
+            }
+            return res;
+        }).whenComplete((res, ex) -> executor.shutdown());
+    }
+
     /**
      * Calls {@link Future#get()} and wraps thread related exceptions
      * in a runtime CompletionException. See
      * {@link #wrapAsCompletionException(Exception)} for more details.
-     * Passing a <code>null</code> future has no effect and returns
-     * <code>null</code>.
+     * Passing a {@code null} future has no effect and returns
+     * {@code null}.
      * @param future the future to get
-     * @return the completed future value, if any, or <code>null</code>
+     * @return the completed future value, if any, or {@code null}
      */
     public static <T> T get(Future<T> future) {
         if (future == null) {
@@ -58,13 +93,13 @@ public final class ConcurrentUtil {
      * Calls {@link Future#get(long, TimeUnit)} and wraps thread related
      * exceptions in a runtime CompletionException. See
      * {@link #wrapAsCompletionException(Exception)} for more details.
-     * Passing a <code>null</code> future has no effect and returns
-     * <code>null</code>.
+     * Passing a {@code null} future has no effect and returns
+     * {@code null}.
      * @param <T> future return value
      * @param future the future to get
      * @param timeout
      * @param unit
-     * @return the completed future value, if any, or <code>null</code>
+     * @return the completed future value, if any, or {@code null}
      */
     public static <T> T get(Future<T> future, long timeout, TimeUnit unit) {
         if (future == null) {
@@ -85,86 +120,35 @@ public final class ConcurrentUtil {
         return get(future, seconds, TimeUnit.SECONDS);
     }
 
-    public static CompletableFuture<Void> runOneFixedThread(
-            String threadName, Runnable runnable) {
-        return CompletableFuture.runAsync(
-                withThreadName(threadName, runnable),
-                Executors.newFixedThreadPool(1));
-    }
-
-    public static <T> CompletableFuture<T> supplyOneFixedThread(
-            String threadName, Supplier<T> supplier) {
-        return CompletableFuture.supplyAsync(
-                withThreadName(threadName, supplier),
-                Executors.newFixedThreadPool(1));
-    }
-
-    public static Runnable withThreadName(
-            @NonNull String name, @NonNull Runnable task) {
-        return () -> {
-            try {
-                withThreadName(name, Executors.callable(task)).call();
-            } catch (Exception e) {
-                throw new CompletionException(e);
-            }
-        };
-    }
-
-    public static <T> Supplier<T> withThreadName(
-            @NonNull String name, @NonNull Supplier<T> supplier) {
-        Callable<T> callable = supplier::get;
-        Callable<T> namedCallable = withThreadName(name, callable);
-        return () -> {
-            try {
-                return namedCallable.call();
-            } catch (Exception e) {
-                throw new CompletionException(e);
-            }
-        };
-    }
-
-    public static <T> Callable<T> withThreadName(
-            @NonNull String name, @NonNull Callable<T> task) {
-        return () -> {
-            var current = Thread.currentThread();
-            var originalName = current.getName();
-            current.setName(name);
-            try {
-                return task.call();
-            } finally {
-                current.setName(originalName);
-            }
-        };
+    /**
+     * In some cases we do not want to block any thread when waiting for
+     * a future completion. This method instead loops (with a tiny delay)
+     * until the supplier returns <code>true</code>.
+     * @param condition condition evaluated (<code>true</code> to exit the loop)
+     */
+    public static void waitUntil(BooleanSupplier condition) {
+        while (!condition.getAsBoolean()) {
+            Sleeper.sleepMillis(100);
+        }
     }
 
     /**
-     * Launch asynchronously a fixed number of tasks obtained dynamically.
-     * For each thread the task producer argument is invoked to get a new task
-     * instance.
-     * The returned {@link Future} completes when all tasks have ended.
-     * @param taskProducer a function receiving a task index, returning
-     *      a runnable task
-     * @param numTasks the number of tasks to run concurrently
-     * @return a future with a <code>null</code> return value
+     * Shuts down an executor service, handling {@link InterruptedException}
+     * by interrupting the current thread. Returns a
+     * {@link CompletionException} on failures.
+     * @param executor the executor to shut down (can be null)
      */
-    public static Future<Void> run(
-            @NonNull IntFunction<Runnable> taskProducer, int numTasks) {
-        var executor = Executors.newFixedThreadPool(numTasks);
-        var futures = IntStream.range(0, numTasks)
-                .mapToObj(i -> CompletableFuture.runAsync(
-                        withThreadName("run-pool", () -> {
-                            try {
-                                taskProducer.apply(i).run();
-                            } catch (Exception e) {
-                                LOG.error("Problem running task {} of {}.",
-                                        i, numTasks, e);
-                                throw new CompletionException(e);
-                            }
-                        }), executor))
-                .toList();
-
-        return CompletableFuture
-                .allOf(futures.toArray(new CompletableFuture[0]));
+    public static void cleanShutdown(ExecutorService executor) {
+        if (executor == null) {
+            return;
+        }
+        try {
+            if (!executor.isShutdown()) {
+                executor.shutdown();
+            }
+        } catch (Exception e) {
+            wrapAsCompletionException(e);
+        }
     }
 
     /**
@@ -184,12 +168,12 @@ public final class ConcurrentUtil {
             return new CompletionException("Thread was interrupted.", ie);
         }
         if (e instanceof TimeoutException te) {
-            return new CompletionException("Task timed out", te);
+            return new CompletionException("Task timed out.", te);
         }
         if (e instanceof ExecutionException && e.getCause() != null) {
             return new CompletionException(
-                    "Task execution failed", e.getCause());
+                    "Task execution failed.", e.getCause());
         }
-        return new CompletionException("Task failed", e);
+        return new CompletionException("Task failed.", e);
     }
 }

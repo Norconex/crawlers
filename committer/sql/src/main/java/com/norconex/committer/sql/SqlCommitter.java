@@ -1,4 +1,4 @@
-/* Copyright 2017-2024 Norconex Inc.
+/* Copyright 2017-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,9 +81,8 @@ public class SqlCommitter extends AbstractBatchCommitter<SqlCommitterConfig> {
     @Getter
     private final SqlCommitterConfig configuration = new SqlCommitterConfig();
 
-    @ToStringExclude
-    @HashCodeExclude
-    @EqualsExclude
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private SqlClient client;
 
     @Override

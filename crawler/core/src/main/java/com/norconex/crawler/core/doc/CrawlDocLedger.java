@@ -17,8 +17,9 @@ package com.norconex.crawler.core.doc;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.session.ResumeState;
 import com.norconex.grid.core.storage.GridMap;
 import com.norconex.grid.core.storage.GridQueue;
 import com.norconex.grid.core.util.SerialUtil;
@@ -68,16 +69,17 @@ public class CrawlDocLedger { //implements Closeable {
     private GridMap<String> cached;
     private Class<? extends CrawlDocContext> type;
     private GridMap<String> durableAttribs;
-    private CrawlerContext crawlerContext;
+    private CrawlContext crawlContext;
+    private long actualMaxDocs;
 
     //NOTE: This init performs the necessary steps to "create" the ledger.
     // Actual preparation before crawling start is typically done elsewhere,
     // on the created ledger. Example, the CrawlerSpec with its
     // DocLegerInitializer.
-    public void init(CrawlerContext crawlerContext) {
-        this.crawlerContext = crawlerContext;
+    public void init(CrawlContext crawlerContext) {
+        crawlContext = crawlerContext;
         type = crawlerContext.getDocContextType();
-        var storage = crawlerContext.getGrid().storage();
+        var storage = crawlerContext.getGrid().getStorage();
 
         // Because we can't rename caches in all impl, we use references.
         durableAttribs = storage.getDurableAttributes();
@@ -94,6 +96,17 @@ public class CrawlDocLedger { //implements Closeable {
         queue = storage.getQueue("queue", String.class);
         processed = storage.getMap(processedMapName, String.class);
         cached = storage.getMap(cachedMapName, String.class);
+
+        long maxDocs = crawlContext.getCrawlConfig().getMaxDocuments();
+        actualMaxDocs = maxDocs;
+        if ((crawlContext.getResumeState() == ResumeState.RESUMED)
+                && (maxDocs > -1)) {
+            actualMaxDocs += getProcessedCount();
+            LOG.info("""
+                An additional maximum of {} processed documents is
+                added to this resumed session, for a maximum total of {}.
+                """, maxDocs, actualMaxDocs);
+        }
     }
 
     /**
@@ -146,9 +159,9 @@ public class CrawlDocLedger { //implements Closeable {
         var cacheDeleted = cached.delete(docCtx.getReference());
         LOG.debug("Saved processed: {} (Deleted from cache: {})", // Deleted from active: {})",
                 docCtx.getReference(), cacheDeleted);//, activeDeleted);
-        crawlerContext.fire(CrawlerEvent.builder()
+        crawlContext.fire(CrawlerEvent.builder()
                 .name(CrawlerEvent.DOCUMENT_PROCESSED)
-                .source(crawlerContext)
+                .source(crawlContext)
                 .docContext(docCtx)
                 .build());
     }
@@ -178,9 +191,9 @@ public class CrawlDocLedger { //implements Closeable {
         queue.put(docContext.getReference(),
                 SerialUtil.toJsonString(docContext));
         LOG.debug("Saved queued: {}", docContext.getReference());
-        crawlerContext.fire(CrawlerEvent.builder()
+        crawlContext.fire(CrawlerEvent.builder()
                 .name(CrawlerEvent.DOCUMENT_QUEUED)
-                .source(crawlerContext)
+                .source(crawlContext)
                 .docContext(docContext)
                 .build());
     }
@@ -260,13 +273,11 @@ public class CrawlDocLedger { //implements Closeable {
         // Check if we merge with StopCrawlerOnMaxEventListener
         // or if we remove maxDocument in favor of the listener.
         // what about clustering?
-        var maxProcessedDocs = crawlerContext.maxProcessedDocs();
-        var isMax = maxProcessedDocs > -1
-                && getProcessedCount() >= maxProcessedDocs;
+        var isMax = actualMaxDocs > -1
+                && getProcessedCount() >= actualMaxDocs;
         if (isMax) {
             LOG.info("Maximum documents reached for this crawling "
-                    + "session: {}",
-                    maxProcessedDocs);
+                    + "session: {}", actualMaxDocs);
         }
         return isMax;
     }

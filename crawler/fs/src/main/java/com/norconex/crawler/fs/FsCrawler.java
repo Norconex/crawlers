@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
  */
 package com.norconex.crawler.fs;
 
+import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 
 public final class FsCrawler {
@@ -39,10 +39,10 @@ public final class FsCrawler {
     }
 
     public static int launch(String... args) {
-        return CliCrawlerLauncher.launch(FsCrawlerSpecProvider.class, args);
+        return CliCrawlerLauncher.launch(FsCrawlDriverFactory.create(), args);
     }
 
-    public static Crawler create(CrawlerConfig crawlerConfig) {
-        return new Crawler(FsCrawlerSpecProvider.class, crawlerConfig);
+    public static Crawler create(CrawlConfig crawlConfig) {
+        return new Crawler(FsCrawlDriverFactory.create(), crawlConfig);
     }
 }

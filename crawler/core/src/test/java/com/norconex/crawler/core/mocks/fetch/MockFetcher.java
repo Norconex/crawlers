@@ -21,6 +21,7 @@ import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.BaseFetcherConfig;
 import com.norconex.crawler.core.fetch.FetchException;
+import com.norconex.crawler.core.fetch.FetchRequest;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -28,10 +29,7 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-public class MockFetcher extends AbstractFetcher<
-        MockFetchRequest,
-        MockFetchResponse,
-        BaseFetcherConfig> {
+public class MockFetcher extends AbstractFetcher<BaseFetcherConfig> {
 
     private BaseFetcherConfig configuration = new BaseFetcherConfig();
 
@@ -40,23 +38,24 @@ public class MockFetcher extends AbstractFetcher<
     private boolean randomDocContent;
 
     @Override
-    public MockFetchResponse fetch(MockFetchRequest fetchRequest)
+    public MockFetchResponse fetch(FetchRequest fetchRequest)
             throws FetchException {
+        var req = (MockFetchRequest) fetchRequest;
         var resp = new MockFetchResponseImpl();
         resp.setResolutionStatus(
                 returnBadStatus ? CrawlDocStatus.BAD_STATUS
                         : CrawlDocStatus.NEW);
         var content = randomDocContent
-                ? "Fake content for: " + fetchRequest.getRef()
+                ? "Fake content for: " + req.getRef()
                         + "\nRandomness: " + TimeIdGenerator.next()
-                : "Fake content for: " + fetchRequest.getRef();
+                : "Fake content for: " + req.getRef();
         fetchRequest.getDoc().setInputStream(
                 new ByteArrayInputStream(content.getBytes()));
         return resp;
     }
 
     @Override
-    public boolean acceptRequest(@NonNull MockFetchRequest fetchRequest) {
+    public boolean acceptRequest(@NonNull FetchRequest fetchRequest) {
         if (denyRequest == null) {
             return super.acceptRequest(fetchRequest);
         }

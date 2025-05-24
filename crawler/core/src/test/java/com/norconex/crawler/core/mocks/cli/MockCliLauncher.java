@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,9 @@ import org.apache.commons.lang3.mutable.MutableObject;
 
 import com.norconex.commons.lang.SystemUtil;
 import com.norconex.commons.lang.SystemUtil.Captured;
-import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerSpecProvider;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 import com.norconex.crawler.core.util.ConfigUtil;
 
@@ -44,12 +44,12 @@ public class MockCliLauncher {
     private final Path workDir;
     @Singular
     private final List<String> args;
-    private final Consumer<CrawlerConfig> configModifier;
+    private final Consumer<CrawlConfig> configModifier;
     private final boolean logErrors;
 
     public MockCliExit launch() {
         var workDirRef = new MutableObject<Path>();
-        Consumer<CrawlerConfig> modifierWrapper = cfg -> {
+        Consumer<CrawlConfig> modifierWrapper = cfg -> {
             workDirRef.setValue(ConfigUtil.resolveWorkDir(cfg));
             if (configModifier != null) {
                 configModifier.accept(cfg);
@@ -104,7 +104,7 @@ public class MockCliLauncher {
         MockCliEventWriter.EVENTS.clear();
         Captured<Integer> captured = SystemUtil.callAndCaptureOutput(
                 () -> CliCrawlerLauncher.launch(
-                        MockCrawlerSpecProvider.class,
+                        MockCrawlDriverFactory.create(),
                         cmdArgs));
         var exit = new MockCliExit();
         exit.setCode(captured.getReturnValue());

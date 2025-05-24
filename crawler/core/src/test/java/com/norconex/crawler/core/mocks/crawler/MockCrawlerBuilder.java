@@ -14,16 +14,19 @@
  */
 package com.norconex.crawler.core.mocks.crawler;
 
+import static org.assertj.core.api.Assertions.fail;
+
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.function.FailableFunction;
 
-import com.norconex.commons.lang.ClassUtil;
+import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.CrawlerSpecProvider;
+import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.session.CrawlSessionManager;
 import com.norconex.crawler.core.stubs.StubCrawlerConfig;
 
 import lombok.Data;
@@ -43,21 +46,20 @@ public class MockCrawlerBuilder {
 
     /**
      * Crawler specification provider. Defaults to
-     * {@link MockCrawlerSpecProvider}.
+     * {@link MockCrawlDriverFactory}.
      */
     @NonNull
-    private Class<? extends CrawlerSpecProvider> specProviderClass =
-            MockCrawlerSpecProvider.class;
+    private CrawlDriver crawlDriver = MockCrawlDriverFactory.create();
 
     /**
      * Crawler configuration. Creates a default one if not provided.
      */
-    private CrawlerConfig config;
+    private CrawlConfig config;
 
     /**
      * Crawler configuration modifier.
      */
-    private Consumer<CrawlerConfig> configModifier;
+    private Consumer<CrawlConfig> configModifier;
 
     public MockCrawlerBuilder(Path workDir) {
         this.workDir = workDir;
@@ -68,11 +70,11 @@ public class MockCrawlerBuilder {
      * @return crawler
      */
     public Crawler crawler() {
-        return new Crawler(specProviderClass, resolvedConfig());
+        return new Crawler(crawlDriver, resolvedConfig());
     }
 
     /**
-     * Builds a non-initialized mock {@link CrawlerContext}, except for the
+     * Builds a non-initialized mock {@link CrawlContext}, except for the
      * grid, which is initialized. Closes the context after the consumable
      * has ran.
      * @param <T> type of returned object
@@ -80,54 +82,29 @@ public class MockCrawlerBuilder {
      * @return any object
      */
     @SneakyThrows
-    public <T> T withCrawlerContext(
-            FailableFunction<CrawlerContext, T, Throwable> f) {
+    public <T> T withCrawlContext(
+            FailableFunction<CrawlContext, T, Throwable> f) {
         // FAULTY.... created but not always closed
         var cfg = resolvedConfig();
-        try (var ctx = new CrawlerContext(
-                ClassUtil.newInstance(specProviderClass).get(),
-                cfg,
-                cfg.getGridConnector()
-                        .connect(cfg.getWorkDir().resolve("grid")))) {
-            return f.apply(ctx);
-        }
-    }
-
-    /**
-     * Builds an initialized mock {@link CrawlerContext} and Closes the
-     * context after the consumable has ran.
-     * @param <T> type of returned object
-     * @param f function taking consumer context and returning any value back
-     * @return any object
-     */
-    @SneakyThrows
-    public <T> T withInitializedCrawlerContext(
-            FailableFunction<CrawlerContext, T, Throwable> f) {
-        return withCrawlerContext(ctx -> {
-            ctx.init();
-            return f.apply(ctx);
+        var returnValue = new AtomicReference<T>();
+        new CrawlSessionManager(crawlDriver, cfg).withCrawlContext(ctx -> {
+            try {
+                returnValue.set(f.apply(ctx));
+            } catch (Throwable e) {
+                fail("Test failed.", e);
+            }
         });
+        return returnValue.get();
     }
 
-    /**
-     * Builds a non-initialized mock {@link CrawlerContext}, except for the
-     * grid.
-     * @return crawler context
-     */
-    public CrawlerContext opendedCrawlerContext() {
-        // FAULTY.... created but not always closed
-        var cfg = resolvedConfig();
-        return new CrawlerContext(
-                ClassUtil.newInstance(specProviderClass).get(),
-                cfg,
-                cfg.getGridConnector()
-                        .connect(cfg.getWorkDir().resolve("grid")));
-    }
-
-    private CrawlerConfig resolvedConfig() {
+    private CrawlConfig resolvedConfig() {
         var cfg = config != null
                 ? StubCrawlerConfig.toMemoryCrawlerConfig(workDir, config)
                 : StubCrawlerConfig.memoryCrawlerConfig(workDir);
+
+        //TODO test with other grids
+        //cfg.setGridConnector(new CoreGridConnector(new MockStorage()));
+
         if (configModifier != null) {
             configModifier.accept(cfg);
         }

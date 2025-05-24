@@ -95,7 +95,8 @@
     <junit-jupiter.version>5.12.0</junit-jupiter.version>
     <mockito.version>5.12.0</mockito.version>
     <mockserver.version>5.15.0</mockserver.version>
-    <testcontainers.version>1.20.4</testcontainers.version>
+    <testcontainers.version>1.20.6</testcontainers.version>
+    <testcontainers-junit4-mock.version>1.0.1</testcontainers-junit4-mock.version>
     
     <!-- === Maven plugins ================================================= -->
 
@@ -452,6 +453,11 @@
         <version>${testcontainers.version}</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>software.xdev</groupId>
+        <artifactId>testcontainers-junit4-mock</artifactId>
+        <version>${testcontainers-junit4-mock.version}</version>
+      </dependency>      
       <dependency>
         <groupId>org.assertj</groupId>
         <artifactId>assertj-core</artifactId>

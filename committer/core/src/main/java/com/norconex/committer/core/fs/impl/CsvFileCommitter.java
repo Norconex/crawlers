@@ -1,4 +1,4 @@
-/* Copyright 2020-2024 Norconex Inc.
+/* Copyright 2020-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ import lombok.experimental.FieldNameConstants;
  * <h2>Content handling</h2>
  * <p>
  * The document content is represented by creating a column with a blank or
- * <code>null</code> field name. When requested, the "content" column
+ * {@code null} field name. When requested, the "content" column
  * will always be present for both upserts and deletes, even if deletes do not
  * have content, for consistency.
  * </p>

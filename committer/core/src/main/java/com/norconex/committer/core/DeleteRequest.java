@@ -1,4 +1,4 @@
-/* Copyright 2020-2022 Norconex Inc.
+/* Copyright 2020-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,11 @@
  */
 package com.norconex.committer.core;
 
-import org.apache.commons.lang3.builder.ToStringExclude;
-
 import com.norconex.commons.lang.map.Properties;
 
 import lombok.Data;
 import lombok.NonNull;
+import lombok.ToString;
 
 /**
  * A committer deletion request. Metadata associated with a deletion
@@ -30,7 +29,7 @@ import lombok.NonNull;
 public class DeleteRequest implements CommitterRequest {
 
     private final String reference;
-    @ToStringExclude
+    @ToString.Exclude
     private final Properties metadata = new Properties();
 
     public DeleteRequest(@NonNull String reference, Properties metadata) {

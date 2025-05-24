@@ -17,6 +17,7 @@ package com.norconex.grid.core.util;
 import java.io.Serializable;
 import java.util.function.UnaryOperator;
 
+//TODO move to Nx Commons?
 @FunctionalInterface
 public interface SerializableUnaryOperator<T>
         extends UnaryOperator<T>, Serializable {

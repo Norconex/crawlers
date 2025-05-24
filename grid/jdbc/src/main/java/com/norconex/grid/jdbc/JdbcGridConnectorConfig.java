@@ -36,8 +36,9 @@ public class JdbcGridConnectorConfig extends CoreGridConnectorConfig {
     private String bigIntType;
     private String textType;
 
-    public void setDatasource(Properties datasource) {
+    public JdbcGridConnectorConfig setDatasource(Properties datasource) {
         CollectionUtil.setAll(this.datasource, datasource);
+        return this;
     }
 
 }

@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.apache.commons.lang3.SystemUtils;
 
 import com.norconex.committer.core.Committer;
 import com.norconex.commons.lang.PackageManifest;
-import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlConfig;
 
 public final class About {
     /** Simple ASCI art of Norconex. */
@@ -45,7 +45,7 @@ public final class About {
     private About() {
     }
 
-    public static String about(CrawlerConfig config) {
+    public static String about(CrawlConfig config) {
         try (var sw = new StringWriter(); var w = new PrintWriter(sw, true)) {
 
             w.println(NORCONEX_ASCII);
@@ -88,7 +88,7 @@ public final class About {
         return manifest.getTitle() + " " + manifest.getVersion();
     }
 
-    private static Set<Class<?>> configuredCommitters(CrawlerConfig config) {
+    private static Set<Class<?>> configuredCommitters(CrawlConfig config) {
         return config
                 .getCommitters()
                 .stream()

@@ -33,7 +33,7 @@ public class SitemapEnqueuer implements ReferenceEnqueuer {
     @Override
     public int enqueue(QueueBootstrapContext queueInitCtx) {
 
-        var cfg = Web.config(queueInitCtx.getCrawlerContext());
+        var cfg = Web.config(queueInitCtx.getCrawlContext());
         var sitemapURLs = cfg.getStartReferencesSitemaps();
         var sitemapResolver = cfg.getSitemapResolver();
 
@@ -53,13 +53,11 @@ public class SitemapEnqueuer implements ReferenceEnqueuer {
 
         // Process each sitemap URL
         for (String url : sitemapURLs) {
-            sitemapResolver.resolve(
-                    SitemapContext.builder()
-                            .fetcher(Web
-                                    .fetcher(queueInitCtx.getCrawlerContext()))
-                            .location(url)
-                            .urlConsumer(urlConsumer)
-                            .build());
+            sitemapResolver.resolve(SitemapContext.builder()
+                    .fetcher(queueInitCtx.getCrawlContext().getFetcher())
+                    .location(url)
+                    .urlConsumer(urlConsumer)
+                    .build());
         }
         if (urlCount.intValue() > 0) {
             LOG.info(

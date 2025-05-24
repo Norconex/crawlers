@@ -32,11 +32,10 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapContext;
-import com.norconex.crawler.web.fetch.HttpFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +46,7 @@ class GenericSitemapResolverTest {
 
     @WebCrawlTest(focus = Focus.CONTEXT)
     void testResolveSitemaps(
-            ClientAndServer client, CrawlerContext ctx)
+            ClientAndServer client, CrawlContext ctx)
             throws IOException {
 
         // We test having a sitemap index file pointing to sitemap files, and
@@ -81,12 +80,12 @@ class GenericSitemapResolverTest {
                         .withBody(compressSitemap(serverUrl(client, ""))));
 
         List<String> urls = new ArrayList<>();
-        var resolver = ((WebCrawlerConfig) ctx.getConfiguration())
+        var resolver = ((WebCrawlerConfig) ctx.getCrawlConfig())
                 .getSitemapResolver();
         resolver.resolve(
                 SitemapContext
                         .builder()
-                        .fetcher((HttpFetcher) ctx.getFetcher())
+                        .fetcher(ctx.getFetcher())
                         .location(serverUrl(client, "sitemap-index"))
                         .urlConsumer(rec -> urls.add(rec.getReference()))
                         .build());

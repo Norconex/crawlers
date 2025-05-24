@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public class FtpFetcher extends AbstractAuthVfsFetcher<FtpFetcherConfig> {
     private final FtpFetcherConfig configuration = new FtpFetcherConfig();
 
     @Override
-    protected boolean acceptRequest(@NonNull FileFetchRequest fetchRequest) {
+    protected boolean acceptFileRequest(@NonNull FileFetchRequest fetchRequest) {
         return referenceStartsWith(fetchRequest, "ftp://", "ftps://");
     }
 

@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.bean.BeanMapper;
@@ -29,6 +30,7 @@ import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListenerCo
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
 
+@Timeout(30)
 class StopCrawlerOnMaxEventListenerTest {
 
     private static final String UPSERTED = COMMITTER_SERVICE_UPSERT_END;
@@ -36,7 +38,9 @@ class StopCrawlerOnMaxEventListenerTest {
     private static final String UPSERTED_OR_REJECTED =
             COMMITTER_SERVICE_UPSERT_END + "|" + REJECTED_FILTER;
 
+    //Note, we test with 1 thread to ensure precise count in our tests
     private static final String CFG_TMPL = """
+          numThreads: 1
           startReferences:
             - "1-mock:reject-1"
             - "2-mock:upsert-1"

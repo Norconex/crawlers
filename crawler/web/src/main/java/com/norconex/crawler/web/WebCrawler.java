@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ public final class WebCrawler {
      * @param args command-line options
      */
     public static void main(String[] args) {
-        //System.setProperty("IGNITE_QUIET", "false");
         try {
             System.exit(launch(args));
         } catch (Exception e) {
@@ -51,7 +50,7 @@ public final class WebCrawler {
      * @return execution status code
      */
     public static int launch(String... args) {
-        return CliCrawlerLauncher.launch(WebCrawlerSpecProvider.class, args);
+        return CliCrawlerLauncher.launch(WebCrawlDriverFactory.create(), args);
     }
 
     /**
@@ -60,11 +59,6 @@ public final class WebCrawler {
      * @return crawler
      */
     public static Crawler create(WebCrawlerConfig crawlerConfig) {
-        return new Crawler(WebCrawlerSpecProvider.class, crawlerConfig);
-        //        var ctx = new CrawlerContext(WebCrawlerSpecProvider.class, crawlerConfig);
-        //        return new Crawler(ctx);
-        //        return Crawler.create(WebCrawlerSpecProvider.class, b ->
-        //            b.configuration(Optional.ofNullable(crawlerConfig)
-        //                    .orElseGet(WebCrawlerConfig::new)));
+        return new Crawler(WebCrawlDriverFactory.create(), crawlerConfig);
     }
 }

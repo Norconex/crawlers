@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class TextChunk {
     /**
-     * The field name where the text is coming from. <code>null</code>
+     * The field name where the text is coming from. {@code null}
      * if the text comes from the document content instead.
      */
     private final String field; // null if content

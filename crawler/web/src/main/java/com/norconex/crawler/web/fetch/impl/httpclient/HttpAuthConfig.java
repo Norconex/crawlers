@@ -1,4 +1,4 @@
-/* Copyright 2020-2024 Norconex Inc.
+/* Copyright 2020-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ public class HttpAuthConfig {
 
     /**
      * The host for the current authentication scope.
-     * <code>null</code> (default value) indicates "any host" for the
+     * {@code null} (default value) indicates "any host" for the
      * scope.
      * Used for BASIC and DIGEST authentication.
      */
@@ -83,7 +83,7 @@ public class HttpAuthConfig {
 
     /**
      * The realm name for the current authentication scope.
-     * <code>null</code> (default) indicates "any realm" for the scope.
+     * {@code null} (default) indicates "any realm" for the scope.
      * Used for BASIC and DIGEST authentication.
      */
     private String realm;
@@ -154,7 +154,7 @@ public class HttpAuthConfig {
      * Gets an authentication form parameter (equivalent to "input" or other
      * fields in HTML forms).
      * @param name form parameter name
-     * @return form parameter value or <code>null</code> if
+     * @return form parameter value or {@code null} if
      *         no match is found
      */
     @JsonIgnore

@@ -118,7 +118,7 @@ public class WebCrawlDocContext extends CrawlDocContext {
 
     /**
      * Gets URLs referenced by this one.
-     * @return URLs referenced by this one (never <code>null</code>).
+     * @return URLs referenced by this one (never {@code null}).
      * @since 2.6.0
      */
     public List<String> getReferencedUrls() {
@@ -136,7 +136,7 @@ public class WebCrawlDocContext extends CrawlDocContext {
 
     /**
      * Gets the trail of URLs that were redirected up to this one.
-     * @return URL redirection trail to this one (never <code>null</code>).
+     * @return URL redirection trail to this one (never {@code null}).
      * @since 2.8.0
      */
     public List<String> getRedirectTrail() {

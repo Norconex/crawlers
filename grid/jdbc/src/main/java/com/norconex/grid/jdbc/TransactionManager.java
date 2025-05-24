@@ -57,6 +57,7 @@ public class TransactionManager {
             FailableFunction<Connection, R, SQLException> function,
             Connection connection)
             throws SQLException {
+        var origAutoCommit = connection.getAutoCommit();
         connection.setAutoCommit(false);
         connectionThreadLocal.set(connection);
         try {
@@ -68,6 +69,7 @@ public class TransactionManager {
             throw new GridException(e);
         } finally {
             connectionThreadLocal.remove();
+            connection.setAutoCommit(origAutoCommit);
         }
     }
 }

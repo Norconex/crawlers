@@ -1,4 +1,4 @@
-/* Copyright 2021-2024 Norconex Inc.
+/* Copyright 2021-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public class StopCrawlerOnMaxEventListenerConfig {
 
     /**
      * Gets the event matcher used to identify which events will be counted.
-     * @return text matcher, never <code>null</code>
+     * @return text matcher, never {@code null}
      */
     public TextMatcher getEventMatcher() {
         return eventMatcher;

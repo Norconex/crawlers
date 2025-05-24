@@ -18,23 +18,23 @@ import static com.norconex.crawler.core.fetch.FetchDirective.DOCUMENT;
 import static com.norconex.crawler.core.fetch.FetchDirective.METADATA;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.core.stubs.CrawlDocStubs;
 
 class ImporterPipelineContextTest {
 
     @CrawlTest(focus = Focus.CONTEXT)
-    void testImporterPipelineContext(CrawlerContext crawlCtx) {
+    void testImporterPipelineContext(CrawlContext crawlCtx) {
         var doc = CrawlDocStubs.crawlDoc(
                 "ref", "content", "myfield", "somevalue");
         var ctx = new ImporterPipelineContext(crawlCtx, doc);
 
         // metadata: disabled; document: enabled
-        crawlCtx.getConfiguration().setMetadataFetchSupport(
+        crawlCtx.getCrawlConfig().setMetadataFetchSupport(
                 FetchDirectiveSupport.DISABLED);
         assertThat(ctx.isMetadataDirectiveExecuted(METADATA)).isFalse();
         assertThat(ctx.isMetadataDirectiveExecuted(DOCUMENT)).isFalse();
@@ -42,7 +42,7 @@ class ImporterPipelineContextTest {
         assertThat(ctx.isFetchDirectiveEnabled(DOCUMENT)).isTrue();
 
         // metadata: enabled; document: enabled
-        crawlCtx.getConfiguration().setMetadataFetchSupport(
+        crawlCtx.getCrawlConfig().setMetadataFetchSupport(
                 FetchDirectiveSupport.REQUIRED);
         assertThat(ctx.isMetadataDirectiveExecuted(METADATA)).isFalse();
         assertThat(ctx.isMetadataDirectiveExecuted(DOCUMENT)).isTrue();

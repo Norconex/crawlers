@@ -16,13 +16,12 @@ package com.norconex.grid.jdbc;
 
 import static com.norconex.commons.lang.text.StringUtil.ifNotBlank;
 
-import java.nio.file.Path;
-
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridConnector;
+import com.norconex.grid.core.GridContext;
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.impl.CoreGrid;
 import com.zaxxer.hikari.HikariConfig;
@@ -30,7 +29,6 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -65,7 +63,6 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 @ToString
 @Slf4j
-@RequiredArgsConstructor
 public class JdbcGridConnector
         implements GridConnector,
         Configurable<JdbcGridConnectorConfig> {
@@ -75,14 +72,16 @@ public class JdbcGridConnector
             new JdbcGridConnectorConfig();
 
     @Override
-    public Grid connect(Path workDir) {
-        // create data source
-        var dataSource = new HikariDataSource(
-                new HikariConfig(configuration.getDatasource().toProperties()));
+    public Grid connect(GridContext ctx) {
+        var dataSource = new HikariDataSource(new HikariConfig(
+                configuration.getDatasource().toProperties()));
+        LOG.debug("✔️ JDBC datasource created.");
         try {
-            return new CoreGrid(
-                    configuration,
-                    new JdbcGridStorage(resolveDbAdapter(dataSource)));
+            var storage = new JdbcGridStorage(resolveDbAdapter(dataSource));
+            var grid = new CoreGrid(configuration, storage, ctx);
+            storage.init(grid);
+            LOG.info("Connected to JDBC-backed Grid.");
+            return grid;
         } catch (Exception e) {
             throw new GridException("Could not connect to (JDBC) database.", e);
         }
@@ -99,8 +98,8 @@ public class JdbcGridConnector
     }
 
     @Override
-    public void requestStop(Path workDir) {
-        try (var grid = connect(workDir)) {
+    public void shutdownGrid(GridContext ctx) {
+        try (var grid = connect(ctx)) {
             grid.stop();
         }
     }

@@ -19,10 +19,10 @@ import java.util.Optional;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core.CrawlerContext;
 import com.norconex.crawler.core.doc.operations.filter.FilterGroupResolver;
 import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.importer.doc.Doc;
 
 import jakarta.xml.bind.annotation.XmlAccessType;
@@ -43,34 +43,24 @@ import lombok.extern.slf4j.Slf4j;
  * startup and shutdown events.
  * </p>
  *
- * @param <T> fetcher request type
- * @param <R> fetcher response type
  * @param <C> configuration type
  */
 @Slf4j
 @EqualsAndHashCode
 @ToString
 @XmlAccessorType(XmlAccessType.NONE)
-public abstract class AbstractFetcher<
-        T extends FetchRequest,
-        R extends FetchResponse,
-        C extends BaseFetcherConfig>
-        implements
-        Fetcher<T, R>,
-        EventListener<Event>,
-        Configurable<C> {
+public abstract class AbstractFetcher<C extends BaseFetcherConfig>
+        implements Fetcher, EventListener<Event>, Configurable<C> {
 
     @Override
-    public final boolean accept(@NonNull T fetchRequest) {
+    public final boolean accept(@NonNull FetchRequest fetchRequest) {
         if (isAcceptedByReferenceFilters(fetchRequest)
                 && acceptRequest(fetchRequest)) {
-            LOG.debug(
-                    "Fetcher {} ACCEPTED request '{}'.",
+            LOG.debug("Fetcher {} ACCEPTED request '{}'.",
                     getClass().getSimpleName(), fetchRequest);
             return true;
         }
-        LOG.debug(
-                "Fetcher {} REJECTED request '{}'.",
+        LOG.debug("Fetcher {} REJECTED request '{}'.",
                 getClass().getSimpleName(), fetchRequest);
         return false;
     }
@@ -83,10 +73,10 @@ public abstract class AbstractFetcher<
      * request document.
      * Default implementation does nothing (always return <code>true</code>).
      * @param fetchRequest the fetch request to evaluate
-     *     (never <code>null</code>)
+     *     (never {@code null})
      * @return <code>true</code> if accepted
      */
-    protected boolean acceptRequest(@NonNull T fetchRequest) {
+    protected boolean acceptRequest(@NonNull FetchRequest fetchRequest) {
         return true;
     }
 
@@ -95,22 +85,10 @@ public abstract class AbstractFetcher<
 
         //TODO create init/destroy methods instead?
 
-        // Here we rely on session startup instead of
-        // crawler startup to avoid being invoked multiple
-        // times (once for each crawler)
-
-        if (event.is(CrawlerEvent.CRAWLER_CONTEXT_INIT_END)) {
-            fetcherStartup((CrawlerContext) event.getSource());
-        } else if (event.is(CrawlerEvent.CRAWLER_CONTEXT_SHUTDOWN_BEGIN)) {
-            fetcherShutdown((CrawlerContext) event.getSource());
-        } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_BEGIN)
-                && Thread.currentThread().equals(
-                        ((CrawlerEvent) event).getSubject())) {
-            fetcherThreadBegin((CrawlerContext) event.getSource());
-        } else if (event.is(CrawlerEvent.CRAWLER_RUN_THREAD_END)
-                && Thread.currentThread().equals(
-                        ((CrawlerEvent) event).getSubject())) {
-            fetcherThreadEnd((CrawlerContext) event.getSource());
+        if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
+            fetcherStartup((CrawlContext) event.getSource());
+        } else if (event.is(CrawlerEvent.CRAWLER_CRAWL_END)) {
+            fetcherShutdown((CrawlContext) event.getSource());
         }
     }
 
@@ -119,7 +97,7 @@ public abstract class AbstractFetcher<
      * Default implementation does nothing.
      * @param crawler crawler
      */
-    protected void fetcherStartup(CrawlerContext crawler) {
+    protected void fetcherStartup(CrawlContext crawler) {
         //NOOP
     }
 
@@ -128,31 +106,12 @@ public abstract class AbstractFetcher<
      * Default implementation does nothing.
      * @param crawler crawler
      */
-    protected void fetcherShutdown(CrawlerContext crawler) {
+    protected void fetcherShutdown(CrawlContext crawler) {
         //NOOP
     }
 
-    /**
-     * Invoked each time a crawler begins a new crawler thread if that thread
-     * is the current thread.
-     * Default implementation does nothing.
-     * @param crawler crawler
-     */
-    protected void fetcherThreadBegin(CrawlerContext crawler) {
-        //NOOP
-    }
-
-    /**
-     * Invoked each time a crawler ends an existing crawler thread if that
-     * thread is the current thread.
-     * Default implementation does nothing.
-     * @param crawler crawler
-     */
-    protected void fetcherThreadEnd(CrawlerContext crawler) {
-        //NOOP
-    }
-
-    private boolean isAcceptedByReferenceFilters(@NonNull T fetchRequest) {
+    private boolean isAcceptedByReferenceFilters(
+            @NonNull FetchRequest fetchRequest) {
         var ref = Optional.ofNullable(fetchRequest.getDoc())
                 .map(Doc::getReference)
                 .orElse(null);

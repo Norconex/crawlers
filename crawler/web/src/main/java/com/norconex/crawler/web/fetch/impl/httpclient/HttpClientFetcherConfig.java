@@ -1,4 +1,4 @@
-/* Copyright 2018-2024 Norconex Inc.
+/* Copyright 2018-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ public class HttpClientFetcherConfig extends BaseFetcherConfig {
             new ArrayList<>(DEFAULT_NOT_FOUND_STATUS_CODES);
     /**
      * Optional prefix prepended to captured HTTP response fields. A
-     * <code>null</code> value (default) won't add any prefix.
+     * {@code null} value (default) won't add any prefix.
      */
     private String headersPrefix;
 
@@ -90,7 +90,7 @@ public class HttpClientFetcherConfig extends BaseFetcherConfig {
 
     /**
      * Authentication configuration for sites requiring it. Default
-     * is <code>null</code>.
+     * is {@code null}.
      */
     private HttpAuthConfig authentication;
 
@@ -309,7 +309,7 @@ public class HttpClientFetcherConfig extends BaseFetcherConfig {
      * Gets the HTTP request header value matching the given name, previously
      * set with {@link #setRequestHeader(String, String)}.
      * @param name HTTP request header name
-     * @return HTTP request header value or <code>null</code> if
+     * @return HTTP request header value or {@code null} if
      *         no match is found
      */
     public String getRequestHeader(String name) {
@@ -331,7 +331,7 @@ public class HttpClientFetcherConfig extends BaseFetcherConfig {
     /**
      * Remove the request header matching the given name.
      * @param name name of HTTP request header to remove
-     * @return the previous value associated with the name, or <code>null</code>
+     * @return the previous value associated with the name, or {@code null}
      *         if there was no request header for the name.
      */
     public String removeRequestHeader(String name) {
@@ -348,7 +348,7 @@ public class HttpClientFetcherConfig extends BaseFetcherConfig {
     }
 
     /**
-     * Gets the supported SSL/TLS protocols.  Default is <code>null</code>,
+     * Gets the supported SSL/TLS protocols.  Default is {@code null},
      * which means it will use those provided/configured by your Java
      * platform.
      * @return SSL/TLS protocols

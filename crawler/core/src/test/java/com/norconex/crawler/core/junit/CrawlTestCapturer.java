@@ -17,14 +17,14 @@ package com.norconex.crawler.core.junit;
 import org.apache.commons.lang3.function.FailableConsumer;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.CrawlerConfig;
-import com.norconex.crawler.core.CrawlerContext;
-import com.norconex.crawler.core.CrawlerSpecProvider;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerSpecProvider;
+import com.norconex.crawler.core.session.CrawlContext;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -38,20 +38,19 @@ public class CrawlTestCapturer extends CrawlerLifeCycleListener {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class CrawlCaptures {
-        private CrawlerContext context;
+        private CrawlContext context;
         private MemoryCommitter committer;
         private Throwable crawlerError;
     }
 
     private static final CrawlCaptures captures = new CrawlCaptures();
 
-    public static CrawlCaptures crawlAndCapture(CrawlerConfig config) {
-        return crawlAndCapture(config, MockCrawlerSpecProvider.class);
+    public static CrawlCaptures crawlAndCapture(CrawlConfig config) {
+        return crawlAndCapture(config, MockCrawlDriverFactory.create());
     }
 
     public static CrawlCaptures crawlAndCapture(
-            CrawlerConfig config,
-            Class<? extends CrawlerSpecProvider> specProviderClass) {
+            CrawlConfig config, CrawlDriver driver) {
         if (config.getWorkDir() == null) {
             throw new IllegalStateException(
                     "Crawler working directory must not be null.");
@@ -59,7 +58,7 @@ public class CrawlTestCapturer extends CrawlerLifeCycleListener {
         try {
             var crawler = new MockCrawlerBuilder(config.getWorkDir())
                     .config(config)
-                    .specProviderClass(specProviderClass)
+                    .crawlDriver(driver)
                     .crawler();
 
             var capturer = new CrawlTestCapturer();
@@ -82,9 +81,9 @@ public class CrawlTestCapturer extends CrawlerLifeCycleListener {
             @NonNull FailableConsumer<Crawler, Exception> c) {
         try {
             var capturer = new CrawlTestCapturer();
-            crawler.getCrawlerConfig().addEventListener(capturer);
+            crawler.getCrawlConfig().addEventListener(capturer);
             c.accept(crawler);
-            crawler.getCrawlerConfig().removeEventListener(capturer);
+            crawler.getCrawlConfig().removeEventListener(capturer);
             return new CrawlCaptures(
                     captures.context,
                     captures.committer,
@@ -95,11 +94,11 @@ public class CrawlTestCapturer extends CrawlerLifeCycleListener {
     }
 
     @Override
-    protected void onCrawlerContextInitEnd(CrawlerEvent event) {
+    protected void onCrawlerCrawlBegin(CrawlerEvent event) {
         captures.context = event.getSource();
         captures.committer = (MemoryCommitter) event
                 .getSource()
-                .getConfiguration()
+                .getCrawlConfig()
                 .getCommitters()
                 .get(0);
     }

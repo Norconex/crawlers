@@ -1,4 +1,4 @@
-/* Copyright 2015-2024 Norconex Inc.
+/* Copyright 2015-2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,11 +82,11 @@ public class CharsetDetector {
      * </p>
      * <ul>
      *   <li>
-     *     If the document is <code>null</code>, returns the fallback charset
+     *     If the document is {@code null}, returns the fallback charset
      *     (which is UTF-8 unless explicitly set to something different).
      *   </li>
      *   <li>
-     *     If priority charset supplier is not <code>null</code> and returns
+     *     If priority charset supplier is not {@code null} and returns
      *     a valid charset, returns that charset.
      *   </li>
      *   <li>
@@ -110,7 +110,7 @@ public class CharsetDetector {
      * This method will NOT set the detected encoding on the {@link DocHandlerContext}.
      * </p>
      * @param doc document to detect encoding on when applicable
-     * @return the detected charset (never <code>null</code>).
+     * @return the detected charset (never {@code null}).
      * @throws IOException problem detecting charset
      */
     public Charset detect(Doc doc) throws IOException {
@@ -130,12 +130,12 @@ public class CharsetDetector {
      * </p>
      * <ul>
      *   <li>
-     *     If the string is <code>null</code>,
+     *     If the string is {@code null},
      *     returns the fallback charset (which is UTF-8 unless explicitly set
      *     to something different).
      *   </li>
      *   <li>
-     *     If priority charset supplier is not <code>null</code> and returns
+     *     If priority charset supplier is not {@code null} and returns
      *     a valid charset, returns that charset.
      *   </li>
      *   <li>
@@ -153,7 +153,7 @@ public class CharsetDetector {
      *
      *
      * @param input the input stream to detect encoding on
-     * @return the detected charset (never <code>null</code>).
+     * @return the detected charset (never {@code null}).
      */
     public Charset detect(String input) {
         if (StringUtils.isBlank(input)) {
@@ -181,12 +181,12 @@ public class CharsetDetector {
      * </p>
      * <ul>
      *   <li>
-     *     If the stream is <code>null</code> or does not support marking,
+     *     If the stream is {@code null} or does not support marking,
      *     returns the fallback charset (which is UTF-8 unless explicitly set
      *     to something different).
      *   </li>
      *   <li>
-     *     If priority charset supplier is not <code>null</code> and returns
+     *     If priority charset supplier is not {@code null} and returns
      *     a valid charset, returns that charset.
      *   </li>
      *   <li>
@@ -204,7 +204,7 @@ public class CharsetDetector {
      *
      *
      * @param input the input stream to detect encoding on
-     * @return the detected charset (never <code>null</code>).
+     * @return the detected charset (never {@code null}).
      * @throws IOException problem detecting charset
      */
     public Charset detect(InputStream input) throws IOException {

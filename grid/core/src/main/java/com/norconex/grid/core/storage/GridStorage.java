@@ -14,6 +14,7 @@
  */
 package com.norconex.grid.core.storage;
 
+import java.io.Closeable;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -26,7 +27,7 @@ import com.norconex.grid.core.Grid;
  * Stores are associated with a grid name, and normally persist until
  * explicitly destroyed (except for {@link #getSessionAttributes()}).
  */
-public interface GridStorage {
+public interface GridStorage extends Closeable {
     <T> GridMap<T> getMap(String name, Class<? extends T> type);
 
     //TODO rename "getSessionMap" or equivalent and clear it everytime
