@@ -285,7 +285,7 @@ public enum Browser {
         return null;
     }
 
-    public static class WebDriverBuilder {
+    private static class WebDriverBuilder {
         private WebDriverLocation location;
         private String driverSystemProperty;
         private MutableCapabilities options;
@@ -337,8 +337,14 @@ public enum Browser {
                             }
                             LOG.info("Creating local \"{}\" web driver.",
                                     driverClass.getSimpleName());
-                            return ConstructorUtils.invokeExactConstructor(
-                                    driverClass, options);
+                            var constructor = ConstructorUtils
+                                    .getMatchingAccessibleConstructor(
+                                            driverClass, options.getClass());
+                            if (constructor != null) {
+                                return constructor.newInstance(options);
+                            }
+                            return driverClass.getDeclaredConstructor()
+                                    .newInstance();
                         });
             } catch (Exception e) {
                 throw new CrawlerException("Could not build web driver", e);

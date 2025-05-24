@@ -184,7 +184,7 @@ public class WebDriverFetcherConfig extends BaseFetcherConfig {
      * may help.
      * Default is {@code -1} for unlimited navigation (no restart)
      */
-    private int browserMaxNavigations;
+    private int browserMaxNavigations = -1;
     /**
      * A maximum duration at which we restart the browser. Applies
      * to individual browser instances, typically one per crawl threads.

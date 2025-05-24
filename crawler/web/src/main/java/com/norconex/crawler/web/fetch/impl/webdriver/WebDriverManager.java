@@ -142,9 +142,12 @@ public class WebDriverManager {
         }
 
         WebDriver touchAndGet(WebDriverFetcherConfig cfg) {
-            if (navCount.incrementAndGet() > cfg.getBrowserMaxNavigations() ||
-                    Duration.between(createdAt, Instant.now())
-                            .compareTo(cfg.getBrowserMaxAge()) > 0) {
+            var maxNav = cfg.getBrowserMaxNavigations();
+            var navCnt = navCount.incrementAndGet();
+            var maxAge = cfg.getBrowserMaxAge();
+            if (maxNav > -1 && navCnt > maxNav ||
+                    maxAge != null && Duration.between(
+                            createdAt, Instant.now()).compareTo(maxAge) > 0) {
                 reset();
             }
             return driver;
