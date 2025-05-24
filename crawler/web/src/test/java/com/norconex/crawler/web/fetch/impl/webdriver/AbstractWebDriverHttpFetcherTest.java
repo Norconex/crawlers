@@ -67,7 +67,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
     private static final int LARGE_CONTENT_MIN_SIZE = 3 * 1024 * 1024;
 
     private final Capabilities capabilities;
-    private BrowserWebDriverContainer<?> browser;
+    private BrowserWebDriverContainer<?> browserContainer;
     private Browser browserType;
 
     public AbstractWebDriverHttpFetcherTest(Browser browserType) {
@@ -89,13 +89,15 @@ public abstract class AbstractWebDriverHttpFetcherTest
         for (var port = SNIFFER_PORT_START; port <= SNIFFER_PORT_END; port++) {
             Testcontainers.exposeHostPorts(port);
         }
-        browser = createWebDriverContainer(capabilities);
-        browser.start();
+        browserContainer = createWebDriverContainer(capabilities);
+        browserContainer.start();
+        LOG.info("{} browser container started. Selenium address: {}",
+                browserType, browserContainer.getSeleniumAddress());
     }
 
     @AfterAll
     void afterAll() {
-        browser.stop();
+        browserContainer.stop();
     }
 
     @BeforeEach
@@ -134,6 +136,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
     }
 
     @WebCrawlTest
+    //    @Disabled("Does not work under GitHub actions.")
     void testTakeScreenshots(ClientAndServer client, WebCrawlerConfig cfg)
             throws IOException {
 
@@ -292,7 +295,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
         return Configurable.configure(
                 new WebDriverFetcher(), cfg -> cfg
                         .setBrowser(browserType)
-                        .setRemoteURL(browser.getSeleniumAddress()));
+                        .setRemoteURL(browserContainer.getSeleniumAddress()));
     }
 
     private String hostUrl(ClientAndServer client, String path) {
@@ -323,8 +326,8 @@ public abstract class AbstractWebDriverHttpFetcherTest
                 .withRecordingMode(VncRecordingMode.SKIP, null)
                 .withLogConsumer(new Slf4jLogConsumer(LOG))
                 .withEnv("SE_OPTS", "--tracing false")
-                .withEnv("SE_NODE_MAX_SESSIONS", "10")
-                .withEnv("SESSION_REQUEST_TIMEOUT", "30000")
+                .withEnv("SE_NODE_MAX_SESSIONS", "5")
+                .withEnv("SESSION_REQUEST_TIMEOUT", "60000")
                 // Disable traces
                 .withEnv("OTEL_TRACES_EXPORTER", "none")
                 // Disable metrics
@@ -334,9 +337,30 @@ public abstract class AbstractWebDriverHttpFetcherTest
                 // Completely disable OpenTelemetry
                 .withEnv("OTEL_SDK_DISABLED", "true")
 
-                .withSharedMemorySize(2L * 1024 * 1024 * 1024) // 2GB
+                .withSharedMemorySize(1L * 1024 * 1024 * 1024) // 1GB
                 .withCreateContainerCmdModifier(cmd -> cmd.getHostConfig()
-                        .withMemory(4096L * 1024 * 1024) // 4GB
-                        .withMemorySwap(8192L * 1024 * 1024)); // 8GB
+                        .withMemory(2048L * 1024 * 1024) // 2GB
+                        .withMemorySwap(4096L * 1024 * 1024)) // 4GB
+                .withStartupTimeout(Duration.ofMinutes(5))
+        //                .waitingFor(Wait.forLogMessage(
+        //                        ".*Started Selenium Standalone.*", 1))
+        ;
+
+        //                .withEnv("SE_NODE_MAX_SESSIONS", "10")
+        //                .withEnv("SESSION_REQUEST_TIMEOUT", "30000")
+        //                // Disable traces
+        //                .withEnv("OTEL_TRACES_EXPORTER", "none")
+        //                // Disable metrics
+        //                .withEnv("OTEL_METRICS_EXPORTER", "none")
+        //                // Disable context propagation
+        //                .withEnv("OTEL_PROPAGATORS", "none")
+        //                // Completely disable OpenTelemetry
+        //                .withEnv("OTEL_SDK_DISABLED", "true")
+        //
+        //                .withSharedMemorySize(2L * 1024 * 1024 * 1024) // 2GB
+        //                .withCreateContainerCmdModifier(cmd -> cmd.getHostConfig()
+        //                        .withMemory(4096L * 1024 * 1024) // 4GB
+        //                        .withMemorySwap(8192L * 1024 * 1024)); // 8GB
     }
+
 }

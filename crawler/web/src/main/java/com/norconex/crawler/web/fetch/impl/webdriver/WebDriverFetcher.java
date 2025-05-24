@@ -142,9 +142,13 @@ public class WebDriverFetcher
     @Override
     protected void fetcherShutdown(CrawlContext c) {
         if (httpSniffer != null) {
-            LOG.info("Shutting down {} HTTP sniffer...");
-            Sleeper.sleepSeconds(5);
+            LOG.info("Shutting down {} HTTP sniffer...",
+                    configuration.getBrowser());
+            Sleeper.sleepSeconds(2);
             httpSniffer.stop();
+        }
+        if (webDriverManager != null) {
+            webDriverManager.shutdown();
         }
     }
 

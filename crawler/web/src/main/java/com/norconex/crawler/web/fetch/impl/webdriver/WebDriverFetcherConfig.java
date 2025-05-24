@@ -197,10 +197,10 @@ public class WebDriverFetcherConfig extends BaseFetcherConfig {
     /**
      * Amount of time between each check for unused browser instances and
      * closing them.
-     * Defaults to 30 seconds. Cannot be {@code null}.
+     * Defaults to 10 seconds. Cannot be {@code null}.
      */
     @NonNull
-    private Duration cleanupInterval = Duration.ofSeconds(30);
+    private Duration cleanupInterval = Duration.ofSeconds(10);
 
     /**
      * Gets optional capabilities (configuration options) for the web driver.
