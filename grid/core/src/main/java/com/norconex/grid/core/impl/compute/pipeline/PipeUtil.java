@@ -106,18 +106,6 @@ public final class PipeUtil {
             return directives;
         }
 
-        //        if (pipeCtx.getActiveStage().getOnlyIf() != null
-        //                && !pipeCtx.getActiveStage().getOnlyIf().test(grid)) {
-        //            LOG.info("""
-        //                    Pipeline {} stage index {} for task {} did not meet \
-        //                    "onlyIf" condition. Skipping it.""",
-        //                    pipeCtx.getPipeline().getId(),
-        //                    pipeCtx.getCurrentIndex(),
-        //                    pipeCtx.getActiveTask().getId());
-        //            directives.setMarkActive(true);
-        //            directives.setSkip(true);
-        //            return directives;
-        //        }
         directives.setMarkActive(true);
         return directives;
         //TODO Check if stage is already completed on top of it?

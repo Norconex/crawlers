@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 package com.norconex.grid.core.impl.compute.task;
 
 import java.io.Serializable;

@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 package com.norconex.grid.core.cluster;
 
 import java.lang.annotation.ElementType;

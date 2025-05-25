@@ -178,7 +178,8 @@ public class TaskCoordinator {
         return taskStatusRef.get();
     }
 
-    private TaskExecutionResult trackAndAggregateResult(GridTask task) throws Exception {
+    private TaskExecutionResult trackAndAggregateResult(GridTask task)
+            throws Exception {
 
         taskStateStore.put(task.getId(), TaskState.RUNNING);
 
@@ -186,7 +187,8 @@ public class TaskCoordinator {
 
         // mark the starting status for all nodes to be PENDING
         grid.getGridMembers().forEach(addr -> agg.lastProgresses.put(
-                addr, new TaskProgress(new TaskExecutionResult(), agg.taskStartTime)));
+                addr, new TaskProgress(new TaskExecutionResult(),
+                        agg.taskStartTime)));
 
         while (!agg.allDone && !agg.taskExpired()) {
             var pendingNodes = getPendingNodes(task, agg.doneNodes);

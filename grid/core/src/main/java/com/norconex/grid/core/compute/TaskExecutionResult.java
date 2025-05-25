@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 package com.norconex.grid.core.compute;
 
 import java.io.Serializable;
@@ -38,7 +37,8 @@ public class TaskExecutionResult implements Serializable {
         this(TaskState.PENDING, null, null);
     }
 
-    public TaskExecutionResult(TaskState state, Serializable result, String error) {
+    public TaskExecutionResult(
+            TaskState state, Serializable result, String error) {
         this.state = state;
         this.result = result;
         this.error = error;
