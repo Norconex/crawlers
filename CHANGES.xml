@@ -7,7 +7,7 @@
   </properties>
   <body>
 
-    <release version="3.1.0-SNAPSHOT" date="2025-??-??" description="Minor release.">
+    <release version="3.1.0" date="2025-05-24" description="Minor release.">
       <action dev="essiembre" type="add" issue="1120">
         HTTP status code and reason are now captured as metadata field 
         ""collector.http-status-code" and "collector.http-status-reason"
