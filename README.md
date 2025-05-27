@@ -42,10 +42,3 @@ All projects in this repository share the same Maven group id:
 
     com.norconex.crawler
     
-## How to build
-
-For local development, make sure to run `mvn clean install` from the root
-directory first as some dependencies need to be "shaded" and stored in your 
-local repository for your IDE to be able to resolve them.  
-
-Alternatively you can issue that command in the "./shaded" project instead.

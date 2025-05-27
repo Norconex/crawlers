@@ -114,9 +114,21 @@
       </excludes>
       <outputDirectory>./</outputDirectory>
     </fileSet>
+    
     <fileSet>
-      <directory>${project.build.directory}/generated-resources</directory>
+      <directory>${project.build.directory}/generated-sources/license</directory>
       <outputDirectory>third-party</outputDirectory>
+      <includes>
+        <include>*.txt</include>
+      </includes>
+      <lineEnding>unix</lineEnding>
+    </fileSet>
+    <fileSet>
+      <directory>${project.build.directory}/generated-resources/licenses</directory>
+      <outputDirectory>third-party/licenses</outputDirectory>
+      <includes>
+        <include>*.txt</include>
+      </includes>
       <lineEnding>unix</lineEnding>
     </fileSet>
   </fileSets>

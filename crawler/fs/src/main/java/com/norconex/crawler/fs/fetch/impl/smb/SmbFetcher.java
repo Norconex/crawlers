@@ -95,7 +95,8 @@ public class SmbFetcher extends AbstractAuthVfsFetcher<SmbFetcherConfig> {
     }
 
     @Override
-    protected boolean acceptFileRequest(@NonNull FileFetchRequest fetchRequest) {
+    protected boolean acceptFileRequest(
+            @NonNull FileFetchRequest fetchRequest) {
         return referenceStartsWith(fetchRequest, "smb://");
     }
 

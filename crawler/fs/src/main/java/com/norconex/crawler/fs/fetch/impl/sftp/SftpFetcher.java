@@ -44,7 +44,8 @@ public class SftpFetcher extends AbstractAuthVfsFetcher<SftpFetcherConfig> {
     private final SftpFetcherConfig configuration = new SftpFetcherConfig();
 
     @Override
-    protected boolean acceptFileRequest(@NonNull FileFetchRequest fetchRequest) {
+    protected boolean acceptFileRequest(
+            @NonNull FileFetchRequest fetchRequest) {
         return referenceStartsWith(fetchRequest, "sftp://");
     }
 

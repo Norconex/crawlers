@@ -1,0 +1,10 @@
+Public Domain
+=============
+
+This is not a license.
+
+Certain third-party dependencies included in this project are declared as "Public Domain" by their respective authors. This designation is reproduced here as stated by the original authors, without modification or interpretation. No additional licensing terms or conditions are implied or assumed.
+
+Note that the legal effect of a "Public Domain" declaration may vary by jurisdiction, and users of this project are responsible for verifying compliance with applicable laws for each dependency.
+
+For specific details about each dependency, refer to the dependency's documentation or source repository.

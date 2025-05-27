@@ -328,12 +328,6 @@
   <build>
     <plugins>
 
-      <!-- Until ready: -Dassembly.skipAssembly=true -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-      </plugin>
-     
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
@@ -352,6 +346,22 @@
         <artifactId>maven-jar-plugin</artifactId>
       </plugin>
       
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+      </plugin>    
+      
+      <plugin>
+        <groupId>org.codehaus.gmavenplus</groupId>
+        <artifactId>gmavenplus-plugin</artifactId>
+      </plugin>
+
+      <!-- Until ready: -Dassembly.skipAssembly=true -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+      </plugin>
+     
       <!--  Use VM argument -Dgpg.skip=true to disable GPG signing. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

@@ -23,7 +23,7 @@
   </parent>
   <artifactId>nx-committer-core</artifactId>
   <name>Norconex Committer Core</name>
-
+ 
   <properties>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>      
   </properties>
@@ -108,7 +108,7 @@
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>nexus-staging-maven-plugin</artifactId>
       </plugin>
-      
+            
     </plugins>
   </build>
 
