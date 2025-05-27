@@ -190,7 +190,7 @@ jobs:
           pl_argument=""
           am_argument=""
         fi
-        mvn clean -B verify \
+        mvn clean -B install \
         -Dmaven.compiler.maxmem=3072m \
         -DargLine="-Xmx3g" \
         -Dgpg.skip=true \
