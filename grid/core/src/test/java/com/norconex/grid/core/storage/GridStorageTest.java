@@ -14,9 +14,20 @@
  */
 package com.norconex.grid.core.storage;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.Serializable;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Nested;
+
+import com.norconex.grid.core.cluster.Cluster;
+import com.norconex.grid.core.cluster.ClusterTest;
 
 /**
  * Main test class to implement for grid implementations.
@@ -36,96 +47,91 @@ public abstract class GridStorageTest implements Serializable {
     @Nested
     class SetTest extends GridSetTest {
     }
-    /*
-    @Test
-    void testRunInTransaction() {
-        withNewGrid(cluster -> {
-            cluster.onNewNode(grid -> {
-                var storage = grid.storage();
-                var map = storage.getMap("transactTestMap", Integer.class);
 
-                var numThreads = 5;
-                var executor = Executors.newFixedThreadPool(numThreads);
-                var startLatch = new CountDownLatch(1);
-                var doneLatch = new CountDownLatch(numThreads);
-                var successfulTransactions = new AtomicInteger(0);
+    @ClusterTest
+    void testRunInTransaction(Cluster cluster) {
+        cluster.onOneNewNode(grid -> {
+            var storage = grid.getStorage();
+            var map = storage.getMap("transactTestMap", Integer.class);
 
-                for (var i = 0; i < numThreads; i++) {
-                    executor.submit(() -> {
-                        try {
-                            startLatch.await();
-                            storage.runInTransaction(() -> {
-                                map.update("count", v -> v == null ? 1 : v + 1);
-                                return null;
-                            });
-                            successfulTransactions.incrementAndGet();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        } finally {
-                            doneLatch.countDown();
-                        }
-                    });
-                }
+            var numThreads = 5;
+            var executor = Executors.newFixedThreadPool(numThreads);
+            var startLatch = new CountDownLatch(1);
+            var doneLatch = new CountDownLatch(numThreads);
+            var successfulTransactions = new AtomicInteger(0);
 
-                startLatch.countDown();
-                doneLatch.await();
-                executor.shutdown();
+            for (var i = 0; i < numThreads; i++) {
+                executor.submit(() -> {
+                    try {
+                        startLatch.await();
+                        storage.runInTransaction(() -> {
+                            map.update("count", v -> v == null ? 1 : v + 1);
+                            return null;
+                        });
+                        successfulTransactions.incrementAndGet();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        doneLatch.countDown();
+                    }
+                });
+            }
 
-                // Check if the final value is correct (ensuring atomic
-                // increments)
-                assertThat(map.get("count")).isEqualTo(numThreads);
-            });
+            startLatch.countDown();
+            doneLatch.await();
+            executor.shutdown();
+
+            // Check if the final value is correct (ensuring atomic
+            // increments)
+            assertThat(map.get("count")).isEqualTo(numThreads);
         });
     }
 
-    @Test
-    void testRunInTransactionAsync() {
-        withNewGrid(cluster -> {
-            cluster.onNewNode(grid -> {
-                var storage = grid.storage();
-                var map = storage.getMap("transactAsyncTestMap", Integer.class);
+    @ClusterTest
+    void testRunInTransactionAsync(Cluster cluster) {
+        cluster.onOneNewNode(grid -> {
+            var storage = grid.getStorage();
+            var map = storage.getMap("transactAsyncTestMap", Integer.class);
 
-                var numThreads = 5;
-                var executor = Executors.newFixedThreadPool(numThreads);
-                var startLatch = new CountDownLatch(1);
-                var doneLatch = new CountDownLatch(numThreads);
-                new AtomicInteger(0);
+            var numThreads = 5;
+            var executor = Executors.newFixedThreadPool(numThreads);
+            var startLatch = new CountDownLatch(1);
+            var doneLatch = new CountDownLatch(numThreads);
+            new AtomicInteger(0);
 
-                List<Future<Boolean>> futures = new CopyOnWriteArrayList<>();
+            List<Future<Boolean>> futures = new CopyOnWriteArrayList<>();
 
-                for (var i = 0; i < numThreads; i++) {
-                    Future<Boolean> future = executor.submit(() -> {
-                        try {
-                            // Ensure all threads start together
-                            startLatch.await();
-                            return storage.runInTransactionAsync(() -> {
-                                map.update("count", v -> v == null ? 1 : v + 1);
-                                return true;
-                            }).get(); // Wait for async completion
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            return false;
-                        } finally {
-                            doneLatch.countDown();
-                        }
-                    });
-                    futures.add(future);
-                }
+            for (var i = 0; i < numThreads; i++) {
+                Future<Boolean> future = executor.submit(() -> {
+                    try {
+                        // Ensure all threads start together
+                        startLatch.await();
+                        return storage.runInTransactionAsync(() -> {
+                            map.update("count", v -> v == null ? 1 : v + 1);
+                            return true;
+                        }).get(); // Wait for async completion
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return false;
+                    } finally {
+                        doneLatch.countDown();
+                    }
+                });
+                futures.add(future);
+            }
 
-                startLatch.countDown();
-                doneLatch.await(); // Wait for all transactions to complete
-                executor.shutdown();
+            startLatch.countDown();
+            doneLatch.await(); // Wait for all transactions to complete
+            executor.shutdown();
 
-                // Ensure all async transactions completed successfully
-                for (Future<Boolean> future : futures) {
-                    // Ensure the transaction didn't fail
-                    assertThat(future.get()).isTrue();
-                }
+            // Ensure all async transactions completed successfully
+            for (Future<Boolean> future : futures) {
+                // Ensure the transaction didn't fail
+                assertThat(future.get()).isTrue();
+            }
 
-                // Check final value correctness
-                assertThat(map.get("count")).isEqualTo(numThreads);
-            });
+            // Check final value correctness
+            assertThat(map.get("count")).isEqualTo(numThreads);
         });
     }
-    */
 }
