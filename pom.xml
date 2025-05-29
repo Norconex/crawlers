@@ -600,6 +600,7 @@
           <artifactId>maven-javadoc-plugin</artifactId>
           <version>${maven-javadoc-plugin.version}</version>
           <configuration>
+            <skip>${maven.javadoc.skip}</skip>
             <outputDirectory>${project.build.directory}</outputDirectory>
             <sourcepath>${project.build.directory}/generated-sources/delombok</sourcepath>
             <sourceFileIncludes>
