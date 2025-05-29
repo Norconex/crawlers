@@ -18,6 +18,8 @@ import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 
+import lombok.Generated;
+
 /**
  * Facade for launching or obtaining a Web Crawler.
  */
@@ -32,6 +34,7 @@ public final class WebCrawler {
      * options.
      * @param args command-line options
      */
+    @Generated // excluded from coverage
     public static void main(String[] args) {
         try {
             System.exit(launch(args));

@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core;
 
+import static java.util.Optional.ofNullable;
+
 import java.nio.file.Path;
 
 import org.apache.commons.lang3.StringUtils;
@@ -121,6 +123,17 @@ public class Crawler {
         validateConfig(crawlConfig);
         LogUtil.logCommandIntro(LOG, crawlConfig);
         LOG.info("Executing command: {}", command.getClass().getSimpleName());
-        sessionManager.withCrawlContext(command::execute);
+        sessionManager.withCrawlContext(ctx -> {
+            try {
+                ofNullable(ctx.getCallbacks()
+                        .getBeforeCommand())
+                                .ifPresent(c -> c.accept(ctx));
+                command.execute(ctx);
+            } finally {
+                ofNullable(ctx.getCallbacks()
+                        .getAfterCommand())
+                                .ifPresent(c -> c.accept(ctx));
+            }
+        });
     }
 }
