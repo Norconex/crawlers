@@ -26,6 +26,7 @@
   <name>Norconex Local Grid </name>  
 
   <properties>
+    <sonar.skip>false</sonar.skip>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>      
       
     <h2.version>2.3.232</h2.version>

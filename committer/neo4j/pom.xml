@@ -27,6 +27,7 @@
   <description>Neo4j implementation of Norconex Committer</description>
 
   <properties>
+    <sonar.skip>false</sonar.skip>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>    
     <neo4j.driver.version>5.17.0</neo4j.driver.version>
   </properties>

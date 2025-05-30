@@ -28,6 +28,7 @@
   <properties>
     <jgroups.version>5.4.5.Final</jgroups.version>
   
+    <sonar.skip>false</sonar.skip>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>      
   </properties>
 

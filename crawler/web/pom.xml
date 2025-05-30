@@ -27,6 +27,7 @@
   <name>Norconex Web Crawler</name>
 
   <properties>
+    <sonar.skip>false</sonar.skip>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>      
     <shared-resources.include>scripts/**</shared-resources.include> 
       

@@ -27,6 +27,7 @@
   <description>SQL database implementation of Norconex Committer.</description>
 
   <properties>
+    <sonar.skip>false</sonar.skip>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
     
     <commons-dbcp2.version>2.9.0</commons-dbcp2.version>

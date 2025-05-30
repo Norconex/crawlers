@@ -27,6 +27,7 @@
 
   <properties>
     <solr.version>9.6.1</solr.version>
+    <sonar.skip>false</sonar.skip>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>  
   </properties>
   <inceptionYear>2009</inceptionYear>

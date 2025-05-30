@@ -26,6 +26,7 @@
   <name>Norconex Grid JDBC</name>  
 
   <properties>
+    <sonar.skip>false</sonar.skip>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
     
     <hikari.version>6.3.0</hikari.version>      

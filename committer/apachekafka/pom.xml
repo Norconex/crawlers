@@ -27,6 +27,7 @@
   <description>Apache Kafka implementation of Norconex Committer</description>
 
   <properties>
+    <sonar.skip>false</sonar.skip>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
     <kafka.version>3.9.0</kafka.version>
     <gson.version>2.11.0</gson.version>

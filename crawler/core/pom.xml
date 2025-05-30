@@ -26,6 +26,7 @@
   <name>Norconex Crawler Core</name>  
 
   <properties>
+    <sonar.skip>false</sonar.skip>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>      
       
     <cxf.version>3.4.5</cxf.version>

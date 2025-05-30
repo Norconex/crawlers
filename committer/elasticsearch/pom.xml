@@ -27,6 +27,7 @@
 
   <properties>
     <elasticsearch.version>8.12.2</elasticsearch.version>
+    <sonar.skip>false</sonar.skip>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>    
   </properties>
   <inceptionYear>2013</inceptionYear>
