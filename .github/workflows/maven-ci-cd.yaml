@@ -180,7 +180,7 @@ jobs:
 
     #--- Step ------------------------------------------------------------------
                 
-    - name: Build and test
+    - name: Build, Test, and Deploy
       run: |
         changed_modules="${{ steps.find-modules.outputs.changed_modules }}"
         if [ -n "$changed_modules" ]; then
@@ -190,40 +190,28 @@ jobs:
           pl_argument=""
           am_argument=""
         fi
-        mvn clean -B install \
-        -Dmaven.compiler.maxmem=3072m \
-        -DargLine="-Xmx3g" \
-        -Dgpg.skip=true \
-        -Dmaven.javadoc.skip=true \
-        -Dmaven.wagon.rss.buffer.size=2048 \
-        -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-        -Pjacoco $pl_argument \
-        -C ${am_argument}
-
-    #--- Step ------------------------------------------------------------------
-        
-    # Note: As of this writing, for SonarCloud to work with monorepos, 
-    # each projects must be analyzed separately.
-    - name: Sonar Analysis
-      run: |
-        # Figure out which modules to process
-        changed_modules="${{ steps.find-modules.outputs.changed_modules }}"
-        if [ -n "$changed_modules" ]; then
-          IFS=',' read -r -a modules_to_process <<< "$changed_modules"
+        if [ "$SHOULD_DEPLOY" = "true" ]; then
+          phase="deploy"
         else
-          mapfile -t modules_to_process < <(grep -oP '<module>\K.*?(?=</module>)' pom.xml)
+          phase="install"
         fi
-
-        # Loop through resolved modules and run Sonar analysis
-        for module in "${modules_to_process[@]}"; do
-          echo "Running Sonar analysis for module: $module"
-          cd "$module" || exit
-          mvn sonar:sonar \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.verbose=true \
-            -Dmaven.wagon.rss.buffer.size=2048
-          cd - || exit
-        done
+        mvn clean $phase \
+          -Dmaven.compiler.maxmem=3072m \
+          -DargLine="-Xmx3g" \
+          -Dgpg.skip=true \
+          -Dmaven.javadoc.skip=true \
+          -Dmaven.wagon.rss.buffer.size=2048 \
+          -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+          -Pjacoco $pl_argument \
+          -C ${am_argument} \
+          -Dsonar.host.url=https://sonarcloud.io \
+          -Dsonar.verbose=true \
+          -X \
+          -B
+      env:
+        OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
+        MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
     #--- Step ------------------------------------------------------------------
                 
@@ -232,13 +220,3 @@ jobs:
     - name: Update Maven dependency graph
       if: ${{ env.SHOULD_DEPLOY == 'true' }}
       uses: advanced-security/maven-dependency-submission-action@v4
-
-    #--- Step ------------------------------------------------------------------
-      
-    - name: Deploy snapshots to Sonatype
-      if: ${{ env.SHOULD_DEPLOY == 'true' }}
-      run: mvn deploy -DskipTests -Dskip.sonar=true -X
-      env:
-        OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-        OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
-        MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
