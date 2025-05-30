@@ -1014,6 +1014,15 @@
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
           <version>${sonar.version}</version>
+          <executions>
+            <execution>
+              <id>sonar</id>
+              <phase>verify</phase>
+              <goals>
+                <goal>sonar</goal>
+              </goals>
+            </execution>
+          </executions>
           <inherited>true</inherited>
         </plugin>
  
@@ -1060,11 +1069,34 @@
     </pluginManagement>
 
     <plugins>
+    
+      <!-- === Plugins bound to "Verify" (order matters) == -->
+    
+      <!-- Enforce formatting rules first to fail fast if there are issues -->
+      <plugin>
+        <groupId>org.ec4j.maven</groupId>
+        <artifactId>editorconfig-maven-plugin</artifactId>
+      </plugin>
+
+      <!-- Run JaCoCo to generate coverage reports -->
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+      </plugin>
+
+      <!-- Run SonarQube to analyze code and consume JaCoCo reports -->
+      <plugin>
+        <groupId>org.sonarsource.scanner.maven</groupId>
+        <artifactId>sonar-maven-plugin</artifactId>
+      </plugin>            
+
       <!--  Use VM argument -Dgpg.skip=true to disable GPG signing. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-gpg-plugin</artifactId>
       </plugin>
+
+      <!-- === Other plugins == -->
 
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
@@ -1090,16 +1122,6 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
       </plugin>
-
-      <plugin>
-        <groupId>org.jacoco</groupId>
-        <artifactId>jacoco-maven-plugin</artifactId>
-      </plugin>            
-
-      <plugin>
-        <groupId>org.sonarsource.scanner.maven</groupId>
-        <artifactId>sonar-maven-plugin</artifactId>
-      </plugin>            
 
       <plugin>
         <groupId>net.revelc.code.formatter</groupId>
@@ -1139,11 +1161,6 @@
           </execution>
         </executions>
       </plugin>        
-
-      <plugin>
-        <groupId>org.ec4j.maven</groupId>
-        <artifactId>editorconfig-maven-plugin</artifactId>
-      </plugin>
 
     </plugins>
 
