@@ -32,11 +32,11 @@
       Uncomment the following line and do so when ready.
       -->
     <!--
-    <sonar.skip>false</sonar.skip>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
     -->
     
     
+    <sonar.skip>true</sonar.skip>
     <sonar.exclusions>**/*</sonar.exclusions>
 
     <java-diff-utils.version>4.12</java-diff-utils.version>      
