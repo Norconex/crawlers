@@ -99,16 +99,21 @@ Files.readAllLines(thirdPartyFile).each { line ->
 
     // Normalize licenses
     def normalizedLicenses = licenses.collect { license ->
-        def mapping = licenseMappings.find { mapping ->
-            mapping.patterns.any { pattern ->
-                def regex = Pattern.compile("^${pattern}\$", Pattern.CASE_INSENSITIVE)
-                license ==~ regex
+        def result = licenseMappings.find { mapping ->
+            // Match "<spdx-id>:" first
+            if (license.startsWith("${mapping.spdx_id}:")) {
+                return mapping;
             }
+            // Then other patterns
+            mapping.patterns.any { pattern ->
+                def regex = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE)
+                regex.matcher(license).find()
+            } ? mapping : null
         }
-        if (!mapping) {
-            throw new RuntimeException("No mapping found for license \"${license}\" in line: ${trimmedLine}")
+        if (!result) {
+            throw new RuntimeException("No mapping found for license \"${license}\" in line: \"${trimmedLine}\"")
         }
-        [spdx_id: mapping.spdx_id, full_name: mapping.full_name]
+        [spdx_id: result.spdx_id, full_name: result.full_name]
     }
 
     // Format normalized license string

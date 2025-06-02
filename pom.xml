@@ -34,7 +34,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-    <sonar.skip>true</sonar.skip> <!-- overwritten in child modules -->
+    <sonar.skip>false</sonar.skip>
     <sonar.organization>norconex</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
@@ -42,8 +42,11 @@
     <sonar.sources>src/main/java</sonar.sources>
     <sonar.tests>src/test/java</sonar.tests>
     <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
-    <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>    
-    
+    <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+
+<!--    
+    <sonar.exclusions>**/*</sonar.exclusions>    
+    -->
 <!--    <sonar.language>java</sonar.language>-->
 
     <!-- If we ever want to scan the parent: -->
@@ -1206,7 +1209,10 @@
 
   <description>Maven parent POM for Norconex crawler-related projects.</description>
   <modules>
-    <module>committer/core</module> 
+    <module>committer/core</module>
+    <!--
+    -->
+    <!--
     <module>committer/solr</module>
     <module>committer/elasticsearch</module>
     <module>committer/idol</module>
@@ -1215,13 +1221,27 @@
     <module>committer/neo4j</module>
     <module>committer/azurecognitivesearch</module>
     <module>committer/apachekafka</module>
+    --> 
     <module>importer</module>
     <module>grid/core</module>
     <module>grid/local</module>
+    <!--
+    -->
+    <!--
     <module>grid/jdbc</module>
+    --> 
     <module>crawler/core</module>
+    <!--
+    --> 
+    <!--
     <module>crawler/web</module>
+    --> 
     <module>crawler/fs</module>
+    <!--
+    --> 
+    
+    
+    
 <!--
   TODO: when ready, add these:
     <XXmodule>tools/config-converter</module>
