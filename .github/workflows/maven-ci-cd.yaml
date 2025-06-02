@@ -168,20 +168,8 @@ jobs:
       run: mvn dependency:tree -Dverbose
 
     #--- Step ------------------------------------------------------------------
-        
-    #- name: Find Changed Modules (only if not deploying)
-    #  if: ${{ env.SHOULD_DEPLOY == 'false' }}
-    #  id: find-modules
-    #  run: |
-    #    chmod +x .github/workflows/scripts/changed-modules2.sh
-    #    ./.github/workflows/scripts/changed-modules2.sh
-    #  env:
-    #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    #--- Step ------------------------------------------------------------------
     # Node, Sonar does not work well or as expected with -pl -am so
     # we build all each time.
-
 
     - name: Build, Test, and Deploy
       run: |
@@ -207,39 +195,6 @@ jobs:
         OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
         OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
         MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
-
-                        
-    #- name: Build, Test, and Deploy
-    #  run: |
-    #    changed_modules="${{ steps.find-modules.outputs.changed_modules }}"
-    #    if [ -n "$changed_modules" ]; then
-    #      pl_argument="-pl \"$changed_modules\""
-    #      am_argument="-am"
-    #    else
-    #      pl_argument=""
-    #      am_argument=""
-    #    fi
-    #    if [ "$SHOULD_DEPLOY" = "true" ]; then
-    #      phase="deploy"
-    #    else
-    #      phase="install"
-    #    fi
-    #    mvn clean $phase \
-    #      -Dmaven.compiler.maxmem=3072m \
-    #      -DargLine="-Xmx3g" \
-    #      -Dgpg.skip=true \
-    #      -Dmaven.javadoc.skip=true \
-    #      -Dmaven.wagon.rss.buffer.size=2048 \
-    #      -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-    #      -Pjacoco $pl_argument \
-    #      -C ${am_argument} \
-    #      -Dsonar.host.url=https://sonarcloud.io \
-    #      -Dsonar.verbose=false \
-    #      -B
-    #  env:
-    #    OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-    #    OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
-    #    MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
     #--- Step ------------------------------------------------------------------
                 
