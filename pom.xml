@@ -1210,9 +1210,6 @@
   <description>Maven parent POM for Norconex crawler-related projects.</description>
   <modules>
     <module>committer/core</module>
-    <!--
-    -->
-    <!--
     <module>committer/solr</module>
     <module>committer/elasticsearch</module>
     <module>committer/idol</module>
@@ -1221,26 +1218,13 @@
     <module>committer/neo4j</module>
     <module>committer/azurecognitivesearch</module>
     <module>committer/apachekafka</module>
-    --> 
     <module>importer</module>
     <module>grid/core</module>
     <module>grid/local</module>
-    <!--
-    -->
-    <!--
     <module>grid/jdbc</module>
-    --> 
     <module>crawler/core</module>
-    <!--
-    --> 
-    <!--
     <module>crawler/web</module>
-    --> 
     <module>crawler/fs</module>
-    <!--
-    --> 
-    
-    
     
 <!--
   TODO: when ready, add these:
