@@ -4,7 +4,7 @@
       "spdx_id": "Apache-2.0",
       "full_name": "Apache License 2.0",
       "patterns": [
-        "\\b(The )?Apache.*?[^\\d]2[^\\d]",
+        "\\b(The )?Apache.*?[^\\d]2([^\\d]|$)",
         "^ASF 2\\.0$",
         "^ASL 2\\.0$",
         "^Apache License$",

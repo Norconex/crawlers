@@ -99,6 +99,7 @@ Files.readAllLines(thirdPartyFile).each { line ->
 
     // Normalize licenses
     def normalizedLicenses = licenses.collect { license ->
+        license = license.trim()
         def result = licenseMappings.find { mapping ->
             // Match "<spdx-id>:" first
             if (license.startsWith("${mapping.spdx_id}:")) {
