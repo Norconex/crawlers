@@ -190,8 +190,7 @@ jobs:
           -C \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.verbose=false \
-          -B \
-          -X
+          -B
       env:
         OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
         OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
