@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" name="Norconex Importer CI">
+  <Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+    </Console>
+  </Appenders>
+  <Loggers>
+  
+    <!-- Silence specific noisy packages -->
+    <Logger name="com.norconex.importer.Importer" level="ERROR" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="com.norconex.importer.handler.splitter.impl.XMLStreamSplitter" level="OFF" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.apache.poi" level="ERROR" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.apache.poi.hdgf.chunks.Chunk" level="OFF" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.apache.pdfbox.jbig2.JBIG2Globals" level="OFF" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+    <!-- Only WARN and above for everything else -->
+    <Root level="WARN">
+      <AppenderRef ref="Console"/>
+    </Root>
+  </Loggers>
+</Configuration>

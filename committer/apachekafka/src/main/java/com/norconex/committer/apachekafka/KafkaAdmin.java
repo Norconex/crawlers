@@ -24,12 +24,12 @@ import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.config.TopicConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 class KafkaAdmin {
 
-    private static final Logger LOG = LoggerFactory.getLogger(KafkaAdmin.class);
     private Admin admin;
 
     public KafkaAdmin(String bootstrapServers) {

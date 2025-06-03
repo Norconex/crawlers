@@ -14,8 +14,6 @@
  */
 package com.norconex.committer.idol;
 
-import java.io.IOException;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +30,7 @@ import com.norconex.commons.lang.text.TextMatcher;
 class IdolCommitterConfigTest {
 
     @Test
-    void testWriteRead() throws IOException {
+    void testWriteRead() {
         var c = new IdolCommitter();
 
         var q = new FsQueue();
@@ -67,7 +65,7 @@ class IdolCommitterConfigTest {
     }
 
     @Test
-    void testValidation() throws IOException {
+    void testValidation() {
         Assertions.assertDoesNotThrow(() -> {
             try (var r = ResourceLoader.getXmlReader(this.getClass())) {
                 BeanMapper.DEFAULT.read(IdolCommitter.class, r, Format.XML);

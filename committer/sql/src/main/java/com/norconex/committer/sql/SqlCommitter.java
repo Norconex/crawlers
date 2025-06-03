@@ -16,10 +16,6 @@ package com.norconex.committer.sql;
 
 import java.util.Iterator;
 
-import org.apache.commons.lang3.builder.EqualsExclude;
-import org.apache.commons.lang3.builder.HashCodeExclude;
-import org.apache.commons.lang3.builder.ToStringExclude;
-
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.batch.AbstractBatchCommitter;

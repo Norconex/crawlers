@@ -18,6 +18,7 @@ package com.norconex.committer.apachekafka;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.io.File;
 import java.time.Duration;
@@ -47,7 +48,7 @@ import com.norconex.commons.lang.map.Properties;
 @Testcontainers(disabledWithoutDocker = true)
 class ApacheKafkaCommitterTest {
 
-    private static String TOPIC_NAME = "";
+    private static String topicName = "";
     private static final String TEST_ID = "http://www.simpsons.com";
     private static final String TEST_CONTENT = "Homer says DOH!";
     private Consumer<String, String> consumer;
@@ -61,20 +62,20 @@ class ApacheKafkaCommitterTest {
             DockerImageName.parse("confluentinc/cp-kafka:7.4.0"));
 
     @BeforeAll
-    static void setUpBeforeClass() throws Exception {
+    static void setUpBeforeClass() {
         testHelper = new TestHelper(kafka.getBootstrapServers());
     }
 
     @BeforeEach
-    void setUp() throws Exception {
-        TOPIC_NAME = String.valueOf(TimeIdGenerator.next());
+    void setUp() {
+        topicName = String.valueOf(TimeIdGenerator.next());
         consumer = testHelper.createConsumerAndSubscribeToTopic(
-                "nx-test-consumer-" + TOPIC_NAME,
-                TOPIC_NAME);
+                "nx-test-consumer-" + topicName,
+                topicName);
     }
 
     @AfterEach
-    void tearDown() throws Exception {
+    void tearDown() {
         consumer.close();
     }
 
@@ -116,15 +117,15 @@ class ApacheKafkaCommitterTest {
         //setup
         ConsumerRecord<String, String> insertedRecord = null;
         var id = "http://www.thesimpsons.com";
-        var record =
+        var rec =
                 new ProducerRecord<>(
-                        TOPIC_NAME,
+                        topicName,
                         id,
                         "Homer says DOH!");
 
         var producer =
                 testHelper.createProducer();
-        producer.send(record).get();
+        producer.send(rec).get();
         producer.close();
 
         // //ensure record exists in Kafka
@@ -151,8 +152,8 @@ class ApacheKafkaCommitterTest {
         ConsumerRecord<String, String> receivedRecord = null;
         var localConsumer =
                 testHelper.createConsumerAndSubscribeToTopic(
-                        "nx-test-localconsumer" + TOPIC_NAME,
-                        TOPIC_NAME);
+                        "nx-test-localconsumer" + topicName,
+                        topicName);
 
         var receivedRecords = localConsumer
                 .poll(Duration.ofMillis(5000));
@@ -198,48 +199,23 @@ class ApacheKafkaCommitterTest {
 
     @Test
     void createTopicSetWithoutPartitionOrReplication_throwsException() {
-        //setup
-        Exception expectedException = null;
-
-        //execute
-        try {
+        assertThatExceptionOfType(CommitterException.class).isThrownBy(() -> {
             withinCommitterSessionCreateTopicOnly(c -> {
                 c.upsert(upsertRequest(TEST_ID, null, new Properties()));
             });
-        } catch (CommitterException e) {
-            expectedException = e;
-        }
-
-        //verify
-        assertThat(expectedException)
-                .isNotNull()
-                .hasMessage(
-                        "createTopic=true requires these settings be also set. "
-                                + "numOfPartitions, replicationFactor");
+        }).withMessageContaining("createTopic=true requires these settings "
+                + "be also set: numOfPartitions, replicationFactor");
     }
 
     @Test
     void testCreateTopicIsFalseAndTopicDoesNotAlreadyExist_throwsException() {
-        //setup
-        Exception expectedException = null;
-        var expectedExceptionMsg = String.format(
-                "Topic `%s` does not exist in Kafka. Either "
-                        + "create the topic manually or set `createTopic` to true.",
-                TOPIC_NAME);
-
-        //execute
-        try {
+        assertThatExceptionOfType(CommitterException.class).isThrownBy(() -> {
             withinCommitterSessionTopicDoesNotExist(c -> {
                 c.upsert(upsertRequest(TEST_ID, null, new Properties()));
             });
-        } catch (CommitterException e) {
-            expectedException = e;
-        }
-
-        //verify
-        assertThat(expectedException)
-                .isNotNull()
-                .hasMessage(expectedExceptionMsg);
+        }).withMessageContaining("Topic `%s` does not exist in Kafka. Either "
+                + "create the topic manually or set `createTopic` to true.",
+                topicName);
     }
 
     private UpsertRequest upsertRequest(
@@ -256,14 +232,12 @@ class ApacheKafkaCommitterTest {
 
         var ctx = CommitterContext.builder()
                 .setWorkDir(
-                        new File(
-                                tempDir,
-                                "" + TimeIdGenerator.next()).toPath())
+                        new File(tempDir, "" + TimeIdGenerator.next()).toPath())
                 .build();
         var committer = new ApacheKafkaCommitter();
         committer.getConfiguration()
                 .setBootstrapServers(kafka.getBootstrapServers())
-                .setTopicName(TOPIC_NAME)
+                .setTopicName(topicName)
                 .setCreateTopic(true)
                 .setPartitions(1)
                 .setReplicationFactor((short) 1);
@@ -291,14 +265,12 @@ class ApacheKafkaCommitterTest {
 
         var ctx = CommitterContext.builder()
                 .setWorkDir(
-                        new File(
-                                tempDir,
-                                "" + TimeIdGenerator.next()).toPath())
+                        new File(tempDir, "" + TimeIdGenerator.next()).toPath())
                 .build();
         var committer = new ApacheKafkaCommitter();
         committer.getConfiguration()
                 .setBootstrapServers(kafka.getBootstrapServers())
-                .setTopicName(TOPIC_NAME)
+                .setTopicName(topicName)
                 .setCreateTopic(true);
 
         committer.init(ctx);
@@ -308,8 +280,7 @@ class ApacheKafkaCommitterTest {
     protected ApacheKafkaCommitter withinCommitterSessionCreateTopicOnly(
             CommitterConsumer c)
             throws CommitterException {
-        var committer =
-                createApacheKafkaCommitterCreateTopicOnly();
+        var committer = createApacheKafkaCommitterCreateTopicOnly();
         try {
             c.accept(committer);
         } catch (CommitterException e) {
@@ -326,14 +297,12 @@ class ApacheKafkaCommitterTest {
 
         var ctx = CommitterContext.builder()
                 .setWorkDir(
-                        new File(
-                                tempDir,
-                                "" + TimeIdGenerator.next()).toPath())
+                        new File(tempDir, "" + TimeIdGenerator.next()).toPath())
                 .build();
         var committer = new ApacheKafkaCommitter();
         committer.getConfiguration()
                 .setBootstrapServers(kafka.getBootstrapServers())
-                .setTopicName(TOPIC_NAME)
+                .setTopicName(topicName)
                 .setCreateTopic(false);
 
         committer.init(ctx);
@@ -343,8 +312,7 @@ class ApacheKafkaCommitterTest {
     protected ApacheKafkaCommitter withinCommitterSessionTopicDoesNotExist(
             CommitterConsumer c)
             throws CommitterException {
-        var committer =
-                createApacheKafkaCommitterTopicDoesNotExist();
+        var committer = createApacheKafkaCommitterTopicDoesNotExist();
         try {
             c.accept(committer);
         } catch (CommitterException e) {

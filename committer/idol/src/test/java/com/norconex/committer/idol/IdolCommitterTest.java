@@ -71,9 +71,6 @@ class IdolCommitterTest {
 
     @Test
     void testAddOneDoc_IdolReturnsUnexpectedResponse_exceptionThrown() {
-        // setup
-        Exception expectedException = null;
-
         mockIdol.when(request().withPath("/DREADDDATA"))
                 .respond(response().withBody("NOOP"));
 
@@ -84,19 +81,13 @@ class IdolCommitterTest {
 
         docs.add(addReq);
 
-        // execute
-        try {
-            withinCommitterSession(c -> {
-                c.commitBatch(docs.iterator());
-            });
-        } catch (CommitterException e) {
-            expectedException = e;
-        }
-
-        // verify
-        assertThat(expectedException).isNotNull()
-                .isInstanceOf(CommitterException.class)
-                .hasMessageStartingWith("Unexpected HTTP response: ");
+        assertThatExceptionOfType(CommitterException.class)
+                .isThrownBy(() -> {
+                    withinCommitterSession(c -> {
+                        c.commitBatch(docs.iterator());
+                    });
+                })
+                .withMessageContaining("Unexpected HTTP response: ");
     }
 
     @Test
@@ -327,29 +318,20 @@ class IdolCommitterTest {
         mockIdol.when(request().withPath("/DREADDDATA"))
                 .respond(response().withBody("INDEXID=12"));
 
-        Exception expectedException = null;
-
         Collection<CommitterRequest> docs = new ArrayList<>();
         CommitterRequest addReq = new UpsertRequest(
                 "http://thesimpsons.com", null, null);
         docs.add(addReq);
 
-        //execute
-        try {
-            withinCommitterSessionWithCustomSourceRefField(c -> {
-                c.commitBatch(docs.iterator());
-            });
-        } catch (CommitterException e) {
-            expectedException = e;
-        }
-
-        //verify
-        assertThat(expectedException)
-                .isInstanceOf(CommitterException.class)
-                .hasMessage(
-                        "Source reference field 'myRefField' has no value "
-                                + "for document: http://thesimpsons.com");
-
+        assertThatExceptionOfType(CommitterException.class)
+                .isThrownBy(() -> {
+                    withinCommitterSessionWithCustomSourceRefField(c -> {
+                        c.commitBatch(docs.iterator());
+                    });
+                })
+                .withMessageContaining(
+                        "Source reference field 'myRefField' has no "
+                                + "value for document: http://thesimpsons.com");
     }
 
     @Test
@@ -374,11 +356,7 @@ class IdolCommitterTest {
     }
 
     @Test
-    void testAddOneDoc_emptyIdolUrl_throwsException()
-            throws CommitterException {
-        // setup
-        Exception expectedException = null;
-
+    void testAddOneDoc_emptyIdolUrl_throwsException() {
         mockIdol.when(request().withPath("/DREADDDATA"))
                 .respond(response().withBody("INDEXID=132"));
 
@@ -387,27 +365,17 @@ class IdolCommitterTest {
                 "http://thesimpsons.com", null, null);
         docs.add(addReq);
 
-        // execute
-        try {
-            withinCommitterSessionWithEmptyIdolUrl(c -> {
-                c.commitBatch(docs.iterator());
-            });
-        } catch (IllegalArgumentException e) {
-            expectedException = e;
-        }
-
-        // verify
-        assertThat(expectedException).isNotNull()
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Configuration 'url' must be provided.");
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> {
+                    withinCommitterSessionWithEmptyIdolUrl(c -> {
+                        c.commitBatch(docs.iterator());
+                    });
+                })
+                .withMessageContaining("Configuration 'url' must be provided.");
     }
 
     @Test
-    void testAddOneDoc_wrongIdolUrl_throwsException()
-            throws CommitterException {
-        // setup
-        Exception expectedException = null;
-
+    void testAddOneDoc_wrongIdolUrl_throwsException() {
         mockIdol.when(request().withPath("/DREADDDATA"))
                 .respond(response().withBody("INDEXID=132"));
 
@@ -416,19 +384,14 @@ class IdolCommitterTest {
                 "http://thesimpsons.com", null, null);
         docs.add(addReq);
 
-        // execute
-        try {
-            withinCommitterSessionWrongIdolUrl(c -> {
-                c.commitBatch(docs.iterator());
-            });
-        } catch (CommitterException e) {
-            expectedException = e;
-        }
-
-        // verify
-        assertThat(expectedException).isNotNull()
-                .isInstanceOf(CommitterException.class)
-                .hasMessage("Cannot post content to http://localhost:1234");
+        assertThatExceptionOfType(CommitterException.class)
+                .isThrownBy(() -> {
+                    withinCommitterSessionWrongIdolUrl(c -> {
+                        c.commitBatch(docs.iterator());
+                    });
+                })
+                .withMessageContaining(
+                        "Cannot post content to http://localhost:1234");
     }
 
     @Test
@@ -497,48 +460,39 @@ class IdolCommitterTest {
 
     @Test
     void testAddOneDocViaCFS_customSourceRefFieldWithNoValue_ExceptionThrown() {
-        //setup
-        mockIdol.when(
-                request()
-                        .withPath("/")
-                        .withQueryStringParameter("action", "ingest"))
-                .respond(
-                        response().withBody(
-                                """
-                                        <autnresponse xmlns:autn='http://schemas.autonomy.com/aci/'>
-                                          <action>INGEST</action>
-                                          <response>SUCCESS</response>
-                                          <responsedata>
-                                            <token>
-                                              MTAuMi4xMTAuMTQ6NzAwMDpJTkdFU1Q6LTU0MzIyNTEzNQ==
-                                            </token>
-                                          </responsedata>
-                                        </autnresponse>
-                                        """));
+        var body =
+                """
+                <autnresponse xmlns:autn='http://schemas.autonomy.com/aci/'>
+                  <action>INGEST</action>
+                  <response>SUCCESS</response>
+                  <responsedata>
+                    <token>
+                      MTAuMi4xMTAuMTQ6NzAwMDpJTkdFU1Q6LTU0MzIyNTEzNQ==
+                    </token>
+                  </responsedata>
+                </autnresponse>
+                """;
 
-        Exception expectedException = null;
+        //setup
+        mockIdol.when(request()
+                .withPath("/")
+                .withQueryStringParameter("action", "ingest"))
+                .respond(response().withBody(body));
 
         Collection<CommitterRequest> docs = new ArrayList<>();
         CommitterRequest addReq = new UpsertRequest(
                 "http://thesimpsons.com", null, null);
         docs.add(addReq);
 
-        //execute
-        try {
-            withinCommitterSessionCFSWithCustomSourceRefField(c -> {
-                c.commitBatch(docs.iterator());
-            });
-        } catch (CommitterException e) {
-            expectedException = e;
-        }
-
-        //verify
-        assertThat(expectedException)
-                .isInstanceOf(CommitterException.class)
-                .hasMessage(
-                        "Source reference field 'myRefField' has no value "
-                                + "for document: http://thesimpsons.com");
-
+        assertThatExceptionOfType(CommitterException.class)
+                .isThrownBy(() -> {
+                    withinCommitterSessionCFSWithCustomSourceRefField(c -> {
+                        c.commitBatch(docs.iterator());
+                    });
+                })
+                .withMessageContaining(
+                        "Source reference field 'myRefField' has no "
+                                + "value for document: http://thesimpsons.com");
     }
 
     @Test
@@ -844,8 +798,7 @@ class IdolCommitterTest {
                 .build();
     }
 
-    private IdolCommitter createIdolCommitterNoInitContext()
-            throws CommitterException {
+    private IdolCommitter createIdolCommitterNoInitContext() {
         var committer = new IdolCommitter();
         committer.getConfiguration().setUrl(
                 "http://localhost:" + mockIdol.getLocalPort());
@@ -957,13 +910,13 @@ class IdolCommitterTest {
 
     private String ingestActionResponse() {
         return """
-                <autnresponse xmlns:autn='http://schemas.autonomy.com/aci/'>
-                  <action>INGEST</action>
-                  <response>SUCCESS</response>
-                  <responsedata>
-                    <token>MTAuMi4xMTAuMTQ6NzAwMDpJTkdFU1Q6LTU0MzIyNTEzNQ==</token>
-                  </responsedata>
-                </autnresponse>
-                """;
+            <autnresponse xmlns:autn='http://schemas.autonomy.com/aci/'>
+              <action>INGEST</action>
+              <response>SUCCESS</response>
+              <responsedata>
+                <token>MTAuMi4xMTAuMTQ6NzAwMDpJTkdFU1Q6LTU0MzIyNTEzNQ==</token>
+              </responsedata>
+            </autnresponse>
+            """;
     }
 }

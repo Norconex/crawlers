@@ -93,9 +93,7 @@ public final class TestUtil {
     }
 
     public static CommitterContext committerContext(Path folder) {
-        var ctx = CommitterContext.builder().setWorkDir(folder).build();
-        ctx.getEventManager().setStacktraceLoggingDisabled(true);
-        return ctx;
+        return CommitterContext.builder().setWorkDir(folder).build();
     }
 
     // 1+ = upserts; 0- = delete

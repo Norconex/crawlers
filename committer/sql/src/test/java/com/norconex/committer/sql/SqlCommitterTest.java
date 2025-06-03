@@ -17,6 +17,7 @@ package com.norconex.committer.sql;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.io.File;
 import java.sql.Clob;
@@ -90,65 +91,35 @@ class SqlCommitterTest {
 
     @Test
     void testCommitAdd_emptyConnUrl_throwsException() {
-        // Setup
-        Exception expectedException = null;
-
-        // Execute
-        try {
-            withinCommitterSessionEmptyConnUrl(c -> {
-                c.upsert(upsertRequest(TEST_ID, TEST_CONTENT));
-            });
-        } catch (Exception e) {
-            expectedException = e;
-        }
-
-        // Verify
-        assertThat(expectedException)
-                .isNotNull()
-                .isInstanceOf(CommitterException.class)
-                .hasMessage("No connection URL specified.");
+        assertThatExceptionOfType(CommitterException.class)
+                .isThrownBy(() -> {
+                    withinCommitterSessionEmptyConnUrl(c -> {
+                        c.upsert(upsertRequest(TEST_ID, TEST_CONTENT));
+                    });
+                })
+                .withMessageContaining("No connection URL specified.");
     }
 
     @Test
     void testCommitAdd_emptyTableName_throwsException() {
-        // Setup
-        Exception expectedException = null;
-
-        // Execute
-        try {
-            withinCommitterSessionEmptyTableName(c -> {
-                c.upsert(upsertRequest(TEST_ID, TEST_CONTENT));
-            });
-        } catch (Exception e) {
-            expectedException = e;
-        }
-
-        // Verify
-        assertThat(expectedException)
-                .isNotNull()
-                .isInstanceOf(CommitterException.class)
-                .hasMessage("No table name specified.");
+        assertThatExceptionOfType(CommitterException.class)
+                .isThrownBy(() -> {
+                    withinCommitterSessionEmptyTableName(c -> {
+                        c.upsert(upsertRequest(TEST_ID, TEST_CONTENT));
+                    });
+                })
+                .withMessageContaining("No table name specified.");
     }
 
     @Test
     void testCommitAdd_emptyPrimaryKey_throwsException() {
-        // Setup
-        Exception expectedException = null;
-
-        // Execute
-        try {
-            withinCommitterSessionEmptyPrimaryKey(c -> {
-                c.upsert(upsertRequest(TEST_ID, TEST_CONTENT));
-            });
-        } catch (Exception e) {
-            expectedException = e;
-        }
-
-        // Verify
-        assertThat(expectedException)
-                .isNotNull()
-                .isInstanceOf(CommitterException.class)
-                .hasMessage("No primary key specified.");
+        assertThatExceptionOfType(CommitterException.class)
+                .isThrownBy(() -> {
+                    withinCommitterSessionEmptyPrimaryKey(c -> {
+                        c.upsert(upsertRequest(TEST_ID, TEST_CONTENT));
+                    });
+                })
+                .withMessageContaining("No primary key specified.");
     }
 
     @Test
@@ -329,8 +300,7 @@ class SqlCommitterTest {
                 .build();
     }
 
-    private SqlCommitter createSQLCommitterNoInit()
-            throws CommitterException {
+    private SqlCommitter createSQLCommitterNoInit() {
         var committer = new SqlCommitter();
         var config = committer.getConfiguration();
         config.setConnectionUrl(connectionURL);
@@ -345,11 +315,11 @@ class SqlCommitterTest {
 
         config.setCreateTableSQL(
                 """
-                        CREATE TABLE {tableName} (\
-                          {primaryKey} VARCHAR(32672) NOT NULL,\s\
-                          content CLOB,\s\
-                          PRIMARY KEY ({primaryKey})\s\
-                        )""");
+                CREATE TABLE {tableName} (\
+                  {primaryKey} VARCHAR(32672) NOT NULL,\s\
+                  content CLOB,\s\
+                  PRIMARY KEY ({primaryKey})\s\
+                )""");
         config.setCreateFieldSQL(
                 "ALTER TABLE {tableName} ADD {fieldName} VARCHAR(30)");
 

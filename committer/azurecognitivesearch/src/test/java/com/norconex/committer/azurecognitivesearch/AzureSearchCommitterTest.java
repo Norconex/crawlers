@@ -16,12 +16,11 @@ package com.norconex.committer.azurecognitivesearch;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.IOUtils.toInputStream;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.function.Consumer;
 
 import org.apache.commons.io.input.NullInputStream;
@@ -68,13 +67,13 @@ class AzureSearchCommitterTest {
     private int port;
 
     @BeforeAll
-    public void beforeAll(ClientAndServer mockServer) throws IOException {
+    void beforeAll(ClientAndServer mockServer) {
         searchIndex = new AzureSearchMocker(mockServer);
         port = mockServer.getPort();
     }
 
     @BeforeEach
-    public void beforeEach() {
+    void beforeEach() {
         searchIndex.clear();
     }
 
@@ -89,52 +88,31 @@ class AzureSearchCommitterTest {
     }
 
     @Test
-    void testCommitAdd_keyStartsWithUnderscore_throwsException()
-            throws Exception {
-        // setup
-        Exception expectedException = null;
-
-        //execute
-        try {
-            withinCommitterSession(c -> {
-                c.upsert(upsertRequest("_" + TEST_ID, TEST_CONTENT));
-            });
-        } catch (Exception e) {
-            expectedException = e;
-        }
-
-        //verify
-        assertThat(expectedException)
-                .isNotNull()
-                .isInstanceOf(CommitterException.class)
-                .hasRootCauseMessage(
-                        "Document key cannot start with an underscore "
-                                + "character: _3");
+    void testCommitAdd_keyStartsWithUnderscore_throwsException() {
+        assertThatExceptionOfType(CommitterException.class)
+                .isThrownBy(() -> {
+                    withinCommitterSession(c -> {
+                        c.upsert(upsertRequest("_" + TEST_ID, TEST_CONTENT));
+                    });
+                })
+                .havingRootCause()
+                .withMessageContaining("Document key cannot start with an "
+                        + "underscore character: _3");
     }
 
     @Test
-    void testCommitAdd_keyWithInvalidChars_throwsException()
-            throws Exception {
-        // setup
-        Exception expectedException = null;
-
-        //execute
-        try {
-            withinCommitterSession(c -> {
-                c.upsert(upsertRequest(TEST_ID + "@$", TEST_CONTENT));
-            });
-        } catch (Exception e) {
-            expectedException = e;
-        }
-
-        //verify
-        assertThat(expectedException)
-                .isNotNull()
-                .isInstanceOf(CommitterException.class)
-                .hasRootCauseMessage("""
-                        Document key cannot have one or more\s\
-                        characters other than letters, numbers, dashes,\s\
-                        underscores, and equal signs: 3@$""");
+    void testCommitAdd_keyWithInvalidChars_throwsException() {
+        assertThatExceptionOfType(CommitterException.class)
+                .isThrownBy(() -> {
+                    withinCommitterSession(c -> {
+                        c.upsert(upsertRequest(TEST_ID + "@$", TEST_CONTENT));
+                    });
+                })
+                .havingRootCause()
+                .withMessageContaining("""
+            Document key cannot have one or more \
+            characters other than letters, numbers, dashes, underscores, and \
+            equal signs: 3@$""");
     }
 
     @Test
@@ -216,152 +194,95 @@ class AzureSearchCommitterTest {
     }
 
     @Test
-    void testAdd_FieldNameStartsWithAzureSearch_ExceptionThrown()
-            throws CommitterException {
+    void testAdd_FieldNameStartsWithAzureSearch_ExceptionThrown() {
         //setup
         var metadata = new Properties();
         var myField = "azureSearchField";
         metadata.set(myField, "1");
-        Exception expectedException = null;
 
-        //execute
-        try {
-            withinCommitterSession(c -> {
-                c.upsert(upsertRequest(TEST_ID, "doc content", metadata));
-            });
-        } catch (CommitterException e) {
-            expectedException = e;
-        }
-
-        //verify
-        assertThat(expectedException)
-                .isNotNull()
-                .isInstanceOf(CommitterException.class)
-                .hasRootCauseMessage(
-                        """
-                                Document field cannot begin with "azureSearch": azureSearchField""");
+        assertThatExceptionOfType(CommitterException.class)
+                .isThrownBy(() -> {
+                    withinCommitterSession(c -> {
+                        c.upsert(upsertRequest(TEST_ID, "doc content",
+                                metadata));
+                    });
+                })
+                .havingRootCause()
+                .withMessageContaining("Document field cannot begin with "
+                        + "\"azureSearch\": azureSearchField");
     }
 
     @Test
-    void testAdd_FieldNameWithInvalidChars_ExceptionThrown()
-            throws CommitterException {
+    void testAdd_FieldNameWithInvalidChars_ExceptionThrown() {
         //setup
         var metadata = new Properties();
         var myField = "myField@!";
         metadata.set(myField, "1");
-        Exception expectedException = null;
 
-        //execute
-        try {
-            withinCommitterSession(c -> {
-                c.upsert(upsertRequest(TEST_ID, "doc content", metadata));
-            });
-        } catch (CommitterException e) {
-            expectedException = e;
-        }
-
-        //verify
-        assertThat(expectedException)
-                .isNotNull()
-                .isInstanceOf(CommitterException.class)
-                .hasRootCauseMessage(
-                        """
-                                Document field cannot have one or more\s\
-                                characters other than letters, numbers and underscores:\s\
-                                myField@!""");
+        assertThatExceptionOfType(CommitterException.class)
+                .isThrownBy(() -> {
+                    withinCommitterSession(c -> {
+                        c.upsert(upsertRequest(TEST_ID, "doc content",
+                                metadata));
+                    });
+                })
+                .havingRootCause()
+                .withMessageContaining("""
+                    Document field cannot have one or more \
+                    characters other than letters, numbers and \
+                    underscores: myField@!""");
     }
 
     @Test
-    void testAdd_FieldNameLengthIs129_ExceptionThrown()
-            throws CommitterException {
+    void testAdd_FieldNameLengthIs129_ExceptionThrown() {
         //setup
         var metadata = new Properties();
         var myField = StringUtils.repeat("a", 129);
         metadata.set(myField, "1");
-        Exception expectedException = null;
 
-        //execute
-        try {
-            withinCommitterSession(c -> {
-                c.upsert(upsertRequest(TEST_ID, "doc content", metadata));
-            });
-        } catch (CommitterException e) {
-            expectedException = e;
-        }
-
-        //verify
-        assertThat(expectedException)
-                .isNotNull()
-                .isInstanceOf(CommitterException.class)
-                .hasRootCauseMessage(
-                        "Document field cannot be "
-                                + "longer than 128 characters: " + myField);
+        assertThatExceptionOfType(CommitterException.class)
+                .isThrownBy(() -> withinCommitterSession(
+                        c -> c.upsert(upsertRequest(TEST_ID, "doc content",
+                                metadata))))
+                .havingRootCause()
+                .withMessageContaining("Document field cannot be "
+                        + "longer than 128 characters: " + myField);
     }
 
     @Test
-    void testAdd_emptyEndpoint_ExceptionThrown()
-            throws CommitterException {
-        //setup
-        Exception expectedException = null;
-
-        //execute
-        try {
-            withinCommitterSession_emptyEndpoint(c -> {
-                c.upsert(upsertRequest(TEST_ID, "content", new Properties()));
-            });
-        } catch (IllegalArgumentException e) {
-            expectedException = e;
-        }
-
-        //verify
-        assertThat(expectedException)
-                .isNotNull()
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage(("Endpoint is undefined."));
+    void testAdd_emptyEndpoint_ExceptionThrown() {
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> {
+                    withinCommitterSession_emptyEndpoint(c -> {
+                        c.upsert(upsertRequest(TEST_ID, "content",
+                                new Properties()));
+                    });
+                })
+                .withMessageContaining("Endpoint is undefined.");
     }
 
     @Test
-    void testAdd_emptyApiKey_ExceptionThrown()
-            throws CommitterException {
-        //setup
-        Exception expectedException = null;
-
-        //execute
-        try {
-            withinCommitterSession_emptyApiKey(c -> {
-                c.upsert(upsertRequest(TEST_ID, "content", new Properties()));
-            });
-        } catch (IllegalArgumentException e) {
-            expectedException = e;
-        }
-
-        //verify
-        assertThat(expectedException)
-                .isNotNull()
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage(("API admin key is undefined."));
+    void testAdd_emptyApiKey_ExceptionThrown() {
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> {
+                    withinCommitterSession_emptyApiKey(c -> {
+                        c.upsert(upsertRequest(TEST_ID, "content",
+                                new Properties()));
+                    });
+                })
+                .withMessageContaining("API admin key is undefined.");
     }
 
     @Test
-    void testAdd_emptyIndexName_ExceptionThrown()
-            throws CommitterException {
-        //setup
-        Exception expectedException = null;
-
-        //execute
-        try {
-            withinCommitterSession_emptyIndexName(c -> {
-                c.upsert(upsertRequest(TEST_ID, "content", new Properties()));
-            });
-        } catch (IllegalArgumentException e) {
-            expectedException = e;
-        }
-
-        //verify
-        assertThat(expectedException)
-                .isNotNull()
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage(("Index name is undefined."));
+    void testAdd_emptyIndexName_ExceptionThrown() {
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> {
+                    withinCommitterSession_emptyIndexName(c -> {
+                        c.upsert(upsertRequest(TEST_ID, "content",
+                                new Properties()));
+                    });
+                })
+                .withMessageContaining("Index name is undefined.");
     }
 
     @Test
@@ -463,6 +384,8 @@ class AzureSearchCommitterTest {
                 committer.getConfiguration().setApiKey("");
             case EmptyIndexName:
                 committer.getConfiguration().setIndexName("");
+            default:
+                break;
         }
 
         committer.init(createCommitterContext());

@@ -89,7 +89,7 @@ public class ApacheKafkaCommitter
             if (configuration.getPartitions() == 0
                     || configuration.getReplicationFactor() == 0) {
                 var msg = String.format(
-                        "%s=true requires these settings be also set. %s, %s",
+                        "%s=true requires these settings be also set: %s, %s",
                         CREATE_TOPIC_CONFIG,
                         NUM_OF_PARTITIONS_CONFIG,
                         REPLICATION_FACTOR_CONFIG);
@@ -105,13 +105,11 @@ public class ApacheKafkaCommitter
                     configuration.getReplicationFactor());
 
         } else if (!kafkaAdmin.isTopicExists(configuration.getTopicName())) {
-            var msg = String.format("""
+            throw new CommitterException(String.format("""
                     Topic `%s` does not exist in Kafka. \
                     Either create the topic manually or set \
                     `%s` to true.""",
-                    configuration.getTopicName(), CREATE_TOPIC_CONFIG);
-            LOG.error(msg);
-            throw new CommitterException(msg);
+                    configuration.getTopicName(), CREATE_TOPIC_CONFIG));
         }
     }
 
@@ -160,14 +158,12 @@ public class ApacheKafkaCommitter
             }
 
             if (docCountUpserts > 0) {
-                LOG.info(
-                        "Sent {} upsert commit operation(s) to Apache Kafka.",
+                LOG.info("Sent {} upsert commit operation(s) to Apache Kafka.",
                         docCountUpserts);
             }
 
             if (docCountDeletes > 0) {
-                LOG.info(
-                        "Sent {} delete commit operation(s) to Apache Kafka.",
+                LOG.info("Sent {} delete commit operation(s) to Apache Kafka.",
                         docCountDeletes);
             }
 

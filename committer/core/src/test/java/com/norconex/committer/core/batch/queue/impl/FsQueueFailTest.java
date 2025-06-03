@@ -207,7 +207,6 @@ class FsQueueFailTest {
                 .ifPresent(m -> Thread.currentThread().setName(m));
 
         var ctx = TestUtil.committerContext(null);
-        ctx.getEventManager().setStacktraceLoggingDisabled(true);
         committer.init(ctx);
         TestUtil.commitRequests(
                 committer, TestUtil.mixedRequests(commitRequests));
