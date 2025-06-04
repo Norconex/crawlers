@@ -27,9 +27,6 @@ import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsExclude;
-import org.apache.commons.lang3.builder.HashCodeExclude;
-import org.apache.commons.lang3.builder.ToStringExclude;
 import org.json.JSONObject;
 
 import com.amazonaws.AmazonServiceException;

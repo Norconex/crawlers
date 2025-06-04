@@ -14,6 +14,7 @@
  */
 package com.norconex.grid.core.util;
 
+import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -24,6 +25,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
+
+import org.apache.commons.lang3.time.StopWatch;
 
 import com.norconex.commons.lang.Sleeper;
 
@@ -126,10 +129,58 @@ public final class ConcurrentUtil {
      * until the supplier returns <code>true</code>.
      * @param condition condition evaluated (<code>true</code> to exit the loop)
      */
-    public static void waitUntil(BooleanSupplier condition) {
+    public static void waitUntil(@NonNull BooleanSupplier condition) {
         while (!condition.getAsBoolean()) {
             Sleeper.sleepMillis(100);
         }
+    }
+
+    /**
+     * In some cases we do not want to block any thread when waiting for
+     * a future completion. This method instead loops (with a tiny delay)
+     * until the supplier returns <code>true</code>. If a timeout is specified
+     * the method will return once the time out is reached, with a
+     * {@code false} value.
+     * @param condition condition evaluated (<code>true</code> to exit the loop)
+     * @param timeout optional duration after which to throw
+     * @return {@code true} if returning under the specified timeout or if
+     *         timeout is {@code null}.
+     */
+    public static boolean waitUntil(
+            @NonNull BooleanSupplier condition, Duration timeout) {
+        var watch = StopWatch.createStarted();
+        while (!condition.getAsBoolean()) {
+            Sleeper.sleepMillis(100);
+            if (timeout != null && watch.getTime() > timeout.toMillis()) {
+                return false;
+            }
+        }
+        watch.stop();
+        return true;
+    }
+
+    /**
+     * In some cases we do not want to block any thread when waiting for
+     * a future completion. This method instead loops (with a tiny delay)
+     * until the supplier returns <code>true</code>. If a timeout is specified
+     * the method will throw if it waited for more time than the timeout
+     * duration.
+     * @param condition condition evaluated (<code>true</code> to exit the loop)
+     * @param timeout optional duration after which to throw
+     * @throws TimeoutException when waiting for more than specified timeout.
+     */
+    public static void waitUntilOrThrow(
+            @NonNull BooleanSupplier condition, Duration timeout)
+            throws TimeoutException {
+        var watch = StopWatch.createStarted();
+        while (!condition.getAsBoolean()) {
+            Sleeper.sleepMillis(100);
+            if (timeout != null && watch.getTime() > timeout.toMillis()) {
+                throw new TimeoutException("Waited for too long. Timed out "
+                        + "after " + timeout.toMillis() + "ms");
+            }
+        }
+        watch.stop();
     }
 
     /**

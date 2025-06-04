@@ -128,12 +128,23 @@ final class ProcessFinalize {
     private static void dealWithBadState(ProcessContext ctx) {
         var doc = ctx.doc();
         var docContext = ctx.docContext();
-        var cachedDocContext =
-                ofNullable(doc.getCachedDocContext()).orElse(null);
 
         //--- Deal with bad states (if not already deleted) ----------------
         if (!docContext.getState().isGoodState()
                 && !docContext.getState().isOneOf(CrawlDocStatus.DELETED)) {
+
+            var cachedDocContext =
+                    ofNullable(doc.getCachedDocContext()).orElse(null);
+            if (cachedDocContext != null
+                    && cachedDocContext.getState() == null) {
+                LOG.warn("""
+                        Got a cached document from previous run with no \
+                        crawl state associated. This should not happen. \
+                        Will treat it as ERROR. Doc info: {}""",
+                        docContext);
+                cachedDocContext.setState(CrawlDocStatus.ERROR);
+                return;
+            }
 
             //TODO If duplicate, consider it as spoiled if a cache version
             // exists in a good state.

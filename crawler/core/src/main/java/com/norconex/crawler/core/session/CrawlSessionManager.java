@@ -49,8 +49,7 @@ public final class CrawlSessionManager {
     private final CrawlConfig crawlConfig;
 
     public void withCrawlContext(Consumer<CrawlContext> consumer) {
-        var heartbeatScheduler =
-                Executors.newScheduledThreadPool(1);
+        var heartbeatScheduler = Executors.newScheduledThreadPool(1);
         CrawlContext ctx = null;
         try {
             var grid = crawlConfig

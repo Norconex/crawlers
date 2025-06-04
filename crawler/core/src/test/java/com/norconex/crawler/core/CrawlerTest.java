@@ -62,7 +62,7 @@ class CrawlerTest {
     }
 
     @Test
-    void testDocumentError() throws Exception {
+    void testDocumentError() {
         var exception = new MutableObject<Throwable>();
 
         var crawler = new MockCrawlerBuilder(tempDir)

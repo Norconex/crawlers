@@ -102,6 +102,7 @@ public class MockCliLauncher {
      */
     public static MockCliExit launchVerbatim(String... cmdArgs) {
         MockCliEventWriter.EVENTS.clear();
+
         Captured<Integer> captured = SystemUtil.callAndCaptureOutput(
                 () -> CliCrawlerLauncher.launch(
                         MockCrawlDriverFactory.create(),

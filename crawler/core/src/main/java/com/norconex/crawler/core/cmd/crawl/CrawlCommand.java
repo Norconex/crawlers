@@ -17,10 +17,13 @@ package com.norconex.crawler.core.cmd.crawl;
 import static com.norconex.crawler.core.util.ExceptionSwallower.swallow;
 
 import java.io.Serializable;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.crawl.pipeline.CrawlPipelineFactory;
 import com.norconex.crawler.core.event.CrawlerEvent;
@@ -41,11 +44,11 @@ public class CrawlCommand implements Command {
     public static final String SYS_PROP_ENABLE_JMX = "enableJMX";
     public static final String KEY_CRAWL_PIPELINE = "crawlPipeline";
     private static final String PROGRESS_LOGGER_KEY = "progressLogger";
-    private CompletableFuture<Void> pendingLoggerStopped =
-            new CompletableFuture<>();
+    private final AtomicBoolean pendingLoggerStopped = new AtomicBoolean();
 
     @Override
     public void execute(CrawlContext ctx) {
+        pendingLoggerStopped.set(false); // just in case
         if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {
             CrawlerMetricsJMX.register(ctx);
             LOG.info("JMX support enabled.");
@@ -80,7 +83,12 @@ public class CrawlCommand implements Command {
         }
 
         ctx.getGrid().getCompute().stopTask(PROGRESS_LOGGER_KEY);
-        ConcurrentUtil.get(pendingLoggerStopped, 60, TimeUnit.SECONDS);
+        try {
+            ConcurrentUtil.waitUntilOrThrow(
+                    pendingLoggerStopped::get, Duration.ofSeconds(60));
+        } catch (TimeoutException e) {
+            throw new CrawlerException("Could not stop progress logger.", e);
+        }
         ctx.fire(CrawlerEvent.CRAWLER_CRAWL_END);
         LOG.info("Node done crawling.");
 
@@ -107,7 +115,7 @@ public class CrawlCommand implements Command {
             ctx.getGrid()
                     .getCompute()
                     .executeTask(new LoggerTask());
-            pendingLoggerStopped.complete(null);
+            pendingLoggerStopped.set(true);
         }, Executors.newFixedThreadPool(1));
     }
 

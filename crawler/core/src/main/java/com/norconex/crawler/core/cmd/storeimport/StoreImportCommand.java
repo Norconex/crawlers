@@ -153,9 +153,9 @@ public class StoreImportCommand implements Command {
             throws IOException {
         parser.nextToken(); // id:
         var id = parser.nextTextValue();
-        var value = SerialUtil.fromJson(parser, objectClass);
         parser.nextToken(); // object:
         parser.nextToken(); // { //NOSONAR
+        var value = SerialUtil.fromJson(parser, objectClass);
         if (store instanceof GridMap cache) { //NOSONAR
             cache.put(id, value);
         }
