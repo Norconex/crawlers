@@ -171,7 +171,7 @@ jobs:
     # Node, Sonar does not work well or as expected with -pl -am so
     # we build all each time.
 
-    - name: Build, Test, and Deploy
+    - name: Build, Test, and Deploy (when "main")
       run: |
         if [ "$SHOULD_DEPLOY" = "true" ]; then
           phase="deploy"

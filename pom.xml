@@ -34,7 +34,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-    <sonar.skip>false</sonar.skip>
+    <sonar.skip>true</sonar.skip>
     <sonar.organization>norconex</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
@@ -43,17 +43,6 @@
     <sonar.tests>src/test/java</sonar.tests>
     <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
     <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
-
-<!--    
-    <sonar.exclusions>**/*</sonar.exclusions>    
-    -->
-<!--    <sonar.language>java</sonar.language>-->
-
-    <!-- If we ever want to scan the parent: -->
-    <!-- <sonar.skip>false</sonar.skip>
-    <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey> -->
-    
-    <sonar.version>5.1.0.4751</sonar.version>
     
     <!-- === Dependencies ================================================== -->
 
@@ -775,13 +764,26 @@
                 <goal>execute</goal>
               </goals>
               <phase>prepare-package</phase> 
+              <configuration>
+                <scripts>
+                  <script>${project.parent.basedir}/assembly/licenses/copy-licenses.groovy</script>
+                </scripts>
+              </configuration>
+            </execution>
+            <execution>
+              <?m2e ignore?>
+              <id>verify-sonar</id>
+              <goals>
+                <goal>execute</goal>
+              </goals>
+              <phase>verify</phase> 
+              <configuration>
+                <scripts>
+                  <script>${project.parent.basedir}/assembly/sonar/run-sonar-analysis.groovy</script>
+                </scripts>
+              </configuration>
             </execution>
           </executions>
-          <configuration>
-            <scripts>
-              <script>${project.parent.basedir}/assembly/licenses/copy-licenses.groovy</script>
-            </scripts>
-          </configuration>
           <dependencies>
             <dependency>
               <groupId>org.apache.groovy</groupId>
@@ -1028,6 +1030,8 @@
           <inherited>true</inherited>
         </plugin>
  
+        <!-- Done by groovy script now (gmaven-plus-plugin) -->
+        <!--
         <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
@@ -1043,6 +1047,7 @@
           </executions>
           <inherited>true</inherited>
         </plugin>
+        -->
  
         <plugin>
           <groupId>org.ec4j.maven</groupId>
@@ -1103,10 +1108,12 @@
       </plugin>
 
       <!-- Run SonarQube to analyze code and consume JaCoCo reports -->
+      <!--
       <plugin>
         <groupId>org.sonarsource.scanner.maven</groupId>
         <artifactId>sonar-maven-plugin</artifactId>
       </plugin>            
+      -->
 
       <!--  Use VM argument -Dgpg.skip=true to disable GPG signing. -->
       <plugin>
