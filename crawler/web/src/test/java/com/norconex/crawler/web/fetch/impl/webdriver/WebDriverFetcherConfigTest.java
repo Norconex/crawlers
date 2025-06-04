@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.MapUtil;
+import com.norconex.commons.lang.net.ProxySettings;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverFetcherConfig.WaitElementType;
@@ -64,6 +65,7 @@ class WebDriverFetcherConfigTest {
         snif.getConfiguration()
                 .setPort(123)
                 .setUserAgent("Agent 007")
+                .setChainedProxy(new ProxySettings("someHost", 123))
                 .getRequestHeaders().putAll(
                         MapUtil.toMap(
                                 "rh1", "hrval1",

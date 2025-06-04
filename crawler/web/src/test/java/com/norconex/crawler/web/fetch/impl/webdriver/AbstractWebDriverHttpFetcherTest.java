@@ -345,22 +345,5 @@ public abstract class AbstractWebDriverHttpFetcherTest
         //                .waitingFor(Wait.forLogMessage(
         //                        ".*Started Selenium Standalone.*", 1))
         ;
-
-        //                .withEnv("SE_NODE_MAX_SESSIONS", "10")
-        //                .withEnv("SESSION_REQUEST_TIMEOUT", "30000")
-        //                // Disable traces
-        //                .withEnv("OTEL_TRACES_EXPORTER", "none")
-        //                // Disable metrics
-        //                .withEnv("OTEL_METRICS_EXPORTER", "none")
-        //                // Disable context propagation
-        //                .withEnv("OTEL_PROPAGATORS", "none")
-        //                // Completely disable OpenTelemetry
-        //                .withEnv("OTEL_SDK_DISABLED", "true")
-        //
-        //                .withSharedMemorySize(2L * 1024 * 1024 * 1024) // 2GB
-        //                .withCreateContainerCmdModifier(cmd -> cmd.getHostConfig()
-        //                        .withMemory(4096L * 1024 * 1024) // 4GB
-        //                        .withMemorySwap(8192L * 1024 * 1024)); // 8GB
     }
-
 }

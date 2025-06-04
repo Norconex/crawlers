@@ -15,15 +15,23 @@
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.nio.file.Paths;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.openqa.selenium.OutputType;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.DirStructure;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;
+import com.norconex.crawler.web.mocks.MockWebDriver;
+import com.norconex.importer.doc.Doc;
 
 class ScreenshotHandlerTest {
 
@@ -41,5 +49,19 @@ class ScreenshotHandlerTest {
 
         assertThatNoException()
                 .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(h));
+    }
+
+    @Test
+    void testExceptionSwallow() {
+        var driver = mock(MockWebDriver.class);
+        when(driver.getScreenshotAs(OutputType.BYTES))
+                .thenThrow(UnsupportedOperationException.class);
+        var doc = mock(Doc.class);
+        var h = spy(new ScreenshotHandler());
+        assertThatNoException().isThrownBy(() -> {
+            h.takeScreenshot(driver, doc);
+        });
+        verify(h, times(0)).getConfiguration();
+
     }
 }

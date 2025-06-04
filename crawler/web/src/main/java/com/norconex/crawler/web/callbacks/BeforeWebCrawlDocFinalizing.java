@@ -63,10 +63,7 @@ class BeforeWebCrawlDocFinalizing
         }
 
         // OK, let's do this
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Queueing referenced URLs of {}",
-                    httpData.getReference());
-        }
+        LOG.debug("Queueing referenced URLs of {}", httpData.getReference());
 
         var childDepth = httpData.getDepth() + 1;
         var referencedUrls = httpCachedData.getReferencedUrls();
@@ -74,10 +71,8 @@ class BeforeWebCrawlDocFinalizing
 
             var childData = new WebCrawlDocContext(url, childDepth);
             childData.setReferrerReference(httpData.getReference());
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Queueing skipped document's child: {}",
-                        childData.getReference());
-            }
+            LOG.debug("Queueing skipped document's child: {}",
+                    childData.getReference());
             crawler.getDocPipelines().getQueuePipeline().accept(
                     new QueuePipelineContext(crawler, childData));
         }
