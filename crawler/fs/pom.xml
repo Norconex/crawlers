@@ -29,7 +29,8 @@
   <properties>
     <sonar.skip>false</sonar.skip>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
-    <sonar.exclusions>src/main/java/org/apache/commons/vfs2/**/*</sonar.exclusions>
+    <!-- Sonar expects this one to be relative to mono-repo root: -->
+    <sonar.exclusions>crawler/fs/src/main/java/org/apache/commons/vfs2/**/*</sonar.exclusions>
     <shared-resources.include>scripts/**</shared-resources.include> 
       
     <commons-net.version>3.11.1</commons-net.version>
