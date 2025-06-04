@@ -19,7 +19,7 @@ def mvnCmd = [
     "mvn", "sonar:sonar",
     "-Dsonar.login=${sonarLogin}",
     "-Dsonar.projectKey=${projectKey}"
-]
+].collect { it.toString() }
 
 def procBuilder = new ProcessBuilder(mvnCmd)
 procBuilder.redirectErrorStream(true)
