@@ -33,6 +33,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.img.MutableImage;
+import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.TestResource;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.DirStructure;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;
@@ -56,21 +57,10 @@ class DocImageHandlerTest {
     }
 
     @Test
-    void testHandleImage(@TempDir Path tempDir) throws IOException {
-        var h = new DocImageHandler();
-        h.getConfiguration()
-                .setTargetDir(tempDir)
-                .setTargetDirField("img-path")
-                .setTargetMetaField("img-64")
-                .setImageFormat("jpg")
-                .setTargetDirStructure(DirStructure.DATE)
-                .setTargets(List.of(Target.DIRECTORY, Target.METADATA));
-
-        var doc = CrawlDocStubs.crawlDoc(
-                "http://site.com/page.html",
-                ContentType.HTML,
-                InputStream.nullInputStream());
-        h.handleImage(TestResource.IMG_320X240_PNG.asInputStream(), doc);
+    void testHandleImageDateDir(@TempDir Path tempDir) throws IOException {
+        var doc = crawlDoc();
+        var h = imgHandler(tempDir);
+        h.handleImage(image(), doc);
 
         var file = new File(doc.getMetadata().getString("img-path"));
         var img1 = ImageIO.read(file);
@@ -85,5 +75,67 @@ class DocImageHandlerTest {
         assertThat(baos1.toByteArray()).isEqualTo(baos2.toByteArray());
         assertThat(img1.getWidth()).isEqualTo(320);
         assertThat(img1.getHeight()).isEqualTo(240);
+    }
+
+    @Test
+    void testHandleImageDateTimeDir(@TempDir Path tempDir) {
+        assertThatNoException().isThrownBy(() -> {
+            var doc = crawlDoc();
+            var h = imgHandler(tempDir);
+            h.getConfiguration().setTargetDirStructure(DirStructure.DATETIME);
+            h.handleImage(image(), doc);
+            var file = new File(doc.getMetadata().getString("img-path"));
+            assertThat(file).exists();
+        });
+    }
+
+    @Test
+    void testHandleImageUrl2Path(@TempDir Path tempDir) {
+        assertThatNoException().isThrownBy(() -> {
+            var doc = crawlDoc();
+            var h = imgHandler(tempDir);
+            h.getConfiguration().setTargetDirStructure(DirStructure.URL2PATH);
+            h.handleImage(image(), doc);
+            var file = new File(doc.getMetadata().getString("img-path"));
+            assertThat(file).exists();
+        });
+    }
+
+    @Test
+    void testNoTargets(@TempDir Path tempDir) {
+        var doc = crawlDoc();
+        var h = imgHandler(tempDir);
+
+        h.getConfiguration().setTargets(List.of());
+        h.handleImage(image(), doc);
+
+        var metaFile = doc.getMetadata().getString("img-path");
+        assertThat(metaFile).isNull();
+
+        var metaImg = doc.getMetadata().getString("img-64");
+        assertThat(metaImg).isNull();
+    }
+
+    private DocImageHandler imgHandler(@TempDir Path tempDir) {
+        var h = new DocImageHandler();
+        h.getConfiguration()
+                .setTargetDir(tempDir)
+                .setTargetDirField("img-path")
+                .setTargetMetaField("img-64")
+                .setImageFormat("jpg")
+                .setTargetDirStructure(DirStructure.DATE)
+                .setTargets(List.of(Target.DIRECTORY, Target.METADATA));
+        return h;
+    }
+
+    private CrawlDoc crawlDoc() {
+        return CrawlDocStubs.crawlDoc(
+                "http://site.com/page.html",
+                ContentType.HTML,
+                InputStream.nullInputStream());
+    }
+
+    private InputStream image() {
+        return TestResource.IMG_320X240_PNG.asInputStream();
     }
 }

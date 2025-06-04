@@ -107,9 +107,7 @@ public class DocImageHandler implements Configurable<DocImageHandlerConfig> {
                         imageFile.getCanonicalPath());
             }
         } catch (Exception e) {
-            LOG.error(
-                    "Could not take screenshot of: {}",
-                    doc.getReference(), e);
+            LOG.error("Could not handle image for: {}", doc.getReference(), e);
         }
     }
 }
