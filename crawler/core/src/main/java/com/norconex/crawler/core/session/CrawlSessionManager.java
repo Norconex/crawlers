@@ -83,16 +83,16 @@ public final class CrawlSessionManager {
         }
     }
 
-    private static void updateHeartbeat(CrawlContext ctx) {
+    static void updateHeartbeat(CrawlContext ctx) {
         // Used pretty much only for joining node to figure out the job
         // status (if one exists, is running, etc.).
+        var id = ctx.getId();
         ctx.getGrid().getCompute().executeTask(GridTaskBuilder
                 .create("crawlerRunningHeartbeat")
                 .singleNode()
                 .processor(grid -> sessionStore(grid)
-                        .update(ctx.getId(),
-                                sess -> sess.setLastUpdated(
-                                        System.currentTimeMillis())))
+                        .update(id, sess -> sess.setLastUpdated(
+                                System.currentTimeMillis())))
                 .build());
     }
 
