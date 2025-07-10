@@ -54,7 +54,6 @@ jobs:
     env:
       SHOULD_DEPLOY: ${{ github.repository == 'Norconex/crawlers' && github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) }}
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      IS_SNAPSHOT: ${{ contains(fromJson(steps.get_version.outputs.version), '-SNAPSHOT') }}
       
     permissions:
       id-token: write
