@@ -116,15 +116,6 @@ jobs:
         sudo ln -s /opt/maven/bin/mvn /usr/bin/mvn
       
     #--- Step ------------------------------------------------------------------
-
-    - name: Debug Maven settings location
-      run: |
-        echo "MAVEN_CONFIG: $MAVEN_CONFIG"
-        echo "MAVEN_SETTINGS_PATH: $MAVEN_SETTINGS_PATH"
-        echo "Default settings.xml:"
-        cat ~/.m2/settings.xml || echo "Not found"
-        
-    #--- Step ------------------------------------------------------------------
         
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -150,6 +141,16 @@ jobs:
         
     - run: mvn --version
         
+    #--- Step ------------------------------------------------------------------
+
+    - name: Debug Maven settings location
+      run: |
+        echo "MAVEN_CONFIG: $MAVEN_CONFIG"
+        echo "MAVEN_SETTINGS_PATH: $MAVEN_SETTINGS_PATH"
+        echo "Default settings.xml:"
+        cat ~/.m2/settings.xml || echo "Not found"
+    
+    
     #--- Step ------------------------------------------------------------------
     
     - name: Cache Maven repository
