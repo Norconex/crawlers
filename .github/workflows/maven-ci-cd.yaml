@@ -133,7 +133,7 @@ jobs:
     #--- Step ------------------------------------------------------------------
 
     - name: Generate Maven settings.xml with multiple servers
-      uses: s4u/maven-settings-action@v3
+      uses: s4u/maven-settings-action@v3.1.0
       with:
         # ids must match the server IDs in the pom.xml
         servers: |
