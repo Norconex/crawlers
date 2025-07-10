@@ -120,13 +120,19 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '17'
-        maven-version: '3.9.9'
-        # Server ID as in the pom.xml (distributionManagement + sonatype plugin)
-        server-id: central
+        maven-version: '3.9.10'
+        # Server IDs as in the pom.xml (distributionManagement)
+        server-id: |
+          github
+          central
         # Env variable name for username in deploy
-        server-username: OSSRH_USERNAME
+        server-username: |
+          ${{ github.actor }}
+          ${{ secrets.OSSRH_USERNAME }}
         # Env variable name for token in deploy
-        server-password: OSSRH_TOKEN
+        server-password: |
+          ${{ secrets.GITHUB_TOKEN }}
+          ${{ secrets.OSSRH_TOKEN }}        
         # Value of the GPG private key to import
         gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
         # Env variable name for GPG private key passphrase
