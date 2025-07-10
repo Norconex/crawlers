@@ -122,18 +122,7 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '17'
-        # Server IDs as in the pom.xml (distributionManagement)
-        server-id: |
-          github
-          central
-        # Env variable name for username in deploy
-        server-username: |
-          ${{ github.actor }}
-          ${{ secrets.OSSRH_USERNAME }}
-        # Env variable name for token in deploy
-        server-password: |
-          ${{ secrets.GITHUB_TOKEN }}
-          ${{ secrets.OSSRH_TOKEN }}        
+        # Maven servers are configured in the settings.xml in the next step.
         # Value of the GPG private key to import
         gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
         # Env variable name for GPG private key passphrase
@@ -143,14 +132,34 @@ jobs:
         
     #--- Step ------------------------------------------------------------------
 
+    - name: Generate Maven settings.xml with multiple servers
+      uses: s4u/maven-settings-action@v3
+      with:
+        # ids must match the server IDs in the pom.xml
+        servers: |
+          [
+            {
+              "id": "github",
+              "username": "${{ github.actor }}",
+              "password": "${{ secrets.GITHUB_TOKEN }}"
+            },
+            {
+              "id": "central",
+              "username": "${{ secrets.OSSRH_USERNAME }}",
+              "password": "${{ secrets.OSSRH_TOKEN }}"
+            }
+          ]    
+
+    #--- Step ------------------------------------------------------------------
+
     - name: Debug Maven settings location
       run: |
         echo "MAVEN_CONFIG: $MAVEN_CONFIG"
         echo "MAVEN_SETTINGS_PATH: $MAVEN_SETTINGS_PATH"
         echo "Default settings.xml:"
         cat ~/.m2/settings.xml || echo "Not found"
-    
-    
+
+        
     #--- Step ------------------------------------------------------------------
     
     - name: Cache Maven repository
