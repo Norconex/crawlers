@@ -135,14 +135,11 @@ jobs:
     - name: Generate Maven settings.xml with multiple servers
       uses: s4u/maven-settings-action@v3.1.0
       with:
+        # adds a "github" server entry to the settings.xml
+        githubServer: true
         # ids must match the server IDs in the pom.xml
         servers: |
           [
-            {
-              "id": "github",
-              "username": "${{ github.actor }}",
-              "password": "${{ secrets.GITHUB_TOKEN }}"
-            },
             {
               "id": "central",
               "username": "${{ secrets.OSSRH_USERNAME }}",
