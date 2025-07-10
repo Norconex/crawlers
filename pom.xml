@@ -123,8 +123,27 @@
     <!-- Empty by default, see "jacoco" profile-->
     <jacocoArgLine></jacocoArgLine>
   </properties>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>github</id>
+      <url>https://maven.pkg.github.com/Norconex/crawlers</url>
+    </snapshotRepository>
+  </distributionManagement>
   
   <profiles>
+    <profile>
+      <id>github-snapshots</id>
+      <activation>
+        <property>
+          <name>env.GITHUB_ACTIONS</name>
+        </property>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <properties>
+        <gpg.skip>true</gpg.skip>
+      </properties>
+    </profile>
     <!-- IDEs do not always know what to do with the Jacoco @{argLine}
      placeholder typically required for Jacoco codecoverage to integrate
      with Surefire. So by default we don't have it. When we want to include
@@ -148,6 +167,7 @@
     </license>
   </licenses>
 
+<!--
   <repositories>
     <repository>
       <id>sonatype-oss-snapshots</id>
@@ -161,6 +181,7 @@
       </snapshots>
     </repository>
   </repositories>
+  -->
 
   <dependencyManagement>
     <dependencies>
@@ -849,6 +870,18 @@
         </plugin>
 
         <plugin>
+          <groupId>org.sonatype.central</groupId>
+          <artifactId>central-publishing-maven-plugin</artifactId>
+          <version>0.8.0</version>
+          <extensions>true</extensions>
+          <configuration>
+            <publishingServerId>central</publishingServerId>
+          </configuration>
+        </plugin>
+
+<!-- OLD Nexus Staging Plugin.  TO DELETE when no longer needed. -->
+<!--
+        <plugin>
           <groupId>org.sonatype.plugins</groupId>
           <artifactId>nexus-staging-maven-plugin</artifactId>
           <version>${nexus-staging-maven-plugin.version}</version>
@@ -860,6 +893,7 @@
           </configuration>
           <inherited>true</inherited>
         </plugin>
+-->
 
         <!-- TODO: Do we still publish javadocs via mvn site? Delete if not. -->         
 <!--        <plugin>
@@ -1123,10 +1157,13 @@
 
       <!-- === Other plugins == -->
 
+     
+     <!--
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>nexus-staging-maven-plugin</artifactId>
-      </plugin>    
+      </plugin>
+      -->    
 
       <plugin>
         <groupId>org.projectlombok</groupId>
@@ -1191,16 +1228,19 @@
 
   </build>
 
+  <!-- No longer needed with new maven-central-publishing-maven-plugin -->
+  <!--
   <distributionManagement>
     <snapshotRepository>
-      <id>ossrh</id>
+      <id>central</id>
       <url>https://oss.sonatype.org/content/repositories/snapshots</url>
     </snapshotRepository>
     <repository>
-      <id>ossrh</id>
+      <id>central</id>
       <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
     </repository>
   </distributionManagement>
+  -->
   <organization>
     <name>Norconex Inc.</name>
     <url>https://norconex.com</url>
