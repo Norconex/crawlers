@@ -59,6 +59,8 @@ jobs:
       id-token: write
       # write is required to publish the dependency graph
       contents: write
+      # write is required to publish our snapshots to GitHub Packages
+      packages: write
 
     steps:
     - run: |
