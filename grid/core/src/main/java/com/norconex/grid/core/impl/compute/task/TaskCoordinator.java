@@ -23,7 +23,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -34,8 +33,8 @@ import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.compute.ExecutionMode;
 import com.norconex.grid.core.compute.GridTask;
-import com.norconex.grid.core.compute.TaskState;
 import com.norconex.grid.core.compute.TaskExecutionResult;
+import com.norconex.grid.core.compute.TaskState;
 import com.norconex.grid.core.impl.CoreGrid;
 import com.norconex.grid.core.impl.compute.CoreCompute;
 import com.norconex.grid.core.impl.compute.WorkDispatcher;
@@ -75,16 +74,19 @@ public class TaskCoordinator {
         //TODO, not a supported use case yet, but if joining remotely to
         // send an execution request, we'll have to make sure the coordinator
         // gets it.
+
+        //NOTE: the reason we return right away if not the coordinator is
+        // because workers tasks are invoked directly on workers by the
+        // coordinator.
         if (!grid.isCoordinator()) {
             TaskUtil.logNonCoordinatorCantExecute(grid, task);
             //TODO verify if this will get called even if joining,
-            // and will wait... and will receive remote task request
-            // in parallel.
+            // late, after the task is executed... will it receive remote task
+            // request in parallel?
             return awaitCoordinatorDoneSignal(task);
         }
 
-        var state = ofNullable(taskStateStore
-                .get(task.getId())).orElse(TaskState.PENDING);
+        var state = getStoredTaskState(task.getId());
 
         // Ensure runOnce is respected
         if (task.isOnce() && state.isTerminal()) {
@@ -106,8 +108,8 @@ public class TaskCoordinator {
         if (grid.isCoordinator() && state.isRunning()) {
             LOG.warn("""
                 A coordinator {} tried to start a task already running: {}. \
-                Could be newly elected. Will attempt to take over \
-                instead.""", grid.getNodeAddress(), task.getId());
+                Could be newly elected. Will attempt to take over.""",
+                    grid.getNodeAddress(), task.getId());
         } else {
             LOG.info("Coordinator {} executing task: {}",
                     grid.getNodeAddress(), task.getId());
@@ -130,8 +132,12 @@ public class TaskCoordinator {
         dispatcher.stopTaskOnNodes(taskId);
     }
 
+    private TaskState getStoredTaskState(String taskId) {
+        return ofNullable(taskStateStore
+                .get(taskId)).orElse(TaskState.PENDING);
+    }
+
     private TaskExecutionResult awaitCoordinatorDoneSignal(GridTask task) {
-        var startTime = new AtomicLong(System.currentTimeMillis());
         var taskStatusRef = new AtomicReference<TaskExecutionResult>();
         ConcurrentUtil.waitUntil(() -> {
             if (localWorker.isNodeTaskStopRequested(task.getId())) {
@@ -151,10 +157,12 @@ public class TaskCoordinator {
                 return false;
             }
             var heartbeat = gridProgress.getLastHeartbeat();
-            if (heartbeat - startTime.get() > grid.getConnectorConfig()
+
+            if (System.currentTimeMillis() - heartbeat > grid
+                    .getConnectorConfig()
                     .getNodeTimeout().toMillis()) {
-                throw new GridException("Task expired. No hearbeat "
-                        + "received from coordinator.");
+                throw new GridException(
+                        "Task expired. No hearbeat received from coordinator.");
             }
             var status = gridProgress.getStatus();
             if (status == null) {
