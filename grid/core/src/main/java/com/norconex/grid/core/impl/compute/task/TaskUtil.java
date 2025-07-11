@@ -22,8 +22,8 @@ import org.jgroups.util.Rsp;
 
 import com.norconex.grid.core.compute.ExecutionMode;
 import com.norconex.grid.core.compute.GridTask;
-import com.norconex.grid.core.compute.TaskState;
 import com.norconex.grid.core.compute.TaskExecutionResult;
+import com.norconex.grid.core.compute.TaskState;
 import com.norconex.grid.core.impl.CoreGrid;
 
 import lombok.extern.slf4j.Slf4j;
@@ -61,15 +61,15 @@ public final class TaskUtil {
 
     public static void logNonCoordinatorCantExecute(CoreGrid grid,
             GridTask task) {
-        if (!LOG.isDebugEnabled()) {
+        if (!LOG.isInfoEnabled()) {
             return;
         }
         var msgSuffix = task.getExecutionMode() == ExecutionMode.SINGLE_NODE
                 ? "will wait for the coordinator to be done with this "
                         + "single-node task."
                 : "will participate when asked by the coordinator.";
-        LOG.debug("Non-coordinator node {}. Letting the coordinator node "
-                + "start task {} and this node {}.",
+        LOG.info("Non-coordinator node {}. Letting the coordinator node "
+                + "start task \"{}\" and this node {}.",
                 grid.getNodeAddress(), task.getId(), msgSuffix);
     }
 }

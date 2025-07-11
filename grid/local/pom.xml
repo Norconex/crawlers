@@ -142,10 +142,10 @@
       </plugin>
 
       <plugin>
-        <groupId>org.sonatype.plugins</groupId>
-        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <groupId>org.sonatype.central</groupId>
+        <artifactId>central-publishing-maven-plugin</artifactId>
       </plugin>
-      
+
     </plugins>
   </build>
 
@@ -155,7 +155,6 @@
       <url>${site.baseurl}/grid/local/v4</url>
     </site>
   </distributionManagement>
-
 
   <url>https://opensource.norconex.com/grid/local</url>
   <description>Norconex local grid.</description>

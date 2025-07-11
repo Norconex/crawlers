@@ -78,8 +78,8 @@ public final class CrawlSessionManager {
             consumer.accept(ctx);
         } finally {
             // Ensure cleanup happens even if an exception occurs
-            CrawlContextDestroyer.destroy(ctx);
             swallow(heartbeatScheduler::shutdown);
+            CrawlContextDestroyer.destroy(ctx);
         }
     }
 

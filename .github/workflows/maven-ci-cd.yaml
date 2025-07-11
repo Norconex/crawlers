@@ -109,11 +109,16 @@ jobs:
       if: ${{ steps.cache-maven.outputs.cache-hit != 'true' }}
       run: |
         MAVEN_VERSION=3.9.10
-        wget https://downloads.apache.org/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz
-        tar xzvf apache-maven-$MAVEN_VERSION-bin.tar.gz
-        sudo mv apache-maven-$MAVEN_VERSION /opt/maven
+        if [ ! -d "/opt/maven/apache-maven-$MAVEN_VERSION" ]; then
+          wget https://downloads.apache.org/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz
+          tar xzvf apache-maven-$MAVEN_VERSION-bin.tar.gz
+          sudo mkdir -p /opt/maven
+          sudo mv apache-maven-$MAVEN_VERSION /opt/maven/
+          rm apache-maven-$MAVEN_VERSION-bin.tar.gz
+        fi
         sudo rm -f /usr/bin/mvn
-        sudo ln -s /opt/maven/bin/mvn /usr/bin/mvn
+        sudo ln -sf /opt/maven/apache-maven-$MAVEN_VERSION/bin/mvn /usr/bin/mvn
+
       
     #--- Step ------------------------------------------------------------------
         

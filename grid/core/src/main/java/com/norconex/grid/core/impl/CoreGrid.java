@@ -236,20 +236,21 @@ public class CoreGrid implements Grid {
                 initializedLatch.countDown();
             }
 
+            var meOrNot = isCoordinator() ? "me!" : "not me";
             var coordAddress = channel.view().getCoord();
             if (cachedCoordAddress == null) {
-                LOG.info("Grid \"{}\" elected coordinator: {}",
-                        gridName, view);
+                LOG.info("Grid \"{}\" elected coordinator ({}): {}",
+                        gridName, meOrNot, coordAddress);
             } else if (!Objects.equals(cachedCoordAddress, coordAddress)) {
-                LOG.info("New \"{}\" grid coordinator elected: {} -> "
-                        + "{}", gridName,
-                        cachedCoordAddress, coordAddress);
+                LOG.info("Grid \"{}\" coordinator changed: {} -> {} ({})",
+                        gridName, cachedCoordAddress, coordAddress, meOrNot);
                 //TODO need to handle the change??
             }
             cachedCoordAddress = coordAddress;
 
             var currentSize = view.getMembers().size();
             LOG.info("Current \"{}\" grid size: {}", gridName, currentSize);
+            LOG.debug("Current \"{}\" grid nodes: {}", gridName, view);
 
             // Inform quorum waiters if applicable
             synchronized (this) {
