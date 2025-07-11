@@ -81,44 +81,13 @@
       <artifactId>picocli</artifactId>
     </dependency>    
 
-    
-    <!-- TODO: remove from here as likely inherited from Importer or Nx Lang -->
-    <!--
+    <!-- Runtime --> 
     <dependency>
-      <groupId>com.fasterxml.jackson.dataformat</groupId>
-      <artifactId>jackson-dataformat-yaml</artifactId>
+      <groupId>com.norconex.crawler</groupId>
+      <artifactId>nx-grid-jdbc</artifactId>
+      <scope>runtime</scope>
     </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jsr310</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-    </dependency>    
-    <dependency>
-      <groupId>com.fasterxml.jackson.module</groupId>
-      <artifactId>jackson-module-parameter-names</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jdk8</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.dataformat</groupId>
-      <artifactId>jackson-dataformat-xml</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hibernate.validator</groupId>
-      <artifactId>hibernate-validator</artifactId>    
-      <version>8.0.1.Final</version>
-    </dependency>
-    <dependency>
-      <groupId>info.picocli</groupId>
-      <artifactId>picocli</artifactId>
-    </dependency>
-    -->
-    
+   
 
     <!-- Tests and provided. -->
     <dependency>
@@ -135,14 +104,6 @@
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
-    <!--
-    <dependency>
-      <groupId>com.norconex.crawler</groupId>
-      <artifactId>nx-grid-jdbc</artifactId>
-      <version>${project.parent.version}</version>
-      <scope>test</scope>
-    </dependency>
-    -->    
     
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -231,10 +192,10 @@
       </plugin>
 
       <plugin>
-        <groupId>org.sonatype.plugins</groupId>
-        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <groupId>org.sonatype.central</groupId>
+        <artifactId>central-publishing-maven-plugin</artifactId>
       </plugin>
-      
+
     </plugins>
   </build>
 
