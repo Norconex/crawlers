@@ -62,7 +62,8 @@ final class CrawlContextFactory {
         private CrawlConfig config;
 
         CrawlContextFactory build() {
-            return new CrawlContextFactory(grid, session, driver, config);
+            return new CrawlContextFactory(grid, session, driver,
+                    config);
         }
     }
 
@@ -88,16 +89,19 @@ final class CrawlContextFactory {
                 .callbacks(driver.callbacks())
                 .committerService(CommitterService
                         .<CrawlDoc>builder()
-                        .committers(config.getCommitters())
+                        .committers(config
+                                .getCommitters())
                         .eventManager(eventManager)
-                        .upsertRequestBuilder(doc -> new UpsertRequest(
-                                doc.getReference(),
-                                doc.getMetadata(),
-                                // InputStream closed by caller
-                                doc.getInputStream()))
-                        .deleteRequestBuilder(doc -> new DeleteRequest(
-                                doc.getReference(),
-                                doc.getMetadata()))
+                        .upsertRequestBuilder(
+                                doc -> new UpsertRequest(
+                                        doc.getReference(),
+                                        doc.getMetadata(),
+                                        // InputStream closed by caller
+                                        doc.getInputStream()))
+                        .deleteRequestBuilder(
+                                doc -> new DeleteRequest(
+                                        doc.getReference(),
+                                        doc.getMetadata()))
                         .build())
                 .crawlConfig(config)
                 .crawlMode(session.getCrawlMode())
@@ -108,9 +112,11 @@ final class CrawlContextFactory {
                 .eventManager(eventManager)
                 .fetcher(MultiFetcher.builder()
                         .fetchers(config.getFetchers())
-                        .maxRetries(config.getFetchersMaxRetries())
+                        .maxRetries(config
+                                .getFetchersMaxRetries())
                         .responseAggregator(
-                                driver.fetchDriver().responseAggregator())
+                                driver.fetchDriver()
+                                        .responseAggregator())
                         .unsuccessfulResponseFactory(
                                 driver.fetchDriver()
                                         .unsuccesfulResponseFactory())
@@ -118,16 +124,20 @@ final class CrawlContextFactory {
                 .grid(grid)
                 .metrics(new CrawlerMetricsImpl())
                 .importer(new Importer(
-                        config.getImporterConfig(), eventManager))
-                .resumeState(session.getResumeState())
+                        config.getImporterConfig(),
+                        eventManager))
+                .resumeState(session.getLaunchMode())
                 .sessionProperties(
-                        new CrawlSessionProperties(grid, config.getId()))
+                        new CrawlSessionProperties(grid,
+                                config.getId()))
                 .streamFactory(new CachedStreamFactory(
                         (int) config.getMaxStreamCachePoolSize(),
                         (int) config.getMaxStreamCacheSize(),
                         tempDir))
                 .tempDir(tempDir)
-                .threadFactoryCreator(new ScopedThreadFactoryCreator("crawl"))
+                .threadFactoryCreator(
+                        new ScopedThreadFactoryCreator(
+                                "crawl"))
                 .workDir(workDir)
                 .build();
 
@@ -137,11 +147,13 @@ final class CrawlContextFactory {
     }
 
     private void init(CrawlContext ctx) {
-        ctx.getEventManager().addListenersFromScan(ctx.getCrawlConfig());
+        ctx.getEventManager()
+                .addListenersFromScan(ctx.getCrawlConfig());
         ctx.getCommitterService().init(CommitterContext
                 .builder()
                 .setEventManager(ctx.getEventManager())
-                .setWorkDir(ctx.getWorkDir().resolve("committer"))
+                .setWorkDir(ctx.getWorkDir()
+                        .resolve("committer"))
                 .setStreamFactory(ctx.getStreamFactory())
                 .build());
         ctx.getDocLedger().init(ctx);
@@ -155,7 +167,9 @@ final class CrawlContextFactory {
         try {
             Files.createDirectories(dir);
         } catch (IOException e) {
-            throw new CrawlerException("Could not create directory: " + dir, e);
+            throw new CrawlerException(
+                    "Could not create directory: " + dir,
+                    e);
         }
     }
 }

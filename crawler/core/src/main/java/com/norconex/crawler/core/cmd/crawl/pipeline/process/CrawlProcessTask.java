@@ -57,7 +57,6 @@ public class CrawlProcessTask extends AllNodesTask {
 
     private final ProcessQueueAction queueAction;
     private boolean stopRequested;
-    //    private boolean stopStateSaved;
 
     public CrawlProcessTask(String id, ProcessQueueAction queueAction) {
         super(id);
@@ -109,7 +108,6 @@ public class CrawlProcessTask extends AllNodesTask {
         grid.getCompute().executeTask(GridTaskBuilder
                 .create("updateCrawlState")
                 .singleNode()
-                .once()
                 .processor(g -> CrawlContext
                         .get(g)
                         .getSessionProperties()
@@ -146,6 +144,7 @@ public class CrawlProcessTask extends AllNodesTask {
     private boolean processNextInQueue(
             CrawlContext crawlCtx,
             CrawlActivityChecker activityChecker) {
+
         var docProcessCtx = new ProcessContext().crawlContext(crawlCtx);
         try {
             var docContext = crawlCtx

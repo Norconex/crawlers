@@ -14,7 +14,19 @@
  */
 package com.norconex.crawler.core.session;
 
-public enum ResumeState {
-    INITIAL,
+/**
+ * Describes how a job was launched (new launch or resuming a non
+ * completed/failed one).
+ */
+public enum LaunchMode {
+    /**
+     * The crawler started from the beginning (first-time or restarted after
+     * success, regardless of crawl mode -- incremental or full).
+     */
+    NEW,
+    /**
+     * The crawler resumed from a prior incomplete execution (e.g., paused
+     * or failed).
+     */
     RESUMED
 }

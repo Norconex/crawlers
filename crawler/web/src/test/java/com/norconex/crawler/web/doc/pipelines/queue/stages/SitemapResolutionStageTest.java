@@ -72,8 +72,7 @@ class SitemapResolutionStageTest {
                 baseUrl + "0001",
                 baseUrl + "0002",
                 baseUrl + "0003");
-        client
-                .when(request().withPath("/sitemap.xml"))
+        client.when(request().withPath("/sitemap.xml"))
                 .respond(response().withBody(sitemap, MediaType.XML_UTF_8));
         MockWebsite.whenInfiniteDepth(client);
 
@@ -90,7 +89,8 @@ class SitemapResolutionStageTest {
 
         assertThat(mem.getRequestCount()).isEqualTo(3);
         assertThat(mem.getUpsertRequests())
-                .map(req -> substringAfterLast(req.getReference(), "/"))
+                .map(req -> substringAfterLast(
+                        req.getReference(), "/"))
                 .containsExactly("0001", "0002", "0003");
     }
 
@@ -106,7 +106,8 @@ class SitemapResolutionStageTest {
                 baseUrl + "0003");
         client
                 .when(request().withPath("/sitemap.xml"))
-                .respond(response().withBody(sitemap, MediaType.XML_UTF_8));
+                .respond(response().withBody(sitemap,
+                        MediaType.XML_UTF_8));
         MockWebsite.whenInfiniteDepth(client);
 
         cfg.setSitemapLocator(new GenericSitemapLocator())
@@ -117,11 +118,13 @@ class SitemapResolutionStageTest {
         ((GenericUrlScopeResolver) cfg.getUrlScopeResolver())
                 .getConfiguration().setStayOnSitemap(true);
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+                .getCommitter();
 
         assertThat(mem.getRequestCount()).isEqualTo(3);
         assertThat(mem.getUpsertRequests())
-                .map(req -> substringAfterLast(req.getReference(), "/"))
+                .map(req -> substringAfterLast(
+                        req.getReference(), "/"))
                 .containsExactly("0001", "0002", "0003");
     }
 }

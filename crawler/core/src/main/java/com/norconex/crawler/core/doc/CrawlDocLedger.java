@@ -19,7 +19,7 @@ import java.util.function.BiPredicate;
 
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.core.session.ResumeState;
+import com.norconex.crawler.core.session.LaunchMode;
 import com.norconex.grid.core.storage.GridMap;
 import com.norconex.grid.core.storage.GridQueue;
 import com.norconex.grid.core.util.SerialUtil;
@@ -53,7 +53,7 @@ import lombok.extern.slf4j.Slf4j;
  * </ul>
  */
 @Slf4j
-public class CrawlDocLedger { //implements Closeable {
+public class CrawlDocLedger {
 
     //TODO rename DocLedger
     //TODO remove all synchronized keywords?
@@ -77,6 +77,7 @@ public class CrawlDocLedger { //implements Closeable {
     // on the created ledger. Example, the CrawlerSpec with its
     // DocLegerInitializer.
     public void init(CrawlContext crawlerContext) {
+        LOG.info("Initializing document ledger...");
         crawlContext = crawlerContext;
         type = crawlerContext.getDocContextType();
         var storage = crawlerContext.getGrid().getStorage();
@@ -99,14 +100,15 @@ public class CrawlDocLedger { //implements Closeable {
 
         long maxDocs = crawlContext.getCrawlConfig().getMaxDocuments();
         actualMaxDocs = maxDocs;
-        if ((crawlContext.getResumeState() == ResumeState.RESUMED)
-                && (maxDocs > -1)) {
+        var resumed = crawlContext.getResumeState() == LaunchMode.RESUMED;
+        if (resumed && maxDocs > -1) {
             actualMaxDocs += getProcessedCount();
             LOG.info("""
                 An additional maximum of {} processed documents is
                 added to this resumed session, for a maximum total of {}.
                 """, maxDocs, actualMaxDocs);
         }
+        LOG.info("Done initializing document ledger.");
     }
 
     /**
