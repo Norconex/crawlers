@@ -67,11 +67,12 @@ public class CrawlCommand implements Command {
                 .executePipeline(CrawlPipelineFactory.create(ctx));
 
         // If there is a terminal crawl state already set, we use it, else
-        // we rely on pipeline last task state
-        if (ctx.getSessionProperties()
+        // we wait a bit for one, in case it hasn't been synched yet, then,
+        // we rely on pipeline last task state as fallback.
+        if (!ConcurrentUtil.waitUntil(() -> ctx.getSessionProperties()
                 .getCrawlState()
-                .map(state -> !state.isTerminal())
-                .orElse(false)) {
+                .map(CrawlState::isTerminal)
+                .orElse(false), Duration.ofSeconds(5))) {
             if (result.getState() == TaskState.COMPLETED) {
                 updateCrawlState(ctx, CrawlState.COMPLETED);
                 LOG.info("Crawler completed execution.");
@@ -90,7 +91,8 @@ public class CrawlCommand implements Command {
             throw new CrawlerException("Could not stop progress logger.", e);
         }
         ctx.fire(CrawlerEvent.CRAWLER_CRAWL_END);
-        LOG.info("Node done crawling.");
+        LOG.info("Node done crawling with state: {}",
+                ctx.getSessionProperties().getCrawlState().orElse(null));
 
         if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {
             LOG.info("Unregistering JMX crawler MBeans.");

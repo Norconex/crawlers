@@ -54,29 +54,30 @@ final class CrawlSessionResolver {
             session = new CrawlSession()
                     .setCrawlerId(id)
                     .setCrawlMode(CrawlMode.FULL)
-                    .setResumeState(ResumeState.INITIAL);
+                    .setLaunchMode(LaunchMode.NEW);
         } else if (session.getCrawlState() == CrawlState.RUNNING) {
             if (System.currentTimeMillis()
                     - session.getLastUpdated() > sessionTimeout.toMillis()) {
                 LOG.warn("A crawl session for crawler {} was "
                         + "detected but expired. Trying to resume it.", id);
-                session.setResumeState(ResumeState.RESUMED);
+                session.setLaunchMode(LaunchMode.RESUMED);
             } else {
                 LOG.info("Joining crawl session for crawler {}.", id);
             }
         } else if (session.getCrawlState() == CrawlState.PAUSED) {
-            LOG.info("A previously paused crawl session was detected for. "
+            LOG.info("A previously paused crawl session was detected for "
                     + "crawler {}. Resuming it.", id);
-            session.setResumeState(ResumeState.RESUMED);
+            session.setLaunchMode(LaunchMode.RESUMED);
         } else if (session.getCrawlState() == CrawlState.COMPLETED) {
-            LOG.info("A previously completed crawl session was detected for. "
+            LOG.info("A previously completed crawl session was detected for "
                     + "crawler {}. Starting a new incremental crawl session.",
                     id);
             session.setCrawlMode(CrawlMode.INCREMENTAL);
+            session.setLaunchMode(LaunchMode.NEW);
         } else if (session.getCrawlState() == CrawlState.FAILED) {
             LOG.warn("A crawl session for crawler {} was detected but is "
                     + "marked as failed. Trying to resume it.", id);
-            session.setResumeState(ResumeState.RESUMED);
+            session.setLaunchMode(LaunchMode.RESUMED);
         }
 
         //MAYBE: if we can detect here that the state is not valid for joining

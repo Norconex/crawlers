@@ -89,7 +89,7 @@ public class CrawlContext {
     private final Path tempDir;
     private final CachedStreamFactory streamFactory;
     private final Class<? extends CrawlDocContext> docContextType;
-    private final ResumeState resumeState;
+    private final LaunchMode resumeState;
     private final CrawlMode crawlMode;
     private final CrawlSessionProperties sessionProperties;
     private final ScopedThreadFactoryCreator threadFactoryCreator;
@@ -110,7 +110,7 @@ public class CrawlContext {
     }
 
     public boolean isResumedSession() {
-        return getResumeState() == ResumeState.RESUMED;
+        return getResumeState() == LaunchMode.RESUMED;
     }
 
     public boolean isIncrementalCrawl() {

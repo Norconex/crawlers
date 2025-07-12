@@ -39,7 +39,7 @@ public final class TestSessionUtil {
                         .setCrawlMode(CrawlMode.FULL)
                         .setCrawlState(CrawlState.RUNNING)
                         .setLastUpdated(System.currentTimeMillis())
-                        .setResumeState(ResumeState.INITIAL))
+                        .setLaunchMode(LaunchMode.NEW))
                 .build()
                 .create();
     }

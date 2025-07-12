@@ -24,13 +24,11 @@ import com.norconex.grid.core.compute.ExecutionMode;
 import com.norconex.grid.core.compute.GridTask;
 import com.norconex.grid.core.compute.TaskExecutionResult;
 import com.norconex.grid.core.compute.TaskState;
-import com.norconex.grid.core.impl.CoreGrid;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public final class TaskUtil {
-
     private TaskUtil() {
     }
 
@@ -43,7 +41,8 @@ public final class TaskUtil {
     }
 
     public static boolean hasNodeTaskExpired(
-            long taskStartTime, TaskProgress progress, Duration nodeTimeout) {
+            long taskStartTime, TaskProgress progress,
+            Duration nodeTimeout) {
         var lastHeartbeat = progress != null
                 ? progress.getLastHeartbeat()
                 : taskStartTime;
@@ -59,17 +58,20 @@ public final class TaskUtil {
                 .isPresent();
     }
 
-    public static void logNonCoordinatorCantExecute(CoreGrid grid,
-            GridTask task) {
+    public static void logNonCoordinatorCantExecute(GridTask task) {
         if (!LOG.isInfoEnabled()) {
             return;
         }
-        var msgSuffix = task.getExecutionMode() == ExecutionMode.SINGLE_NODE
-                ? "will wait for the coordinator to be done with this "
-                        + "single-node task."
-                : "will participate when asked by the coordinator.";
-        LOG.info("Non-coordinator node {}. Letting the coordinator node "
-                + "start task \"{}\" and this node {}.",
-                grid.getNodeAddress(), task.getId(), msgSuffix);
+        if (task.getExecutionMode() == ExecutionMode.SINGLE_NODE) {
+            LOG.info("""
+            Ignoring single-node task "{}". Letting the coordinator node 
+            handle it and waiting until it's done...
+            """, task.getId());
+        } else {
+            LOG.info("""
+            Received multi-nodes task "{}". Will participate if/when asked by
+            the coordinator (else, wait until it's done)...
+            """, task.getId());
+        }
     }
 }

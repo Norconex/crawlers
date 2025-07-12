@@ -21,11 +21,14 @@ import java.util.Optional;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.storage.GridMap;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Facade to a grid store for persisting or getting session state
  * values (e.g., flags) or other session-specific information, shared across
  * nodes (when on a grid).
  */
+@Slf4j
 public class CrawlSessionProperties {
 
     private static final String QUEUE_INITIALIZED = "queueInitialized";
@@ -55,6 +58,7 @@ public class CrawlSessionProperties {
     }
 
     public void updateCrawlState(CrawlState state) {
+        LOG.info("Updating crawl state for crawler {} to {}.", id, state);
         var store = CrawlSessionManager.sessionStore(grid);
         var session = store.get(id);
         if (session == null) {

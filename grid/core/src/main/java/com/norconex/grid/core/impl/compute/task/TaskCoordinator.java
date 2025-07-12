@@ -79,7 +79,7 @@ public class TaskCoordinator {
         // because workers tasks are invoked directly on workers by the
         // coordinator.
         if (!grid.isCoordinator()) {
-            TaskUtil.logNonCoordinatorCantExecute(grid, task);
+            TaskUtil.logNonCoordinatorCantExecute(task);
             //TODO verify if this will get called even if joining,
             // late, after the task is executed... will it receive remote task
             // request in parallel?
@@ -143,7 +143,7 @@ public class TaskCoordinator {
             if (localWorker.isNodeTaskStopRequested(task.getId())) {
                 LOG.info("""
                     Node {} received a request to stop the \
-                    task {} while waiting for coordinator signal. \
+                    task {} while waiting for a coordinator signal. \
                     Stopping (no longer waiting).""",
                         grid.getNodeAddress(), task.getId());
                 taskStatusRef.set(new TaskExecutionResult(

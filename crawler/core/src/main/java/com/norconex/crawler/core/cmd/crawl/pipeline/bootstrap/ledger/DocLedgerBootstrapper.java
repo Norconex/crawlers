@@ -19,7 +19,7 @@ import java.util.Locale;
 import com.norconex.commons.lang.PercentFormatter;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapper;
 import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.core.session.ResumeState;
+import com.norconex.crawler.core.session.LaunchMode;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -60,7 +60,7 @@ public final class DocLedgerBootstrapper implements CrawlBootstrapper {
 
     private static void prepareForCrawl(CrawlContext crawlContext) {
         var ledger = crawlContext.getDocLedger();
-        if (crawlContext.getResumeState() == ResumeState.RESUMED) {
+        if (crawlContext.getResumeState() == LaunchMode.RESUMED) {
             if (LOG.isInfoEnabled()) {
                 //TODO use total count to track progress independently
                 var processedCount = ledger.getProcessedCount();

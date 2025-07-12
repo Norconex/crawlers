@@ -17,6 +17,8 @@ package com.norconex.crawler.core.cmd.crawl.pipeline.process;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.session.CrawlState;
+import com.norconex.grid.core.compute.GridTaskBuilder;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +38,7 @@ class CrawlActivityChecker {
 
     private static boolean isResolving;
     private static boolean isPresumedActive = true;
+    private boolean maxDocsReached;
 
     synchronized boolean isActive() {
         if (!isPresumedActive) {
@@ -63,13 +66,35 @@ class CrawlActivityChecker {
         return true;
     }
 
-    public boolean isMaxDocsApplicableAndReached() {
+    boolean isMaxDocsApplicableAndReached() {
         // If deleting we don't care about checking if max is reached,
         // we proceed.
         if (deleting) {
             return false;
         }
-        return ctx.getDocLedger().isMaxDocsProcessedReached();
+
+        if (maxDocsReached) {
+            return true;
+        }
+
+        if (ctx.getDocLedger().isMaxDocsProcessedReached()) {
+            LOG.info("Pausing crawler. Will resume on next start.");
+            maxDocsReached = true;
+            // We update the crawl state to PAUSED so that the crawler
+            // can be resumed later if needed.
+            // This is done here so that the crawl state is updated
+            // before the task is stopped.
+            ctx.getGrid().getCompute().executeTask(GridTaskBuilder
+                    .create("updateCrawlState")
+                    .singleNode()
+                    .processor(g -> CrawlContext
+                            .get(g)
+                            .getSessionProperties()
+                            .updateCrawlState(CrawlState.PAUSED))
+                    .build());
+            return true;
+        }
+        return false;
     }
 
     private boolean isQueueInitializedAndEmpty() {

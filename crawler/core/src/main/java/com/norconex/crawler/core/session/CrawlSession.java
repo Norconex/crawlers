@@ -32,7 +32,7 @@ public class CrawlSession implements Serializable {
     private String crawlerId;
     private CrawlState crawlState;
     private CrawlMode crawlMode;
-    private ResumeState resumeState;
+    private LaunchMode launchMode;
     private long lastUpdated;
 
 }
