@@ -42,7 +42,7 @@ public class CoreGridConnector
         try {
             LOG.info("🔗 Connecting to grid: \"{}\"",
                     configuration.getGridName());
-            return new CoreGrid(configuration, storage, gridContext);
+            return new CoreGrid(configuration, storage);
         } catch (Exception e) {
             //TODO make checked exception?
             throw new GridException("Could not connect to grid.", e);

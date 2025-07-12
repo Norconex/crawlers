@@ -37,7 +37,6 @@ import org.jgroups.Receiver;
 import org.jgroups.View;
 
 import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.GridContext;
 import com.norconex.grid.core.impl.compute.CoreCompute;
 import com.norconex.grid.core.storage.GridStorage;
 
@@ -84,10 +83,7 @@ public class CoreGrid implements Grid {
 
     public CoreGrid(
             CoreGridConnectorConfig connConfig,
-            GridStorage storage,
-            //TODO goback to passing workdir only?  And let connectors
-            // needing to pass one, pass it?
-            GridContext gridContext)
+            GridStorage storage)
             throws Exception {
         LOG.debug(org.jgroups.Version.printDescription());
         connectorConfig = connConfig;
@@ -129,13 +125,6 @@ public class CoreGrid implements Grid {
 
     @Override
     public void close() {
-        //        if (dispatcher != null)
-        //            try {
-        //                dispatcher.close();
-        //            } catch (IOException e) {
-        //                // TODO Auto-generated catch block
-        //                e.printStackTrace();
-        //            }
         try {
             storage.close();
         } catch (IOException e) {

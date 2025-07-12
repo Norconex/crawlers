@@ -27,7 +27,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.storage.GridMap;
 import com.norconex.grid.core.storage.GridQueue;
@@ -71,7 +70,7 @@ public class JdbcGridStorage implements GridStorage {
         this.dbAdapter = dbAdapter;
     }
 
-    public void init(Grid grid) {
+    public void init() {
         storeTypes = getMap(STORE_TYPES_KEY, String.class);
     }
 

@@ -78,8 +78,8 @@ public class JdbcGridConnector
         LOG.debug("✔️ JDBC datasource created.");
         try {
             var storage = new JdbcGridStorage(resolveDbAdapter(dataSource));
-            var grid = new CoreGrid(configuration, storage, ctx);
-            storage.init(grid);
+            var grid = new CoreGrid(configuration, storage);
+            storage.init();
             LOG.info("Connected to JDBC-backed Grid.");
             return grid;
         } catch (Exception e) {

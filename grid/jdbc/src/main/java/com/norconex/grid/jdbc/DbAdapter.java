@@ -83,14 +83,6 @@ final class DbAdapter {
     }
 
     void close() {
-        //        try (var conn = dataSource.getConnection()) {
-        //            conn.createStatement().execute("CHECKPOINT SYNC"); // Flush and sync to disk
-        //            System.out.println("CHECKPOINT SYNC executed");
-        //        } catch (Exception e) {
-        //            System.err
-        //                    .println("Error during CHECKPOINT SYNC: " + e.getMessage());
-        //        }
-
         dataSource.close();
         LOG.debug("✖️ JDBC datasource closed.");
     }
@@ -225,7 +217,6 @@ final class DbAdapter {
         try {
             return executeWrite(sql, stmt -> {
                 stmt.setString(1, rightSizeId(id));
-                //                stmt.setClob(2, SerialUtil.toJsonReader(value));
                 stmt.setString(2, SerialUtil.toJsonString(value));
                 if (thirdArg != null) {
                     stmt.setString(3, thirdArg);
@@ -379,8 +370,6 @@ final class DbAdapter {
         try {
             return executeWrite(sql, stmt -> {
                 stmt.setString(1, rightSizeId(id));
-                //                stmt.setClob(2,
-                //                      new StringReader(SerialUtil.toJsonString(value)));
                 stmt.setString(2, SerialUtil.toJsonString(value));
             }) > 0;
         } catch (GridException e) {
