@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.grid.core.GridConnector;
+import com.norconex.grid.core.GridConnectionContext;
 import com.norconex.grid.core.cluster.ClusterConnectorFactory;
 
 import lombok.extern.slf4j.Slf4j;
@@ -37,24 +38,20 @@ public class H2ClusterTestConnectorFactory
     static Path tempBasePath;
 
     @Override
-    public GridConnector create(String gridName, String nodeName) {
-        var tempDir = tempBasePath.resolve("junit-" + gridName);
+    public GridConnector create(GridConnectionContext ctx, String nodeName) {
+        var tempDir = tempBasePath.resolve("junit-" + ctx.getGridName());
         try {
             Files.createDirectories(tempDir);
             var jdbcUrl = new StringBuilder();
             jdbcUrl.append("jdbc:h2:file:" + StringUtils.removeStart(
-                    tempDir.toUri().toURL() + gridName, "file:/"));
+                    tempDir.toUri().toURL() + ctx.getGridName(), "file:/"));
             jdbcUrl.append(";LOCK_MODE=1");
             jdbcUrl.append(";WRITE_DELAY=0");
-            //jdbcUrl.append(";DB_CLOSE_ON_EXIT=FALSE");
-            //jdbcUrl.append(";AUTO_RECONNECT=TRUE");
-            //jdbcUrl.append(";TRACE_LEVEL_FILE=4");
             jdbcUrl.append(";LOCK_TIMEOUT=10000");
-            //jdbcUrl.append(";LOCK_MODE=3");
             LOG.info("Connecting to a grid backed by H2: {}", jdbcUrl);
             return Configurable.configure(new JdbcGridConnector(), cfg -> {
                 cfg.getDatasource().add("jdbcUrl", jdbcUrl.toString());
-                cfg.setGridName(gridName);
+                cfg.setGridName(ctx.getGridName());
                 cfg.setNodeName(nodeName);
                 var ds = cfg.getDatasource();
                 ds.add("leakDetectionThreshold", "5000");

@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Executes tasks on a node, keep track of their status, and more.
- * Meant to be invoked remotely when a task is run on all nodes or targetting
+ * Meant to be invoked remotely when a task is run on all nodes or targeting
  * this worker node.
  */
 // A local instance is bound to the grid in the WorkDispatcher
@@ -73,8 +73,38 @@ public class Worker {
         this.grid = grid;
     }
 
+    //TODO fail fast these methods if grid is not initialized.
+    //TODO have dispatcher retry a few times, taking current pipeline stage
+    // into account, and/or letting the worker figure out if already outdated.
+
     // Remote
     public void startNodeTask(GridTask task) {
+        //        if (!grid.isInitialized() && !grid.isCoordinator()) {
+        //            LOG.info("Grid not yet initialized. "
+        //                    + "Task {} execution will be delayed on node {}.",
+        //                    task.getId(), grid.getNodeAddress());
+        //            if (!ConcurrentUtil.waitUntil(
+        //                    grid::isInitialized, Duration.ofMinutes(1))) {
+        //                LOG.error("""
+        //                    Grid took abnormally long to initialize waiting \
+        //                    for task {}. Stopping the grid {} to avoid \
+        //                    zombie processes.""",
+        //                        task.getId(), grid.getNodeAddress());
+        //                grid.stop();
+        //                throw new IllegalStateException(
+        //                        "Grid could not be initialized.");
+        //            }
+        //
+        //            LOG.info("Grid initialized: task {} can resume.", task.getId());
+        //
+        //            // Check if task is already completed (done by other nodes).
+        //            var progress = gridTaskProgresses.get(task.getId());
+        //            if (progress.getStatus().getState().isTerminal()) {
+        //                LOG.info("Delayed task {} already terminated, skipping it.",
+        //                        task.getId());
+        //                return;
+        //            }
+        //        }
 
         var taskId = task.getId();
         var nodeAddr = grid.getNodeAddress();

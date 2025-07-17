@@ -17,16 +17,22 @@ package com.norconex.grid.core;
 import java.nio.file.Path;
 
 /**
- * Provides required and optional contextual properties for {@link Grid}
- * implementations to initialize properly.
+ * Provides contextual properties for initialization of {@link Grid}
+ * implementations.
  */
-public interface GridContext {
+public interface GridConnectionContext {
     /**
-     * Returns the working directory for resolving relative paths,
-     * or {@code null}
-     * if unspecified. Implementations should default to a suitable directory
-     * (e.g., {@code System.getProperty("user.dir")}) if {@code null}.
+     * Gets the working directory for resolving relative paths,
+     * or {@code null} if unspecified. Implementations should default to a
+     * suitable directory (e.g., {@code System.getProperty("user.dir")}) if
+     * {@code null}.
      * @return working directory
      */
     Path getWorkDir();
+
+    /**
+     * Gets a unique name for the grid being created.
+     * @return grid name
+     */
+    String getGridName();
 }

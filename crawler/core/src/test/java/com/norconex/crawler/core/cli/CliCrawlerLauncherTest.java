@@ -81,7 +81,8 @@ class CliCrawlerLauncherTest {
         // Non existant config file
         var exit2 = launchVerbatim(
                 "configcheck",
-                "-config=" + TimeIdGenerator.next() + "IDontExist");
+                "-config=" + TimeIdGenerator.next()
+                        + "IDontExist");
         assertThat(exit2.ok()).isFalse();
         assertThat(exit2.getStdErr()).contains(
                 "Configuration file does not exist");
@@ -174,17 +175,20 @@ class CliCrawlerLauncherTest {
                 .isThrownBy(() -> { //NOSONAR
                     launch(gridConnClass,
                             "configcheck",
-                            "-config=" + cfgFile.toAbsolutePath());
+                            "-config=" + cfgFile
+                                    .toAbsolutePath());
                 })
                 .toString()
                 .contains("\"numThreads\" must be greater than or equal to 1.");
     }
 
     @ParameterizedGridConnectorTest
-    void testStoreExportImport(Class<? extends GridConnector> gridConnClass) {
+    void testStoreExportImport(
+            Class<? extends GridConnector> gridConnClass) {
         var exportDir = tempDir.resolve("exportdir");
         var exportFile =
-                exportDir.resolve(MockCrawlerBuilder.CRAWLER_ID + ".zip");
+                exportDir.resolve(MockCrawlerBuilder.CRAWLER_ID
+                        + ".zip");
         var configFile = StubCrawlerConfig.writeConfigToDir(
                 tempDir, cfg -> {});
 
@@ -214,7 +218,8 @@ class CliCrawlerLauncherTest {
     void testStart(Class<? extends GridConnector> gridConnClass) {
         var exit1 = launch(gridConnClass, "start", "-config=");
         if (!exit1.ok()) {
-            LOG.error("Could not start crawler properly. Output:\n{}", exit1);
+            LOG.error("Could not start crawler properly. Output:\n{}",
+                    exit1);
         }
         assertThat(exit1.ok()).isTrue();
         assertThat(exit1.getEvents()).containsExactly(
@@ -235,7 +240,8 @@ class CliCrawlerLauncherTest {
 
         var exit2 = launch(
                 gridConnClass, "start", "-clean", "-config=");
-        assertThat(exit2.ok()).withFailMessage(exit2.getStdErr()).isTrue();
+        assertThat(exit2.ok()).withFailMessage(exit2.getStdErr())
+                .isTrue();
         assertThat(exit2.getEvents()).containsExactly(
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
@@ -306,15 +312,18 @@ class CliCrawlerLauncherTest {
     @ParameterizedGridConnectorTest
     void testConfigRender(Class<? extends GridConnector> gridConnClass)
             throws IOException {
-        var cfgFile = StubCrawlerConfig.writeConfigToDir(tempDir, cfg -> {});
+        var cfgFile = StubCrawlerConfig.writeConfigToDir(tempDir,
+                cfg -> {});
 
-        var exit1 = launch(gridConnClass, "configrender", "-config=" + cfgFile);
+        var exit1 = launch(gridConnClass, "configrender",
+                "-config=" + cfgFile);
         assertThat(exit1.ok()).isTrue();
         // check that some entries not explicitly configured are NOT present
         // (with V4, "default" values are not exported):
         assertThat(exit1.getStdOut()).doesNotContain("<importer");
 
-        cfgFile = StubCrawlerConfig.writeConfigToDir(tempDir, cfg -> {});
+        cfgFile = StubCrawlerConfig.writeConfigToDir(tempDir,
+                cfg -> {});
 
         var renderedFile = tempDir.resolve("configrender.xml");
         var exit2 = launch(
@@ -353,7 +362,8 @@ class CliCrawlerLauncherTest {
                 .workDir(tempDir)
                 .logErrors(true)
                 .configModifier(cfg -> cfg
-                        .setGridConnector(ClassUtil.newInstance(gridConnClass)))
+                        .setGridConnector(ClassUtil
+                                .newInstance(gridConnClass)))
                 .build()
                 .launch();
     }

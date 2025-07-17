@@ -28,7 +28,7 @@ import com.norconex.crawler.core.cmd.storeimport.StoreImportCommand;
 import com.norconex.crawler.core.session.CrawlSessionManager;
 import com.norconex.crawler.core.util.ConfigUtil;
 import com.norconex.crawler.core.util.LogUtil;
-import com.norconex.grid.core.BaseGridContext;
+import com.norconex.grid.core.BaseGridConnectionContext;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -101,7 +101,8 @@ public class Crawler {
         var gridWorkDir = ConfigUtil
                 .resolveWorkDir(crawlConfig).resolve(GRID_WORKDIR_NAME);
         crawlConfig.getGridConnector().shutdownGrid(
-                new BaseGridContext(gridWorkDir));
+                new BaseGridConnectionContext(gridWorkDir,
+                        crawlConfig.getId()));
     }
 
     public void storageExport(Path dir, boolean pretty) {

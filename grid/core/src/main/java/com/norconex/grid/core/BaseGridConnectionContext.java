@@ -24,8 +24,9 @@ import lombok.experimental.Accessors;
 @RequiredArgsConstructor
 @Getter
 @Accessors(chain = true)
-public class BaseGridContext implements GridContext {
+public class BaseGridConnectionContext implements GridConnectionContext {
 
     private final Path workDir;
+    private final String gridName;
 
 }

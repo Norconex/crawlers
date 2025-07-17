@@ -92,8 +92,7 @@ public class WorkDispatcher {
      * @param task the task to execute
      * @throws Exception error in execution
      */
-    public void startTaskOnNodes(GridTask task)
-            throws Exception {
+    public void startTaskOnNodes(GridTask task) throws Exception {
         var call = MethodCallBuilder
                 .create(WorkerMethod.startNodeTask)
                 .argValues(task)

@@ -16,8 +16,8 @@ package com.norconex.grid.core.impl;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.grid.core.Grid;
+import com.norconex.grid.core.GridConnectionContext;
 import com.norconex.grid.core.GridConnector;
-import com.norconex.grid.core.GridContext;
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.storage.GridStorage;
 
@@ -38,7 +38,7 @@ public class CoreGridConnector
     private final GridStorage storage;
 
     @Override
-    public Grid connect(@NonNull GridContext gridContext) {
+    public Grid connect(@NonNull GridConnectionContext gridContext) {
         try {
             LOG.info("🔗 Connecting to grid: \"{}\"",
                     configuration.getGridName());
@@ -50,7 +50,7 @@ public class CoreGridConnector
     }
 
     @Override
-    public void shutdownGrid(@NonNull GridContext gridContext) {
+    public void shutdownGrid(@NonNull GridConnectionContext gridContext) {
         try (var grid = connect(gridContext)) {
             grid.stop();
         }

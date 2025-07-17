@@ -17,6 +17,7 @@ package com.norconex.grid.core.impl;
 import java.time.Duration;
 
 import com.norconex.commons.lang.config.Configurable;
+import com.norconex.grid.core.GridConnectionContext;
 import com.norconex.grid.core.GridConnector;
 import com.norconex.grid.core.cluster.ClusterConnectorFactory;
 import com.norconex.grid.core.mocks.MockStorage;
@@ -26,10 +27,10 @@ public class CoreClusterTestConnectorFactory
         implements ClusterConnectorFactory {
 
     @Override
-    public GridConnector create(String gridName, String nodeName) {
+    public GridConnector create(GridConnectionContext ctx, String nodeName) {
         return Configurable.configure(
                 new CoreGridConnector(createGridStorage()),
-                cfg -> cfg.setGridName(gridName)
+                cfg -> cfg
                         .setNodeName(nodeName)
                         .setProtocols(
                                 CoreClusterTestProtocols.createProtocols())

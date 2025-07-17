@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+   Copyright 2025 Norconex Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
+<!DOCTYPE xml>
+<Configuration status="WARN" name="Norconex Collector Core">
+  <Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %mdc{node} [%thread] %-5level %c{2} - %msg%n%throwable"/>
+<!--       <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg %n%throwable %mdc{userId} %mdc{requestId}" /> -->
+<!--       <PatternLayout pattern="%d{HH:mm:ss} [%t] %-5level %c{2} - %msg%n"/> -->
+<!--       <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>  -->
+    </Console>
+  </Appenders>
+  <Loggers>
+    <Logger name="com.norconex.grid" level="DEBUG" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="com.norconex.grid.calcite" level="DEBUG" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger 
+      name="com.norconex.grid.core.util.ScopedThreadFactoryCreator" 
+      level="INFO" 
+      additivity="false"
+    >
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="com.zaxxer.hikari" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.apache" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.jgroups" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Root level="INFO">
+      <AppenderRef ref="Console"/>
+    </Root>
+  </Loggers>
+</Configuration>

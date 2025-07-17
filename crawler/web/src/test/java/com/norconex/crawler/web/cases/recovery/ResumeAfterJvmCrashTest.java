@@ -42,14 +42,16 @@ class ResumeAfterJvmCrashTest {
     //TODO also test with other grids? Or move to default core tests?
     @WebCrawlTest(gridConnectors = LocalGridConnector.class)
     void testResumeAfterJvmCrash(
-            ClientAndServer client, WebCrawlerConfig cfg) throws IOException {
+            ClientAndServer client, WebCrawlerConfig cfg)
+            throws IOException {
         var path = "/resumeAfterJvmCrash";
 
         MockWebsite.whenInfiniteDepth(client);
 
         var crasher = new JVMCrasher();
 
-        cfg.setStartReferences(List.of(serverUrl(client, path + "/0000")));
+        cfg.setStartReferences(
+                List.of(serverUrl(client, path + "/0000")));
         cfg.setNumThreads(1);
         cfg.setMaxDepth(-1);
         cfg.setMaxDocuments(10);
@@ -70,7 +72,8 @@ class ResumeAfterJvmCrashTest {
         assertThat(outcome.getCommitterAfterLaunch()
                 .getUpsertCount()).isEqualTo(6);
         assertThat(WebTestUtil.lastSortedRequestReference(
-                outcome.getCommitterAfterLaunch())).endsWith(path + "/0005");
+                outcome.getCommitterAfterLaunch()))
+                        .endsWith(path + "/0005");
 
         // Second run, it should resume and finish normally, crawling
         // an additional 10 max docs, totaling 16.

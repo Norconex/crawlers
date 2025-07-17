@@ -15,8 +15,10 @@
 package com.norconex.crawler.core.mocks.grid;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.compute.GridCompute;
@@ -32,6 +34,16 @@ public class MockFailingGrid implements Grid {
     @Override
     public GridCompute getCompute() {
         throw new UnsupportedOperationException("IN_TEST");
+    }
+
+    @Override
+    public void init(Map<String, Function<Grid, Object>> contextSuppliers) {
+        throw new UnsupportedOperationException("IN_TEST");
+    }
+
+    @Override
+    public boolean isInitialized() {
+        return true;
     }
 
     @Override
@@ -70,18 +82,18 @@ public class MockFailingGrid implements Grid {
         throw new UnsupportedOperationException("IN_TEST");
     }
 
-    @Override
-    public void registerContext(String contextKey, Object context) {
-        throw new UnsupportedOperationException("IN_TEST");
-    }
+    // @Override
+    // public void registerContext(String contextKey, Object context) {
+    //     throw new UnsupportedOperationException("IN_TEST");
+    // }
 
     @Override
     public Object getContext(String contextKey) {
         throw new UnsupportedOperationException("IN_TEST");
     }
 
-    @Override
-    public Object unregisterContext(String contextKey) {
-        throw new UnsupportedOperationException("IN_TEST");
-    }
+    // @Override
+    // public Object unregisterContext(String contextKey) {
+    //     throw new UnsupportedOperationException("IN_TEST");
+    // }
 }

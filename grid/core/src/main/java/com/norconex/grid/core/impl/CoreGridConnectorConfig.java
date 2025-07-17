@@ -49,11 +49,10 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 public class CoreGridConnectorConfig {
-
     /**
      * Logical grid name to connect to. All nodes joining on the same name
      * makes up the grid.  Cannot be {@code null}. Default name is
-     * <code>default_grid</code>.
+     * is coming form the consuming application..
      */
     @NonNull
     private String gridName = "default_grid";

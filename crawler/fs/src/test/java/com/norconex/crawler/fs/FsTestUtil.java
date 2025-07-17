@@ -97,38 +97,48 @@ public final class FsTestUtil {
                     .randomize(
                             File.class,
                             () -> new File(
-                                    new StringRandomizer(100).getRandomValue()))
+                                    new StringRandomizer(
+                                            100).getRandomValue()))
                     .randomize(
                             Path.class,
                             () -> Path.of(
-                                    new StringRandomizer(100).getRandomValue()))
+                                    new StringRandomizer(
+                                            100).getRandomValue()))
                     .randomize(
                             Long.class,
                             () -> Math
-                                    .abs(new LongRandomizer().getRandomValue()))
+                                    .abs(new LongRandomizer()
+                                            .getRandomValue()))
                     .randomize(
                             Integer.class,
                             () -> Math.abs(
-                                    new IntegerRandomizer().getRandomValue()))
-                    .randomize(ImporterConfig.class, ImporterConfig::new)
+                                    new IntegerRandomizer()
+                                            .getRandomValue()))
+                    .randomize(ImporterConfig.class,
+                            ImporterConfig::new)
                     .randomize(
                             UpsertRequest.class,
                             () -> new UpsertRequest(
-                                    new StringRandomizer(100).getRandomValue(),
+                                    new StringRandomizer(
+                                            100).getRandomValue(),
                                     new Properties(),
                                     new NullInputStream()))
                     .randomize(
                             DeleteRequest.class,
                             () -> new DeleteRequest(
-                                    new StringRandomizer(100).getRandomValue(),
+                                    new StringRandomizer(
+                                            100).getRandomValue(),
                                     new Properties()))
-                    .randomize(Committer.class, MemoryCommitter::new)
+                    .randomize(Committer.class,
+                            MemoryCommitter::new)
                     .randomize(
                             SpoiledReferenceStrategizer.class,
                             GenericSpoiledReferenceStrategizer::new)
                     .randomize(
-                            AtomicBoolean.class, () -> new AtomicBoolean(
-                                    new BooleanRandomizer().getRandomValue()))
+                            AtomicBoolean.class,
+                            () -> new AtomicBoolean(
+                                    new BooleanRandomizer()
+                                            .getRandomValue()))
                     .randomize(
                             ReferenceFilter.class,
                             randomInstanceOf(
@@ -185,7 +195,8 @@ public final class FsTestUtil {
             @NonNull String ref,
             @NonNull String fieldName) {
         return getUpsertRequest(mem, ref)
-                .map(req -> req.getMetadata().getString(fieldName))
+                .map(req -> req.getMetadata()
+                        .getString(fieldName))
                 .orElse(null);
     }
 
@@ -268,12 +279,14 @@ public final class FsTestUtil {
     }
 
     public static String resourceAsString(String resourcePath) {
-        return toString(FsTestUtil.class.getResourceAsStream(resourcePath));
+        return toString(FsTestUtil.class
+                .getResourceAsStream(resourcePath));
     }
 
     public static MemoryCommitter
             firstCommitter(@NonNull CrawlContext crawler) {
-        return (MemoryCommitter) crawler.getCrawlConfig().getCommitters()
+        return (MemoryCommitter) crawler.getCrawlConfig()
+                .getCommitters()
                 .get(0);
     }
 
@@ -287,11 +300,14 @@ public final class FsTestUtil {
     public static CrawlCaptures crawlWithFetcher(
             Path tempDir, Fetcher fetcher, String... refs)
             throws Exception {
-        return CrawlTestCapturer.capture(new MockFsCrawlerBuilder(tempDir)
-                .configModifier(cfg -> cfg
-                        .setStartReferences(List.of(refs))
-                        .setFetchers(List.of(fetcher)))
-                .crawler(), Crawler::crawl);
+        return CrawlTestCapturer
+                .capture(new MockFsCrawlerBuilder(tempDir)
+                        .configModifier(cfg -> cfg
+                                .setStartReferences(
+                                        List.of(refs))
+                                .setFetchers(List
+                                        .of(fetcher)))
+                        .crawler(), Crawler::crawl);
     }
 
     public static int freePort() {
@@ -309,7 +325,8 @@ public final class FsTestUtil {
         return () -> {
             if (subtypes.length == 0)
                 return null;
-            var index = ThreadLocalRandom.current().nextInt(subtypes.length);
+            var index = ThreadLocalRandom.current()
+                    .nextInt(subtypes.length);
             return easyRandom.nextObject(subtypes[index]);
         };
     }

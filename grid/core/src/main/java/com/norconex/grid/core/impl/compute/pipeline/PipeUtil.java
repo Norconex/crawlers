@@ -31,7 +31,7 @@ public final class PipeUtil {
         //TODO should this one be here or where "onlyIf" was?
         if (pipeCtx.getActiveTask() == null) {
             LOG.info("""
-                    Pipeline {} stage index {} did not provide a task (null).
+                    Pipeline {} stage index {} did not provide a task (null). \
                     Skipping it.""",
                     pipeCtx.getPipeline().getId(),
                     pipeCtx.getCurrentIndex());

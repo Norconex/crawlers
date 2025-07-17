@@ -70,7 +70,6 @@ public class TaskCoordinator {
     }
 
     public TaskExecutionResult executeTask(GridTask task) throws Exception {
-
         //TODO, not a supported use case yet, but if joining remotely to
         // send an execution request, we'll have to make sure the coordinator
         // gets it.
@@ -116,7 +115,6 @@ public class TaskCoordinator {
             // Dispatch task to worker nodes
             dispatcher.startTaskOnNodes(task);
         }
-
         return trackAndAggregateResult(task);
     }
 

@@ -21,6 +21,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.shaded.com.google.common.base.Objects;
 
 import com.norconex.grid.core.GridConnector;
+import com.norconex.grid.core.GridConnectionContext;
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.cluster.ClusterConnectorFactory;
 import com.norconex.grid.core.impl.CoreClusterTestProtocols;
@@ -39,34 +40,34 @@ public class PostgreSqlClusterTestConnectorFactory
     private static String lastCreatedDb;
 
     @Override
-    public GridConnector create(String gridName, String nodeName) {
+    public GridConnector create(GridConnectionContext ctx, String nodeName) {
 
         synchronized (this) {
-            if (!Objects.equal(lastCreatedDb, gridName)) {
+            if (!Objects.equal(lastCreatedDb, ctx.getGridName())) {
                 try (var conn = DriverManager.getConnection(
                         postgres.getJdbcUrl(),
                         postgres.getUsername(),
                         postgres.getPassword());
                         var stmt = conn.createStatement()) {
-                    stmt.execute("CREATE DATABASE " + gridName);
-                    lastCreatedDb = gridName;
+                    stmt.execute("CREATE DATABASE " + ctx.getGridName());
+                    lastCreatedDb = ctx.getGridName();
                 } catch (SQLException e) {
                     if (!e.getMessage().contains("already exists")) {
                         throw new GridException(e);
                     }
-                    LOG.debug("Database already exists: " + gridName);
+                    LOG.debug("Database already exists: " + ctx.getGridName());
                 }
             }
         }
 
         var gridConnector = new JdbcGridConnector();
         var config = gridConnector.getConfiguration();
-        config.setGridName(gridName);
+        config.setGridName(ctx.getGridName());
         config.setNodeName(nodeName);
         config.setProtocols(CoreClusterTestProtocols.createProtocols());
         var ds = config.getDatasource();
-        ds.add("jdbcUrl",
-                postgres.getJdbcUrl().replace("/test", "/" + gridName));
+        ds.add("jdbcUrl", postgres.getJdbcUrl().replace(
+                "/test", "/" + ctx.getGridName()));
         ds.add("username", postgres.getUsername());
         ds.add("password", postgres.getPassword());
 

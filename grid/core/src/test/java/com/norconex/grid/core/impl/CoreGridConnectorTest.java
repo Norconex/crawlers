@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.grid.core.BaseGridContext;
+import com.norconex.grid.core.BaseGridConnectionContext;
 import com.norconex.grid.core.mocks.MockStorage;
 
 class CoreGridConnectorTest {
@@ -27,6 +27,6 @@ class CoreGridConnectorTest {
     void testConnect() {
         assertThatNoException().isThrownBy(
                 () -> new CoreGridConnector(new MockStorage()).connect(
-                        new BaseGridContext(null)));
+                        new BaseGridConnectionContext(null, null)));
     }
 }

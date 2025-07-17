@@ -18,7 +18,7 @@ import java.nio.file.Path;
 
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
-import com.norconex.grid.core.BaseGridContext;
+import com.norconex.grid.core.BaseGridConnectionContext;
 
 public final class TestSessionUtil {
 
@@ -29,7 +29,8 @@ public final class TestSessionUtil {
             CrawlDriver driver, CrawlConfig cfg, Path workDir) {
         var grid = cfg
                 .getGridConnector()
-                .connect(new BaseGridContext(workDir));
+                .connect(new BaseGridConnectionContext(workDir,
+                        cfg.getId()));
         return CrawlContextFactory.builder()
                 .config(cfg)
                 .driver(driver)
@@ -38,7 +39,8 @@ public final class TestSessionUtil {
                         .setCrawlerId(cfg.getId())
                         .setCrawlMode(CrawlMode.FULL)
                         .setCrawlState(CrawlState.RUNNING)
-                        .setLastUpdated(System.currentTimeMillis())
+                        .setLastUpdated(System
+                                .currentTimeMillis())
                         .setLaunchMode(LaunchMode.NEW))
                 .build()
                 .create();

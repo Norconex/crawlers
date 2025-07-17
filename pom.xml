@@ -1253,6 +1253,7 @@
     <module>grid/core</module>
     <module>grid/local</module>
     <module>grid/jdbc</module>
+    <module>grid/calcite</module>
     <module>crawler/core</module>
     <module>crawler/web</module>
     <module>crawler/fs</module>

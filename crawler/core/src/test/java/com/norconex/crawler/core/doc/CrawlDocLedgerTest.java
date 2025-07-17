@@ -48,17 +48,23 @@ class CrawlDocLedgerTest {
 
         new MockCrawlerBuilder(tempDir)
                 .configModifier(cfg -> cfg
-                        .setGridConnector(ClassUtil.newInstance(connClass)))
+                        .setGridConnector(ClassUtil
+                                .newInstance(connClass)))
                 .withCrawlContext(ctx -> {
                     var ledger1 = ctx.getDocLedger();
-                    ledger1.queue(new CrawlDocContext("ref:queue1"));
-                    ledger1.queue(new CrawlDocContext("ref:queue2"));
+                    ledger1.queue(new CrawlDocContext(
+                            "ref:queue1"));
+                    ledger1.queue(new CrawlDocContext(
+                            "ref:queue2"));
                     ledger1.processed(
-                            new CrawlDocContext("ref:processed1"));
+                            new CrawlDocContext(
+                                    "ref:processed1"));
                     ledger1.processed(
-                            new CrawlDocContext("ref:processed2"));
+                            new CrawlDocContext(
+                                    "ref:processed2"));
                     ledger1.processed(
-                            new CrawlDocContext("ref:processed3"));
+                            new CrawlDocContext(
+                                    "ref:processed3"));
                     return null;
                 });
 
@@ -66,11 +72,14 @@ class CrawlDocLedgerTest {
 
         new MockCrawlerBuilder(tempDir)
                 .configModifier(cfg -> cfg
-                        .setGridConnector(ClassUtil.newInstance(connClass)))
+                        .setGridConnector(ClassUtil
+                                .newInstance(connClass)))
                 .withCrawlContext(ctx -> {
                     var ledger2 = ctx.getDocLedger();
-                    assertThat(ledger2.getQueueCount()).isEqualTo(2);
-                    assertThat(ledger2.getProcessedCount()).isEqualTo(3);
+                    assertThat(ledger2.getQueueCount())
+                            .isEqualTo(2);
+                    assertThat(ledger2.getProcessedCount())
+                            .isEqualTo(3);
                     return null;
                 });
     }

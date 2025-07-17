@@ -59,16 +59,16 @@ public final class TaskUtil {
     }
 
     public static void logNonCoordinatorCantExecute(GridTask task) {
-        if (!LOG.isInfoEnabled()) {
+        if (!LOG.isDebugEnabled()) {
             return;
         }
         if (task.getExecutionMode() == ExecutionMode.SINGLE_NODE) {
-            LOG.info("""
-            Ignoring single-node task "{}". Letting the coordinator node 
+            LOG.debug("""
+            Ignoring single-node task "{}". Letting the coordinator node
             handle it and waiting until it's done...
             """, task.getId());
         } else {
-            LOG.info("""
+            LOG.debug("""
             Received multi-nodes task "{}". Will participate if/when asked by
             the coordinator (else, wait until it's done)...
             """, task.getId());

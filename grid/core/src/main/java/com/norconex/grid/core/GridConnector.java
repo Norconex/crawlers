@@ -25,7 +25,7 @@ public interface GridConnector {
      * @param gridContext grid context for initialization
      * @return A configured Grid instance.
      */
-    Grid connect(GridContext gridContext);
+    Grid connect(GridConnectionContext gridContext);
 
     /**
      * Short-lived method that requests an existing grid to stop.
@@ -34,8 +34,8 @@ public interface GridConnector {
      * and will not participate in existing grid activities before
      * exiting. It does not wait for the grid to stop to return.
      * In some cases, it may not even have to invoke the
-     * {@link #connect(GridContext)} method.
+     * {@link #connect(GridConnectionContext)} method.
      * @param gridContext grid context for initialization
      */
-    void shutdownGrid(GridContext gridContext);
+    void shutdownGrid(GridConnectionContext gridContext);
 }

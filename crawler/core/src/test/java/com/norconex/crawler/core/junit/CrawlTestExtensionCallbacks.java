@@ -61,7 +61,8 @@ public class CrawlTestExtensionCallbacks implements
     }
 
     @Override
-    public void afterTestExecution(ExtensionContext context) throws Exception {
+    public void afterTestExecution(ExtensionContext context)
+            throws Exception {
         destroy(context);
     }
 
@@ -70,13 +71,16 @@ public class CrawlTestExtensionCallbacks implements
         // Create a temporary directory before each test
         var tempDir = Files.createTempDirectory("crawltest");
 
-        var spec = ClassUtil.newInstance(annotation.driverFactory()).get();
+        var spec = ClassUtil.newInstance(annotation.driverFactory())
+                .get();
 
         var crawlConfig = annotation.randomConfig()
                 ? StubCrawlerConfig.randomMemoryCrawlerConfig(
                         tempDir,
                         spec.crawlerConfigClass(),
-                        ClassUtil.newInstance(annotation.randomizer()).get())
+                        ClassUtil.newInstance(annotation
+                                .randomizer())
+                                .get())
                 : StubCrawlerConfig.memoryCrawlerConfig(
                         tempDir,
                         spec.crawlerConfigClass());
@@ -84,7 +88,8 @@ public class CrawlTestExtensionCallbacks implements
         // set grid connector
         LOG.info("Setting grid connector: {}", gridConnectorClass);
         GridConnector gridConnector =
-                gridConnectorClass.getDeclaredConstructor().newInstance();
+                gridConnectorClass.getDeclaredConstructor()
+                        .newInstance();
         crawlConfig.setGridConnector(gridConnector);
 
         // apply custom config from text
@@ -92,7 +97,8 @@ public class CrawlTestExtensionCallbacks implements
             var cfgStr = StringSubstitutor.replace(
                     annotation.config(),
                     MapUtil.<String, String>toMap(
-                            (Object[]) annotation.vars()));
+                            (Object[]) annotation
+                                    .vars()));
             spec.beanMapper().read(
                     crawlConfig,
                     new StringReader(cfgStr),
@@ -103,29 +109,34 @@ public class CrawlTestExtensionCallbacks implements
         if (annotation.configModifier() != null) {
             @SuppressWarnings("unchecked")
             var c = (Consumer<CrawlConfig>) ClassUtil
-                    .newInstance(annotation.configModifier());
+                    .newInstance(annotation
+                            .configModifier());
             c.accept(crawlConfig);
         }
 
         // --- Focus: CRAWL ---
         if (annotation.focus() == Focus.CRAWL) {
             var crawler = new MockCrawlerBuilder(tempDir)
-                    .crawlDriver(toCrawlDriver(annotation.driverFactory()))
+                    .crawlDriver(toCrawlDriver(annotation
+                            .driverFactory()))
                     .config(crawlConfig)
                     .crawler();
-            var captures = CrawlTestCapturer.capture(crawler, Crawler::crawl);
+            var captures = CrawlTestCapturer.capture(crawler,
+                    Crawler::crawl);
             return new CrawlTestParameters()
                     .setCrawler(crawler)
                     .setCrawlConfig(crawlConfig)
                     .setCrawlContext(captures.getContext())
-                    .setMemoryCommitter(captures.getCommitter())
+                    .setMemoryCommitter(
+                            captures.getCommitter())
                     .setWorkDir(tempDir);
         }
 
         // --- Focus: CONTEXT ---
         if (annotation.focus() == Focus.CONTEXT) {
             var ctx = TestSessionUtil.createCrawlerContext(
-                    toCrawlDriver(annotation.driverFactory()),
+                    toCrawlDriver(annotation
+                            .driverFactory()),
                     crawlConfig,
                     tempDir);
             ctx.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN); // simulate
@@ -133,8 +144,10 @@ public class CrawlTestExtensionCallbacks implements
                     .setCrawler(null)
                     .setCrawlConfig(crawlConfig)
                     .setCrawlContext(ctx)
-                    .setMemoryCommitter((MemoryCommitter) crawlConfig
-                            .getCommitters().get(0))
+                    .setMemoryCommitter(
+                            (MemoryCommitter) crawlConfig
+                                    .getCommitters()
+                                    .get(0))
                     .setWorkDir(tempDir);
         }
 
@@ -143,8 +156,10 @@ public class CrawlTestExtensionCallbacks implements
                 .setCrawler(null)
                 .setCrawlConfig(crawlConfig)
                 .setCrawlContext(null)
-                .setMemoryCommitter((MemoryCommitter) crawlConfig
-                        .getCommitters().get(0))
+                .setMemoryCommitter(
+                        (MemoryCommitter) crawlConfig
+                                .getCommitters()
+                                .get(0))
                 .setWorkDir(tempDir);
     }
 
@@ -158,7 +173,8 @@ public class CrawlTestExtensionCallbacks implements
             // "crawl" focus handles the context already.
             params.getCrawlContext().fire(
                     CrawlerEvent.CRAWLER_CRAWL_END); // simulate
-            TestSessionUtil.destroyCrawlerContext(params.getCrawlContext());
+            TestSessionUtil.destroyCrawlerContext(
+                    params.getCrawlContext());
         }
         if (params.getMemoryCommitter() != null) {
             params.getMemoryCommitter().clean();
@@ -170,13 +186,17 @@ public class CrawlTestExtensionCallbacks implements
             if (tempDir != null) {
                 Files.walk(tempDir)
                         // Delete files before directories
-                        .sorted((path1, path2) -> path2.compareTo(path1))
+                        .sorted((path1, path2) -> path2
+                                .compareTo(path1))
                         .forEach(path -> {
                             try {
-                                FileUtil.delete(path.toFile());
+                                FileUtil.delete(path
+                                        .toFile());
                             } catch (IOException e) {
                                 throw new RuntimeException(
-                                        "Failed to delete file: " + path, e);
+                                        "Failed to delete file: "
+                                                + path,
+                                        e);
                             }
                         });
             }

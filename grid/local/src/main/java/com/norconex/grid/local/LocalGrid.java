@@ -21,12 +21,12 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
-import org.apache.commons.lang3.StringUtils;
 import org.h2.mvstore.MVStore;
 
 import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.GridContext;
+import com.norconex.grid.core.GridConnectionContext;
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.storage.GridStorage;
 import com.norconex.grid.local.storage.LocalStorage;
@@ -34,6 +34,7 @@ import com.norconex.grid.local.storage.LocalStorage;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.ToString;
 
 /**
@@ -71,17 +72,31 @@ public class LocalGrid implements Grid {
     // name.
     private static final AtomicInteger NODE_COUNT = new AtomicInteger();
 
-    private final Map<String, Object> localContexts = new ConcurrentHashMap<>();
+    private final Map<String, Object> contexts = new ConcurrentHashMap<>();
+    private boolean initialized = false;
 
-    public LocalGrid(
-            MVStore mvstore, String gridName, GridContext gridContext) {
-        this.gridName = gridName;
+    public LocalGrid(MVStore mvstore, GridConnectionContext gridContext) {
+        this.gridName = gridContext.getGridName();
         nodeName = "local-node-" + NODE_COUNT.getAndIncrement();
         gridStorage = new LocalStorage(mvstore);
         gridCompute = new LocalCompute(this);
         storagePath = Path.of(mvstore.getFileStore().getFileName()).getParent();
         stopHandler = new LocalStopHandler(this);
         stopHandler.listenForStopRequest();
+    }
+
+    @Override
+    public void init(Map<String, Function<Grid, Object>> contextSuppliers) {
+        if (initialized) {
+            throw new IllegalStateException("Grid already initialized.");
+        }
+        contextSuppliers.forEach((k, fn) -> contexts.put(k, fn.apply(this)));
+        initialized = true;
+    }
+
+    @Override
+    public boolean isInitialized() {
+        return initialized;
     }
 
     @Override
@@ -122,25 +137,23 @@ public class LocalGrid implements Grid {
         stopHandler.stopListening();
     }
 
-    @Override
-    public void registerContext(String contextKey, Object context) {
-        localContexts.put(StringUtils.isBlank(contextKey)
-                ? DEFAULT_CONTEXT_KEY
-                : contextKey,
-                context);
-    }
+    // @Override
+    // public void registerContext(String contextKey, Object context) {
+    //     localContexts.put(StringUtils.isBlank(contextKey)
+    //             ? DEFAULT_CONTEXT_KEY
+    //             : contextKey,
+    //             context);
+    // }
 
     @Override
-    public Object getContext(String contextKey) {
-        return localContexts.get(
-                StringUtils.isBlank(contextKey) ? DEFAULT_CONTEXT_KEY
-                        : contextKey);
+    public Object getContext(@NonNull String contextKey) {
+        return contexts.get(contextKey);
     }
 
-    @Override
-    public Object unregisterContext(String contextKey) {
-        return localContexts.remove(contextKey);
-    }
+    // @Override
+    // public Object unregisterContext(String contextKey) {
+    //     return localContexts.remove(contextKey);
+    // }
 
     /**
      * <b>Not applicable to local grid.</b>

@@ -23,6 +23,7 @@ import java.lang.annotation.Target;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.norconex.grid.core.Grid;
+import com.norconex.grid.core.GridConnectionContext;
 import com.norconex.grid.core.GridConnector;
 
 @Target({ ElementType.TYPE, ElementType.METHOD })
@@ -49,7 +50,8 @@ public @interface WithCluster {
         }
 
         @Override
-        public GridConnector create(String gridName, String nodeName) {
+        public GridConnector create(GridConnectionContext ctx,
+                String nodeName) {
             return null;
         }
     }

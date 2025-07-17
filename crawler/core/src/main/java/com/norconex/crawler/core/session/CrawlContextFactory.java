@@ -160,16 +160,14 @@ final class CrawlContextFactory {
         ctx.getDedupService().init(ctx);
         ctx.getMetrics().init(ctx);
         ctx.getImporter().init();
-        grid.registerContext(CrawlContext.NAME, ctx);
+        //grid.registerContext(CrawlContext.NAME, ctx);
     }
 
     private void createDir(Path dir) {
         try {
             Files.createDirectories(dir);
         } catch (IOException e) {
-            throw new CrawlerException(
-                    "Could not create directory: " + dir,
-                    e);
+            throw new CrawlerException("Could not create directory: " + dir, e);
         }
     }
 }

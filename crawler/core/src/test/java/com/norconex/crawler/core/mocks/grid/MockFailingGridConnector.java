@@ -15,8 +15,8 @@
 package com.norconex.crawler.core.mocks.grid;
 
 import com.norconex.grid.core.Grid;
+import com.norconex.grid.core.GridConnectionContext;
 import com.norconex.grid.core.GridConnector;
-import com.norconex.grid.core.GridContext;
 
 import lombok.Data;
 
@@ -24,12 +24,12 @@ import lombok.Data;
 public class MockFailingGridConnector implements GridConnector {
 
     @Override
-    public Grid connect(GridContext gridContext) {
+    public Grid connect(GridConnectionContext gridContext) {
         return new MockFailingGrid();
     }
 
     @Override
-    public void shutdownGrid(GridContext gridContext) {
+    public void shutdownGrid(GridConnectionContext gridContext) {
         // NOOP
     }
 }

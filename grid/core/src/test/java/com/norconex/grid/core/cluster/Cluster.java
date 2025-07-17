@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +29,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.function.FailableConsumer;
 
-import com.norconex.grid.core.BaseGridContext;
+import com.norconex.grid.core.BaseGridConnectionContext;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.TestTaskContext;
@@ -191,9 +192,10 @@ public class Cluster implements Closeable {
         List<Grid> newNodes = new ArrayList<>();
         for (var i = 0; i < numNodes; i++) {
             var nodeName = gridName + "-node-" + nodeCount.incrementAndGet();
-            var node = connectorFactory.create(gridName, nodeName).connect(
-                    new BaseGridContext(tempDir));
-            node.registerContext(null, new TestTaskContext());
+            var gridCtx = new BaseGridConnectionContext(tempDir, gridName);
+            var node = connectorFactory.create(gridCtx, nodeName).connect(
+                    gridCtx);
+            node.init(Map.of("default", grid -> new TestTaskContext()));
             newNodes.add(node);
             nodes.put(node, false);
         }

@@ -14,6 +14,7 @@
  */
 package com.norconex.grid.local;
 
+import com.norconex.grid.core.GridConnectionContext;
 import com.norconex.grid.core.GridConnector;
 import com.norconex.grid.core.cluster.ClusterConnectorFactory;
 
@@ -21,7 +22,7 @@ public class LocalClusterTestConnectorFactory
         implements ClusterConnectorFactory {
 
     @Override
-    public GridConnector create(String gridName, String nodeName) {
-        return new LocalGridConnector(gridName);
+    public GridConnector create(GridConnectionContext ctx, String nodeName) {
+        return new LocalGridConnector();
     }
 }

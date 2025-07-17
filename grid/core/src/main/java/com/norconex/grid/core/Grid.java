@@ -16,8 +16,10 @@ package com.norconex.grid.core;
 
 import java.io.Closeable;
 import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 
 import com.norconex.grid.core.compute.GridCompute;
 import com.norconex.grid.core.storage.GridStorage;
@@ -30,15 +32,11 @@ public interface Grid extends Closeable {
     //MAYBE: use SPI to detect which grid/storage implementation to use
     // but also offer to optionally pass one in constructor instead.
 
+    // GridEnvironment getEnvironment();
+
     GridCompute getCompute();
 
     GridStorage getStorage();
-
-    /**
-     * Holds context data specific to each grid instances.
-     * @return grid context
-     */
-    // GridContext getGridContext();
 
     /**
      * Logical name unique to each node in a cluster.
@@ -69,6 +67,7 @@ public interface Grid extends Closeable {
      * In addition, running pipelines won't advance to their next stages.
      * </p>
      */
+    //TODO move to compute
     void stop();
 
     /**
@@ -103,26 +102,43 @@ public interface Grid extends Closeable {
     CompletableFuture<Void> awaitMinimumNodes(int count, Duration timeout);
 
     /**
-     * Register a context object that will be available locally on this node,
-     * and passed as argument to grid tasks referencing its key. Can be any
-     * object type.
-     * @param contextKey A unique identifier for this context
-     * @param context The context object (not serialized)
+     * Initializes this grid node before it can start accepting tasks to
+     * execute. The map of context suppliers allow to register arbitrary
+     * context objects that will be made available wherever your grid
+     * instance is.
+     * @param contextSuppliers contexts to register with this grid
+     * @throws IllegalStateException if this grid (node) instance was already
+     * initialized.
      */
-    void registerContext(String contextKey, Object context);
+    void init(Map<String, Function<Grid, Object>> contextSuppliers);
+
+    boolean isInitialized();
+
+    // /**
+    //  * Register a context object that will be available locally on this node,
+    //  * and passed as argument to grid tasks referencing its key. Can be any
+    //  * object type.
+    //  * @param contextKey A unique identifier for this context
+    //  * @param context The context object (not serialized)
+    //  */
+    // void registerContext(String contextKey, Object context);
 
     /**
      * Get a registered context object by its key.
      * @param contextKey The unique identifier of a registered context
      * @return the associated context object, or {@code null} if none
      *       is none could be found under the given key.
+     * @throws IllegalStateException if trying to get a context object before
+     *     inititialization was fully performed. Implementors can wait for some
+     *     time to avoid race conditions before throwing. Make a timeout
+     *     configurable if so.
      */
     Object getContext(String contextKey);
 
-    /**
-     * Unregister a context object that is no longer needed by any task
-     * @param contextKey The unique identifier of a registered context
-     * @return the object removed, if any
-     */
-    Object unregisterContext(String contextKey);
+    // /**
+    //  * Unregister a context object that is no longer needed by any task
+    //  * @param contextKey The unique identifier of a registered context
+    //  * @return the object removed, if any
+    //  */
+    // Object unregisterContext(String contextKey);
 }

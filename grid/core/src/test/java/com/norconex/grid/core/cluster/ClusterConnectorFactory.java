@@ -14,10 +14,11 @@
  */
 package com.norconex.grid.core.cluster;
 
+import com.norconex.grid.core.GridConnectionContext;
 import com.norconex.grid.core.GridConnector;
 
 public interface ClusterConnectorFactory {
 
-    GridConnector create(String gridName, String nodeName);
+    GridConnector create(GridConnectionContext ctx, String nodeName);
 
 }

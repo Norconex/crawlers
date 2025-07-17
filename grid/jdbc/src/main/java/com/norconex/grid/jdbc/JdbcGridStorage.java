@@ -53,6 +53,7 @@ import lombok.ToString;
 @ToString
 public class JdbcGridStorage implements GridStorage {
 
+    //TODO have: volatile-cache, session-cache, and durable-cache
     private static final String SESSION_CACHE_KEY = "session-cache";
     private static final String DURABLE_CACHE_KEY = "durable-cache";
     private static final String STORE_TYPES_KEY =

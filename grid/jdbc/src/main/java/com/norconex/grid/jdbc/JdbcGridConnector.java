@@ -21,7 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.GridConnector;
-import com.norconex.grid.core.GridContext;
+import com.norconex.grid.core.GridConnectionContext;
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.impl.CoreGrid;
 import com.zaxxer.hikari.HikariConfig;
@@ -72,7 +72,7 @@ public class JdbcGridConnector
             new JdbcGridConnectorConfig();
 
     @Override
-    public Grid connect(GridContext ctx) {
+    public Grid connect(GridConnectionContext ctx) {
         var dataSource = new HikariDataSource(new HikariConfig(
                 configuration.getDatasource().toProperties()));
         LOG.debug("✔️ JDBC datasource created.");
@@ -98,7 +98,7 @@ public class JdbcGridConnector
     }
 
     @Override
-    public void shutdownGrid(GridContext ctx) {
+    public void shutdownGrid(GridConnectionContext ctx) {
         try (var grid = connect(ctx)) {
             grid.stop();
         }

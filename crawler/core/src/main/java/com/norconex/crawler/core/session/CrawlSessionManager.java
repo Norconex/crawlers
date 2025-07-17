@@ -17,6 +17,7 @@ package com.norconex.crawler.core.session;
 import static com.norconex.crawler.core.util.ExceptionSwallower.swallow;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -24,7 +25,7 @@ import java.util.function.Consumer;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.util.ConfigUtil;
-import com.norconex.grid.core.BaseGridContext;
+import com.norconex.grid.core.BaseGridConnectionContext;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.compute.GridTaskBuilder;
 import com.norconex.grid.core.storage.GridMap;
@@ -49,14 +50,22 @@ public final class CrawlSessionManager {
     private final CrawlConfig crawlConfig;
 
     public void withCrawlContext(Consumer<CrawlContext> consumer) {
+        //grid.registerContext(CrawlContext.NAME, ctx);
         var heartbeatScheduler = Executors.newScheduledThreadPool(1);
         CrawlContext ctx = null;
+        Grid grid = null;
         try {
-            var grid = crawlConfig
+            //NOTE: The context object must be created and set on the grid
+            // before it joins the cluster or this node can start receiving
+            // tasks before full initialization.
+
+            grid = crawlConfig
                     .getGridConnector()
-                    .connect(new BaseGridContext(
+                    .connect(new BaseGridConnectionContext(
                             ConfigUtil.resolveWorkDir(crawlConfig)
-                                    .resolve(GRID_WORKDIR_NAME)));
+                                    .resolve(GRID_WORKDIR_NAME),
+                            crawlConfig.getId()));
+
             var session = CrawlSessionResolver.resolve(
                     grid, SESSION_TIMEOUT, crawlConfig.getId());
             ctx = CrawlContextFactory.builder()
@@ -66,9 +75,15 @@ public final class CrawlSessionManager {
                     .session(session)
                     .build()
                     .create();
-
-            // Schedule heartbeats at interval
-            final var finalCtx = ctx;
+            var finalCtx = ctx;
+            //Schedule heartbeats at interval
+            // heartbeatScheduler.scheduleAtFixedRate(
+            //         () -> updateHeartbeat(finalCtx),
+            //         0,
+            //         SESSION_HEARTBEAT_INTERVAL.toMillis(),
+            //         TimeUnit.MILLISECONDS);
+            grid.init(Map.of(CrawlContext.NAME, g -> finalCtx));
+            //Schedule heartbeats at interval
             heartbeatScheduler.scheduleAtFixedRate(
                     () -> updateHeartbeat(finalCtx),
                     0,
@@ -90,13 +105,13 @@ public final class CrawlSessionManager {
         ctx.getGrid().getCompute().executeTask(GridTaskBuilder
                 .create("crawlerRunningHeartbeat")
                 .singleNode()
-                .processor(grid -> sessionStore(grid)
-                        .update(id, sess -> sess.setLastUpdated(
-                                System.currentTimeMillis())))
+                .processor(grid -> sessionStore(grid).update(id, sess -> sess
+                        .setLastUpdated(System.currentTimeMillis())))
                 .build());
     }
 
     static GridMap<CrawlSession> sessionStore(Grid grid) {
-        return grid.getStorage().getMap(SESSION_STORE_KEY, CrawlSession.class);
+        return grid.getStorage().getMap(SESSION_STORE_KEY,
+                CrawlSession.class);
     }
 }

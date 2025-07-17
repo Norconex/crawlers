@@ -14,8 +14,7 @@
  */
 package com.norconex.crawler.web.mocks;
 
-import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
-public class MockWebDriver extends RemoteWebDriver implements TakesScreenshot {
+public class MockWebDriver extends RemoteWebDriver {
 }

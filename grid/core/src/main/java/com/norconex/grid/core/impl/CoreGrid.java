@@ -29,6 +29,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jgroups.Address;
@@ -41,17 +42,21 @@ import com.norconex.grid.core.impl.compute.CoreCompute;
 import com.norconex.grid.core.storage.GridStorage;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class CoreGrid implements Grid {
 
-    /**
-     * Key used to store a default context. This key is used to register
-     * a context under a {@code null} or blank key, or when specifying a
-     * {@code null} context key in a submitted grid task.
-     */
-    public static final String DEFAULT_CONTEXT_KEY = "default";
+    // /**
+    //  * Key used to store a default context. This key is used to register
+    //  * a context under a {@code null} or blank key, or when specifying a
+    //  * {@code null} context key in a submitted grid task.
+    //  */
+    // public static final String DEFAULT_CONTEXT_KEY = "default";
+
+    //TODO make this configurable if 2 minutes is not enough.
+    private static final long GET_CONTEXT_TIMEOUT = 120_000;
 
     @Getter
     private final String gridName;
@@ -73,13 +78,15 @@ public class CoreGrid implements Grid {
                 return t;
             });
 
-    private final Map<String, Object> localContexts = new ConcurrentHashMap<>();
+    private final Map<String, Object> contexts = new ConcurrentHashMap<>();
 
     //--- JGroups ---
     private final JChannel channel;
 
     // used to detect coordinator changes only (otherwise obtained dynamically)
     private Address cachedCoordAddress;
+
+    private boolean initialized;
 
     public CoreGrid(
             CoreGridConnectorConfig connConfig,
@@ -145,25 +152,67 @@ public class CoreGrid implements Grid {
         compute.stopTask(null);
     }
 
+    // @Override
+    // public void registerContext(String contextKey, Object context) {
+    //     localContexts.put(StringUtils.isBlank(contextKey)
+    //             ? DEFAULT_CONTEXT_KEY
+    //             : contextKey,
+    //             context);
+    // }
+
     @Override
-    public void registerContext(String contextKey, Object context) {
-        localContexts.put(StringUtils.isBlank(contextKey)
-                ? DEFAULT_CONTEXT_KEY
-                : contextKey,
-                context);
+    public synchronized void init(
+            Map<String, Function<Grid, Object>> contextSuppliers) {
+        if (initialized) {
+            throw new IllegalStateException(
+                    "Grid node instance already initialized.");
+        }
+        if (contextSuppliers != null) {
+            contextSuppliers
+                    .forEach((k, fn) -> contexts.put(k, fn.apply(this)));
+        }
+        LOG.info("Grid \"{}\" node \"{}\" initialized.",
+                gridName, nodeName);
+        initialized = true;
     }
 
     @Override
-    public Object getContext(String contextKey) {
-        return localContexts.get(
-                StringUtils.isBlank(contextKey) ? DEFAULT_CONTEXT_KEY
-                        : contextKey);
+    public boolean isInitialized() {
+        return initialized;
     }
 
     @Override
-    public Object unregisterContext(String contextKey) {
-        return localContexts.remove(contextKey);
+    public Object getContext(@NonNull String contextKey) {
+        if (!initialized) {
+            throw new IllegalStateException("Grid not initialized.");
+            //            // LOG.info("""
+            //            //     An attempt was made to access a context object with key \
+            //            //     "{}" on this node before complete initialization. Waiting a \
+            //            //     bit before answering...
+            //            //     """, contextKey);
+            //
+            //            // LOG.info("XXX STACK TRACE: {}",
+            //            //         (Object) Thread.currentThread().getStackTrace());
+            //
+            //            // try {
+            //            //     ConcurrentUtil.waitUntilOrThrow(() -> this.initialized,
+            //            //             Duration.ofMillis(GET_CONTEXT_TIMEOUT));
+            //            //     LOG.info("All good now: this node initialization is complete. "
+            //            //             + "Returning context object \"{}\"", contextKey);
+            //            // } catch (TimeoutException e) {
+            //            //     throw new IllegalStateException(
+            //            //             "Can't obtain context object \"{}\" from grid "
+            //            //                     + "until grid is fully initialized.",
+            //            //             e);
+            //            // }
+        }
+        return contexts.get(contextKey);
     }
+
+    // @Override
+    // public Object unregisterContext(String contextKey) {
+    //     return localContexts.remove(contextKey);
+    // }
 
     @Override
     public CompletableFuture<Void> awaitMinimumNodes(
