@@ -27,19 +27,19 @@ import lombok.ToString;
 public class TaskProgress implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private TaskExecutionResult status;
+    private TaskExecutionResult result;
     private long lastHeartbeat;
 
     public TaskProgress() {
     }
 
-    public TaskProgress(TaskExecutionResult status, long lastHeartbeat) {
-        this.status = status;
+    public TaskProgress(TaskExecutionResult result, long lastHeartbeat) {
+        this.result = result;
         this.lastHeartbeat = lastHeartbeat;
     }
 
-    public TaskExecutionResult getStatus() {
-        return status;
+    public TaskExecutionResult getResult() {
+        return result;
     }
 
     public long getLastHeartbeat() {

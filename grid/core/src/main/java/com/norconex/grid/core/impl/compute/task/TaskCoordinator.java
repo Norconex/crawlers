@@ -18,21 +18,28 @@ import static java.util.Optional.ofNullable;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jgroups.Address;
 import org.jgroups.util.Rsp;
 
 import com.norconex.commons.lang.ExceptionUtil;
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.compute.ExecutionMode;
 import com.norconex.grid.core.compute.GridTask;
+import com.norconex.grid.core.compute.GridTaskRequest2;
 import com.norconex.grid.core.compute.TaskExecutionResult;
 import com.norconex.grid.core.compute.TaskState;
 import com.norconex.grid.core.impl.CoreGrid;
@@ -50,6 +57,17 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class TaskCoordinator {
+
+    private static final Duration WORKER_PROGRESS_POLL_INTERVAL =
+            Duration.ofSeconds(2);
+
+    /**
+     * Amount of time without any workers giving signs of life
+     * after which we consider the grid stale and abort.
+     */
+    private static final Duration INACTIVE_WORKERS_TIMEOUT =
+            Duration.ofMinutes(2);
+
     private final WorkDispatcher dispatcher;
     private final Worker localWorker;
     private final CoreGrid grid;
@@ -60,14 +78,147 @@ public class TaskCoordinator {
     // for session/resumes.  Should be reset when session is reset.
     private final GridMap<TaskState> taskStateStore;
 
+    private final TaskStoreManager2 taskStoreManager;
+
+    // <taskId, ...>
+    private Map<String, ResultsByNode> workersProgress =
+            Collections.unmodifiableMap(new HashMap<>());
+
+    private static class ResultsByNode {
+        // <nodeId, ...>
+        private final Map<String, TaskProgress> results = new HashMap<>();
+    }
+
+    /**
+     * Periodically cache node task progress from DB for quick access.
+     */
+    private final ScheduledExecutorService workerProgressSyncScheduler =
+            Executors.newScheduledThreadPool(1);
+
     public TaskCoordinator(CoreCompute compute) {
         grid = compute.getGrid();
+        taskStoreManager = compute.getTaskStoreManager();
         localWorker = compute.getLocalWorker();
         dispatcher = compute.getDispatcher();
         taskStateStore =
                 grid.getStorage().getMap("task_state", TaskState.class);
         taskTimeout = grid.getConnectorConfig().getTaskTimeout();
+
+        // Schedule heartbeats at interval
+        //TODO shut it down when done?
+        workerProgressSyncScheduler.scheduleAtFixedRate(
+                this::syncWorkersProgress, 0, 1, TimeUnit.SECONDS);
     }
+
+    /**
+     * Mark this coordinator as ready to manage tasks. It will start monitoring
+     * to worker progress and keep overall state in sync.
+     */
+    public void start() {
+
+    }
+
+    private void syncWorkersProgress() {
+        var workProg = new HashMap<String, ResultsByNode>();
+        taskStoreManager.getWorkersTaskProgress().forEach((key, progress) -> {
+            var tskId = StringUtils.substringBefore(key, ":");
+            var nodeId = StringUtils.substringAfter(key, ":");
+            var resultsByNode = workProg.computeIfAbsent(
+                    tskId, id -> new ResultsByNode());
+            resultsByNode.results.put(nodeId, progress);
+            return true;
+        });
+        workersProgress = workProg;
+    }
+
+    //NOTE: if resuming, tasks will pickup what is still running
+    // pipeline will be also be initialized properly when resuming
+
+    public void planTaskExecution2(GridTaskRequest2 taskReq) {
+
+        // Ignore request if not the coordinator
+        if (!grid.isCoordinator()) {
+            return;
+        }
+
+        // Ignore request if it is already being executed (or planned to be).
+        if (taskStoreManager.getTaskRequests().contains(taskReq.getId())) {
+            LOG.error("Received a request for task {} while it is already "
+                    + "being executed.");
+        }
+
+        // Ignore request if marked to run "once" and already ran
+        var taskExecResult =
+                taskStoreManager.getTerminatedTasks().get(taskReq.getId());
+        if (taskReq.isOnce() && taskExecResult != null) {
+            LOG.error("Task {} is marked to run once, but already ran in this "
+                    + "grid session with status: {}.", taskReq.getId(),
+                    taskExecResult.getState());
+        }
+
+        // Store the request for workers to pick up.
+        taskStoreManager.getTaskRequests().put(taskReq.getId(), taskReq);
+
+        //TODO track execution separately and remove it from taskRequests
+        // and add it to terminatedTasks.
+
+    }
+
+    public TaskExecutionResult awaitTaskExecutionResult(String taskId) {
+
+        // if already executed, return it
+        var taskResult = taskStoreManager.getTerminatedTasks().get(taskId);
+        if (taskResult != null) {
+            LOG.info("Task {} already ran with status: {}", taskId,
+                    taskResult.getState());
+            return taskResult;
+        }
+
+        var lastWorkerActivity = System.currentTimeMillis();
+
+        while (System.currentTimeMillis()
+                - lastWorkerActivity < INACTIVE_WORKERS_TIMEOUT.toMillis()) {
+
+            var hasNonTerminal = false;
+            TaskProgress completed = null;
+            TaskProgress failed = null;
+
+            // if all nodes are in terminal state or expired,
+            // we consider the whole clustered task to be terminated
+            var resultsByNode = workersProgress.get(taskId);
+            for (Map.Entry<String, TaskProgress> entry : resultsByNode.results
+                    .entrySet()) {
+                entry.getKey();
+                var progress = entry.getValue();
+                if (progress.getLastHeartbeat() > lastWorkerActivity) {
+                    lastWorkerActivity = progress.getLastHeartbeat();
+                }
+                var state = progress.getResult().getState();
+                if (state.isAny(TaskState.RUNNING, TaskState.PENDING)) {
+                    hasNonTerminal = true;
+                } else if (state == TaskState.FAILED) {
+                    failed = progress;
+                } else if (state == TaskState.COMPLETED) {
+                    completed = progress;
+                }
+            }
+
+            if (!hasNonTerminal) {
+                if (completed != null) {
+                    return completed.getResult();
+                }
+                if (failed != null) {
+                    return failed.getResult();
+                }
+            }
+
+            Sleeper.sleepSeconds(1);
+        }
+
+        return new TaskExecutionResult(TaskState.FAILED, null, "Expired.");
+    }
+
+    //--- ABOVE IS NEW --------------------
 
     public TaskExecutionResult executeTask(GridTask task) throws Exception {
         //TODO, not a supported use case yet, but if joining remotely to
@@ -162,7 +313,7 @@ public class TaskCoordinator {
                 throw new GridException(
                         "Task expired. No hearbeat received from coordinator.");
             }
-            var status = gridProgress.getStatus();
+            var status = gridProgress.getResult();
             if (status == null) {
                 return false;
             }
@@ -252,7 +403,7 @@ public class TaskCoordinator {
             status = task.aggregate(new ArrayList<>(agg.lastProgresses
                     .values()
                     .stream()
-                    .map(TaskProgress::getStatus).toList()));
+                    .map(TaskProgress::getResult).toList()));
             taskStateStore.put(task.getId(),
                     status != null ? status.getState() : TaskState.FAILED);
         }
@@ -273,7 +424,7 @@ public class TaskCoordinator {
             var rsp = entry.getValue();
             var progress = rsp.getValue();
             agg.lastProgresses.put(srcNode, progress);
-            var status = progress != null ? progress.getStatus() : null;
+            var status = progress != null ? progress.getResult() : null;
 
             if (status == null) {
                 // The status is set on remote nodes the moment task execution
@@ -314,7 +465,7 @@ public class TaskCoordinator {
             Rsp<TaskProgress> rsp,
             TaskProgress progress,
             Address srcNode) {
-        var status = progress == null ? null : progress.getStatus();
+        var status = progress == null ? null : progress.getResult();
         var heartbeat = progress == null ? 0 : progress.getLastHeartbeat();
         String error;
         if (status != null && status.getError() != null) {

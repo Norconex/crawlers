@@ -19,11 +19,13 @@ import com.norconex.grid.core.GridException;
 import com.norconex.grid.core.compute.GridCompute;
 import com.norconex.grid.core.compute.GridPipeline;
 import com.norconex.grid.core.compute.GridTask;
+import com.norconex.grid.core.compute.GridTaskRequest2;
 import com.norconex.grid.core.compute.TaskExecutionResult;
 import com.norconex.grid.core.compute.TaskState;
 import com.norconex.grid.core.impl.CoreGrid;
 import com.norconex.grid.core.impl.compute.pipeline.PipelineCoordinator;
 import com.norconex.grid.core.impl.compute.task.TaskCoordinator;
+import com.norconex.grid.core.impl.compute.task.TaskStoreManager2;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -38,16 +40,33 @@ public class CoreCompute implements GridCompute {
     private final WorkDispatcher dispatcher;
     @Getter
     private final Worker localWorker;
+    @Getter
+    private final TaskStoreManager2 taskStoreManager;
 
     private final TaskCoordinator taskCoord;
     private final PipelineCoordinator pipeCoord;
 
     public CoreCompute(CoreGrid grid) {
         this.grid = grid;
+        taskStoreManager = new TaskStoreManager2(grid.getStorage());
         localWorker = new Worker(grid);
         dispatcher = new WorkDispatcher(grid, localWorker);
         taskCoord = new TaskCoordinator(this);
         pipeCoord = new PipelineCoordinator(this);
+    }
+
+    public TaskExecutionResult executeTask2(@NonNull GridTaskRequest2 taskReq) {
+        try {
+            taskCoord.planTaskExecution2(taskReq);
+        } catch (Exception e) {
+            LOG.error("Exception occured task request {}", taskReq.getId(), e);
+            return new TaskExecutionResult(TaskState.FAILED, null,
+                    "Exception occured executing task " + taskReq.getId() + ": "
+                            + ExceptionUtil.getFormattedMessages(e));
+        }
+        //TODO return void or return actual results. Probably best to
+        // let coordinator deal with returned result.
+        return null;
     }
 
     @Override

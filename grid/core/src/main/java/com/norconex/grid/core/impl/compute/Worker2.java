@@ -16,6 +16,8 @@ package com.norconex.grid.core.impl.compute;
 
 import static java.util.Optional.ofNullable;
 
+import java.time.Duration;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -25,11 +27,19 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.collections4.CollectionUtils;
+
+import com.norconex.commons.lang.ClassUtil;
+import com.norconex.commons.lang.Sleeper;
+import com.norconex.grid.core.compute.ExecutionMode;
 import com.norconex.grid.core.compute.GridTask;
+import com.norconex.grid.core.compute.GridTask2;
+import com.norconex.grid.core.compute.GridTaskRequest2;
 import com.norconex.grid.core.compute.TaskExecutionResult;
 import com.norconex.grid.core.compute.TaskState;
 import com.norconex.grid.core.impl.CoreGrid;
 import com.norconex.grid.core.impl.compute.task.TaskProgress;
+import com.norconex.grid.core.impl.compute.task.TaskStoreManager2;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,7 +50,141 @@ import lombok.extern.slf4j.Slf4j;
  */
 // A local instance is bound to the grid in the WorkDispatcher
 @Slf4j
-public class Worker {
+public class Worker2 {
+
+    /**
+     * Amount of time without the coordinator giving signs of live
+     * after which we consider the grid stale and abort.
+     */
+    private static final Duration INACTIVE_COORD_TIMEOUT =
+            Duration.ofMinutes(2);
+    private static final Duration TASK_POLL_INTERVAL =
+            Duration.ofSeconds(5);
+
+    private final CoreGrid grid;
+    private final TaskStoreManager2 taskStoreManager;
+    private final Map<String, GridTask2> runningTasks =
+            new ConcurrentHashMap<>();
+    private final Map<String, GridTask2> terminatedTasks =
+            new ConcurrentHashMap<>();
+
+    /**
+     * Update the database with the latest task progress.
+     */
+    private final ScheduledExecutorService heartbeatScheduler =
+            Executors.newScheduledThreadPool(1);
+
+    boolean stopRequested = false;
+
+    public Worker2(CoreGrid grid) {
+        this.grid = grid;
+        taskStoreManager = grid.getCompute().getTaskStoreManager();
+    }
+
+    /**
+     * Mark this worker as ready for work. It will start listening for
+     * tasks and execute them as they are distributed by the coordinator,
+     * via the data store.
+     */
+    public void start() {
+        var lastTimeWithTasks = System.currentTimeMillis();
+        while (!stopRequested) {
+            Set<String> activeGridTasksIds = new HashSet<>();
+            var taskRequests = taskStoreManager.getTaskRequests();
+
+            // If no more tasks after a while, abort.
+            if (!taskRequests.isEmpty()) {
+                lastTimeWithTasks = System.currentTimeMillis();
+            } else if (System.currentTimeMillis()
+                    - lastTimeWithTasks > INACTIVE_COORD_TIMEOUT.toMillis()) {
+                LOG.warn("No tasks to execute for while now. Shutting down.");
+                stopRequested = true;
+            }
+
+            // there are tasks: handle them
+            taskRequests.forEach((id, req) -> {
+                activeGridTasksIds.add(id);
+                if (!terminatedTasks.containsKey(id)) {
+                    if (runningTasks.containsKey(id)) {
+                        updateTaskState(id, TaskState.RUNNING);
+                    } else if (canExecute(req)) {
+                        runningTasks.put(req.getId(), executeAsync(req));
+                    } else {
+                        updateTaskState(id, TaskState.PENDING);
+                    }
+                }
+                return true;
+            });
+
+            // remove those that did not come back as running from grid
+            //TODO those removed here should be used to stop zombie ones
+            // on this worker if any
+            CollectionUtils.subtract(runningTasks.keySet(), activeGridTasksIds)
+                    .forEach(taskId -> {
+                        LOG.warn("""
+                            Task {} marked as no longer running by \
+                            coordinator, Stopping it to avoid zombi \
+                            process.""", taskId);
+                        runningTasks.get(taskId).stop(grid);
+                    });
+            runningTasks.keySet().retainAll(activeGridTasksIds);
+            terminatedTasks.keySet().retainAll(activeGridTasksIds);
+
+            Sleeper.sleepMillis(TASK_POLL_INTERVAL.toMillis());
+        }
+    }
+
+    public void stop() {
+        stopRequested = true;
+        runningTasks.values().forEach(task -> task.stop(grid));
+    }
+
+    private boolean canExecute(GridTaskRequest2 req) {
+        return req.getExecutionMode() == ExecutionMode.ALL_NODES
+                || req.getExecutionMode() == ExecutionMode.SINGLE_NODE
+                        && grid.isCoordinator();
+    }
+
+    private GridTask2 executeAsync(GridTaskRequest2 req) {
+        GridTask2 task = ClassUtil.newInstance(req.getTaskClass());
+        Executors.newSingleThreadExecutor().submit((Runnable) () -> {
+            try {
+                var result = task.execute(grid);
+                updateTaskProgress(
+                        req.getId(),
+                        new TaskProgress(new TaskExecutionResult(
+                                TaskState.COMPLETED, result, null),
+                                System.currentTimeMillis()));
+                LOG.info("Task {} completed on node {}", req.getId(),
+                        grid.getNodeName());
+            } catch (Exception e) {
+                updateTaskProgress(
+                        req.getId(),
+                        new TaskProgress(new TaskExecutionResult(
+                                TaskState.FAILED, null, e.getMessage()),
+                                System.currentTimeMillis()));
+                LOG.error("Task {} failed on node {}",
+                        req.getId(), grid.getNodeName(), e);
+            } finally {
+                terminatedTasks.put(req.getId(), task);
+                runningTasks.remove(req.getId());
+            }
+        });
+        return task;
+    }
+
+    private void updateTaskState(String taskId, TaskState state) {
+        updateTaskProgress(taskId, new TaskProgress(
+                new TaskExecutionResult(state, null, null),
+                System.currentTimeMillis()));
+    }
+
+    private void updateTaskProgress(String taskId, TaskProgress progress) {
+        taskStoreManager.getWorkersTaskProgress()
+                .put(taskId + ":" + grid.getNodeName(), progress);
+    }
+
+    //--- ABOVE IS NEW -----------------------------
 
     // <taskId, ...>
     private final Map<String, TaskProgress> localTaskProgresses =
@@ -59,19 +203,6 @@ public class Worker {
     // <pipelineId>
     private final Map<String, TaskExecutionResult> donePipelines =
             new ConcurrentHashMap<>();
-
-    private final CoreGrid grid;
-
-    /**
-     * Store local heartbeat so coordinator knows how recent it did something
-     * when pulling for info.
-     */
-    private final ScheduledExecutorService heartbeatScheduler =
-            Executors.newScheduledThreadPool(1);
-
-    public Worker(CoreGrid grid) {
-        this.grid = grid;
-    }
 
     //TODO fail fast these methods if grid is not initialized.
     //TODO have dispatcher retry a few times, taking current pipeline stage

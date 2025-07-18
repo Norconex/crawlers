@@ -52,7 +52,7 @@ public final class TaskUtil {
 
     public static boolean isState(TaskProgress progress, TaskState state) {
         return ofNullable(progress)
-                .map(TaskProgress::getStatus)
+                .map(TaskProgress::getResult)
                 .map(TaskExecutionResult::getState)
                 .filter(s -> s == state)
                 .isPresent();
