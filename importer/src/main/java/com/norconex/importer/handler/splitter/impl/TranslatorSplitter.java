@@ -386,7 +386,7 @@ public class TranslatorSplitter
 
         childMeta.set(DocMetaConstants.EMBEDDED_REFERENCE, childEmbedRef);
 
-        childInfo.addEmbeddedParentReference(docCtx.reference());
+        childInfo.addParentReference(docCtx.reference());
 
         childMeta.set(DocMetaConstants.LANGUAGE, targetLang);
         childMeta.set(DocMetaConstants.TRANSLATED_FROM, sourceLang);

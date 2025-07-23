@@ -83,7 +83,7 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
         }
 
         var embedDepth =
-                docCtx.docContext().getEmbeddedParentReferences().size() + 1;
+                docCtx.docContext().getParentReferences().size() + 1;
         var maxDepth = embeddedConfig.getMaxEmbeddedDepth();
         // Extract only up to specified max depth
         if (maxDepth >= 0 && embedDepth > maxDepth) {
@@ -128,8 +128,8 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
         TikaUtil.metadataToProperties(tikaMeta, embedMeta);
         var embedRecord = resolveEmbeddedResourceName(
                 tikaMeta, embedMeta, embedCount);
-        embedRecord.setEmbeddedParentReferences(
-                docCtx.docContext().getEmbeddedParentReferences());
+        embedRecord.setParentReferences(
+                docCtx.docContext().getParentReferences());
 
         // Read the steam into cache for reuse since Tika will
         // close the original stream on us causing exceptions later.
@@ -137,8 +137,7 @@ class RecursiveEmbeddedSplitter extends ParserDecorator {
                 docCtx.streamFactory().newOuputStream()) {
             IOUtils.copy(input, embedOutput);
             var embedInput = embedOutput.getInputStream();
-            embedRecord.addEmbeddedParentReference(
-                    docCtx.reference());
+            embedRecord.addParentReference(docCtx.reference());
             var embedDoc = new Doc(embedRecord, embedInput, embedMeta);
             embeddedDocs.add(embedDoc);
         }

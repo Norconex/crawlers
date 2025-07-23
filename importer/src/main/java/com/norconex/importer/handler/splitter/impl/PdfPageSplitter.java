@@ -137,7 +137,7 @@ public class PdfPageSplitter
                         DocMetaConstants.EMBEDDED_REFERENCE,
                         Integer.toString(pageNo));
 
-                pageInfo.addEmbeddedParentReference(docCtx.reference());
+                pageInfo.addParentReference(docCtx.reference());
 
                 pageMeta.set(DOC_PDF_PAGE_NO, pageNo);
                 pageMeta.set(DOC_PDF_TOTAL_PAGES, document.getNumberOfPages());

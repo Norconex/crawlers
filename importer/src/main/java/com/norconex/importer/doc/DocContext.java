@@ -14,7 +14,6 @@
  */
 package com.norconex.importer.doc;
 
-import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,50 +28,24 @@ import lombok.NonNull;
 import lombok.ToString;
 
 /**
- * Important information about a document that has specific meaning and purpose
- * for processing by the Importer and needs to be stored/referenced in a
- * consistent way. In some contexts, a document record is a lightweight,
- * cacheable version of a document ({@link Doc}).
+ * Minimum information required to uniquely identify a document
+ * or define its nature.
  */
 @Data
-//@JsonAutoDetect(
-//    getterVisibility = JsonAutoDetect.Visibility.NONE,
-//    isGetterVisibility = JsonAutoDetect.Visibility.NONE
-//)
-public class DocContext implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    // DocRecord?
-
-    //TODO DocProperties?  misleading because of Properties
-    //TODO DocAttributes?  seems distinct enough.  Use this.
-
-    //MAYBE:
-    // - private Locale locale?
-    // - create interface IDocInfo?
-    // - add parent reference info here???
-    // - remove most Properties method and put them here.
-    // - track original vs final here (useful for tracking deletions
-    //   under a modified reference (and have dynamic committer targets).
-    // - make final?
+public class DocContext {
 
     @NonNull
     private String reference = null;
     private ContentType contentType;
     private Charset charset;
 
-    //MAYBE: remove prefix "embedded" and just keep parent* ?
-
-    // trail of parent references (first one is root/top-level)
-    //    @ToStringSummary
+    /**
+     * If this is an embedded document, holds the chain of parent
+     * references up to the immediate parent (does not include this
+     * signature reference).
+     */
     @ToString.Exclude
-    private List<String> embeddedParentReferences = new ArrayList<>();
-
-    //MAYBE: above should just be parentReferences and below should be metadata?
-
-    //MAYBE: add a method toMetadata or "asMetadata" as opposed to have
-    // external conversion
+    private List<String> parentReferences = new ArrayList<>();
 
     /**
      * Constructor.
@@ -96,23 +69,24 @@ public class DocContext implements Serializable {
         copyFrom(docRecord);
     }
 
-    public List<String> getEmbeddedParentReferences() {
-        return Collections.unmodifiableList(embeddedParentReferences);
+    public List<String> getParentReferences() {
+        return Collections.unmodifiableList(parentReferences);
     }
 
-    public void setEmbeddedParentReferences(
-            List<String> embeddedParentReferences) {
+    public void setParentReferences(
+            List<String> parentReferences) {
         CollectionUtil.setAll(
-                this.embeddedParentReferences, embeddedParentReferences);
+                this.parentReferences, parentReferences);
     }
 
-    public void addEmbeddedParentReference(String embeddedParentReference) {
-        embeddedParentReferences.add(embeddedParentReference);
+    public void addParentReference(String parentReference) {
+        parentReferences.add(parentReference);
     }
 
     //MAYBE: use this new method instead of having clone functional
     //  interface on Crawler class.
-    public DocContext withReference(String reference, DocContext docRecord) {
+    public DocContext withReference(String reference,
+            DocContext docRecord) {
         var newDocInfo = new DocContext(docRecord);
         newDocInfo.setReference(reference);
         return newDocInfo;

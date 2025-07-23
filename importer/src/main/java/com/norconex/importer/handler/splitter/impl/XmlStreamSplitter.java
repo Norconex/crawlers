@@ -231,7 +231,7 @@ public class XmlStreamSplitter
                         out = null;
                         w = null;
                         var childInfo = childDoc.getDocContext();
-                        childInfo.addEmbeddedParentReference(
+                        childInfo.addParentReference(
                                 xmlDoc.reference());
                         childMeta.set(
                                 DocMetaConstants.EMBEDDED_REFERENCE, embedRef);

@@ -30,8 +30,8 @@ class DocContextTest {
         var di1 = new DocContext();
         di1.setReference("ref");
         di1.setContentType(ContentType.BMP);
-        di1.setEmbeddedParentReferences(List.of("parentRef"));
-        di1.addEmbeddedParentReference("parentRef2");
+        di1.setParentReferences(List.of("parentRef"));
+        di1.addParentReference("parentRef2");
         di1.setCharset(StandardCharsets.US_ASCII);
 
         var di2 = new DocContext("I will be replaced.");
@@ -48,7 +48,7 @@ class DocContextTest {
         di4 = di4.withReference("ref2", di1);
         assertThat(di1).isNotEqualTo(di4);
 
-        assertThat(di4.getEmbeddedParentReferences())
+        assertThat(di4.getParentReferences())
                 .containsExactly("parentRef", "parentRef2");
     }
 }

@@ -1,0 +1,62 @@
+collector:
+  workDir: /wordir
+  maxConcurrentCrawlers: 50
+  eventListeners:
+    listener:
+      - sample: sample
+      - sample: sample
+  crawlerDefaults:
+    numThreads: 1
+    maxDocuments: 111
+    orphansStrategy: PROCESS
+    dataStoreEngine: ''
+    referenceFilters:
+      filter:
+        - xml,pdf,doc
+        - .*example.com.*
+    metadataFilters:
+      filter:
+        - xml,pdf,doc
+        - .*example.com.*
+        - Blah.*
+    documentFilters:
+      filter:
+        - xml,pdf,doc
+        - .*example.com.*
+        - Blah.*
+    eventListeners:
+      listener:
+        - sample: sample
+        - sample: sample
+        - eventMatcher: REJECTED_NOTFOUND,REJECTED_FILTER
+        - eventMatcher: DOCUMENT_COMMITTED_UPSERT,DOCUMENT_COMMITTED_DELETE
+    importer:
+      preParseHandlers:
+        handler:
+          replace:
+            valueMatcher: A
+            toValue: B
+      postParseHandlers:
+        handler:
+          replace:
+            valueMatcher: C
+            toValue: D
+    committers:
+      committer:
+        directory: /tmp/somepath
+    documentChecksummer:
+      sourceFields: field1,field2
+      sourceFieldsRegex: field.*
+    spoiledReferenceStrategizer:
+      mapping:
+        - ''
+        - ''
+        - ''
+  crawlers:
+    crawler:
+      - numThreads: 2
+        maxDocuments: 222
+        orphansStrategy: DELETE
+      - numThreads: 3
+        maxDocuments: 333
+        orphansStrategy: IGNORE

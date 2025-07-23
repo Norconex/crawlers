@@ -178,7 +178,7 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
             }
             var childDoc = new Doc(childRef, content, childMeta);
             var childInfo = childDoc.getDocContext();
-            childInfo.addEmbeddedParentReference(docCtx.reference());
+            childInfo.addParentReference(docCtx.reference());
             childMeta.set(DocMetaConstants.EMBEDDED_REFERENCE, childEmbedRef);
             docs.add(childDoc);
         }
