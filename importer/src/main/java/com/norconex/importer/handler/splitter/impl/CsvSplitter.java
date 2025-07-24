@@ -204,11 +204,10 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
         } else {
             content = docCtx.streamFactory().newInputStream();
         }
-        var childDoc = new Doc(childDocRef, content, childMeta);
-        var childInfo = childDoc.getDocContext();
-        childInfo.setReference(childDocRef);
-        childInfo.addParentReference(docCtx.reference());
-
+        @SuppressWarnings("resource")
+        var childDoc = new Doc(childDocRef)
+                .setInputStream(content)
+                .setMetadata(childMeta);
         childMeta.set(DocMetaConstants.EMBEDDED_REFERENCE, childEmbedRef);
 
         return childDoc;

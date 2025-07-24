@@ -14,75 +14,109 @@
  */
 package com.norconex.importer.doc;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 
+import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.ImporterRuntimeException;
 
-import lombok.EqualsAndHashCode;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.Accessors;
 
 /**
  * A document being imported.
  */
-@EqualsAndHashCode
-@ToString
-public class Doc {
+@Data
+@Accessors(chain = true)
+public class Doc implements Closeable {
 
-    //MAYBE: still allow String reference in constructor and create?
-    //MAYBE: add parent reference info here?
+    //NOTE no more DocContext: has been merged here
+    //TODO standardize some metadata?
 
-    private final DocContext docContext;
+    @NonNull
+    @Setter(value = AccessLevel.NONE)
+    private String reference;
+    private ContentType contentType;
+    private Charset charset;
+
+    /**
+     * If this is an embedded document, holds the chain of parent
+     * references up to the immediate parent (does not include this
+     * signature reference).
+     */
     @ToString.Exclude
-    private final Properties metadata;
+    private List<String> parentReferences = new ArrayList<>();
+
     @ToString.Exclude
+    private Properties metadata = new Properties();
+
+    @ToString.Exclude
+    @Setter(value = AccessLevel.NONE)
+    @Getter(value = AccessLevel.NONE)
+    @NonNull
     private CachedInputStream content;
 
-    public Doc(String reference, CachedInputStream content) {
-        this(reference, content, null);
+    public Doc(String reference) {
+        this.reference = reference;
+        content = CachedInputStream.nullInputStream();
     }
 
-    public Doc(
-            @NonNull String reference, CachedInputStream content,
-            Properties metadata) {
-        this(new DocContext(reference), content, metadata);
-    }
-
-    /**
-     * Creates a blank importer document using the supplied input stream
-     * to handle content.
-     * The document reference automatically gets added to the metadata.
-     * @param docContext document details
-     * @param content content input stream
-     */
-    public Doc(DocContext docContext, CachedInputStream content) {
-        this(docContext, content, null);
-    }
-
-    /**
-     * Creates a blank importer document using the supplied input stream
-     * to handle content.
-     * @param docContext document details
-     * @param content content input stream
-     * @param metadata importer document metadata
-     */
-    public Doc(
-            @NonNull DocContext docContext,
-            @NonNull CachedInputStream content,
-            Properties metadata) {
-        this.docContext = docContext;
-        this.content = content;
+    public Doc setMetadata(Properties metadata) {
         if (metadata == null) {
-            this.metadata = new Properties();
+            this.metadata.clear();
         } else {
             this.metadata = metadata;
         }
+        return this;
+    }
+
+    /**
+     * Copy constructor.
+     * @param doc document details to copy
+     */
+    public Doc(@NonNull Doc doc) { //NOSONAR
+        charset = doc.charset;
+        content = doc.content;
+        contentType = doc.contentType;
+        metadata = doc.metadata;
+        parentReferences = doc.parentReferences;
+        reference = doc.reference;
+    }
+
+    public List<String> getParentReferences() {
+        return Collections.unmodifiableList(parentReferences);
+    }
+
+    public Doc setParentReferences(List<String> parentReferences) {
+        CollectionUtil.setAll(this.parentReferences, parentReferences);
+        return this;
+    }
+
+    public Doc addParentReference(String parentReference) {
+        parentReferences.add(parentReference);
+        return this;
+    }
+
+    public Doc withReference(String reference) {
+        var doc = new Doc(this);
+        doc.reference = reference;
+        return doc;
     }
 
     /**
@@ -90,8 +124,8 @@ public class Doc {
      * disk or memory cache).
      * @throws IOException could not dispose of document resources
      */
-    //MAYBE: implement "closeable" instead?
-    public synchronized void dispose() throws IOException {
+    @Override
+    public void close() throws IOException {
         content.dispose();
     }
 
@@ -100,9 +134,9 @@ public class Doc {
         return content;
     }
 
-    public void setInputStream(@NonNull InputStream inputStream) {
+    public Doc setInputStream(@NonNull InputStream inputStream) {
         if (content == inputStream) {
-            return;
+            return this;
         }
         try {
             content.dispose();
@@ -118,27 +152,10 @@ public class Doc {
             throw new ImporterRuntimeException(
                     "Could set content input stream.", e);
         }
+        return this;
     }
 
     public CachedStreamFactory getStreamFactory() {
         return content.getStreamFactory();
-    }
-
-    public DocContext getDocContext() {
-        return docContext;
-    }
-
-    public Properties getMetadata() {
-        return metadata;
-    }
-
-    /**
-     * Gets the document reference. Same as
-     * invoking <code>getDocInfo().getReference()</code>.
-     * @return reference
-     * @see #getDocContext()
-     */
-    public String getReference() {
-        return docContext.getReference();
     }
 }

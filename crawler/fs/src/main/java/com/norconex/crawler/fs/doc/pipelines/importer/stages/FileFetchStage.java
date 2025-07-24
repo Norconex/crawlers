@@ -57,7 +57,7 @@ public class FileFetchStage extends AbstractImporterStage {
             return true;
         }
 
-        var docRecord = (FsCrawlDocContext) pipeCtx.getDoc().getDocContext();
+        var docRecord = (FsCrawlDocContext) pipeCtx.getDocContext();
         var fetcher = pipeCtx.getCrawlContext().getFetcher();
         FileFetchResponse response;
         try {

@@ -23,6 +23,13 @@ import com.norconex.importer.doc.DocMetaConstants;
  */
 public final class CrawlDocMetaConstants {
 
+    //TODO XXX MAYBE: have constants a construct instead, which could
+    // have a formal name, and a way to parse each property received
+    // to see if it fits.  We could put a listener on the metadata Properties
+    // so this formal ones are updated on the fly.
+    // Best to have a MetadataRegistry.  We'll need to distinguish between
+    // formal metadata and ad-hoc ones (metadata vs properties maybe)?
+
     //TODO use the same prefix for both crawler and importer...
     // all "document." ? In any case, no longer make it "collector."
 

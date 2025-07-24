@@ -16,7 +16,7 @@ package com.norconex.importer.util;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.importer.doc.DocContext;
+import com.norconex.importer.doc.Doc;
 
 public final class MatchUtil {
 
@@ -26,16 +26,16 @@ public final class MatchUtil {
     /**
      * Null-safe matches a document record content type.
      * @param matcher text matcher
-     * @param docRecord the document record on which to assess the content type
+     * @param doc the document on which to assess the content type
      * @return <code>true</code> if matches or if either arguments or content
      *      type are {@code null}
      */
     public static boolean matchesContentType(
-            TextMatcher matcher, DocContext docRecord) {
-        if (docRecord == null) {
+            TextMatcher matcher, Doc doc) {
+        if (doc == null) {
             return true;
         }
-        return matchesContentType(matcher, docRecord.getContentType());
+        return matchesContentType(matcher, doc.getContentType());
     }
 
     /**

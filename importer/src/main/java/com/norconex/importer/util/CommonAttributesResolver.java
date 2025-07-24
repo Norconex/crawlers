@@ -23,17 +23,15 @@ import java.io.IOException;
 import com.norconex.importer.charset.CharsetDetector;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocContext;
 import com.norconex.importer.doc.DocMetaConstants;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
- * Detects common document attributes and set them as both {@link DocContext}
- * properties and document metadata fields. The attributes are only
- * detected and set if it is not already present, unless overwrite is
- * <code>true</code>.
+ * Detects common document attributes and set them as document metadata fields.
+ * The attributes are only detected and set if it is not already present,
+ * unless overwrite is <code>true</code>.
  * </p>
  * <p>
  * You can expect the following properties/fields to be set after using this
@@ -76,22 +74,20 @@ public final class CommonAttributesResolver {
     }
 
     private static void resolveContenTypeAndFamily(Doc doc, boolean overwrite) {
-        var docRecord = doc.getDocContext();
         var meta = doc.getMetadata();
 
         // DocRecord Content-Type
-        if (overwrite || docRecord.getContentType() == null) {
+        if (overwrite || doc.getContentType() == null) {
             try {
-                docRecord.setContentType(
-                        ContentTypeDetector.detect(
-                                doc.getInputStream(), doc.getReference()));
+                doc.setContentType(ContentTypeDetector.detect(
+                        doc.getInputStream(), doc.getReference()));
             } catch (IOException e) {
                 LOG.warn("Could not perform content type detection.", e);
             }
         }
 
         // Metadata Content-Type
-        var ct = docRecord.getContentType();
+        var ct = doc.getContentType();
         if (overwrite || (meta.getString(CONTENT_TYPE) == null && ct != null)) {
             meta.set(CONTENT_TYPE, ct.toString());
         }
@@ -104,22 +100,20 @@ public final class CommonAttributesResolver {
     }
 
     private static void resolveContentEncoding(Doc doc, boolean overwrite) {
-        var docRecord = doc.getDocContext();
         var meta = doc.getMetadata();
 
         // Doc Record character encoding
-        if (overwrite || docRecord.getCharset() == null) {
+        if (overwrite || doc.getCharset() == null) {
             try {
-                docRecord.setCharset(
-                        CharsetDetector.builder().build().detect(
-                                doc.getInputStream()));
+                doc.setCharset(CharsetDetector.builder().build().detect(
+                        doc.getInputStream()));
             } catch (IOException e) {
                 LOG.warn("Could not perform character encoding detection.", e);
             }
         }
 
         // Metadata character encoding
-        var enc = docRecord.getCharset();
+        var enc = doc.getCharset();
         if (overwrite
                 || (meta.getString(CONTENT_ENCODING) == null && enc != null)) {
             meta.set(CONTENT_ENCODING, enc);

@@ -14,16 +14,31 @@
  */
 package com.norconex.crawler.core2;
 
+import com.norconex.crawler.core2.session.CrawlSessionManager;
+
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Crawler {
-    public static void main(String[] args) {
+    @Getter
+    private final CrawlDriver crawlDriver;
+    @Getter
+    private final CrawlConfig crawlConfig;
 
-        LOG.info("hello world");
+    private final CrawlSessionManager sessionManager;
 
+    public Crawler(CrawlDriver crawlDriver, CrawlConfig crawlConfig) {
+        this.crawlDriver = crawlDriver;
+        this.crawlConfig = crawlConfig;
+        sessionManager = new CrawlSessionManager(crawlDriver, crawlConfig);
     }
 
+    //TODO for each type of cluster ID
+
+    //       run: new distributed memory ID, then store it in persistent cache
+    //   session: new distributed memory ID, and check if previous run as completed, else, use the previous ID for the session id
+    //   crawler: there is alreay a crawler id.
 }
 /*
 

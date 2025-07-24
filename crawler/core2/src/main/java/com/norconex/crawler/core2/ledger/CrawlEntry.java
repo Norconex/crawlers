@@ -21,7 +21,6 @@ import java.util.List;
 
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.importer.doc.DocContext;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -33,7 +32,7 @@ import lombok.ToString;
  * Also persisted in the {@link CrawlEntryLedger}.
  */
 @Data
-public class CrawlEntry extends DocContext {
+public class CrawlEntry {
 
     /** Typically, the number of "hops" or directories to get to a file. */
     private int depth;
@@ -54,20 +53,13 @@ public class CrawlEntry extends DocContext {
     private ZonedDateTime lastModified;
     private boolean orphan;
     private boolean deleted;
+    private String reference;
 
     public CrawlEntry() {
     }
 
     public CrawlEntry(String reference) {
-        super(reference);
-    }
-
-    /**
-     * Copy constructor.
-     * @param docDetails document details to copy
-     */
-    public CrawlEntry(DocContext docDetails) {
-        super(docDetails);
+        this.reference = reference;
     }
 
     public CrawlEntry withReference(String reference) {

@@ -32,6 +32,11 @@ import lombok.ToString;
  */
 @EqualsAndHashCode
 public class CrawlDocContext extends DocContext {
+
+    //
+    // Now CrawlEntry
+    //
+
     private static final long serialVersionUID = 1L;
 
     // for crawlers that support this notion

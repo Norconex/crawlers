@@ -81,7 +81,7 @@ public class DefaultParser
     @Override
     public boolean handle(DocHandlerContext ctx) throws IOException {
         var tikaMetadata = new Metadata();
-        var contentType = ctx.docContext().getContentType();
+        var contentType = ctx.contentType();
 
         if (contentType == null) {
             throw new IOException("Doc must have a content-type.");
@@ -94,7 +94,7 @@ public class DefaultParser
                 ctx.reference());
         tikaMetadata.set(
                 HttpHeaders.CONTENT_ENCODING,
-                ofNullable(ctx.docContext().getCharset())
+                ofNullable(ctx.charset())
                         .map(Charset::toString)
                         .orElse(null));
 
@@ -140,7 +140,7 @@ public class DefaultParser
         // its embedded documents (else, we merge).
         if (TextMatcher.anyMatches(
                 configuration.getEmbeddedConfig().getSplitContentTypes(),
-                docCtx.docContext().getContentType().toBaseTypeString())) {
+                docCtx.contentType().toBaseTypeString())) {
             return new RecursiveEmbeddedSplitter(
                     tikaParser,
                     docCtx,

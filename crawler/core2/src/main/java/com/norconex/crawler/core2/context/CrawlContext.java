@@ -16,10 +16,18 @@ package com.norconex.crawler.core2.context;
 
 import java.nio.file.Path;
 
+import com.norconex.committer.core.service.CommitterService;
 import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.io.CachedStreamFactory;
+import com.norconex.crawler.core2.CrawlConfig;
+import com.norconex.crawler.core2.doc.pipelines.DedupService;
+import com.norconex.crawler.core2.event.CrawlerEvent;
+import com.norconex.crawler.core2.fetch.Fetcher;
+import com.norconex.crawler.core2.ledger.CrawlEntryLedger;
 import com.norconex.importer.Importer;
+import com.norconex.importer.doc.Doc;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -52,19 +60,19 @@ public class CrawlContext {
 
     public static final String NAME = "CrawlContext";
 
-    //    private final DedupService dedupService;
-    //    private final CrawlDocLedger docLedger;
+    private final DedupService dedupService;
+    private final CrawlEntryLedger crawlEntryLedger;
     //    private final CrawlerMetrics metrics;
-    //    private final CrawlConfig crawlConfig;
+    private final CrawlConfig crawlConfig;
     private final BeanMapper beanMapper;
     private final EventManager eventManager;
     //    private final CrawlCallbacks callbacks;
-    //    private final CommitterService<CrawlDoc> committerService;
+    private final CommitterService<Doc> committerService;
     private final Importer importer;
     //    @Singular
     //    private final List<CrawlBootstrapper> bootstrappers;
     //    private final CrawlDocPipelines docPipelines;
-    //    private final Fetcher fetcher;
+    private final Fetcher fetcher;
     //    private final Grid grid;
     private final Path workDir;
     private final Path tempDir;
@@ -81,14 +89,15 @@ public class CrawlContext {
     //        return (CrawlContext) grid.getContext(NAME);
     //    }
     //
-    //    public String getId() {
-    //        return crawlConfig.getId();
-    //    }
-    //
-    //    @Override
-    //    public String toString() {
-    //        return getId();
-    //    }
+    public String getId() {
+        return crawlConfig.getId();
+    }
+
+    @Override
+    public String toString() {
+        return getId();
+    }
+
     //
     //    public boolean isResumedSession() {
     //        return getResumeState() == LaunchMode.RESUMED;
@@ -100,21 +109,21 @@ public class CrawlContext {
     //
     //    //TODO keep "fire" methods on event manager and not here?
     //
-    //    public void fire(Event event) {
-    //        getEventManager().fire(event);
-    //    }
-    //
-    //    public void fire(String eventName) {
-    //        fire(CrawlerEvent.builder().name(eventName).source(this).build());
-    //    }
-    //
-    //    public void fire(String eventName, Object subject) {
-    //        fire(CrawlerEvent.builder()
-    //                .name(eventName)
-    //                .source(this)
-    //                .subject(subject)
-    //                .build());
-    //    }
+    public void fire(Event event) {
+        getEventManager().fire(event);
+    }
+
+    public void fire(String eventName) {
+        fire(CrawlerEvent.builder().name(eventName).source(this).build());
+    }
+
+    public void fire(String eventName, Object subject) {
+        fire(CrawlerEvent.builder()
+                .name(eventName)
+                .source(this)
+                .subject(subject)
+                .build());
+    }
     //
     //    public CrawlDocContext createDocContext(@NonNull String reference) {
     //        var docContext = ClassUtil.newInstance(docContextType);

@@ -24,10 +24,9 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocContext;
 import com.norconex.importer.doc.DocMetaConstants;
-import com.norconex.importer.handler.DocHandlerException;
 import com.norconex.importer.handler.DocHandlerContext;
+import com.norconex.importer.handler.DocHandlerException;
 import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
 import com.norconex.importer.util.MatchUtil;
 
@@ -101,7 +100,7 @@ public class PdfPageSplitter
 
         // Make sure we are not splitting a page that was already split
         if (!MatchUtil.matchesContentType(
-                configuration.getContentTypeMatcher(), docCtx.docContext())
+                configuration.getContentTypeMatcher(), docCtx.contentType())
                 || (docCtx.metadata().getInteger(DOC_PDF_PAGE_NO, 0) > 0)) {
             return;
         }
@@ -131,13 +130,13 @@ public class PdfPageSplitter
                 var pageMeta = new Properties();
                 pageMeta.loadFromMap(docCtx.metadata());
 
-                var pageInfo = new DocContext(pageRef);
+                var pageDoc = new Doc(pageRef);
 
                 pageMeta.set(
                         DocMetaConstants.EMBEDDED_REFERENCE,
                         Integer.toString(pageNo));
 
-                pageInfo.addParentReference(docCtx.reference());
+                pageDoc.addParentReference(docCtx.reference());
 
                 pageMeta.set(DOC_PDF_PAGE_NO, pageNo);
                 pageMeta.set(DOC_PDF_TOTAL_PAGES, document.getNumberOfPages());
@@ -147,11 +146,10 @@ public class PdfPageSplitter
                 try (page) {
                     page.save(os);
                 }
-                var pageDoc = new Doc(
-                        pageInfo,
-                        docCtx.streamFactory().newInputStream(
-                                os.toInputStream()),
-                        pageMeta);
+                pageDoc.setInputStream(
+                        docCtx.streamFactory()
+                                .newInputStream(os.toInputStream()))
+                        .setMetadata(pageMeta);
                 pageDocs.add(pageDoc);
             }
         } catch (IOException e) {

@@ -15,6 +15,7 @@
 package com.norconex.importer;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Optional.ofNullable;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -158,11 +159,12 @@ public final class TestUtil {
         t.handle(newHandlerContext(ref, input, metadata, parseState));
     }
 
+    @SuppressWarnings("resource")
     public static Doc newDoc(File file) {
         try {
-            return new Doc(
-                    file.getAbsolutePath(),
-                    CachedInputStream.cache(new FileInputStream(file)));
+            return new Doc(file.getAbsolutePath())
+                    .setInputStream(
+                            CachedInputStream.cache(new FileInputStream(file)));
         } catch (FileNotFoundException e) {
             throw new UncheckedException(e);
         }
@@ -193,15 +195,19 @@ public final class TestUtil {
         // Remove document.reference for tests that need the same count
         // as values they entered in metadata. Just keep it if explicitely
         // passed.
-        var hasRef = meta != null && meta.containsKey("document.reference");
+        var safeMeta = ofNullable(meta).orElseGet(Properties::new);
+        var hasRef = safeMeta.containsKey("document.reference");
         var inputStream = in != null ? in : InputStream.nullInputStream();
-        var doc = new Doc(ref, CachedInputStream.cache(inputStream), meta);
+        @SuppressWarnings("resource")
+        var doc = new Doc(ref)
+                .setInputStream(CachedInputStream.cache(inputStream))
+                .setMetadata(safeMeta);
         if (!hasRef) {
             doc.getMetadata().remove("document.reference");
         }
         var ct = doc.getMetadata().getString(DocMetaConstants.CONTENT_TYPE);
         if (ct != null) {
-            doc.getDocContext().setContentType(ContentType.valueOf(ct));
+            doc.setContentType(ContentType.valueOf(ct));
         }
 
         return doc;

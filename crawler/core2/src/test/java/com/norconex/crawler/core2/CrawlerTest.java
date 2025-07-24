@@ -16,13 +16,11 @@ package com.norconex.crawler.core2;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.core2.Crawler;
-
 class CrawlerTest {
 
     @Test
     void testCrawler() {
-        Crawler.main(new String[] {});
+        //    Crawler.main(new String[] {});
     }
 
 }

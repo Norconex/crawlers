@@ -28,7 +28,7 @@ import lombok.ToString;
  */
 @EqualsAndHashCode
 @ToString
-public class CrawlDoc extends Doc {
+public class CrawlDoc extends Doc { // XXX Now just using Doc
 
     private final CrawlDocContext cachedDocContext;
 

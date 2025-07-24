@@ -39,7 +39,6 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.unit.DataUnit;
 import com.norconex.importer.ImporterRuntimeException;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocContext;
 import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.handler.DocHandlerException;
@@ -382,16 +381,19 @@ public class TranslatorSplitter
         var childEmbedRef = "translation-" + targetLang;
         var childDocRef = docCtx.reference() + "!" + childEmbedRef;
 
-        var childInfo = new DocContext(childDocRef);
+        @SuppressWarnings("resource")
+        var childDoc = new Doc(childDocRef);
 
         childMeta.set(DocMetaConstants.EMBEDDED_REFERENCE, childEmbedRef);
 
-        childInfo.addParentReference(docCtx.reference());
+        childDoc.addParentReference(docCtx.reference());
 
         childMeta.set(DocMetaConstants.LANGUAGE, targetLang);
         childMeta.set(DocMetaConstants.TRANSLATED_FROM, sourceLang);
 
-        return new Doc(childDocRef, childInput, childMeta);
+        return childDoc
+                .setInputStream(childInput)
+                .setMetadata(childMeta);
     }
 
     private Properties translateFields(

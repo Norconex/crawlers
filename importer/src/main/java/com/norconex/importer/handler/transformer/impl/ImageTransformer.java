@@ -104,7 +104,7 @@ public class ImageTransformer
 
         // only proceed if we are dealing with a supported content type
         if (!MatchUtil.matchesContentType(
-                configuration.getContentTypeMatcher(), docCtx.docContext())) {
+                configuration.getContentTypeMatcher(), docCtx.contentType())) {
             return true;
         }
 

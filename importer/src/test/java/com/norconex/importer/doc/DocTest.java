@@ -22,9 +22,12 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.ImporterRuntimeException;
@@ -33,23 +36,43 @@ import com.norconex.importer.TestUtil;
 class DocTest {
 
     @Test
+    void testDocInfo() {
+        var di1 = new Doc("ref");
+        di1.setContentType(ContentType.BMP);
+        di1.setParentReferences(List.of("parentRef"));
+        di1.addParentReference("parentRef2");
+        di1.setCharset(StandardCharsets.US_ASCII);
+
+        var di2 = new Doc(di1);
+        assertThat(di1).isEqualTo(di2);
+
+        var di4 = new Doc(di1);
+        assertThat(di1).isEqualTo(di4);
+
+        di4 = di4.withReference("ref2");
+        assertThat(di1).isNotEqualTo(di4);
+
+        assertThat(di4.getParentReferences())
+                .containsExactly("parentRef", "parentRef2");
+    }
+
+    @SuppressWarnings("resource")
+    @Test
     void testDoc() {
-        var doc = new Doc("ref.html", toCachedInputStream("a test"));
-        assertThat(doc.getReference()).isEqualTo(
-                doc.getDocContext().getReference());
+        var doc = new Doc("ref.html")
+                .setInputStream(toCachedInputStream("a test"));
+        assertThat(doc.getReference()).isEqualTo(doc.getReference());
         assertThat(TestUtil.contentAsString(doc)).isEqualTo("a test");
 
-        doc = new Doc(
-                new DocContext("ref.html"),
-                toCachedInputStream("a test"));
+        doc = new Doc("ref.html").setInputStream(toCachedInputStream("a test"));
         assertThat(doc.getReference()).isEqualTo("ref.html");
 
         var props = new Properties();
         props.add("test", "value");
-        doc = new Doc(
-                new DocContext("ref.html"),
-                CachedInputStream.cache(InputStream.nullInputStream()),
-                props);
+        doc = new Doc("ref.html")
+                .setInputStream(
+                        CachedInputStream.cache(InputStream.nullInputStream()))
+                .setMetadata(props);
         assertThat(doc.getMetadata().size()).isOne();
         assertThat(doc.getMetadata().getString("test")).isEqualTo("value");
     }
@@ -57,11 +80,13 @@ class DocTest {
     @Test
     void testDispose() {
         // we can get content a few times until disposed
-        var doc = new Doc("ref.html", toCachedInputStream("a test"));
+        @SuppressWarnings("resource")
+        var doc = new Doc("ref.html")
+                .setInputStream(toCachedInputStream("a test"));
         assertThatNoException().isThrownBy(() -> {
             TestUtil.contentAsString(doc);
             TestUtil.contentAsString(doc);
-            doc.dispose();
+            doc.close();
         });
         assertThatException().isThrownBy(() -> TestUtil.contentAsString(doc));
 
@@ -76,8 +101,8 @@ class DocTest {
     @Test
     void testSetInputStream() {
         // setting both a CachedInputStream or other stream should be OK
-        var doc = new Doc(
-                "ref.html",
+        @SuppressWarnings("resource")
+        var doc = new Doc("ref.html").setInputStream(
                 CachedInputStream.cache(InputStream.nullInputStream()));
 
         doc.setInputStream(doc.getStreamFactory().newInputStream("a test"));
@@ -90,7 +115,7 @@ class DocTest {
         assertThatExceptionOfType(ImporterRuntimeException.class)
                 .isThrownBy(
                         //NOSONAR
-                        () -> doc
-                                .setInputStream(TestUtil.failingInputStream()));
+                        () -> doc.setInputStream(
+                                TestUtil.failingInputStream()));
     }
 }

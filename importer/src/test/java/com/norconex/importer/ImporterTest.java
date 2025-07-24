@@ -129,6 +129,7 @@ class ImporterTest {
         Assertions.assertNotNull(importer.getEventManager());
     }
 
+    @SuppressWarnings("resource")
     @Test
     void testExceptions() throws IOException {
         // Invalid files
@@ -141,7 +142,8 @@ class ImporterTest {
 
         Assertions.assertEquals(
                 importer.importDocument(
-                        new Doc("ref", TestUtil.failingCachedInputStream()))
+                        new Doc("ref").setInputStream(
+                                TestUtil.failingCachedInputStream()))
                         .getException().getClass(),
                 ImporterException.class);
     }

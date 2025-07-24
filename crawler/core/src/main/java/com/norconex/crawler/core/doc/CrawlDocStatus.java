@@ -35,7 +35,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
     isGetterVisibility = JsonAutoDetect.Visibility.NONE
 )
 //TODO maybe rename something along the lines of DocProcessingStatus?
-public class CrawlDocStatus implements Serializable {
+public class CrawlDocStatus implements Serializable { // XXX now ProcessingOutcome
 
     private static final Map<String, CrawlDocStatus> STATUSES =
             new HashMap<>();

@@ -97,7 +97,7 @@ class RecursiveEmbeddedMerger extends ParserDecorator {
         ContentType currentType;
         if (isMasterDoc) {
             isMasterDoc = false;
-            currentType = docCtx.docContext().getContentType();
+            currentType = docCtx.contentType();
         } else {
             currentType = ContentTypeDetector.detect(stream, resName);
         }

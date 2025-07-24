@@ -155,7 +155,7 @@ public class DomCondition
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(
-                docCtx.docContext().getContentType().toString())) {
+                docCtx.contentType().toString())) {
             return false;
         }
 

@@ -36,7 +36,6 @@ import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.importer.charset.CharsetDetector;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocContext;
 import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.DocHandler;
 import com.norconex.importer.handler.DocHandlerContext;
@@ -212,57 +211,53 @@ public class Importer implements Closeable {
         }
     }
 
-    private void prepareDocumentForImporting(Doc document) {
-        var docRecord = document.getDocContext();
+    private void prepareDocumentForImporting(Doc doc) {
 
         //--- Ensure non-null content Type on Doc ---
-        var ct = docRecord.getContentType();
+        var ct = doc.getContentType();
         if (ct == null || StringUtils.isBlank(ct.toString())) {
             try {
                 ct = ContentTypeDetector.detect(
-                        document.getInputStream(), document.getReference());
+                        doc.getInputStream(), doc.getReference());
             } catch (IOException e) {
-                LOG.warn(
-                        "Could not detect content type. Defaulting to "
-                                + "\"application/octet-stream\".",
-                        e);
+                LOG.warn("Could not detect content type. Defaulting to "
+                        + "\"application/octet-stream\".", e);
                 ct = ContentType.valueOf("application/octet-stream");
             }
-            docRecord.setContentType(ct);
+            doc.setContentType(ct);
         }
 
         //--- Try to detect content encoding if not already set ---
 
         try {
             var encoding = CharsetDetector.builder()
-                    .priorityCharset(docRecord::getCharset)
+                    .priorityCharset(doc::getCharset)
                     .fallbackCharset((Charset) null)
                     .build()
-                    .detect(document);
-            docRecord.setCharset(encoding);
+                    .detect(doc);
+            doc.setCharset(encoding);
         } catch (IOException e) {
-            LOG.debug(
-                    "Problem detecting encoding for: {}",
-                    docRecord.getReference(), e);
+            LOG.debug("Problem detecting encoding for: {}",
+                    doc.getReference(), e);
         }
 
         //--- Add basic metadata for what we know so far ---
-        var meta = document.getMetadata();
-        meta.set(DocMetaConstants.REFERENCE, document.getReference());
+        var meta = doc.getMetadata();
+        meta.set(DocMetaConstants.REFERENCE, doc.getReference());
         meta.set(DocMetaConstants.CONTENT_TYPE, ct.toString());
         var contentFamily = ContentFamily.forContentType(ct);
         if (contentFamily != null) {
             meta.set(DocMetaConstants.CONTENT_FAMILY, contentFamily.toString());
         }
-        if (docRecord.getCharset() != null) {
-            meta.set(
-                    DocMetaConstants.CONTENT_ENCODING,
-                    docRecord.getCharset().toString());
+        if (doc.getCharset() != null) {
+            meta.set(DocMetaConstants.CONTENT_ENCODING,
+                    doc.getCharset().toString());
         }
     }
 
     // We deal with stream, but since only one of stream or file can be set,
     // convert file to stream only if set.
+    @SuppressWarnings("resource")
     private Doc toDocument(ImporterRequest req) throws ImporterException {
         ensureRequestStreamFactory();
 
@@ -295,11 +290,11 @@ public class Importer implements Closeable {
             is = requestStreamFactory.newInputStream();
         }
 
-        var info = new DocContext(ref);
-        info.setCharset(req.getCharset());
-        info.setContentType(req.getContentType());
-
-        return new Doc(info, is, req.getMetadata());
+        return new Doc(ref)
+                .setCharset(req.getCharset())
+                .setContentType(req.getContentType())
+                .setInputStream(is)
+                .setMetadata(req.getMetadata());
     }
 
     private synchronized void ensureRequestStreamFactory() {

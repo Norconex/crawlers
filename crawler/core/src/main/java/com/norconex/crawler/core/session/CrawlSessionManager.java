@@ -50,7 +50,6 @@ public final class CrawlSessionManager {
     private final CrawlConfig crawlConfig;
 
     public void withCrawlContext(Consumer<CrawlContext> consumer) {
-        //grid.registerContext(CrawlContext.NAME, ctx);
         var heartbeatScheduler = Executors.newScheduledThreadPool(1);
         CrawlContext ctx = null;
         Grid grid = null;
@@ -76,12 +75,6 @@ public final class CrawlSessionManager {
                     .build()
                     .create();
             var finalCtx = ctx;
-            //Schedule heartbeats at interval
-            // heartbeatScheduler.scheduleAtFixedRate(
-            //         () -> updateHeartbeat(finalCtx),
-            //         0,
-            //         SESSION_HEARTBEAT_INTERVAL.toMillis(),
-            //         TimeUnit.MILLISECONDS);
             grid.init(Map.of(CrawlContext.NAME, g -> finalCtx));
             //Schedule heartbeats at interval
             heartbeatScheduler.scheduleAtFixedRate(
