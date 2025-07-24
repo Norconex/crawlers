@@ -167,7 +167,8 @@ public class XmlStreamSplitter
         private final List<String> splitPath;
         private final List<Doc> splitDocs;
         private final DocHandlerContext xmlDoc;
-        private final String referenceField;
+//        private final String referenceField;
+        private final List<String> referenceFieldPath;
 
         private final List<String> currentPath = new ArrayList<>();
         private String extractedReferenceValue;
@@ -176,15 +177,34 @@ public class XmlStreamSplitter
         private PrintWriter w;
         private CachedOutputStream out;
 
+//        public XmlHandler(
+//                DocHandlerContext xmlDoc,
+//                List<String> splitPath,
+//                List<Doc> splitDocs,
+//                String referenceField) {
+//            this.xmlDoc = xmlDoc;
+//            this.splitDocs = splitDocs;
+//            this.splitPath = splitPath;
+//            this.referenceField = referenceField;
+//        }
+
         public XmlHandler(
-                DocHandlerContext xmlDoc,
-                List<String> splitPath,
-                List<Doc> splitDocs,
-                String referenceField) {
+            DocHandlerContext xmlDoc,
+            List<String> splitPath,
+            List<Doc> splitDocs,
+            String referenceField) {
             this.xmlDoc = xmlDoc;
             this.splitDocs = splitDocs;
             this.splitPath = splitPath;
-            this.referenceField = referenceField;
+            this.referenceFieldPath = normalizePath(referenceField);
+        }
+
+        private List<String> normalizePath(String path) {
+            LOG.info(path);
+            if (StringUtils.isBlank(path)) {
+                return List.of();
+            }
+            return Arrays.asList(StringUtils.split(path, '/'));
         }
 
         @Override
@@ -227,13 +247,13 @@ public class XmlStreamSplitter
 
         @Override
         public void endElement(String uri, String localName, String qName)
-                throws SAXException {
+            throws SAXException {
             try {
                 if (w != null) {
                     w.print("</" + esc(qName) + ">");
 
-                    if (referenceField != null
-                            && referenceField.equalsIgnoreCase(qName)) {
+                    if (!referenceFieldPath.isEmpty()
+                        && currentPath.equals(referenceFieldPath)) {
                         extractedReferenceValue = elementText.toString().trim();
                     }
 
@@ -243,40 +263,86 @@ public class XmlStreamSplitter
                         childMeta.loadFromMap(xmlDoc.metadata());
                         var embedRef = Integer.toString(splitDocs.size());
 
-                        String finalRef =
-                                StringUtils.isNotBlank(extractedReferenceValue)
-                                        ? extractedReferenceValue
-                                        : xmlDoc.reference() + "!"
-                                                + referenceField + embedRef;
+                        String finalRef = StringUtils.isNotBlank(extractedReferenceValue)
+                            ? extractedReferenceValue
+                            : xmlDoc.reference() + "!" + String.join("/", referenceFieldPath) + embedRef;
 
-                        var childDoc = new Doc(
-                                finalRef,
-                                out.getInputStream(),
-                                childMeta);
-                        LOG.debug("New reference: " + childDoc.getReference());
+                        var childDoc = new Doc(finalRef, out.getInputStream(), childMeta);
+                        LOG.debug("New reference: {}", childDoc.getReference());
 
                         w.close();
                         out = null;
                         w = null;
+
                         var childInfo = childDoc.getDocContext();
-                        childInfo.addEmbeddedParentReference(
-                                xmlDoc.reference());
-                        childMeta.set(
-                                DocMetaConstants.EMBEDDED_REFERENCE, embedRef);
+                        childInfo.addEmbeddedParentReference(xmlDoc.reference());
+                        childMeta.set(DocMetaConstants.EMBEDDED_REFERENCE, embedRef);
                         splitDocs.add(childDoc);
                     }
                 }
             } catch (IOException e) {
                 throw new SAXException(
-                        "Cannot parse XML for document: "
-                                + xmlDoc.reference(),
-                        e);
+                    "Cannot parse XML for document: " + xmlDoc.reference(), e);
             }
 
             if (!currentPath.isEmpty()) {
                 currentPath.remove(currentPath.size() - 1);
             }
         }
+
+
+
+//        public void endElement(String uri, String localName, String qName)
+//                throws SAXException {
+//            try {
+//                if (w != null) {
+//                    w.print("</" + esc(qName) + ">");
+//
+//                    if (referenceField != null
+//                            && referenceField.equalsIgnoreCase(qName)) {
+//                        extractedReferenceValue = elementText.toString().trim();
+//                    }
+//
+//                    if (currentPath.equals(splitPath)) {
+//                        w.flush();
+//                        var childMeta = new Properties();
+//                        childMeta.loadFromMap(xmlDoc.metadata());
+//                        var embedRef = Integer.toString(splitDocs.size());
+//
+//                        String finalRef =
+//                                StringUtils.isNotBlank(extractedReferenceValue)
+//                                        ? extractedReferenceValue
+//                                        : xmlDoc.reference() + "!"
+//                                                + referenceField + embedRef;
+//
+//                        var childDoc = new Doc(
+//                                finalRef,
+//                                out.getInputStream(),
+//                                childMeta);
+//                        LOG.debug("New reference: " + childDoc.getReference());
+//
+//                        w.close();
+//                        out = null;
+//                        w = null;
+//                        var childInfo = childDoc.getDocContext();
+//                        childInfo.addEmbeddedParentReference(
+//                                xmlDoc.reference());
+//                        childMeta.set(
+//                                DocMetaConstants.EMBEDDED_REFERENCE, embedRef);
+//                        splitDocs.add(childDoc);
+//                    }
+//                }
+//            } catch (IOException e) {
+//                throw new SAXException(
+//                        "Cannot parse XML for document: "
+//                                + xmlDoc.reference(),
+//                        e);
+//            }
+//
+//            if (!currentPath.isEmpty()) {
+//                currentPath.remove(currentPath.size() - 1);
+//            }
+//        }
 
         @Override
         public void warning(SAXParseException e) throws SAXException {

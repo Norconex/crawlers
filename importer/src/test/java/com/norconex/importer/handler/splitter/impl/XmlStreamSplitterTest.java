@@ -68,12 +68,55 @@ class XmlStreamSplitterTest {
               </species>
             </animals>""";
 
+    private final String sampleXMLwithNestedReference = """
+            <animals>
+              <species name="mouse">
+                <animal>
+                  <nested>
+                      <url>ref://mouse-1</url>
+                  </nested>
+                  <name>Itchy</name>
+                  <race>cartoon</race>
+                </animal>
+              </species>
+              <species name="cat">
+                <animal>
+                  <nested>
+                      <url>ref://cat-2</url>
+                  </nested>
+                  <name>Scratchy</name>
+                  <race>cartoon</race>
+                </animal>
+              </species>
+            </animals>""";
+    @Test
+    void testCustomNestedReferenceField() throws IOException {
+        var splitter = new XmlStreamSplitter();
+        splitter.getConfiguration()
+            .setPath("/animals/species/animal")
+            .setReferenceField("/animals/species/animal/nested/url")
+            .setContentTypeMatcher(TextMatcher.regex(".*"));
+
+        var docs = split(sampleXMLwithNestedReference, splitter);
+
+        Assertions.assertEquals(2, docs.size());
+        var ref1 = docs.get(0).getReference();
+        var ref2 = docs.get(1).getReference();
+
+        assertThat(ref1).isEqualTo("ref://mouse-1");
+        assertThat(ref2).isEqualTo("ref://cat-2");
+
+        var content = TestUtil.getContentAsString(docs.get(1));
+        assertThat(content).contains("<name>Scratchy</name>");
+    }
+
+
     @Test
     void testCustomReferenceField() throws IOException {
         var splitter = new XmlStreamSplitter();
         splitter.getConfiguration()
                 .setPath("/animals/species/animal")
-                .setReferenceField("/url")
+                .setReferenceField("/animals/species/animal/url")
                 .setContentTypeMatcher(TextMatcher.regex(".*"));
 
         var docs = split(sampleXMLwithReference, splitter);
