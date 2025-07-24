@@ -50,6 +50,45 @@ class XmlStreamSplitterTest {
               </species>
             </animals>""";
 
+    private final String sampleXMLwithReference = """
+            <animals>
+              <species name="mouse">
+                <animal>
+                  <url>ref://mouse-1</url>
+                  <name>Itchy</name>
+                  <race>cartoon</race>
+                </animal>
+              </species>
+              <species name="cat">
+                <animal>
+                  <url>ref://cat-2</url>
+                  <name>Scratchy</name>
+                  <race>cartoon</race>
+                </animal>
+              </species>
+            </animals>""";
+
+    @Test
+    void testCustomReferenceField() throws IOException {
+        var splitter = new XmlStreamSplitter();
+        splitter.getConfiguration()
+                .setPath("/animals/species/animal")
+                .setReferenceField("/url")
+                .setContentTypeMatcher(TextMatcher.regex(".*"));
+
+        var docs = split(sampleXMLwithReference, splitter);
+
+        Assertions.assertEquals(2, docs.size());
+        var ref1 = docs.get(0).getReference();
+        var ref2 = docs.get(1).getReference();
+
+        assertThat(ref1).isEqualTo("ref://mouse-1");
+        assertThat(ref2).isEqualTo("ref://cat-2");
+
+        var content = TestUtil.getContentAsString(docs.get(1));
+        assertThat(content).contains("<name>Scratchy</name>");
+    }
+
     @Test
     void testStreamSplit() throws IOException {
 

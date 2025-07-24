@@ -129,6 +129,7 @@ public class XmlStreamSplitter
 
         if (!MatchUtil.matchesContentType(
                 configuration.getContentTypeMatcher(), docCtx.docContext())) {
+            return;
         }
 
         if (configuration.getFieldMatcher().isSet()) {
@@ -152,7 +153,8 @@ public class XmlStreamSplitter
                     docCtx, Arrays.asList(
                             StringUtils.split(
                                     configuration.getPath(), '/')),
-                    docCtx.childDocs());
+                    docCtx.childDocs(),
+                    configuration.getReferenceField());
             XmlUtil.createSaxParserFactory().newSAXParser().parse(is, h);
         } catch (SAXException | IOException | ParserConfigurationException e) {
             throw new DocHandlerException(
@@ -165,17 +167,24 @@ public class XmlStreamSplitter
         private final List<String> splitPath;
         private final List<Doc> splitDocs;
         private final DocHandlerContext xmlDoc;
+        private final String referenceField;
+
         private final List<String> currentPath = new ArrayList<>();
+        private String extractedReferenceValue;
+        private StringBuilder elementText;
+
         private PrintWriter w;
         private CachedOutputStream out;
 
         public XmlHandler(
                 DocHandlerContext xmlDoc,
                 List<String> splitPath,
-                List<Doc> splitDocs) {
+                List<Doc> splitDocs,
+                String referenceField) {
             this.xmlDoc = xmlDoc;
             this.splitDocs = splitDocs;
             this.splitPath = splitPath;
+            this.referenceField = referenceField;
         }
 
         @Override
@@ -184,6 +193,7 @@ public class XmlStreamSplitter
                 Attributes attributes) throws SAXException {
 
             currentPath.add(qName);
+            elementText = new StringBuilder();
 
             if (currentPath.equals(splitPath)) {
                 out = xmlDoc.streamFactory().newOuputStream();
@@ -193,10 +203,9 @@ public class XmlStreamSplitter
             if (w != null) {
                 w.print('<');
                 w.print(esc(qName));
-                for (var i = 0; i < attributes.getLength(); i++) {
-                    w.print(
-                            ' ' + esc(attributes.getQName(i)) + "=\""
-                                    + esc(attributes.getValue(i)) + "\"");
+                for (int i = 0; i < attributes.getLength(); i++) {
+                    w.print(' ' + esc(attributes.getQName(i)) + "=\""
+                            + esc(attributes.getValue(i)) + "\"");
                 }
                 w.print('>');
             }
@@ -206,9 +215,13 @@ public class XmlStreamSplitter
         public void characters(char[] ch, int start, int length)
                 throws SAXException {
             if (w != null) {
-                var ctnt = new String(ch, start, length);
+                String ctnt = new String(ch, start, length);
                 ctnt = ctnt.replaceFirst("^\\s+$", "");
                 w.write(esc(ctnt));
+            }
+
+            if (elementText != null) {
+                elementText.append(ch, start, length);
             }
         }
 
@@ -218,15 +231,30 @@ public class XmlStreamSplitter
             try {
                 if (w != null) {
                     w.print("</" + esc(qName) + ">");
+
+                    if (referenceField != null
+                            && referenceField.equalsIgnoreCase(qName)) {
+                        extractedReferenceValue = elementText.toString().trim();
+                    }
+
                     if (currentPath.equals(splitPath)) {
                         w.flush();
                         var childMeta = new Properties();
                         childMeta.loadFromMap(xmlDoc.metadata());
                         var embedRef = Integer.toString(splitDocs.size());
+
+                        String finalRef =
+                                StringUtils.isNotBlank(extractedReferenceValue)
+                                        ? extractedReferenceValue
+                                        : xmlDoc.reference() + "!"
+                                                + referenceField + embedRef;
+
                         var childDoc = new Doc(
-                                xmlDoc.reference() + "!" + embedRef,
+                                finalRef,
                                 out.getInputStream(),
                                 childMeta);
+                        LOG.debug("New reference: " + childDoc.getReference());
+
                         w.close();
                         out = null;
                         w = null;

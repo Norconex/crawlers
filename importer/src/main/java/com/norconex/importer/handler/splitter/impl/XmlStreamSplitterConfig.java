@@ -97,6 +97,7 @@ import lombok.experimental.Accessors;
 public class XmlStreamSplitterConfig extends BaseDocumentSplitterConfig {
 
     private String path;
+    private String referenceField;
 
     /**
      * The matcher of content types to apply splitting on. No attempt to
