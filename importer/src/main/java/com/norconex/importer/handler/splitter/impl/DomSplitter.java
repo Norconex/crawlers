@@ -163,12 +163,41 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
 
         // process "legit" child elements
         var docs = docCtx.childDocs();
+        String refField = configuration.getReferenceField();
+        String attrField = configuration.getAttributeField();
         for (Element elm : elms) {
             var childMeta = new Properties();
             childMeta.loadFromMap(docCtx.metadata());
             var childContent = elm.outerHtml();
             var childEmbedRef = elm.cssSelector();
-            var childRef = docCtx.reference() + "!" + childEmbedRef;
+//            var childRef = docCtx.reference() + "!" + childEmbedRef;
+
+            // --- START: ReferenceField logic ---
+            String extractedRef = null;
+
+            if (refField != null && !refField.isBlank()) {
+                // Select the element using the refField selector
+                Element refElm = elm.selectFirst(refField);
+                if (refElm != null) {
+                    if (attrField != null && !attrField.isBlank()) {
+                        // Extract attribute value from the selected element
+                        extractedRef = refElm.attr(attrField).trim();
+                    } else {
+                        // Fallback to text content if no attribute field specified
+                        extractedRef = refElm.text().trim();
+                    }
+                }
+            }
+
+            String childRef;
+            if (extractedRef != null && !extractedRef.isBlank()) {
+                childRef = extractedRef;
+            } else {
+                childRef = docCtx.reference() + "!" + elm.cssSelector();
+            }
+            // --- END: ReferenceField logic ---
+
+
             CachedInputStream content = null;
             if (childContent.length() > 0) {
                 content = docCtx.streamFactory().newInputStream(

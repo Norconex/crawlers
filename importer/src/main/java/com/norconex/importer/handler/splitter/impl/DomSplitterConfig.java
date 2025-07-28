@@ -102,6 +102,8 @@ public class DomSplitterConfig extends BaseDocumentSplitterConfig {
      * @return the selector
      */
     private String selector;
+    private String referenceField;
+    private String attributeField;
 
     /**
      * The presumed source character set.
