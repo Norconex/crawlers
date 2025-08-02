@@ -29,6 +29,8 @@ import com.norconex.committer.core.Committer;
 import com.norconex.commons.lang.bean.jackson.JsonXmlCollection;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.event.EventListener;
+import com.norconex.crawler.core2.cluster.Cluster;
+import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanCluster;
 import com.norconex.crawler.core2.doc.CrawlDocMetaConstants;
 import com.norconex.crawler.core2.doc.operations.DocumentConsumer;
 import com.norconex.crawler.core2.doc.operations.checksum.DocumentChecksummer;
@@ -145,12 +147,13 @@ public class CrawlConfig {
      * wait to shutdown after completion).
      */
     private Duration deferredShutdownDuration = Duration.ZERO;
-    //
-    //    /**
-    //     * The Grid Connector.
-    //     */
-    //    private GridConnector gridConnector = new LocalGridConnector();
-    //
+
+    /**
+     * The cluster used to run the crawler. Default (Infinispan) handles
+     * both running the crawler on single and multiple nodes.
+     */
+    private Cluster cluster = new InfinispanCluster();
+
     /**
      * Whether the start references should be loaded asynchronously. When
      * <code>true</code>, the crawler will start processing the start

@@ -40,7 +40,7 @@ public class InfinispanCluster
     private InfinispanTaskManager taskManager;
 
     @Override
-    public void init(Path crawlerWorkDir) {
+    public void init(Path workDir) {
         var builderHolder = configuration.getInfinispan();
         var globalBuilder = builderHolder.getGlobalConfigurationBuilder();
 
@@ -54,9 +54,8 @@ public class InfinispanCluster
         var globalConfig = globalBuilder.build();
         var currentPath = globalConfig.globalState().persistentLocation();
         if (currentPath.contains(BASEDIR_PLACEHOLDER)) {
-            currentPath = Path.of(
-                    currentPath.replace(BASEDIR_PLACEHOLDER,
-                            crawlerWorkDir.toString()))
+            currentPath = Path.of(currentPath.replace(
+                    BASEDIR_PLACEHOLDER, workDir.toString()))
                     .normalize().toString();
             globalBuilder.globalState()
                     .persistentLocation(currentPath);
@@ -65,8 +64,12 @@ public class InfinispanCluster
 
         cacheManager = new InfinispanCacheManager(manager);
         localNode = new InfinispanClusterNode(manager);
-        taskManager =
-                new InfinispanTaskManager(cacheManager, localNode.getAddress());
+        taskManager = new InfinispanTaskManager(this);
+    }
+
+    @Override
+    public void stop() {
+        // TODO Auto-generated method stub
     }
 
     @Override

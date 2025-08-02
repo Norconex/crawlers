@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<infinispan xmlns="urn:infinispan:config:15.0">
+  <cache-container name="default" statistics="true">
+    <local-cache name="default">
+      <memory max-count="100"/>
+      <expiration max-idle="60000"/>
+    </local-cache>
+  </cache-container>
+</infinispan>

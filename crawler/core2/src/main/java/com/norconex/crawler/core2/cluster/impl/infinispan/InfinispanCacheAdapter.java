@@ -1,17 +1,35 @@
 package com.norconex.crawler.core2.cluster.impl.infinispan;
 
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.infinispan.query.Search;
+import org.infinispan.query.dsl.Query;
+import org.infinispan.util.function.SerializableFunction;
 
 import com.norconex.crawler.core2.cluster.Cache;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 class InfinispanCacheAdapter<T> implements Cache<T> {
 
     private final org.infinispan.Cache<String, T> delegate;
+    private static final int DEFAULT_BATCH_SIZE = 100;
 
     public InfinispanCacheAdapter(org.infinispan.Cache<String, T> delegate) {
         this.delegate = delegate;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return delegate.isEmpty();
     }
 
     @Override
@@ -72,5 +90,119 @@ class InfinispanCacheAdapter<T> implements Cache<T> {
     @Override
     public T putIfAbsent(String key, T value) {
         return delegate.putIfAbsent(key, value);
+    }
+
+    @Override
+    public List<T> query(String queryExpression) {
+        var queryFactory = Search.getQueryFactory(delegate);
+        Query<T> query = queryFactory.create(queryExpression);
+        return query.execute().list();
+    }
+
+    @Override
+    public Iterator<T> queryIterator(String queryExpression) {
+        var queryFactory = Search.getQueryFactory(delegate);
+        Query<T> query = queryFactory.create(queryExpression);
+
+        // In Infinispan 15.2, use stream() from the query result and convert to iterator
+        return query.execute().list().stream().iterator();
+    }
+
+    @Override
+    public List<T> queryPaged(String queryExpression, int startOffset,
+            int maxResults) {
+        var queryFactory = Search.getQueryFactory(delegate);
+        Query<T> query = queryFactory.create(queryExpression);
+        query.startOffset(startOffset);
+        query.maxResults(maxResults);
+        return query.execute().list();
+    }
+
+    @Override
+    public void queryStream(String queryExpression, Consumer<T> consumer,
+            int batchSize) {
+        if (batchSize <= 0) {
+            batchSize = DEFAULT_BATCH_SIZE;
+        }
+
+        // In Infinispan 15.2, it's better to use the paged approach for streaming
+        var totalCount = count(queryExpression);
+        var offset = 0;
+
+        LOG.debug(
+                "Starting streaming query with {} total results using batch size {}",
+                totalCount, batchSize);
+
+        while (offset < totalCount) {
+            // Process one batch at a time
+            var batch = queryPaged(queryExpression, offset, batchSize);
+            if (batch.isEmpty()) {
+                break;
+            }
+
+            // Process each entry in the batch
+            batch.forEach(consumer);
+
+            offset += batch.size();
+
+            // Log progress
+            if (offset % (batchSize * 10) == 0 || offset >= totalCount) {
+                LOG.debug("Processed {} entries out of {}", offset, totalCount);
+            }
+        }
+
+        LOG.debug("Finished streaming query, processed {} results", offset);
+    }
+
+    @Override
+    public long count(String queryExpression) {
+        var queryFactory = Search.getQueryFactory(delegate);
+        Query<T> query = queryFactory.create(queryExpression);
+        return query.execute().count().value();
+    }
+
+    @Override
+    public long delete(String queryExpression) {
+        // First check count to avoid unnecessary work
+        var totalCount = count(queryExpression);
+        if (totalCount == 0) {
+            return 0;
+        }
+
+        // Use iterator-based deletion for better memory efficiency
+        var batchSize = DEFAULT_BATCH_SIZE;
+        var deletedCount = 0L;
+        var queryFactory = Search.getQueryFactory(delegate);
+
+        LOG.debug("Deleting approximately {} entries matching: {}",
+                totalCount, queryExpression);
+
+        // Process in batches to avoid loading too many objects into memory at once
+        while (deletedCount < totalCount) {
+            Query<T> query = queryFactory.create(queryExpression);
+            query.maxResults(batchSize);
+
+            var batch = query.execute().list();
+            if (batch.isEmpty()) {
+                break;
+            }
+
+            // Find and delete the keys for this batch
+            List<String> keysToDelete = batch.stream()
+                    .flatMap(entry -> delegate.entrySet().stream()
+                            .filter(e -> e.getValue().equals(entry))
+                            .map((SerializableFunction<? super Entry<String, T>,
+                                    ? extends String>) Entry::getKey))
+                    .collect(Collectors.toList());
+
+            // Delete the found keys
+            keysToDelete.forEach(delegate::remove);
+            deletedCount += keysToDelete.size();
+
+            LOG.debug("Deleted {} entries so far", deletedCount);
+        }
+
+        LOG.debug("Finished deleting {} entries", deletedCount);
+        return deletedCount;
     }
 }

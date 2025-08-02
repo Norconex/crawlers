@@ -14,6 +14,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.crawler.core2.cluster.ClusterTask;
+import com.norconex.crawler.core2.stubs.CrawlContextStubber;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -28,10 +31,13 @@ class InfinispanTaskManagerSingleTest {
     @BeforeEach
     void setUp() {
         var node = InfinispanTestUtil.singleMemoryNodeCluster();
-        node.init(tempDir.resolve("nodesingle"));
+        node.init(CrawlContextStubber.crawlerContext(
+                tempDir.resolve("nodesingle")));
+        //                tempDir.resolve("nodesingle"));
         cacheManager = node.getCacheManager().vendor();
-        nodeManager = new InfinispanTaskManager(
-                new InfinispanCacheManager(cacheManager), "Node-Single");
+        nodeManager = node.getTaskManager();
+        //                new InfinispanTaskManager(
+        //                new InfinispanCacheManager(cacheManager), "Node-Single");
         LOG.info("Setup complete for test.");
     }
 
@@ -52,7 +58,7 @@ class InfinispanTaskManagerSingleTest {
         var taskCompletedLatch = new CountDownLatch(1);
 
         // Define the task to be executed
-        Runnable taskToRun = () -> {
+        ClusterTask taskToRun = ctx -> {
             LOG.info("Executing the actual task logic");
             executionCount.incrementAndGet(); // Increment atomic counter
             // Signal that the task has started
@@ -65,7 +71,7 @@ class InfinispanTaskManagerSingleTest {
         // Node tries to run the task in a separate thread
         var t = new Thread(() -> {
             try {
-                nodeManager.runOnOneOnceAndWait(myTask, taskToRun);
+                nodeManager.runOnOneOnceSync(myTask, taskToRun);
             } catch (Exception e) {
                 LOG.error("Node-Single task execution failed.", e);
             }

@@ -29,6 +29,12 @@ class InfinispanClusterNode implements ClusterNode {
     private final DefaultCacheManager cacheManager;
 
     @Override
+    public String getNodeName() {
+        return ofNullable(cacheManager.getName())
+                .orElse("local");
+    }
+
+    @Override
     public String getAddress() {
         return ofNullable(cacheManager.getAddress())
                 .map(Address::toString)

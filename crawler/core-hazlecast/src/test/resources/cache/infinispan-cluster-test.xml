@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<infinispan xmlns="urn:infinispan:config:15.0">
+  <cache-container name="default" statistics="true">
+    <!-- Dummy transport for clustering simulation -->
+    <transport cluster="test-cluster"/>
+
+    <distributed-cache
+      name="default"
+      mode="SYNC"
+      owners="2"
+      statistics="true"
+    >
+      <memory max-count="100"/>
+      <expiration max-idle="60000"/>
+    </distributed-cache>
+  </cache-container>
+</infinispan>

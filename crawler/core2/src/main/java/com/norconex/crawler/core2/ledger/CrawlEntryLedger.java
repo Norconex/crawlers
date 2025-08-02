@@ -14,15 +14,17 @@
  */
 package com.norconex.crawler.core2.ledger;
 
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import com.norconex.crawler.core2.cluster.Cache;
-import com.norconex.crawler.core2.cluster.CacheManager;
 import com.norconex.crawler.core2.cluster.Counter;
 import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.session.LaunchMode;
+import com.norconex.crawler.core2.util.SerialUtil;
 
-import lombok.Builder;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -49,13 +51,14 @@ import lombok.extern.slf4j.Slf4j;
  * </p>
  */
 @Slf4j
-@RequiredArgsConstructor
-public class CrawlEntryLedger {
+public final class CrawlEntryLedger {
 
     //TODO rename DocLedger
     //TODO remove all synchronized keywords?
 
-    private static final String CURRENT_LEDGER_KEY = "ledger.current.alias";
+    private static final String CURRENT_LEDGER_ALIAS_KEY =
+            "ledger.current.alias";
+
     //    public static final String KEY_CACHED_MAP = "ledger.cached.map";
 
     // we use aliases for previous and current ledgers as we can't assume
@@ -64,32 +67,58 @@ public class CrawlEntryLedger {
     private static final String LEDGER_A = "ledger_a";
     private static final String LEDGER_B = "ledger_b";
 
-    private final Cache<CrawlEntry> currentLedger;
-    private final Cache<CrawlEntry> previousLedger;
-    private final long totalMaxDocsThisRun;
-    private final Counter processedCounter;
+    // Status counter prefix for efficiently tracking entry counts by status
+    private static final String STATUS_COUNTER_PREFIX = "status-counter-";
 
-    @Builder
-    static CrawlEntryLedger create(
-            @NonNull CrawlSession session,
-            @NonNull CacheManager manager,
-            long runMaxDocs) {
+    private Cache<CrawlEntry> currentLedger;
+    private Cache<CrawlEntry> previousLedger;
+    private Counter queuedCounter;
+    private Counter processingCounter;
+    private Counter processedCounter;
+    private long totalMaxDocsThisRun;
+
+    // Map to hold references to status-specific counters
+    private final Map<ProcessingStatus, Counter> statusCounters =
+            new EnumMap<>(ProcessingStatus.class);
+
+    public void init(CrawlSession session) {
+        //            @NonNull CrawlSession session,
+        //            @NonNull CacheManager manager,
+        //            long runMaxDocs) {
         LOG.info("Initializing crawl entry ledger...");
 
+        var cacheManager = session.getCluster().getCacheManager();
+
         // Caches:
-        var currentAlias = manager.getGenericCache()
-                .computeIfAbsent(CURRENT_LEDGER_KEY, k -> LEDGER_A);
+        var currentAlias = cacheManager.getGenericCache()
+                .computeIfAbsent(CURRENT_LEDGER_ALIAS_KEY, k -> LEDGER_A);
         var previousAlias = LEDGER_A.equals(currentAlias)
                 ? LEDGER_B
                 : LEDGER_A;
-        var currentLedger = manager.getCache(currentAlias, CrawlEntry.class);
-        var previousLedger = manager.cacheExists(previousAlias)
-                ? manager.getCache(previousAlias, CrawlEntry.class)
+        currentLedger = cacheManager.getCache(currentAlias, CrawlEntry.class);
+        previousLedger = cacheManager.cacheExists(previousAlias)
+                ? cacheManager.getCache(previousAlias, CrawlEntry.class)
                 : null;
-        var processedCounter = manager.getCounter("processed-counter");
+        queuedCounter = cacheManager.getCounter("queued-counter");
+        processingCounter = cacheManager.getCounter("processing-counter");
+        processedCounter = cacheManager.getCounter("processed-counter");
+
+        // Initialize status counters for each ProcessingStatus value
+        for (ProcessingStatus status : ProcessingStatus.values()) {
+            statusCounters.put(status,
+                    cacheManager
+                            .getCounter(STATUS_COUNTER_PREFIX + status.name()));
+        }
+
+        // If this is a fresh run, initialize counters based on current cache content
+        if (session.getLaunchMode() != LaunchMode.RESUMED) {
+            initializeStatusCounters();
+        }
 
         // Max docs
-        var totalMaxDocsThisRun = runMaxDocs;
+        long runMaxDocs =
+                session.getCrawlContext().getCrawlConfig().getMaxDocuments();
+        totalMaxDocsThisRun = runMaxDocs;
         var resumed = session.getLaunchMode() == LaunchMode.RESUMED;
         if (resumed && runMaxDocs > -1) {
             totalMaxDocsThisRun += processedCounter.get();
@@ -101,44 +130,106 @@ public class CrawlEntryLedger {
         }
 
         LOG.info("Done initializing crawl entry ledger.");
-        return new CrawlEntryLedger(currentLedger, previousLedger,
-                totalMaxDocsThisRun, processedCounter);
     }
 
-    //    /**
-    //     * Gets whether a reference is queued, processed or being processed.
-    //     * @param ref document reference
-    //     * @return <code>true</code> if in "active" stage
-    //     */
-    //    public boolean isInActiveStage(String ref) {
-    //        return queue.contains(ref) || processed.contains(ref);
-    //    }
-    //
-    //    /**
-    //     * Gets a reference document processing stage.
-    //     * @param ref document reference
-    //     * @return <code>true</code> if in "active" stage
-    //     */
-    //    public CrawlDocStage getStage(String ref) {
-    //        if (queue.contains(ref)) {
-    //            return CrawlDocStage.QUEUED;
-    //        }
-    //        var docCtxOpt = getProcessed(ref);
-    //        if (docCtxOpt.isPresent()) {
-    //            return docCtxOpt.get().getProcessingStage();
-    //        }
-    //        return CrawlDocStage.NONE;
-    //    }
-    //
-    //    //--- Processed ---
-    //
-    //    public long getProcessedCount() {
-    //        return processed.size();
-    //    }
-    //
-    //    public boolean isProcessedEmpty() {
-    //        return processed.isEmpty();
-    //    }
+    /**
+     * Initialize status counters by querying the cache.
+     * This is only needed for the first run to establish baseline counts.
+     */
+    private void initializeStatusCounters() {
+        LOG.info("Initializing status counters...");
+        for (ProcessingStatus status : ProcessingStatus.values()) {
+            var count = currentLedger
+                    .count("processingStatus = '%s'".formatted(status.name()));
+            var counter = statusCounters.get(status);
+            counter.reset();
+            counter.set(count);
+            LOG.debug("Status counter for {} initialized to {}", status, count);
+        }
+        LOG.info("Status counters initialized.");
+    }
+
+    /**
+     * Updates an entry in the ledger, maintaining the status counters.
+     * @param entry the entry to update
+     * @return the previous entry if it existed
+     */
+    public Optional<CrawlEntry> updateEntry(CrawlEntry entry) {
+        var reference = entry.getReference();
+        ProcessingStatus newStatus = entry.getProcessingStatus();
+
+        var previous = currentLedger.get(reference);
+        currentLedger.put(reference, entry);
+
+        // Update status counters if needed
+        if (previous.isPresent()) {
+            ProcessingStatus oldStatus = previous.get().getProcessingStatus();
+            if (oldStatus != newStatus) {
+                statusCounters.get(oldStatus).decrementAndGet();
+                statusCounters.get(newStatus).incrementAndGet();
+                LOG.trace("Status changed for {}: {} -> {}", reference,
+                        oldStatus, newStatus);
+            }
+        } else {
+            // New entry
+            statusCounters.get(newStatus).incrementAndGet();
+            LOG.trace("New entry added with status {}: {}", newStatus,
+                    reference);
+        }
+
+        return previous;
+    }
+
+    /**
+     * Removes an entry from the ledger, updating the status counters.
+     * @param reference the reference to remove
+     * @return the removed entry if it existed
+     */
+    public Optional<CrawlEntry> removeEntry(String reference) {
+        var entry = currentLedger.get(reference);
+        if (entry.isPresent()) {
+            ProcessingStatus status = entry.get().getProcessingStatus();
+            currentLedger.remove(reference);
+            statusCounters.get(status).decrementAndGet();
+            LOG.trace("Entry removed with status {}: {}", status, reference);
+        }
+        return entry;
+    }
+
+    /**
+     * Whether a reference exists in the current ledger.
+     * @param ref document reference
+     * @return {@code true} if existing
+     */
+    public boolean exists(String ref) {
+        return currentLedger.containsKey(ref);
+    }
+
+    /**
+     * Gets a reference processing status. If a document does not exist,
+     * the processing status will be {@link ProcessingStatus#UNTRACKED}.
+     * @param ref document reference
+     * @return the processing status
+     */
+    public ProcessingStatus getProcessingStatus(String ref) {
+        return currentLedger.get(ref)
+                .map(CrawlEntry::getProcessingStatus)
+                .orElse(ProcessingStatus.UNTRACKED);
+    }
+
+    Object deleteMe() {
+        return totalMaxDocsThisRun;
+    }
+
+    //--- Processed ---
+
+    public long getProcessedCount() {
+        return processedCounter.get();
+    }
+
+    public boolean isProcessedEmpty() {
+        return processedCounter.get() == 0;
+    }
     //
     //    public void clearProcessed() {
     //        processed.clear();
@@ -168,20 +259,21 @@ public class CrawlEntryLedger {
     //                (k, v) -> predicate.test(k, SerialUtil.fromJson(v, type)));
     //    }
     //
-    //    //--- Queue ---
-    //
-    //    public boolean isQueueEmpty() {
-    //        return queue.isEmpty();
-    //    }
-    //
-    //    public long getQueueCount() {
-    //        return queue.size();
-    //    }
-    //
-    //    public void clearQueue() {
-    //        queue.clear();
-    //    }
-    //
+    //--- Queue ---
+
+    public boolean isQueueEmpty() {
+        return queuedCounter.get() == 0;
+    }
+
+    public long getQueueCount() {
+        return queuedCounter.get();
+    }
+
+    public void clearQueue() {
+        currentLedger.delete()
+        queue.clear();
+    }
+
     //    public void queue(@NonNull CrawlDocContext docContext) {
     //        docContext.setProcessingStage(CrawlDocStage.QUEUED);
     //        queue.put(docContext.getReference(),
@@ -217,17 +309,51 @@ public class CrawlEntryLedger {
     //                (k, v) -> predicate.test(k, SerialUtil.fromJson(v, type)));
     //    }
     //
-    //    //--- Cache ---
-    //
-    //    public long getCachedCount() {
-    //        return cached.size();
-    //    }
-    //
-    //    public Optional<CrawlDocContext> getCached(String id) {
-    //        return Optional.ofNullable(cached.get(id))
-    //                .map(json -> SerialUtil.fromJson(json, type));
-    //    }
-    //
+    //--- Preview crawl entries ---
+
+    public long getCachedCount() {
+        return cached.size();
+    }
+
+    public Optional<CrawlEntry> getCached(String id) {
+        return Optional.ofNullable(cached.get(id))
+                .map(json -> SerialUtil.fromJson(json, type));
+    }
+
+    /**
+     * Gets all entries matching the given processing status.
+     * @param status the processing status to match
+     * @return matching entries
+     */
+    public List<CrawlEntry> getEntriesByStatus(ProcessingStatus status) {
+        return currentLedger
+                .query("processingStatus = '" + status.name() + "'");
+    }
+
+    /**
+     * Counts entries with the given processing status.
+     * Uses an efficient O(1) counter instead of executing a query.
+     * @param status the processing status to count
+     * @return count of entries with the given status
+     */
+    public long countByStatus(ProcessingStatus status) {
+        return statusCounters.get(status).get();
+    }
+
+    /**
+     * Deletes all entries with the given processing status.
+     * Also updates the status counter accordingly.
+     * @param status the processing status of entries to delete
+     * @return number of entries deleted
+     */
+    public long deleteByStatus(ProcessingStatus status) {
+        var count = currentLedger
+                .delete("processingStatus = '" + status.name() + "'");
+        // Reset the counter to 0 since we deleted all entries with this status
+        statusCounters.get(status).reset();
+        return count;
+    }
+
     //    public boolean forEachCached(
     //            BiPredicate<String, CrawlDocContext> predicate) {
     //        return cached.forEach(

@@ -19,7 +19,8 @@ import org.infinispan.protostream.annotations.ProtoSchema;
 
 @ProtoSchema(
     includeClasses = {
-            FallbackSerializedObject.class,
+            CrawlEntryProtoAdapter.class,
+            StringSerializedObject.class,
             TaskState.class
     }
     //    schemaFileName = "crawler.proto",

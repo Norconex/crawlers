@@ -18,7 +18,6 @@ import java.nio.file.Path;
 import java.util.List;
 
 import com.norconex.committer.core.service.CommitterService;
-import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventManager;
@@ -37,7 +36,6 @@ import com.norconex.crawler.core.metrics.CrawlerMetrics;
 import com.norconex.grid.core.Grid;
 import com.norconex.grid.core.util.ScopedThreadFactoryCreator;
 import com.norconex.importer.Importer;
-import com.norconex.importer.doc.DocContext;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -135,17 +133,17 @@ public class CrawlContext {
                 .build());
     }
 
-    public CrawlDocContext createDocContext(@NonNull String reference) {
-        var docContext = ClassUtil.newInstance(docContextType);
-        docContext.setReference(reference);
-        return docContext;
-    }
-
-    public CrawlDocContext createDocContext(
-            @NonNull DocContext parentContext) {
-        var docContext = createDocContext(parentContext.getReference());
-        docContext.copyFrom(parentContext);
-        return docContext;
-    }
+    //    public CrawlDocContext createDocContext(@NonNull String reference) {
+    //        var docContext = ClassUtil.newInstance(docContextType);
+    //        docContext.setReference(reference);
+    //        return docContext;
+    //    }
+    //
+    //    public CrawlDocContext createDocContext(
+    //            @NonNull DocContext parentContext) {
+    //        var docContext = createDocContext(parentContext.getReference());
+    //        docContext.copyFrom(parentContext);
+    //        return docContext;
+    //    }
 
 }
