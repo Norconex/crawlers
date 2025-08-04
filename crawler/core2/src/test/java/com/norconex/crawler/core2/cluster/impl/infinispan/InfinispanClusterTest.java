@@ -21,8 +21,6 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core2.stubs.CrawlContextStubber;
-
 //TODO test persistence (check that already on "core" unit tests
 
 class InfinispanClusterTest {
@@ -35,7 +33,8 @@ class InfinispanClusterTest {
         //this test ensure our test XML configs work for whatever other
         // tests needing them
         InfinispanTestUtil.withSingleMemoryNodeCluster(cluster -> {
-            cluster.init(CrawlContextStubber.crawlerContext(tempDir));
+            cluster.init(tempDir);
+            //            cluster.init(CrawlContextStubber.crawlerContext(tempDir));
             assertThat(cluster.getLocalNode().isCoordinator()).isTrue();
             var cache =
                     cluster.getCacheManager().getCache("cache", String.class);
@@ -61,8 +60,10 @@ class InfinispanClusterTest {
 
         // check that the cluster is properly created with the default
         // configuration found under src/main/resources.
-        try (var cluster = new InfinispanCluster()) {
-            cluster.init(CrawlContextStubber.crawlerContext(tempDir));
+        try (var cluster =
+                new InfinispanCluster(new InfinispanClusterConfig())) {
+            cluster.init(crawlWorkDir);
+            //            cluster.init(CrawlContextStubber.crawlerContext(tempDir));
             var props = cluster.getCacheManager().vendor()
                     .getGlobalConfigurationAsProperties();
 

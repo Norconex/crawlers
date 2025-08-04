@@ -11,24 +11,28 @@ import com.norconex.crawler.core2.cluster.CacheException;
 import com.norconex.crawler.core2.cluster.CacheManager;
 import com.norconex.crawler.core2.cluster.Counter;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RequiredArgsConstructor
-class InfinispanCacheManager implements CacheManager, Closeable {
+public class InfinispanCacheManager implements CacheManager, Closeable {
 
     private static final String DEFAULT_CACHE_TEMPLATE = "default";
     private static final String GENERIC_CACHE_NAME = "generic-cache";
 
     private final DefaultCacheManager cacheManager;
 
+    public InfinispanCacheManager(DefaultCacheManager cacheManager) {
+        this.cacheManager = cacheManager;
+        defineCacheWithFallback("counter-cache");
+    }
+
     @Override
     public <T> Cache<T> getCache(String name, Class<T> valueType) {
-        if (!cacheManager.cacheExists(name)) {
-            cacheManager.defineConfiguration(name,
-                    new ConfigurationBuilder().build());
-        }
+        defineCacheWithFallback(name);
+        //        if (!cacheManager.cacheExists(name)) {
+        //            cacheManager.defineConfiguration(name,
+        //                    new ConfigurationBuilder().build());
+        //        }
         return new InfinispanCacheAdapter<>(cacheManager.getCache(name));
     }
 
@@ -63,7 +67,7 @@ class InfinispanCacheManager implements CacheManager, Closeable {
         }
     }
 
-    DefaultCacheManager vendor() {
+    public DefaultCacheManager vendor() {
         return cacheManager;
     }
 

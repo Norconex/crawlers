@@ -19,21 +19,21 @@ import java.util.List;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
 
-import com.norconex.crawler.core2.cluster.Cluster;
+import com.norconex.crawler.core2.cluster.ClusterConnector;
 
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 class CrawlTestInvocationContext implements TestTemplateInvocationContext {
 
-    private final Class<? extends Cluster> clusterClass;
+    private final Class<? extends ClusterConnector> clusterConnectorClass;
     private final CrawlTest annotation;
 
     @Override
     public List<Extension> getAdditionalExtensions() {
         return List.of(
                 new CrawlTestExtensionCallbacks(
-                        clusterClass, annotation),
+                        clusterConnectorClass, annotation),
                 new CrawlTestParameterResolver());
     }
 

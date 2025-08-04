@@ -15,15 +15,15 @@
 package com.norconex.crawler.core2.ledger;
 
 import java.util.EnumMap;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 
 import com.norconex.crawler.core2.cluster.Cache;
+import com.norconex.crawler.core2.cluster.CacheManager;
 import com.norconex.crawler.core2.cluster.Counter;
 import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.session.LaunchMode;
-import com.norconex.crawler.core2.util.SerialUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -72,22 +72,19 @@ public final class CrawlEntryLedger {
 
     private Cache<CrawlEntry> currentLedger;
     private Cache<CrawlEntry> previousLedger;
-    private Counter queuedCounter;
-    private Counter processingCounter;
-    private Counter processedCounter;
     private long totalMaxDocsThisRun;
 
     // Map to hold references to status-specific counters
     private final Map<ProcessingStatus, Counter> statusCounters =
             new EnumMap<>(ProcessingStatus.class);
+    private CacheManager cacheManager;
 
     public void init(CrawlSession session) {
         //            @NonNull CrawlSession session,
         //            @NonNull CacheManager manager,
         //            long runMaxDocs) {
         LOG.info("Initializing crawl entry ledger...");
-
-        var cacheManager = session.getCluster().getCacheManager();
+        cacheManager = session.getCluster().getCacheManager();
 
         // Caches:
         var currentAlias = cacheManager.getGenericCache()
@@ -99,9 +96,6 @@ public final class CrawlEntryLedger {
         previousLedger = cacheManager.cacheExists(previousAlias)
                 ? cacheManager.getCache(previousAlias, CrawlEntry.class)
                 : null;
-        queuedCounter = cacheManager.getCounter("queued-counter");
-        processingCounter = cacheManager.getCounter("processing-counter");
-        processedCounter = cacheManager.getCounter("processed-counter");
 
         // Initialize status counters for each ProcessingStatus value
         for (ProcessingStatus status : ProcessingStatus.values()) {
@@ -121,7 +115,8 @@ public final class CrawlEntryLedger {
         totalMaxDocsThisRun = runMaxDocs;
         var resumed = session.getLaunchMode() == LaunchMode.RESUMED;
         if (resumed && runMaxDocs > -1) {
-            totalMaxDocsThisRun += processedCounter.get();
+            totalMaxDocsThisRun +=
+                    statusCounters.get(ProcessingStatus.PROCESSED).get();
             LOG.info("""
                     An additional maximum of {} processed documents is
                     added to this resumed session, for a maximum total of {}.
@@ -132,6 +127,16 @@ public final class CrawlEntryLedger {
         LOG.info("Done initializing crawl entry ledger.");
     }
 
+    //    private Counter getStatusCounter(ProcessingStatus status) {
+    //        statusCounters.get(status)
+    //    }
+    //    private Counter getProcessingCounter() {
+    //
+    //    }
+    //    private Counter getProcessedCounter() {
+    //
+    //    }
+
     /**
      * Initialize status counters by querying the cache.
      * This is only needed for the first run to establish baseline counts.
@@ -139,8 +144,11 @@ public final class CrawlEntryLedger {
     private void initializeStatusCounters() {
         LOG.info("Initializing status counters...");
         for (ProcessingStatus status : ProcessingStatus.values()) {
-            var count = currentLedger
-                    .count("processingStatus = '%s'".formatted(status.name()));
+            var count = currentLedger.count(
+                    "FROM %s WHERE processingStatus = '%s'"
+                            .formatted(
+                                    CrawlEntry.class.getName(),
+                                    status.name()));
             var counter = statusCounters.get(status);
             counter.reset();
             counter.set(count);
@@ -224,11 +232,11 @@ public final class CrawlEntryLedger {
     //--- Processed ---
 
     public long getProcessedCount() {
-        return processedCounter.get();
+        return statusCounters.get(ProcessingStatus.PROCESSED).get();
     }
 
     public boolean isProcessedEmpty() {
-        return processedCounter.get() == 0;
+        return statusCounters.get(ProcessingStatus.PROCESSED).get() == 0;
     }
     //
     //    public void clearProcessed() {
@@ -262,16 +270,15 @@ public final class CrawlEntryLedger {
     //--- Queue ---
 
     public boolean isQueueEmpty() {
-        return queuedCounter.get() == 0;
+        return statusCounters.get(ProcessingStatus.QUEUED).get() == 0;
     }
 
     public long getQueueCount() {
-        return queuedCounter.get();
+        return statusCounters.get(ProcessingStatus.QUEUED).get();
     }
 
     public void clearQueue() {
-        currentLedger.delete()
-        queue.clear();
+        currentLedger.delete(processingStatusQuery(ProcessingStatus.QUEUED));
     }
 
     //    public void queue(@NonNull CrawlDocContext docContext) {
@@ -309,15 +316,18 @@ public final class CrawlEntryLedger {
     //                (k, v) -> predicate.test(k, SerialUtil.fromJson(v, type)));
     //    }
     //
-    //--- Preview crawl entries ---
+    //--- Previous crawl entries ---
 
-    public long getCachedCount() {
-        return cached.size();
+    public long getPreviousEntryCount() {
+        return previousLedger.countAll();
     }
 
-    public Optional<CrawlEntry> getCached(String id) {
-        return Optional.ofNullable(cached.get(id))
-                .map(json -> SerialUtil.fromJson(json, type));
+    public Optional<CrawlEntry> getPreviousEntry(String id) {
+        return previousLedger.get(id);
+
+        //        return previousLedger.get(id)
+        //                .map(json -> (CrawlEntry) SerialUtil.fromJson(json,
+        //                        session.getCrawlContext().getCrawlEntryType()));
     }
 
     /**
@@ -325,9 +335,8 @@ public final class CrawlEntryLedger {
      * @param status the processing status to match
      * @return matching entries
      */
-    public List<CrawlEntry> getEntriesByStatus(ProcessingStatus status) {
-        return currentLedger
-                .query("processingStatus = '" + status.name() + "'");
+    public Iterator<CrawlEntry> getEntriesByStatus(ProcessingStatus status) {
+        return currentLedger.queryIterator(processingStatusQuery(status));
     }
 
     /**
@@ -347,11 +356,35 @@ public final class CrawlEntryLedger {
      * @return number of entries deleted
      */
     public long deleteByStatus(ProcessingStatus status) {
-        var count = currentLedger
-                .delete("processingStatus = '" + status.name() + "'");
+        var count = currentLedger.delete(processingStatusQuery(status));
         // Reset the counter to 0 since we deleted all entries with this status
         statusCounters.get(status).reset();
         return count;
+    }
+
+    /**
+     * Make the current leger the pervious one. and blank the current one
+     * to start fresh.
+     */
+    public synchronized void archiveCurrentLedger() {
+        //TODO really clear cache or keep to have longer history of
+        // each items?
+        previousLedger.clear();
+
+        var currentAlias = cacheManager.getGenericCache()
+                .get(CURRENT_LEDGER_ALIAS_KEY).get();
+        currentAlias = LEDGER_A.equals(currentAlias)
+                ? LEDGER_B
+                : LEDGER_A;
+        cacheManager.getGenericCache()
+                .put(CURRENT_LEDGER_ALIAS_KEY, currentAlias);
+        var previousAlias = LEDGER_A.equals(currentAlias)
+                ? LEDGER_B
+                : LEDGER_A;
+        currentLedger = cacheManager.getCache(currentAlias, CrawlEntry.class);
+        previousLedger = cacheManager.cacheExists(previousAlias)
+                ? cacheManager.getCache(previousAlias, CrawlEntry.class)
+                : null;
     }
 
     //    public boolean forEachCached(
@@ -364,43 +397,47 @@ public final class CrawlEntryLedger {
     //        cached.clear();
     //    }
     //
-    //    public synchronized void cacheProcessed() {
-    //        //TODO really clear cache or keep to have longer history of
-    //        // each items?
-    //        cached.clear();
+    //        public synchronized void cacheProcessed() {
+    //            //TODO really clear cache or keep to have longer history of
+    //            // each items?
+    //            cached.clear();
     //
-    //        // Because we can't rename caches in all impl, we swap references
-    //        var processedStoreName = durableAttribs.get(KEY_PROCESSED_MAP);
-    //        var cachedStoreName = durableAttribs.get(KEY_CACHED_MAP);
-    //        // If one cache name is null they should both be null and we consider
-    //        // a null name to be the "processed" one.
-    //        if (processedStoreName == null
-    //                || PROCESSED_OR_CACHED_1.equals(processedStoreName)) {
-    //            processedStoreName = PROCESSED_OR_CACHED_2;
-    //            cachedStoreName = PROCESSED_OR_CACHED_1;
-    //        } else {
-    //            processedStoreName = PROCESSED_OR_CACHED_1;
-    //            cachedStoreName = PROCESSED_OR_CACHED_2;
+    //            // Because we can't rename caches in all impl, we swap references
+    //            var processedStoreName = durableAttribs.get(KEY_PROCESSED_MAP);
+    //            var cachedStoreName = durableAttribs.get(KEY_CACHED_MAP);
+    //            // If one cache name is null they should both be null and we consider
+    //            // a null name to be the "processed" one.
+    //            if (processedStoreName == null
+    //                    || PROCESSED_OR_CACHED_1.equals(processedStoreName)) {
+    //                processedStoreName = PROCESSED_OR_CACHED_2;
+    //                cachedStoreName = PROCESSED_OR_CACHED_1;
+    //            } else {
+    //                processedStoreName = PROCESSED_OR_CACHED_1;
+    //                cachedStoreName = PROCESSED_OR_CACHED_2;
+    //            }
+    //            durableAttribs.put(KEY_PROCESSED_MAP, processedStoreName);
+    //            durableAttribs.put(KEY_CACHED_MAP, cachedStoreName);
+    //            var processedBefore = processed;
+    //            processed = cached;
+    //            cached = processedBefore;
     //        }
-    //        durableAttribs.put(KEY_PROCESSED_MAP, processedStoreName);
-    //        durableAttribs.put(KEY_CACHED_MAP, cachedStoreName);
-    //        var processedBefore = processed;
-    //        processed = cached;
-    //        cached = processedBefore;
-    //    }
     //
-    //    public boolean isMaxDocsProcessedReached() {
-    //        //TODO replace check for "processedCount" vs "maxDocuments"
-    //        // with event counts vs max committed, max processed, max etc...
-    //        // Check if we merge with StopCrawlerOnMaxEventListener
-    //        // or if we remove maxDocument in favor of the listener.
-    //        // what about clustering?
-    //        var isMax = actualMaxDocs > -1
-    //                && getProcessedCount() >= actualMaxDocs;
-    //        if (isMax) {
-    //            LOG.info("Maximum documents reached for this crawling "
-    //                    + "session: {}", actualMaxDocs);
-    //        }
-    //        return isMax;
-    //    }
+    public boolean isMaxDocsProcessedReached() {
+        //TODO replace check for "processedCount" vs "maxDocuments"
+        // with event counts vs max committed, max processed, max etc...
+        // Check if we merge with StopCrawlerOnMaxEventListener
+        // or if we remove maxDocument in favor of the listener.
+        // what about clustering?
+        var isMax = totalMaxDocsThisRun > -1
+                && getProcessedCount() >= totalMaxDocsThisRun;
+        if (isMax) {
+            LOG.info("Maximum documents reached for this crawling "
+                    + "session: {}", totalMaxDocsThisRun);
+        }
+        return isMax;
+    }
+
+    private String processingStatusQuery(ProcessingStatus status) {
+        return "processingStatus = '%s'".formatted(status.name());
+    }
 }

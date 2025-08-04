@@ -124,12 +124,17 @@ public final class SerialUtil {
         return new StringReader(toJsonString(object));
     }
 
-    public static <T> T fromJson(@NonNull String json, @NonNull Class<T> cls) {
+    public static <T> T fromJson(String json, @NonNull Class<T> cls) {
+        if (json == null) {
+            return null;
+        }
         try {
             return mapper.readValue(json, cls);
         } catch (JsonProcessingException e) {
             throw new SerializationException(
-                    "Could not deserialize JSON to object: " + json, e);
+                    "Could not deserialize JSON %s to object of type: %s"
+                            .formatted(json, cls.getName()),
+                    e);
         }
     }
 

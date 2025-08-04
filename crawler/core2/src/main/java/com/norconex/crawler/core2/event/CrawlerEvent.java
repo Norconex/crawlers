@@ -19,8 +19,8 @@ import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.event.Event;
-import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.doc.CrawlDocContext;
+import com.norconex.crawler.core2.session.CrawlSession;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -176,8 +176,8 @@ public class CrawlerEvent extends Event {
     }
 
     @Override
-    public CrawlContext getSource() {
-        return (CrawlContext) super.getSource();
+    public CrawlSession getSource() {
+        return (CrawlSession) super.getSource();
     }
 
     @Override

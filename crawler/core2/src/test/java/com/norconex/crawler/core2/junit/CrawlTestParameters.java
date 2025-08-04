@@ -21,7 +21,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core2.CrawlConfig;
 import com.norconex.crawler.core2.Crawler;
-import com.norconex.crawler.core2.context.CrawlContext;
+import com.norconex.crawler.core2.session.CrawlSession;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -35,8 +35,10 @@ public class CrawlTestParameters {
     private static final String PARAMS_KEY = "crawlTestParameters";
 
     private Crawler crawler;
+    private CrawlSession crawlSession;
+    //    private Cluster cluster;
     private CrawlConfig crawlConfig;
-    private CrawlContext crawlContext;
+    //    private CrawlContext crawlContext;
     private MemoryCommitter memoryCommitter;
     private Path workDir;
 

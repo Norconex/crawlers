@@ -208,7 +208,7 @@ public class CrawlProcessTask extends AllNodesTask {
         // var elapsedTime = Timer.timeWatch(() ->
         var cachedDocCtx = crawlCtx.isIncrementalCrawl() ? crawlCtx
                 .getCrawlEntryLedger()
-                .getCached(docCtx.getReference())
+                .getPreviousEntry(docCtx.getReference())
                 .orElse(null)
                 : null;
 

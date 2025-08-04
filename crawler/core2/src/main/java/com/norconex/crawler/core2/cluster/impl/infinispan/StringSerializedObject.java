@@ -8,7 +8,6 @@ import com.norconex.crawler.core2.util.SerialUtil;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 
 @Proto
 @Data
@@ -21,13 +20,18 @@ public final class StringSerializedObject {
     @ProtoField(2)
     public String serialized;
 
-    public StringSerializedObject(@NonNull Object object) {
-        className = object.getClass().getName();
-        serialized = SerialUtil.toJsonString(object);
+    public StringSerializedObject(Object object) {
+        if (object != null) {
+            className = object.getClass().getName();
+            serialized = SerialUtil.toJsonString(object);
+        }
     }
 
     @SuppressWarnings("unchecked")
     public <T> T toObject() {
+        if (serialized == null) {
+            return null;
+        }
         try {
             return (T) SerialUtil.fromJson(
                     serialized, Class.forName(className));

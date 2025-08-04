@@ -16,9 +16,8 @@ package com.norconex.crawler.core2.cmd.crawl.pipeline.process;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.time.DurationFormatter;
-import com.norconex.crawler.core2.context.CrawlContext;
+import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.session.CrawlState;
-import com.norconex.grid.core2.compute.GridTaskBuilder;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 class CrawlActivityChecker {
-    private final CrawlContext ctx;
+    private final CrawlSession session;
     @Getter
     private final boolean deleting;
 
@@ -77,31 +76,38 @@ class CrawlActivityChecker {
             return true;
         }
 
-        if (ctx.getCrawlEntryLedger().isMaxDocsProcessedReached()) {
+        if (session.getCrawlContext().getCrawlEntryLedger()
+                .isMaxDocsProcessedReached()) {
             LOG.info("Pausing crawler. Will resume on next start.");
             maxDocsReached = true;
             // We update the crawl state to PAUSED so that the crawler
             // can be resumed later if needed.
             // This is done here so that the crawl state is updated
             // before the task is stopped.
-            ctx.getGrid().getCompute().executeTask(GridTaskBuilder
-                    .create("updateCrawlState")
-                    .singleNode()
-                    .processor(g -> CrawlContext
-                            .get(g)
-                            .getSessionProperties()
-                            .updateCrawlState(CrawlState.PAUSED))
-                    .build());
+            session.getCluster().getTaskManager().runOnOneSync(
+                    "updateCrawlState",
+                    ses -> {
+                        ses.updateCrawlState(CrawlState.PAUSED);
+                        return null;
+                    });
+            //            ctx.getGrid().getCompute().executeTask(GridTaskBuilder
+            //                    .create("updateCrawlState")
+            //                    .singleNode()
+            //                    .processor(g -> CrawlContext
+            //                            .get(g)
+            //                            .getSessionProperties()
+            //                            .updateCrawlState(CrawlState.PAUSED))
+            //                    .build());
             return true;
         }
         return false;
     }
 
     private boolean isQueueInitializedAndEmpty() {
-        var sessionStore = ctx.getSessionProperties();
+        //        var sessionStore = ctx.getSessionProperties();
         var queueEmpty = isQueueEmpty();
         if (queueEmpty) {
-            var queueInitialized = sessionStore.isQueueInitialized();
+            var queueInitialized = session.isStartRefsQueueingComplete();
             if (!queueInitialized) {
                 LOG.info("""
                     References are still being queued. \
@@ -110,7 +116,7 @@ class CrawlActivityChecker {
                 do {
                     Sleeper.sleepSeconds(1);
                     queueEmpty = isQueueEmpty();
-                    queueInitialized = sessionStore.isQueueInitialized();
+                    queueInitialized = session.isStartRefsQueueingComplete();
                 } while (queueEmpty && !queueInitialized);
             }
         }
@@ -121,7 +127,8 @@ class CrawlActivityChecker {
     }
 
     private boolean isQueueStillEmptyAfterIdleTimeout() {
-        var duration = ctx.getCrawlConfig().getIdleTimeout();
+        var duration =
+                session.getCrawlContext().getCrawlConfig().getIdleTimeout();
         if (duration == null || duration.isZero()) {
             return true;
         }
@@ -142,12 +149,12 @@ class CrawlActivityChecker {
     }
 
     private boolean isQueueEmpty() {
-        return ctx.getCrawlEntryLedger().isQueueEmpty();
+        return session.getCrawlContext().getCrawlEntryLedger().isQueueEmpty();
     }
 
     private String idleTimeoutAsText() {
         return DurationFormatter.FULL.format(
-                ctx.getCrawlConfig().getIdleTimeout());
+                session.getCrawlContext().getCrawlConfig().getIdleTimeout());
     }
 
 }

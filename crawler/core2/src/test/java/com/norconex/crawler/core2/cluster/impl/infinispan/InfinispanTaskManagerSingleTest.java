@@ -8,14 +8,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.infinispan.manager.DefaultCacheManager;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core2.cluster.ClusterTask;
-import com.norconex.crawler.core2.stubs.CrawlContextStubber;
+import com.norconex.crawler.core2.cluster.TaskManager;
+import com.norconex.crawler.core2.junit.CrawlTest;
+import com.norconex.crawler.core2.junit.CrawlTest.Focus;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,33 +23,35 @@ class InfinispanTaskManagerSingleTest {
     @TempDir
     private Path tempDir;
 
-    private DefaultCacheManager cacheManager;
-    private InfinispanTaskManager nodeManager;
+    //    private DefaultCacheManager cacheManager;
+    //    private InfinispanTaskManager taskManager;
+    //
+    //    @BeforeEach
+    //    void setUp() {
+    //        var node = InfinispanTestUtil.singleMemoryNodeCluster();
+    //        node.init(tempDir.resolve("nodesingle"));
+    //        //        node.init(CrawlContextStubber.crawlerContext(
+    //        //                tempDir.resolve("nodesingle")));
+    //        //                tempDir.resolve("nodesingle"));
+    //        cacheManager = node.getCacheManager().vendor();
+    //        taskManager = node.getTaskManager();
+    //        //                new InfinispanTaskManager(
+    //        //                new InfinispanCacheManager(cacheManager), "Node-Single");
+    //        LOG.info("Setup complete for test.");
+    //    }
+    //
+    //    @AfterEach
+    //    void tearDown() {
+    //        // Stop cache managers to release resources after each test
+    //        if (cacheManager != null) {
+    //            cacheManager.stop();
+    //        }
+    //        LOG.info("Teardown complete for test.");
+    //    }
 
-    @BeforeEach
-    void setUp() {
-        var node = InfinispanTestUtil.singleMemoryNodeCluster();
-        node.init(CrawlContextStubber.crawlerContext(
-                tempDir.resolve("nodesingle")));
-        //                tempDir.resolve("nodesingle"));
-        cacheManager = node.getCacheManager().vendor();
-        nodeManager = node.getTaskManager();
-        //                new InfinispanTaskManager(
-        //                new InfinispanCacheManager(cacheManager), "Node-Single");
-        LOG.info("Setup complete for test.");
-    }
-
-    @AfterEach
-    void tearDown() {
-        // Stop cache managers to release resources after each test
-        if (cacheManager != null) {
-            cacheManager.stop();
-        }
-        LOG.info("Teardown complete for test.");
-    }
-
-    @Test
-    void testRunOnOneOnceAndWait() throws Exception {
+    @CrawlTest(focus = Focus.SESSION)
+    void testRunOnOneOnceAndWait(TaskManager taskManager) throws Exception {
+        var infiniTaskManager = (InfinispanTaskManager) taskManager;
         var myTask = "MyImportantStartupTask";
         var executionCount = new AtomicInteger(0);
         var taskStartedLatch = new CountDownLatch(1);
@@ -66,12 +66,13 @@ class InfinispanTaskManagerSingleTest {
             LOG.info("Task logic completed");
             // Signal that the task has completed
             taskCompletedLatch.countDown();
+            return null;
         };
 
         // Node tries to run the task in a separate thread
         var t = new Thread(() -> {
             try {
-                nodeManager.runOnOneOnceSync(myTask, taskToRun);
+                infiniTaskManager.runOnOneOnceSync(myTask, taskToRun);
             } catch (Exception e) {
                 LOG.error("Node-Single task execution failed.", e);
             }
@@ -91,10 +92,10 @@ class InfinispanTaskManagerSingleTest {
                 "The task should have been executed exactly once.");
 
         // Ensure the task status is COMPLETED in both caches
-        assertNotNull(nodeManager.taskStatusCache.get(myTask),
+        assertNotNull(infiniTaskManager.taskStatusCache.get(myTask),
                 "Task status should not be null in Node-Single's cache.");
         assertEquals(TaskState.COMPLETED,
-                nodeManager.taskStatusCache.get(myTask),
+                infiniTaskManager.taskStatusCache.get(myTask),
                 "Task status in Node-Single's cache should be COMPLETED.");
     }
 }

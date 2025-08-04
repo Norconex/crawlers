@@ -12,22 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cmd.crawl.pipeline.bootstrap;
+package com.norconex.crawler.core2.cluster;
 
-import org.apache.commons.collections4.CollectionUtils;
+public interface ClusterConnector {
 
-import com.norconex.crawler.core2.cluster.ClusterTask;
-import com.norconex.crawler.core2.session.CrawlSession;
-
-public class CrawlBootstrapTask implements ClusterTask<Void> {
-
-    @Override
-    public Void execute(CrawlSession session) {
-        var ctx = session.getCrawlContext();
-
-        if (CollectionUtils.isNotEmpty(ctx.getBootstrappers())) {
-            ctx.getBootstrappers().forEach(boot -> boot.bootstrap(session));
-        }
-        return null;
-    }
+    Cluster connect();
 }

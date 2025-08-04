@@ -12,22 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cmd.crawl.pipeline.bootstrap;
+package com.norconex.crawler.core2.cluster.impl.infinispan;
 
-import org.apache.commons.collections4.CollectionUtils;
+import com.norconex.commons.lang.config.Configurable;
+import com.norconex.crawler.core2.cluster.Cluster;
+import com.norconex.crawler.core2.cluster.ClusterConnector;
 
-import com.norconex.crawler.core2.cluster.ClusterTask;
-import com.norconex.crawler.core2.session.CrawlSession;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-public class CrawlBootstrapTask implements ClusterTask<Void> {
+@EqualsAndHashCode
+@Getter
+public class InfinispanClusterConnector
+        implements ClusterConnector, Configurable<InfinispanClusterConfig> {
+
+    private final InfinispanClusterConfig configuration =
+            new InfinispanClusterConfig();
 
     @Override
-    public Void execute(CrawlSession session) {
-        var ctx = session.getCrawlContext();
-
-        if (CollectionUtils.isNotEmpty(ctx.getBootstrappers())) {
-            ctx.getBootstrappers().forEach(boot -> boot.bootstrap(session));
-        }
-        return null;
+    public Cluster connect() {
+        return new InfinispanCluster(configuration);
     }
 }

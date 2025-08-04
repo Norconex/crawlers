@@ -30,17 +30,14 @@ public final class CrawlSessionFactory {
 
     public static CrawlSession create(
             CrawlDriver crawlDriver, CrawlConfig crawlConfig) {
-        var cluster = crawlConfig.getCluster();
-        var ctx = CrawlContextFactory.builder()
+        var cluster = crawlConfig.getClusterConnector().connect();
+        var ctx = CrawlContextFactory.builder() //NOSONAR
                 .config(crawlConfig)
                 .driver(crawlDriver)
                 .build()
                 .create();
 
         createDir(ctx.getTempDir()); // also creates workDir
-
-        cluster.init(ctx.getWorkDir());
-
         var session = new CrawlSession(cluster, ctx);
         session.init();
         ctx.init(session);

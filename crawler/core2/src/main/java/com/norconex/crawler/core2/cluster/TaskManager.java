@@ -70,4 +70,24 @@ public interface TaskManager {
 
     <T> CompletableFuture<Optional<T>> runOnOneAsync(String taskName,
             ClusterTask<T> task);
+
+    <T, R> CompletableFuture<R> runOnAllOnceAsync(
+            String taskName,
+            ClusterTask<T> task,
+            ClusterReducer<T, R> reducer);
+
+    <T, R> R runOnAllOnceSync(
+            String taskName,
+            ClusterTask<T> task,
+            ClusterReducer<T, R> reducer);
+
+    <T, R> CompletableFuture<R> runOnAllAsync(
+            String taskName,
+            ClusterTask<T> task,
+            ClusterReducer<T, R> reducer);
+
+    <T, R> R runOnAllSync(
+            String taskName,
+            ClusterTask<T> task,
+            ClusterReducer<T, R> reducer);
 }

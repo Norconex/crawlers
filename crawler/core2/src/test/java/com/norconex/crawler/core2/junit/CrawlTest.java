@@ -28,8 +28,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.norconex.crawler.core2.CrawlConfig;
 import com.norconex.crawler.core2.CrawlDriver;
-import com.norconex.crawler.core2.cluster.Cluster;
-import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanCluster;
+import com.norconex.crawler.core2.cluster.ClusterConnector;
+import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanClusterConnector;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlDriverFactory;
 import com.norconex.crawler.core2.stubs.CrawlerConfigStubber;
 
@@ -89,14 +89,14 @@ public @interface CrawlTest {
          */
         CRAWL,
         /**
-         * Initializes the crawler context before each text execution and
+         * Initializes the crawl session before each text execution and
          * closes it after each.
          * Does not crawl and outcome is unexpected if trying to launch a crawl
          * while the separate crawler context is active.
          * The resolvable <code>Crawler</code> method arguments is always
          * {@code null}.
          */
-        CONTEXT,
+        SESSION,
         /**
          * Makes resolvable method arguments available without initialization.
          * The resolvable <code>Crawler</code> method arguments is always
@@ -112,8 +112,8 @@ public @interface CrawlTest {
     Class<? extends Supplier<
             CrawlDriver>> driverFactory() default MockCrawlDriverFactory.class;
 
-    Class<? extends Cluster>[] clusters() default {
-            InfinispanCluster.class
+    Class<? extends ClusterConnector>[] clusters() default {
+            InfinispanClusterConnector.class
     };
 
     /**

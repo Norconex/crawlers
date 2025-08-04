@@ -26,7 +26,6 @@ import com.norconex.crawler.core2.CrawlConfig;
 import com.norconex.crawler.core2.CrawlDriver;
 import com.norconex.crawler.core2.Crawler;
 import com.norconex.crawler.core2.context.CrawlContext;
-import com.norconex.crawler.core2.session.CrawlSessionManager_DELETE;
 import com.norconex.crawler.core2.stubs.CrawlerConfigStubber;
 
 import lombok.Data;
@@ -87,13 +86,14 @@ public class MockCrawlerBuilder {
         // FAULTY.... created but not always closed
         var cfg = resolvedConfig();
         var returnValue = new AtomicReference<T>();
-        new CrawlSessionManager_DELETE(crawlDriver, cfg).withCrawlContext(ctx -> {
-            try {
-                returnValue.set(f.apply(ctx));
-            } catch (Throwable e) {
-                fail("Test failed.", e);
-            }
-        });
+        new CrawlSessionManager_DELETE(crawlDriver, cfg)
+                .withCrawlContext(ctx -> {
+                    try {
+                        returnValue.set(f.apply(ctx));
+                    } catch (Throwable e) {
+                        fail("Test failed.", e);
+                    }
+                });
         return returnValue.get();
     }
 

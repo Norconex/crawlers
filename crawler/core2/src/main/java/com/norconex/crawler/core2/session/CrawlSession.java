@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -57,6 +58,8 @@ public class CrawlSession implements Closeable {
 
     private static final String SESSION_SNAPSHOT_KEY = "session.snapshot";
     private static final String SESSION_STATE_KEY = "session.state";
+    private static final String START_REFS_QUEUED_KEY =
+            "session.startRefsQueuingComplete";
 
     //TODO make these timeouts configurable?
     private static final long SESSION_HEARTBEAT_INTERVAL =
@@ -64,6 +67,7 @@ public class CrawlSession implements Closeable {
     private static final long SESSION_TIMEOUT =
             Duration.ofMinutes(4).toMillis();
 
+    // <address, ...>
     private static final Map<String, CrawlSession> SESSIONS =
             new ConcurrentHashMap<>();
 
@@ -78,7 +82,6 @@ public class CrawlSession implements Closeable {
     private final Cluster cluster;
     @Getter
     private final CrawlContext crawlContext;
-    @Getter // really have a getter?
     private Cache<String> sessionCache;
     private Snapshot snapshot;
     private State state;
@@ -146,18 +149,36 @@ public class CrawlSession implements Closeable {
     }
 
     public CrawlState getCrawlState() {
-        // always get it fresh when requesting it explicitely
+        // always get it fresh when requesting it explicitly
         state = loadState();
         return state.crawlState;
     }
 
     @Override
     public void close() {
+        LOG.info("Closing CrawlSession...");
+
+        LOG.info("Closing heartbeat scheduler...");
+        heartbeatScheduler.shutdown();
+        try {
+            if (!heartbeatScheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+                LOG.warn("Heartbeat scheduler did not terminate in time.");
+            } else {
+                LOG.info("Heartbeat scheduler closed.");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.warn(
+                    "Interrupted while waiting for heartbeat scheduler to terminate.",
+                    e);
+        }
+        ExceptionSwallower.close(crawlContext, cluster);
         if (cluster.getLocalNode() != null) {
             SESSIONS.remove(cluster.getLocalNode().getNodeName());
         }
-        ExceptionSwallower.close(crawlContext, cluster);
-        heartbeatScheduler.shutdown();
+
+        LOG.info("CrawlSession closed.");
+
     }
 
     void init() {
@@ -186,7 +207,7 @@ public class CrawlSession implements Closeable {
             // no state found, assume we're starting it
             astate = new State().setCrawlState(CrawlState.RUNNING)
                     .setLastUpdated(System.currentTimeMillis());
-            saveState(astate);
+            saveCrawlState(astate);
         }
         return astate;
 
@@ -211,7 +232,7 @@ public class CrawlSession implements Closeable {
                 "session.heartbeat", sess -> {
                     var st = new State().setCrawlState(state.crawlState)
                             .setLastUpdated(System.currentTimeMillis());
-                    saveState(st);
+                    saveCrawlState(st);
                     return st;
                 }).get();
     }
@@ -280,12 +301,56 @@ public class CrawlSession implements Closeable {
         };
     }
 
-    public void updateState(CrawlState state) {
-        saveState(new State().setCrawlState(state)
+    /**
+     * Sets a session attribute as a string.
+     * @param key attribute key
+     * @param value attribute value
+     */
+    public void setString(String key, String value) {
+        sessionCache.put(key, value);
+    }
+
+    /**
+     * Gets a session attribute as a string.
+     * @param key attribute key
+     * @return value attribute value
+     */
+    public Optional<String> getString(String key) {
+        return sessionCache.get(key);
+    }
+
+    /**
+     * Sets a session attribute as a boolean.
+     * @param key attribute key
+     * @param value attribute value
+     */
+    public void setBoolean(String key, boolean value) {
+        sessionCache.put(key, Boolean.toString(value));
+    }
+
+    /**
+     * Gets a session attribute as a boolean.
+     * @param key attribute key
+     * @return value attribute value
+     */
+    public boolean getBoolean(String key) {
+        return sessionCache.get(key).map(Boolean::parseBoolean).orElse(false);
+    }
+
+    public boolean isStartRefsQueueingComplete() {
+        return getBoolean(START_REFS_QUEUED_KEY);
+    }
+
+    public void setStartRefsQueueingComplete(boolean isComplete) {
+        setBoolean(START_REFS_QUEUED_KEY, isComplete);
+    }
+
+    public void updateCrawlState(CrawlState state) {
+        saveCrawlState(new State().setCrawlState(state)
                 .setLastUpdated(System.currentTimeMillis()));
     }
 
-    private void saveState(State state) {
+    private void saveCrawlState(State state) {
         sessionCache.put(SESSION_STATE_KEY, SerialUtil.toJsonString(state));
     }
 
@@ -305,7 +370,7 @@ public class CrawlSession implements Closeable {
 
     @Data
     @Accessors(chain = true)
-    class Snapshot {
+    static class Snapshot {
         private String crawlerId;
         private String crawlSessionId;
         private String crawlRunId;
@@ -315,7 +380,7 @@ public class CrawlSession implements Closeable {
 
     @Data
     @Accessors(chain = true)
-    class State {
+    static class State {
         private CrawlState crawlState;
         private long lastUpdated;
     }

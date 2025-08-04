@@ -184,6 +184,7 @@ public class CrawlContext implements Closeable {
     // closes associated resources
     @Override
     public void close() {
+        LOG.info("Closing CrawlContext...");
         swallow(getImporter()::close);
 
         // Defer shutdown
@@ -211,5 +212,6 @@ public class CrawlContext implements Closeable {
         }, "Could not delete the temporary directory:" + tempDir);
 
         swallow(getEventManager()::clearListeners);
+        LOG.info("CrawlContext closed.");
     }
 }

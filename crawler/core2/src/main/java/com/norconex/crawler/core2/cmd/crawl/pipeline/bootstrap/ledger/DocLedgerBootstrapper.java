@@ -67,7 +67,7 @@ public final class DocLedgerBootstrapper implements CrawlBootstrapper {
             if (LOG.isInfoEnabled()) {
                 //TODO use total count to track progress independently
                 var processedCount = ledger.getProcessedCount();
-                var cachedCount = ledger.getCachedCount();
+                var cachedCount = ledger.getPreviousEntryCount();
                 var totalCount = processedCount
                         + ledger.getQueueCount()
                         + cachedCount;
@@ -88,10 +88,10 @@ public final class DocLedgerBootstrapper implements CrawlBootstrapper {
             // Valid Processed -> Cached
             LOG.info("Caching any valid references from previous run.");
 
-            ledger.cacheProcessed();
+            ledger.archiveCurrentLedger();
 
             if (LOG.isInfoEnabled()) {
-                var cacheCount = ledger.getPreviewCrawlEntryCount();
+                var cacheCount = ledger.getPreviousEntryCount();
                 if (cacheCount > 0) {
                     LOG.info("STARTING an incremental crawl from previous {} "
                             + "valid references.", cacheCount);

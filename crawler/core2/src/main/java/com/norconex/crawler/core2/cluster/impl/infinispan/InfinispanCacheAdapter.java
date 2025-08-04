@@ -4,13 +4,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.infinispan.query.Search;
-import org.infinispan.query.dsl.Query;
+import org.infinispan.commons.api.query.Query;
 import org.infinispan.util.function.SerializableFunction;
 
 import com.norconex.crawler.core2.cluster.Cache;
@@ -93,26 +93,28 @@ class InfinispanCacheAdapter<T> implements Cache<T> {
     }
 
     @Override
-    public List<T> query(String queryExpression) {
-        var queryFactory = Search.getQueryFactory(delegate);
-        Query<T> query = queryFactory.create(queryExpression);
-        return query.execute().list();
+    public boolean replace(String key, T oldValue, T newValue) {
+        return delegate.replace(key, oldValue, newValue);
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<T> query(String queryExpression) {
+        return (List<T>) delegate.query(queryExpression).execute().list();
+    }
+
+    @SuppressWarnings("unchecked")
     @Override
     public Iterator<T> queryIterator(String queryExpression) {
-        var queryFactory = Search.getQueryFactory(delegate);
-        Query<T> query = queryFactory.create(queryExpression);
-
-        // In Infinispan 15.2, use stream() from the query result and convert to iterator
-        return query.execute().list().stream().iterator();
+        return (Iterator<T>) delegate.query(queryExpression).execute().list()
+                .stream()
+                .iterator();
     }
 
     @Override
     public List<T> queryPaged(String queryExpression, int startOffset,
             int maxResults) {
-        var queryFactory = Search.getQueryFactory(delegate);
-        Query<T> query = queryFactory.create(queryExpression);
+        Query<T> query = delegate.query(queryExpression);
         query.startOffset(startOffset);
         query.maxResults(maxResults);
         return query.execute().list();
@@ -156,9 +158,13 @@ class InfinispanCacheAdapter<T> implements Cache<T> {
 
     @Override
     public long count(String queryExpression) {
-        var queryFactory = Search.getQueryFactory(delegate);
-        Query<T> query = queryFactory.create(queryExpression);
+        Query<Object> query = delegate.query(queryExpression);
         return query.execute().count().value();
+    }
+
+    @Override
+    public long countAll() {
+        return delegate.size();
     }
 
     @Override
@@ -172,14 +178,13 @@ class InfinispanCacheAdapter<T> implements Cache<T> {
         // Use iterator-based deletion for better memory efficiency
         var batchSize = DEFAULT_BATCH_SIZE;
         var deletedCount = 0L;
-        var queryFactory = Search.getQueryFactory(delegate);
 
         LOG.debug("Deleting approximately {} entries matching: {}",
                 totalCount, queryExpression);
 
         // Process in batches to avoid loading too many objects into memory at once
         while (deletedCount < totalCount) {
-            Query<T> query = queryFactory.create(queryExpression);
+            Query<T> query = delegate.query(queryExpression);
             query.maxResults(batchSize);
 
             var batch = query.execute().list();
@@ -204,5 +209,10 @@ class InfinispanCacheAdapter<T> implements Cache<T> {
 
         LOG.debug("Finished deleting {} entries", deletedCount);
         return deletedCount;
+    }
+
+    @Override
+    public void forEach(BiConsumer<String, ? super T> action) {
+        delegate.forEach((k, v) -> action.accept(k, v));
     }
 }

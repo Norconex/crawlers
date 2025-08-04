@@ -15,34 +15,41 @@
 package com.norconex.crawler.core2.cluster.impl.infinispan;
 
 import java.nio.file.Path;
+import java.util.List;
+import java.util.UUID;
 
 import org.infinispan.commons.marshall.ProtoStreamMarshaller;
 import org.infinispan.manager.DefaultCacheManager;
+import org.infinispan.remoting.transport.Address;
 
-import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core2.cluster.Cluster;
 import com.norconex.crawler.core2.util.ExceptionSwallower;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@RequiredArgsConstructor
 @EqualsAndHashCode
 @Getter
-public class InfinispanCluster
-        implements Cluster, Configurable<InfinispanClusterConfig> {
+@Slf4j
+public class InfinispanCluster implements Cluster {
 
     private static final String BASEDIR_PLACEHOLDER = "__DERIVED__";
 
-    private final InfinispanClusterConfig configuration =
-            new InfinispanClusterConfig();
     private InfinispanClusterNode localNode;
     private InfinispanCacheManager cacheManager;
     private InfinispanTaskManager taskManager;
 
+    private final InfinispanClusterConfig configuration;
+
     @Override
-    public void init(Path workDir) {
+    public synchronized void init(Path workDir) {
         var builderHolder = configuration.getInfinispan();
         var globalBuilder = builderHolder.getGlobalConfigurationBuilder();
+
+        globalBuilder.transport().nodeName(UUID.randomUUID().toString());
 
         var proto = new ProtoStreamMarshaller();
         var serCtx = proto.getSerializationContext();
@@ -61,7 +68,7 @@ public class InfinispanCluster
                     .persistentLocation(currentPath);
         }
         var manager = new DefaultCacheManager(builderHolder, true);
-
+        manager.start();
         cacheManager = new InfinispanCacheManager(manager);
         localNode = new InfinispanClusterNode(manager);
         taskManager = new InfinispanTaskManager(this);
@@ -69,11 +76,31 @@ public class InfinispanCluster
 
     @Override
     public void stop() {
-        // TODO Auto-generated method stub
+        //TODO stop the entire cluster as opposed to close, which should only
+        // disconnect the node?
+        ExceptionSwallower.close(cacheManager);
     }
 
     @Override
     public void close() {
+        LOG.info("Closing InfinispanCluster node...");
+
+        // disconnects without stopping?
         ExceptionSwallower.close(cacheManager);
+        LOG.info("InfinispanCluster node closed.");
+    }
+
+    /**
+     * Returns the addresses of all nodes in the cluster.
+     * @return node addresses
+     */
+    public List<String> getAllNodeNames() {
+        if (cacheManager == null) {
+            return List.of(localNode.getNodeName());
+        }
+        var manager = cacheManager.vendor();
+        return manager.getMembers().stream()
+                .map(Address::toString)
+                .toList();
     }
 }

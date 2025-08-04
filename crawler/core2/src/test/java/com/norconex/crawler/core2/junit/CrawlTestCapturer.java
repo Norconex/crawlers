@@ -20,11 +20,11 @@ import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core2.CrawlConfig;
 import com.norconex.crawler.core2.CrawlDriver;
 import com.norconex.crawler.core2.Crawler;
-import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.event.listeners.CrawlerLifeCycleListener;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlDriverFactory;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core2.session.CrawlSession;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -38,7 +38,7 @@ public class CrawlTestCapturer extends CrawlerLifeCycleListener {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class CrawlCaptures {
-        private CrawlContext context;
+        private CrawlSession session;
         private MemoryCommitter committer;
         private Throwable crawlerError;
     }
@@ -67,7 +67,7 @@ public class CrawlTestCapturer extends CrawlerLifeCycleListener {
             config.removeEventListener(capturer);
             //            GridTestUtil.waitForGridShutdown();
             return new CrawlCaptures(
-                    captures.context,
+                    captures.session,
                     captures.committer,
                     captures.crawlerError);
         } finally {
@@ -85,7 +85,7 @@ public class CrawlTestCapturer extends CrawlerLifeCycleListener {
             c.accept(crawler);
             crawler.getCrawlConfig().removeEventListener(capturer);
             return new CrawlCaptures(
-                    captures.context,
+                    captures.session,
                     captures.committer,
                     captures.crawlerError);
         } finally {
@@ -95,9 +95,10 @@ public class CrawlTestCapturer extends CrawlerLifeCycleListener {
 
     @Override
     protected void onCrawlerCrawlBegin(CrawlerEvent event) {
-        captures.context = event.getSource();
+        captures.session = event.getSource();
         captures.committer = (MemoryCommitter) event
                 .getSource()
+                .getCrawlContext()
                 .getCrawlConfig()
                 .getCommitters()
                 .get(0);
@@ -109,7 +110,7 @@ public class CrawlTestCapturer extends CrawlerLifeCycleListener {
     }
 
     private static void reset() {
-        captures.context = null;
+        captures.session = null;
         captures.committer = null;
         captures.crawlerError = null;
     }

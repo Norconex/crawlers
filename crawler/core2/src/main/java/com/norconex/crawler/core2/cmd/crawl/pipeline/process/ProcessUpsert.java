@@ -92,7 +92,7 @@ final class ProcessUpsert {
             var childCachedDocRec = ctx
                     .crawlContext()
                     .getCrawlEntryLedger()
-                    .getCached(childResponse.getReference())
+                    .getPreviousEntry(childResponse.getReference())
                     .orElse(null);
 
             // Here we create a CrawlDoc since the document from the response

@@ -14,13 +14,13 @@
  */
 package com.norconex.crawler.core2.mocks.cluster;
 
+import java.nio.file.Path;
 import java.util.UUID;
 
 import com.norconex.crawler.core2.cluster.CacheManager;
 import com.norconex.crawler.core2.cluster.Cluster;
 import com.norconex.crawler.core2.cluster.ClusterNode;
 import com.norconex.crawler.core2.cluster.TaskManager;
-import com.norconex.crawler.core2.context.CrawlContext;
 
 import lombok.Data;
 
@@ -41,11 +41,6 @@ public class MockFailingCluster implements Cluster {
             public String getNodeName() {
                 return nodeId;
             }
-
-            @Override
-            public String getAddress() {
-                return null;
-            }
         };
     }
 
@@ -60,7 +55,7 @@ public class MockFailingCluster implements Cluster {
     }
 
     @Override
-    public void init(CrawlContext crawlContext) {
+    public void init(Path crawlerWorkDir) {
         throw new UnsupportedOperationException("IN_TEST");
     }
 

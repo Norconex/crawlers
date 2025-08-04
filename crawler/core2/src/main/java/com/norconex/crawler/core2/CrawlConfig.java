@@ -29,8 +29,8 @@ import com.norconex.committer.core.Committer;
 import com.norconex.commons.lang.bean.jackson.JsonXmlCollection;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core2.cluster.Cluster;
-import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanCluster;
+import com.norconex.crawler.core2.cluster.ClusterConnector;
+import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanClusterConnector;
 import com.norconex.crawler.core2.doc.CrawlDocMetaConstants;
 import com.norconex.crawler.core2.doc.operations.DocumentConsumer;
 import com.norconex.crawler.core2.doc.operations.checksum.DocumentChecksummer;
@@ -152,7 +152,8 @@ public class CrawlConfig {
      * The cluster used to run the crawler. Default (Infinispan) handles
      * both running the crawler on single and multiple nodes.
      */
-    private Cluster cluster = new InfinispanCluster();
+    private ClusterConnector clusterConnector =
+            new InfinispanClusterConnector();
 
     /**
      * Whether the start references should be loaded asynchronously. When

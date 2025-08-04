@@ -48,26 +48,24 @@ public class ReferenceFiltersStage implements Predicate<QueuePipelineContext> {
                 ? ""
                 : " (" + StringUtils.trimToEmpty(type) + ")";
 
+        var crawlCtx = ctx.getCrawlSession().getCrawlContext();
+        var crawlEntry = ctx.getCrawlEntry();
         return OnMatchFiltersResolver
                 .<String, ReferenceFilter>builder()
-                .subject(ctx.getDocContext().getReference())
-                .filters(ctx.getCrawlContext().getCrawlConfig()
-                        .getReferenceFilters())
+                .subject(crawlEntry.getReference())
+                .filters(crawlCtx.getCrawlConfig().getReferenceFilters())
                 .predicate((s, f) -> f.acceptReference(s))
                 .onRejected((f, msg) -> {
-                    LOG.debug(
-                            "REJECTED reference{}: {} Filter={}",
-                            msgSuffix, ctx.getDocContext().getReference(), f);
-                    ctx.getCrawlContext().fire(
+                    LOG.debug("REJECTED reference{}: {} Filter={}",
+                            msgSuffix, crawlEntry.getReference(), f);
+                    crawlCtx.fire(
                             CrawlerEvent.builder()
                                     .name(CrawlerEvent.REJECTED_FILTER)
-                                    .source(ctx.getCrawlContext())
-                                    .docContext(ctx.getDocContext())
+                                    .source(ctx.getCrawlSession())
                                     .subject(f)
                                     .message(msg + msgSuffix)
                                     .build());
-                    ctx.getDocContext().getCurrentCrawlEntry()
-                            .setProcessingOutcome(ProcessingOutcome.REJECTED);
+                    crawlEntry.setProcessingOutcome(ProcessingOutcome.REJECTED);
                 })
                 .build()
                 .isAccepted();

@@ -24,7 +24,11 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core2.CrawlConfig;
 import com.norconex.crawler.core2.Crawler;
+import com.norconex.crawler.core2.cluster.CacheManager;
+import com.norconex.crawler.core2.cluster.Cluster;
+import com.norconex.crawler.core2.cluster.TaskManager;
 import com.norconex.crawler.core2.context.CrawlContext;
+import com.norconex.crawler.core2.session.CrawlSession;
 
 /**
  * Resolves test method parameters. Invoked after
@@ -40,7 +44,11 @@ public class CrawlTestParameterResolver implements ParameterResolver {
         return List.of(
                 Crawler.class,
                 CrawlConfig.class,
+                CrawlSession.class,
                 CrawlContext.class,
+                Cluster.class,
+                TaskManager.class,
+                CacheManager.class,
                 MemoryCommitter.class,
                 Path.class)
                 .stream()
@@ -65,9 +73,29 @@ public class CrawlTestParameterResolver implements ParameterResolver {
             return params.getCrawlConfig();
         }
 
+        // CrawlSession
+        if (CrawlSession.class.isAssignableFrom(paramType)) {
+            return params.getCrawlSession();
+        }
+
         // CrawlContext
         if (CrawlContext.class.isAssignableFrom(paramType)) {
-            return params.getCrawlContext();
+            return params.getCrawlSession().getCrawlContext();
+        }
+
+        // Cluster
+        if (Cluster.class.isAssignableFrom(paramType)) {
+            return params.getCrawlSession().getCluster();
+        }
+
+        // TaskManager
+        if (TaskManager.class.isAssignableFrom(paramType)) {
+            return params.getCrawlSession().getCluster().getTaskManager();
+        }
+
+        // CacheManager
+        if (CacheManager.class.isAssignableFrom(paramType)) {
+            return params.getCrawlSession().getCluster().getCacheManager();
         }
 
         // First committer

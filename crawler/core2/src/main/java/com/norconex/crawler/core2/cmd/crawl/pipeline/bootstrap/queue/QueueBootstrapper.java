@@ -25,8 +25,9 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import com.norconex.crawler.core2.CrawlConfig;
 import com.norconex.crawler.core2.cmd.crawl.pipeline.bootstrap.CrawlBootstrapper;
-import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.doc.pipelines.queue.QueuePipelineContext;
+import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core2.session.LaunchMode;
 import com.norconex.crawler.core2.util.LogUtil;
 
 import lombok.EqualsAndHashCode;
@@ -66,8 +67,9 @@ public class QueueBootstrapper implements CrawlBootstrapper {
     }
 
     @Override
-    public void bootstrap(CrawlContext crawlContext) {
-        if (crawlContext.isResumedSession()) {
+    public void bootstrap(CrawlSession session) {
+        var crawlContext = session.getCrawlContext();
+        if (session.getLaunchMode() == LaunchMode.RESUMED) {
             LOG.info("Unfinished previous crawl detected. Resuming...");
         } else {
             LOG.info("Queueing start references ({})...",
@@ -87,8 +89,8 @@ public class QueueBootstrapper implements CrawlBootstrapper {
         // (this last option would likely be very impractical).
         LOG.info("Queueing initial references...");
         var queueInitContext = new QueueBootstrapContext(
-                crawlContext, docCtx -> queue(
-                        new QueuePipelineContext(crawlContext, docCtx)));
+                session,
+                docCtx -> queue(new QueuePipelineContext(session, docCtx)));
 
         var callback = (Consumer<QueueBootstrapContext>) ctx -> {
             var cnt = 0;
@@ -110,7 +112,8 @@ public class QueueBootstrapper implements CrawlBootstrapper {
     }
 
     private void queue(QueuePipelineContext context) {
-        context.getCrawlContext()
+        context.getCrawlSession()
+                .getCrawlContext()
                 .getDocPipelines()
                 .getQueuePipeline()
                 .accept(context);
@@ -122,12 +125,11 @@ public class QueueBootstrapper implements CrawlBootstrapper {
         var executor = Executors.newSingleThreadExecutor();
         try {
             executor.submit(() -> {
-                LogUtil.setMdcCrawlerId(ctx.getCrawlContext().getId());
-                Thread.currentThread().setName(ctx.getCrawlContext().getId());
+                LogUtil.setMdcCrawlerId(ctx.getCrawlSession().getCrawlerId());
+                Thread.currentThread()
+                        .setName(ctx.getCrawlSession().getCrawlerId());
                 callback.accept(ctx);
-                ctx.getCrawlContext()
-                        .getSessionProperties()
-                        .setQueueInitialized(true);
+                ctx.getCrawlSession().setStartRefsQueueingComplete(true);
             });
         } finally {
             try {
@@ -144,6 +146,6 @@ public class QueueBootstrapper implements CrawlBootstrapper {
             Consumer<QueueBootstrapContext> callback,
             QueueBootstrapContext ctx) {
         callback.accept(ctx);
-        ctx.getCrawlContext().getSessionProperties().setQueueInitialized(true);
+        ctx.getCrawlSession().setStartRefsQueueingComplete(true);
     }
 }

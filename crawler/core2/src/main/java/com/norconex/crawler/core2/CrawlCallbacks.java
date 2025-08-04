@@ -17,8 +17,8 @@ package com.norconex.crawler.core2;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.event.CrawlerEvent;
+import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.importer.doc.Doc;
 
 import lombok.Builder;
@@ -31,19 +31,19 @@ public class CrawlCallbacks {
     /**
      * Invoked after a command is initialized, but before it gets executed.
      */
-    Consumer<CrawlContext> beforeCommand;
+    Consumer<CrawlSession> beforeCommand;
     /**
      * Invoked after a command has been executed, but before resources are
      * closed.
      */
-    Consumer<CrawlContext> afterCommand;
+    Consumer<CrawlSession> afterCommand;
 
     /**
      * Gives crawler implementations a chance to prepare before execution
      * of {@link CrawlTask_TO_MIGRATE} starts. Invoked right after the
      * {@link CrawlerEvent#TASK_RUN_BEGIN} event is fired.
      */
-    Consumer<CrawlContext> beforeCrawlTask;
+    Consumer<CrawlSession> beforeCrawlTask;
 
     /**
      * Gives crawler implementations a chance to do something right after
@@ -53,16 +53,16 @@ public class CrawlCallbacks {
      * {@link CrawlerEvent#TASK_RUN_END} (depending which of the two is
      * triggered).
      */
-    Consumer<CrawlContext> afterCrawlTask;
+    Consumer<CrawlSession> afterCrawlTask;
 
     //MAYBE: are those used? Should they be?
     // Add those that are missing to ReferencesProcessor
-    BiConsumer<CrawlContext, Doc> beforeDocumentProcessing;
-    BiConsumer<CrawlContext, Doc> afterDocumentProcessing;
+    BiConsumer<CrawlSession, Doc> beforeDocumentProcessing;
+    BiConsumer<CrawlSession, Doc> afterDocumentProcessing;
 
     //MAYBE: need those, or we can replace beforeDocumentFinalizing
     // (the only one used) with after processing?
-    BiConsumer<CrawlContext, Doc> beforeDocumentFinalizing;
-    BiConsumer<CrawlContext, Doc> afterDocumentFinalizing;
+    BiConsumer<CrawlSession, Doc> beforeDocumentFinalizing;
+    BiConsumer<CrawlSession, Doc> afterDocumentFinalizing;
 
 }

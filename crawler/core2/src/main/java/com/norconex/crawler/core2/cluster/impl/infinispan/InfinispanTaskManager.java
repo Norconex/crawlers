@@ -12,6 +12,7 @@ import org.infinispan.configuration.cache.ConfigurationBuilder;
 import org.infinispan.lock.EmbeddedClusteredLockManagerFactory;
 import org.infinispan.lock.api.ClusteredLockManager;
 
+import com.norconex.crawler.core2.cluster.ClusterReducer;
 import com.norconex.crawler.core2.cluster.ClusterTask;
 import com.norconex.crawler.core2.cluster.TaskException;
 import com.norconex.crawler.core2.cluster.TaskManager;
@@ -103,7 +104,7 @@ public class InfinispanTaskManager implements TaskManager {
             String taskName, ClusterTask<T> task) {
         try {
             return runOnOneOnceAsync(taskName, task).get();
-        } catch (Exception e) {
+        } catch (Exception e) { //NOSONAR
             throw ConcurrentUtil.wrapAsCompletionException(e);
         }
     }
@@ -113,7 +114,7 @@ public class InfinispanTaskManager implements TaskManager {
             throws TaskException {
         try {
             return runOnOneAsync(taskName, task).get();
-        } catch (Exception e) {
+        } catch (Exception e) { //NOSONAR
             throw ConcurrentUtil.wrapAsCompletionException(e);
         }
     }
@@ -121,7 +122,8 @@ public class InfinispanTaskManager implements TaskManager {
     @Override
     public <T> CompletableFuture<Optional<T>> runOnOneAsync(String taskName,
             ClusterTask<T> task) {
-        LOG.info("[{}] Attempting to run repeatable task: {}", nodeId, taskName);
+        LOG.info("[{}] Attempting to run repeatable task: {}", nodeId,
+                taskName);
 
         // Create a completable future to hold the result
         var resultFuture = new CompletableFuture<Optional<T>>();
@@ -141,7 +143,7 @@ public class InfinispanTaskManager implements TaskManager {
      * Executes a task locally (non-clustered mode).
      */
     private <T> void executeLocalTask(
-            String taskName, 
+            String taskName,
             ClusterTask<T> task,
             CompletableFuture<Optional<T>> resultFuture) {
         try {
@@ -159,7 +161,7 @@ public class InfinispanTaskManager implements TaskManager {
 
     /**
      * Executes a repeatable task in a clustered environment asynchronously.
-     * Unlike the "once" variant, this doesn't check for or store persistent 
+     * Unlike the "once" variant, this doesn't check for or store persistent
      * completion status.
      */
     private <T> void executeClusteredRepeatableTaskAsync(
@@ -184,10 +186,11 @@ public class InfinispanTaskManager implements TaskManager {
                     executeRepeatableTask(taskName, task, resultFuture);
                 } else {
                     LOG.info(
-                            "[{}] Could not acquire lock for repeatable task '{}'. " 
+                            "[{}] Could not acquire lock for repeatable task '{}'. "
                                     + "Waiting for completion by another node.",
                             nodeId, taskName);
-                    waitForRepeatableTaskCompletionAsync(taskName, resultFuture);
+                    waitForRepeatableTaskCompletionAsync(taskName,
+                            resultFuture);
                 }
             } catch (Exception e) {
                 resultFuture.completeExceptionally(
@@ -202,7 +205,7 @@ public class InfinispanTaskManager implements TaskManager {
             }
         });
     }
-    
+
     /**
      * Execute a repeatable task when this node is designated as the runner.
      */
@@ -244,7 +247,7 @@ public class InfinispanTaskManager implements TaskManager {
     private <T> void waitForRepeatableTaskCompletionAsync(
             String taskName,
             CompletableFuture<Optional<T>> resultFuture) {
-        
+
         CompletableFuture.runAsync(() -> {
             try {
                 // Wait for the lock to become available
@@ -256,22 +259,23 @@ public class InfinispanTaskManager implements TaskManager {
             }
         });
     }
-    
+
     /**
      * Waits until the lock for a task becomes available,
      * which indicates the task has completed.
      */
-    private void waitForTaskLockAvailability(String taskName) 
+    private void waitForTaskLockAvailability(String taskName)
             throws InterruptedException {
         var taskLock = lockManager.get(taskName);
         while (true) {
             try {
-                var acquiredLock = taskLock.tryLock(STATUS_POLLING_INTERVAL_MS, 
+                var acquiredLock = taskLock.tryLock(STATUS_POLLING_INTERVAL_MS,
                         TimeUnit.MILLISECONDS).get();
                 if (acquiredLock) {
                     // Release it immediately, we just needed to know it's available
                     taskLock.unlock();
-                    LOG.info("[{}] Task '{}' lock is now available. Task completed.",
+                    LOG.info(
+                            "[{}] Task '{}' lock is now available. Task completed.",
                             nodeId, taskName);
                     return;
                 }
@@ -524,5 +528,131 @@ public class InfinispanTaskManager implements TaskManager {
                 resultFuture.completeExceptionally(e);
             }
         });
+    }
+
+    /**
+     * Executes a given task on all nodes exactly once and reduces the results.
+     * Only one node triggers the task, all nodes participate.
+     */
+    @Override
+    public <T, R> CompletableFuture<R> runOnAllOnceAsync(
+            String taskName,
+            ClusterTask<T> task,
+            ClusterReducer<T, R> reducer) {
+        var resultFuture = new CompletableFuture<R>();
+        var triggerKey = taskName + ":trigger";
+        var resultKeyPrefix = taskName + ":result:";
+        // Only one node triggers the task
+        synchronized (InfinispanTaskManager.class) {
+            if (taskStatusCache.get(triggerKey) == null) {
+                taskStatusCache.put(triggerKey, TaskState.RUNNING);
+            }
+        }
+        // All nodes participate
+        CompletableFuture.runAsync(() -> {
+            try {
+                // Each node checks if it has already participated
+                var nodeResultKey = resultKeyPrefix + nodeId;
+                if (taskResultCache.get(nodeResultKey) == null) {
+                    var result = task
+                            .execute(CrawlSession.get(cluster.getLocalNode()));
+                    taskResultCache.put(nodeResultKey,
+                            new StringSerializedObject(result));
+                }
+                // Wait for all nodes to participate
+                while (true) {
+                    var allNodeNames = cluster.getAllNodeNames();
+                    var allDone = true;
+                    java.util.List<T> results = new java.util.ArrayList<>();
+                    for (String n : allNodeNames) {
+                        var obj = taskResultCache.get(resultKeyPrefix + n);
+                        if (obj == null) {
+                            allDone = false;
+                            break;
+                        }
+                        results.add((T) obj.toObject());
+                    }
+                    if (allDone) {
+                        // Reduce and complete
+                        var reduced = reducer.reduce(results);
+                        resultFuture.complete(reduced);
+                        taskStatusCache.put(triggerKey, TaskState.COMPLETED);
+                        break;
+                    }
+                    Thread.sleep(STATUS_POLLING_INTERVAL_MS);
+                }
+            } catch (Exception e) {
+                resultFuture.completeExceptionally(e);
+            }
+        });
+        return resultFuture;
+    }
+
+    @Override
+    public <T, R> R runOnAllOnceSync(
+            String taskName,
+            ClusterTask<T> task,
+            ClusterReducer<T, R> reducer) {
+        try {
+            return runOnAllOnceAsync(taskName, task, reducer).get();
+        } catch (Exception e) {
+            throw ConcurrentUtil.wrapAsCompletionException(e);
+        }
+    }
+
+    /**
+     * Executes a repeatable task on all nodes and reduces the results.
+     */
+    @Override
+    public <T, R> CompletableFuture<R> runOnAllAsync(
+            String taskName,
+            ClusterTask<T> task,
+            ClusterReducer<T, R> reducer) {
+        var resultFuture = new CompletableFuture<R>();
+        var resultKeyPrefix = taskName + ":result:";
+        CompletableFuture.runAsync(() -> {
+            try {
+                var nodeResultKey = resultKeyPrefix + nodeId;
+                var result =
+                        task.execute(CrawlSession.get(cluster.getLocalNode()));
+                taskResultCache.put(nodeResultKey,
+                        new StringSerializedObject(result));
+                // Wait for all nodes to participate
+                while (true) {
+                    var allNodeNames = cluster.getAllNodeNames();
+                    var allDone = true;
+                    java.util.List<T> results = new java.util.ArrayList<>();
+                    for (String n : allNodeNames) {
+                        var obj = taskResultCache.get(resultKeyPrefix + n);
+                        if (obj == null) {
+                            allDone = false;
+                            break;
+                        }
+                        results.add((T) obj.toObject());
+                    }
+                    if (allDone) {
+                        var reduced = reducer.reduce(results);
+                        resultFuture.complete(reduced);
+                        break;
+                    }
+                    Thread.sleep(STATUS_POLLING_INTERVAL_MS);
+                }
+            } catch (Exception e) {
+                resultFuture.completeExceptionally(e);
+            }
+        });
+        return resultFuture;
+    }
+
+    @Override
+    public <T, R> R runOnAllSync(
+            String taskName,
+            ClusterTask<T> task,
+            ClusterReducer<T, R> reducer) {
+        try {
+            return runOnAllAsync(taskName, task, reducer).get();
+        } catch (Exception e) {
+            throw ConcurrentUtil.wrapAsCompletionException(e);
+        }
     }
 }

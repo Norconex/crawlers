@@ -20,5 +20,5 @@ public interface ClusterNode {
 
     boolean isCoordinator();
 
-    String getAddress();
+    //    String getAddress();
 }

@@ -16,7 +16,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core2.cluster.ClusterTask;
-import com.norconex.crawler.core2.stubs.CrawlContextStubber;
+import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core2.stubs.CrawlSessionStubber;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,44 +31,69 @@ class InfinispanTaskManagerClusterTest {
     private DefaultCacheManager cacheManager2;
     private InfinispanTaskManager node1TaskManager;
     private InfinispanTaskManager node2TaskManager;
+    private CrawlSession session1;
+    private CrawlSession session2;
 
     @BeforeEach
     void setUp() {
-        // Initialize two separate cache managers for two simulated nodes
-        // Each cache manager will form its own cluster if not explicitly
-        // configured to join one.
-        // For a true cluster simulation, you'd configure JGroups for discovery.
-        // For this unit test, two separate managers are sufficient to test the
-        // lock/state logic.
+        session1 = CrawlSessionStubber
+                .multiNodesCrawlSession(tempDir.resolve("node1"));
+        cacheManager1 = ((InfinispanCacheManager) session1.getCluster()
+                .getCacheManager()).vendor();
+        node1TaskManager = (InfinispanTaskManager) session1.getCluster()
+                .getTaskManager();
 
-        var node1 = InfinispanTestUtil.multiMemoryNodesCluster();
-        node1.init(
-                CrawlContextStubber.crawlerContext(tempDir.resolve("node1")));
-        cacheManager1 = node1.getCacheManager().vendor();
-        node1TaskManager = node1.getTaskManager();
-        //                new InfinispanTaskManager(
-        //                new InfinispanCacheManager(cacheManager1), "Node-1");
-
-        var node2 = InfinispanTestUtil.multiMemoryNodesCluster();
-        node2.init(
-                CrawlContextStubber.crawlerContext(tempDir.resolve("node2")));
-        cacheManager2 = node2.getCacheManager().vendor();
-        node2TaskManager = node2.getTaskManager();
-        //        node2TaskManager = new InfinispanTaskManager(
-        //                new InfinispanCacheManager(cacheManager2), "Node-2");
-
-        LOG.info("Setup complete for test.");
+        session2 = CrawlSessionStubber
+                .multiNodesCrawlSession(tempDir.resolve("node2"));
+        cacheManager2 = ((InfinispanCacheManager) session2.getCluster()
+                .getCacheManager()).vendor();
+        node2TaskManager = (InfinispanTaskManager) session2.getCluster()
+                .getTaskManager();
     }
+
+    //    void setUpDELETE_ME() {
+    //        // Initialize two separate cache managers for two simulated nodes
+    //        // Each cache manager will form its own cluster if not explicitly
+    //        // configured to join one.
+    //        // For a true cluster simulation, you'd configure JGroups for discovery.
+    //        // For this unit test, two separate managers are sufficient to test the
+    //        // lock/state logic.
+    //
+    //        var node1 = InfinispanTestUtil.multiMemoryNodesCluster();
+    //        node1.init(tempDir.resolve("node1"));
+    //        //        node1.init(
+    //        //                CrawlContextStubber.crawlerContext(tempDir.resolve("node1")));
+    //        cacheManager1 =
+    //                ((InfinispanCacheManager) node1.getCacheManager()).vendor();
+    //        node1TaskManager = (InfinispanTaskManager) node1.getTaskManager();
+    //        //        session1 = CrawlSessionStubber.crawlSession(tempDir)
+    //        //                new InfinispanTaskManager(
+    //        //                new InfinispanCacheManager(cacheManager1), "Node-1");
+    //
+    //        var node2 = InfinispanTestUtil.multiMemoryNodesCluster();
+    //        node2.init(tempDir.resolve("node2"));
+    //        //        node2.init(
+    //        //                CrawlContextStubber.crawlerContext(tempDir.resolve("node2")));
+    //        cacheManager2 =
+    //                ((InfinispanCacheManager) node1.getCacheManager()).vendor();
+    //        node2TaskManager = (InfinispanTaskManager) node1.getTaskManager();
+    //        //        node2TaskManager = new InfinispanTaskManager(
+    //        //                new InfinispanCacheManager(cacheManager2), "Node-2");
+    //
+    //        LOG.info("Setup complete for test.");
+    //    }
 
     @AfterEach
     void tearDown() {
-        // Stop cache managers to release resources after each test
-        if (cacheManager1 != null) {
-            cacheManager1.stop();
-        }
-        if (cacheManager2 != null) {
-            cacheManager2.stop();
-        }
+        session1.close();
+        session2.close();
+        //        // Stop cache managers to release resources after each test
+        //        if (cacheManager1 != null) {
+        //            cacheManager1.stop();
+        //        }
+        //        if (cacheManager2 != null) {
+        //            cacheManager2.stop();
+        //        }
         LOG.info("Teardown complete for test.");
     }
 
@@ -78,8 +104,16 @@ class InfinispanTaskManagerClusterTest {
         var taskStartedLatch = new CountDownLatch(1);
         var taskCompletedLatch = new CountDownLatch(1);
 
+        // Log cache manager and cache status before starting threads
+        LOG.info("CacheManager1 status: {}", cacheManager1.getStatus());
+        LOG.info("CacheManager2 status: {}", cacheManager2.getStatus());
+        LOG.info("Node1 taskStatusCache status: {}",
+                node1TaskManager.taskStatusCache.getStatus());
+        LOG.info("Node2 taskStatusCache status: {}",
+                node2TaskManager.taskStatusCache.getStatus());
+
         // Define the task to be executed
-        ClusterTask taskToRun = ctx -> {
+        ClusterTask<Void> taskToRun = ctx -> {
             LOG.info("Executing the actual task logic");
             executionCount.incrementAndGet(); // Increment atomic counter
             // Signal that the task has started
@@ -88,14 +122,17 @@ class InfinispanTaskManagerClusterTest {
             LOG.info("Task logic completed");
             // Signal that the task has completed
             taskCompletedLatch.countDown();
+            return null;
         };
 
         // Node 1 tries to run the task in a separate thread
         var t1 = new Thread(() -> {
             try {
+                LOG.info("Node-1 thread starting runOnOneOnceSync");
                 node1TaskManager.runOnOneOnceSync(myTask, taskToRun);
+                LOG.info("Node-1 thread finished runOnOneOnceSync");
             } catch (Exception e) {
-                LOG.error("Node-1 task execution failed: " + e.getMessage());
+                LOG.error("Node-1 task execution failed", e);
             }
         });
 
@@ -103,9 +140,11 @@ class InfinispanTaskManagerClusterTest {
         var t2 = new Thread(() -> {
             try {
                 Thread.sleep(500); // Give Node 1 a head start
+                LOG.info("Node-2 thread starting runOnOneOnceSync");
                 node2TaskManager.runOnOneOnceSync(myTask, taskToRun);
+                LOG.info("Node-2 thread finished runOnOneOnceSync");
             } catch (Exception e) {
-                LOG.error("Node-2 task execution failed: " + e.getMessage());
+                LOG.error("Node-2 task execution failed", e);
             }
         });
 
@@ -120,7 +159,17 @@ class InfinispanTaskManagerClusterTest {
         t1.join(10000); // Add a timeout for join to prevent tests from hanging
         t2.join(10000);
 
-        LOG.info("Both nodes have finished their attempts for task: " + myTask);
+        LOG.info("Both nodes have finished their attempts for task: {}",
+                myTask);
+        LOG.info("Final executionCount: {}", executionCount.get());
+        LOG.info("Node1 taskStatusCache status: {}",
+                node1TaskManager.taskStatusCache.getStatus());
+        LOG.info("Node2 taskStatusCache status: {}",
+                node2TaskManager.taskStatusCache.getStatus());
+        LOG.info("Node1 taskStatusCache value: {}",
+                node1TaskManager.taskStatusCache.get(myTask));
+        LOG.info("Node2 taskStatusCache value: {}",
+                node2TaskManager.taskStatusCache.get(myTask));
 
         // Assertions
         // Ensure the task was executed exactly once

@@ -14,19 +14,13 @@
  */
 package com.norconex.crawler.core2.stubs;
 
-import java.nio.file.Path;
-
-import com.norconex.crawler.core2.context.CrawlContext;
-import com.norconex.crawler.core2.context.CrawlContextTestUtil;
-import com.norconex.crawler.core2.mocks.crawler.MockCrawlDriverFactory;
-
-public final class CrawlContextStubber {
-    private CrawlContextStubber() {
-    }
-
-    public static CrawlContext crawlerContext(Path workDir) {
-        return CrawlContextTestUtil.createCrawlerContext(
-                MockCrawlDriverFactory.create(),
-                CrawlerConfigStubber.memoryCrawlerConfig(workDir));
-    }
-}
+//public final class CrawlContextStubber {
+//    private CrawlContextStubber() {
+//    }
+//
+//    public static CrawlContext crawlerContext(Path workDir) {
+//        return CrawlContextTestUtil.createCrawlerContext(
+//                MockCrawlDriverFactory.create(),
+//                CrawlerConfigStubber.memoryCrawlerConfig(workDir));
+//    }
+//}

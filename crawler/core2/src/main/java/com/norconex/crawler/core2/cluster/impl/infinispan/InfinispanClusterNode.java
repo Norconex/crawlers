@@ -30,16 +30,18 @@ class InfinispanClusterNode implements ClusterNode {
 
     @Override
     public String getNodeName() {
-        return ofNullable(cacheManager.getName())
-                .orElse("local");
-    }
-
-    @Override
-    public String getAddress() {
+        // Use the address as the node name, since Infinispan sets the node name in the address
         return ofNullable(cacheManager.getAddress())
                 .map(Address::toString)
                 .orElse("local");
     }
+    //
+    //    @Override
+    //    public String getAddress() {
+    //        return ofNullable(cacheManager.getAddress())
+    //                .map(Address::toString)
+    //                .orElse("local");
+    //    }
 
     /**
      * @return true if this JVM is effectively standalone

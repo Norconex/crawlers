@@ -28,7 +28,7 @@ public class RefProviderEnqueuer implements ReferenceEnqueuer {
 
     @Override
     public int enqueue(QueueBootstrapContext ctx) {
-        var cfg = ctx.getCrawlContext().getCrawlConfig();
+        var cfg = ctx.getCrawlSession().getCrawlContext().getCrawlConfig();
         var providers = cfg.getStartReferencesProviders();
         var cnt = 0;
         for (ReferencesProvider provider : providers) {

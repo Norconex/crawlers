@@ -76,7 +76,10 @@ public class Crawler {
         // the context and not explicitly connecting to the grid
         //        var gridWorkDir = ConfigUtil
         //                .resolveWorkDir(crawlConfig).resolve(CLUSTER_WORKDIR_NAME);
-        crawlConfig.getCluster().stop();
+        //        crawlConfig.getCluster().stop();
+        var cluster = crawlConfig.getClusterConnector().connect();
+        cluster.stop();
+        cluster.close();
     }
 
     public void storageExport(Path dir, boolean pretty) {
@@ -102,12 +105,12 @@ public class Crawler {
             try {
                 ofNullable(sess.getCrawlContext().getCallbacks()
                         .getBeforeCommand())
-                                .ifPresent(c -> c.accept(ctx));
+                                .ifPresent(c -> c.accept(sess));
                 command.execute(sess);
             } finally {
                 ofNullable(sess.getCrawlContext().getCallbacks()
                         .getAfterCommand())
-                                .ifPresent(c -> c.accept(ctx));
+                                .ifPresent(c -> c.accept(sess));
             }
         });
         //        sessionManager.withCrawlContext(ctx -> {

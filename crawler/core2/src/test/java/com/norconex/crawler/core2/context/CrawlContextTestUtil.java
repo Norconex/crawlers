@@ -14,41 +14,34 @@
  */
 package com.norconex.crawler.core2.context;
 
-import com.norconex.crawler.core2.CrawlConfig;
-import com.norconex.crawler.core2.CrawlDriver;
-import com.norconex.crawler.core2.session.CrawlMode;
-import com.norconex.crawler.core2.session.CrawlSessionSnapshot;
-import com.norconex.crawler.core2.session.CrawlState;
-import com.norconex.crawler.core2.session.LaunchMode;
-
 public final class CrawlContextTestUtil {
 
-    private CrawlContextTestUtil() {
-    }
-
-    public static CrawlContext createCrawlerContext(
-            CrawlDriver driver, CrawlConfig cfg) {
-        //, Path workDir) {
-        //        var grid = cfg
-        //                .getGridConnector()
-        //                .connect(new BaseGridConnectionContext(workDir,
-        //                        cfg.getId()));
-        var cluster = cfg.getCluster();
-        return CrawlContextFactory.builder()
-                .config(cfg)
-                .driver(driver)
-                .cluster(cluster)
-                .session(new CrawlSessionSnapshot()
-                        .setCrawlerId(cfg.getId())
-                        .setCrawlMode(CrawlMode.FULL)
-                        .setCrawlState(CrawlState.RUNNING)
-                        .setLastUpdated(System.currentTimeMillis())
-                        .setLaunchMode(LaunchMode.NEW))
-                .build()
-                .create();
-    }
-
-    public static void destroyCrawlerContext(CrawlContext ctx) {
-        CrawlContextDestroyer.destroy(ctx);
-    }
+    //    private CrawlContextTestUtil() {
+    //    }
+    //
+    //    public static CrawlContext createCrawlerContext(
+    //            CrawlDriver driver, CrawlConfig cfg) {
+    //        //, Path workDir) {
+    //        //        var grid = cfg
+    //        //                .getGridConnector()
+    //        //                .connect(new BaseGridConnectionContext(workDir,
+    //        //                        cfg.getId()));
+    //        var cluster = cfg.getCluster();
+    //        return CrawlContextFactory.builder()
+    //                .config(cfg)
+    //                .driver(driver)
+    //                .cluster(cluster)
+    //                .session(new CrawlSessionSnapshot()
+    //                        .setCrawlerId(cfg.getId())
+    //                        .setCrawlMode(CrawlMode.FULL)
+    //                        .setCrawlState(CrawlState.RUNNING)
+    //                        .setLastUpdated(System.currentTimeMillis())
+    //                        .setLaunchMode(LaunchMode.NEW))
+    //                .build()
+    //                .create();
+    //    }
+    //
+    //    public static void destroyCrawlerContext(CrawlContext ctx) {
+    //        CrawlContextDestroyer.destroy(ctx);
+    //    }
 }

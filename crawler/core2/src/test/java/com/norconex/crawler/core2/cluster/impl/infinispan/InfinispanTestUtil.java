@@ -27,25 +27,37 @@ import org.apache.commons.lang3.function.FailableBiConsumer;
 import org.apache.commons.lang3.function.FailableConsumer;
 
 import com.norconex.commons.lang.config.Configurable;
+import com.norconex.crawler.core2.cluster.Cluster;
+import com.norconex.crawler.core2.cluster.ClusterConnector;
 
 public final class InfinispanTestUtil {
     private InfinispanTestUtil() {
     }
 
-    public static InfinispanCluster singleMemoryNodeCluster() {
-        return Configurable.configure(new InfinispanCluster(),
+    public static ClusterConnector singleMemoryNodeClusterConnector() {
+        return Configurable.configure(
+                new InfinispanClusterConnector(),
                 c -> c.setInfinispan(InfinispanUtil.configBuilderHolder(
                         "/cache/infinispan-single-test.xml")));
     }
 
-    public static InfinispanCluster multiMemoryNodesCluster() {
-        return Configurable.configure(new InfinispanCluster(),
+    public static Cluster singleMemoryNodeCluster() {
+        return singleMemoryNodeClusterConnector().connect();
+    }
+
+    public static ClusterConnector multiMemoryNodesClusterConnector() {
+        return Configurable.configure(
+                new InfinispanClusterConnector(),
                 c -> c.setInfinispan(InfinispanUtil.configBuilderHolder(
                         "/cache/infinispan-cluster-test.xml")));
     }
 
+    public static Cluster multiMemoryNodesCluster() {
+        return multiMemoryNodesClusterConnector().connect();
+    }
+
     public static void withSingleMemoryNodeCluster(
-            FailableConsumer<InfinispanCluster, Exception> c) {
+            FailableConsumer<Cluster, Exception> c) {
         try (var cluster = singleMemoryNodeCluster()) {
             c.accept(cluster);
         } catch (Exception e) {
@@ -55,7 +67,7 @@ public final class InfinispanTestUtil {
 
     public static void withMultiMemoryNodesCluster(
             int nodeCount,
-            FailableBiConsumer<InfinispanCluster, Integer, Exception> c) {
+            FailableBiConsumer<Cluster, Integer, Exception> c) {
         try {
             doWithMultiMemoryNodesCluster(nodeCount, c);
         } catch (Exception e) {
@@ -65,10 +77,10 @@ public final class InfinispanTestUtil {
 
     private static void doWithMultiMemoryNodesCluster(
             int nodeCount,
-            FailableBiConsumer<InfinispanCluster, Integer, Exception> c)
+            FailableBiConsumer<Cluster, Integer, Exception> c)
             throws Exception {
         var executor = Executors.newFixedThreadPool(nodeCount);
-        List<Future<InfinispanCluster>> futures = new ArrayList<>();
+        List<Future<Cluster>> futures = new ArrayList<>();
 
         for (var i = 0; i < nodeCount; i++) {
             futures.add(executor.submit(() -> {
@@ -78,8 +90,8 @@ public final class InfinispanTestUtil {
             }));
         }
 
-        List<InfinispanCluster> clusters = new ArrayList<>();
-        for (Future<InfinispanCluster> future : futures) {
+        List<Cluster> clusters = new ArrayList<>();
+        for (Future<Cluster> future : futures) {
             clusters.add(future.get(15, TimeUnit.SECONDS));
         }
 
@@ -100,7 +112,7 @@ public final class InfinispanTestUtil {
         readyLatch.await(15, TimeUnit.SECONDS);
         executor.shutdown();
 
-        for (InfinispanCluster cluster : clusters) {
+        for (Cluster cluster : clusters) {
             cluster.close();
         }
     }
