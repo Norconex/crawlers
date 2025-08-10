@@ -46,9 +46,7 @@ import com.norconex.crawler.core2.fetch.Fetcher;
 import com.norconex.crawler.core2.ledger.CrawlEntry;
 import com.norconex.crawler.core2.ledger.CrawlEntryLedger;
 import com.norconex.crawler.core2.metrics.CrawlerMetrics;
-import com.norconex.crawler.core2.session.CrawlMode;
 import com.norconex.crawler.core2.session.CrawlSession;
-import com.norconex.crawler.core2.session.LaunchMode;
 import com.norconex.crawler.core2.util.ConfigUtil;
 import com.norconex.crawler.core2.util.ExceptionSwallower;
 import com.norconex.crawler.core2.util.ScopedThreadFactoryCreator;
@@ -105,8 +103,8 @@ public class CrawlContext implements Closeable {
     private final Path tempDir;
     private final CachedStreamFactory streamFactory;
     private final Class<? extends CrawlEntry> crawlEntryType;
-    private final LaunchMode launchMode;
-    private final CrawlMode crawlMode;
+    //    private final LaunchMode launchMode;
+    //    private final CrawlMode crawlMode;
     //    private final CrawlSessionProperties sessionProperties;
     private final ScopedThreadFactoryCreator threadFactoryCreator;
 
@@ -129,14 +127,14 @@ public class CrawlContext implements Closeable {
         return getId();
     }
 
-    public boolean isResumedSession() {
-        return launchMode == LaunchMode.RESUMED;
-    }
-
-    public boolean isIncrementalCrawl() {
-        return crawlMode == CrawlMode.INCREMENTAL;
-    }
-
+    //    public boolean isResumedSession() {
+    //        return launchMode == LaunchMode.RESUMED;
+    //    }
+    //
+    //    public boolean isIncrementalCrawl() {
+    //        return crawlMode == CrawlMode.INCREMENTAL;
+    //    }
+    //
     //TODO keep "fire" methods on event manager and not here?
     public void fire(Event event) {
         getEventManager().fire(event);

@@ -21,7 +21,10 @@ import com.norconex.crawler.core2.session.CrawlSession;
  *
  * @param <T> type of object returned (may be {@link Void}).
  */
-@FunctionalInterface
 public interface ClusterTask<T> {
     T execute(CrawlSession session);
+
+    default void stop(CrawlSession session) {
+        throw new UnsupportedOperationException("Implement me!");
+    }
 }

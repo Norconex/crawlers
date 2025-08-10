@@ -19,7 +19,7 @@ import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.event.Event;
-import com.norconex.crawler.core2.doc.CrawlDocContext;
+import com.norconex.crawler.core2.ledger.CrawlEntry;
 import com.norconex.crawler.core2.session.CrawlSession;
 
 import lombok.AccessLevel;
@@ -162,8 +162,8 @@ public class CrawlerEvent extends Event {
      * Gets the document being processed associated with this event.
      * CRAWLER_* events will return a {@code null} doc.
      */
-    private final CrawlDocContext docContext;
-    private final Object subject;
+    private final transient CrawlEntry crawlEntry;
+    private final transient Object subject;
     //TODO keep a reference to actual document?
 
     /**
@@ -175,6 +175,9 @@ public class CrawlerEvent extends Event {
         return subject;
     }
 
+    /**
+     * The {@link CrawlSession}.
+     */
     @Override
     public CrawlSession getSource() {
         return (CrawlSession) super.getSource();
@@ -184,8 +187,8 @@ public class CrawlerEvent extends Event {
     public String toString() {
         var b = new StringBuilder();
         // always print the reference if we have it
-        if (docContext != null) {
-            b.append(docContext.getReference()).append(" - ");
+        if (crawlEntry != null) {
+            b.append(crawlEntry.getReference()).append(" - ");
         }
 
         // print the first value set in that order: message, subject, source

@@ -22,23 +22,15 @@ import java.text.NumberFormat;
 import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.norconex.crawler.core2.CrawlerException;
+import com.norconex.crawler.core2.cluster.Cache;
 import com.norconex.crawler.core2.cmd.Command;
-import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.util.SerialUtil;
-import com.norconex.grid.core2.compute.GridTaskBuilder;
-import com.norconex.grid.core2.storage.GridMap;
-import com.norconex.grid.core2.storage.GridQueue;
-import com.norconex.grid.core2.storage.GridSet;
-import com.norconex.grid.core2.storage.GridStorage;
-import com.norconex.grid.core2.storage.GridStore;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,25 +48,23 @@ public class StoreImportCommand implements Command {
         Thread.currentThread().setName(ctx.getId() + "/STORE_IMPORT");
         ctx.fire(CrawlerEvent.CRAWLER_STORE_IMPORT_BEGIN);
         try {
-            ctx.getGrid().getCompute()
-                    .executeTask(GridTaskBuilder.create("storeImportTask")
-                            .singleNode()
-                            .processor(grid -> {
-                                try {
-                                    importAllStores(ctx);
-                                } catch (ClassNotFoundException
-                                        | IOException e) {
-                                    throw new CrawlerException(e);
-                                }
-                            })
-                            .build());
+            session.getCluster().getTaskManager()
+                    .runOnOneSync("storeImportTask", sess -> {
+                        try {
+                            importAllStores(session);
+                        } catch (ClassNotFoundException
+                                | IOException e) {
+                            throw new CrawlerException(e);
+                        }
+                        return null;
+                    });
         } catch (Exception e) {
             throw new CrawlerException("Could not import file: " + inFile, e);
         }
         ctx.fire(CrawlerEvent.CRAWLER_STORE_IMPORT_END);
     }
 
-    private void importAllStores(CrawlContext crawlContext)
+    private void importAllStores(CrawlSession session)
             throws IOException, ClassNotFoundException {
         // Export/Import is normally executed in a controlled environment
         // so not susceptible to Zip Bomb attacks.
@@ -82,10 +72,10 @@ public class StoreImportCommand implements Command {
                 IOUtils.buffer(Files.newInputStream(inFile)))) {
             var zipEntry = zipIn.getNextEntry(); //NOSONAR
             while (zipEntry != null) {
-                if (!importOneStore(crawlContext, zipIn)) {
+                if (!importOneStore(session, zipIn)) {
                     LOG.debug("Input file \"{}\" not matching crawler "
                             + "\"{}\". Skipping.",
-                            inFile, crawlContext.getId());
+                            inFile, session.getCrawlerId());
                 }
                 zipIn.closeEntry();
                 zipEntry = zipIn.getNextEntry(); //NOSONAR
@@ -94,50 +84,51 @@ public class StoreImportCommand implements Command {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private boolean importOneStore(
-            CrawlContext crawlContext, InputStream in)
+            CrawlSession session, InputStream in)
             throws IOException, ClassNotFoundException {
+
+        var cacheManager = session.getCluster().getCacheManager();
 
         var parser = SerialUtil.jsonParser(in);
 
-        Class<?> objectClass = null;
-        String crawlerId = null;
+        var objectClass = Object.class;// null;
         String storeName = null;
-        Class<? extends GridStore<?>> storeSuperClass = null;
+        //        Class<? extends GridStore<?>> storeSuperClass = null;
 
         parser.nextToken();
         while (parser.nextToken() != JsonToken.END_OBJECT) {
             var key = parser.currentName();
             if ("crawler".equals(key)) {
-                crawlerId = parser.nextTextValue();
+                parser.nextTextValue();
             } else if ("store".equals(key)) {
                 storeName = parser.nextTextValue();
-            } else if ("storeType".equals(key)) {
-                storeSuperClass = (Class<? extends GridStore<?>>) Class.forName(
-                        parser.nextTextValue());
-            } else if ("objectType".equals(key)) {
-                objectClass = Class.forName(parser.nextTextValue());
+                //            } else if ("storeType".equals(key)) {
+                //                storeSuperClass = (Class<? extends GridStore<?>>) Class.forName(
+                //                        parser.nextTextValue());
+                //            } else if ("objectType".equals(key)) {
+                //                objectClass = Class.forName(parser.nextTextValue());
             } else if ("records".equals(key)) {
                 // check if we got crawler first and it matched, else
                 // there is something wrong (records should only exist
                 // after expected fields.
-                if (StringUtils.isAnyBlank(crawlerId, storeName)
-                        || ObjectUtils.anyNull(objectClass, storeSuperClass)) {
-                    LOG.error("Invalid import file encountered.");
-                    return false;
-                }
+                //                if (StringUtils.isAnyBlank(crawlerId, storeName)
+                //                        || ObjectUtils.anyNull(objectClass, storeSuperClass)) {
+                //                    LOG.error("Invalid import file encountered.");
+                //                    return false;
+                //                }
 
                 LOG.info("Importing \"{}\".", storeName);
-                var storage = crawlContext.getGrid().getStorage();
 
-                GridStore<?> store = concreteStore(
-                        storage, storeSuperClass, storeName, objectClass);
+                Cache<Object> cache =
+                        cacheManager.getCache(storeName, Object.class);
+                //                GridStore<?> store = concreteStore(
+                //                        cacheManager, storeSuperClass, storeName, objectClass);
 
                 var cnt = 0L;
                 parser.nextToken();
                 while (parser.nextToken() != JsonToken.END_ARRAY) {
-                    loadRecord(store, parser, objectClass);
+                    loadRecord(cache, parser, objectClass);
                     cnt++;
                     logProgress(cnt, false);
                 }
@@ -150,34 +141,33 @@ public class StoreImportCommand implements Command {
         return true;
     }
 
-    @SuppressWarnings("unchecked")
-    private void loadRecord(
-            GridStore<?> store, JsonParser parser, Class<?> objectClass)
+    private <T> void loadRecord(
+            Cache<T> cache, JsonParser parser, Class<T> objectClass)
             throws IOException {
         parser.nextToken(); // id:
         var id = parser.nextTextValue();
         parser.nextToken(); // object:
         parser.nextToken(); // { //NOSONAR
         var value = SerialUtil.fromJson(parser, objectClass);
-        if (store instanceof GridMap cache) { //NOSONAR
-            cache.put(id, value);
-        }
+        //        if (cache instanceof GridMap cache) { //NOSONAR
+        cache.put(id, value);
+        //        }
         parser.nextToken(); // } //NOSONAR
     }
 
-    GridStore<?> concreteStore(
-            GridStorage storage,
-            Class<?> storeSuperType,
-            String storeName,
-            Class<?> objectType) {
-        if (storeSuperType.equals(GridQueue.class)) {
-            return storage.getQueue(storeName, objectType);
-        }
-        if (storeSuperType.equals(GridSet.class)) {
-            return storage.getSet(storeName);
-        }
-        return storage.getMap(storeName, objectType);
-    }
+    //    GridStore<?> concreteStore(
+    //            CacheManager cacheManager,
+    //            Class<?> storeSuperType,
+    //            String storeName,
+    //            Class<?> objectType) {
+    //        if (storeSuperType.equals(GridQueue.class)) {
+    //            return cacheManager.getQueue(storeName, objectType);
+    //        }
+    //        if (storeSuperType.equals(GridSet.class)) {
+    //            return cacheManager.getSet(storeName);
+    //        }
+    //        return cacheManager.getMap(storeName, objectType);
+    //    }
 
     private static void logProgress(long cnt, boolean done) {
         if (LOG.isInfoEnabled() && (cnt % 10000 == 0 ^ done)) {

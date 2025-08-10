@@ -18,7 +18,6 @@ import java.util.Locale;
 
 import com.norconex.commons.lang.PercentFormatter;
 import com.norconex.crawler.core2.cmd.crawl.pipeline.bootstrap.CrawlBootstrapper;
-import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.session.LaunchMode;
 
@@ -45,7 +44,7 @@ public final class DocLedgerBootstrapper implements CrawlBootstrapper {
 
     @Override
     public void bootstrap(CrawlSession session) {
-        var ctx = session.getCrawlContext();
+        session.getCrawlContext();
         var globalCache =
                 session.getCluster().getCacheManager().getGenericCache();
 
@@ -55,15 +54,16 @@ public final class DocLedgerBootstrapper implements CrawlBootstrapper {
         }
         globalCache.put(BOOTSTRAP_KEY, "true");
         try {
-            prepareForCrawl(ctx);
+            prepareForCrawl(session);
         } finally {
             globalCache.put(BOOTSTRAP_KEY, "false");
         }
     }
 
-    private static void prepareForCrawl(CrawlContext crawlContext) {
+    private static void prepareForCrawl(CrawlSession session) {
+        var crawlContext = session.getCrawlContext();
         var ledger = crawlContext.getCrawlEntryLedger();
-        if (crawlContext.getLaunchMode() == LaunchMode.RESUMED) {
+        if (session.getLaunchMode() == LaunchMode.RESUMED) {
             if (LOG.isInfoEnabled()) {
                 //TODO use total count to track progress independently
                 var processedCount = ledger.getProcessedCount();

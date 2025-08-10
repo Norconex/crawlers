@@ -30,13 +30,12 @@ public class DocumentPostProcessingStage
                 .getPostImportConsumers()) {
             postProc.accept(ctx.getCrawlContext().getFetcher(),
                     ctx.getDocContext().getDoc());
-            ctx.getCrawlContext().fire(
-                    CrawlerEvent.builder()
-                            .name(CrawlerEvent.DOCUMENT_POSTIMPORTED)
-                            .source(ctx.getCrawlContext())
-                            .subject(postProc)
-                            .docContext(ctx.getDocContext())
-                            .build());
+            ctx.getCrawlContext().fire(CrawlerEvent.builder()
+                    .name(CrawlerEvent.DOCUMENT_POSTIMPORTED)
+                    .source(ctx.getCrawlContext())
+                    .subject(postProc)
+                    .crawlEntry(ctx.getDocContext().getCurrentCrawlEntry())
+                    .build());
         }
         return true;
     }

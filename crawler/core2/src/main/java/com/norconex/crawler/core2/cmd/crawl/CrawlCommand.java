@@ -16,7 +16,6 @@ package com.norconex.crawler.core2.cmd.crawl;
 
 import static com.norconex.crawler.core2.util.ExceptionSwallower.swallow;
 
-import java.io.Serializable;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -24,18 +23,14 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.norconex.crawler.core2.CrawlerException;
-import com.norconex.crawler.core2.cluster.impl.infinispan.TaskState;
+import com.norconex.crawler.core2.cluster.ClusterTask;
 import com.norconex.crawler.core2.cmd.Command;
 import com.norconex.crawler.core2.cmd.crawl.pipeline.CrawlPipelineFactory;
-import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.metrics.CrawlerMetricsJMX;
 import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.session.CrawlState;
 import com.norconex.crawler.core2.util.ConcurrentUtil;
-import com.norconex.grid.core2.Grid;
-import com.norconex.grid.core2.compute.BaseGridTask;
-import com.norconex.grid.core2.compute.GridTaskBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -63,30 +58,48 @@ public class CrawlCommand implements Command {
         Thread.currentThread().setName(ctx.getId() + "/CRAWL");
         ctx.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN);
 
-        trackProgress(ctx);
+        trackProgress(session);
 
-        var result = ctx.getGrid()
-                .getCompute()
-                .executePipeline(CrawlPipelineFactory.create(ctx));
-
-        // If there is a terminal crawl state already set, we use it, else
-        // we wait a bit for one, in case it hasn't been synched yet, then,
-        // we rely on pipeline last task state as fallback.
-        if (!ConcurrentUtil.waitUntil(() -> ctx.getSessionProperties()
-                .getCrawlState()
-                .map(CrawlState::isTerminal)
-                .orElse(false), Duration.ofSeconds(5))) {
-            if (result.getState() == TaskState.COMPLETED) {
-                updateCrawlState(ctx, CrawlState.COMPLETED);
+        try {
+            CrawlPipelineFactory.create(session).run();
+            if (!ConcurrentUtil.waitUntil(() -> session
+                    .getCrawlState()
+                    .isTerminal(), Duration.ofSeconds(5))) {
+                updateCrawlState(session, CrawlState.COMPLETED);
                 LOG.info("Crawler completed execution.");
             } else {
-                updateCrawlState(ctx, CrawlState.FAILED);
-                LOG.info("Crawler execution failed or otherwise ended "
-                        + "before completion.");
+                LOG.debug("Crawl state not terminal after waiting, setting it "
+                        + "to COMPLETED.");
             }
+        } catch (Exception e) {
+            updateCrawlState(session, CrawlState.FAILED);
+            LOG.error("Crawler execution failed.", e);
         }
 
-        ctx.getGrid().getCompute().stopTask(PROGRESS_LOGGER_KEY);
+        //        var result = ctx.getGrid()
+        //                .getCompute()
+        //                .executePipeline(CrawlPipelineFactory.create(ctx));
+
+        //        // If there is a terminal crawl state already set, we use it, else
+        //        // we wait a bit for one, in case it hasn't been synched yet, then,
+        //        // we rely on pipeline last task state as fallback.
+        //        if (!ConcurrentUtil.waitUntil(() -> ctx.getSessionProperties()
+        //                .getCrawlState()
+        //                .map(CrawlState::isTerminal)
+        //                .orElse(false), Duration.ofSeconds(5))) {
+        //            if (result.getState() == TaskState.COMPLETED) {
+        //                updateCrawlState(ctx, CrawlState.COMPLETED);
+        //                LOG.info("Crawler completed execution.");
+        //            } else {
+        //                updateCrawlState(ctx, CrawlState.FAILED);
+        //                LOG.info("Crawler execution failed or otherwise ended "
+        //                        + "before completion.");
+        //            }
+        //        }
+
+        session.getCluster().getTaskManager().stopTask(PROGRESS_LOGGER_KEY);
+
+        //        ctx.getGrid().getCompute().stopTask(PROGRESS_LOGGER_KEY);
         try {
             ConcurrentUtil.waitUntilOrThrow(
                     pendingLoggerStopped::get, Duration.ofSeconds(60));
@@ -94,8 +107,7 @@ public class CrawlCommand implements Command {
             throw new CrawlerException("Could not stop progress logger.", e);
         }
         ctx.fire(CrawlerEvent.CRAWLER_CRAWL_END);
-        LOG.info("Node done crawling with state: {}",
-                ctx.getSessionProperties().getCrawlState().orElse(null));
+        LOG.info("Node done crawling with state: {}", session.getCrawlState());
 
         if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {
             LOG.info("Unregistering JMX crawler MBeans.");
@@ -103,45 +115,38 @@ public class CrawlCommand implements Command {
         }
     }
 
-    private void updateCrawlState(CrawlContext ctx, CrawlState state) {
-        ctx.getGrid().getCompute().executeTask(GridTaskBuilder
-                .create("updateCrawlState")
-                .singleNode()
-                .processor(grid -> CrawlContext
-                        .get(grid)
-                        .getSessionProperties()
-                        .updateCrawlState(state))
-                .build());
+    private void updateCrawlState(CrawlSession session, CrawlState state) {
+        session.getCluster().getTaskManager().runOnOneSync("updateCrawlState",
+                sess -> {
+                    sess.updateCrawlState(state);
+                    return null;
+                });
     }
 
-    private void trackProgress(CrawlContext ctx) {
+    private void trackProgress(CrawlSession session) {
         // only 1 node reports progress
         CompletableFuture.runAsync(() -> {
-            ctx.getGrid()
-                    .getCompute()
-                    .executeTask(new LoggerTask());
+            session.getCluster().getTaskManager()
+                    .runOnOneSync(PROGRESS_LOGGER_KEY, new LoggerTask());
+            //            ctx.getGrid()
+            //                    .getCompute()
+            //                    .executeTask(new LoggerTask());
             pendingLoggerStopped.set(true);
         }, Executors.newFixedThreadPool(1));
     }
 
-    static class LoggerTask extends BaseGridTask.SingleNodeTask {
-
-        private static final long serialVersionUID = 1L;
-        private transient CrawlProgressLogger logger;
-
-        protected LoggerTask() {
-            super(PROGRESS_LOGGER_KEY);
-        }
+    static class LoggerTask implements ClusterTask<Void> {
+        private CrawlProgressLogger logger;
 
         @Override
-        public Serializable execute(Grid grid) {
-            logger = new CrawlProgressLogger(CrawlContext.get(grid));
+        public Void execute(CrawlSession session) {
+            logger = new CrawlProgressLogger(session.getCrawlContext());
             logger.start();
             return null;
         }
 
         @Override
-        public void stop(Grid grid) {
+        public void stop(CrawlSession session) {
             if (logger != null) {
                 logger.stop();
             }

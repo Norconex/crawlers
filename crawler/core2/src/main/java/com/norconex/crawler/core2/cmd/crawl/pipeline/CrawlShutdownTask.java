@@ -16,19 +16,13 @@ package com.norconex.crawler.core2.cmd.crawl.pipeline;
 
 import org.apache.commons.lang3.NotImplementedException;
 
-import com.norconex.grid.core2.Grid;
-import com.norconex.grid.core2.compute.BaseGridTask.SingleNodeTask;
+import com.norconex.crawler.core2.cluster.ClusterTask;
+import com.norconex.crawler.core2.session.CrawlSession;
 
-public class CrawlShutdownTask extends SingleNodeTask {
-
-    private static final long serialVersionUID = 1L;
-
-    public CrawlShutdownTask() {
-        super("crawlShutdownTask");
-    }
+public class CrawlShutdownTask implements ClusterTask<Void> {
 
     @Override
-    public void process(Grid grid) {
+    public Void execute(CrawlSession session) {
         throw new NotImplementedException("Implement me or delete me");
     }
 }

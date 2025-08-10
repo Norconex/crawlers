@@ -27,21 +27,20 @@ public class DepthValidationStage implements Predicate<QueuePipelineContext> {
 
     @Override
     public boolean test(QueuePipelineContext ctx) {
-        var cfg = ctx.getCrawlContext().getCrawlConfig();
-        var docCtx = ctx.getDocContext();
-        var entry = docCtx.getCurrentCrawlEntry();
+        var cfg = ctx.getCrawlSession().getCrawlContext().getCrawlConfig();
+        var entry = ctx.getCrawlEntry();
 
         if (cfg.getMaxDepth() >= 0 && entry.getDepth() > cfg.getMaxDepth()) {
             LOG.debug("URL too deep to process ({}): {}",
                     entry.getDepth(),
-                    docCtx.getReference());
+                    entry.getReference());
             entry.setProcessingOutcome(ProcessingOutcome.TOO_DEEP);
-            ctx.getCrawlContext().fire(
+            ctx.getCrawlSession().getCrawlContext().fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.REJECTED_TOO_DEEP)
-                            .source(ctx.getCrawlContext())
+                            .source(ctx.getCrawlSession())
                             .subject(entry.getDepth())
-                            .docContext(docCtx)
+                            .crawlEntry(entry)
                             .build());
             return false;
         }

@@ -40,7 +40,7 @@ public final class CrawlSessionFactory {
         createDir(ctx.getTempDir()); // also creates workDir
         var session = new CrawlSession(cluster, ctx);
         session.init();
-        ctx.init(session);
+        //TODO DELETEME: Done in session init:        ctx.init(session);
         return session;
     }
 

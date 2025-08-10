@@ -31,16 +31,17 @@ public class QueueReferenceStage implements Predicate<QueuePipelineContext> {
     @Override
     public boolean test(QueuePipelineContext ctx) {
         //TODO document and make sure it cannot be blank and remove this check?
-        var ref = ctx.getDocContext().getReference();
+        var ref = ctx.getCrawlEntry().getReference();
         if (StringUtils.isBlank(ref)) {
             return true;
         }
 
-        var ledger = ctx.getCrawlContext().getCrawlEntryLedger();
-        if (ledger.isInActiveStage(ref)) {
+        var ledger =
+                ctx.getCrawlSession().getCrawlContext().getCrawlEntryLedger();
+        if (ledger.exists(ref)) {
             LOG.debug("Reference already accounted for: {}", ref);
         } else {
-            ledger.queue(ctx.getDocContext());
+            ledger.queue(ctx.getCrawlEntry());
             LOG.debug("Queued for processing: {}", ref);
         }
         return true;

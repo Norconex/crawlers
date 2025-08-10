@@ -163,7 +163,7 @@ class InfinispanCacheAdapter<T> implements Cache<T> {
     }
 
     @Override
-    public long countAll() {
+    public long size() {
         return delegate.size();
     }
 
@@ -215,4 +215,27 @@ class InfinispanCacheAdapter<T> implements Cache<T> {
     public void forEach(BiConsumer<String, ? super T> action) {
         delegate.forEach((k, v) -> action.accept(k, v));
     }
+
+    //
+    //    @Override
+    //    public void queryForEach(
+    //            String queryExpression, BiConsumer<String, ? super T> action) {
+    //
+    //        delegate.query(bn jkjkjkjkjkjkjku).execute().list()
+    //        .stream()
+    //        .iterator();
+    //
+    //        queryIterator(queryExpression).forEachRemaining(null);
+    //
+    //        QueryFactory queryFactory = Search.getQueryFactory(remoteCache);
+    //        Query<Object[]> query = queryFactory.create("SELECT __key, this FROM Person WHERE age > 30");
+    //
+    //        List<Object[]> results = query.execute().list();
+    //
+    //        results.forEach(entry -> {
+    //            String key = (String) entry[0];
+    //            Person value = (Person) entry[1];
+    //            // Use your BiConsumer
+    //        });
+    //    }
 }

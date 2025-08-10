@@ -75,7 +75,7 @@ class InfinispanClusterTest {
             // Check all defined cache names
             var cacheManager = cluster.getCacheManager().vendor();
             assertThat(cacheManager.getCacheNames())
-                    .contains("default", "counter-cache");
+                    .contains("counter-cache");
         }
     }
 }

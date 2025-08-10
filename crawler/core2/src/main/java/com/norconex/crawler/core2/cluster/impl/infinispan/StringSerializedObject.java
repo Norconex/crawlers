@@ -7,11 +7,9 @@ import com.norconex.crawler.core2.cluster.CacheException;
 import com.norconex.crawler.core2.util.SerialUtil;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Proto
 @Data
-@NoArgsConstructor
 public final class StringSerializedObject {
 
     @ProtoField(1)
@@ -19,6 +17,9 @@ public final class StringSerializedObject {
 
     @ProtoField(2)
     public String serialized;
+
+    public StringSerializedObject() {
+    }
 
     public StringSerializedObject(Object object) {
         if (object != null) {
@@ -29,8 +30,13 @@ public final class StringSerializedObject {
 
     @SuppressWarnings("unchecked")
     public <T> T toObject() {
-        if (serialized == null) {
+        if (serialized == null || serialized.isEmpty()) {
             return null;
+        }
+        if (className == null || className.isEmpty()) {
+            throw new CacheException(
+                "Could not deserialize object: className is null or empty. " + toString()
+            );
         }
         try {
             return (T) SerialUtil.fromJson(

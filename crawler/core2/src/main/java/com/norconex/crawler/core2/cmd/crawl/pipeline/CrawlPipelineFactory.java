@@ -14,40 +14,65 @@
  */
 package com.norconex.crawler.core2.cmd.crawl.pipeline;
 
-import java.util.List;
-import java.util.Optional;
-
 import com.norconex.crawler.core2.cmd.crawl.pipeline.bootstrap.CrawlBootstrapTask;
 import com.norconex.crawler.core2.cmd.crawl.pipeline.process.CrawlProcessTask;
 import com.norconex.crawler.core2.cmd.crawl.pipeline.process.CrawlProcessTask.ProcessQueueAction;
-import com.norconex.crawler.core2.context.CrawlContext;
-import com.norconex.grid.core2.compute.GridPipeline;
-import com.norconex.grid.core2.compute.Stage;
+import com.norconex.crawler.core2.session.CrawlSession;
 
 public final class CrawlPipelineFactory {
 
     private CrawlPipelineFactory() {
     }
 
-    public static GridPipeline create(CrawlContext ctx) {
-        return new GridPipeline("crawlPipeline", List.of(
+    public static Runnable create(CrawlSession session) {
+        return () -> {
+            var taskManager = session.getCluster().getTaskManager();
 
-                // Prepare for crawling (on one)
-                new Stage(new CrawlBootstrapTask("crawlBootstrapTask"))
-                        .withAlways(true),
+            // Bootstrap the cluster, making it ready for crawling
+            taskManager.runOnOneSync(
+                    "crawlBootstrapTask", new CrawlBootstrapTask());
 
-                // Crawl (on all)
-                new Stage(new CrawlProcessTask(
-                        "crawlMainProcessTask", ProcessQueueAction.CRAWL_ALL)),
+            // Crawl (on all)
+            taskManager.runOnAllSync(
+                    "crawlMainProcessTask",
+                    new CrawlProcessTask(ProcessQueueAction.CRAWL_ALL),
+                    null);
 
-                // Resolve orphans (on one)
-                new Stage(new CrawlHandleOrphansTask("crawlHandleOrphansTask")),
+            // Resolve orphans (on one)
+            var result = taskManager.runOnOneSync(
+                    "crawlHandleOrphansTask",
+                    new CrawlHandleOrphansTask());
 
-                // Crawl/delete orphans (on all)
-                new Stage((grid, prev) -> Optional.ofNullable(prev.getResult())
-                        .map(ProcessQueueAction.class::cast)
-                        .map(action -> new CrawlProcessTask(
-                                "crawlOrphanTask" + action, action))
-                        .orElse(null))));
+            result.ifPresent(action -> {
+                taskManager.runOnAllSync(
+                        "crawlOrphanTask" + action,
+                        new CrawlProcessTask(action),
+                        null);
+
+            });
+
+        };
+
     }
+    //    public static GridPipeline create(CrawlContext ctx) {
+    //        return new GridPipeline("crawlPipeline", List.of(
+    //
+    //                // Prepare for crawling (on one)
+    //                new Stage(new CrawlBootstrapTask("crawlBootstrapTask"))
+    //                        .withAlways(true),
+    //
+    //                // Crawl (on all)
+    //                new Stage(new CrawlProcessTask(
+    //                        "crawlMainProcessTask", ProcessQueueAction.CRAWL_ALL)),
+    //
+    //                // Resolve orphans (on one)
+    //                new Stage(new CrawlHandleOrphansTask("crawlHandleOrphansTask")),
+    //
+    //                // Crawl/delete orphans (on all)
+    //                new Stage((grid, prev) -> Optional.ofNullable(prev.getResult())
+    //                        .map(ProcessQueueAction.class::cast)
+    //                        .map(action -> new CrawlProcessTask(
+    //                                "crawlOrphanTask" + action, action))
+    //                        .orElse(null))));
+    //    }
 }

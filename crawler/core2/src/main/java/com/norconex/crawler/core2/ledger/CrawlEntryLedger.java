@@ -18,13 +18,16 @@ import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import com.norconex.crawler.core2.cluster.Cache;
 import com.norconex.crawler.core2.cluster.CacheManager;
 import com.norconex.crawler.core2.cluster.Counter;
+import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.session.LaunchMode;
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -64,8 +67,8 @@ public final class CrawlEntryLedger {
     // we use aliases for previous and current ledgers as we can't assume
     // we can physically rename them and copying data over could be
     // too inefficient.
-    private static final String LEDGER_A = "ledger_a";
-    private static final String LEDGER_B = "ledger_b";
+    private static final String LEDGER_A = "ledger_a_indexed";
+    private static final String LEDGER_B = "ledger_b_indexed";
 
     // Status counter prefix for efficiently tracking entry counts by status
     private static final String STATUS_COUNTER_PREFIX = "status-counter-";
@@ -78,12 +81,14 @@ public final class CrawlEntryLedger {
     private final Map<ProcessingStatus, Counter> statusCounters =
             new EnumMap<>(ProcessingStatus.class);
     private CacheManager cacheManager;
+    private CrawlSession session;
 
     public void init(CrawlSession session) {
         //            @NonNull CrawlSession session,
         //            @NonNull CacheManager manager,
         //            long runMaxDocs) {
         LOG.info("Initializing crawl entry ledger...");
+        this.session = session;
         cacheManager = session.getCluster().getCacheManager();
 
         // Caches:
@@ -267,6 +272,31 @@ public final class CrawlEntryLedger {
     //                (k, v) -> predicate.test(k, SerialUtil.fromJson(v, type)));
     //    }
     //
+
+    public void forEachQueued(Consumer<CrawlEntry> c) {
+        forEachProcessingStatus(ProcessingStatus.QUEUED, c);
+    }
+
+    public void forEachProcessing(Consumer<CrawlEntry> c) {
+        forEachProcessingStatus(ProcessingStatus.PROCESSING, c);
+    }
+
+    public void forEachProcessed(Consumer<CrawlEntry> c) {
+        forEachProcessingStatus(ProcessingStatus.PROCESSED, c);
+    }
+
+    private void forEachProcessingStatus(
+            ProcessingStatus status, Consumer<CrawlEntry> c) {
+        currentLedger.queryIterator("FROM %s WHERE %s".formatted(
+                CrawlEntry.class.getName(),
+                processingStatusQuery(status)))
+                .forEachRemaining(c::accept);
+    }
+
+    public void forEachPrevious(Consumer<CrawlEntry> c) {
+        previousLedger.forEach((k, v) -> c.accept(v));
+    }
+
     //--- Queue ---
 
     public boolean isQueueEmpty() {
@@ -281,37 +311,50 @@ public final class CrawlEntryLedger {
         currentLedger.delete(processingStatusQuery(ProcessingStatus.QUEUED));
     }
 
-    //    public void queue(@NonNull CrawlDocContext docContext) {
-    //        docContext.setProcessingStage(CrawlDocStage.QUEUED);
-    //        queue.put(docContext.getReference(),
-    //                SerialUtil.toJsonString(docContext));
-    //        LOG.debug("Saved queued: {}", docContext.getReference());
-    //        crawlContext.fire(CrawlerEvent.builder()
-    //                .name(CrawlerEvent.DOCUMENT_QUEUED)
-    //                .source(crawlContext)
-    //                .docContext(docContext)
-    //                .build());
-    //    }
-    //
-    //    @SuppressWarnings("unchecked")
-    //    public Optional<CrawlDocContext> pollQueue() {
-    //        var opt = queue
-    //                .poll()
-    //                .map(json -> SerialUtil.fromJson(json, type));
-    //        opt.ifPresent(doc -> {
-    //            doc.setProcessingStage(CrawlDocStage.UNRESOLVED);
-    //            processed.put(doc.getReference(),
-    //                    SerialUtil.toJsonString(doc));
-    //        });
-    //
-    //        //TODO put back unresolved in queue for processing, since those
-    //        // are when a node crashed and they could never be marked as resolved
-    //
-    //        return (Optional<CrawlDocContext>) opt;
-    //    }
-    //
+    public void queue(@NonNull CrawlEntry crawlEntry) {
+        crawlEntry.setProcessingStatus(ProcessingStatus.QUEUED);
+        currentLedger.put(crawlEntry.getReference(), crawlEntry);
+        LOG.debug("Saved queued: {}", crawlEntry.getReference());
+        session.getCrawlContext().fire(CrawlerEvent.builder()
+                .name(CrawlerEvent.DOCUMENT_QUEUED)
+                .source(session)
+                .crawlEntry(crawlEntry)
+                .build());
+    }
+
+    public Optional<CrawlEntry> nextQueued() {
+        // Find the first QUEUED entry
+        var query = processingStatusQuery(ProcessingStatus.QUEUED);
+        var queuedEntries = currentLedger.queryIterator(query);
+        if (!queuedEntries.hasNext()) {
+            return Optional.empty();
+        }
+        var entry = queuedEntries.next();
+        var reference = entry.getReference();
+
+        // Atomically set status to PROCESSING only if still QUEUED
+        var updated = currentLedger.computeIfPresent(reference, (k, v) -> {
+            if (v.getProcessingStatus() == ProcessingStatus.QUEUED) {
+                v.setProcessingStatus(ProcessingStatus.PROCESSING);
+            }
+            return v;
+        });
+
+        if (updated.isPresent() && updated.get()
+                .getProcessingStatus() == ProcessingStatus.PROCESSING) {
+            // Update status counters
+            statusCounters.get(ProcessingStatus.QUEUED).decrementAndGet();
+            statusCounters.get(ProcessingStatus.PROCESSING).incrementAndGet();
+            LOG.debug("Polled entry from queue and set to PROCESSING: {}",
+                    reference);
+            return updated;
+        }
+        // If status was not QUEUED, try next
+        return Optional.empty();
+    }
+
     //    public boolean forEachQueued(
-    //            BiPredicate<String, CrawlDocContext> predicate) {
+    //            BiPredicate<String, CrawlEntry> predicate) {
     //        return queue.forEach(
     //                (k, v) -> predicate.test(k, SerialUtil.fromJson(v, type)));
     //    }
@@ -319,7 +362,7 @@ public final class CrawlEntryLedger {
     //--- Previous crawl entries ---
 
     public long getPreviousEntryCount() {
-        return previousLedger.countAll();
+        return previousLedger.size();
     }
 
     public Optional<CrawlEntry> getPreviousEntry(String id) {

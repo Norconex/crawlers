@@ -35,8 +35,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Crawler {
-
-    private static final String CLUSTER_WORKDIR_NAME = "cluster";
+    //
+    //    private static final String CLUSTER_WORKDIR_NAME = "cluster";
 
     @Getter
     private final CrawlDriver crawlDriver;
@@ -130,7 +130,7 @@ public class Crawler {
     public void withCrawlSession(Consumer<CrawlSession> c) {
         try (var session =
                 CrawlSessionFactory.create(crawlDriver, crawlConfig)) {
-
+            c.accept(session);
         }
     }
 }

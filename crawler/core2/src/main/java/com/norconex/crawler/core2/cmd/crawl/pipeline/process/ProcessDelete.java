@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core2.cmd.crawl.pipeline.process;
 
-import com.norconex.crawler.core2.doc.CrawlDocStatus;
+import com.norconex.crawler.core2.ledger.ProcessingOutcome;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,10 +25,12 @@ final class ProcessDelete {
     }
 
     static void execute(ProcessContext ctx) {
-        LOG.debug("Deleting reference: {}", ctx.doc().getReference());
-        ctx.doc().getDocContext().setState(CrawlDocStatus.DELETED);
+        LOG.debug("Deleting reference: {}", ctx.docContext().getReference());
+        ctx.docContext().getCurrentCrawlEntry()
+                .setProcessingOutcome(ProcessingOutcome.DELETED);
         // Event triggered by service
-        ctx.crawlContext().getCommitterService().delete(ctx.doc());
+        ctx.crawlSession().getCrawlContext().getCommitterService()
+                .delete(ctx.docContext().getDoc());
         ProcessFinalize.execute(ctx);
     }
 }

@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core2.doc.pipelines.committer;
 
-import com.norconex.committer.core2.Committer;
+import com.norconex.committer.core.Committer;
 import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.doc.CrawlDocContext;
 

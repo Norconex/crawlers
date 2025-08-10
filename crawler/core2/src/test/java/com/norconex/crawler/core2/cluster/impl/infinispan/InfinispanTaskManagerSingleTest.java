@@ -58,7 +58,7 @@ class InfinispanTaskManagerSingleTest {
         var taskCompletedLatch = new CountDownLatch(1);
 
         // Define the task to be executed
-        ClusterTask taskToRun = ctx -> {
+        ClusterTask<Void> taskToRun = ctx -> {
             LOG.info("Executing the actual task logic");
             executionCount.incrementAndGet(); // Increment atomic counter
             // Signal that the task has started

@@ -13,7 +13,7 @@
   https://infinispan.org/docs/stable/titles/configuring/configuring.html
    -->
             
-  <cache-container name="default">
+  <cache-container name="default" default-cache="base-template">
   
     <transport cluster="${infinispan.cluster.name:cluster}" stack="crawler-udp" />
   
@@ -29,21 +29,36 @@
       Cache configuration used as default if the crawler tries to load a 
       cache configuration not otherwise defined here.
       -->
-    <distributed-cache 
-      name="default" 
+    <distributed-cache-configuration 
+      name="base-template" 
       mode="SYNC" 
-      owners="2"
+      owners="2" 
       statistics="true"
     >
-      <transaction 
-        mode="NON_XA" 
+      <transaction
+        mode="NON_XA"
         locking="PESSIMISTIC"
         transaction-manager-lookup="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
       />
       <persistence passivation="false">
         <file-store />
       </persistence>
-    </distributed-cache>
+    </distributed-cache-configuration>
+
+    <distributed-cache-configuration name="indexed-template" configuration="base-template">
+      <indexing enabled="true" storage="local-heap">
+      <!-- 
+        <indexed-entities>
+          <indexed-entity>com.mycompany.MyObject</indexed-entity>
+        </indexed-entities>
+         -->
+      </indexing>
+    </distributed-cache-configuration>
+
+    <distributed-cache-configuration name="*_indexed" configuration="indexed-template"/>
+    <distributed-cache-configuration name="*" configuration="base-template"/>
+
+ 
 
     <!-- Cache used for sharing and also persisting arbitrary counters.  -->
     <distributed-cache 
@@ -64,22 +79,33 @@
       <UDP/>
       <PING/>
       <MERGE3/>
-      <FD_SOCK/>
-      <FD_ALL/>
       <VERIFY_SUSPECT/>
-      <BARRIER/>
-      <!-- 
       <NAKACK2/>
-       -->
       <UNICAST3/>
-      <!-- 
       <STABLE/>
       <GMS/>
-       -->
       <UFC/>
       <MFC/>
       <FRAG2/>
     </stack>
   </jgroups>  
+
+<!--
+      <UDP/>
+      <PING/>
+      <MERGE3/>
+      <FD_SOCK/>
+      <FD_ALL/>
+      <VERIFY_SUSPECT/>
+      <BARRIER/>
+      <NAKACK2/>
+      <UNICAST3/>
+      <STABLE/>
+      <GMS/>
+      <UFC/>
+      <MFC/>
+      <FRAG2/>
+-->
+
   
 </infinispan>

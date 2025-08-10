@@ -48,14 +48,12 @@ public class MetadataDedupStage extends AbstractImporterStage {
                 .getCrawlContext()
                 .getDedupService();
 
-        var duplRef = dedupService.findOrTrackMetadata(docContext);
+        var duplRef = dedupService
+                .findOrTrackMetadata(docContext.getCurrentCrawlEntry());
 
         if (duplRef.isPresent()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(
-                        "REJECTED duplicate metadata checkum found for: {}",
-                        docContext.getReference());
-            }
+            LOG.debug("REJECTED duplicate metadata checkum found for: {}",
+                    docContext.getReference());
             docContext.getCurrentCrawlEntry()
                     .setProcessingOutcome(ProcessingOutcome.REJECTED);
             ctx.getCrawlContext().fire(
@@ -63,7 +61,8 @@ public class MetadataDedupStage extends AbstractImporterStage {
                             .name(CrawlerEvent.REJECTED_DUPLICATE)
                             .source(ctx.getCrawlContext())
                             .subject(duplRef.get())
-                            .docContext(docContext)
+                            .crawlEntry(
+                                    ctx.getDocContext().getCurrentCrawlEntry())
                             .message("A document with the same metadata "
                                     + "checksum was already processed: "
                                     + duplRef.get())

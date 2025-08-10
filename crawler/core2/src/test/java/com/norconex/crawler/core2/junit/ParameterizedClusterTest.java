@@ -29,21 +29,25 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
-import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanCluster;
-import com.norconex.crawler.core2.junit.ParameterizedClusterTest.GridConnectorProvider;
+import com.norconex.crawler.core2.junit.ParameterizedClusterTest.ClusterConnectorProvider;
+import com.norconex.crawler.core2.mocks.cluster.MockMultiNodesConnector;
+import com.norconex.crawler.core2.mocks.cluster.MockSingleNodeConnector;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @ParameterizedTest
-@ArgumentsSource(GridConnectorProvider.class)
+@ArgumentsSource(ClusterConnectorProvider.class)
 public @interface ParameterizedClusterTest {
 
-    public static class GridConnectorProvider implements ArgumentsProvider {
+    public static class ClusterConnectorProvider implements ArgumentsProvider {
         @Override
         public Stream<? extends Arguments> provideArguments(
                 ExtensionContext context) {
-            return Stream.of(arguments(named("📂On Infinispan cluster",
-                    InfinispanCluster.class)));
+            return Stream.of(
+                    arguments(named("📂 On a single node",
+                            MockSingleNodeConnector.class)),
+                    arguments(named("📂 On multiple nodes",
+                            MockMultiNodesConnector.class)));
         }
     }
 }

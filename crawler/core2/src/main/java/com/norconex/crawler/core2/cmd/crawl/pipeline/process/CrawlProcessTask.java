@@ -24,18 +24,17 @@ import java.util.stream.IntStream;
 
 import org.apache.commons.collections4.CollectionUtils;
 
-import com.norconex.crawler.core2.context.CrawlContext;
-import com.norconex.crawler.core2.doc.CrawlDoc;
+import com.norconex.crawler.core2.cluster.ClusterTask;
+import com.norconex.crawler.core2.doc.CrawlDocContext;
 import com.norconex.crawler.core2.doc.CrawlDocMetaConstants;
-import com.norconex.crawler.core2.doc.CrawlDocStatus;
 import com.norconex.crawler.core2.event.CrawlerEvent;
-import com.norconex.crawler.core2.session.CrawlState;
+import com.norconex.crawler.core2.ledger.CrawlEntry;
+import com.norconex.crawler.core2.ledger.ProcessingOutcome;
+import com.norconex.crawler.core2.session.CrawlMode;
+import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core2.util.ConcurrentUtil;
 import com.norconex.crawler.core2.util.LogUtil;
-import com.norconex.grid.core2.Grid;
-import com.norconex.grid.core2.compute.BaseGridTask.AllNodesTask;
-import com.norconex.grid.core2.compute.GridTaskBuilder;
-import com.norconex.grid.core2.util.ConcurrentUtil;
-import com.norconex.importer.doc.DocContext;
+import com.norconex.importer.doc.Doc;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,9 +43,7 @@ import lombok.extern.slf4j.Slf4j;
  * and process them until the queue is empty.
  */
 @Slf4j
-public class CrawlProcessTask extends AllNodesTask {
-
-    private static final long serialVersionUID = 1L;
+public class CrawlProcessTask implements ClusterTask<Void> {
 
     /**
      * What to do with ALL current entries in the queue.
@@ -58,21 +55,20 @@ public class CrawlProcessTask extends AllNodesTask {
     private final ProcessQueueAction queueAction;
     private boolean stopRequested;
 
-    public CrawlProcessTask(String id, ProcessQueueAction queueAction) {
-        super(id);
+    public CrawlProcessTask(ProcessQueueAction queueAction) {
         this.queueAction = queueAction;
     }
 
     @Override
-    public void process(Grid grid) {
-        var ctx = CrawlContext.get(grid);
+    public Void execute(CrawlSession session) {
+        var ctx = session.getCrawlContext();
         if (stopRequested) {
-            return;
+            return null;
         }
         LOG.info("Processing crawler queue...");
         try {
             ofNullable(ctx.getCallbacks().getBeforeCrawlTask())
-                    .ifPresent(cb -> cb.accept(ctx));
+                    .ifPresent(cb -> cb.accept(session));
             //TODO add timeout?
 
             var numThreads = ctx.getCrawlConfig().getNumThreads();
@@ -80,14 +76,15 @@ public class CrawlProcessTask extends AllNodesTask {
             // move tfc to context?
             new AtomicInteger();
             var executor = Executors.newFixedThreadPool(
-                    numThreads, ctx.getThreadFactoryCreator().create(getId()));
+                    numThreads, ctx.getThreadFactoryCreator()
+                            .create(session.getCrawlerId()));
             var futures = IntStream.range(0, numThreads)
                     .mapToObj(i -> CompletableFuture.runAsync(() -> {
                         try {
-                            processQueue(ctx, i);
+                            processQueue(session, i);
                         } catch (Exception e) {
                             LOG.error("Problem running task {} {} of {}.",
-                                    "crawl-" + getId(),
+                                    "crawl-" + session.getCrawlerId(),
                                     i, numThreads, e);
                             throw new CompletionException(e);
                         }
@@ -98,32 +95,34 @@ public class CrawlProcessTask extends AllNodesTask {
             ConcurrentUtil.cleanShutdown(executor);
         } finally {
             ofNullable(ctx.getCallbacks().getAfterCrawlTask())
-                    .ifPresent(cb -> cb.accept(ctx));
+                    .ifPresent(cb -> cb.accept(session));
         }
+        return null;
     }
 
-    @Override
-    public void stop(Grid grid) {
-        stopRequested = true;
-        grid.getCompute().executeTask(GridTaskBuilder
-                .create("updateCrawlState")
-                .singleNode()
-                .processor(g -> CrawlContext
-                        .get(g)
-                        .getSessionProperties()
-                        .updateCrawlState(CrawlState.PAUSED))
-                .build());
-    }
+    //    @Override
+    //    public void stop(CrawlSession session) {
+    //        stopRequested = true;
+    //        grid.getCompute().executeTask(GridTaskBuilder
+    //                .create("updateCrawlState")
+    //                .singleNode()
+    //                .processor(g -> CrawlContext
+    //                        .get(g)
+    //                        .getSessionProperties()
+    //                        .updateCrawlState(CrawlState.PAUSED))
+    //                .build());
+    //    }
 
     // just invoked in its own thread
-    void processQueue(CrawlContext ctx, int threadIndex) {
+    void processQueue(CrawlSession session, int threadIndex) {
         LOG.debug("Crawler thread #{} starting...", threadIndex);
-        Thread.currentThread().setName(ctx.getId() + "#" + threadIndex);
-        LogUtil.setMdcCrawlerId(ctx.getId());
+        Thread.currentThread()
+                .setName(session.getCrawlerId() + "#" + threadIndex);
+        LogUtil.setMdcCrawlerId(session.getCrawlerId());
 
         try {
             var activityChecker = new CrawlActivityChecker(
-                    ctx, queueAction == ProcessQueueAction.DELETE_ALL);
+                    session, queueAction == ProcessQueueAction.DELETE_ALL);
             // TODO shall we check for "stopped" and other states?
             // abort now if we've reach configured max documents or
             // other ending conditions
@@ -131,7 +130,7 @@ public class CrawlProcessTask extends AllNodesTask {
             // conclusion and break, effectively ending crawling.
             while (!stopRequested
                     && !activityChecker.isMaxDocsApplicableAndReached()
-                    && processNextInQueue(ctx, activityChecker))
+                    && processNextInQueue(session, activityChecker))
                 ;
         } catch (Exception e) {
             //TODO also check here for configured exceptions that should
@@ -142,33 +141,47 @@ public class CrawlProcessTask extends AllNodesTask {
 
     // true to continue and false to abort/break
     private boolean processNextInQueue(
-            CrawlContext crawlCtx,
+            CrawlSession session,
             CrawlActivityChecker activityChecker) {
 
-        var docProcessCtx = new ProcessContext().crawlContext(crawlCtx);
+        var crawlCtx = session.getCrawlContext();
+        var docProcessCtx = new ProcessContext().crawlSession(session);
         try {
-            var docContext = crawlCtx
+            var currentEntry = crawlCtx
                     .getCrawlEntryLedger()
-                    .pollQueue()
+                    .nextQueued()
                     .orElse(null);
-            LOG.trace("Pulled next reference from Queue: {}", docContext);
+            LOG.trace("Pulled next reference from Queue: {}", currentEntry);
 
-            docProcessCtx.docContext(docContext);
-            if (docProcessCtx.docContext() == null) {
+            if (currentEntry == null) {
                 //TODO ensure this can't create infinite loop if for weird
                 // reasons the crawler is always reported active.
                 // or make sure it does not happen
                 return activityChecker.isActive();
             }
 
-            docProcessCtx.doc(createDocFromCache(
-                    crawlCtx, docProcessCtx.docContext()));
+            var doc = new Doc(currentEntry.getReference());
+            CrawlEntry previousEntry = null;
+            if (session.getCrawlMode() == CrawlMode.INCREMENTAL) {
+                previousEntry = crawlCtx
+                        .getCrawlEntryLedger()
+                        .getPreviousEntry(currentEntry.getReference())
+                        .orElse(null);
+            }
+
+            doc.getMetadata().set(CrawlDocMetaConstants.IS_DOC_NEW,
+                    previousEntry == null);
+
+            var docContext = CrawlDocContext.builder()
+                    .currentCrawlEntry(currentEntry)
+                    .previousCrawlEntry(previousEntry)
+                    .doc(doc)
+                    .build();
+            docProcessCtx.docContext(docContext);
 
             // Before document processing
-            ofNullable(crawlCtx
-                    .getCallbacks()
-                    .getBeforeDocumentProcessing()).ifPresent(
-                            bdp -> bdp.accept(crawlCtx, docProcessCtx.doc()));
+            ofNullable(crawlCtx.getCallbacks().getBeforeDocumentProcessing())
+                    .ifPresent(bdp -> bdp.accept(session, doc));
 
             if (activityChecker.isDeleting()) {
                 ProcessDelete.execute(docProcessCtx);
@@ -177,17 +190,15 @@ public class CrawlProcessTask extends AllNodesTask {
             }
 
             // After document processing
-            ofNullable(crawlCtx.getCallbacks()
-                    .getAfterDocumentProcessing())
-                            .ifPresent(adp -> adp.accept(
-                                    crawlCtx,
-                                    docProcessCtx.doc()));
+            ofNullable(crawlCtx.getCallbacks().getAfterDocumentProcessing())
+                    .ifPresent(adp -> adp.accept(
+                            session,
+                            docProcessCtx.docContext().getDoc()));
             return true;
-
         } catch (Exception e) {
-            if (handleExceptionAndCheckIfStopCrawler(crawlCtx, docProcessCtx,
-                    e)) {
-                crawlCtx.getGrid().stop();
+            if (handleExceptionAndCheckIfStopCrawler(
+                    session, docProcessCtx, e)) {
+                session.getCluster().stop();
                 return false;
             }
         } finally {
@@ -196,43 +207,12 @@ public class CrawlProcessTask extends AllNodesTask {
         return true;
     }
 
-    // if not incremental, won't even attempt to go to cache
-    private CrawlDoc createDocFromCache(
-            CrawlContext crawlCtx, DocContext docCtx) {
-
-        //TODO instead or in addition to get doc from cache as a separate
-        // instance, populate the main one with relevant bits from the cache.
-
-        // put timer for whole thread or closer to just importer
-        // or have importer offer its own timer, in addition.
-        // var elapsedTime = Timer.timeWatch(() ->
-        var cachedDocCtx = crawlCtx.isIncrementalCrawl() ? crawlCtx
-                .getCrawlEntryLedger()
-                .getPreviousEntry(docCtx.getReference())
-                .orElse(null)
-                : null;
-
-        //TODO have doc properties and metadata be the same? or somewhat in sync?
-        // or a separate hidden Map in addition to user-provided map, that gets
-        // merged in the end?
-        // Or make it a bean that auto create metadata using reflection
-        // (or Lombok Fields)
-        // (except for reference)?
-        // Relevant to DocContext as well
-        var doc = new CrawlDoc(
-                docCtx,
-                cachedDocCtx,
-                crawlCtx.getStreamFactory().newInputStream(),
-                false); //TODO handle orphan properly or make it an emum
-        doc.getOtherProps().set(
-                CrawlDocMetaConstants.IS_DOC_NEW, cachedDocCtx == null);
-        return doc;
-    }
-
     // true to stop crawler
     private boolean handleExceptionAndCheckIfStopCrawler(
-            CrawlContext crawlCtx,
+            CrawlSession session,
             ProcessContext docProcessCtx, Exception e) {
+
+        var crawlCtx = session.getCrawlContext();
 
         //TODO check nested exception for a match.
 
@@ -241,22 +221,22 @@ public class CrawlProcessTask extends AllNodesTask {
         // stop the crawler since it means we can't no longer read for the
         // queue, and we can no longer fetch a next document, possibly leading
         // to an infinite loop if it keeps trying and failing.
-        var rec = docProcessCtx.docContext();
-        if (rec == null) {
+        var docContext = docProcessCtx.docContext();
+        if (docContext == null) {
             LOG.error("An unrecoverable error was detected. The crawler will "
                     + "stop.",
                     e);
             crawlCtx.getEventManager().fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.CRAWLER_ERROR)
-                            .source(crawlCtx)
-                            .docContext(rec)
+                            .source(session)
                             .exception(e)
                             .build());
             return stopTheCrawler;
         }
 
-        rec.setState(CrawlDocStatus.ERROR);
+        docContext.getCurrentCrawlEntry()
+                .setProcessingOutcome(ProcessingOutcome.ERROR);
         if (LOG.isDebugEnabled()) {
             LOG.info("Could not process document: {} ({})",
                     docProcessCtx.docContext().getReference(), e.getMessage(),
@@ -268,21 +248,20 @@ public class CrawlProcessTask extends AllNodesTask {
         crawlCtx.getEventManager().fire(
                 CrawlerEvent.builder()
                         .name(CrawlerEvent.REJECTED_ERROR)
-                        .source(crawlCtx)
-                        .docContext(rec)
+                        .source(session)
+                        .crawlEntry(docContext.getCurrentCrawlEntry())
                         .exception(e)
                         .build());
         ProcessFinalize.execute(docProcessCtx);
 
         // Rethrow exception if we want the crawler to stop
-        var exceptionClasses = docProcessCtx.crawlContext().getCrawlConfig()
+        var exceptionClasses = crawlCtx.getCrawlConfig()
                 .getStopOnExceptions();
         if (CollectionUtils.isNotEmpty(exceptionClasses)) {
             for (Class<? extends Exception> c : exceptionClasses) {
                 if (c.isAssignableFrom(e.getClass())) {
                     LOG.error("Encountered a crawler-stopping exception as "
-                            + "per configuration.",
-                            e);
+                            + "per configuration.", e);
                     return stopTheCrawler;
                 }
             }

@@ -64,7 +64,7 @@ public class DocumentChecksumStage
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.REJECTED_UNMODIFIED)
                             .source(ctx.getCrawlContext())
-                            .docContext(docContext)
+                            .crawlEntry(docContext.getCurrentCrawlEntry())
                             .subject(checksummer)
                             .message(s.toString())
                             .build());

@@ -22,6 +22,9 @@ import com.norconex.crawler.core2.ledger.CrawlEntry;
 import com.norconex.crawler.core2.mocks.fetch.MockFetchResponseImpl;
 import com.norconex.crawler.core2.stubs.PipelineStubs;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class MockCrawlDriverFactory implements Supplier<CrawlDriver> {
 
     public static CrawlDriver create() {
@@ -39,6 +42,9 @@ public class MockCrawlDriverFactory implements Supplier<CrawlDriver> {
                                         .setReasonPhrase(msg)
                                         .setProcessingOutcome(outcome)))
                 .docPipelines(PipelineStubs.pipelines())
+                //                .callbacks(CrawlCallbacks.builder().beforeCommand(sess -> {
+                //                    Sleeper.sleepSeconds(3);//TODO come up with something faster, like a latch
+                //                }).build())
                 .crawlEntryType(CrawlEntry.class)
                 .build();
     }

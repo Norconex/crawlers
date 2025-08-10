@@ -17,6 +17,8 @@ package com.norconex.crawler.core2.spi;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.spi.BasePolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
+import com.norconex.crawler.core2.cluster.ClusterConnector;
+import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanClusterConnector;
 import com.norconex.crawler.core2.doc.operations.checksum.DocumentChecksummer;
 import com.norconex.crawler.core2.doc.operations.checksum.MetadataChecksummer;
 import com.norconex.crawler.core2.doc.operations.filter.DocumentFilter;
@@ -42,6 +44,8 @@ public class CrawlerCorePtProvider extends BasePolymorphicTypeProvider {
                 .addFromScan(MetadataChecksummer.class)
                 .addFromScan(MetadataFilter.class)
                 .addFromScan(ReferenceFilter.class)
-                .addFromScan(SpoiledReferenceStrategizer.class);
+                .addFromScan(SpoiledReferenceStrategizer.class)
+                .add(ClusterConnector.class, InfinispanClusterConnector.class);
+
     }
 }

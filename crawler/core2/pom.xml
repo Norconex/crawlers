@@ -32,6 +32,7 @@
     <cxf.version>3.4.5</cxf.version>
     <infinispan.version>15.2.5.Final</infinispan.version>
     <jdom2.version>2.0.6.1</jdom2.version>
+    <infinispan-protostream.version>15.0.13.Final</infinispan-protostream.version>
   </properties>
 
   <inceptionYear>2014</inceptionYear>
@@ -60,6 +61,17 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      
+      <!-- Protostream processor should be left to its default "provided"
+           scope but it prevents auto-generation in Eclipse.
+       -->
+      <dependency>
+        <groupId>org.infinispan.protostream</groupId>
+        <artifactId>protostream-processor</artifactId>
+        <version>${infinispan-protostream.version}</version>
+        <scope>compile</scope>
+      </dependency>
+
     </dependencies>
     
   </dependencyManagement>
@@ -80,13 +92,6 @@
       <groupId>com.norconex.crawler</groupId>
       <artifactId>nx-committer-core</artifactId>
     </dependency>
-    <!--
-    <dependency>
-      <groupId>com.norconex.crawler</groupId>
-      <artifactId>nx-grid-local</artifactId>
-    </dependency>
-    -->
-
     <dependency>
       <groupId>org.infinispan</groupId>
       <artifactId>infinispan-core</artifactId>
@@ -218,23 +223,14 @@
             <path>
               <groupId>org.infinispan.protostream</groupId>
               <artifactId>protostream-processor</artifactId>
-              <version>5.0.5.Final</version>
-            </path>
-          </annotationProcessorPaths>
-          <!--
-          <annotationProcessorPaths>
-            <path>
-              <groupId>org.infinispan.protostream</groupId>
-              <artifactId>protostream-processor</artifactId>
-              <version>${infinispan.version}</version>
+              <version>${infinispan-protostream.version}</version>
             </path>
             <path>
               <groupId>org.infinispan.protostream</groupId>
               <artifactId>protostream</artifactId>
-              <version>${infinispan.version}</version>
+              <version>${infinispan-protostream.version}</version>
             </path>
           </annotationProcessorPaths>
-          -->
         </configuration>
       </plugin>
     

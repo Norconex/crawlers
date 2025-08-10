@@ -51,8 +51,10 @@ public class CrawlEntry {
     @ToString.Exclude
     private String contentChecksum;
     @ToString.Exclude
-    private ZonedDateTime crawlDate;
-    private ZonedDateTime lastModified;
+    private ZonedDateTime queuedAt;
+    @ToString.Exclude
+    private ZonedDateTime crawledAt;
+    private ZonedDateTime modifiedAt;
     private boolean orphan;
     private boolean deleted;
     private String reference;
@@ -107,26 +109,42 @@ public class CrawlEntry {
     }
 
     /**
-     * Gets the crawl date.
-     * @return the crawl date
+     * Gets the queued date.
+     * @return the queued date
          */
-    public ZonedDateTime getCrawlDate() {
-        return crawlDate;
+    public ZonedDateTime getQueuedAt() {
+        return queuedAt;
     }
 
     /**
-     * Sets the crawl date.
-     * @param crawlDate the crawl date
+     * Sets the queued date.
+     * @param queuedAt the queued date
      */
-    public void setCrawlDate(ZonedDateTime crawlDate) {
-        this.crawlDate = crawlDate;
+    public void setQueuedAt(ZonedDateTime queuedAt) {
+        this.queuedAt = queuedAt;
     }
 
-    public ZonedDateTime getLastModified() {
-        return lastModified;
+    /**
+     * Gets the crawled date.
+     * @return the crawled date
+         */
+    public ZonedDateTime getCrawledAt() {
+        return crawledAt;
     }
 
-    public void setLastModified(ZonedDateTime lastModified) {
-        this.lastModified = lastModified;
+    /**
+     * Sets the crawled date.
+     * @param crawledAt the crawled date
+     */
+    public void setCrawledAt(ZonedDateTime crawledAt) {
+        this.crawledAt = crawledAt;
+    }
+
+    public ZonedDateTime getModifiedAt() {
+        return modifiedAt;
+    }
+
+    public void setModifiedAt(ZonedDateTime modifiedAt) {
+        this.modifiedAt = modifiedAt;
     }
 }

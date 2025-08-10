@@ -19,94 +19,158 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.infinispan.protostream.annotations.ProtoAdapter;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
+import org.infinispan.protostream.annotations.Proto;
 import org.infinispan.protostream.annotations.ProtoField;
 
+import com.norconex.commons.lang.ClassUtil;
 import com.norconex.crawler.core2.cluster.CacheException;
 import com.norconex.crawler.core2.ledger.CrawlEntry;
-import com.norconex.crawler.core2.ledger.ProcessingStatus;
+
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * Protocol Buffers adapter for CrawlEntry serialization in Infinispan.
  * Only essential fields are serialized directly as ProtoFields, while
  * the rest are stored in a metadata map.
  */
-@ProtoAdapter(CrawlEntry.class)
+@Proto
+@Indexed
+@EqualsAndHashCode
+@ToString
 public class CrawlEntryProtoAdapter {
 
     @ProtoField(number = 1)
-    public String getReference(CrawlEntry entry) {
-        return entry.getReference();
-    }
+    public String type;
 
-    public void setReference(CrawlEntry entry, String reference) {
-        entry.setReference(reference);
-    }
+    @ProtoField(number = 2)
+    public String reference;
 
-    @ProtoField(number = 2, required = true)
-    //@ProtoDoc("@Field(index=Index.YES, analyze = Analyze.NO, store = Store.YES)")
-    public String getProcessingStatus(CrawlEntry entry) {
-        return entry.getProcessingStatus().name();
-    }
-
-    public void setProcessingStatus(CrawlEntry entry, String status) {
-        entry.setProcessingStatus(ProcessingStatus.valueOf(status));
-    }
+    //    @GenericField
+    //    private ProcessingStatus processingStatus;
 
     @ProtoField(number = 3)
-    public String getMetaChecksum(CrawlEntry entry) {
-        return entry.getMetaChecksum();
-    }
-
-    public void setMetaChecksum(CrawlEntry entry, String checksum) {
-        entry.setMetaChecksum(checksum);
-    }
+    public String metaChecksum;
 
     @ProtoField(number = 4)
-    public String getContentChecksum(CrawlEntry entry) {
-        return entry.getContentChecksum();
-    }
+    public String contentChecksum;
 
-    public void setContentChecksum(CrawlEntry entry, String checksum) {
-        entry.setContentChecksum(checksum);
-    }
+    //    @GenericField
+    //    private ZonedDateTime queuedAt;
 
-    /**
-     * Extracts additional metadata as a map.
-     * This includes all fields not directly serialized with @ProtoField.
-     * @param entry the CrawlEntry
-     * @return the metadata map
-     */
     @ProtoField(number = 5)
-    public Map<String, String> getOtherProps(CrawlEntry entry) {
+    public Map<String, String> otherProps;
 
+    public CrawlEntryProtoAdapter() {
+    }
+
+    public CrawlEntryProtoAdapter(CrawlEntry entry) {
         try {
+            type = entry.getClass().getName();
+            reference = entry.getReference();
+            //            processingStatus = entry.getProcessingStatus();
+            metaChecksum = entry.getMetaChecksum();
+            contentChecksum = entry.getContentChecksum();
+            //            queuedAt = entry.getQueuedAt();
             var props = BeanUtils.describe(entry);
             Stream.of(
                     CrawlEntry.Fields.reference,
                     CrawlEntry.Fields.processingStatus,
                     CrawlEntry.Fields.metaChecksum,
+                    CrawlEntry.Fields.queuedAt,
                     CrawlEntry.Fields.contentChecksum).forEach(props::remove);
-            return props;
+            otherProps = props;
         } catch (IllegalAccessException | InvocationTargetException
                 | NoSuchMethodException e) {
             throw new CacheException("Could not serialize crawl entry.", e);
         }
+
     }
 
-    /**
-     * Sets the metadata on a CrawlEntry.
-     * @param entry the CrawlEntry
-     * @param metadata the metadata to set
-     */
-    public void setOtherProps(CrawlEntry entry, Map<String, String> metadata) {
-        if (metadata == null) {
-            return;
+    CrawlEntry toCrawlEntry() {
+        if (StringUtils.isBlank(type)) {
+            throw new CacheException("Crawl entry type is not defined.");
         }
         try {
-            BeanUtils.populate(entry, metadata);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new CacheException("Could not deserialize crawl entry.", e);
+            var entry = (CrawlEntry) ClassUtil.newInstance(
+                    ClassUtils.getClass(type));
+            entry.setReference(reference);
+            //            entry.setProcessingStatus(processingStatus);
+            entry.setMetaChecksum(metaChecksum);
+            entry.setContentChecksum(contentChecksum);
+            //            entry.setQueuedAt(queuedAt);
+            if (otherProps != null) {
+                BeanUtils.populate(entry, otherProps);
+            }
+            return entry;
+        } catch (IllegalAccessException | InvocationTargetException
+                | ClassNotFoundException e) {
+            throw new CacheException(
+                    "Could not deserialize crawl entry.", e);
         }
     }
+
+    //    @ProtoField(number = 1)
+    //    public String getType() {
+    //        return type;
+    //    }
+    //
+    //    public void setType(String type) {
+    //        this.type = type;
+    //    }
+    //
+    //    @ProtoField(number = 2)
+    //    public String getReference() {
+    //        return reference;
+    //    }
+    //
+    //    public void setReference(String reference) {
+    //        this.reference = reference;
+    //    }
+    //
+    //    //    @ProtoField(number = 3)
+    //    //    public ProcessingStatus getProcessingStatus() {
+    //    //        return processingStatus;
+    //    //    }
+    //    //    public void setProcessingStatus(ProcessingStatus processingStatus) {
+    //    //        this.processingStatus = processingStatus;
+    //    //    }
+    //
+    //    @ProtoField(number = 3)
+    //    public String getMetaChecksum() {
+    //        return metaChecksum;
+    //    }
+    //
+    //    public void setMetaChecksum(String metaChecksum) {
+    //        this.metaChecksum = metaChecksum;
+    //    }
+    //
+    //    @ProtoField(number = 4)
+    //    public String getContentChecksum() {
+    //        return contentChecksum;
+    //    }
+    //
+    //    public void setContentChecksum(String contentChecksum) {
+    //        this.contentChecksum = contentChecksum;
+    //    }
+    //
+    //    //    @ProtoField(number = 6)
+    //    //    public ZonedDateTime getQueuedAt() {
+    //    //        return queuedAt;
+    //    //    }
+    //    //    public void setQueuedAt(ZonedDateTime queuedAt) {
+    //    //        this.queuedAt = queuedAt;
+    //    //    }
+    //
+    //    @ProtoField(number = 5)
+    //    public Map<String, String> getOtherProps() {
+    //        return otherProps;
+    //    }
+    //
+    //    public void setOtherProps(Map<String, String> otherProps) {
+    //        this.otherProps = otherProps;
+    //    }
 }

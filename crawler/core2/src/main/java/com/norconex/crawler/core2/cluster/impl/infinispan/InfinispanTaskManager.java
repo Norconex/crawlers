@@ -2,8 +2,11 @@ package com.norconex.crawler.core2.cluster.impl.infinispan;
 
 import static java.util.Optional.ofNullable;
 
+import java.io.Closeable;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.infinispan.Cache;
@@ -26,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
  * synchronization and state management.
  */
 @Slf4j
-public class InfinispanTaskManager implements TaskManager {
+public class InfinispanTaskManager implements TaskManager, Closeable {
 
     private static final String TASK_STATUS_CACHE_NAME = "taskStatusCache";
     private static final String TASK_RESULT_CACHE_NAME = "taskResultCache";
@@ -39,6 +42,7 @@ public class InfinispanTaskManager implements TaskManager {
     private final ClusteredLockManager lockManager;
     private final InfinispanCluster cluster;
     private final String nodeId;
+    private final Set<String> acquiredLocks = ConcurrentHashMap.newKeySet();
 
     /**
      * Constructs a DistributedTaskManager.
@@ -394,6 +398,7 @@ public class InfinispanTaskManager implements TaskManager {
         boolean acquired = lockFuture.get();
         if (acquired) {
             LOG.info("[{}] Acquired lock for task: {}", nodeId, taskName);
+            acquiredLocks.add(taskName);
         }
         return acquired;
     }
@@ -534,6 +539,7 @@ public class InfinispanTaskManager implements TaskManager {
      * Executes a given task on all nodes exactly once and reduces the results.
      * Only one node triggers the task, all nodes participate.
      */
+    @SuppressWarnings("unchecked")
     @Override
     public <T, R> CompletableFuture<R> runOnAllOnceAsync(
             String taskName,
@@ -603,6 +609,7 @@ public class InfinispanTaskManager implements TaskManager {
     /**
      * Executes a repeatable task on all nodes and reduces the results.
      */
+    @SuppressWarnings("unchecked")
     @Override
     public <T, R> CompletableFuture<R> runOnAllAsync(
             String taskName,
@@ -631,13 +638,15 @@ public class InfinispanTaskManager implements TaskManager {
                         results.add((T) obj.toObject());
                     }
                     if (allDone) {
-                        var reduced = reducer.reduce(results);
+                        var reduced = reducer != null
+                                ? reducer.reduce(results)
+                                : null;
                         resultFuture.complete(reduced);
                         break;
                     }
                     Thread.sleep(STATUS_POLLING_INTERVAL_MS);
                 }
-            } catch (Exception e) {
+            } catch (Exception e) { //NOSONAR
                 resultFuture.completeExceptionally(e);
             }
         });
@@ -654,5 +663,32 @@ public class InfinispanTaskManager implements TaskManager {
         } catch (Exception e) {
             throw ConcurrentUtil.wrapAsCompletionException(e);
         }
+    }
+
+    @Override
+    public void stopTask(String taskName) {
+        LOG.warn("STOP: IMPLEMENT ME!!");
+    }
+
+    @Override
+    public void close() {
+        // Release all acquired locks before shutdown
+        if (lockManager != null) {
+            for (String lockName : acquiredLocks) {
+                try {
+                    var lock = lockManager.get(lockName);
+                    if (lock != null) {
+                        lock.unlock();
+                        LOG.info("[{}] Released lock '{}' during shutdown.", nodeId, lockName);
+                    }
+                } catch (Exception e) {
+                    LOG.warn("[{}] Failed to release lock '{}' during shutdown: {}", nodeId, lockName, e.getMessage());
+                }
+            }
+            acquiredLocks.clear();
+        }
+        // No explicit resources to release, but nullify references for GC
+        // If future resources (threads, etc.) are added, clean up here
+        // Example: if you add background threads, interrupt/stop them here
     }
 }

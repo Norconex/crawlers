@@ -2,6 +2,7 @@ package com.norconex.crawler.core2.cluster.impl.infinispan;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.function.BiConsumer;
 
 import org.infinispan.configuration.cache.ConfigurationBuilder;
 import org.infinispan.manager.DefaultCacheManager;
@@ -9,6 +10,7 @@ import org.infinispan.manager.DefaultCacheManager;
 import com.norconex.crawler.core2.cluster.Cache;
 import com.norconex.crawler.core2.cluster.CacheException;
 import com.norconex.crawler.core2.cluster.CacheManager;
+import com.norconex.crawler.core2.cluster.CacheSet;
 import com.norconex.crawler.core2.cluster.Counter;
 
 import lombok.extern.slf4j.Slf4j;
@@ -16,24 +18,24 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class InfinispanCacheManager implements CacheManager, Closeable {
 
-    private static final String DEFAULT_CACHE_TEMPLATE = "default";
     private static final String GENERIC_CACHE_NAME = "generic-cache";
 
     private final DefaultCacheManager cacheManager;
 
     public InfinispanCacheManager(DefaultCacheManager cacheManager) {
         this.cacheManager = cacheManager;
-        defineCacheWithFallback("counter-cache");
     }
 
     @Override
     public <T> Cache<T> getCache(String name, Class<T> valueType) {
-        defineCacheWithFallback(name);
-        //        if (!cacheManager.cacheExists(name)) {
-        //            cacheManager.defineConfiguration(name,
-        //                    new ConfigurationBuilder().build());
-        //        }
         return new InfinispanCacheAdapter<>(cacheManager.getCache(name));
+    }
+
+    @Override
+    public CacheSet getCacheSet(String name) {
+        return new InfinispanCacheSetAdapter(
+                cacheManager.<String, Object>getCache(name)
+                        .keySet());
     }
 
     @Override
@@ -71,27 +73,10 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
         return cacheManager;
     }
 
-    public void defineCacheWithFallback(String cacheName) {
-        var templateToUse = cacheName;
-        // Check if the preferred template exists
-        if (cacheManager.getCacheConfiguration(templateToUse) == null) {
-            templateToUse = DEFAULT_CACHE_TEMPLATE;
-            // Optionally check if fallback exists too
-            if (cacheManager.getCacheConfiguration(templateToUse) == null) {
-                throw new IllegalStateException(
-                        "Neither explicit or default Infinspan cache "
-                                + "definition exist.");
-            }
-        }
-        if (!cacheManager.cacheExists(cacheName)) {
-            LOG.info("Using Infinispan '{}' cache config definition for cache "
-                    + "'{}'.",
-                    templateToUse, cacheName);
-            cacheManager.defineConfiguration(
-                    cacheName,
-                    templateToUse,
-                    new ConfigurationBuilder().build());
-        }
+    @Override
+    public void forEach(BiConsumer<String, Cache<?>> c) {
+        cacheManager.getCacheNames()
+                .forEach(name -> c.accept(name, new InfinispanCacheAdapter<>(
+                        cacheManager.getCache(name, true))));
     }
-
 }

@@ -76,18 +76,39 @@ public class InfinispanCluster implements Cluster {
 
     @Override
     public void stop() {
-        //TODO stop the entire cluster as opposed to close, which should only
-        // disconnect the node?
-        ExceptionSwallower.close(cacheManager);
+        LOG.info("Stopping InfinispanCluster (entire cluster) ...");
+        // Stop task manager if present
+        if (taskManager != null) {
+            ExceptionSwallower.close(taskManager);
+            taskManager = null;
+        }
+        // Stop local node if present
+        if (localNode != null) {
+            ExceptionSwallower.close(localNode);
+            localNode = null;
+        }
+        // Stop cache manager (stops cluster)
+        if (cacheManager != null) {
+            ExceptionSwallower.close(cacheManager);
+            cacheManager = null;
+        }
+        LOG.info("InfinispanCluster stopped.");
     }
 
     @Override
     public void close() {
-        LOG.info("Closing InfinispanCluster node...");
-
-        // disconnects without stopping?
-        ExceptionSwallower.close(cacheManager);
-        LOG.info("InfinispanCluster node closed.");
+        LOG.info("Disconnecting InfinispanCluster node ...");
+        // Only disconnect this node, do not stop the cluster
+        if (taskManager != null) {
+            ExceptionSwallower.close(taskManager);
+            taskManager = null;
+        }
+        if (localNode != null) {
+            ExceptionSwallower.close(localNode);
+            localNode = null;
+        }
+        // Do NOT close cacheManager here (leave cluster running)
+        LOG.info("InfinispanCluster node disconnected.");
     }
 
     /**

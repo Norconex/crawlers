@@ -14,21 +14,46 @@
  */
 package com.norconex.crawler.core2.mocks.cli;
 
-import java.util.ArrayList;
+import static org.assertj.core.api.Assertions.fail;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Data
 public final class MockCliEventWriter implements EventListener<Event> {
 
-    public static final List<String> EVENTS = new ArrayList<>();
+    private Path eventFile;
+
+    //    public static final List<String> EVENTS = new ArrayList<>();
 
     @Override
     public void accept(Event event) {
-        EVENTS.add(event.getName());
+        try {
+            Files.writeString(
+                    eventFile, event.getName() + "\n",
+                    StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            fail("accept --> Oups!", e);
+        }
+        //        EVENTS.add(event.getName());
+    }
+
+    static List<String> parseEvents(Path eventFile) {
+        try {
+            return Files.readAllLines(eventFile);
+        } catch (IOException e) {
+            fail("parseEvents --> Oups!", e);
+            return null;
+        }
     }
 }

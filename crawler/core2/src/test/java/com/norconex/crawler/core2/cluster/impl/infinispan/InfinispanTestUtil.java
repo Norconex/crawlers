@@ -26,19 +26,17 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.function.FailableBiConsumer;
 import org.apache.commons.lang3.function.FailableConsumer;
 
-import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core2.cluster.Cluster;
 import com.norconex.crawler.core2.cluster.ClusterConnector;
+import com.norconex.crawler.core2.mocks.cluster.MockMultiNodesConnector;
+import com.norconex.crawler.core2.mocks.cluster.MockSingleNodeConnector;
 
 public final class InfinispanTestUtil {
     private InfinispanTestUtil() {
     }
 
     public static ClusterConnector singleMemoryNodeClusterConnector() {
-        return Configurable.configure(
-                new InfinispanClusterConnector(),
-                c -> c.setInfinispan(InfinispanUtil.configBuilderHolder(
-                        "/cache/infinispan-single-test.xml")));
+        return new MockSingleNodeConnector();
     }
 
     public static Cluster singleMemoryNodeCluster() {
@@ -46,10 +44,7 @@ public final class InfinispanTestUtil {
     }
 
     public static ClusterConnector multiMemoryNodesClusterConnector() {
-        return Configurable.configure(
-                new InfinispanClusterConnector(),
-                c -> c.setInfinispan(InfinispanUtil.configBuilderHolder(
-                        "/cache/infinispan-cluster-test.xml")));
+        return new MockMultiNodesConnector();
     }
 
     public static Cluster multiMemoryNodesCluster() {
@@ -66,8 +61,7 @@ public final class InfinispanTestUtil {
     }
 
     public static void withMultiMemoryNodesCluster(
-            int nodeCount,
-            FailableBiConsumer<Cluster, Integer, Exception> c) {
+            int nodeCount, FailableBiConsumer<Cluster, Integer, Exception> c) {
         try {
             doWithMultiMemoryNodesCluster(nodeCount, c);
         } catch (Exception e) {
@@ -76,8 +70,7 @@ public final class InfinispanTestUtil {
     }
 
     private static void doWithMultiMemoryNodesCluster(
-            int nodeCount,
-            FailableBiConsumer<Cluster, Integer, Exception> c)
+            int nodeCount, FailableBiConsumer<Cluster, Integer, Exception> c)
             throws Exception {
         var executor = Executors.newFixedThreadPool(nodeCount);
         List<Future<Cluster>> futures = new ArrayList<>();

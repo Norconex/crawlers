@@ -1,11 +1,17 @@
 package com.norconex.crawler.core2.cluster;
 
+import java.util.function.BiConsumer;
+
 public interface CacheManager {
     <T> Cache<T> getCache(String name, Class<T> valueType);
+
+    CacheSet getCacheSet(String name);
 
     Cache<String> getGenericCache();
 
     boolean cacheExists(String name);
+
+    void forEach(BiConsumer<String, Cache<?>> c);
 
     //    /**
     //     * Gets an all-purpose persistent cache for generic needs when a named

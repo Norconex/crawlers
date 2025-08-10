@@ -17,11 +17,11 @@ package com.norconex.crawler.core2.cmd.crawl.pipeline;
 import org.apache.commons.lang3.mutable.MutableLong;
 
 import com.norconex.crawler.core2.CrawlConfig.OrphansStrategy;
+import com.norconex.crawler.core2.cluster.ClusterTask;
 import com.norconex.crawler.core2.cmd.crawl.pipeline.process.CrawlProcessTask.ProcessQueueAction;
 import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.doc.pipelines.queue.QueuePipelineContext;
-import com.norconex.grid.core2.Grid;
-import com.norconex.grid.core2.compute.BaseGridTask.SingleNodeTask;
+import com.norconex.crawler.core2.session.CrawlSession;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,26 +29,21 @@ import lombok.extern.slf4j.Slf4j;
  * Queue orphans for reprocessing or deletion.
  */
 @Slf4j
-public class CrawlHandleOrphansTask extends SingleNodeTask {
-
-    private static final long serialVersionUID = 1L;
-
-    public CrawlHandleOrphansTask(String id) {
-        super(id);
-    }
+public class CrawlHandleOrphansTask implements ClusterTask<ProcessQueueAction> {
 
     // returns the type of processing we do on orphans, or null if there
     // is nothing to do
     @Override
-    public ProcessQueueAction execute(Grid grid) {
-        var ctx = CrawlContext.get(grid);
+    public ProcessQueueAction execute(CrawlSession session) {
+        var crawlCtx = session.getCrawlContext();
 
-        var strategy = ctx.getCrawlConfig().getOrphansStrategy();
+        var strategy = crawlCtx.getCrawlConfig().getOrphansStrategy();
         if (strategy == null || strategy == OrphansStrategy.IGNORE) {
             LOG.info("Ignoring possible orphans as per orphan strategy.");
             return null;
         }
-        var orphanCount = ctx.getCrawlEntryLedger().getPreviewCrawlEntryCount();
+        var orphanCount =
+                crawlCtx.getCrawlEntryLedger().getPreviousEntryCount();
         if (orphanCount == 0) {
             LOG.info("There are no orphans to process.");
             return null;
@@ -57,18 +52,19 @@ public class CrawlHandleOrphansTask extends SingleNodeTask {
         // If PROCESS, we do not care to validate if really orphan since
         // all cache items will be reprocessed regardless
         if (strategy == OrphansStrategy.PROCESS) {
-            queueForProcessing(ctx);
+            queueForProcessing(session);
             return ProcessQueueAction.CRAWL_ALL;
         }
         if (strategy == OrphansStrategy.DELETE) {
-            queueForDeletion(ctx);
+            queueForDeletion(crawlCtx);
             return ProcessQueueAction.DELETE_ALL;
         }
         return null;
     }
 
-    void queueForProcessing(CrawlContext ctx) {
-        if (ctx.getCrawlEntryLedger().isMaxDocsProcessedReached()) {
+    void queueForProcessing(CrawlSession session) {
+        var crawlCtx = session.getCrawlContext();
+        if (crawlCtx.getCrawlEntryLedger().isMaxDocsProcessedReached()) {
             LOG.info("""
                 Max documents reached. \
                 Not reprocessing orphans (if any). \
@@ -77,13 +73,12 @@ public class CrawlHandleOrphansTask extends SingleNodeTask {
         }
         LOG.info("Queueing orphan references for processing...");
         var count = new MutableLong();
-        ctx.getCrawlEntryLedger().forEachCached((ref, docCtx) -> {
-            docCtx.setOrphan(true);
-            ctx.getDocPipelines()
+        crawlCtx.getCrawlEntryLedger().forEachPrevious(entry -> {
+            entry.setOrphan(true);
+            crawlCtx.getDocPipelines()
                     .getQueuePipeline()
-                    .accept(new QueuePipelineContext(ctx, docCtx));
+                    .accept(new QueuePipelineContext(session, entry));
             count.increment();
-            return true;
         });
 
         LOG.info("{} orphan references queued for processing.", count);
@@ -93,12 +88,10 @@ public class CrawlHandleOrphansTask extends SingleNodeTask {
         LOG.info("Queueing orphan references for deletion...");
 
         var count = new MutableLong();
-
-        ctx.getCrawlEntryLedger().forEachCached((k, docCtx) -> {
-            docCtx.setDeleted(true);
-            ctx.getCrawlEntryLedger().queue(docCtx);
+        ctx.getCrawlEntryLedger().forEachPrevious(entry -> {
+            entry.setDeleted(true);
+            ctx.getCrawlEntryLedger().queue(entry);
             count.increment();
-            return true;
         });
         LOG.info("{} orphan references queued for deletion.", count);
     }

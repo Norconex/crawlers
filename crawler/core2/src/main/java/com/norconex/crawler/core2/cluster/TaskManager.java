@@ -90,4 +90,6 @@ public interface TaskManager {
             String taskName,
             ClusterTask<T> task,
             ClusterReducer<T, R> reducer);
+
+    void stopTask(String taskName);
 }

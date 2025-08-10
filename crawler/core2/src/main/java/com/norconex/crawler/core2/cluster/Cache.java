@@ -110,7 +110,7 @@ public interface Cache<T> {
      * Counts the number of entries in this cache.
      * @return the number of entries
      */
-    long countAll();
+    long size();
 
     /**
      * Deletes entries matching the given query expression.
@@ -120,4 +120,8 @@ public interface Cache<T> {
     long delete(String queryExpression);
 
     void forEach(BiConsumer<String, ? super T> action);
+
+    //    void queryForEach(
+    //            String queryExpression, BiConsumer<String, ? super T> action);
+
 }

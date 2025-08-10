@@ -16,6 +16,8 @@ package com.norconex.crawler.core2.cluster.impl.infinispan;
 
 import static java.util.Optional.ofNullable;
 
+import java.io.Closeable;
+
 import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.remoting.transport.Address;
 
@@ -24,7 +26,7 @@ import com.norconex.crawler.core2.cluster.ClusterNode;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-class InfinispanClusterNode implements ClusterNode {
+class InfinispanClusterNode implements ClusterNode, Closeable {
 
     private final DefaultCacheManager cacheManager;
 
@@ -76,5 +78,13 @@ class InfinispanClusterNode implements ClusterNode {
             return true;
         }
         return cacheManager.isCoordinator();
+    }
+
+    @Override
+    public void close() {
+        // Only close the cache manager if this node is being disconnected
+        if (cacheManager != null) {
+            cacheManager.stop();
+        }
     }
 }
