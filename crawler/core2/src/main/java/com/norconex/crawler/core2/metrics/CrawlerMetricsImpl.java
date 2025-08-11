@@ -85,9 +85,20 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
             var attempts = 0;
             while (!updated && attempts < 3) {
                 var currentValue = store.get(key);
-                Long newValue =
-                        (currentValue.isEmpty() ? 0L : currentValue.get())
-                                + increment;
+                Long currentLongValue = 0L;
+                if (!currentValue.isEmpty()) {
+                    Object val = currentValue.get();
+                    if (val instanceof Long longVal) {
+                        currentLongValue = longVal;
+                    } else if (val instanceof Integer intVal) {
+                        currentLongValue = intVal.longValue();
+                    } else {
+                        throw new ClassCastException(
+                                "Unsupported type in eventCountsStore: "
+                                        + val.getClass());
+                    }
+                }
+                Long newValue = currentLongValue + increment;
 
                 if (currentValue.isEmpty()) {
                     // For new entries, putIfAbsent is atomic
@@ -95,7 +106,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
                     updated = (result == null);
                 } else {
                     // For existing entries, replace is atomic
-                    updated = store.replace(key, currentValue.get(), newValue);
+                    updated = store.replace(key, currentLongValue, newValue);
                 }
 
                 attempts++;
@@ -166,7 +177,16 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
     @Override
     public Map<String, Long> getEventCounts() {
         if (!isClosed()) {
-            eventCountsStore.forEach(cache.eventCounts::put);
+            try {
+                eventCountsStore.forEach(cache.eventCounts::put);
+            } catch (Exception e) {
+                LOG.warn("CrawlerMetrics: Could not sync event counts from "
+                        + "cluster (cluster may be shutting down): {}",
+                        e.getMessage());
+            }
+        } else {
+            LOG.info("CrawlerMetrics: Cluster is closed, returning last known "
+                    + "event counts (not syncing).");
         }
         return cache.eventCounts;
     }

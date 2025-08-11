@@ -31,6 +31,7 @@ import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.commons.lang.time.DurationUnit;
 import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.metrics.CrawlerMetrics;
+import com.norconex.crawler.core2.metrics.CrawlerMetricsImpl;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -43,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 @ToString
 public class CrawlProgressLogger {
+    //        implements com.norconex.crawler.core2.cluster.ClusterTask<Void> {
 
     private final StopWatch stopWatch = new StopWatch();
 
@@ -56,6 +58,8 @@ public class CrawlProgressLogger {
 
     private ScheduledExecutorService execService;
     private volatile boolean stopTrackingRequested;
+
+    private volatile Runnable stopCheckCallback;
 
     private final DurationFormatter durationFormatter = new DurationFormatter()
             .withOuterLastSeparator(" and ")
@@ -75,6 +79,21 @@ public class CrawlProgressLogger {
         }
     }
 
+    public void setStopCheckCallback(Runnable callback) {
+        stopCheckCallback = callback;
+    }
+
+    //    @Override
+    //    public Void
+    //            execute(com.norconex.crawler.core2.session.CrawlSession session) {
+    //        return start();
+    //    }
+    //
+    //    @Override
+    //    public void stop(com.norconex.crawler.core2.session.CrawlSession session) {
+    //        stop();
+    //    }
+
     public Void start() {
         stopTrackingRequested = false;
         if (minLoggingInterval != null && LOG.isInfoEnabled()) {
@@ -92,6 +111,9 @@ public class CrawlProgressLogger {
         prevQueuedCount = monitor.getQueuedCount();
 
         while (!stopTrackingRequested) {
+            if (stopCheckCallback != null) {
+                stopCheckCallback.run();
+            }
             try {
                 Thread.sleep(100); // Small delay to avoid busy-waiting
             } catch (InterruptedException e) {
@@ -103,17 +125,30 @@ public class CrawlProgressLogger {
         return null;
     }
 
-    public synchronized void stop() {
+    public /*synchronized*/ void stop() {
         if (stopTrackingRequested) {
             return;
+        }
+        LOG.info("Stopping crawl progress logger...");
+        stopTrackingRequested = true;
+        // Disconnect metrics from cluster
+        if (monitor instanceof CrawlerMetricsImpl metricsImpl) {
+            metricsImpl.close();
         }
         if (!stopWatch.isStopped()) {
             stopWatch.stop();
         }
         if (execService != null) {
             try {
-                stopTrackingRequested = true;
-                execService.shutdown();
+                execService.shutdownNow();
+                if (!execService.awaitTermination(5, TimeUnit.SECONDS)) {
+                    LOG.warn(
+                            "Progress logger executor did not terminate within timeout.");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                LOG.warn(
+                        "Interrupted while waiting for progress logger executor to terminate.");
             } finally {
                 execService = null;
             }

@@ -19,10 +19,8 @@ import static com.norconex.crawler.core2.util.ExceptionSwallower.swallow;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.norconex.crawler.core2.CrawlerException;
 import com.norconex.crawler.core2.cluster.ClusterTask;
 import com.norconex.crawler.core2.cmd.Command;
 import com.norconex.crawler.core2.cmd.crawl.pipeline.CrawlPipelineFactory;
@@ -100,12 +98,16 @@ public class CrawlCommand implements Command {
         session.getCluster().getTaskManager().stopTask(PROGRESS_LOGGER_KEY);
 
         //        ctx.getGrid().getCompute().stopTask(PROGRESS_LOGGER_KEY);
-        try {
-            ConcurrentUtil.waitUntilOrThrow(
-                    pendingLoggerStopped::get, Duration.ofSeconds(60));
-        } catch (TimeoutException e) {
-            throw new CrawlerException("Could not stop progress logger.", e);
-        }
+
+        //TODO check if we should reintroduce waiting for logger shutdown
+        // as with latest code it seems to always shut down before returning 
+        //        try {
+        //            ConcurrentUtil.waitUntilOrThrow(
+        //                    //TODO make it configurable???
+        //                    pendingLoggerStopped::get, Duration.ofSeconds(60));
+        //        } catch (TimeoutException e) {
+        //            throw new CrawlerException("Could not stop progress logger.", e);
+        //        }
         ctx.fire(CrawlerEvent.CRAWLER_CRAWL_END);
         LOG.info("Node done crawling with state: {}", session.getCrawlState());
 
@@ -126,12 +128,18 @@ public class CrawlCommand implements Command {
     private void trackProgress(CrawlSession session) {
         // only 1 node reports progress
         CompletableFuture.runAsync(() -> {
-            session.getCluster().getTaskManager()
-                    .runOnOneSync(PROGRESS_LOGGER_KEY, new LoggerTask());
-            //            ctx.getGrid()
-            //                    .getCompute()
-            //                    .executeTask(new LoggerTask());
-            pendingLoggerStopped.set(true);
+            var taskManager = session.getCluster().getTaskManager();
+            var loggerTask = new LoggerTask();
+            taskManager.runOnOneSync(PROGRESS_LOGGER_KEY, loggerTask);
+            // Wait for logger to actually stop before setting flag
+            while (!pendingLoggerStopped.get()) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
         }, Executors.newFixedThreadPool(1));
     }
 
@@ -147,9 +155,16 @@ public class CrawlCommand implements Command {
 
         @Override
         public void stop(CrawlSession session) {
+            LOG.warn("XXXXX stopped called here.");
             if (logger != null) {
                 logger.stop();
             }
+            // Signal that logger has stopped
+            //            var cmd =
+            //                    (CrawlCommand) session.getCrawlContext().getCommand();
+            //            if (cmd != null) {
+            //                cmd.pendingLoggerStopped.set(true);
+            //            }
         }
     }
 }

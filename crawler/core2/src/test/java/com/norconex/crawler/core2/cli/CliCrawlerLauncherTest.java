@@ -16,7 +16,6 @@ package com.norconex.crawler.core2.cli;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.fail;
 
 import java.io.IOException;
 import java.lang.annotation.ElementType;
@@ -32,6 +31,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.infinispan.notifications.cachemanagerlistener.CacheManagerNotifierImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -41,24 +41,28 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import com.norconex.committer.core.CommitterEvent;
 import com.norconex.committer.core.service.CommitterServiceEvent;
-import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.crawler.core2.cluster.ClusterConnector;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.junit.WithLogLevel;
+import com.norconex.crawler.core2.junit.WithTestWatcherLogging;
+import com.norconex.crawler.core2.mocks.cli.MockCliEventWriter;
 import com.norconex.crawler.core2.mocks.cli.MockCliExit;
 import com.norconex.crawler.core2.mocks.cli.MockCliLauncher;
 import com.norconex.crawler.core2.mocks.cluster.MockMultiNodesConnector;
 import com.norconex.crawler.core2.mocks.cluster.MockSingleNodeConnector;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core2.stubs.CrawlerConfigStubber;
+import com.norconex.crawler.core2.util.About;
 import com.norconex.crawler.core2.util.ConcurrentUtil;
+import com.norconex.crawler.core2.util.LogUtil;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @WithLogLevel(value = "OFF", classes = CacheManagerNotifierImpl.class)
+@WithTestWatcherLogging
 class CliCrawlerLauncherTest {
 
     @Target(ElementType.METHOD)
@@ -90,6 +94,14 @@ class CliCrawlerLauncherTest {
     }
 
     @SingleAndMultiNodesTest
+    @WithLogLevel(
+        value = "INFO",
+        classes = {
+                CliCrawlerLauncherTest.class,
+                MockCliLauncher.class,
+                MockCliEventWriter.class
+        }
+    )
     void testNoArgs(int numOfNodes) {
         var exit = launch(numOfNodes);
         assertThat(exit.ok()).isFalse();
@@ -169,6 +181,17 @@ class CliCrawlerLauncherTest {
     }
 
     @SingleAndMultiNodesTest
+    @WithLogLevel(
+        value = "INFO",
+        classes = {
+                CliCrawlerLauncherTest.class,
+                MockCliLauncher.class,
+                MockCliEventWriter.class,
+                About.class,
+                CliRunner.class,
+                LogUtil.class
+        }
+    )
     void testVersion(int numOfNodes) {
         var exit = launch(numOfNodes, "-v");
         assertThat(exit.ok()).isTrue();
@@ -182,6 +205,15 @@ class CliCrawlerLauncherTest {
     }
 
     @SingleAndMultiNodesTest
+    @WithLogLevel(
+        value = "INFO",
+        classes = {
+                CliCrawlerLauncherTest.class,
+                MockCliLauncher.class,
+                MockCliEventWriter.class,
+                CliConfigCheck.class
+        }
+    )
     void testConfigCheck(int numOfNodes) {
         var exit = launch(numOfNodes, "configcheck", "-config=");
         assertThat(exit.ok()).isTrue();
@@ -190,6 +222,14 @@ class CliCrawlerLauncherTest {
     }
 
     @SingleAndMultiNodesTest
+    @WithLogLevel(
+        value = "INFO",
+        classes = {
+                CliCrawlerLauncherTest.class,
+                MockCliLauncher.class,
+                MockCliEventWriter.class
+        }
+    )
     void testBadConfig(int numOfNodes)
             throws IOException {
         var cfgFile = tempDir.resolve("badconfig.xml");
@@ -229,8 +269,8 @@ class CliCrawlerLauncherTest {
         assertThat(exit1.ok()).isTrue();
         assertThat(exportFile).isNotEmptyFile();
 
-        // Wait a bit for mvstore lock to be released.
-        Sleeper.sleepSeconds(5);
+        // Wait for locks to be released after export
+        waitForFileUnlock(exportFile, 30_000, 500);
 
         // Import
         var exit2 = launch(
@@ -241,6 +281,31 @@ class CliCrawlerLauncherTest {
         assertThat(exit2.ok()).isTrue();
     }
 
+    /**
+     * Waits until the given file is unlocked (not held by any process).
+     * @param file the file to check
+     * @param timeoutMillis max time to wait
+     * @param pollMillis polling interval
+     */
+    private void waitForFileUnlock(Path file, long timeoutMillis, long pollMillis) {
+        long start = System.currentTimeMillis();
+        while (System.currentTimeMillis() - start < timeoutMillis) {
+            try (var channel = Files.newByteChannel(file)) {
+                // If we can open the file, it's not locked
+                return;
+            } catch (IOException e) {
+                // File is locked, wait and retry
+                try {
+                    Thread.sleep(pollMillis);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Interrupted while waiting for file unlock", ie);
+                }
+            }
+        }
+        throw new RuntimeException("Timeout waiting for file unlock: " + file);
+    }
+
     @SingleAndMultiNodesTest
     void testStart(int numOfNodes) {
         var exit1 = launch(numOfNodes, "start", "-config=");
@@ -249,7 +314,8 @@ class CliCrawlerLauncherTest {
                     exit1);
         }
         assertThat(exit1.ok()).isTrue();
-        assertThat(exit1.getEvents()).containsExactly(
+
+        String[] expected = {
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
@@ -259,7 +325,17 @@ class CliCrawlerLauncherTest {
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END);
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
+        };
+
+        if (numOfNodes <= 1) {
+            // Single nodes will receive only one set and we can check for order
+            assertThat(exit1.getEvents()).containsExactly(expected);
+        } else {
+            // Multi nodes we'll make sure they are contained but there will
+            // be duplicates so we can't guarantee order.
+            assertThat(exit1.getEvents()).contains(expected);
+        }
     }
 
     @SingleAndMultiNodesTest
@@ -269,7 +345,8 @@ class CliCrawlerLauncherTest {
                 numOfNodes, "start", "-clean", "-config=");
         assertThat(exit2.ok()).withFailMessage(exit2.getStdErr())
                 .isTrue();
-        assertThat(exit2.getEvents()).containsExactly(
+
+        String[] expected = {
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
@@ -299,7 +376,18 @@ class CliCrawlerLauncherTest {
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END);
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
+        };
+
+        if (numOfNodes <= 1) {
+            // Single nodes will receive only one set and we can check for order
+            assertThat(exit2.getEvents()).containsExactly(expected);
+        } else {
+            // Multi nodes we'll make sure they are contained but there will
+            // be duplicates so we can't guarantee order.
+            assertThat(exit2.getEvents()).contains(expected);
+        }
+
         //TODO verify that crawlstore from previous run was deleted
         // and recreated
     }
@@ -308,7 +396,7 @@ class CliCrawlerLauncherTest {
     void testClean(int numOfNodes) {
         var exit = launch(numOfNodes, "clean", "-config=");
         assertThat(exit.ok()).isTrue();
-        assertThat(exit.getEvents()).containsExactly(
+        String[] expected = {
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
@@ -322,7 +410,16 @@ class CliCrawlerLauncherTest {
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END);
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
+        };
+        if (numOfNodes <= 1) {
+            // Single nodes will receive only one set and we can check for order
+            assertThat(exit.getEvents()).containsExactly(expected);
+        } else {
+            // Multi nodes we'll make sure they are contained but there will
+            // be duplicates so we can't guarantee order.
+            assertThat(exit.getEvents()).contains(expected);
+        }
 
     }
 
@@ -347,8 +444,6 @@ class CliCrawlerLauncherTest {
         // (with V4, "default" values are not exported):
         assertThat(exit1.getStdOut()).doesNotContain("<importer");
 
-        cfgFile = CrawlerConfigStubber.writeConfigToDir(tempDir, null);
-
         var renderedFile = tempDir.resolve("configrender.xml");
         var exit2 = launch(
                 numOfNodes,
@@ -357,11 +452,25 @@ class CliCrawlerLauncherTest {
                 "-output=" + renderedFile);
 
         assertThat(exit2.ok()).isTrue();
-        assertThat(Files.readString(renderedFile).trim()).isEqualTo(
-                exit1.getStdOut().trim());
+
+        var storedLines = Files.readAllLines(renderedFile);
+        var outputLines = exit1.getStdOut().trim().lines().toList();
+        if (numOfNodes <= 1) {
+            assertThat(storedLines).containsExactlyElementsOf(outputLines);
+        } else {
+            assertThat(outputLines).containsAll(storedLines);
+        }
     }
 
     @SingleAndMultiNodesTest
+    @WithLogLevel(
+        value = "INFO",
+        classes = {
+                CliCrawlerLauncherTest.class,
+                MockCliLauncher.class,
+                MockCliEventWriter.class
+        }
+    )
     void testFailingConfigRender(int numOfNodes) {
         var exit = launch(
                 numOfNodes,
@@ -376,6 +485,9 @@ class CliCrawlerLauncherTest {
         return MockCliLauncher.launchVerbatim(cmdArgs);
     }
 
+    //NOTE: when testing with multiple nodes, the return MockCliExit
+    // will have merged text merged in unpredictable ways as well as
+    // merged events. If one exit is not OK, then the one returned is not OK.
     private MockCliExit launch(
             int numOfNodes,
             String... cmdArgs) {
@@ -386,7 +498,8 @@ class CliCrawlerLauncherTest {
         var executor = Executors.newFixedThreadPool(numOfNodes);
         var latch = new CountDownLatch(numOfNodes);
         final List<MockCliExit> exits = new ArrayList<>();
-        var failedExit = new AtomicReference<MockCliExit>();
+        //        var failedExit = new AtomicReference<MockCliExit>();
+        var thrownException = new AtomicReference<Throwable>();
 
         for (var i = 0; i < numOfNodes; i++) {
             executor.submit(() -> {
@@ -394,9 +507,11 @@ class CliCrawlerLauncherTest {
                     var exit = launchWithConnector(
                             new MockMultiNodesConnector(), cmdArgs);
                     exits.add(exit);
-                    if (!exit.ok()) {
-                        failedExit.compareAndSet(null, exit);
-                    }
+                    //                    if (!exit.ok()) {
+                    //                        failedExit.compareAndSet(null, exit);
+                    //                    }
+                } catch (Throwable t) {
+                    thrownException.compareAndSet(null, t);
                 } finally {
                     latch.countDown();
                 }
@@ -411,16 +526,50 @@ class CliCrawlerLauncherTest {
         }
         executor.shutdown();
 
-        // Check for a failed exit first
-        if (failedExit.get() != null) {
-            return failedExit.get();
+        // Propagate exception if any
+        if (thrownException.get() != null) {
+            if (thrownException.get() instanceof RuntimeException re) {
+                throw re;
+            }
+            if (thrownException.get() instanceof Error err) {
+                throw err;
+            }
+            throw new RuntimeException(thrownException.get());
         }
 
         // Fallback logic
         if (exits.isEmpty()) {
-            fail("No CLI launch return object");
+            LOG.info("No CLI launch exit objects returned.");
+            return null;
         }
-        return exits.get(exits.size() - 1);
+
+        // Reduce exits in a single one
+        var mergedExit = new MockCliExit();
+        for (MockCliExit ex : exits) {
+            if (mergedExit.getCode() == -1 || mergedExit.ok()) {
+                mergedExit.setCode(ex.getCode());
+            }
+            mergedExit.setStdErr(
+                    mergeNonBlank(mergedExit.getStdErr(), ex.getStdErr()));
+            mergedExit.setStdOut(
+                    mergeNonBlank(mergedExit.getStdOut(), ex.getStdOut()));
+            mergedExit.getEvents().addAll(ex.getEvents());
+        }
+        return mergedExit;
+    }
+
+    String mergeNonBlank(String str1, String str2) {
+        var b = new StringBuilder();
+        if (StringUtils.isNotBlank(str1)) {
+            b.append(str1);
+        }
+        if (StringUtils.isNotBlank(str2)) {
+            if (!b.isEmpty()) {
+                b.append('\n');
+            }
+            b.append(str2);
+        }
+        return b.toString();
     }
 
     private MockCliExit launchWithConnector(

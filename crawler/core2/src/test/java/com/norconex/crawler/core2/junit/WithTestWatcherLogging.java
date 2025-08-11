@@ -25,8 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestWatcher;
 
-import com.norconex.commons.lang.Sleeper;
-import com.norconex.grid.core.junit.WithTestWatcherLogging.LoggingTestWatcher;
+import com.norconex.crawler.core2.junit.WithTestWatcherLogging.LoggingTestWatcher;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,38 +36,46 @@ import lombok.extern.slf4j.Slf4j;
 @ExtendWith(LoggingTestWatcher.class)
 public @interface WithTestWatcherLogging {
 
-    @Slf4j(topic = "🧪 TEST")
+    @Slf4j(topic = "🧪 Test")
     public static class LoggingTestWatcher
             implements TestWatcher, BeforeTestExecutionCallback {
 
         @Override
         public void beforeTestExecution(ExtensionContext context) {
             //TODO does the sleeping help with DB issues?
-            Sleeper.sleepMillis(250);
-            LOG.info("Starting test: {}", context.getDisplayName());
+            //            Sleeper.sleepMillis(10);
+            LOG.info(toName("STARTING", context));
         }
 
         @Override
         public void testSuccessful(ExtensionContext context) {
-            LOG.info("Test passed: {}", context.getDisplayName());
+            LOG.info(toName("PASSED", context));
         }
 
         @Override
         public void testFailed(ExtensionContext context, Throwable cause) {
-            LOG.warn("Test failed: {}", context.getDisplayName(), cause);
+            LOG.warn(toName("FAILED", context), cause);
         }
 
         @Override
         public void testDisabled(
                 ExtensionContext context, Optional<String> reason) {
-            LOG.info("Test disabled: {} - Reason: {}",
-                    context.getDisplayName(), reason.orElse("None given."));
+            LOG.info(toName("DISABLED", context) + " - Reason: {}",
+                    reason.orElse("None given."));
         }
 
         @Override
         public void testAborted(ExtensionContext context, Throwable cause) {
-            LOG.warn("Test aborted: {} - Cause: {}",
-                    context.getDisplayName(), cause.getLocalizedMessage());
+            LOG.warn(toName("ABORTED", context) + " - Cause: {}",
+                    cause.getLocalizedMessage());
+        }
+
+        private static String toName(String state, ExtensionContext context) {
+            return state + " \""
+                    + context.getRequiredTestClass().getSimpleName()
+                    + "." + context.getRequiredTestMethod().getName()
+                    + "\"" + " " + context.getDisplayName();
+
         }
     }
 }

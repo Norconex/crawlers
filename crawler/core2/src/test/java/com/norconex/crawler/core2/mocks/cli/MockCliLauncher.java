@@ -99,8 +99,6 @@ public class MockCliLauncher {
             LOG.error(exit.getStdErr());
         }
         exit.getEvents().addAll(MockCliEventWriter.parseEvents(eventFile));
-
-        //        exit.getEvents().addAll(MockCliEventWriter.EVENTS);
         return exit;
     }
 

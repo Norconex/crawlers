@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core2.cluster.impl.infinispan;
 
+import static java.util.Optional.ofNullable;
+
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
@@ -116,11 +118,16 @@ public class InfinispanCluster implements Cluster {
      * @return node addresses
      */
     public List<String> getAllNodeNames() {
-        if (cacheManager == null) {
+        var members = ofNullable(cacheManager)
+                .map(InfinispanCacheManager::vendor)
+                .map(DefaultCacheManager::getMembers)
+                .orElse(List.of());
+
+        if (members.isEmpty()) {
             return List.of(localNode.getNodeName());
         }
-        var manager = cacheManager.vendor();
-        return manager.getMembers().stream()
+
+        return members.stream()
                 .map(Address::toString)
                 .toList();
     }

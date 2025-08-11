@@ -29,5 +29,9 @@ public enum TaskState {
     @ProtoEnumValue(2)
     COMPLETED,
     @ProtoEnumValue(3)
-    FAILED;
+    FAILED,
+    @ProtoEnumValue(4)
+    STOP_REQUESTED,
+    @ProtoEnumValue(5)
+    STOPPED;
 }

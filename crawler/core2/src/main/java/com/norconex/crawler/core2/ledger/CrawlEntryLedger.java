@@ -294,7 +294,9 @@ public final class CrawlEntryLedger {
     }
 
     public void forEachPrevious(Consumer<CrawlEntry> c) {
-        previousLedger.forEach((k, v) -> c.accept(v));
+        if (previousLedger != null) {
+            previousLedger.forEach((k, v) -> c.accept(v));
+        }
     }
 
     //--- Queue ---
@@ -362,11 +364,13 @@ public final class CrawlEntryLedger {
     //--- Previous crawl entries ---
 
     public long getPreviousEntryCount() {
-        return previousLedger.size();
+        return previousLedger == null ? 0L : previousLedger.size();
     }
 
     public Optional<CrawlEntry> getPreviousEntry(String id) {
-        return previousLedger.get(id);
+        return previousLedger == null
+                ? Optional.empty()
+                : previousLedger.get(id);
 
         //        return previousLedger.get(id)
         //                .map(json -> (CrawlEntry) SerialUtil.fromJson(json,
@@ -412,7 +416,9 @@ public final class CrawlEntryLedger {
     public synchronized void archiveCurrentLedger() {
         //TODO really clear cache or keep to have longer history of
         // each items?
-        previousLedger.clear();
+        if (previousLedger != null) {
+            previousLedger.clear();
+        }
 
         var currentAlias = cacheManager.getGenericCache()
                 .get(CURRENT_LEDGER_ALIAS_KEY).get();
@@ -481,6 +487,7 @@ public final class CrawlEntryLedger {
     }
 
     private String processingStatusQuery(ProcessingStatus status) {
-        return "processingStatus = '%s'".formatted(status.name());
+        return "FROM %s WHERE processingStatus = '%s'"
+                .formatted(CrawlEntry.class.getName(), status.name());
     }
 }

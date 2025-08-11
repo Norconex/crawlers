@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.infinispan.Cache;
@@ -43,6 +45,10 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
     private final InfinispanCluster cluster;
     private final String nodeId;
     private final Set<String> acquiredLocks = ConcurrentHashMap.newKeySet();
+
+    // Track running tasks by name
+    private final ConcurrentHashMap<String, ClusterTask<?>> runningTasks =
+            new ConcurrentHashMap<>();
 
     /**
      * Constructs a DistributedTaskManager.
@@ -128,47 +134,32 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
             ClusterTask<T> task) {
         LOG.info("[{}] Attempting to run repeatable task: {}", nodeId,
                 taskName);
-
+        if (runningTasks.containsKey(taskName)) {
+            LOG.warn(
+                    "[{}] Task '{}' is already running on this node. Preventing concurrent execution.",
+                    nodeId, taskName);
+            throw new IllegalStateException(
+                    "Task '" + taskName + "' is already running on this node.");
+        }
+        runningTasks.put(taskName, task); // Track running instance
         // Create a completable future to hold the result
         var resultFuture = new CompletableFuture<Optional<T>>();
 
         if (lockManager == null) {
             // Local mode: just run the task directly
-            executeLocalTask(taskName, task, resultFuture);
+            executeTaskWithStopCheck(taskName, task, resultFuture);
+            runningTasks.remove(taskName); // Remove after execution
             return resultFuture;
         }
 
         // Execute the clustered task asynchronously
-        executeClusteredRepeatableTaskAsync(taskName, task, resultFuture);
+        executeClusteredRepeatableTaskAsyncWithStop(taskName, task,
+                resultFuture);
+        runningTasks.remove(taskName); // Remove after execution
         return resultFuture;
     }
 
-    /**
-     * Executes a task locally (non-clustered mode).
-     */
-    private <T> void executeLocalTask(
-            String taskName,
-            ClusterTask<T> task,
-            CompletableFuture<Optional<T>> resultFuture) {
-        try {
-            // For repeatable tasks, we don't need to check if it's already done
-            var result = task.execute(
-                    CrawlSession.get(cluster.getLocalNode()));
-            // Store the result temporarily
-            taskResultCache.put(taskName,
-                    new StringSerializedObject(result));
-            resultFuture.complete(ofNullable(result));
-        } catch (Exception e) {
-            resultFuture.completeExceptionally(e);
-        }
-    }
-
-    /**
-     * Executes a repeatable task in a clustered environment asynchronously.
-     * Unlike the "once" variant, this doesn't check for or store persistent
-     * completion status.
-     */
-    private <T> void executeClusteredRepeatableTaskAsync(
+    private <T> void executeClusteredRepeatableTaskAsyncWithStop(
             String taskName,
             ClusterTask<T> task,
             CompletableFuture<Optional<T>> resultFuture) {
@@ -187,14 +178,13 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
 
                 if (lockAcquiredSuccessfully) {
                     // Lock acquired, this node is the designated runner
-                    executeRepeatableTask(taskName, task, resultFuture);
+                    executeTaskWithStopCheck(taskName, task, resultFuture);
                 } else {
-                    LOG.info(
-                            "[{}] Could not acquire lock for repeatable task '{}'. "
-                                    + "Waiting for completion by another node.",
+                    LOG.info("[{}] Could not acquire lock for repeatable task "
+                            + "'{}'. Skipping execution.",
                             nodeId, taskName);
-                    waitForRepeatableTaskCompletionAsync(taskName,
-                            resultFuture);
+                    resultFuture.complete(Optional.empty());
+                    // Do NOT wait for completion
                 }
             } catch (Exception e) {
                 resultFuture.completeExceptionally(
@@ -208,34 +198,6 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
                 }
             }
         });
-    }
-
-    /**
-     * Execute a repeatable task when this node is designated as the runner.
-     */
-    private <T> void executeRepeatableTask(
-            String taskName,
-            ClusterTask<T> task,
-            CompletableFuture<Optional<T>> resultFuture) {
-        // Mark the task as running in the temporary running cache
-        taskResultCache.remove(taskName); // Clear any previous results
-        LOG.info("[{}] Node is running task: {}", nodeId, taskName);
-        try {
-            // Execute the actual task
-            var result = task.execute(
-                    CrawlSession.get(cluster.getLocalNode()));
-            // Store result in cache
-            taskResultCache.put(taskName,
-                    new StringSerializedObject(result));
-            LOG.info("[{}] Task '{}' completed successfully.",
-                    nodeId,
-                    taskName);
-            resultFuture.complete(ofNullable(result));
-        } catch (Exception e) {
-            LOG.error("[{}] Task '{}' failed: {}", nodeId, taskName,
-                    e.getMessage());
-            resultFuture.completeExceptionally(e);
-        }
     }
 
     /**
@@ -463,25 +425,8 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
             String taskName,
             ClusterTask<T> task,
             CompletableFuture<Optional<T>> resultFuture) {
-        taskStatusCache.put(taskName, TaskState.RUNNING);
-        LOG.info("[{}] Node is running task: {}", nodeId, taskName);
-        try {
-            // Execute the actual task
-            var result = task.execute(
-                    CrawlSession.get(cluster.getLocalNode()));
-            taskStatusCache.put(taskName, TaskState.COMPLETED);
-            taskResultCache.put(taskName,
-                    new StringSerializedObject(result));
-            LOG.info("[{}] Task '{}' completed successfully.",
-                    nodeId,
-                    taskName);
-            resultFuture.complete(ofNullable(result));
-        } catch (Exception e) {
-            LOG.error("[{}] Task '{}' failed: {}", nodeId, taskName,
-                    e.getMessage());
-            taskStatusCache.put(taskName, TaskState.FAILED);
-            resultFuture.completeExceptionally(e);
-        }
+        // Deprecated: now handled by executeTaskWithStopCheck
+        executeTaskWithStopCheck(taskName, task, resultFuture);
     }
 
     private <T> Optional<T> fetchTaskResult(String taskName) {
@@ -667,7 +612,26 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
 
     @Override
     public void stopTask(String taskName) {
-        LOG.warn("STOP: IMPLEMENT ME!!");
+        LOG.info("[{}] Stop requested for task: {}", nodeId, taskName);
+        ClusterTask<?> runningTask = runningTasks.get(taskName);
+        if (runningTask != null) {
+            LOG.info("[{}] Invoking stop() on running task instance: {}",
+                    nodeId, taskName);
+            runningTask.stop(CrawlSession.get(cluster.getLocalNode()));
+            runningTasks.remove(taskName); // Remove after stopping
+        }
+        for (String n : cluster.getAllNodeNames()) {
+            taskStatusCache.put(taskName + ":" + n, TaskState.STOP_REQUESTED);
+        }
+    }
+
+    private boolean isStopRequested(String taskName, String nodeId) {
+        return TaskState.STOP_REQUESTED
+                .equals(taskStatusCache.get(taskName + ":" + nodeId));
+    }
+
+    private void setStopped(String taskName, String nodeId) {
+        taskStatusCache.put(taskName + ":" + nodeId, TaskState.STOPPED);
     }
 
     @Override
@@ -679,10 +643,13 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
                     var lock = lockManager.get(lockName);
                     if (lock != null) {
                         lock.unlock();
-                        LOG.info("[{}] Released lock '{}' during shutdown.", nodeId, lockName);
+                        LOG.info("[{}] Released lock '{}' during shutdown.",
+                                nodeId, lockName);
                     }
                 } catch (Exception e) {
-                    LOG.warn("[{}] Failed to release lock '{}' during shutdown: {}", nodeId, lockName, e.getMessage());
+                    LOG.warn(
+                            "[{}] Failed to release lock '{}' during shutdown: {}",
+                            nodeId, lockName, e.getMessage());
                 }
             }
             acquiredLocks.clear();
@@ -690,5 +657,53 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
         // No explicit resources to release, but nullify references for GC
         // If future resources (threads, etc.) are added, clean up here
         // Example: if you add background threads, interrupt/stop them here
+    }
+
+    private <T> void executeTaskWithStopCheck(String taskName,
+            ClusterTask<T> task, CompletableFuture<Optional<T>> resultFuture) {
+        var session = CrawlSession.get(cluster.getLocalNode());
+        taskStatusCache.put(taskName + ":" + nodeId, TaskState.RUNNING);
+        LOG.info("[{}] Node is running task: {}", nodeId, taskName);
+        var executor = Executors.newSingleThreadExecutor();
+        try {
+            Future<T> future = executor.submit(() -> {
+                T result = null;
+                var executed = false;
+                while (true) {
+                    if (isStopRequested(taskName, nodeId)) {
+                        LOG.info(
+                                "[{}] Stop requested for task '{}'. Stopping...",
+                                nodeId, taskName);
+                        task.stop(session);
+                        setStopped(taskName, nodeId);
+                        return null;
+                    }
+                    if (!executed) {
+                        result = task.execute(session);
+                        executed = true;
+                    }
+                    // After execution, just wait for stop request or exit
+                    if (executed) {
+                        break;
+                    }
+                }
+                return result;
+            });
+            var result = future.get();
+            if (taskStatusCache
+                    .get(taskName + ":" + nodeId) == TaskState.STOPPED) {
+                resultFuture.complete(Optional.empty());
+            } else {
+                taskResultCache.put(taskName,
+                        new StringSerializedObject(result));
+                resultFuture.complete(ofNullable(result));
+            }
+        } catch (Exception e) {
+            LOG.error("[{}] Task '{}' failed: {}", nodeId, taskName,
+                    e.getMessage());
+            resultFuture.completeExceptionally(e);
+        } finally {
+            executor.shutdownNow();
+        }
     }
 }

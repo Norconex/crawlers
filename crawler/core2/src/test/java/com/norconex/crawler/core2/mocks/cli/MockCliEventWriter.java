@@ -49,11 +49,15 @@ public final class MockCliEventWriter implements EventListener<Event> {
     }
 
     static List<String> parseEvents(Path eventFile) {
+        if (!Files.exists(eventFile)) {
+            LOG.info("Temporary test events file not found: {}", eventFile);
+            return List.of();
+        }
         try {
             return Files.readAllLines(eventFile);
         } catch (IOException e) {
             fail("parseEvents --> Oups!", e);
-            return null;
+            return List.of();
         }
     }
 }
