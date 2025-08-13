@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.doc.pipelines.importer.stages;
+package com.norconex.crawler.core2.doc.pipelines.importer.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -24,14 +24,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoSettings;
 
-import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
-import com.norconex.crawler.core.doc.pipelines.DedupService;
-import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.fetch.FetchDirective;
-import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.core.stubs.CrawlDocStubs;
+import com.norconex.crawler.core2.CrawlConfig;
+import com.norconex.crawler.core2.doc.CrawlDocStatus;
+import com.norconex.crawler.core2.doc.pipelines.DedupService;
+import com.norconex.crawler.core2.doc.pipelines.importer.ImporterPipelineContext;
+import com.norconex.crawler.core2.fetch.FetchDirective;
+import com.norconex.crawler.core2.fetch.FetchDirectiveSupport;
+import com.norconex.crawler.core2.session.CrawlContext;
+import com.norconex.crawler.core2.stubs.CrawlDocStubs;
 
 @MockitoSettings
 class MetadataDedupStageTest {
@@ -56,17 +56,17 @@ class MetadataDedupStageTest {
 
         // Has duplicate meta
         var ctx = new ImporterPipelineContext(crawlerCtx, doc);
-        doc.getDocContext().setState(CrawlDocStatus.NEW);
+        doc.getDocContext().setState(ProcessingOutcome.NEW);
         new MetadataDedupStage(FetchDirective.METADATA).test(ctx);
         assertThat(doc.getDocContext().getState()).isSameAs(
-                CrawlDocStatus.REJECTED);
+                ProcessingOutcome.REJECTED);
 
         // Does not have duplicate meta
         when(dedupService.findOrTrackMetadata(Mockito.any()))
                 .thenReturn(Optional.empty());
-        doc.getDocContext().setState(CrawlDocStatus.NEW);
+        doc.getDocContext().setState(ProcessingOutcome.NEW);
         new MetadataDedupStage(FetchDirective.METADATA).test(ctx);
         assertThat(doc.getDocContext().getState())
-                .isSameAs(CrawlDocStatus.NEW);
+                .isSameAs(ProcessingOutcome.NEW);
     }
 }

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.doc.operations.filter.impl;
+package com.norconex.crawler.core2.doc.operations.filter.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -23,8 +23,8 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.doc.operations.filter.OnMatch;
-import com.norconex.crawler.core.stubs.CrawlDocStubs;
+import com.norconex.crawler.core2.doc.operations.filter.OnMatch;
+import com.norconex.crawler.core2.stubs.DocStubber;
 
 class GenericReferenceFilterTest {
 
@@ -35,12 +35,12 @@ class GenericReferenceFilterTest {
         assertThat(f.getConfiguration().getValueMatcher())
                 .isEqualTo(TextMatcher.regex(".*blah.*"));
 
-        var doc1 = CrawlDocStubs.crawlDoc("http://blah.com", "content");
+        var doc1 = DocStubber.doc("http://blah.com", "content");
         assertThat(f.acceptDocument(doc1)).isTrue();
         assertThat(f.acceptMetadata(
                 doc1.getReference(), doc1.getMetadata())).isTrue();
 
-        var doc2 = CrawlDocStubs.crawlDoc("http://asdf.com", "content");
+        var doc2 = DocStubber.doc("http://asdf.com", "content");
         assertThat(f.acceptDocument(doc2)).isFalse();
         assertThat(f.acceptMetadata(
                 doc2.getReference(), doc2.getMetadata())).isFalse();

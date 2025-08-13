@@ -12,14 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.event.listeners;
+package com.norconex.crawler.core2.event.listeners;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core2.event.CrawlerEvent;
 
 class CrawlerLifeCycleListenerTest {
 

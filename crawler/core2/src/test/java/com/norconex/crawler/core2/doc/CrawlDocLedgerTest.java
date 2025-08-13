@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.doc;
+package com.norconex.crawler.core2.doc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,11 +21,11 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.ClassUtil;
-import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.core.junit.ParameterizedGridConnectorTest;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core2.junit.CrawlTest;
+import com.norconex.crawler.core2.junit.CrawlTest.Focus;
+import com.norconex.crawler.core2.junit.ParameterizedGridConnectorTest;
+import com.norconex.crawler.core2.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core2.session.CrawlContext;
 import com.norconex.grid.core.GridConnector;
 
 class CrawlDocLedgerTest {

@@ -12,11 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.fetch;
+package com.norconex.crawler.core2.fetch;
 
-import static com.norconex.crawler.core.fetch.FetchDirectiveSupport.DISABLED;
-import static com.norconex.crawler.core.fetch.FetchDirectiveSupport.OPTIONAL;
-import static com.norconex.crawler.core.fetch.FetchDirectiveSupport.REQUIRED;
+import static com.norconex.crawler.core2.fetch.FetchDirectiveSupport.DISABLED;
+import static com.norconex.crawler.core2.fetch.FetchDirectiveSupport.OPTIONAL;
+import static com.norconex.crawler.core2.fetch.FetchDirectiveSupport.REQUIRED;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;

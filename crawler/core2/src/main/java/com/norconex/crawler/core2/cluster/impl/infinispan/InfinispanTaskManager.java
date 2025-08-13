@@ -7,8 +7,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.infinispan.Cache;
@@ -134,196 +132,98 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
             ClusterTask<T> task) {
         LOG.info("[{}] Attempting to run repeatable task: {}", nodeId,
                 taskName);
-        if (runningTasks.containsKey(taskName)) {
-            LOG.warn(
-                    "[{}] Task '{}' is already running on this node. Preventing concurrent execution.",
-                    nodeId, taskName);
-            throw new IllegalStateException(
-                    "Task '" + taskName + "' is already running on this node.");
-        }
-        runningTasks.put(taskName, task); // Track running instance
-        // Create a completable future to hold the result
+
         var resultFuture = new CompletableFuture<Optional<T>>();
 
         if (lockManager == null) {
             // Local mode: just run the task directly
-            executeTaskWithStopCheck(taskName, task, resultFuture);
-            runningTasks.remove(taskName); // Remove after execution
+            executeTaskDirectly(taskName, task, resultFuture);
             return resultFuture;
         }
 
         // Execute the clustered task asynchronously
-        executeClusteredRepeatableTaskAsyncWithStop(taskName, task,
-                resultFuture);
-        runningTasks.remove(taskName); // Remove after execution
-        return resultFuture;
-    }
-
-    private <T> void executeClusteredRepeatableTaskAsyncWithStop(
-            String taskName,
-            ClusterTask<T> task,
-            CompletableFuture<Optional<T>> resultFuture) {
-
-        // Create the lock if it doesn't exist
         ensureLockExists(taskName);
-
-        // Get the clustered lock for this specific task
         var taskLock = lockManager.get(taskName);
 
-        // Execute in a separate thread to avoid blocking
         CompletableFuture.runAsync(() -> {
             var lockAcquiredSuccessfully = false;
             try {
                 lockAcquiredSuccessfully = acquireLock(taskName, taskLock);
 
                 if (lockAcquiredSuccessfully) {
-                    // Lock acquired, this node is the designated runner
-                    executeTaskWithStopCheck(taskName, task, resultFuture);
+                    // This node will execute the task
+                    executeTaskDirectly(taskName, task, resultFuture);
                 } else {
-                    LOG.info("[{}] Could not acquire lock for repeatable task "
-                            + "'{}'. Skipping execution.",
+                    // Wait for the executing node to complete and get cached result
+                    LOG.info(
+                            "[{}] Could not acquire lock for task '{}'. Waiting for completion by another node.",
                             nodeId, taskName);
-                    resultFuture.complete(Optional.empty());
-                    // Do NOT wait for completion
+                    waitForTaskCompletionAndGetResult(taskName, resultFuture);
                 }
             } catch (Exception e) {
                 resultFuture.completeExceptionally(
                         ConcurrentUtil.wrapAsCompletionException(e));
             } finally {
                 if (lockAcquiredSuccessfully) {
-                    cleanupRunningTask(taskName);
                     taskLock.unlock();
                     LOG.info("[{}] Released lock for task: {}", nodeId,
                             taskName);
                 }
             }
         });
+
+        return resultFuture;
     }
 
-    /**
-     * Clean up after a repeatable task has finished.
-     */
-    private void cleanupRunningTask(String taskName) {
-        // Nothing to clean up for repeatable tasks, as we don't track completion status
-    }
-
-    /**
-     * Waits for a repeatable task completion asynchronously.
-     */
-    private <T> void waitForRepeatableTaskCompletionAsync(
-            String taskName,
-            CompletableFuture<Optional<T>> resultFuture) {
-
-        CompletableFuture.runAsync(() -> {
-            try {
-                // Wait for the lock to become available
-                waitForTaskLockAvailability(taskName);
-                // Task has completed, get the result if available
-                resultFuture.complete(fetchTaskResult(taskName));
-            } catch (Exception e) {
-                resultFuture.completeExceptionally(e);
-            }
-        });
-    }
-
-    /**
-     * Waits until the lock for a task becomes available,
-     * which indicates the task has completed.
-     */
-    private void waitForTaskLockAvailability(String taskName)
-            throws InterruptedException {
-        var taskLock = lockManager.get(taskName);
-        while (true) {
-            try {
-                var acquiredLock = taskLock.tryLock(STATUS_POLLING_INTERVAL_MS,
-                        TimeUnit.MILLISECONDS).get();
-                if (acquiredLock) {
-                    // Release it immediately, we just needed to know it's available
-                    taskLock.unlock();
-                    LOG.info(
-                            "[{}] Task '{}' lock is now available. Task completed.",
-                            nodeId, taskName);
-                    return;
-                }
-            } catch (Exception e) {
-                LOG.warn("[{}] Error while checking lock for task '{}': {}",
-                        nodeId, taskName, e.getMessage());
-            }
-            Thread.sleep(STATUS_POLLING_INTERVAL_MS);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public <T> CompletableFuture<Optional<T>> runOnOneOnceAsync(
             String taskName, ClusterTask<T> task) {
-        LOG.info("[{}] Attempting to run task: {}", nodeId, taskName);
+        LOG.info("[{}] Attempting to run 'once' task: {}", nodeId, taskName);
 
-        // Create a completable future to hold the result
         var resultFuture = new CompletableFuture<Optional<T>>();
-
-        // 1. Check if the task is already completed
-        var currentState = taskStatusCache.get(taskName);
-        if (TaskState.COMPLETED.equals(currentState)) {
-            LOG.info("[{}] Task '{}' already completed. Proceeding without "
-                    + "waiting.", nodeId, taskName);
-            resultFuture.complete(fetchTaskResult(taskName));
-            return resultFuture;
-        }
+        var onceKey = taskName + ":once";
 
         if (lockManager == null) {
-            // Local mode: just run the task directly
-            try {
-                taskStatusCache.put(taskName, TaskState.RUNNING);
-                var result = task.execute(
-                        CrawlSession.get(cluster.getLocalNode()));
-                taskStatusCache.put(taskName, TaskState.COMPLETED);
-                taskResultCache.put(taskName,
-                        new StringSerializedObject(result));
-                resultFuture.complete(ofNullable(result));
-            } catch (Exception e) {
-                taskStatusCache.put(taskName, TaskState.FAILED);
-                resultFuture.completeExceptionally(e);
+            // Local mode: check if already completed
+            var currentState = taskStatusCache.get(onceKey);
+            if (TaskState.COMPLETED.equals(currentState)) {
+                LOG.info("[{}] Task '{}' already completed once in local mode",
+                        nodeId, taskName);
+                resultFuture.complete(fetchTaskResult(onceKey));
+                return resultFuture;
             }
+
+            executeTaskDirectlyOnce(onceKey, task, resultFuture);
             return resultFuture;
         }
 
         // Execute the clustered task asynchronously
-        executeClusteredTaskAsync(taskName, task, resultFuture);
-        return resultFuture;
-    }
+        ensureLockExists(onceKey);
+        var taskLock = lockManager.get(onceKey);
 
-    /**
-     * Executes the task in a clustered environment asynchronously.
-     */
-    private <T> void executeClusteredTaskAsync(
-            String taskName,
-            ClusterTask<T> task,
-            CompletableFuture<Optional<T>> resultFuture) {
-
-        // Create the lock if it doesn't exist
-        ensureLockExists(taskName);
-
-        // Get the clustered lock for this specific task
-        var taskLock = lockManager.get(taskName);
-
-        // Execute in a separate thread to avoid blocking
         CompletableFuture.runAsync(() -> {
             var lockAcquiredSuccessfully = false;
             try {
-                lockAcquiredSuccessfully = acquireLock(taskName, taskLock);
+                lockAcquiredSuccessfully = acquireLock(onceKey, taskLock);
 
                 if (lockAcquiredSuccessfully) {
-                    // Lock acquired, this node is the designated runner
-                    processTaskWithLock(taskName, task, resultFuture, taskLock);
+                    // Check if task was already completed
+                    var currentState = taskStatusCache.get(onceKey);
+                    if (TaskState.COMPLETED.equals(currentState)) {
+                        LOG.info("[{}] Task '{}' already completed once by "
+                                + "another node", nodeId, taskName);
+                        resultFuture.complete(fetchTaskResult(onceKey));
+                        return;
+                    }
+
+                    // This node will execute the task
+                    executeTaskDirectlyOnce(onceKey, task, resultFuture);
                 } else {
+                    // Wait for the executing node to complete and get cached result
                     LOG.info(
-                            "[{}] Could not acquire lock for task '{}'. Waiting "
-                                    + "for completion by another node.",
+                            "[{}] Could not acquire lock for task '{}'. Waiting for completion by another node.",
                             nodeId, taskName);
-                    waitForTaskCompletionAsync(taskName, resultFuture);
+                    waitForTaskCompletionAndGetResult(onceKey, resultFuture);
                 }
             } catch (Exception e) {
                 resultFuture.completeExceptionally(
@@ -334,6 +234,257 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
                     LOG.info("[{}] Released lock for task: {}", nodeId,
                             taskName);
                 }
+            }
+        });
+
+        return resultFuture;
+    }
+
+    @Override
+    public <T, R> CompletableFuture<R> runOnAllAsync(
+            String taskName,
+            ClusterTask<T> task,
+            ClusterReducer<T, R> reducer) {
+        var resultFuture = new CompletableFuture<R>();
+        var allKey = taskName + ":all";
+        var resultKeyPrefix = allKey + ":result:";
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                // Each node executes the task and stores its result
+                var nodeResultKey = resultKeyPrefix + nodeId;
+                var result =
+                        task.execute(CrawlSession.get(cluster.getLocalNode()));
+                taskResultCache.put(nodeResultKey,
+                        new StringSerializedObject(result));
+
+                // Wait for all nodes to complete their execution
+                var allNodeNames = cluster.getAllNodeNames();
+                while (true) {
+                    var allDone = true;
+                    java.util.List<T> results = new java.util.ArrayList<>();
+
+                    for (String n : allNodeNames) {
+                        var obj = taskResultCache.get(resultKeyPrefix + n);
+                        if (obj == null) {
+                            allDone = false;
+                            break;
+                        }
+                        results.add((T) obj.toObject());
+                    }
+
+                    if (allDone) {
+                        // All nodes completed, reduce results
+                        var reduced = reducer != null ? reducer.reduce(results)
+                                : null;
+
+                        // Cache the final result for all nodes
+                        taskResultCache.put(allKey + ":final",
+                                new StringSerializedObject(reduced));
+
+                        resultFuture.complete(reduced);
+                        break;
+                    }
+
+                    Thread.sleep(STATUS_POLLING_INTERVAL_MS);
+                }
+            } catch (Exception e) {
+                LOG.error("[{}] RunOnAll task '{}' failed: {}", nodeId,
+                        taskName, e.getMessage());
+                resultFuture.completeExceptionally(e);
+            }
+        });
+
+        return resultFuture;
+    }
+
+    @Override
+    public <T, R> CompletableFuture<R> runOnAllOnceAsync(
+            String taskName,
+            ClusterTask<T> task,
+            ClusterReducer<T, R> reducer) {
+        var resultFuture = new CompletableFuture<R>();
+        var onceAllKey = taskName + ":allonce";
+        var triggerKey = onceAllKey + ":trigger";
+        var resultKeyPrefix = onceAllKey + ":result:";
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                // Check if this task has already been completed once
+                var triggerState = taskStatusCache.get(triggerKey);
+                if (TaskState.COMPLETED.equals(triggerState)) {
+                    LOG.info(
+                            "[{}] Task '{}' already completed once, returning cached result",
+                            nodeId, taskName);
+                    // Return cached final result
+                    var cachedResult =
+                            taskResultCache.get(onceAllKey + ":final");
+                    if (cachedResult != null) {
+                        resultFuture.complete((R) cachedResult.toObject());
+                    } else {
+                        resultFuture.completeExceptionally(
+                                new RuntimeException("No cached result found"));
+                    }
+                    return;
+                }
+
+                // Mark as triggered if not already done (atomic check-and-set)
+                synchronized (InfinispanTaskManager.class) {
+                    triggerState = taskStatusCache.get(triggerKey);
+                    if (triggerState == null) {
+                        taskStatusCache.put(triggerKey, TaskState.RUNNING);
+                    }
+                }
+
+                // Each node executes the task once and stores result
+                var nodeResultKey = resultKeyPrefix + nodeId;
+                if (taskResultCache.get(nodeResultKey) == null) {
+                    var result = task
+                            .execute(CrawlSession.get(cluster.getLocalNode()));
+                    taskResultCache.put(nodeResultKey,
+                            new StringSerializedObject(result));
+                }
+
+                // Wait for all nodes to participate
+                var allNodeNames = cluster.getAllNodeNames();
+                while (true) {
+                    var allDone = true;
+                    java.util.List<T> results = new java.util.ArrayList<>();
+
+                    for (String n : allNodeNames) {
+                        var obj = taskResultCache.get(resultKeyPrefix + n);
+                        if (obj == null) {
+                            allDone = false;
+                            break;
+                        }
+                        results.add((T) obj.toObject());
+                    }
+
+                    if (allDone) {
+                        // All nodes completed, reduce and mark as completed
+                        var reduced = reducer.reduce(results);
+
+                        // Cache the final result for future calls
+                        taskResultCache.put(onceAllKey + ":final",
+                                new StringSerializedObject(reduced));
+                        taskStatusCache.put(triggerKey, TaskState.COMPLETED);
+
+                        resultFuture.complete(reduced);
+                        break;
+                    }
+
+                    Thread.sleep(STATUS_POLLING_INTERVAL_MS);
+                }
+            } catch (Exception e) {
+                LOG.error("[{}] RunOnAllOnce task '{}' failed: {}", nodeId,
+                        taskName, e.getMessage());
+                resultFuture.completeExceptionally(e);
+            }
+        });
+
+        return resultFuture;
+    }
+
+    @Override
+    public <T, R> R runOnAllOnceSync(
+            String taskName,
+            ClusterTask<T> task,
+            ClusterReducer<T, R> reducer) {
+        try {
+            return runOnAllOnceAsync(taskName, task, reducer).get();
+        } catch (Exception e) {
+            throw ConcurrentUtil.wrapAsCompletionException(e);
+        }
+    }
+
+    @Override
+    public <T, R> R runOnAllSync(
+            String taskName,
+            ClusterTask<T> task,
+            ClusterReducer<T, R> reducer) {
+        try {
+            return runOnAllAsync(taskName, task, reducer).get();
+        } catch (Exception e) {
+            throw ConcurrentUtil.wrapAsCompletionException(e);
+        }
+    }
+
+    /**
+     * Execute task directly without complex stop checking for runOnOne methods
+     */
+    private <T> void executeTaskDirectly(String taskName, ClusterTask<T> task,
+            CompletableFuture<Optional<T>> resultFuture) {
+        try {
+            var session = CrawlSession.get(cluster.getLocalNode());
+            var result = task.execute(session);
+
+            // Store result for other nodes to access
+            taskResultCache.put(taskName, new StringSerializedObject(result));
+            resultFuture.complete(ofNullable(result));
+
+            LOG.info("[{}] Task '{}' completed successfully", nodeId, taskName);
+        } catch (Exception e) {
+            LOG.error("[{}] Task '{}' failed: {}", nodeId, taskName,
+                    e.getMessage());
+            resultFuture.completeExceptionally(e);
+        }
+    }
+
+    /**
+     * Execute task directly for "once" methods with completion status tracking
+     */
+    private <T> void executeTaskDirectlyOnce(String taskKey,
+            ClusterTask<T> task,
+            CompletableFuture<Optional<T>> resultFuture) {
+        try {
+            taskStatusCache.put(taskKey, TaskState.RUNNING);
+
+            var session = CrawlSession.get(cluster.getLocalNode());
+            var result = task.execute(session);
+
+            // Store result and mark as completed
+            taskResultCache.put(taskKey, new StringSerializedObject(result));
+            taskStatusCache.put(taskKey, TaskState.COMPLETED);
+            resultFuture.complete(ofNullable(result));
+
+            LOG.info("[{}] Once task '{}' completed successfully", nodeId,
+                    taskKey);
+        } catch (Exception e) {
+            LOG.error("[{}] Once task '{}' failed: {}", nodeId, taskKey,
+                    e.getMessage());
+            taskStatusCache.put(taskKey, TaskState.FAILED);
+            resultFuture.completeExceptionally(e);
+        }
+    }
+
+    /**
+     * Wait for task completion and get the cached result
+     */
+    private <T> void waitForTaskCompletionAndGetResult(String taskKey,
+            CompletableFuture<Optional<T>> resultFuture) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                // Poll for result availability
+                while (true) {
+                    var cachedResult = taskResultCache.get(taskKey);
+                    if (cachedResult != null) {
+                        resultFuture.complete(
+                                Optional.of((T) cachedResult.toObject()));
+                        return;
+                    }
+
+                    // Check if task failed
+                    var status = taskStatusCache.get(taskKey);
+                    if (TaskState.FAILED.equals(status)) {
+                        resultFuture.completeExceptionally(new RuntimeException(
+                                "Task failed on executing node"));
+                        return;
+                    }
+
+                    Thread.sleep(STATUS_POLLING_INTERVAL_MS);
+                }
+            } catch (Exception e) {
+                resultFuture.completeExceptionally(e);
             }
         });
     }
@@ -365,249 +516,9 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
         return acquired;
     }
 
-    /**
-     * Process a task when this node has successfully acquired the lock.
-     */
-    private <T> void processTaskWithLock(
-            String taskName,
-            ClusterTask<T> task,
-            CompletableFuture<Optional<T>> resultFuture,
-            org.infinispan.lock.api.ClusteredLock taskLock) {
-
-        // Double-check the status after acquiring the lock
-        var currentState = taskStatusCache.get(taskName);
-
-        if (TaskState.COMPLETED.equals(currentState)) {
-            handleCompletedTask(taskName, resultFuture);
-            return;
-        }
-
-        if (TaskState.RUNNING.equals(currentState)) {
-            handleAlreadyRunningTask(taskName, resultFuture, taskLock);
-            return;
-        }
-
-        // If we reached here, the task is NOT_STARTED and we hold the lock
-        executeTask(taskName, task, resultFuture);
-    }
-
-    /**
-     * Handle the case where the task was already completed by another node.
-     */
-    private <T> void handleCompletedTask(
-            String taskName,
-            CompletableFuture<Optional<T>> resultFuture) {
-        LOG.info("[{}] Task '{}' completed by another node while "
-                + "acquiring lock. Releasing lock and proceeding.",
-                nodeId, taskName);
-        resultFuture.complete(fetchTaskResult(taskName));
-    }
-
-    /**
-     * Handle the case where the task is already running on another node.
-     */
-    private <T> void handleAlreadyRunningTask(
-            String taskName,
-            CompletableFuture<Optional<T>> resultFuture,
-            org.infinispan.lock.api.ClusteredLock taskLock) {
-        LOG.warn("""
-            [{}] Task '{}' found RUNNING after acquiring \
-            lock. Releasing lock and waiting for \
-            completion.""", nodeId, taskName);
-        taskLock.unlock();
-        waitForTaskCompletionAsync(taskName, resultFuture);
-    }
-
-    /**
-     * Execute the task when this node is designated as the runner.
-     */
-    private <T> void executeTask(
-            String taskName,
-            ClusterTask<T> task,
-            CompletableFuture<Optional<T>> resultFuture) {
-        // Deprecated: now handled by executeTaskWithStopCheck
-        executeTaskWithStopCheck(taskName, task, resultFuture);
-    }
-
     private <T> Optional<T> fetchTaskResult(String taskName) {
         return ofNullable(taskResultCache.get(taskName))
                 .map(StringSerializedObject::toObject);
-    }
-
-    /**
-     * Waits for the specified task to reach a COMPLETED state in the cache.
-     * This method polls the cache at regular intervals.
-     *
-     * @param taskName The name of the task to wait for.
-     * @throws InterruptedException If the thread is interrupted while waiting.
-     */
-    private void waitForTaskCompletion(String taskName)
-            throws InterruptedException {
-        while (true) {
-            var currentState = taskStatusCache.get(taskName);
-            if (TaskState.COMPLETED.equals(currentState)
-                    || TaskState.FAILED.equals(currentState)) {
-                LOG.info("[{}] Task '{}' finished (state: {}). Proceeding.",
-                        nodeId, taskName, currentState);
-                break;
-            }
-            // If NOT_STARTED or RUNNING, wait and re-check
-            Thread.sleep(STATUS_POLLING_INTERVAL_MS);
-        }
-    }
-
-    /**
-     * Waits for the task completion asynchronously and completes the future.
-     */
-    private <T> void waitForTaskCompletionAsync(
-            String taskName,
-            CompletableFuture<Optional<T>> resultFuture) {
-
-        CompletableFuture.runAsync(() -> {
-            try {
-                waitForTaskCompletion(taskName);
-                var state = taskStatusCache.get(taskName);
-                if (TaskState.COMPLETED.equals(state)) {
-                    resultFuture.complete(fetchTaskResult(taskName));
-                } else {
-                    // Task failed
-                    resultFuture.completeExceptionally(
-                            new RuntimeException("Task execution failed"));
-                }
-            } catch (Exception e) {
-                resultFuture.completeExceptionally(e);
-            }
-        });
-    }
-
-    /**
-     * Executes a given task on all nodes exactly once and reduces the results.
-     * Only one node triggers the task, all nodes participate.
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T, R> CompletableFuture<R> runOnAllOnceAsync(
-            String taskName,
-            ClusterTask<T> task,
-            ClusterReducer<T, R> reducer) {
-        var resultFuture = new CompletableFuture<R>();
-        var triggerKey = taskName + ":trigger";
-        var resultKeyPrefix = taskName + ":result:";
-        // Only one node triggers the task
-        synchronized (InfinispanTaskManager.class) {
-            if (taskStatusCache.get(triggerKey) == null) {
-                taskStatusCache.put(triggerKey, TaskState.RUNNING);
-            }
-        }
-        // All nodes participate
-        CompletableFuture.runAsync(() -> {
-            try {
-                // Each node checks if it has already participated
-                var nodeResultKey = resultKeyPrefix + nodeId;
-                if (taskResultCache.get(nodeResultKey) == null) {
-                    var result = task
-                            .execute(CrawlSession.get(cluster.getLocalNode()));
-                    taskResultCache.put(nodeResultKey,
-                            new StringSerializedObject(result));
-                }
-                // Wait for all nodes to participate
-                while (true) {
-                    var allNodeNames = cluster.getAllNodeNames();
-                    var allDone = true;
-                    java.util.List<T> results = new java.util.ArrayList<>();
-                    for (String n : allNodeNames) {
-                        var obj = taskResultCache.get(resultKeyPrefix + n);
-                        if (obj == null) {
-                            allDone = false;
-                            break;
-                        }
-                        results.add((T) obj.toObject());
-                    }
-                    if (allDone) {
-                        // Reduce and complete
-                        var reduced = reducer.reduce(results);
-                        resultFuture.complete(reduced);
-                        taskStatusCache.put(triggerKey, TaskState.COMPLETED);
-                        break;
-                    }
-                    Thread.sleep(STATUS_POLLING_INTERVAL_MS);
-                }
-            } catch (Exception e) {
-                resultFuture.completeExceptionally(e);
-            }
-        });
-        return resultFuture;
-    }
-
-    @Override
-    public <T, R> R runOnAllOnceSync(
-            String taskName,
-            ClusterTask<T> task,
-            ClusterReducer<T, R> reducer) {
-        try {
-            return runOnAllOnceAsync(taskName, task, reducer).get();
-        } catch (Exception e) {
-            throw ConcurrentUtil.wrapAsCompletionException(e);
-        }
-    }
-
-    /**
-     * Executes a repeatable task on all nodes and reduces the results.
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T, R> CompletableFuture<R> runOnAllAsync(
-            String taskName,
-            ClusterTask<T> task,
-            ClusterReducer<T, R> reducer) {
-        var resultFuture = new CompletableFuture<R>();
-        var resultKeyPrefix = taskName + ":result:";
-        CompletableFuture.runAsync(() -> {
-            try {
-                var nodeResultKey = resultKeyPrefix + nodeId;
-                var result =
-                        task.execute(CrawlSession.get(cluster.getLocalNode()));
-                taskResultCache.put(nodeResultKey,
-                        new StringSerializedObject(result));
-                // Wait for all nodes to participate
-                while (true) {
-                    var allNodeNames = cluster.getAllNodeNames();
-                    var allDone = true;
-                    java.util.List<T> results = new java.util.ArrayList<>();
-                    for (String n : allNodeNames) {
-                        var obj = taskResultCache.get(resultKeyPrefix + n);
-                        if (obj == null) {
-                            allDone = false;
-                            break;
-                        }
-                        results.add((T) obj.toObject());
-                    }
-                    if (allDone) {
-                        var reduced = reducer != null
-                                ? reducer.reduce(results)
-                                : null;
-                        resultFuture.complete(reduced);
-                        break;
-                    }
-                    Thread.sleep(STATUS_POLLING_INTERVAL_MS);
-                }
-            } catch (Exception e) { //NOSONAR
-                resultFuture.completeExceptionally(e);
-            }
-        });
-        return resultFuture;
-    }
-
-    @Override
-    public <T, R> R runOnAllSync(
-            String taskName,
-            ClusterTask<T> task,
-            ClusterReducer<T, R> reducer) {
-        try {
-            return runOnAllAsync(taskName, task, reducer).get();
-        } catch (Exception e) {
-            throw ConcurrentUtil.wrapAsCompletionException(e);
-        }
     }
 
     @Override
@@ -653,57 +564,6 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
                 }
             }
             acquiredLocks.clear();
-        }
-        // No explicit resources to release, but nullify references for GC
-        // If future resources (threads, etc.) are added, clean up here
-        // Example: if you add background threads, interrupt/stop them here
-    }
-
-    private <T> void executeTaskWithStopCheck(String taskName,
-            ClusterTask<T> task, CompletableFuture<Optional<T>> resultFuture) {
-        var session = CrawlSession.get(cluster.getLocalNode());
-        taskStatusCache.put(taskName + ":" + nodeId, TaskState.RUNNING);
-        LOG.info("[{}] Node is running task: {}", nodeId, taskName);
-        var executor = Executors.newSingleThreadExecutor();
-        try {
-            Future<T> future = executor.submit(() -> {
-                T result = null;
-                var executed = false;
-                while (true) {
-                    if (isStopRequested(taskName, nodeId)) {
-                        LOG.info(
-                                "[{}] Stop requested for task '{}'. Stopping...",
-                                nodeId, taskName);
-                        task.stop(session);
-                        setStopped(taskName, nodeId);
-                        return null;
-                    }
-                    if (!executed) {
-                        result = task.execute(session);
-                        executed = true;
-                    }
-                    // After execution, just wait for stop request or exit
-                    if (executed) {
-                        break;
-                    }
-                }
-                return result;
-            });
-            var result = future.get();
-            if (taskStatusCache
-                    .get(taskName + ":" + nodeId) == TaskState.STOPPED) {
-                resultFuture.complete(Optional.empty());
-            } else {
-                taskResultCache.put(taskName,
-                        new StringSerializedObject(result));
-                resultFuture.complete(ofNullable(result));
-            }
-        } catch (Exception e) {
-            LOG.error("[{}] Task '{}' failed: {}", nodeId, taskName,
-                    e.getMessage());
-            resultFuture.completeExceptionally(e);
-        } finally {
-            executor.shutdownNow();
         }
     }
 }

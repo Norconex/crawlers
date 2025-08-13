@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.event.listeners;
+package com.norconex.crawler.core2.event.listeners;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -23,9 +23,9 @@ import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core2.junit.CrawlTest;
+import com.norconex.crawler.core2.junit.CrawlTest.Focus;
+import com.norconex.crawler.core2.session.CrawlContext;
 
 class DeleteRejectedEventListenerTest {
 

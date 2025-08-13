@@ -12,21 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.doc.pipelines;
+package com.norconex.crawler.core2.doc.pipelines;
 
-import static com.norconex.crawler.core.doc.CrawlDocStatus.MODIFIED;
-import static com.norconex.crawler.core.doc.CrawlDocStatus.NEW;
-import static com.norconex.crawler.core.doc.CrawlDocStatus.UNMODIFIED;
-import static com.norconex.crawler.core.doc.pipelines.ChecksumStageUtil.resolveDocumentChecksum;
-import static com.norconex.crawler.core.doc.pipelines.ChecksumStageUtil.resolveMetaChecksum;
+import static com.norconex.crawler.core2.doc.ProcessingOutcome.MODIFIED;
+import static com.norconex.crawler.core2.doc.ProcessingOutcome.NEW;
+import static com.norconex.crawler.core2.doc.ProcessingOutcome.UNMODIFIED;
+import static com.norconex.crawler.core2.doc.pipelines.ChecksumStageUtil.resolveDocumentChecksum;
+import static com.norconex.crawler.core2.doc.pipelines.ChecksumStageUtil.resolveMetaChecksum;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
-import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.core.stubs.CrawlDocStubs;
+import com.norconex.crawler.core2.doc.pipelines.committer.CommitterPipelineContext;
+import com.norconex.crawler.core2.doc.pipelines.importer.ImporterPipelineContext;
+import com.norconex.crawler.core2.junit.CrawlTest;
+import com.norconex.crawler.core2.junit.CrawlTest.Focus;
+import com.norconex.crawler.core2.session.CrawlContext;
+import com.norconex.crawler.core2.stubs.CrawlDocStubs;
 
 class ChecksumStageUtilTest {
 

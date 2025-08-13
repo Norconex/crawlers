@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.fetch;
+package com.norconex.crawler.core2.fetch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,11 +21,11 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.core.doc.CrawlDocStatus;
-import com.norconex.crawler.core.mocks.fetch.MockFetchRequest;
-import com.norconex.crawler.core.mocks.fetch.MockFetchResponse;
-import com.norconex.crawler.core.mocks.fetch.MockFetchResponseImpl;
-import com.norconex.crawler.core.mocks.fetch.MockFetcher;
+import com.norconex.crawler.core2.doc.CrawlDocStatus;
+import com.norconex.crawler.core2.mocks.fetch.MockFetchRequest;
+import com.norconex.crawler.core2.mocks.fetch.MockFetchResponse;
+import com.norconex.crawler.core2.mocks.fetch.MockFetchResponseImpl;
+import com.norconex.crawler.core2.mocks.fetch.MockFetcher;
 
 class MultiFetcherTest {
 
@@ -61,7 +61,7 @@ class MultiFetcherTest {
         assertThat(((AggregatedFetchResponse) resp)
                 .getFetchResponses()).hasSize(1);
         assertThat(resp.getResolutionStatus())
-                .isSameAs(CrawlDocStatus.UNSUPPORTED);
+                .isSameAs(ProcessingOutcome.UNSUPPORTED);
     }
 
     private MultiFetcher multiFetcher(MockFetcher... fetchers) {

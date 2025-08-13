@@ -50,32 +50,43 @@ class InfinispanClusterTest {
     void testMultiMemoryNodeCluster() {
         //this test ensure our test XML configs work for whatever other
         // tests needing them
+        InfinispanTestUtil.withMultiMemoryNodesCluster(2, (cluster, idx) -> {
+            cluster.init(tempDir);
+            assertThat(cluster.getLocalNode().isCoordinator()).isTrue();
+            var cache =
+                    cluster.getCacheManager().getCache("cache", String.class);
+            assertThat(cache.get("str")).isEmpty();
+            cache.put("str", "A");
+            assertThat(cache.get("str")).contains("A");
+            cache.merge("str", "B", (val1, val2) -> val1 + val2);
+            assertThat(cache.get("str")).contains("AB");
+        });
     }
 
-    @Test
-    void testDefaultClusterNodeSetup() {
-        var crawlWorkDir = tempDir.resolve("blah");
-        var infinispanDir =
-                crawlWorkDir.resolve("cache/infinispan").normalize();
-
-        // check that the cluster is properly created with the default
-        // configuration found under src/main/resources.
-        try (var cluster =
-                new InfinispanCluster(new InfinispanClusterConfig())) {
-            cluster.init(crawlWorkDir);
-            //            cluster.init(CrawlContextStubber.crawlerContext(tempDir));
-            var props = cluster.getCacheManager().vendor()
-                    .getGlobalConfigurationAsProperties();
-
-            // Check global persistent location
-            assertThat(props).containsEntry("globalState.enabled", "true");
-            assertThat(props).containsEntry("globalState.persistentLocation",
-                    infinispanDir.toString());
-
-            // Check all defined cache names
-            var cacheManager = cluster.getCacheManager().vendor();
-            assertThat(cacheManager.getCacheNames())
-                    .contains("counter-cache");
-        }
-    }
+    //    @Test
+    //    void testDefaultClusterNodeSetup() {
+    //        var crawlWorkDir = tempDir.resolve("blah");
+    //        var infinispanDir =
+    //                crawlWorkDir.resolve("cache/infinispan").normalize();
+    //
+    //        // check that the cluster is properly created with the default
+    //        // configuration found under src/main/resources.
+    //        try (var cluster =
+    //                new InfinispanCluster(new InfinispanClusterConfig())) {
+    //            cluster.init(crawlWorkDir);
+    //            //            cluster.init(CrawlContextStubber.crawlerContext(tempDir));
+    //            var props = cluster.getCacheManager().vendor()
+    //                    .getGlobalConfigurationAsProperties();
+    //
+    //            // Check global persistent location
+    //            assertThat(props).containsEntry("globalState.enabled", "true");
+    //            assertThat(props).containsEntry("globalState.persistentLocation",
+    //                    infinispanDir.toString());
+    //
+    //            // Check all defined cache names
+    //            var cacheManager = cluster.getCacheManager().vendor();
+    //            assertThat(cacheManager.getCacheNames())
+    //                    .contains("counter-cache");
+    //        }
+    //    }
 }

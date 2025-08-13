@@ -37,10 +37,6 @@ public final class DocStubber {
         return doc(ref, CRAWLDOC_CONTENT);
     }
 
-    public static Doc doc(String ref, String content) {
-        return doc(ref, content);
-    }
-
     public static Doc doc(
             String ref, String content, Object... metaKeyValues) {
         @SuppressWarnings("resource")

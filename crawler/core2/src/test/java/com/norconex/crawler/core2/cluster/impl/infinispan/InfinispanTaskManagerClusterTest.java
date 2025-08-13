@@ -139,7 +139,7 @@ class InfinispanTaskManagerClusterTest {
         // Node 2 tries to run the same task shortly after
         var t2 = new Thread(() -> {
             try {
-                Thread.sleep(500); // Give Node 1 a head start
+                Sleeper.sleepMillis(500); // Give Node 1 a head start
                 LOG.info("Node-2 thread starting runOnOneOnceSync");
                 node2TaskManager.runOnOneOnceSync(myTask, taskToRun);
                 LOG.info("Node-2 thread finished runOnOneOnceSync");

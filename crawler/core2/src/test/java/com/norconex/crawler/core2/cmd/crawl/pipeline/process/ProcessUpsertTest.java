@@ -12,18 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cmd.crawl.pipeline.process;
+package com.norconex.crawler.core2.cmd.crawl.pipeline.process;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.function.Consumer;
 
-import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.core.stubs.CrawlDocStubs;
+import com.norconex.crawler.core2.CrawlConfig;
+import com.norconex.crawler.core2.junit.CrawlTest;
+import com.norconex.crawler.core2.junit.CrawlTest.Focus;
+import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
+import com.norconex.crawler.core2.stubs.DocStubber;
 import com.norconex.importer.response.ImporterResponse;
 import com.norconex.importer.response.ImporterResponseProcessor;
 
@@ -34,10 +35,8 @@ public class ProcessUpsertTest {
         @Override
         public void processImporterResponse(ImporterResponse resp) {
             resp.setNestedResponses(List.of(
-                    new ImporterResponse(CrawlDocStubs.crawlDoc(
-                            "childResponse1")),
-                    new ImporterResponse(CrawlDocStubs.crawlDoc(
-                            "childResponse2"))));
+                    new ImporterResponse(DocStubber.doc("childResponse1")),
+                    new ImporterResponse(DocStubber.doc("childResponse2"))));
         }
     }
 
@@ -50,17 +49,16 @@ public class ProcessUpsertTest {
     }
 
     @CrawlTest(
-        focus = Focus.CONTEXT,
+        focus = Focus.SESSION,
         configModifier = TestConfigModifier.class
     )
-    void testThreadActionUpsert(CrawlContext crawler) {
+    void testThreadActionUpsert(CrawlSession session) {
 
-        var doc = CrawlDocStubs.crawlDoc("ref");
+        var docContext = CrawlDocContextStubber.fresh("ref");
         var ctx = new ProcessContext();
         ctx.finalized(false);
-        ctx.crawlContext(crawler);
-        ctx.doc(doc);
-        ctx.docContext(doc.getDocContext());
+        ctx.crawlSession(session);
+        ctx.docContext(docContext);
 
         ProcessUpsert.execute(ctx);
 

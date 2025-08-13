@@ -12,18 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.doc.pipelines.importer.stages;
+package com.norconex.crawler.core2.doc.pipelines.importer.stages;
 
-import static com.norconex.crawler.core.fetch.FetchDirective.DOCUMENT;
-import static com.norconex.crawler.core.fetch.FetchDirective.METADATA;
+import static com.norconex.crawler.core2.fetch.FetchDirective.DOCUMENT;
+import static com.norconex.crawler.core2.fetch.FetchDirective.METADATA;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
-import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.core.stubs.CrawlDocStubs;
+import com.norconex.crawler.core2.doc.pipelines.importer.ImporterPipelineContext;
+import com.norconex.crawler.core2.fetch.FetchDirectiveSupport;
+import com.norconex.crawler.core2.junit.CrawlTest;
+import com.norconex.crawler.core2.junit.CrawlTest.Focus;
+import com.norconex.crawler.core2.session.CrawlContext;
+import com.norconex.crawler.core2.stubs.CrawlDocStubs;
 
 class ImporterPipelineContextTest {
 

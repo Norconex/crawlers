@@ -42,7 +42,7 @@ public class MetadataChecksumStage extends AbstractImporterStage {
             return true;
         }
 
-        var check = ctx.getCrawlContext().getCrawlConfig()
+        var check = ctx.getCrawlSession().getCrawlContext().getCrawlConfig()
                 .getMetadataChecksummer();
         if (check == null) {
             // NEW is default state (?)
@@ -62,9 +62,9 @@ public class MetadataChecksumStage extends AbstractImporterStage {
                     .append(" - ")
                     .append("Checksum=")
                     .append(StringUtils.abbreviate(newHeadChecksum, 200));
-            ctx.getCrawlContext().fire(CrawlerEvent.builder()
+            ctx.getCrawlSession().getCrawlContext().fire(CrawlerEvent.builder()
                     .name(CrawlerEvent.REJECTED_UNMODIFIED)
-                    .source(ctx.getCrawlContext())
+                    .source(ctx.getCrawlSession().getCrawlContext())
                     .crawlEntry(ctx.getDocContext().getCurrentCrawlEntry())
                     .subject(check)
                     .message(s.toString())

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.doc.pipelines.committer.stages;
+package com.norconex.crawler.core2.doc.pipelines.committer.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,9 +21,9 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
-import com.norconex.crawler.core.stubs.CrawlDocStubs;
+import com.norconex.crawler.core2.doc.pipelines.committer.CommitterPipelineContext;
+import com.norconex.crawler.core2.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core2.stubs.CrawlDocStubs;
 
 class DocumentDedupStageTest {
 
@@ -32,6 +32,11 @@ class DocumentDedupStageTest {
 
     @Test
     void testTest() {
+
+        //        InfinispanTestUtil.withSingleMemoryNodeCluster(cluster -> {
+        //            cluster.
+        //        });
+
         new MockCrawlerBuilder(tempDir).configModifier(c -> {
             c.setDocumentDeduplicate(true);
         }).withCrawlContext(ctx -> {

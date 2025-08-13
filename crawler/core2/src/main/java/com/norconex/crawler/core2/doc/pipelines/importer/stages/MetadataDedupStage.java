@@ -45,7 +45,7 @@ public class MetadataDedupStage extends AbstractImporterStage {
 
         var docContext = ctx.getDocContext();
         var dedupService = ctx
-                .getCrawlContext()
+                .getCrawlSession().getCrawlContext()
                 .getDedupService();
 
         var duplRef = dedupService
@@ -56,10 +56,10 @@ public class MetadataDedupStage extends AbstractImporterStage {
                     docContext.getReference());
             docContext.getCurrentCrawlEntry()
                     .setProcessingOutcome(ProcessingOutcome.REJECTED);
-            ctx.getCrawlContext().fire(
+            ctx.getCrawlSession().getCrawlContext().fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.REJECTED_DUPLICATE)
-                            .source(ctx.getCrawlContext())
+                            .source(ctx.getCrawlSession().getCrawlContext())
                             .subject(duplRef.get())
                             .crawlEntry(
                                     ctx.getDocContext().getCurrentCrawlEntry())

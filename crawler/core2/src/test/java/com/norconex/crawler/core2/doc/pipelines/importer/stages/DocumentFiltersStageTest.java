@@ -12,20 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.doc.pipelines.importer.stages;
+package com.norconex.crawler.core2.doc.pipelines.importer.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
-import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
-import com.norconex.crawler.core.doc.operations.filter.OnMatch;
-import com.norconex.crawler.core.doc.operations.filter.OnMatchFilter;
-import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.core.stubs.CrawlDocStubs;
+import com.norconex.crawler.core2.doc.operations.filter.DocumentFilter;
+import com.norconex.crawler.core2.doc.operations.filter.OnMatch;
+import com.norconex.crawler.core2.doc.operations.filter.OnMatchFilter;
+import com.norconex.crawler.core2.doc.pipelines.importer.ImporterPipelineContext;
+import com.norconex.crawler.core2.junit.CrawlTest;
+import com.norconex.crawler.core2.junit.CrawlTest.Focus;
+import com.norconex.crawler.core2.session.CrawlContext;
+import com.norconex.crawler.core2.stubs.CrawlDocStubs;
 import com.norconex.importer.doc.Doc;
 
 import lombok.AllArgsConstructor;

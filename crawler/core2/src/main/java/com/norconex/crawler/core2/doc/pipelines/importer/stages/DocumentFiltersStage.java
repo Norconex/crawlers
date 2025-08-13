@@ -32,7 +32,8 @@ public class DocumentFiltersStage
     @Override
     public boolean test(ImporterPipelineContext ctx) {
         var filters =
-                ctx.getCrawlContext().getCrawlConfig().getDocumentFilters();
+                ctx.getCrawlSession().getCrawlContext().getCrawlConfig()
+                        .getDocumentFilters();
         var doc = ctx.getDocContext().getDoc();
 
         return OnMatchFiltersResolver
@@ -43,9 +44,10 @@ public class DocumentFiltersStage
                 .onRejected((f, msg) -> {
                     LOG.debug("REJECTED document. Reference: {} Filter={}",
                             doc.getReference(), f);
-                    ctx.getCrawlContext().fire(CrawlerEvent.builder()
+                    ctx.getCrawlSession().getCrawlContext().fire(CrawlerEvent
+                            .builder()
                             .name(CrawlerEvent.REJECTED_FILTER)
-                            .source(ctx.getCrawlContext())
+                            .source(ctx.getCrawlSession().getCrawlContext())
                             .crawlEntry(
                                     ctx.getDocContext().getCurrentCrawlEntry())
                             .subject(f)

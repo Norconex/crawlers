@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.fetch;
+package com.norconex.crawler.core2.fetch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.core.doc.CrawlDocStatus;
+import com.norconex.crawler.core2.doc.CrawlDocStatus;
 
 import lombok.Data;
 
@@ -47,7 +47,7 @@ class AggregatedFetchResponseTest {
 
         @Override
         public CrawlDocStatus getResolutionStatus() {
-            return CrawlDocStatus.MODIFIED;
+            return ProcessingOutcome.MODIFIED;
         }
     }
 
@@ -62,7 +62,7 @@ class AggregatedFetchResponseTest {
         assertThat(gmfr.getReasonPhrase()).isEqualTo("Just because.");
         assertThat(gmfr.getException().getMessage()).isEqualTo("TEST");
         assertThat(gmfr.getResolutionStatus())
-                .isSameAs(CrawlDocStatus.MODIFIED);
+                .isSameAs(ProcessingOutcome.MODIFIED);
         assertThat(gmfr.getFetchResponses()).containsExactlyInAnyOrder(
                 resp1, resp2);
         assertThat(gmfr.getLastFetchResponse()).containsSame(resp2);

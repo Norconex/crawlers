@@ -72,14 +72,27 @@ public class CrawlEntry {
         return docInfo;
     }
 
+    /**
+     * Gets original references before normalization, redirect, etc.
+     * @return reference trail up to, but excluding, the current one.
+     */
     public List<String> getReferenceTrail() {
         return Collections.unmodifiableList(referenceTrail);
     }
 
+    /**
+     * Sets original references before normalization, redirect, etc.
+     * @param referenceTrail reference trail up to, but excluding, the current
+     *     one.
+     */
     public void setReferenceTrail(List<String> referenceTrail) {
         CollectionUtil.setAll(this.referenceTrail, referenceTrail);
     }
 
+    /**
+     * Adds original references before normalization, redirect, etc.
+     * @param reference reference to append to the trail
+     */
     public void addToReferenceTrail(String reference) {
         referenceTrail.add(reference);
     }

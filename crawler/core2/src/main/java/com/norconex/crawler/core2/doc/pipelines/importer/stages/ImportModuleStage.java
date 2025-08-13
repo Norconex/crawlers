@@ -26,7 +26,7 @@ public class ImportModuleStage implements Predicate<ImporterPipelineContext> {
 
     @Override
     public boolean test(ImporterPipelineContext ctx) {
-        var importer = ctx.getCrawlContext().getImporter();
+        var importer = ctx.getCrawlSession().getCrawlContext().getImporter();
         Doc doc = ctx.getDocContext().getDoc();
 
         var isContentTypeSet = doc.getContentType() != null;

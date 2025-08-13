@@ -51,7 +51,8 @@ final class ProcessUpsert {
         var response = crawlCtx
                 .getDocPipelines()
                 .getImporterPipeline()
-                .apply(new ImporterPipelineContext(crawlCtx, ctx.docContext()));
+                .apply(new ImporterPipelineContext(
+                        ctx.crawlSession(), ctx.docContext()));
         ctx.importerResponse(response);
 
         // no response means rejected even if it should not be the
@@ -142,7 +143,7 @@ final class ProcessUpsert {
                     .build());
             crawlCtx.getDocPipelines()
                     .getCommitterPipeline()
-                    .accept(new CommitterPipelineContext(crawlCtx,
+                    .accept(new CommitterPipelineContext(ctx.crawlSession(),
                             ctx.docContext()));
             return true;
         }

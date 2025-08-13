@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.util;
+package com.norconex.crawler.core2.util;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;

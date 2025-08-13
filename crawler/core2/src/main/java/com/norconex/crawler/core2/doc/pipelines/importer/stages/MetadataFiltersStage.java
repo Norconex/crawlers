@@ -49,16 +49,18 @@ public class MetadataFiltersStage extends AbstractImporterStage {
         return OnMatchFiltersResolver
                 .<Properties, MetadataFilter>builder()
                 .subject(doc.getMetadata())
-                .filters(ctx.getCrawlContext().getCrawlConfig()
-                        .getMetadataFilters())
+                .filters(
+                        ctx.getCrawlSession().getCrawlContext().getCrawlConfig()
+                                .getMetadataFilters())
                 .predicate((s, f) -> f
                         .acceptMetadata(doc.getReference(), s))
                 .onRejected((f, msg) -> {
                     LOG.debug("REJECTED metadata. Reference: {} Filter={}",
                             doc.getReference(), f);
-                    ctx.getCrawlContext().fire(CrawlerEvent.builder()
+                    ctx.getCrawlSession().getCrawlContext().fire(CrawlerEvent
+                            .builder()
                             .name(CrawlerEvent.REJECTED_FILTER)
-                            .source(ctx.getCrawlContext())
+                            .source(ctx.getCrawlSession().getCrawlContext())
                             .crawlEntry(
                                     ctx.getDocContext().getCurrentCrawlEntry())
                             .subject(f)

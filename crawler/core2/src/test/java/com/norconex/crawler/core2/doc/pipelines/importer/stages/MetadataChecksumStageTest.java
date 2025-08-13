@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.doc.pipelines.importer.stages;
+package com.norconex.crawler.core2.doc.pipelines.importer.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,16 +23,16 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
-import com.norconex.crawler.core.doc.operations.checksum.impl.GenericMetadataChecksummer;
-import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.fetch.FetchDirective;
-import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
-import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.core.stubs.CrawlDocStubs;
+import com.norconex.crawler.core2.doc.CrawlDocMetaConstants;
+import com.norconex.crawler.core2.doc.operations.checksum.impl.GenericMetadataChecksummer;
+import com.norconex.crawler.core2.doc.pipelines.importer.ImporterPipelineContext;
+import com.norconex.crawler.core2.fetch.FetchDirective;
+import com.norconex.crawler.core2.fetch.FetchDirectiveSupport;
+import com.norconex.crawler.core2.junit.CrawlTest;
+import com.norconex.crawler.core2.junit.CrawlTest.Focus;
+import com.norconex.crawler.core2.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core2.session.CrawlContext;
+import com.norconex.crawler.core2.stubs.CrawlDocStubs;
 
 class MetadataChecksumStageTest {
 

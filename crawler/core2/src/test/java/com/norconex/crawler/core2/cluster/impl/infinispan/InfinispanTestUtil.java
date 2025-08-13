@@ -18,6 +18,7 @@ import static org.assertj.core.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -76,11 +77,7 @@ public final class InfinispanTestUtil {
         List<Future<Cluster>> futures = new ArrayList<>();
 
         for (var i = 0; i < nodeCount; i++) {
-            futures.add(executor.submit(() -> {
-                var cluster = multiMemoryNodesCluster();
-                cluster.init(null);
-                return cluster;
-            }));
+            futures.add(executor.submit((Callable<Cluster>) InfinispanTestUtil::multiMemoryNodesCluster));
         }
 
         List<Cluster> clusters = new ArrayList<>();
