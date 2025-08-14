@@ -138,7 +138,7 @@ public class CrawlTestExtensionCallbacks implements
             sess.getCluster().getLocalNode();
 
             // simulate crawl begin event
-            sess.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN);
+            sess.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN, this);
             return new CrawlTestParameters()
                     .setCrawler(null)
                     .setCrawlConfig(crawlConfig)
@@ -170,7 +170,7 @@ public class CrawlTestExtensionCallbacks implements
                 && params.getCrawlSession() != null) {
             // "crawl" focus handles the context already.
             params.getCrawlSession().fire(
-                    CrawlerEvent.CRAWLER_CRAWL_END); // simulate
+                    CrawlerEvent.CRAWLER_CRAWL_END, this); // simulate
             params.getCrawlSession().close();
             //            CrawlContextTestUtil.destroyCrawlerContext(
             //                    params.getCrawlSession());

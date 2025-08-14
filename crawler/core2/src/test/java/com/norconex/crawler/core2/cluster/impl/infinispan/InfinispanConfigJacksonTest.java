@@ -16,6 +16,8 @@ import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanConfigDeserializer;
+import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanConfigSerializer;
 
 //TODO test yaml + json
 class InfinispanConfigJacksonTest {

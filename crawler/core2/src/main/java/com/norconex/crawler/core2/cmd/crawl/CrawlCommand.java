@@ -54,7 +54,7 @@ public class CrawlCommand implements Command {
         }
 
         Thread.currentThread().setName(ctx.getId() + "/CRAWL");
-        session.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN);
+        session.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN, this);
 
         trackProgress(session);
 
@@ -108,7 +108,7 @@ public class CrawlCommand implements Command {
         //        } catch (TimeoutException e) {
         //            throw new CrawlerException("Could not stop progress logger.", e);
         //        }
-        session.fire(CrawlerEvent.CRAWLER_CRAWL_END);
+        session.fire(CrawlerEvent.CRAWLER_CRAWL_END, this);
         LOG.info("Node done crawling with state: {}", session.getCrawlState());
 
         if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {

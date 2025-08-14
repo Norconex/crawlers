@@ -27,7 +27,7 @@ public class CleanCommand implements Command {
     public void execute(CrawlSession session) {
         var ctx = session.getCrawlContext();
         Thread.currentThread().setName(ctx.getId() + "/CLEAN");
-        session.fire(CrawlerEvent.CRAWLER_CLEAN_BEGIN);
+        session.fire(CrawlerEvent.CRAWLER_CLEAN_BEGIN, this);
 
         session.getCluster()
                 .getTaskManager().runOnOneOnceSync(
@@ -73,6 +73,6 @@ public class CleanCommand implements Command {
         //        } else {
         LOG.info("Clean command executed.");
         //        }
-        session.fire(CrawlerEvent.CRAWLER_CLEAN_END);
+        session.fire(CrawlerEvent.CRAWLER_CLEAN_END, this);
     }
 }

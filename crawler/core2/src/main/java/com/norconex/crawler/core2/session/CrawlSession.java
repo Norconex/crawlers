@@ -362,18 +362,6 @@ public class CrawlSession implements Closeable {
     }
 
     /**
-     * Shortcut method for firing a {@link CrawlerEvent} with the
-     * <code>crawlSession</code> field already set. Equivalent to:
-     * <code>
-     * session.getCrawlContext().getEventManager().fire(crawlerEvent)
-     * </code>.
-     * @param eventName name of the event to fire
-     */
-    public void fire(String eventName) {
-        fire(CrawlerEvent.builder().name(eventName).crawlSession(this).build());
-    }
-
-    /**
      * Shortcut method for firing a {@link CrawlerEvent} with the supplied
      * source and with the <code>crawlSession</code> field already set.
      * Equivalent to:

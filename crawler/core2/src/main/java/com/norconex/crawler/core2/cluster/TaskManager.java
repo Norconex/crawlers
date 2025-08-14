@@ -30,9 +30,10 @@ public interface TaskManager {
      * - It releases the lock.
      *
      * If another node is running the task or has already completed it:
-     * - If completed, this method returns immediately.
+     * - If completed, this method returns immediately with the cached returned
+     *   value.
      * - If running, this method waits until the task is completed by the other
-     *   node.
+     *   node and returns the cached returned value.
      * @param <T> type of returned value
      * @param taskName A unique name for the task.
      * @param task The Runnable task to execute.
@@ -54,8 +55,10 @@ public interface TaskManager {
      * - It releases the lock.
      *
      * If another node is running the task or has already completed it:
-     * - If completed, the future completes immediately.
-     * - If running, the future will complete when the task is completed by another node.
+     * - If completed, the future completes immediately with the cached returned
+     *   value.
+     * - If running, the future will complete when the task is completed by
+     *   another node and returns the cached returned value..
      *
      * @param <T> type of returned value
      * @param taskName A unique name for the task.

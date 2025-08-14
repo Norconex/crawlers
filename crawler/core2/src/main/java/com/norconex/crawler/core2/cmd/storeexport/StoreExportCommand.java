@@ -52,7 +52,7 @@ public class StoreExportCommand implements Command {
         var ctx = session.getCrawlContext();
 
         Thread.currentThread().setName(ctx.getId() + "/STORE_EXPORT");
-        session.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_BEGIN);
+        session.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_BEGIN, this);
         try {
             session.getCluster().getTaskManager()
                     .runOnOneSync("storeImportTask", sess -> {
@@ -67,7 +67,7 @@ public class StoreExportCommand implements Command {
             throw new CrawlerException(
                     "A problem occured while exporting crawler storage.", e);
         }
-        session.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_END);
+        session.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_END, this);
     }
 
     private void exportAllStores(CrawlSession session)

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cluster.impl.infinispan;
+package com.norconex.crawler.core2.stubs;
 
 import static org.assertj.core.api.Assertions.fail;
 
@@ -32,8 +32,8 @@ import com.norconex.crawler.core2.cluster.ClusterConnector;
 import com.norconex.crawler.core2.mocks.cluster.MockMultiNodesConnector;
 import com.norconex.crawler.core2.mocks.cluster.MockSingleNodeConnector;
 
-public final class InfinispanTestUtil {
-    private InfinispanTestUtil() {
+public final class ClusterStubber {
+    private ClusterStubber() {
     }
 
     public static ClusterConnector singleMemoryNodeClusterConnector() {
@@ -77,7 +77,8 @@ public final class InfinispanTestUtil {
         List<Future<Cluster>> futures = new ArrayList<>();
 
         for (var i = 0; i < nodeCount; i++) {
-            futures.add(executor.submit((Callable<Cluster>) InfinispanTestUtil::multiMemoryNodesCluster));
+            futures.add(executor.submit((Callable<
+                    Cluster>) ClusterStubber::multiMemoryNodesCluster));
         }
 
         List<Cluster> clusters = new ArrayList<>();

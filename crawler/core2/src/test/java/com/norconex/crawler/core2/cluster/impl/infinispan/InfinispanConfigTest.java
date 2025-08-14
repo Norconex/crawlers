@@ -21,9 +21,12 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.crawler.core2.cluster.Cache;
+import com.norconex.crawler.core2.stubs.ClusterStubber;
+
 //TODO test persistence (check that already on "core" unit tests
 
-class InfinispanClusterTest {
+class InfinispanConfigTest {
 
     @TempDir
     private Path tempDir;
@@ -32,7 +35,7 @@ class InfinispanClusterTest {
     void testSingleMemoryNodeCluster() {
         //this test ensure our test XML configs work for whatever other
         // tests needing them
-        InfinispanTestUtil.withSingleMemoryNodeCluster(cluster -> {
+        ClusterStubber.withSingleMemoryNodeCluster(cluster -> {
             cluster.init(tempDir);
             //            cluster.init(CrawlContextStubber.crawlerContext(tempDir));
             assertThat(cluster.getLocalNode().isCoordinator()).isTrue();
@@ -50,7 +53,7 @@ class InfinispanClusterTest {
     void testMultiMemoryNodeCluster() {
         //this test ensure our test XML configs work for whatever other
         // tests needing them
-        InfinispanTestUtil.withMultiMemoryNodesCluster(2, (cluster, idx) -> {
+        ClusterStubber.withMultiMemoryNodesCluster(2, (cluster, idx) -> {
             cluster.init(tempDir);
             assertThat(cluster.getLocalNode().isCoordinator()).isTrue();
             var cache =

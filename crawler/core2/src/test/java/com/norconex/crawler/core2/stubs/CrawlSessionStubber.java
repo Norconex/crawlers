@@ -16,7 +16,6 @@ package com.norconex.crawler.core2.stubs;
 
 import java.nio.file.Path;
 
-import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanTestUtil;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlDriverFactory;
 import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.session.CrawlSessionFactory;
@@ -28,7 +27,7 @@ public final class CrawlSessionStubber {
     public static CrawlSession multiNodesCrawlSession(Path workDir) {
         var config = CrawlerConfigStubber.memoryCrawlerConfig(workDir);
         config.setClusterConnector(
-                InfinispanTestUtil.multiMemoryNodesClusterConnector());
+                ClusterStubber.multiMemoryNodesClusterConnector());
         return CrawlSessionFactory.create(
                 MockCrawlDriverFactory.create(),
                 config);
@@ -37,7 +36,7 @@ public final class CrawlSessionStubber {
     public static CrawlSession singleNodeCrawlSession(Path workDir) {
         var config = CrawlerConfigStubber.memoryCrawlerConfig(workDir);
         config.setClusterConnector(
-                InfinispanTestUtil.singleMemoryNodeClusterConnector());
+                ClusterStubber.singleMemoryNodeClusterConnector());
         //        var conn = new InfinispanClusterConnector();
         //        var clusterConfig = conn.getConfiguration();
         //        clusterConfig.getInfinispan().getGlobalConfigurationBuilder()
