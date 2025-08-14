@@ -38,7 +38,8 @@ public final class CrawlerMetricsJMX {
     }
 
     public static void register(CrawlContext crawlContext) {
-        Objects.requireNonNull(crawlContext, "'crawler' must not be null.");
+        Objects.requireNonNull(
+                crawlContext, "'crawlerContext' must not be null.");
         var mbs = ManagementFactory.getPlatformMBeanServer();
         try {
             mbs.registerMBean(crawlContext.getMetrics(),

@@ -111,7 +111,7 @@ public class StopCrawlerOnMaxEventListener implements
     public void accept(Event event) {
         if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
             eventCounts.clear();
-            crawlSession = ((CrawlerEvent) event).getSource();
+            crawlSession = ((CrawlerEvent) event).getCrawlSession();
         }
 
         if (!configuration.getEventMatcher().matches(event.getName())) {

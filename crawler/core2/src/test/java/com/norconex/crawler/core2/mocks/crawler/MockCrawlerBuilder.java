@@ -61,7 +61,7 @@ public class MockCrawlerBuilder {
      * Builds a mock {@link Crawler}.
      * @return crawler
      */
-    public Crawler crawler() {
+    public Crawler build() {
         return new Crawler(crawlDriver, resolvedConfig());
     }
 

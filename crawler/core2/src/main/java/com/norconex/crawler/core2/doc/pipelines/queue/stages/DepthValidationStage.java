@@ -35,11 +35,11 @@ public class DepthValidationStage implements Predicate<QueuePipelineContext> {
                     entry.getDepth(),
                     entry.getReference());
             entry.setProcessingOutcome(ProcessingOutcome.TOO_DEEP);
-            ctx.getCrawlSession().getCrawlContext().fire(
+            ctx.getCrawlSession().fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.REJECTED_TOO_DEEP)
-                            .source(ctx.getCrawlSession())
-                            .subject(entry.getDepth())
+                            .crawlSession(ctx.getCrawlSession())
+                            .source(entry.getDepth())
                             .crawlEntry(entry)
                             .build());
             return false;

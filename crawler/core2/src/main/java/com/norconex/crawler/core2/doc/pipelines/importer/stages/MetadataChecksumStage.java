@@ -62,11 +62,11 @@ public class MetadataChecksumStage extends AbstractImporterStage {
                     .append(" - ")
                     .append("Checksum=")
                     .append(StringUtils.abbreviate(newHeadChecksum, 200));
-            ctx.getCrawlSession().getCrawlContext().fire(CrawlerEvent.builder()
+            ctx.getCrawlSession().fire(CrawlerEvent.builder()
                     .name(CrawlerEvent.REJECTED_UNMODIFIED)
-                    .source(ctx.getCrawlSession().getCrawlContext())
+                    .crawlSession(ctx.getCrawlSession())
                     .crawlEntry(ctx.getDocContext().getCurrentCrawlEntry())
-                    .subject(check)
+                    .source(check)
                     .message(s.toString())
                     .build());
         }

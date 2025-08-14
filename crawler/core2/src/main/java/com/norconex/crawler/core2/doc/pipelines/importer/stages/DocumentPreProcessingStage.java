@@ -26,10 +26,10 @@ public class DocumentPreProcessingStage extends AbstractImporterStage {
                 .getPreImportConsumers()) {
             preProc.accept(ctx.getCrawlSession().getCrawlContext().getFetcher(),
                     ctx.getDocContext().getDoc());
-            ctx.getCrawlSession().getCrawlContext().fire(CrawlerEvent.builder()
+            ctx.getCrawlSession().fire(CrawlerEvent.builder()
                     .name(CrawlerEvent.DOCUMENT_PREIMPORTED)
-                    .source(ctx.getCrawlSession().getCrawlContext())
-                    .subject(preProc)
+                    .crawlSession(ctx.getCrawlSession())
+                    .source(preProc)
                     .crawlEntry(ctx.getDocContext().getCurrentCrawlEntry())
                     .build());
         }

@@ -119,7 +119,7 @@ public class CrawlTestExtensionCallbacks implements
                     .crawlDriver(toCrawlDriver(annotation
                             .driverFactory()))
                     .config(crawlConfig)
-                    .crawler();
+                    .build();
             var captures = CrawlTestCapturer.capture(crawler,
                     Crawler::crawl);
             return new CrawlTestParameters()
@@ -138,7 +138,7 @@ public class CrawlTestExtensionCallbacks implements
             sess.getCluster().getLocalNode();
 
             // simulate crawl begin event
-            sess.getCrawlContext().fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN);
+            sess.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN);
             return new CrawlTestParameters()
                     .setCrawler(null)
                     .setCrawlConfig(crawlConfig)
@@ -169,7 +169,7 @@ public class CrawlTestExtensionCallbacks implements
         if (annotation.focus() == Focus.SESSION
                 && params.getCrawlSession() != null) {
             // "crawl" focus handles the context already.
-            params.getCrawlSession().getCrawlContext().fire(
+            params.getCrawlSession().fire(
                     CrawlerEvent.CRAWLER_CRAWL_END); // simulate
             params.getCrawlSession().close();
             //            CrawlContextTestUtil.destroyCrawlerContext(

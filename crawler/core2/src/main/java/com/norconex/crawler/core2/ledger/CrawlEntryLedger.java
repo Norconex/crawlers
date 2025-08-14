@@ -317,7 +317,7 @@ public final class CrawlEntryLedger {
         crawlEntry.setProcessingStatus(ProcessingStatus.QUEUED);
         currentLedger.put(crawlEntry.getReference(), crawlEntry);
         LOG.debug("Saved queued: {}", crawlEntry.getReference());
-        session.getCrawlContext().fire(CrawlerEvent.builder()
+        session.fire(CrawlerEvent.builder()
                 .name(CrawlerEvent.DOCUMENT_QUEUED)
                 .source(session)
                 .crawlEntry(crawlEntry)

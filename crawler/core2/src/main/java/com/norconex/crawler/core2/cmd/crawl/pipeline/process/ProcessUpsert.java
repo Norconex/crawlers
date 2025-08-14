@@ -122,7 +122,8 @@ final class ProcessUpsert {
     }
 
     private static boolean commitOrRejectDocument(ProcessContext ctx) {
-        var crawlCtx = ctx.crawlSession().getCrawlContext();
+        var session = ctx.crawlSession();
+        var crawlCtx = session.getCrawlContext();
         var currentEntry = ctx.docContext().getCurrentCrawlEntry();
         var response = ctx.importerResponse();
 
@@ -134,11 +135,11 @@ final class ProcessUpsert {
         }
 
         if (response.isSuccess()) {
-            crawlCtx.fire(CrawlerEvent.builder()
+            session.fire(CrawlerEvent.builder()
                     .name(CrawlerEvent.DOCUMENT_IMPORTED)
-                    .source(ctx.crawlSession())
+                    .crawlSession(ctx.crawlSession())
                     .crawlEntry(currentEntry)
-                    .subject(response)
+                    .source(response)
                     .message(msg)
                     .build());
             crawlCtx.getDocPipelines()
@@ -149,14 +150,13 @@ final class ProcessUpsert {
         }
 
         currentEntry.setProcessingOutcome(ProcessingOutcome.REJECTED);
-        ctx.crawlSession().getCrawlContext().fire(
-                CrawlerEvent.builder()
-                        .name(CrawlerEvent.REJECTED_IMPORT)
-                        .source(ctx.crawlSession())
-                        .crawlEntry(currentEntry)
-                        .subject(response)
-                        .message(msg)
-                        .build());
+        session.fire(CrawlerEvent.builder()
+                .name(CrawlerEvent.REJECTED_IMPORT)
+                .crawlSession(ctx.crawlSession())
+                .crawlEntry(currentEntry)
+                .source(response)
+                .message(msg)
+                .build());
         LOG.debug(
                 "Importing unsuccessful for \"{}\": {}",
                 currentEntry.getReference(),

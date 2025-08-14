@@ -41,7 +41,7 @@ public final class CrawlContextTestUtil {
     //                .create();
     //    }
     //
-    //    public static void destroyCrawlerContext(CrawlContext ctx) {
+    //    public static void destroyCrawlerContext(CrawlSession session) {
     //        CrawlContextDestroyer.destroy(ctx);
     //    }
 }

@@ -92,10 +92,10 @@ public class DeleteRejectedEventListener implements
         }
 
         if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
-            init(crawlerEvent.getSource());
+            init(crawlerEvent.getCrawlSession());
         } else if (CrawlerEvent.CRAWLER_CRAWL_END.equals(event.getName())) {
             doneCrawling = true;
-            commitDeletions(crawlerEvent.getSource());
+            commitDeletions(crawlerEvent.getCrawlSession());
         } else {
             storeRejection(crawlerEvent);
         }

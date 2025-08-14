@@ -23,7 +23,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core2.doc.pipelines.committer.CommitterPipelineContext;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlerBuilder;
-import com.norconex.crawler.core2.stubs.CrawlDocStubs;
+import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
 
 class DocumentDedupStageTest {
 
@@ -33,31 +33,40 @@ class DocumentDedupStageTest {
     @Test
     void testTest() {
 
-        //        InfinispanTestUtil.withSingleMemoryNodeCluster(cluster -> {
-        //            cluster.
-        //        });
+        new MockCrawlerBuilder(tempDir)
+                .configModifier(c -> {
+                    c.setDocumentDeduplicate(true);
+                })
+                .build()
+                .withCrawlSession(session -> {
+                    // first time checksum is not found and will cache it.
+                    var docCtx1 =
+                            CrawlDocContextStubber.fresh("ref1",
+                                    "content1");
+                    docCtx1.getCurrentCrawlEntry()
+                            .setContentChecksum("content-checksum");
+                    var pipeCtx1 =
+                            new CommitterPipelineContext(session,
+                                    docCtx1);
+                    assertThat(new DocumentDedupStage().test(pipeCtx1))
+                            .isTrue();
+                });
 
-        new MockCrawlerBuilder(tempDir).configModifier(c -> {
-            c.setDocumentDeduplicate(true);
-        }).withCrawlContext(ctx -> {
-            // first time checksum is not found and will cache it.
-            var doc1 = CrawlDocStubs.crawlDoc("ref1", "content1");
-            doc1.getDocContext().setContentChecksum("content-checksum");
-            var pipeCtx1 = new CommitterPipelineContext(ctx, doc1);
-            assertThat(new DocumentDedupStage().test(pipeCtx1)).isTrue();
-            return null;
-        });
-
-        new MockCrawlerBuilder(tempDir).configModifier(c -> {
-            c.setDocumentDeduplicate(true);
-        }).withCrawlContext(ctx -> {
-            // second time checksum is found and will reject the dupl.
-            var doc2 = CrawlDocStubs.crawlDoc("ref2", "content2");
-            doc2.getDocContext().setContentChecksum("content-checksum");
-            var pipeCtx2 = new CommitterPipelineContext(ctx, doc2);
-            assertThat(new DocumentDedupStage().test(pipeCtx2)).isFalse();
-            return null;
-        });
-
+        new MockCrawlerBuilder(tempDir)
+                .configModifier(c -> {
+                    c.setDocumentDeduplicate(true);
+                })
+                .build()
+                .withCrawlSession(session -> {
+                    // first time checksum is not found and will cache it.
+                    var docCtx2 =
+                            CrawlDocContextStubber.fresh("ref1", "content2");
+                    docCtx2.getCurrentCrawlEntry()
+                            .setContentChecksum("content-checksum");
+                    var pipeCtx2 =
+                            new CommitterPipelineContext(session, docCtx2);
+                    assertThat(new DocumentDedupStage().test(pipeCtx2))
+                            .isTrue();
+                });
     }
 }

@@ -19,45 +19,45 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.function.Consumer;
 
 import com.norconex.crawler.core2.cli.CliException;
-import com.norconex.crawler.core2.doc.CrawlDocContext;
 import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
+import com.norconex.crawler.core2.ledger.CrawlEntry;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlerBuilder;
-import com.norconex.crawler.core2.session.CrawlContext;
+import com.norconex.crawler.core2.session.CrawlSession;
 
 class CrawlerEventTest {
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testCrawlerEvent(CrawlContext ctx) {
-        var event = event(ctx, b -> {});
+    @CrawlTest(focus = Focus.SESSION)
+    void testCrawlerEvent(CrawlSession session) {
+        var event = event(session, b -> {});
 
-        assertThat(event.getSubject()).hasToString("somesubject");
-        assertThat(event.getSource())
+        assertThat(event.getSource()).hasToString("somesubject");
+        assertThat(event.getCrawlSession())
                 .hasToString(MockCrawlerBuilder.CRAWLER_ID);
-        assertThat(event.getDocContext().getReference()).isEqualTo("someref");
+        assertThat(event.getCrawlEntry().getReference()).isEqualTo("someref");
         assertThat(event).hasToString("someref - somemessage");
 
-        event = event(ctx, b -> b.docContext(null));
+        event = event(session, b -> b.crawlEntry(null));
         assertThat(event).hasToString("somemessage");
 
-        event = event(ctx, b -> b.message(null));
+        event = event(session, b -> b.message(null));
         assertThat(event).hasToString("someref - somesubject");
 
-        event = event(ctx, b -> b.message(null).subject(null));
+        event = event(session, b -> b.message(null).source(null));
         assertThat(event)
                 .hasToString("someref - " + MockCrawlerBuilder.CRAWLER_ID);
     }
 
     private CrawlerEvent event(
-            CrawlContext crawlContext,
+            CrawlSession session,
             Consumer<CrawlerEvent.CrawlerEventBuilder<?, ?>> c) {
         CrawlerEvent.CrawlerEventBuilder<?, ?> b = CrawlerEvent.builder()
-                .docContext(new CrawlDocContext("someref"))
+                .crawlEntry(new CrawlEntry("someref"))
                 .exception(new CliException("someexception"))
                 .message("somemessage")
                 .name(CrawlerEvent.CRAWLER_CRAWL_BEGIN)
-                .source(crawlContext)
-                .subject("somesubject");
+                .source("somesubject")
+                .crawlSession(session);
         c.accept(b);
         return b.build();
     }

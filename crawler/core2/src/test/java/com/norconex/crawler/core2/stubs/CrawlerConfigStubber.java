@@ -63,6 +63,7 @@ import com.norconex.crawler.core2.doc.operations.spoil.impl.GenericSpoiledRefere
 import com.norconex.crawler.core2.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core2.fetch.Fetcher;
 import com.norconex.crawler.core2.mocks.cluster.MockFailingCluster;
+import com.norconex.crawler.core2.mocks.cluster.MockSingleNodeConnector;
 import com.norconex.importer.ImporterConfig;
 
 import lombok.NonNull;
@@ -162,6 +163,7 @@ public final class CrawlerConfigStubber {
                 // Some tests define this so we can't set it as default here.
                 //                .setNumThreads(1)
                 .setWorkDir(workDir)
+                .setClusterConnector(new MockSingleNodeConnector())
                 .setCommitters(List.of(new MemoryCommitter()));
     }
 

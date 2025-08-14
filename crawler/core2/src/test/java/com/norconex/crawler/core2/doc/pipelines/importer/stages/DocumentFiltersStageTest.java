@@ -18,14 +18,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
+import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.doc.operations.filter.DocumentFilter;
 import com.norconex.crawler.core2.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core2.doc.operations.filter.OnMatchFilter;
 import com.norconex.crawler.core2.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.session.CrawlContext;
-import com.norconex.crawler.core2.stubs.CrawlDocStubs;
+import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
 import com.norconex.importer.doc.Doc;
 
 import lombok.AllArgsConstructor;
@@ -33,10 +34,11 @@ import lombok.Data;
 
 class DocumentFiltersStageTest {
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testDocumentFiltersStage(CrawlContext crawlCtx) {
-        var doc = CrawlDocStubs.crawlDoc("ref");
-        var ctx = new ImporterPipelineContext(crawlCtx, doc);
+    @CrawlTest(focus = Focus.SESSION)
+    void testDocumentFiltersStage(
+            CrawlSession session, CrawlContext crawlCtx) {
+        var docCtx = CrawlDocContextStubber.fresh("ref");
+        var ctx = new ImporterPipelineContext(session, docCtx);
         var stage = new DocumentFiltersStage();
 
         // no filters is equal to a match

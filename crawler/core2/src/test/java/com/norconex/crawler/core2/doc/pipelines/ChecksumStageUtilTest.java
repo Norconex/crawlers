@@ -14,9 +14,6 @@
  */
 package com.norconex.crawler.core2.doc.pipelines;
 
-import static com.norconex.crawler.core2.doc.ProcessingOutcome.MODIFIED;
-import static com.norconex.crawler.core2.doc.ProcessingOutcome.NEW;
-import static com.norconex.crawler.core2.doc.ProcessingOutcome.UNMODIFIED;
 import static com.norconex.crawler.core2.doc.pipelines.ChecksumStageUtil.resolveDocumentChecksum;
 import static com.norconex.crawler.core2.doc.pipelines.ChecksumStageUtil.resolveMetaChecksum;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,106 +22,126 @@ import com.norconex.crawler.core2.doc.pipelines.committer.CommitterPipelineConte
 import com.norconex.crawler.core2.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.session.CrawlContext;
-import com.norconex.crawler.core2.stubs.CrawlDocStubs;
+import com.norconex.crawler.core2.ledger.ProcessingOutcome;
+import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
 
 class ChecksumStageUtilTest {
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testResolveMetaChecksum(CrawlContext crawlCtx) {
+    @CrawlTest(focus = Focus.SESSION)
+    void testResolveMetaChecksum(CrawlSession session) {
         // true is new/modified
-
-        var doc = CrawlDocStubs.crawlDoc("ref");
-        var ctx = new ImporterPipelineContext(crawlCtx, doc);
+        var docCtx = CrawlDocContextStubber.fresh("ref");
+        new ImporterPipelineContext(session, docCtx);
 
         //--- NO CACHE ---
+        var currentEntry = docCtx.getCurrentCrawlEntry();
 
         // no checksum - no cache
-        assertThat(resolveMetaChecksum(null, doc)).isTrue();
-        assertThat(ctx.getDoc().getDocContext().getState()).isSameAs(NEW);
+        assertThat(resolveMetaChecksum(null, docCtx)).isTrue();
+        assertThat(currentEntry.getProcessingOutcome())
+                .isSameAs(ProcessingOutcome.NEW);
 
         // checksum - no cache
-        assertThat(resolveMetaChecksum("abc", doc)).isTrue();
-        assertThat(ctx.getDoc().getDocContext().getState()).isSameAs(NEW);
+        assertThat(resolveMetaChecksum("abc", docCtx)).isTrue();
+        assertThat(currentEntry.getProcessingOutcome())
+                .isSameAs(ProcessingOutcome.NEW);
 
         //--- WITH CACHE ---
-        doc = CrawlDocStubs.crawlDocWithCache("ref", "content");
-        ctx = new ImporterPipelineContext(crawlCtx, doc);
+        docCtx = CrawlDocContextStubber.incremental("ref", "content");
+        currentEntry = docCtx.getCurrentCrawlEntry();
+        var prevEntry = docCtx.getPreviousCrawlEntry();
+        new ImporterPipelineContext(session, docCtx);
 
         // no checksum - cache with no checksum
         // we considered null-null to mean modified
-        ctx.getDoc().getCachedDocContext().setMetaChecksum(null);
-        assertThat(resolveMetaChecksum("abc", doc)).isTrue();
-        assertThat(ctx.getDoc().getDocContext().getState()).isSameAs(MODIFIED);
+        prevEntry.setMetaChecksum(null);
+        assertThat(resolveMetaChecksum("abc", docCtx)).isTrue();
+        assertThat(currentEntry.getProcessingOutcome())
+                .isSameAs(ProcessingOutcome.MODIFIED);
 
         // no checksum - cache with checksum
-        ctx.getDoc().getCachedDocContext().setMetaChecksum("abc");
-        assertThat(resolveMetaChecksum(null, doc)).isTrue();
-        assertThat(ctx.getDoc().getDocContext().getState()).isSameAs(MODIFIED);
+        prevEntry.setMetaChecksum("abc");
+        assertThat(resolveMetaChecksum(null, docCtx)).isTrue();
+        assertThat(docCtx.getCurrentCrawlEntry().getProcessingOutcome())
+                .isSameAs(ProcessingOutcome.MODIFIED);
 
         // checksum - cache with no checksum
-        ctx.getDoc().getCachedDocContext().setMetaChecksum(null);
-        assertThat(resolveMetaChecksum("abc", doc)).isTrue();
-        assertThat(ctx.getDoc().getDocContext().getState()).isSameAs(MODIFIED);
+        prevEntry.setMetaChecksum(null);
+        assertThat(resolveMetaChecksum("abc", docCtx)).isTrue();
+        assertThat(docCtx.getCurrentCrawlEntry().getProcessingOutcome())
+                .isSameAs(ProcessingOutcome.MODIFIED);
 
         // checksum - cache with checksum - same
-        ctx.getDoc().getCachedDocContext().setMetaChecksum("abc");
-        assertThat(resolveMetaChecksum("abc", doc)).isFalse();
+        prevEntry.setMetaChecksum("abc");
+        assertThat(resolveMetaChecksum("abc", docCtx)).isFalse();
         assertThat(
-                ctx.getDoc().getDocContext().getState()).isSameAs(UNMODIFIED);
+                docCtx.getCurrentCrawlEntry().getProcessingOutcome())
+                        .isSameAs(ProcessingOutcome.UNMODIFIED);
 
         // checksum - cache with checksum - different
-        ctx.getDoc().getCachedDocContext().setMetaChecksum("cde");
-        assertThat(resolveMetaChecksum("abc", doc)).isTrue();
-        assertThat(ctx.getDoc().getDocContext().getState()).isSameAs(MODIFIED);
+        prevEntry.setMetaChecksum("cde");
+        assertThat(resolveMetaChecksum("abc", docCtx)).isTrue();
+        assertThat(docCtx.getCurrentCrawlEntry().getProcessingOutcome())
+                .isSameAs(ProcessingOutcome.MODIFIED);
     }
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testResolveDocumentChecksum(CrawlContext crawlCtx) {
+    @CrawlTest(focus = Focus.SESSION)
+    void testResolveDocumentChecksum(CrawlSession session) {
         // true is new/modified
 
-        var doc = CrawlDocStubs.crawlDoc("ref");
-        var ctx = new CommitterPipelineContext(crawlCtx, doc);
+        var docCtx = CrawlDocContextStubber.fresh("ref");
+        var currentEntry = docCtx.getCurrentCrawlEntry();
+        new CommitterPipelineContext(session, docCtx);
 
         //--- NO CACHE ---
 
         // no checksum - no cache
-        assertThat(resolveDocumentChecksum(null, doc)).isTrue();
-        assertThat(ctx.getDoc().getDocContext().getState()).isSameAs(NEW);
+        assertThat(resolveDocumentChecksum(null, docCtx)).isTrue();
+        assertThat(currentEntry.getProcessingOutcome())
+                .isSameAs(ProcessingOutcome.NEW);
 
         // checksum - no cache
-        assertThat(resolveDocumentChecksum("abc", doc)).isTrue();
-        assertThat(ctx.getDoc().getDocContext().getState()).isSameAs(NEW);
+        assertThat(resolveDocumentChecksum("abc", docCtx)).isTrue();
+        assertThat(currentEntry.getProcessingOutcome())
+                .isSameAs(ProcessingOutcome.NEW);
 
         //--- WITH CACHE ---
-        doc = CrawlDocStubs.crawlDocWithCache("ref", "content");
-        ctx = new CommitterPipelineContext(crawlCtx, doc);
+        docCtx = CrawlDocContextStubber.incremental("ref", "content");
+        currentEntry = docCtx.getCurrentCrawlEntry();
+        var prevEntry = docCtx.getPreviousCrawlEntry();
+        new CommitterPipelineContext(session, docCtx);
 
         // no checksum - cache with no checksum
         // we considered null-null to mean modified
-        ctx.getDoc().getCachedDocContext().setContentChecksum(null);
-        assertThat(resolveDocumentChecksum("abc", doc)).isTrue();
-        assertThat(ctx.getDoc().getDocContext().getState()).isSameAs(MODIFIED);
+        prevEntry.setContentChecksum(null);
+        assertThat(resolveDocumentChecksum("abc", docCtx)).isTrue();
+        assertThat(docCtx.getCurrentCrawlEntry().getProcessingOutcome())
+                .isSameAs(ProcessingOutcome.MODIFIED);
 
         // no checksum - cache with checksum
-        ctx.getDoc().getCachedDocContext().setContentChecksum("abc");
-        assertThat(resolveDocumentChecksum(null, doc)).isTrue();
-        assertThat(ctx.getDoc().getDocContext().getState()).isSameAs(MODIFIED);
+        prevEntry.setContentChecksum("abc");
+        assertThat(resolveDocumentChecksum(null, docCtx)).isTrue();
+        assertThat(docCtx.getCurrentCrawlEntry().getProcessingOutcome())
+                .isSameAs(ProcessingOutcome.MODIFIED);
 
         // checksum - cache with no checksum
-        ctx.getDoc().getCachedDocContext().setContentChecksum(null);
-        assertThat(resolveDocumentChecksum("abc", doc)).isTrue();
-        assertThat(ctx.getDoc().getDocContext().getState()).isSameAs(MODIFIED);
+        prevEntry.setContentChecksum(null);
+        assertThat(resolveDocumentChecksum("abc", docCtx)).isTrue();
+        assertThat(docCtx.getCurrentCrawlEntry().getProcessingOutcome())
+                .isSameAs(ProcessingOutcome.MODIFIED);
 
         // checksum - cache with checksum - same
-        ctx.getDoc().getCachedDocContext().setContentChecksum("abc");
-        assertThat(resolveDocumentChecksum("abc", doc)).isFalse();
+        prevEntry.setContentChecksum("abc");
+        assertThat(resolveDocumentChecksum("abc", docCtx)).isFalse();
         assertThat(
-                ctx.getDoc().getDocContext().getState()).isSameAs(UNMODIFIED);
+                docCtx.getCurrentCrawlEntry().getProcessingOutcome())
+                        .isSameAs(ProcessingOutcome.UNMODIFIED);
 
         // checksum - cache with checksum - different
-        ctx.getDoc().getCachedDocContext().setContentChecksum("cde");
-        assertThat(resolveDocumentChecksum("abc", doc)).isTrue();
-        assertThat(ctx.getDoc().getDocContext().getState()).isSameAs(MODIFIED);
+        prevEntry.setContentChecksum("cde");
+        assertThat(resolveDocumentChecksum("abc", docCtx)).isTrue();
+        assertThat(docCtx.getCurrentCrawlEntry().getProcessingOutcome())
+                .isSameAs(ProcessingOutcome.MODIFIED);
     }
 }

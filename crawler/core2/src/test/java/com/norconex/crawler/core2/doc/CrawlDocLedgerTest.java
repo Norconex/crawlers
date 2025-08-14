@@ -15,72 +15,70 @@
 package com.norconex.crawler.core2.doc;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.nio.file.Path;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.commons.lang.ClassUtil;
 import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.junit.ParameterizedGridConnectorTest;
+import com.norconex.crawler.core2.ledger.CrawlEntry;
+import com.norconex.crawler.core2.ledger.ProcessingStatus;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlerBuilder;
-import com.norconex.crawler.core2.session.CrawlContext;
-import com.norconex.grid.core.GridConnector;
+import com.norconex.crawler.core2.session.CrawlSession;
 
 class CrawlDocLedgerTest {
 
     @TempDir
     private Path tempDir;
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testCleanCrawl(CrawlContext ctx) {
-        var ledger = ctx.getDocLedger();
-        // forEach[...] returns true by default when there are no matches
-        // we use this here to figure out emptiness for all stages
-        assertThat(ledger.forEachCached((s, r) -> false)).isTrue();
-        assertThat(ledger.forEachProcessed((s, r) -> false)).isTrue();
-        assertThat(ledger.forEachQueued((s, r) -> false)).isTrue();
+    @CrawlTest(focus = Focus.SESSION)
+    void testCleanCrawl(CrawlSession session) {
+        var ledger = session.getCrawlContext().getCrawlEntryLedger();
+        assertThatNoException().isThrownBy(() -> {
+            ledger.forEachPrevious(entry -> {});
+            ledger.forEachProcessed(entry -> {});
+            ledger.forEachQueued(entry -> {});
+        });
     }
 
-    @ParameterizedGridConnectorTest
-    void testPersistence(Class<? extends GridConnector> connClass) {
+    @Test
+    void testPersistence() {
 
         new MockCrawlerBuilder(tempDir)
-                .configModifier(cfg -> cfg
-                        .setGridConnector(ClassUtil
-                                .newInstance(connClass)))
-                .withCrawlContext(ctx -> {
-                    var ledger1 = ctx.getDocLedger();
-                    ledger1.queue(new CrawlDocContext(
-                            "ref:queue1"));
-                    ledger1.queue(new CrawlDocContext(
-                            "ref:queue2"));
-                    ledger1.processed(
-                            new CrawlDocContext(
-                                    "ref:processed1"));
-                    ledger1.processed(
-                            new CrawlDocContext(
-                                    "ref:processed2"));
-                    ledger1.processed(
-                            new CrawlDocContext(
-                                    "ref:processed3"));
-                    return null;
+                .build()
+                .withCrawlSession(session -> {
+                    var ledger1 =
+                            session.getCrawlContext().getCrawlEntryLedger();
+                    ledger1.queue(new CrawlEntry("ref:queue1"));
+                    ledger1.queue(new CrawlEntry("ref:queue2"));
+
+                    var entry = new CrawlEntry("ref:processed1");
+                    entry.setProcessingStatus(ProcessingStatus.PROCESSED);
+                    ledger1.updateEntry(entry);
+
+                    entry = new CrawlEntry("ref:processed2");
+                    entry.setProcessingStatus(ProcessingStatus.PROCESSED);
+                    ledger1.updateEntry(entry);
+
+                    entry = new CrawlEntry("ref:processed3");
+                    entry.setProcessingStatus(ProcessingStatus.PROCESSED);
+                    ledger1.updateEntry(entry);
                 });
 
         // simulate resume
 
         new MockCrawlerBuilder(tempDir)
-                .configModifier(cfg -> cfg
-                        .setGridConnector(ClassUtil
-                                .newInstance(connClass)))
-                .withCrawlContext(ctx -> {
-                    var ledger2 = ctx.getDocLedger();
+                .build()
+                .withCrawlSession(session -> {
+                    var ledger2 =
+                            session.getCrawlContext().getCrawlEntryLedger();
                     assertThat(ledger2.getQueueCount())
                             .isEqualTo(2);
                     assertThat(ledger2.getProcessedCount())
                             .isEqualTo(3);
-                    return null;
                 });
     }
 }

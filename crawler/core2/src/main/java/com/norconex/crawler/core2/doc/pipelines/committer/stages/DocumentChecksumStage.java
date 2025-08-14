@@ -60,12 +60,12 @@ public class DocumentChecksumStage
                     .append(" - ")
                     .append("Checksum=")
                     .append(StringUtils.abbreviate(newDocChecksum, 200));
-            ctx.getCrawlSession().getCrawlContext().fire(
+            ctx.getCrawlSession().fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.REJECTED_UNMODIFIED)
-                            .source(ctx.getCrawlSession())
+                            .crawlSession(ctx.getCrawlSession())
                             .crawlEntry(docContext.getCurrentCrawlEntry())
-                            .subject(checksummer)
+                            .source(checksummer)
                             .message(s.toString())
                             .build());
         }

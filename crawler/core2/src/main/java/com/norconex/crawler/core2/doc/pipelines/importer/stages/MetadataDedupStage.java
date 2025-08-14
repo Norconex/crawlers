@@ -56,11 +56,11 @@ public class MetadataDedupStage extends AbstractImporterStage {
                     docContext.getReference());
             docContext.getCurrentCrawlEntry()
                     .setProcessingOutcome(ProcessingOutcome.REJECTED);
-            ctx.getCrawlSession().getCrawlContext().fire(
+            ctx.getCrawlSession().fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.REJECTED_DUPLICATE)
-                            .source(ctx.getCrawlSession().getCrawlContext())
-                            .subject(duplRef.get())
+                            .crawlSession(ctx.getCrawlSession())
+                            .source(duplRef.get())
                             .crawlEntry(
                                     ctx.getDocContext().getCurrentCrawlEntry())
                             .message("A document with the same metadata "

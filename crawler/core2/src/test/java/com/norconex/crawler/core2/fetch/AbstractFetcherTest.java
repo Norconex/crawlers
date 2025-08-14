@@ -25,13 +25,14 @@ import org.junit.jupiter.api.Test;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.Xml;
+import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
 import com.norconex.crawler.core2.mocks.fetch.MockFetchRequest;
 import com.norconex.crawler.core2.mocks.fetch.MockFetcher;
-import com.norconex.crawler.core2.session.CrawlContext;
+import com.norconex.crawler.core2.session.CrawlSession;
 
 class AbstractFetcherTest {
 
@@ -49,8 +50,8 @@ class AbstractFetcherTest {
         assertThat(f.acceptRequest(new MockFetchRequest("potato"))).isTrue();
     }
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testEvents(CrawlContext crawlCtx) {
+    @CrawlTest(focus = Focus.SESSION)
+    void testEvents(CrawlSession session) {
         List<String> methodsCalled = new ArrayList<>();
         var f = new MockFetcher() {
             @Override
@@ -65,11 +66,11 @@ class AbstractFetcherTest {
         };
         f.accept(CrawlerEvent.builder()
                 .name(CrawlerEvent.CRAWLER_CRAWL_BEGIN)
-                .source(crawlCtx)
+                .source(session)
                 .build());
         f.accept(CrawlerEvent.builder()
                 .name(CrawlerEvent.CRAWLER_CRAWL_END)
-                .source(crawlCtx)
+                .source(session)
                 .build());
 
         assertThat(methodsCalled).containsExactly(

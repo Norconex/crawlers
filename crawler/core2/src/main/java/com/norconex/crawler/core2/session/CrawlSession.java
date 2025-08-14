@@ -27,11 +27,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.norconex.commons.lang.event.Event;
 import com.norconex.crawler.core2.CrawlerException;
 import com.norconex.crawler.core2.cluster.Cache;
 import com.norconex.crawler.core2.cluster.Cluster;
 import com.norconex.crawler.core2.cluster.ClusterNode;
 import com.norconex.crawler.core2.context.CrawlContext;
+import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.util.ExceptionSwallower;
 import com.norconex.crawler.core2.util.SerialUtil;
 
@@ -348,6 +350,45 @@ public class CrawlSession implements Closeable {
     public void updateCrawlState(CrawlState state) {
         saveCrawlState(new State().setCrawlState(state)
                 .setLastUpdated(System.currentTimeMillis()));
+    }
+
+    /**
+     * Shortcut method for firing an event equivalent to:
+     * <code>session.getCrawlContext().getEventManager().fire(event)</code>.
+     * @param event the event to fire
+     */
+    public void fire(Event event) {
+        crawlContext.getEventManager().fire(event);
+    }
+
+    /**
+     * Shortcut method for firing a {@link CrawlerEvent} with the
+     * <code>crawlSession</code> field already set. Equivalent to:
+     * <code>
+     * session.getCrawlContext().getEventManager().fire(crawlerEvent)
+     * </code>.
+     * @param eventName name of the event to fire
+     */
+    public void fire(String eventName) {
+        fire(CrawlerEvent.builder().name(eventName).crawlSession(this).build());
+    }
+
+    /**
+     * Shortcut method for firing a {@link CrawlerEvent} with the supplied
+     * source and with the <code>crawlSession</code> field already set.
+     * Equivalent to:
+     * <code>
+     * session.getCrawlContext().getEventManager().fire(crawlerEvent)
+     * </code>.
+     * @param eventName name of the event to fire
+     * @param source the event source
+     */
+    public void fire(String eventName, Object source) {
+        fire(CrawlerEvent.builder()
+                .name(eventName)
+                .crawlSession(this)
+                .source(source)
+                .build());
     }
 
     private void saveCrawlState(State state) {

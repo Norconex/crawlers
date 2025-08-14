@@ -48,10 +48,10 @@ public class DocumentDedupStage implements Predicate<CommitterPipelineContext> {
             }
             docContext.getCurrentCrawlEntry().setProcessingOutcome(
                     ProcessingOutcome.REJECTED);
-            ctx.getCrawlSession().getCrawlContext().fire(CrawlerEvent.builder()
+            ctx.getCrawlSession().fire(CrawlerEvent.builder()
                     .name(CrawlerEvent.REJECTED_DUPLICATE)
-                    .source(ctx.getCrawlSession())
-                    .subject(duplRef.get())
+                    .crawlSession(ctx.getCrawlSession())
+                    .source(duplRef.get())
                     .crawlEntry(ctx.getDocContext().getCurrentCrawlEntry())
                     .message("A document with the same content "
                             + "checksum was already processed: "

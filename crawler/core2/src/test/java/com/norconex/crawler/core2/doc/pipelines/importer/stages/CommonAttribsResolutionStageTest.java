@@ -21,15 +21,16 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.crawler.core2.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.session.CrawlContext;
-import com.norconex.crawler.core2.stubs.CrawlDocStubs;
+import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
 import com.norconex.importer.doc.DocMetaConstants;
 
 class CommonAttribsResolutionStageTest {
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testCommonAttribsResolutionStage(CrawlContext crawlCtx) {
-        var doc = CrawlDocStubs.crawlDoc(
+    @CrawlTest(focus = Focus.SESSION)
+    void testCommonAttribsResolutionStage(CrawlSession session) {
+
+        var docCtx = CrawlDocContextStubber.fresh(
                 "ref",
                 """
                 <html>
@@ -40,11 +41,13 @@ class CommonAttribsResolutionStageTest {
                   </body>
                 </html>
                 """);
-        var ctx = new ImporterPipelineContext(crawlCtx, doc);
+        var ctx = new ImporterPipelineContext(session, docCtx);
         new CommonAttribsResolutionStage().test(ctx);
 
-        assertThat(doc.getDocContext().getCharset()).isEqualTo(UTF_8);
-        assertThat(doc.getDocContext().getContentType()).isEqualTo(
+        var doc = docCtx.getDoc();
+
+        assertThat(doc.getCharset()).isEqualTo(UTF_8);
+        assertThat(doc.getContentType()).isEqualTo(
                 ContentType.HTML);
 
         assertThat(doc.getMetadata().getString(

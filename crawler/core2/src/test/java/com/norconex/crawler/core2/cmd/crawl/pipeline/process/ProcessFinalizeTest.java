@@ -81,7 +81,7 @@ class ProcessFinalizeTest {
 
         ctx.finalized(false);
         currentEntry.setProcessingOutcome(ProcessingOutcome.BAD_STATUS);
-        //        ctx.docContext().setState(ProcessingOutcome.BAD_STATUS);
+        //        ctx.docContext().setProcessingOutcome(ProcessingOutcome.BAD_STATUS);
         prevEntry.setProcessingOutcome(ProcessingOutcome.MODIFIED);
         strategy.setValue(SpoiledReferenceStrategy.GRACE_ONCE);
         assertThatNoException().isThrownBy(() -> {

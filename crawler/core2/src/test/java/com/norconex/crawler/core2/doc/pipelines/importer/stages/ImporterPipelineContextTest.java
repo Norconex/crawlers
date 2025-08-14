@@ -18,20 +18,22 @@ import static com.norconex.crawler.core2.fetch.FetchDirective.DOCUMENT;
 import static com.norconex.crawler.core2.fetch.FetchDirective.METADATA;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core2.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.session.CrawlContext;
-import com.norconex.crawler.core2.stubs.CrawlDocStubs;
+import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
 
 class ImporterPipelineContextTest {
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testImporterPipelineContext(CrawlContext crawlCtx) {
-        var doc = CrawlDocStubs.crawlDoc(
+    @CrawlTest(focus = Focus.SESSION)
+    void testImporterPipelineContext(
+            CrawlSession session, CrawlContext crawlCtx) {
+        var docCtx = CrawlDocContextStubber.fresh(
                 "ref", "content", "myfield", "somevalue");
-        var ctx = new ImporterPipelineContext(crawlCtx, doc);
+        var ctx = new ImporterPipelineContext(session, docCtx);
 
         // metadata: disabled; document: enabled
         crawlCtx.getCrawlConfig().setMetadataFetchSupport(

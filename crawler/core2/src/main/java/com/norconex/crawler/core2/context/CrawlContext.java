@@ -31,7 +31,6 @@ import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanUtil;
-import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.io.CachedStreamFactory;
@@ -41,7 +40,6 @@ import com.norconex.crawler.core2.CrawlConfig;
 import com.norconex.crawler.core2.cmd.crawl.pipeline.bootstrap.CrawlBootstrapper;
 import com.norconex.crawler.core2.doc.pipelines.CrawlDocPipelines;
 import com.norconex.crawler.core2.doc.pipelines.DedupService;
-import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.fetch.Fetcher;
 import com.norconex.crawler.core2.ledger.CrawlEntry;
 import com.norconex.crawler.core2.ledger.CrawlEntryLedger;
@@ -135,22 +133,6 @@ public class CrawlContext implements Closeable {
     //        return crawlMode == CrawlMode.INCREMENTAL;
     //    }
     //
-    //TODO keep "fire" methods on event manager and not here?
-    public void fire(Event event) {
-        getEventManager().fire(event);
-    }
-
-    public void fire(String eventName) {
-        fire(CrawlerEvent.builder().name(eventName).source(this).build());
-    }
-
-    public void fire(String eventName, Object subject) {
-        fire(CrawlerEvent.builder()
-                .name(eventName)
-                .source(this)
-                .subject(subject)
-                .build());
-    }
 
     public CrawlEntry createCrawlEntry(@NonNull String reference) {
         var docContext = ClassUtil.newInstance(crawlEntryType);

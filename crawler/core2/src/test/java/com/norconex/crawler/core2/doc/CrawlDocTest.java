@@ -18,18 +18,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.commons.lang.io.CachedInputStream;
+import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
 
 class CrawlDocTest {
 
     @Test
     void testCrawlDoc() {
-        var rec = new CrawlDocContext("ref");
-        var doc = new CrawlDoc(rec);
-        assertThat(doc.hasCache()).isFalse();
+        var docCtx = CrawlDocContextStubber.fresh("ref");
+        assertThat(docCtx.getPreviousCrawlEntry() == null).isTrue();
 
-        var cachedRec = new CrawlDocContext("ref");
-        doc = new CrawlDoc(rec, cachedRec, CachedInputStream.nullInputStream());
-        assertThat(doc.hasCache()).isTrue();
+        docCtx = CrawlDocContextStubber.incremental("ref");
+        assertThat(docCtx.getPreviousCrawlEntry() == null).isFalse();
     }
 }

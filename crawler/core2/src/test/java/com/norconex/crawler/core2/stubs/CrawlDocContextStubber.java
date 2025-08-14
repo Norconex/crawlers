@@ -26,10 +26,11 @@ public final class CrawlDocContextStubber {
     }
 
     // no previous entry
-    public static CrawlDocContext fresh(String ref, String content) {
+    public static CrawlDocContext fresh(
+            String ref, String content, Object... metaKeyValues) {
         return CrawlDocContext.builder()
                 .currentCrawlEntry(new CrawlEntry(ref))
-                .doc(DocStubber.doc(ref, content))
+                .doc(DocStubber.doc(ref, content, metaKeyValues))
                 .build();
     }
 
@@ -38,11 +39,12 @@ public final class CrawlDocContextStubber {
         return incremental(ref, DocStubber.CRAWLDOC_CONTENT);
     }
 
-    public static CrawlDocContext incremental(String ref, String content) {
+    public static CrawlDocContext incremental(
+            String ref, String content, Object... metaKeyValues) {
         return CrawlDocContext.builder()
                 .currentCrawlEntry(new CrawlEntry(ref))
                 .previousCrawlEntry(new CrawlEntry(ref))
-                .doc(DocStubber.doc(ref, content))
+                .doc(DocStubber.doc(ref, content, metaKeyValues))
                 .build();
     }
 }

@@ -46,7 +46,7 @@ public class StoreImportCommand implements Command {
         var ctx = session.getCrawlContext();
 
         Thread.currentThread().setName(ctx.getId() + "/STORE_IMPORT");
-        ctx.fire(CrawlerEvent.CRAWLER_STORE_IMPORT_BEGIN);
+        session.fire(CrawlerEvent.CRAWLER_STORE_IMPORT_BEGIN);
         try {
             session.getCluster().getTaskManager()
                     .runOnOneSync("storeImportTask", sess -> {
@@ -61,7 +61,7 @@ public class StoreImportCommand implements Command {
         } catch (Exception e) {
             throw new CrawlerException("Could not import file: " + inFile, e);
         }
-        ctx.fire(CrawlerEvent.CRAWLER_STORE_IMPORT_END);
+        session.fire(CrawlerEvent.CRAWLER_STORE_IMPORT_END);
     }
 
     private void importAllStores(CrawlSession session)

@@ -25,48 +25,54 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoSettings;
 
 import com.norconex.crawler.core2.CrawlConfig;
-import com.norconex.crawler.core2.doc.CrawlDocStatus;
+import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.doc.pipelines.DedupService;
 import com.norconex.crawler.core2.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core2.fetch.FetchDirective;
 import com.norconex.crawler.core2.fetch.FetchDirectiveSupport;
-import com.norconex.crawler.core2.session.CrawlContext;
-import com.norconex.crawler.core2.stubs.CrawlDocStubs;
+import com.norconex.crawler.core2.ledger.ProcessingOutcome;
+import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
 
 @MockitoSettings
 class MetadataDedupStageTest {
 
     @Mock
-    private CrawlContext crawlerCtx;
+    private CrawlSession crawlSession;
+    @Mock
+    private CrawlContext crawlContext;
     @Mock
     private DedupService dedupService;
 
     @Test
     void testMetadataDedupStage() {
+        when(crawlSession.getCrawlContext()).thenReturn(crawlContext);
         when(dedupService.findOrTrackMetadata(Mockito.any()))
                 .thenReturn(Optional.of("someRef"));
-        when(crawlerCtx.getDedupService()).thenReturn(dedupService);
+        when(crawlContext.getDedupService()).thenReturn(dedupService);
 
         var cfg = new CrawlConfig();
         cfg.setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED);
-        when(crawlerCtx.getCrawlConfig()).thenReturn(cfg);
+        when(crawlContext.getCrawlConfig()).thenReturn(cfg);
 
-        var doc = CrawlDocStubs.crawlDoc("ref", "content");
-        doc.getDocContext().setMetaChecksum("somechecksum");
+        var docCtx = CrawlDocContextStubber.fresh("ref", "content");
+        docCtx.getCurrentCrawlEntry().setMetaChecksum("somechecksum");
 
         // Has duplicate meta
-        var ctx = new ImporterPipelineContext(crawlerCtx, doc);
-        doc.getDocContext().setState(ProcessingOutcome.NEW);
+        var ctx = new ImporterPipelineContext(crawlSession, docCtx);
+        docCtx.getCurrentCrawlEntry()
+                .setProcessingOutcome(ProcessingOutcome.NEW);
         new MetadataDedupStage(FetchDirective.METADATA).test(ctx);
-        assertThat(doc.getDocContext().getState()).isSameAs(
-                ProcessingOutcome.REJECTED);
+        assertThat(docCtx.getCurrentCrawlEntry().getProcessingOutcome())
+                .isSameAs(ProcessingOutcome.REJECTED);
 
         // Does not have duplicate meta
         when(dedupService.findOrTrackMetadata(Mockito.any()))
                 .thenReturn(Optional.empty());
-        doc.getDocContext().setState(ProcessingOutcome.NEW);
+        docCtx.getCurrentCrawlEntry()
+                .setProcessingOutcome(ProcessingOutcome.NEW);
         new MetadataDedupStage(FetchDirective.METADATA).test(ctx);
-        assertThat(doc.getDocContext().getState())
+        assertThat(docCtx.getCurrentCrawlEntry().getProcessingOutcome())
                 .isSameAs(ProcessingOutcome.NEW);
     }
 }

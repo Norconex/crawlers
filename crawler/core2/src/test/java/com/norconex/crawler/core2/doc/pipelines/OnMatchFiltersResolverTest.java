@@ -15,7 +15,6 @@
 package com.norconex.crawler.core2.doc.pipelines;
 
 import static com.norconex.commons.lang.config.Configurable.configure;
-import static com.norconex.commons.lang.text.TextMatcher.basic;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Path;
@@ -25,7 +24,8 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import com.norconex.crawler.core2.doc.CrawlDocStatus;
+import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core2.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core2.doc.pipelines.importer.ImporterPipelineContext;
@@ -34,52 +34,56 @@ import com.norconex.crawler.core2.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core2.fetch.FetchUtil;
 import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
+import com.norconex.crawler.core2.ledger.ProcessingOutcome;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlerBuilder;
-import com.norconex.crawler.core2.session.CrawlContext;
-import com.norconex.crawler.core2.stubs.CrawlDocStubs;
+import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
 
 class OnMatchFiltersResolverTest {
 
     @TempDir
     private Path tempDir;
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testIsRejectedByMetadataFilters(CrawlContext crawlCtx) {
-        var doc = CrawlDocStubs.crawlDocWithCache("ref", "content");
+    @CrawlTest(focus = Focus.SESSION)
+    void testIsRejectedByMetadataFilters(
+            CrawlSession session, CrawlContext crawlCtx) {
+        var docCtx = CrawlDocContextStubber.incremental("ref", "content");
 
         // match - include
         crawlCtx.getCrawlConfig()
                 .setMetadataFilters(List.of(configure(
                         new GenericReferenceFilter(), cfg -> cfg
-                                .setValueMatcher(basic("ref"))
+                                .setValueMatcher(TextMatcher.basic("ref"))
                                 .setOnMatch(OnMatch.INCLUDE))));
-        var ctx1 = new ImporterPipelineContext(crawlCtx, doc);
+        var ctx1 = new ImporterPipelineContext(session, docCtx);
         crawlCtx.getDocPipelines().getImporterPipeline().apply(ctx1);
 
-        assertThat(ctx1.getDoc().getDocContext().getState())
-                .isNotSameAs(ProcessingOutcome.REJECTED);
+        assertThat(ctx1.getDocContext().getCurrentCrawlEntry()
+                .getProcessingOutcome())
+                        .isNotSameAs(ProcessingOutcome.REJECTED);
 
         // match - exclude
         crawlCtx.getCrawlConfig()
                 .setMetadataFilters(List.of(configure(
                         new GenericReferenceFilter(), cfg -> cfg
-                                .setValueMatcher(basic("ref"))
+                                .setValueMatcher(TextMatcher.basic("ref"))
                                 .setOnMatch(OnMatch.EXCLUDE))));
-        var ctx2 = new ImporterPipelineContext(crawlCtx, doc);
+        var ctx2 = new ImporterPipelineContext(session, docCtx);
         crawlCtx.getDocPipelines().getImporterPipeline().apply(ctx2);
-        assertThat(ctx2.getDoc().getDocContext().getState())
-                .isSameAs(ProcessingOutcome.REJECTED);
+        assertThat(ctx2.getDocContext().getCurrentCrawlEntry()
+                .getProcessingOutcome())
+                        .isSameAs(ProcessingOutcome.REJECTED);
 
         // no match - include
         crawlCtx.getCrawlConfig()
                 .setMetadataFilters(List.of(configure(
                         new GenericReferenceFilter(), cfg -> cfg
-                                .setValueMatcher(basic("noref"))
+                                .setValueMatcher(TextMatcher.basic("noref"))
                                 .setOnMatch(OnMatch.INCLUDE))));
-        var ctx3 = new ImporterPipelineContext(crawlCtx, doc);
+        var ctx3 = new ImporterPipelineContext(session, docCtx);
         crawlCtx.getDocPipelines().getImporterPipeline().apply(ctx3);
-        assertThat(ctx3.getDoc().getDocContext().getState())
-                .isSameAs(ProcessingOutcome.REJECTED);
+        assertThat(ctx3.getDocContext().getCurrentCrawlEntry()
+                .getProcessingOutcome()).isSameAs(ProcessingOutcome.REJECTED);
     }
 
     @ParameterizedTest
@@ -126,22 +130,23 @@ class OnMatchFiltersResolverTest {
             BAD_STATUS, DISABLED, DISABLED, DOCUMENT, false
             """)
     void testShouldAbortOnBadStatus(
-            CrawlDocStatus originalDocState,
+            ProcessingOutcome originalOutcome,
             FetchDirectiveSupport metaSupport,
             FetchDirectiveSupport docSupport,
             FetchDirective currentDirective,
             boolean expected) {
-        CrawlDocStubs.crawlDocWithCache("ref", "content");
-        new MockCrawlerBuilder(tempDir).withCrawlContext(crawlCtx -> {
-            var cfg = crawlCtx.getCrawlConfig();
-            cfg.setMetadataFetchSupport(metaSupport);
-            cfg.setDocumentFetchSupport(docSupport);
+        new MockCrawlerBuilder(tempDir)
+                .build()
+                .withCrawlSession(session -> {
+                    var crawlCtx = session.getCrawlContext();
+                    var cfg = crawlCtx.getCrawlConfig();
+                    cfg.setMetadataFetchSupport(metaSupport);
+                    cfg.setDocumentFetchSupport(docSupport);
 
-            assertThat(FetchUtil.shouldContinueOnBadStatus(
-                    crawlCtx,
-                    originalDocState,
-                    currentDirective)).isEqualTo(expected);
-            return null;
-        });
+                    assertThat(FetchUtil.shouldContinueOnBadStatus(
+                            crawlCtx,
+                            originalOutcome,
+                            currentDirective)).isEqualTo(expected);
+                });
     }
 }

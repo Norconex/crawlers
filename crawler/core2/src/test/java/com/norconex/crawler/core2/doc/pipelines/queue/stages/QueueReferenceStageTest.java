@@ -16,29 +16,32 @@ package com.norconex.crawler.core2.doc.pipelines.queue.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.norconex.crawler.core2.doc.CrawlDocContext;
 import com.norconex.crawler.core2.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.session.CrawlContext;
+import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
 
 class QueueReferenceStageTest {
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testQueueReferenceStage(CrawlContext ctx) {
+    @CrawlTest(focus = Focus.SESSION)
+    void testQueueReferenceStage(CrawlSession session) {
 
-        var docRecord = new CrawlDocContext("ref");
+        var docCtx = CrawlDocContextStubber.fresh("ref");
         var stage = new QueueReferenceStage();
 
-        var ctx1 = new QueuePipelineContext(ctx, docRecord);
+        var ctx1 = new QueuePipelineContext(session,
+                docCtx.getCurrentCrawlEntry());
         assertThat(stage.test(ctx1)).isTrue();
 
         // testing a second time with same ref should not fail.
-        var ctx2 = new QueuePipelineContext(ctx, docRecord);
+        var ctx2 = new QueuePipelineContext(session,
+                docCtx.getCurrentCrawlEntry());
         assertThat(stage.test(ctx2)).isTrue();
 
         // a null reference should not fail
-        var ctx3 = new QueuePipelineContext(ctx, new CrawlDocContext());
+        var ctx3 = new QueuePipelineContext(session,
+                docCtx.getCurrentCrawlEntry());
         assertThat(stage.test(ctx3)).isTrue();
     }
 }

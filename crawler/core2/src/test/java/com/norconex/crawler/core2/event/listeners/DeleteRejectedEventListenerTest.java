@@ -23,9 +23,9 @@ import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.session.CrawlContext;
 
 class DeleteRejectedEventListenerTest {
 

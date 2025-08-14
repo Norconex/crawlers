@@ -59,7 +59,7 @@ public class CrawlTestCapturer extends CrawlerLifeCycleListener {
             var crawler = new MockCrawlerBuilder(config.getWorkDir())
                     .config(config)
                     .crawlDriver(driver)
-                    .crawler();
+                    .build();
 
             var capturer = new CrawlTestCapturer();
             config.addEventListener(capturer);
@@ -95,9 +95,9 @@ public class CrawlTestCapturer extends CrawlerLifeCycleListener {
 
     @Override
     protected void onCrawlerCrawlBegin(CrawlerEvent event) {
-        captures.session = event.getSource();
+        captures.session = event.getCrawlSession();
         captures.committer = (MemoryCommitter) event
-                .getSource()
+                .getCrawlSession()
                 .getCrawlContext()
                 .getCrawlConfig()
                 .getCommitters()

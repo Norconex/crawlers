@@ -54,7 +54,7 @@ public class CrawlCommand implements Command {
         }
 
         Thread.currentThread().setName(ctx.getId() + "/CRAWL");
-        ctx.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN);
+        session.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN);
 
         trackProgress(session);
 
@@ -100,7 +100,7 @@ public class CrawlCommand implements Command {
         //        ctx.getGrid().getCompute().stopTask(PROGRESS_LOGGER_KEY);
 
         //TODO check if we should reintroduce waiting for logger shutdown
-        // as with latest code it seems to always shut down before returning 
+        // as with latest code it seems to always shut down before returning
         //        try {
         //            ConcurrentUtil.waitUntilOrThrow(
         //                    //TODO make it configurable???
@@ -108,7 +108,7 @@ public class CrawlCommand implements Command {
         //        } catch (TimeoutException e) {
         //            throw new CrawlerException("Could not stop progress logger.", e);
         //        }
-        ctx.fire(CrawlerEvent.CRAWLER_CRAWL_END);
+        session.fire(CrawlerEvent.CRAWLER_CRAWL_END);
         LOG.info("Node done crawling with state: {}", session.getCrawlState());
 
         if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {

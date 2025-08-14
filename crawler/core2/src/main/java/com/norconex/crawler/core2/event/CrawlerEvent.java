@@ -163,25 +163,30 @@ public class CrawlerEvent extends Event {
      * CRAWLER_* events will return a {@code null} doc.
      */
     private final transient CrawlEntry crawlEntry;
-    private final transient Object subject;
+    private final transient CrawlSession crawlSession;
+    //    private final transient Object subject;
     //TODO keep a reference to actual document?
 
-    /**
-     * Gets the subject. That is often the entity being the target
-     * of the event (as opposed to the source).
-     * @return the subject
-     */
-    public Object getSubject() {
-        return subject;
+    public CrawlSession getCrawlSession() {
+        return crawlSession;
     }
 
-    /**
-     * The {@link CrawlSession}.
-     */
-    @Override
-    public CrawlSession getSource() {
-        return (CrawlSession) super.getSource();
-    }
+    //    /**
+    //     * Gets the subject. That is often the entity being the target
+    //     * of the event (as opposed to the source).
+    //     * @return the subject
+    //     */
+    //    public Object getSubject() {
+    //        return subject;
+    //    }
+    //
+    //    /**
+    //     * The {@link CrawlSession}.
+    //     */
+    //    @Override
+    //    public CrawlSession getSource() {
+    //        return (CrawlSession) super.getSource();
+    //    }
 
     @Override
     public String toString() {
@@ -191,13 +196,13 @@ public class CrawlerEvent extends Event {
             b.append(crawlEntry.getReference()).append(" - ");
         }
 
-        // print the first value set in that order: message, subject, source
+        // print the first value set in that order: message, source, session
         if (StringUtils.isNotBlank(getMessage())) {
             b.append(getMessage());
-        } else if (subject != null) {
-            b.append(subject.toString());
+        } else if (source != null) {
+            b.append(source.toString());
         } else {
-            b.append(Objects.toString(source));
+            b.append(Objects.toString(crawlSession));
         }
 
         return b.toString();

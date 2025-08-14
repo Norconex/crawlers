@@ -16,38 +16,44 @@ package com.norconex.crawler.core2.doc.pipelines.queue.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.norconex.crawler.core2.doc.CrawlDocContext;
-import com.norconex.crawler.core2.doc.CrawlDocStatus;
+import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.session.CrawlContext;
+import com.norconex.crawler.core2.ledger.ProcessingOutcome;
+import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
 
 class DepthValidationStageTest {
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testDepthValidationStage(CrawlContext crawlCtx) {
+    @CrawlTest(focus = Focus.SESSION)
+    void testDepthValidationStage(
+            CrawlSession session, CrawlContext crawlCtx) {
 
-        var docRec = new CrawlDocContext("ref");
-        docRec.setDepth(3);
-        var ctx = new QueuePipelineContext(crawlCtx, docRec);
+        var docCtx = CrawlDocContextStubber.fresh("ref");
+        var currentEntry = docCtx.getCurrentCrawlEntry();
+        currentEntry.setDepth(3);
+        var ctx = new QueuePipelineContext(session, currentEntry);
 
         // Unlimited depth
         crawlCtx.getCrawlConfig().setMaxDepth(-1);
-        docRec.setState(ProcessingOutcome.NEW);
+        currentEntry.setProcessingOutcome(ProcessingOutcome.NEW);
         new DepthValidationStage().test(ctx);
-        assertThat(docRec.getState()).isSameAs(ProcessingOutcome.NEW);
+        assertThat(currentEntry.getProcessingOutcome())
+                .isSameAs(ProcessingOutcome.NEW);
 
         // Max depth
         crawlCtx.getCrawlConfig().setMaxDepth(3);
-        docRec.setState(ProcessingOutcome.NEW);
+        currentEntry.setProcessingOutcome(ProcessingOutcome.NEW);
         new DepthValidationStage().test(ctx);
-        assertThat(docRec.getState()).isSameAs(ProcessingOutcome.NEW);
+        assertThat(currentEntry.getProcessingOutcome())
+                .isSameAs(ProcessingOutcome.NEW);
 
         // Over max depth
         crawlCtx.getCrawlConfig().setMaxDepth(2);
-        docRec.setState(ProcessingOutcome.NEW);
+        currentEntry.setProcessingOutcome(ProcessingOutcome.NEW);
         new DepthValidationStage().test(ctx);
-        assertThat(docRec.getState()).isSameAs(ProcessingOutcome.TOO_DEEP);
+        assertThat(currentEntry.getProcessingOutcome())
+                .isSameAs(ProcessingOutcome.TOO_DEEP);
     }
 }

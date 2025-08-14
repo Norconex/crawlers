@@ -31,10 +31,10 @@ public class DocumentPostProcessingStage
             postProc.accept(
                     ctx.getCrawlSession().getCrawlContext().getFetcher(),
                     ctx.getDocContext().getDoc());
-            ctx.getCrawlSession().getCrawlContext().fire(CrawlerEvent.builder()
+            ctx.getCrawlSession().fire(CrawlerEvent.builder()
                     .name(CrawlerEvent.DOCUMENT_POSTIMPORTED)
-                    .source(ctx.getCrawlSession().getCrawlContext())
-                    .subject(postProc)
+                    .crawlSession(ctx.getCrawlSession())
+                    .source(postProc)
                     .crawlEntry(ctx.getDocContext().getCurrentCrawlEntry())
                     .build());
         }

@@ -58,11 +58,11 @@ public class ReferenceFiltersStage implements Predicate<QueuePipelineContext> {
                 .onRejected((f, msg) -> {
                     LOG.debug("REJECTED reference{}: {} Filter={}",
                             msgSuffix, crawlEntry.getReference(), f);
-                    crawlCtx.fire(
+                    ctx.getCrawlSession().fire(
                             CrawlerEvent.builder()
                                     .name(CrawlerEvent.REJECTED_FILTER)
-                                    .source(ctx.getCrawlSession())
-                                    .subject(f)
+                                    .crawlSession(ctx.getCrawlSession())
+                                    .source(f)
                                     .message(msg + msgSuffix)
                                     .build());
                     crawlEntry.setProcessingOutcome(ProcessingOutcome.REJECTED);
