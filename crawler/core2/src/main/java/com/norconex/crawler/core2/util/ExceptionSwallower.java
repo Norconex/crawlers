@@ -75,7 +75,8 @@ public final class ExceptionSwallower {
             return;
         }
         for (Closeable closeable : closeables) {
-            if (closeable == null) continue;
+            if (closeable == null)
+                continue;
             String resourceName = closeable.getClass().getName();
             try {
                 closeable.close();
@@ -84,7 +85,10 @@ public final class ExceptionSwallower {
                 LOG.error("Failed to close resource: {}", resourceName, e);
                 // For critical resources, escalate or rethrow
                 if (isCriticalResource(closeable)) {
-                    throw new RuntimeException("Critical resource failed to close: " + resourceName, e);
+                    throw new RuntimeException(
+                            "Critical resource failed to close: "
+                                    + resourceName,
+                            e);
                 }
             }
         }

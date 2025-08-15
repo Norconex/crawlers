@@ -23,7 +23,9 @@ import org.infinispan.protostream.annotations.ProtoSyntax;
     includeClasses = {
             CrawlEntryProtoAdapter.class,
             StringSerializedObject.class,
-            TaskState.class
+            TaskState.class,
+            TaskType.class,
+            TaskRecord.class
     }
     //    schemaFileName = "crawler.proto",
     //    schemaFilePath = "proto/",

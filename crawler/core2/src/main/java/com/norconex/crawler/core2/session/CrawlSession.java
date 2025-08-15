@@ -28,9 +28,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import com.norconex.commons.lang.event.Event;
+import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core2.CrawlerException;
 import com.norconex.crawler.core2.cluster.Cache;
-import com.norconex.crawler.core2.cluster.Cluster;
 import com.norconex.crawler.core2.cluster.ClusterNode;
 import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.event.CrawlerEvent;
@@ -191,9 +191,10 @@ public class CrawlSession implements Closeable {
         SESSIONS.put(cluster.getLocalNode().getNodeName(), this);
         try {
             state = cluster.getTaskManager().runOnOneOnceSync( //NOSONAR
-                    "resolveState", sess -> resolveState()).get();
+                    "resolveState", CrawlSession::resolveStateStatic).get();
             snapshot = cluster.getTaskManager().runOnOneOnceSync( //NOSONAR
-                    "resolveSession", sess -> resolveSnapshotOnce()).get();
+                    "resolveSession", CrawlSession::resolveSnapshotOnceStatic)
+                    .get();
             scheduleHeartbeat();
             crawlContext.init(this);
         } catch (RuntimeException e) {
@@ -202,17 +203,23 @@ public class CrawlSession implements Closeable {
         }
     }
 
-    private State resolveState() {
+    private static State resolveStateStatic(CrawlSession session) {
         // the first time we grab whatever existing state, then we schedule.
-        var astate = loadState();
+        var astate = session.loadState();
         if (astate == null) {
             // no state found, assume we're starting it
             astate = new State().setCrawlState(CrawlState.RUNNING)
                     .setLastUpdated(System.currentTimeMillis());
-            saveCrawlState(astate);
+            session.saveCrawlState(astate);
         }
         return astate;
+    }
 
+    private static Snapshot resolveSnapshotOnceStatic(CrawlSession session) {
+        var snap = session.doResolveSnapshotOnce();
+        session.sessionCache.put(SESSION_SNAPSHOT_KEY,
+                SerialUtil.toJsonString(snap));
+        return snap;
     }
 
     private void scheduleHeartbeat() {
@@ -230,11 +237,16 @@ public class CrawlSession implements Closeable {
     }
 
     private void beatHeart() {
-        state = cluster.getTaskManager().runOnOneOnceSync( //NOSONAR
+        // Heartbeat must execute every interval. Using runOnOneOnce would
+        // prevent subsequent executions on the same session. We only want
+        // exactly one node to perform each heart beat invocation, but the
+        // task itself must be repeatable across the life of the session.
+        state = cluster.getTaskManager().runOnOneSync( //NOSONAR
                 "session.heartbeat", sess -> {
-                    var st = new State().setCrawlState(state.crawlState)
+                    var currentState = sess.loadState();
+                    var st = new State().setCrawlState(currentState.crawlState)
                             .setLastUpdated(System.currentTimeMillis());
-                    saveCrawlState(st);
+                    sess.saveCrawlState(st);
                     return st;
                 }).get();
     }

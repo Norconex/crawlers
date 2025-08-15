@@ -24,7 +24,7 @@ import org.infinispan.commons.marshall.ProtoStreamMarshaller;
 import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.remoting.transport.Address;
 
-import com.norconex.crawler.core2.cluster.Cluster;
+import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core2.util.ExceptionSwallower;
 
 import lombok.EqualsAndHashCode;

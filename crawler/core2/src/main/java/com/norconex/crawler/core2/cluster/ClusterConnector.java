@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core2.cluster;
 
+import com.norconex.crawler.core.cluster.Cluster;
+
 public interface ClusterConnector {
 
     Cluster connect();

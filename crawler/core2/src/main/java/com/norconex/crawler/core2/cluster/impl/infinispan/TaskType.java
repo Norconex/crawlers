@@ -12,24 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cluster;
+package com.norconex.crawler.core2.cluster.impl.infinispan;
 
-import java.io.Closeable;
-import java.nio.file.Path;
+import org.infinispan.protostream.annotations.Proto;
+import org.infinispan.protostream.annotations.ProtoEnumValue;
 
-public interface Cluster extends Closeable {
-    ClusterNode getLocalNode();
-
-    CacheManager getCacheManager();
-
-    TaskManager getTaskManager();
-
-    //getClusterMembers(): ClusterNodeInfo[];
-    void init(Path crawlerWorkDir);
-    //    void init(CrawlContext crawlContext);
-
-    void stop();
-
-    @Override
-    void close();
+@Proto
+public enum TaskType {
+    @ProtoEnumValue(0)
+    RUN_ONE_ONCE,
+    @ProtoEnumValue(1)
+    RUN_ONE,
+    @ProtoEnumValue(2)
+    RUN_ALL,
+    @ProtoEnumValue(3)
+    RUN_ALL_ONCE,
+    @ProtoEnumValue(4)
+    CONTINUOUS
 }

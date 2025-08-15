@@ -12,25 +12,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cluster.impl.infinispan;
+package com.norconex.crawler.core.cluster;
 
-import com.norconex.commons.lang.config.Configurable;
-import com.norconex.crawler.core.cluster.Cluster;
-import com.norconex.crawler.core2.cluster.ClusterConnector;
+import java.io.Closeable;
+import java.nio.file.Path;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import com.norconex.crawler.core2.cluster.CacheManager;
+import com.norconex.crawler.core2.cluster.ClusterNode;
+import com.norconex.crawler.core2.cluster.TaskManager;
 
-@EqualsAndHashCode
-@Getter
-public class InfinispanClusterConnector
-        implements ClusterConnector, Configurable<InfinispanClusterConfig> {
+public interface Cluster extends Closeable {
+    ClusterNode getLocalNode();
 
-    private final InfinispanClusterConfig configuration =
-            new InfinispanClusterConfig();
+    CacheManager getCacheManager();
+
+    TaskManager getTaskManager();
+
+    //getClusterMembers(): ClusterNodeInfo[];
+    void init(Path crawlerWorkDir);
+    //    void init(CrawlContext crawlContext);
+
+    void stop();
 
     @Override
-    public Cluster connect() {
-        return new InfinispanCluster(configuration);
-    }
+    void close();
 }

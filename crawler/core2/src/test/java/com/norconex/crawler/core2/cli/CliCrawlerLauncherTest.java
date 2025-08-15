@@ -287,7 +287,8 @@ class CliCrawlerLauncherTest {
      * @param timeoutMillis max time to wait
      * @param pollMillis polling interval
      */
-    private void waitForFileUnlock(Path file, long timeoutMillis, long pollMillis) {
+    private void waitForFileUnlock(Path file, long timeoutMillis,
+            long pollMillis) {
         long start = System.currentTimeMillis();
         while (System.currentTimeMillis() - start < timeoutMillis) {
             try (var channel = Files.newByteChannel(file)) {
@@ -299,7 +300,8 @@ class CliCrawlerLauncherTest {
                     Thread.sleep(pollMillis);
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
-                    throw new RuntimeException("Interrupted while waiting for file unlock", ie);
+                    throw new RuntimeException(
+                            "Interrupted while waiting for file unlock", ie);
                 }
             }
         }

@@ -15,6 +15,7 @@
 package com.norconex.crawler.core2.cmd.crawl.pipeline;
 
 import com.norconex.crawler.core2.cmd.crawl.pipeline.bootstrap.CrawlBootstrapTask;
+import com.norconex.crawler.core2.cmd.crawl.pipeline.process.CrawlProcessContinuousWorker;
 import com.norconex.crawler.core2.cmd.crawl.pipeline.process.CrawlProcessTask;
 import com.norconex.crawler.core2.cmd.crawl.pipeline.process.CrawlProcessTask.ProcessQueueAction;
 import com.norconex.crawler.core2.session.CrawlSession;
@@ -28,29 +29,31 @@ public final class CrawlPipelineFactory {
         return () -> {
             var taskManager = session.getCluster().getTaskManager();
 
-            // Bootstrap the cluster, making it ready for crawling
-            taskManager.runOnOneSync(
+            // Bootstrap the cluster, making it ready for crawling (once per session)
+            taskManager.runOnOneOnceSync(
                     "crawlBootstrapTask", new CrawlBootstrapTask());
 
-            // Crawl (on all)
-            taskManager.runOnAllSync(
-                    "crawlMainProcessTask",
-                    new CrawlProcessTask(ProcessQueueAction.CRAWL_ALL),
-                    null);
+            // Start main continuous crawl across all nodes
+            taskManager.startContinuous(
+                    "crawlMainProcess",
+                    new CrawlProcessContinuousWorker(
+                            ProcessQueueAction.CRAWL_ALL));
+            // Wait for completion (auto or explicit stop)
+            taskManager.awaitContinuousCompletion("crawlMainProcess").join();
 
             // Resolve orphans (on one)
-            var result = taskManager.runOnOneSync(
+            var orphanActionOpt = taskManager.runOnOneOnceSync(
                     "crawlHandleOrphansTask",
                     new CrawlHandleOrphansTask());
 
-            result.ifPresent(action -> {
-                taskManager.runOnAllSync(
-                        "crawlOrphanTask" + action,
-                        new CrawlProcessTask(action),
-                        null);
-
+            orphanActionOpt.ifPresent(action -> {
+                // Process orphans using another continuous phase so late joiners can still help
+                taskManager.startContinuous(
+                        "crawlOrphansProcess" + action,
+                        new CrawlProcessContinuousWorker(action));
+                taskManager.awaitContinuousCompletion(
+                        "crawlOrphansProcess" + action).join();
             });
-
         };
 
     }

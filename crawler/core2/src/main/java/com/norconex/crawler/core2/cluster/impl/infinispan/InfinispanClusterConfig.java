@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core2.cluster.impl.infinispan;
 
+import java.time.Duration;
+
 import org.infinispan.configuration.parsing.ConfigurationBuilderHolder;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -29,4 +31,18 @@ public class InfinispanClusterConfig {
     @JsonSerialize(using = InfinispanConfigSerializer.class)
     private ConfigurationBuilderHolder infinispan =
             InfinispanUtil.defaultConfigBuilderHolder();
+
+    private TaskRetentionConfig retention = new TaskRetentionConfig();
+
+    @Data
+    @Accessors(chain = true)
+    public class TaskRetentionConfig {
+        // null or negative = retain until session end
+        private Duration onceTaskRetention = null; // keep until session end
+        private Duration continuousFinalStatsRetention = Duration.ofMinutes(5);
+        private int maxHistoricalExecutionsPerTask = 1; // keep latest only for runOnOne
+        private boolean purgeOnSessionClose = true;
+        // New tuning: stale timeout for continuous task heartbeats
+        private Duration continuousStaleTimeout = Duration.ofSeconds(15);
+    }
 }

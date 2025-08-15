@@ -35,8 +35,8 @@ public final class StringSerializedObject {
         }
         if (className == null || className.isEmpty()) {
             throw new CacheException(
-                "Could not deserialize object: className is null or empty. " + toString()
-            );
+                    "Could not deserialize object: className is null or empty. "
+                            + toString());
         }
         try {
             return (T) SerialUtil.fromJson(

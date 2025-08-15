@@ -12,20 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cluster;
+package com.norconex.crawler.core.cluster.pipeline;
 
-import java.io.Serializable;
-import com.norconex.crawler.core2.session.CrawlSession;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Task to be executed on the cluster.
- *
- * @param <T> type of object returned (may be {@link Void}).
- */
-public interface ClusterTask<T> extends Serializable { // now Serializable for remote execution
-    T execute(CrawlSession session);
+import lombok.Data;
 
-    default void stop(CrawlSession session) {
-        throw new UnsupportedOperationException("Implement me!");
-    }
+@Data
+public class ClusterPipelineRegistry {
+    // <pipelineId, ...>
+    private final Map<String, ClusterPipeline> pipelines =
+            new ConcurrentHashMap<>();
 }

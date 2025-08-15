@@ -79,10 +79,28 @@ public interface TaskManager {
             ClusterTask<T> task,
             ClusterReducer<T, R> reducer);
 
+    // New overload with policy (default delegates to legacy signature)
+    default <T, R> CompletableFuture<R> runOnAllOnceAsync(
+            String taskName,
+            ClusterTask<T> task,
+            ClusterReducer<T, R> reducer,
+            AllOncePolicy policy) {
+        return runOnAllOnceAsync(taskName, task, reducer);
+    }
+
     <T, R> R runOnAllOnceSync(
             String taskName,
             ClusterTask<T> task,
             ClusterReducer<T, R> reducer);
+
+    // New overload with policy (default delegates)
+    default <T, R> R runOnAllOnceSync(
+            String taskName,
+            ClusterTask<T> task,
+            ClusterReducer<T, R> reducer,
+            AllOncePolicy policy) {
+        return runOnAllOnceSync(taskName, task, reducer);
+    }
 
     <T, R> CompletableFuture<R> runOnAllAsync(
             String taskName,
@@ -95,4 +113,16 @@ public interface TaskManager {
             ClusterReducer<T, R> reducer);
 
     void stopTask(String taskName);
+
+    // Continuous (long-running, join/leave anytime) task support
+    void startContinuous(String taskName, ClusterContinuousTask worker);
+
+    void stopContinuous(String taskName);
+
+    CompletableFuture<Void> awaitContinuousCompletion(String taskName);
+
+    <R> R finalizeContinuous(String taskName,
+            ClusterReducer<ContinuousStats, R> reducer);
+
+    java.util.Map<String, ContinuousStats> getContinuousStats(String taskName);
 }
