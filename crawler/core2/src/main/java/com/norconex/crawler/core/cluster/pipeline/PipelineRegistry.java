@@ -20,8 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import lombok.Data;
 
 @Data
-public class ClusterPipelineRegistry {
+public class PipelineRegistry {
     // <pipelineId, ...>
-    private final Map<String, ClusterPipeline> pipelines =
+    private final Map<String, Pipeline> pipelines =
             new ConcurrentHashMap<>();
 }

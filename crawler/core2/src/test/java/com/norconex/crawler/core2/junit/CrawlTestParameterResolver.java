@@ -23,6 +23,7 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.cluster.Cluster;
+import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
 import com.norconex.crawler.core2.CrawlConfig;
 import com.norconex.crawler.core2.Crawler;
 import com.norconex.crawler.core2.cluster.CacheManager;
@@ -91,6 +92,11 @@ public class CrawlTestParameterResolver implements ParameterResolver {
         // TaskManager
         if (TaskManager.class.isAssignableFrom(paramType)) {
             return params.getCrawlSession().getCluster().getTaskManager();
+        }
+
+        // PipelineManager
+        if (PipelineManager.class.isAssignableFrom(paramType)) {
+            return params.getCrawlSession().getCluster().getPipelineManager();
         }
 
         // CacheManager

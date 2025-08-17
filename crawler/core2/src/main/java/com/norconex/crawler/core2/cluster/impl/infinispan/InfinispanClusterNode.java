@@ -26,7 +26,7 @@ import com.norconex.crawler.core2.cluster.ClusterNode;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-class InfinispanClusterNode implements ClusterNode, Closeable {
+public class InfinispanClusterNode implements ClusterNode, Closeable {
 
     private final DefaultCacheManager cacheManager;
 

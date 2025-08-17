@@ -17,6 +17,7 @@ package com.norconex.crawler.core.cluster;
 import java.io.Closeable;
 import java.nio.file.Path;
 
+import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
 import com.norconex.crawler.core2.cluster.CacheManager;
 import com.norconex.crawler.core2.cluster.ClusterNode;
 import com.norconex.crawler.core2.cluster.TaskManager;
@@ -28,9 +29,9 @@ public interface Cluster extends Closeable {
 
     TaskManager getTaskManager();
 
-    //getClusterMembers(): ClusterNodeInfo[];
+    PipelineManager getPipelineManager();
+
     void init(Path crawlerWorkDir);
-    //    void init(CrawlContext crawlContext);
 
     void stop();
 

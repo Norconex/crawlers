@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core2.cluster.Cache;
 import com.norconex.crawler.core2.session.CrawlSession;
@@ -16,12 +19,94 @@ public final class ClusterTestUtil {
     }
 
     /**
-     * Generates a unique cache name for a test run with an optional prefix.
-     * @param hint prefix or descriptive hint (may be null or blank)
+     * Creates or get a String cache with the given name for a test.
+     * @param session crawl session
+     * @param cacheName name of the cache to create or get
+     * @return cache
+     */
+    public static Cache<String> stringCache(
+            CrawlSession session, String cacheName) {
+        return cache(session, String.class, cacheName);
+    }
+
+    /**
+     * Creates or get a cache with the given name for a test.
+     * @param session crawl session
+     * @param cacheName name of the cache to create or get
+     * @param type class of cache type
+     * @param <T> cache type
+     * @return cache
+     */
+    public static <T> Cache<T> cache(
+            CrawlSession session, Class<T> type, String cacheName) {
+        return session.getCluster().getCacheManager().getCache(cacheName, type);
+    }
+
+    /**
+     * Creates a unique String cache for a test run.
+     * @param session crawl session
+     * @return unique String cache
+     */
+    public static Cache<String> uniqueStringCache(CrawlSession session) {
+        return uniqueStringCache(session, null);
+    }
+
+    /**
+     * Creates a unique String cache for a test run with an optional cache
+     * name prefix.
+     * @param session crawl session
+     * @param namePrefix cache name prefix or descriptive hint
+     *     (may be null or blank)
+     * @return unique String cache
+     */
+    public static Cache<String> uniqueStringCache(
+            CrawlSession session, String namePrefix) {
+        return uniqueCache(session, String.class, namePrefix);
+    }
+
+    /**
+     * Creates a unique cache for a test run.
+     * @param session crawl session
+     * @param type class of cache type
+     * @param <T> cache type
+     * @return unique cache
+     */
+    public static <T> Cache<T> uniqueCache(
+            CrawlSession session, Class<T> type) {
+        return uniqueCache(session, type, null);
+    }
+
+    /**
+     * Creates a unique cache for a test run with an optional cache
+     * name prefix.
+     * @param session crawl session
+     * @param type class of cache type
+     * @param <T> cache type
+     * @param namePrefix cache name prefix or descriptive hint
+     *     (may be null or blank)
+     * @return unique cache
+     */
+    public static <T> Cache<T> uniqueCache(
+            CrawlSession session, Class<T> type, String namePrefix) {
+        return session.getCluster().getCacheManager()
+                .getCache(uniqueCacheName(namePrefix), type);
+    }
+
+    /**
+     * Generates a unique cache name for a test run.
      * @return unique cache name
      */
-    public static String uniqueCache(String hint) {
-        var base = (hint == null || hint.isBlank()) ? "cache" : hint;
+    public static String uniqueCacheName() {
+        return uniqueCacheName(null);
+    }
+
+    /**
+     * Generates a unique cache name for a test run with an optional prefix.
+     * @param prefix prefix or descriptive hint (may be null or blank)
+     * @return unique cache name
+     */
+    public static String uniqueCacheName(String prefix) {
+        var base = StringUtils.isBlank(prefix) ? "cache" : prefix;
         return base + "-" + Long.toHexString(System.nanoTime()) + "-"
                 + UUID.randomUUID().toString().substring(0, 8);
     }
@@ -51,7 +136,11 @@ public final class ClusterTestUtil {
                         + distinctNodeNames(sessions).size() + ")");
     }
 
-    /** Returns distinct node names across sessions (best effort). */
+    /**
+     * Returns distinct node names across sessions (best effort).
+     * @param sessions sessions for nodes in this test
+     * @return node names
+     */
     public static Set<String> distinctNodeNames(List<CrawlSession> sessions) {
         Set<String> names = new HashSet<>();
         for (var s : sessions) {
@@ -75,22 +164,35 @@ public final class ClusterTestUtil {
         return List.of(cluster.getLocalNode().getNodeName());
     }
 
-    /** Waits until the cache size reaches expected or timeout. */
-    public static void waitForCacheSize(Cache<?> cache, long expected,
-            Duration timeout) throws InterruptedException {
+    /**
+     * Waits until the cache size reaches expected or timeout.
+     * @param cache cache to wait on
+     * @param expected expected cache size
+     * @param timeout maximum time to wait
+     */
+    public static void waitForCacheSize(
+            Cache<?> cache, long expected, Duration timeout) {
         waitForCacheSize(cache, expected, timeout, Duration.ofMillis(100));
     }
 
-    /** Waits until the cache size reaches expected or timeout with custom poll interval. */
-    public static void waitForCacheSize(Cache<?> cache, long expected,
-            Duration timeout, Duration pollInterval)
-            throws InterruptedException {
+    /**
+     * Waits until the cache size reaches expected or timeout with custom poll interval.
+     * @param cache cache to wait on
+     * @param expected expected cache size
+     * @param timeout maximum time to wait
+     * @param pollInterval interval used to check if timed out
+     */
+    public static void waitForCacheSize(
+            Cache<?> cache,
+            long expected,
+            Duration timeout,
+            Duration pollInterval) {
         var deadline = System.currentTimeMillis() + timeout.toMillis();
         while (System.currentTimeMillis() < deadline) {
             if (cache.size() >= expected) {
                 return;
             }
-            Thread.sleep(pollInterval.toMillis());
+            Sleeper.sleepMillis(pollInterval.toMillis());
         }
         throw new IllegalStateException("Timeout waiting for cache size "
                 + expected + " (saw=" + cache.size() + ")");

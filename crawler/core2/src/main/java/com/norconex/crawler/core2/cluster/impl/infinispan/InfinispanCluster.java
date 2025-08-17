@@ -25,6 +25,8 @@ import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.remoting.transport.Address;
 
 import com.norconex.crawler.core.cluster.Cluster;
+import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanPipelineManager;
+import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.util.ExceptionSwallower;
 
 import lombok.EqualsAndHashCode;
@@ -43,8 +45,13 @@ public class InfinispanCluster implements Cluster {
     private InfinispanClusterNode localNode;
     private InfinispanCacheManager cacheManager;
     private InfinispanTaskManager taskManager;
+    private InfinispanPipelineManager pipelineManager;
 
     private final InfinispanClusterConfig configuration;
+
+    public String getCrawlerId() {
+        return CrawlSession.get(localNode).getCrawlerId();
+    }
 
     @Override
     public synchronized void init(Path workDir) {
@@ -69,11 +76,12 @@ public class InfinispanCluster implements Cluster {
             globalBuilder.globalState()
                     .persistentLocation(currentPath);
         }
-        var manager = new DefaultCacheManager(builderHolder, true);
-        manager.start();
-        cacheManager = new InfinispanCacheManager(manager);
-        localNode = new InfinispanClusterNode(manager);
+        var defCacheManager = new DefaultCacheManager(builderHolder, true);
+        defCacheManager.start();
+        cacheManager = new InfinispanCacheManager(defCacheManager);
+        localNode = new InfinispanClusterNode(defCacheManager);
         taskManager = new InfinispanTaskManager(this);
+        pipelineManager = new InfinispanPipelineManager(this);
     }
 
     @Override

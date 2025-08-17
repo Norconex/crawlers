@@ -14,14 +14,14 @@
  */
 package com.norconex.crawler.core.cluster.pipeline;
 
-import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core2.CrawlerException;
 
-public interface ClusterPipelineStep {
-    String getStepId();
+import lombok.experimental.StandardException;
 
-    String isDistributed();
-
-    void execute(CrawlSession session);
-
-    void stop(CrawlSession session);
+/**
+ * Runtime exception for cache-related errors.
+ */
+@StandardException
+public class PipelineException extends CrawlerException {
+    private static final long serialVersionUID = 1L;
 }

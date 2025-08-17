@@ -12,26 +12,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cluster.impl.infinispan;
+package com.norconex.crawler.core.cluster.pipeline;
 
 import org.infinispan.protostream.annotations.Proto;
 import org.infinispan.protostream.annotations.ProtoEnumValue;
 
-/**
- * Enum representing the possible states of a distributed task.
- */
 @Proto
-public enum TaskState {
-    @ProtoEnumValue(value = 0, name = "TASK_NOT_STARTED")
-    NOT_STARTED,
-    @ProtoEnumValue(value = 1, name = "TASK_RUNNING")
+public enum PipelineStatus {
+    @ProtoEnumValue(0)
+    PENDING,
+    @ProtoEnumValue(1)
     RUNNING,
-    @ProtoEnumValue(value = 2, name = "TASK_COMPLETED")
+    // Keep original COMPLETED mapping as 2 for backward compatibility
+    @ProtoEnumValue(2)
     COMPLETED,
-    @ProtoEnumValue(value = 3, name = "TASK_FAILED")
+    // Keep original FAILED mapping as 3
+    @ProtoEnumValue(3)
     FAILED,
-    @ProtoEnumValue(value = 4, name = "TASK_STOP_REQUESTED")
-    STOP_REQUESTED,
-    @ProtoEnumValue(value = 5, name = "TASK_STOPPED")
+    // New statuses appended AFTER legacy ones to preserve numeric codes
+    @ProtoEnumValue(4)
+    STOPPING,
+    @ProtoEnumValue(5)
     STOPPED;
+
+    public boolean isTerminal() {
+        return this == STOPPED || this == COMPLETED || this == FAILED;
+    }
 }

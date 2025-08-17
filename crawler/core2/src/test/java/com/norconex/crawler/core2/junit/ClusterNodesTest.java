@@ -41,18 +41,24 @@ import com.norconex.crawler.core2.mocks.crawler.MockCrawlDriverFactory;
 public @interface ClusterNodesTest {
 
     /** Node counts (cluster sizes) to execute the test with. */
-    int[] nodes() default {1, 2};
+    int[] nodes() default { 1, 2 };
 
     /** Cluster connector class to instantiate per session. */
     Class<? extends ClusterConnector> connector() default InfinispanClusterConnector.class;
 
     /** Driver factory (supplier) used to create the crawler driver. */
-    Class<? extends Supplier<CrawlDriver>> driverFactory() default MockCrawlDriverFactory.class;
+    Class<? extends Supplier<
+            CrawlDriver>> driverFactory() default MockCrawlDriverFactory.class;
 
-    /** Infinispan XML resource path (only used when connector is Infinispan). */
+    /**
+     * Infinispan XML resource path (only used when connector is Infinispan).
+     */
     String infinispanConfig() default "/cache/infinispan-cluster-test.xml";
 
-    /** Whether to wait for the cluster membership to reach the node count before test execution. */
+    /**
+     * Whether to wait for the cluster membership to reach the node count
+     * before test execution.
+     */
     boolean waitForMembership() default true;
 
     /** Timeout in seconds for waiting for cluster membership. */

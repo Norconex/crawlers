@@ -10,7 +10,8 @@ import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
 /**
  * Provides a test template invocation for each requested node count.
  */
-class ClusterNodesTestExtension implements TestTemplateInvocationContextProvider {
+class ClusterNodesTestExtension
+        implements TestTemplateInvocationContextProvider {
 
     @Override
     public boolean supportsTestTemplate(ExtensionContext context) {
@@ -20,9 +21,11 @@ class ClusterNodesTestExtension implements TestTemplateInvocationContextProvider
     }
 
     @Override
-    public Stream<TestTemplateInvocationContext> provideTestTemplateInvocationContexts(
-            ExtensionContext context) {
-        var ann = context.getRequiredTestMethod().getAnnotation(ClusterNodesTest.class);
+    public Stream<TestTemplateInvocationContext>
+            provideTestTemplateInvocationContexts(
+                    ExtensionContext context) {
+        var ann = context.getRequiredTestMethod()
+                .getAnnotation(ClusterNodesTest.class);
         return Arrays.stream(ann.nodes())
                 .mapToObj(n -> new ClusterNodesInvocationContext(n, ann));
     }

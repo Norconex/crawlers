@@ -7,6 +7,8 @@ import java.util.function.BiConsumer;
 import org.infinispan.configuration.cache.ConfigurationBuilder;
 import org.infinispan.manager.DefaultCacheManager;
 
+import com.norconex.crawler.core.cluster.impl.infinispan.CacheNames;
+import com.norconex.crawler.core.cluster.impl.infinispan.PipelineStepRecord;
 import com.norconex.crawler.core2.cluster.Cache;
 import com.norconex.crawler.core2.cluster.CacheException;
 import com.norconex.crawler.core2.cluster.CacheManager;
@@ -18,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class InfinispanCacheManager implements CacheManager, Closeable {
 
-    private static final String GENERIC_CACHE_NAME = "generic-cache";
+    private static final String GENERIC_CACHE_NAME = "generic_cache";
 
     private final DefaultCacheManager cacheManager;
 
@@ -79,4 +81,31 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
                 .forEach(name -> c.accept(name, new InfinispanCacheAdapter<>(
                         cacheManager.getCache(name, true))));
     }
+
+    //--- Infinispan-specific custom caches ------------------------------------
+    public Cache<PipelineStepRecord> getPipelineCurrentStepCache() {
+        return getCache(CacheNames.PIPE_CURRENT_STEP, PipelineStepRecord.class);
+    }
+
+    public Cache<PipelineStepRecord> getPipelineWorkerStatusCache() {
+        return getCache(CacheNames.PIPE_WORKER_STATUS,
+                PipelineStepRecord.class);
+    }
+
+    public void addPipelineCurrentStepListener(Object listener) {
+        cacheManager.getCache(CacheNames.PIPE_CURRENT_STEP)
+                .addListener(listener);
+    }
+
+    public void addPipelineWorkerStatusListener(Object listener) {
+        cacheManager.getCache(CacheNames.PIPE_WORKER_STATUS)
+                .addListener(listener);
+    }
+
+    //TODO REMOVE LISTENERS WHEN DONE WITH PIPELINE EXECUTION
+
+    //    public Cache<PipelineStepRecord> getXPipelineStepTrackerCache() {
+    //        return getCache("pipe_step_tracker", PipelineStepRecord.class);
+    //    }
+
 }

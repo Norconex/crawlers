@@ -12,26 +12,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cluster.impl.infinispan;
+package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import org.infinispan.protostream.annotations.Proto;
-import org.infinispan.protostream.annotations.ProtoEnumValue;
+import org.infinispan.protostream.annotations.ProtoField;
+
+import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
+
+import lombok.Data;
 
 /**
- * Enum representing the possible states of a distributed task.
+ * A record holding information on a pipeline execution current step.
  */
+@Data
 @Proto
-public enum TaskState {
-    @ProtoEnumValue(value = 0, name = "TASK_NOT_STARTED")
-    NOT_STARTED,
-    @ProtoEnumValue(value = 1, name = "TASK_RUNNING")
-    RUNNING,
-    @ProtoEnumValue(value = 2, name = "TASK_COMPLETED")
-    COMPLETED,
-    @ProtoEnumValue(value = 3, name = "TASK_FAILED")
-    FAILED,
-    @ProtoEnumValue(value = 4, name = "TASK_STOP_REQUESTED")
-    STOP_REQUESTED,
-    @ProtoEnumValue(value = 5, name = "TASK_STOPPED")
-    STOPPED;
+public class PipelineStepRecord {
+    @ProtoField(number = 1)
+    public String pipelineId;
+    @ProtoField(number = 2)
+    public String stepId;
+    @ProtoField(number = 3)
+    public long updatedAt;
+    @ProtoField(number = 4)
+    public PipelineStatus status;
 }

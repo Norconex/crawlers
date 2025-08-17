@@ -13,7 +13,9 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
 
+import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.crawler.core.cluster.Cluster;
+import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
 import com.norconex.crawler.core2.CrawlConfig;
 import com.norconex.crawler.core2.CrawlDriver;
 import com.norconex.crawler.core2.cluster.CacheManager;
@@ -31,16 +33,20 @@ class ClusterNodesInvocationContext implements TestTemplateInvocationContext {
 
     private final int nodeCount;
     private final ClusterNodesTest annotation;
+    private String sharedCrawlerId; // ensures same crawlerId across sessions
 
     @Override
     public String getDisplayName(int invocationIndex) {
-        return "(nodes=" + nodeCount + ")";
+        return "(nodeCount=" + nodeCount + ")";
     }
 
     @Override
     public List<Extension> getAdditionalExtensions() {
+        if (sharedCrawlerId == null) {
+            sharedCrawlerId = "clusterNodesTest-" + System.nanoTime();
+        }
         List<CrawlSession> sessions = new ArrayList<>();
-        for (int i = 0; i < nodeCount; i++) {
+        for (var i = 0; i < nodeCount; i++) {
             sessions.add(createSession(annotation));
         }
         // Wait for membership if requested
@@ -49,12 +55,17 @@ class ClusterNodesInvocationContext implements TestTemplateInvocationContext {
                 ClusterTestUtil.waitForClusterSize(
                         sessions,
                         nodeCount,
-                        Duration.ofSeconds(annotation.membershipTimeoutSeconds()));
+                        Duration.ofSeconds(
+                                annotation.membershipTimeoutSeconds()));
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new RuntimeException("Interrupted while waiting for cluster membership", e);
+                throw new RuntimeException(
+                        "Interrupted while waiting for cluster membership", e);
             } catch (IllegalStateException e) {
-                throw new RuntimeException("Cluster membership did not reach expected size " + nodeCount, e);
+                throw new RuntimeException(
+                        "Cluster membership did not reach expected size "
+                                + nodeCount,
+                        e);
             }
         }
         return List.of(
@@ -64,15 +75,19 @@ class ClusterNodesInvocationContext implements TestTemplateInvocationContext {
 
     private CrawlSession createSession(ClusterNodesTest ann) {
         try {
-            @SuppressWarnings("unchecked")
-            Supplier<CrawlDriver> driverFactory = (Supplier<CrawlDriver>) ann.driverFactory()
+            if (sharedCrawlerId == null) {
+                sharedCrawlerId = "clusterNodesTest-" + System.nanoTime();
+            }
+            Supplier<CrawlDriver> driverFactory = ann.driverFactory()
                     .getDeclaredConstructor().newInstance();
             var cfg = new CrawlConfig();
-            cfg.setId("clusterNodesTest-" + System.nanoTime());
-            ClusterConnector connector = ann.connector().getDeclaredConstructor().newInstance();
+            cfg.setId(sharedCrawlerId); // unified id across nodes
+            ClusterConnector connector =
+                    ann.connector().getDeclaredConstructor().newInstance();
             if (connector instanceof InfinispanClusterConnector ic) {
                 ic.getConfiguration().setInfinispan(
-                        InfinispanUtil.configBuilderHolder(ann.infinispanConfig()));
+                        InfinispanUtil
+                                .configBuilderHolder(ann.infinispanConfig()));
             }
             cfg.setClusterConnector(connector);
             return CrawlSessionFactory.create(driverFactory.get(), cfg);
@@ -88,45 +103,64 @@ class ClusterNodesInvocationContext implements TestTemplateInvocationContext {
         private final List<CrawlSession> sessions;
 
         @Override
-        public boolean supportsParameter(ParameterContext pc, ExtensionContext ec) {
+        public boolean supportsParameter(ParameterContext pc,
+                ExtensionContext ec) {
             var t = pc.getParameter().getType();
-            if (t == int.class || t == Integer.class) return true;
+            if (t == int.class || t == Integer.class)
+                return true;
             if (List.class.isAssignableFrom(t)) {
                 // Only support List<CrawlSession>
-                if (pc.getParameter().getParameterizedType() instanceof ParameterizedType pt) {
+                if (pc.getParameter()
+                        .getParameterizedType() instanceof ParameterizedType pt) {
                     return pt.getActualTypeArguments()[0].getTypeName()
                             .equals(CrawlSession.class.getName());
                 }
                 return false;
             }
-            if (CrawlSession.class.isAssignableFrom(t)) return true;
-            if (Cluster.class.isAssignableFrom(t)) return true;
-            if (CacheManager.class.isAssignableFrom(t)) return true;
-            if (TaskManager.class.isAssignableFrom(t)) return true;
+            if (CrawlSession.class.isAssignableFrom(t)
+                    || Cluster.class.isAssignableFrom(t)
+                    || CacheManager.class.isAssignableFrom(t)
+                    || TaskManager.class.isAssignableFrom(t)
+                    || PipelineManager.class.isAssignableFrom(t))
+                return true;
             return false;
         }
 
         @Override
-        public Object resolveParameter(ParameterContext pc, ExtensionContext ec) {
+        public Object resolveParameter(ParameterContext pc,
+                ExtensionContext ec) {
             var t = pc.getParameter().getType();
-            if (t == int.class || t == Integer.class) return nodeCount;
-            if (List.class.isAssignableFrom(t)) return sessions; // List<CrawlSession>
+            if (t == int.class || t == Integer.class)
+                return nodeCount;
+            if (List.class.isAssignableFrom(t))
+                return sessions; // List<CrawlSession>
             var first = sessions.get(0);
-            if (CrawlSession.class.isAssignableFrom(t)) return first;
-            if (Cluster.class.isAssignableFrom(t)) return first.getCluster();
-            if (CacheManager.class.isAssignableFrom(t)) return first.getCluster().getCacheManager();
-            if (TaskManager.class.isAssignableFrom(t)) return first.getCluster().getTaskManager();
-            throw new IllegalArgumentException("Unsupported parameter: " + pc.getParameter());
+            if (CrawlSession.class.isAssignableFrom(t))
+                return first;
+            if (Cluster.class.isAssignableFrom(t))
+                return first.getCluster();
+            if (CacheManager.class.isAssignableFrom(t))
+                return first.getCluster().getCacheManager();
+            if (TaskManager.class.isAssignableFrom(t))
+                return first.getCluster().getTaskManager();
+            if (PipelineManager.class.isAssignableFrom(t))
+                return first.getCluster().getPipelineManager();
+            throw new IllegalArgumentException(
+                    "Unsupported parameter: " + pc.getParameter());
         }
     }
 
     @RequiredArgsConstructor
     static class SessionsCleanup implements AfterEachCallback {
         private final List<CrawlSession> sessions;
+
         @Override
         public void afterEach(ExtensionContext context) throws Exception {
             for (var s : sessions) {
-                try { s.close(); } catch (Exception e) { /* ignore */ }
+                try {
+                    s.close();
+                } catch (Exception e) {
+                    /* ignore */ }
             }
             sessions.clear();
         }

@@ -30,7 +30,7 @@ class ClusterCoordinatorSelfIdentificationTest {
     void testCoordinatorRoleRecordedInSharedCache(int nodeCount,
             List<CrawlSession> sessions) throws Exception {
         // Unique cache name per invocation for isolation
-        var cacheName = ClusterTestUtil.uniqueCache("coordExtTest");
+        var cacheName = ClusterTestUtil.uniqueCacheName("coordExtTest");
 
         // Record role for each session's cluster
         for (var s : sessions) {

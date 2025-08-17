@@ -18,6 +18,7 @@ import java.nio.file.Path;
 import java.util.UUID;
 
 import com.norconex.crawler.core.cluster.Cluster;
+import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
 import com.norconex.crawler.core2.cluster.CacheManager;
 import com.norconex.crawler.core2.cluster.ClusterNode;
 import com.norconex.crawler.core2.cluster.TaskManager;
@@ -67,5 +68,10 @@ public class MockFailingCluster implements Cluster {
     @Override
     public void close() {
         //NOOP
+    }
+
+    @Override
+    public PipelineManager getPipelineManager() {
+        throw new UnsupportedOperationException("IN_TEST");
     }
 }

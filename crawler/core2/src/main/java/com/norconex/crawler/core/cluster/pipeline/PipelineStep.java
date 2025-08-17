@@ -14,21 +14,19 @@
  */
 package com.norconex.crawler.core.cluster.pipeline;
 
-import java.util.Map;
-import java.util.Objects;
+import java.util.List;
 
-import org.apache.commons.collections4.map.ListOrderedMap;
+import com.norconex.crawler.core.cluster.impl.infinispan.PipelineStepRecord;
+import com.norconex.crawler.core2.session.CrawlSession;
 
-import lombok.Data;
+public interface PipelineStep {
+    String getId();
 
-@Data
-public class ClusterPipeline {
+    boolean isDistributed();
 
-    private final Map<String, ClusterPipelineStep> steps =
-            new ListOrderedMap<>();
+    void execute(CrawlSession session);
 
-    public ClusterPipelineStep getStep(String stepId) {
-        return Objects.requireNonNull(steps.get(stepId),
-                "No cluster pipeline step (null) found for step id: " + stepId);
-    }
+    void stop(CrawlSession session);
+
+    PipelineStepRecord reduce(List<PipelineStepRecord> stepRecords);
 }
