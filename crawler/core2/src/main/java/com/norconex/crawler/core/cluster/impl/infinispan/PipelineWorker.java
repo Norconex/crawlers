@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.core.cluster.impl.infinispan;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -48,6 +49,7 @@ public class PipelineWorker implements AutoCloseable {
     private Object stepListener;
     private volatile boolean running = false;
     private final AtomicBoolean closed = new AtomicBoolean(false);
+    private final CompletableFuture<Void> completion = new CompletableFuture<>();
 
     public PipelineWorker(
             @NonNull InfinispanCluster cluster,
@@ -140,7 +142,12 @@ public class PipelineWorker implements AutoCloseable {
                 stepListener = null;
             }
             LOG.debug("PipelineWorker closed for pipeline {}", pipeline.getId());
+            completion.complete(null);
         }
+    }
+
+    public CompletableFuture<Void> getCompletionFuture() {
+        return completion;
     }
 
     void execute(Step step, StepRecord stepRec) {

@@ -17,6 +17,8 @@ package com.norconex.crawler.core.cluster.impl.infinispan;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.collections4.Bag;
 import org.apache.commons.collections4.bag.HashBag;
@@ -33,7 +35,7 @@ import com.norconex.crawler.core2.session.CrawlSession;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class PipelineCoordinator {
+public class PipelineCoordinator implements AutoCloseable {
 
     private static long TIMEOUT_MS = 30_000;
 
@@ -43,6 +45,10 @@ public class PipelineCoordinator {
     private final Pipeline pipeline;
     private final Map<String, StepRecord> workerStatuses =
             new HashMap<>();
+
+    private Object workerStatusListener;
+    private final AtomicBoolean closed = new AtomicBoolean(false);
+    private final CompletableFuture<Void> completion = new CompletableFuture<>();
 
     public PipelineCoordinator(InfinispanCluster cluster, Pipeline pipeline) {
         this.cluster = cluster;
@@ -54,20 +60,21 @@ public class PipelineCoordinator {
     }
 
     void start() {
-        // Now runs in the caller thread (already spawned asynchronously by the manager).
         Thread.currentThread().setName("COORDINATOR");
+        // register listener and keep reference
+        workerStatusListener = new PipelineStepChangeListener((key, rec) -> {
+            if (rec.getPipelineId().equals(pipeline.getId())) {
+                updateWorkerStatus(key, rec);
+            }
+        });
+        cluster.getCacheManager().addPipelineWorkerStatusListener(workerStatusListener);
         doCoordinatePipelineExecution();
         LOG.info("Pipeline {}  terminated.", pipeline.getId());
+        close();
     }
 
     void doCoordinatePipelineExecution() {
-        cluster.getCacheManager().addPipelineWorkerStatusListener(
-                new PipelineStepChangeListener((key, rec) -> {
-                    if (rec.getPipelineId().equals(pipeline.getId())) {
-                        updateWorkerStatus(key, rec);
-                    }
-                }));
-        // do an initial sweep to get worker status set prior to listening
+        // initial sweep
         workerStatusCache.forEach(this::updateWorkerStatus);
 
         var key = CacheKeys.pipelineKey(cluster, pipeline);
@@ -220,5 +227,24 @@ public class PipelineCoordinator {
                 .setStepId(step.getId())
                 .setStatus(status)
                 .setUpdatedAt(System.currentTimeMillis());
+    }
+
+    @Override
+    public void close() {
+        if (closed.compareAndSet(false, true)) {
+            if (workerStatusListener != null) {
+                try {
+                    cluster.getCacheManager().removePipelineWorkerStatusListener(workerStatusListener);
+                } catch (Exception e) {
+                    LOG.debug("Could not remove worker status listener for pipeline {}: {}", pipeline.getId(), e.toString());
+                }
+                workerStatusListener = null;
+            }
+            completion.complete(null);
+        }
+    }
+
+    public CompletableFuture<Void> getCompletionFuture() {
+        return completion;
     }
 }

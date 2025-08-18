@@ -21,6 +21,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.Map;
 
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
@@ -60,6 +61,7 @@ public class InfinispanPipelineManager
             });
 
     private final Map<String, PipelineWorker> workers = new ConcurrentHashMap<>();
+    private final Map<String, PipelineCoordinator> coordinators = new ConcurrentHashMap<>();
 
     @Override
     public CompletableFuture<Void> executePipeline(@NonNull Pipeline pipeline) {
@@ -70,12 +72,14 @@ public class InfinispanPipelineManager
         if (isCoordinator) {
             LOG.debug("Starting pipeline coordinator for {} on node {}",
                     pipeline.getId(), cluster.getLocalNode().getNodeName());
+            var coordinator = new PipelineCoordinator(cluster, pipeline);
+            coordinators.put(pipelineId, coordinator);
             CompletableFuture
-                    .runAsync(() -> new PipelineCoordinator(cluster, pipeline)
-                            .start(), executor)
+                    .runAsync(coordinator::start, executor)
                     .exceptionally(ex -> {
                         LOG.error("Pipeline coordinator failed", ex);
                         resultFuture.completeExceptionally(ex);
+                        closeCoordinator(pipelineId);
                         return null;
                     });
         }
@@ -98,11 +102,13 @@ public class InfinispanPipelineManager
             try {
                 ConcurrentUtil.waitUntil(() -> isPipelineDone(pipeline));
                 closeWorker(pipelineId);
+                closeCoordinator(pipelineId);
                 if (!resultFuture.isDone()) {
                     resultFuture.complete(null);
                 }
             } catch (RuntimeException e) {
                 closeWorker(pipelineId);
+                closeCoordinator(pipelineId);
                 if (!resultFuture.isDone()) {
                     resultFuture.completeExceptionally(e);
                 }
@@ -145,6 +151,15 @@ public class InfinispanPipelineManager
         }
     }
 
+    private void closeCoordinator(String pipelineId) {
+        var c = coordinators.remove(pipelineId);
+        if (c != null) {
+            try { c.close(); } catch (Exception e) {
+                LOG.debug("Error closing coordinator for pipeline {}: {}", pipelineId, e.toString());
+            }
+        }
+    }
+
     @Override
     public void close() {
         executor.shutdown(); // disable new tasks, let running complete
@@ -163,5 +178,7 @@ public class InfinispanPipelineManager
         }
         workers.values().forEach(w -> { try { w.close(); } catch (Exception ignore) {} });
         workers.clear();
+        coordinators.values().forEach(c -> { try { c.close(); } catch (Exception ignore) {} });
+        coordinators.clear();
     }
 }

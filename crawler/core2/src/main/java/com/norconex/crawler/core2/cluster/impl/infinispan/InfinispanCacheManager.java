@@ -97,19 +97,27 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
                 .addListener(listener);
     }
 
+    public void removePipelineCurrentStepListener(Object listener) {
+        try {
+            cacheManager.getCache(CacheNames.PIPE_CURRENT_STEP)
+                    .removeListener(listener);
+        } catch (Exception e) {
+            LOG.debug("Could not remove pipeline current step listener: {}", e.toString());
+        }
+    }
+
     public void addPipelineWorkerStatusListener(Object listener) {
         cacheManager.getCache(CacheNames.PIPE_WORKER_STATUS)
                 .addListener(listener);
     }
 
-    public void removePipelineCurrentStepListener(Object listener) {
-        cacheManager.getCache(CacheNames.PIPE_CURRENT_STEP)
-                .removeListener(listener);
-    }
-
     public void removePipelineWorkerStatusListener(Object listener) {
-        cacheManager.getCache(CacheNames.PIPE_WORKER_STATUS)
-                .removeListener(listener);
+        try {
+            cacheManager.getCache(CacheNames.PIPE_WORKER_STATUS)
+                    .removeListener(listener);
+        } catch (Exception e) {
+            LOG.debug("Could not remove pipeline worker status listener: {}", e.toString());
+        }
     }
 
     //TODO REMOVE LISTENERS WHEN DONE WITH PIPELINE EXECUTION
