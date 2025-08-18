@@ -25,6 +25,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
+import com.norconex.crawler.core.cluster.pipeline.PipelineResult;
+import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanCluster;
 import com.norconex.crawler.core2.util.ConcurrentUtil;
 
@@ -37,8 +39,8 @@ import lombok.extern.slf4j.Slf4j;
 public class InfinispanPipelineManager
         implements PipelineManager, AutoCloseable {
 
-    //TODO make configurable
-    private static long TIMEOUT_MS = 60_000;
+    // Overall pipeline execution timeout (ms). 0 or negative = unlimited.
+    private static long TIMEOUT_MS = 0; // was 60_000; unlimited by default
     private static final long SHUTDOWN_AWAIT_SECONDS = 5;
 
     private final InfinispanCluster cluster;
@@ -65,41 +67,36 @@ public class InfinispanPipelineManager
             new ConcurrentHashMap<>();
 
     @Override
-    public CompletableFuture<Void> executePipeline(@NonNull Pipeline pipeline) {
+    public CompletableFuture<PipelineResult> executePipeline(@NonNull Pipeline pipeline) {
         var isCoordinator = cluster.getLocalNode().isCoordinator();
-        var resultFuture = new CompletableFuture<Void>();
+        var resultFuture = new CompletableFuture<PipelineResult>();
         var pipelineId = pipeline.getId();
 
-        CompletableFuture<Void> coordinatorFuture =
-                CompletableFuture.completedFuture(null);
+        CompletableFuture<PipelineResult> coordinatorFuture = CompletableFuture.completedFuture(null);
 
         if (isCoordinator) {
             LOG.debug("Starting pipeline coordinator for {} on node {}",
                     pipeline.getId(), cluster.getLocalNode().getNodeName());
             var coordinator = new PipelineCoordinator(cluster, pipeline);
             coordinators.put(pipelineId, coordinator);
-            coordinatorFuture =
-                    CompletableFuture.runAsync(coordinator::start, executor)
-                            .exceptionally(ex -> {
-                                LOG.error("Pipeline coordinator failed", ex);
-                                resultFuture.completeExceptionally(ex);
-                                closeCoordinator(pipelineId);
-                                return null;
-                            })
-                            .thenCompose(
-                                    v -> coordinators.get(pipelineId) != null
-                                            ? coordinators.get(pipelineId)
-                                                    .getCompletionFuture()
-                                            : CompletableFuture
-                                                    .completedFuture(null));
+            coordinatorFuture = CompletableFuture.runAsync(coordinator::start, executor)
+                    .exceptionally(ex -> {
+                        LOG.error("Pipeline coordinator failed", ex);
+                        resultFuture.completeExceptionally(ex);
+                        closeCoordinator(pipelineId);
+                        return null; // swallow here; resultFuture already exceptional
+                    })
+                    .thenCompose(v -> {
+                        var c = coordinators.get(pipelineId);
+                        return c != null ? c.getCompletionFuture() : CompletableFuture.<PipelineResult>completedFuture(null);
+                    });
         }
 
         LOG.debug("Starting pipeline worker for {} on node {}",
                 pipeline.getId(), cluster.getLocalNode().getNodeName());
         var worker = new PipelineWorker(cluster, pipeline);
         workers.put(pipelineId, worker);
-        CompletableFuture
-                .runAsync(worker::start, executor)
+        CompletableFuture.runAsync(worker::start, executor)
                 .exceptionally(ex -> {
                     LOG.error("Pipeline worker failed", ex);
                     resultFuture.completeExceptionally(ex);
@@ -107,34 +104,23 @@ public class InfinispanPipelineManager
                     return null;
                 });
 
-        // Determine pipeline completion (coordinator node: coordinator future; other nodes: polling future)
-        var pipelineCompletionFuture = isCoordinator
+        CompletableFuture<PipelineResult> pipelineCompletionFuture = isCoordinator
                 ? coordinatorFuture
-                : CompletableFuture.runAsync(() -> {
-                    try {
-                        ConcurrentUtil
-                                .waitUntil(() -> isPipelineDone(pipeline));
-                    } catch (RuntimeException e) {
-                        throw e;
-                    }
-                }, executor);
+                : CompletableFuture.supplyAsync(() -> buildWorkerSideResult(pipeline), executor);
 
-        pipelineCompletionFuture.whenComplete((v, ex) -> {
+        pipelineCompletionFuture.whenComplete((res, ex) -> {
             if (ex != null) {
                 closeWorker(pipelineId);
                 closeCoordinator(pipelineId);
                 resultFuture.completeExceptionally(ex);
             } else {
-                // Coordinator already closed itself via its start() -> close(); ensure we close worker.
                 closeWorker(pipelineId);
-                closeCoordinator(pipelineId); // no-op if already closed/removed
+                closeCoordinator(pipelineId);
                 if (!resultFuture.isDone()) {
-                    resultFuture.complete(null);
+                    resultFuture.complete(res);
                 }
             }
         });
-
-        // Return the pipeline result future immediately.
         return resultFuture;
     }
 
@@ -151,15 +137,62 @@ public class InfinispanPipelineManager
                                 rec.getStatus());
                         return true;
                     }
-                    if (System.currentTimeMillis()
+                    if (TIMEOUT_MS > 0 && System.currentTimeMillis()
                             - rec.getUpdatedAt() > TIMEOUT_MS) {
-                        LOG.info("Pipeline timed out, terminating.");
+                        LOG.info("Pipeline timed out after {} ms, terminating.", TIMEOUT_MS);
                         return true;
                     }
                     return false;
                 })
                 .isPresent();
 
+    }
+
+    private PipelineResult buildWorkerSideResult(Pipeline pipeline) {
+        var pipelineCache = cluster.getCacheManager().getPipelineCurrentStepCache();
+        var key = CacheKeys.pipelineKey(cluster, pipeline);
+        boolean done = false;
+        boolean timedOut = false;
+        StepRecord rec = null;
+        while (!done) {
+            rec = pipelineCache.get(key).orElse(null);
+            if (rec != null && rec.getStatus() != null && rec.getStatus().isTerminal()) {
+                done = true;
+                break;
+            }
+            if (TIMEOUT_MS > 0 && rec != null && (System.currentTimeMillis() - rec.getUpdatedAt() > TIMEOUT_MS)) {
+                done = true;
+                timedOut = true;
+                break;
+            }
+            if (rec == null) {
+                try { Thread.sleep(200); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
+            } else {
+                try { Thread.sleep(250); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
+            }
+        }
+        long finishedAt = System.currentTimeMillis();
+        PipelineStatus status;
+        String lastStepId;
+        if (rec == null) {
+            status = timedOut ? PipelineStatus.EXPIRED : PipelineStatus.EXPIRED; // retain previous fallback
+            lastStepId = null;
+        } else {
+            status = rec.getStatus();
+            lastStepId = rec.getStepId();
+            if (timedOut && !status.isTerminal()) {
+                status = PipelineStatus.EXPIRED;
+            }
+        }
+        return PipelineResult.builder()
+                .pipelineId(pipeline.getId())
+                .status(status)
+                .lastStepId(lastStepId)
+                .startedAt(0L)
+                .finishedAt(finishedAt)
+                .resumed(false)
+                .timedOut(timedOut)
+                .build();
     }
 
     private void closeWorker(String pipelineId) {

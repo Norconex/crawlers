@@ -17,10 +17,10 @@ package com.norconex.crawler.core.cluster.pipeline;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.ArrayList;
 
 import org.junit.jupiter.api.Timeout;
 
@@ -68,7 +68,7 @@ public class PipelineTest {
                 }));
 
         // Start pipeline execution: launch workers on non-coordinator nodes first
-        var futures = new ArrayList<CompletableFuture<Void>>();
+        var futures = new ArrayList<CompletableFuture<PipelineResult>>();
         sessions.stream()
                 .filter(s -> !s.getCluster().getLocalNode().isCoordinator())
                 .forEach(s -> futures.add(s.getCluster()

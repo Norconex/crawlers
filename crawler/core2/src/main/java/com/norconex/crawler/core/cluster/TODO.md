@@ -12,3 +12,9 @@
   
 - At the end in cleanup, check if there are any "dead" nodes and 
   report it while also trying to stop them.
+  
+- External configuration (system property/env).
+
+- JMX toggle.
+
+- Logging a periodic heartbeat when long-running.

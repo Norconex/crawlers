@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
+import com.norconex.crawler.core.cluster.pipeline.PipelineResult;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core2.cluster.Cache;
@@ -48,7 +49,13 @@ public class PipelineCoordinator implements AutoCloseable {
 
     private Object workerStatusListener;
     private final AtomicBoolean closed = new AtomicBoolean(false);
-    private final CompletableFuture<Void> completion = new CompletableFuture<>();
+    private final CompletableFuture<PipelineResult> completion = new CompletableFuture<>();
+
+    private String lastStepId;
+    private PipelineStatus finalStatus = PipelineStatus.PENDING;
+    private long startedAt = System.currentTimeMillis();
+    private long finishedAt;
+    private boolean resumed;
 
     public PipelineCoordinator(InfinispanCluster cluster, Pipeline pipeline) {
         this.cluster = cluster;
@@ -61,7 +68,8 @@ public class PipelineCoordinator implements AutoCloseable {
 
     void start() {
         Thread.currentThread().setName("COORDINATOR");
-        // register listener and keep reference
+        // detect resume: if cache already had a record
+        resumed = pipelineRecordsCache.get(CacheKeys.pipelineKey(cluster, pipeline)).isPresent();
         workerStatusListener = new PipelineStepChangeListener((key, rec) -> {
             if (rec.getPipelineId().equals(pipeline.getId())) {
                 updateWorkerStatus(key, rec);
@@ -70,6 +78,7 @@ public class PipelineCoordinator implements AutoCloseable {
         cluster.getCacheManager().addPipelineWorkerStatusListener(workerStatusListener);
         doCoordinatePipelineExecution();
         LOG.info("Pipeline {}  terminated.", pipeline.getId());
+        finishedAt = System.currentTimeMillis();
         close();
     }
 
@@ -92,7 +101,6 @@ public class PipelineCoordinator implements AutoCloseable {
         for (var step : steps) {
             // reset worker statuses for this step BEFORE publishing running record
             workerStatuses.clear();
-            // create and publish RUNNING record for this step
             var stepRec = createRunningStepRecord(step);
             pipelineRecordsCache.put(key, stepRec);
             LOG.debug("Published RUNNING for pipeline {} step {}",
@@ -102,18 +110,19 @@ public class PipelineCoordinator implements AutoCloseable {
                     ? executeOnAllNodes(step, key, stepRec)
                     : executeLocally(step);
 
-            // publish terminal status for this step
             stepRec.setStatus(execStatus);
             stepRec.setUpdatedAt(System.currentTimeMillis());
             pipelineRecordsCache.put(key, stepRec);
             LOG.debug("Published {} for pipeline {} step {}", execStatus,
                     pipeline.getId(), step.getId());
-
+            lastStepId = step.getId();
+            finalStatus = execStatus;
             if (execStatus == PipelineStatus.FAILED) {
                 LOG.info("Aborting pipeline execution...");
                 return;
             }
         }
+        // if we exit loop without failure, finalStatus already set to last step status
     }
 
     private void updateWorkerStatus(String key, StepRecord stepRec) {
@@ -240,11 +249,19 @@ public class PipelineCoordinator implements AutoCloseable {
                 }
                 workerStatusListener = null;
             }
-            completion.complete(null);
+            completion.complete(PipelineResult.builder()
+                    .pipelineId(pipeline.getId())
+                    .status(finalStatus)
+                    .lastStepId(lastStepId)
+                    .startedAt(startedAt)
+                    .finishedAt(finishedAt == 0 ? System.currentTimeMillis() : finishedAt)
+                    .resumed(resumed)
+                    .timedOut(false)
+                    .build());
         }
     }
 
-    public CompletableFuture<Void> getCompletionFuture() {
+    public CompletableFuture<PipelineResult> getCompletionFuture() {
         return completion;
     }
 }

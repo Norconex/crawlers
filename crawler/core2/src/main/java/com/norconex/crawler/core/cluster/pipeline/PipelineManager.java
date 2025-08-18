@@ -18,5 +18,5 @@ import java.util.concurrent.CompletableFuture;
 
 public interface PipelineManager {
 
-    CompletableFuture<Void> executePipeline(Pipeline pipeline);
+    CompletableFuture<PipelineResult> executePipeline(Pipeline pipeline);
 }
