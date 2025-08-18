@@ -301,7 +301,7 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
                         new StringSerializedObject(result));
 
                 // Wait for all nodes to complete their execution
-                var allNodeNames = cluster.getAllNodeNames();
+                var allNodeNames = cluster.getNodeNames();
                 while (true) {
                     var allDone = true;
                     java.util.List<T> results = new java.util.ArrayList<>();
@@ -412,7 +412,7 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
                 }
 
                 // Snapshot members and persist
-                var members = new HashSet<>(cluster.getAllNodeNames());
+                var members = new HashSet<>(cluster.getNodeNames());
                 taskResultCache.put(membersKey, new StringSerializedObject(members));
                 var startTime = System.currentTimeMillis();
 
@@ -760,7 +760,7 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
             runningTask.stop(CrawlSession.get(cluster.getLocalNode()));
             runningTasks.remove(taskName); // Remove after stopping
         }
-        for (String n : cluster.getAllNodeNames()) {
+        for (String n : cluster.getNodeNames()) {
             taskStatusCache.put(taskName + ":" + n, TaskState.STOP_REQUESTED);
         }
     }

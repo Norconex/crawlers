@@ -122,10 +122,21 @@ public class InfinispanCluster implements Cluster {
     }
 
     /**
-     * Returns the addresses of all nodes in the cluster.
-     * @return node addresses
+     * Returns the number of nodes in the cluster.
+     * @return node count
      */
-    public List<String> getAllNodeNames() {
+    public int getNodeCount() {
+        return ofNullable(cacheManager)
+                .map(InfinispanCacheManager::vendor)
+                .map(DefaultCacheManager::getClusterSize)
+                .orElse(1);
+    }
+
+    /**
+     * Returns the names of all nodes in the cluster.
+     * @return node names
+     */
+    public List<String> getNodeNames() {
         var members = ofNullable(cacheManager)
                 .map(InfinispanCacheManager::vendor)
                 .map(DefaultCacheManager::getMembers)

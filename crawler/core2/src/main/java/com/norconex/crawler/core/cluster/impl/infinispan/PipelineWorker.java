@@ -16,7 +16,7 @@ package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
-import com.norconex.crawler.core.cluster.pipeline.PipelineStep;
+import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core2.cluster.Cache;
 import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanCluster;
 import com.norconex.crawler.core2.session.CrawlSession;
@@ -27,10 +27,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PipelineWorker {
     private final InfinispanCluster cluster;
-    private final Cache<PipelineStepRecord> currentStepCache;
-    private final Cache<PipelineStepRecord> workerStatusCache;
+    private final Cache<StepRecord> currentStepCache;
+    private final Cache<StepRecord> workerStatusCache;
     private Pipeline pipeline;
-    private PipelineStep currentStep;
+    private Step currentStep;
     private PipelineStatus workerStatus = PipelineStatus.PENDING;
     private final String pipeKey;
     private final String pipeWorkerKey;
@@ -53,7 +53,7 @@ public class PipelineWorker {
         // Publish an initial readiness status so coordinator knows this worker exists
         try {
             var firstStepId = pipeline.getSteps().firstKey();
-            var rec = new PipelineStepRecord();
+            var rec = new StepRecord();
             rec.setPipelineId(pipeline.getId());
             rec.setStepId(firstStepId);
             rec.setStatus(PipelineStatus.PENDING);
@@ -84,7 +84,7 @@ public class PipelineWorker {
                 }));
     }
 
-    void execute(PipelineStep step, PipelineStepRecord stepRec) {
+    void execute(Step step, StepRecord stepRec) {
         System.err.println("XXX WORKER EXECUTE: " + stepRec);
 
         currentStep = step;
@@ -121,7 +121,7 @@ public class PipelineWorker {
     private void updateWorkerStatus(PipelineStatus status) {
         workerStatus = status;
         String stepId = currentStep != null ? currentStep.getId() : pipeline.getSteps().firstKey();
-        var rec = new PipelineStepRecord();
+        var rec = new StepRecord();
         rec.setPipelineId(pipeline.getId());
         rec.setStepId(stepId);
         rec.setStatus(status);
@@ -131,7 +131,7 @@ public class PipelineWorker {
         workerStatusCache.put(pipeWorkerKey, rec);
     }
 
-    private PipelineStep getStep(Pipeline pipeline, PipelineStepRecord rec) {
+    private Step getStep(Pipeline pipeline, StepRecord rec) {
         if (rec == null || rec.getStepId() == null) {
             return null;
         }

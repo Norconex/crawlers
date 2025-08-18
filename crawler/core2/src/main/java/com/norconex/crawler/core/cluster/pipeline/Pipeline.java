@@ -27,7 +27,7 @@ import lombok.NonNull;
 public class Pipeline {
 
     private final String id;
-    private final OrderedMap<String, PipelineStep> steps =
+    private final OrderedMap<String, Step> steps =
             new ListOrderedMap<>();
     //    private PipelineStatus status;
 
@@ -35,16 +35,16 @@ public class Pipeline {
         this.id = id;
     }
 
-    public Pipeline(String id, List<PipelineStep> steps) {
+    public Pipeline(String id, List<Step> steps) {
         this.id = id;
         steps.forEach(step -> this.steps.put(step.getId(), step));
     }
 
-    public void addStep(@NonNull PipelineStep step) {
+    public void addStep(@NonNull Step step) {
         steps.put(step.getId(), step);
     }
 
-    public PipelineStep getStep(String stepId) {
+    public Step getStep(String stepId) {
         return Objects.requireNonNull(steps.get(stepId),
                 "No cluster pipeline step found for step id: " + stepId);
     }

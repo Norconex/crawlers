@@ -18,7 +18,7 @@ import org.infinispan.protostream.GeneratedSchema;
 import org.infinispan.protostream.annotations.ProtoSchema;
 import org.infinispan.protostream.annotations.ProtoSyntax;
 
-import com.norconex.crawler.core.cluster.impl.infinispan.PipelineStepRecord;
+import com.norconex.crawler.core.cluster.impl.infinispan.StepRecord;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 
 @ProtoSchema(
@@ -29,7 +29,7 @@ import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
             TaskState.class,
             TaskType.class,
             TaskRecord.class,
-            PipelineStepRecord.class,
+            StepRecord.class,
             PipelineStatus.class
     }
     //    schemaFileName = "crawler.proto",

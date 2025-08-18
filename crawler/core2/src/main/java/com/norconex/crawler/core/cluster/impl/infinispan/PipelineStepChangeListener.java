@@ -30,11 +30,11 @@ import lombok.RequiredArgsConstructor;
 public class PipelineStepChangeListener {
 
     @NonNull
-    private final BiConsumer<String, PipelineStepRecord> stepRecCallback;
+    private final BiConsumer<String, StepRecord> stepRecCallback;
 
     @CacheEntryCreated
     public void onCreated(
-            CacheEntryCreatedEvent<String, PipelineStepRecord> e) {
+            CacheEntryCreatedEvent<String, StepRecord> e) {
         if (!e.isPre()) {
             react(e.getKey(), e.getValue());
         }
@@ -42,13 +42,13 @@ public class PipelineStepChangeListener {
 
     @CacheEntryModified
     public void onModified(
-            CacheEntryModifiedEvent<String, PipelineStepRecord> e) {
+            CacheEntryModifiedEvent<String, StepRecord> e) {
         if (!e.isPre()) {
             react(e.getKey(), e.getNewValue());
         }
     }
 
-    private void react(String key, PipelineStepRecord stepRec) {
+    private void react(String key, StepRecord stepRec) {
         stepRecCallback.accept(key, stepRec);
     }
 }

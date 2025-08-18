@@ -9,3 +9,6 @@
 - Coordinator will store the current step in a cache.
 - Workers are listening for that cache and execute when it changes
   (either stopped or a new node).
+  
+- At the end in cleanup, check if there are any "dead" nodes and 
+  report it while also trying to stop them.

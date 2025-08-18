@@ -8,7 +8,7 @@ import org.infinispan.configuration.cache.ConfigurationBuilder;
 import org.infinispan.manager.DefaultCacheManager;
 
 import com.norconex.crawler.core.cluster.impl.infinispan.CacheNames;
-import com.norconex.crawler.core.cluster.impl.infinispan.PipelineStepRecord;
+import com.norconex.crawler.core.cluster.impl.infinispan.StepRecord;
 import com.norconex.crawler.core2.cluster.Cache;
 import com.norconex.crawler.core2.cluster.CacheException;
 import com.norconex.crawler.core2.cluster.CacheManager;
@@ -83,13 +83,13 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
     }
 
     //--- Infinispan-specific custom caches ------------------------------------
-    public Cache<PipelineStepRecord> getPipelineCurrentStepCache() {
-        return getCache(CacheNames.PIPE_CURRENT_STEP, PipelineStepRecord.class);
+    public Cache<StepRecord> getPipelineCurrentStepCache() {
+        return getCache(CacheNames.PIPE_CURRENT_STEP, StepRecord.class);
     }
 
-    public Cache<PipelineStepRecord> getPipelineWorkerStatusCache() {
+    public Cache<StepRecord> getPipelineWorkerStatusCache() {
         return getCache(CacheNames.PIPE_WORKER_STATUS,
-                PipelineStepRecord.class);
+                StepRecord.class);
     }
 
     public void addPipelineCurrentStepListener(Object listener) {

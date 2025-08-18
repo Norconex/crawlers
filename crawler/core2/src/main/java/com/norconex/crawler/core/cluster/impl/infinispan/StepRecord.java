@@ -20,13 +20,15 @@ import org.infinispan.protostream.annotations.ProtoField;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * A record holding information on a pipeline execution current step.
  */
 @Data
+@Accessors(chain = true)
 @Proto
-public class PipelineStepRecord {
+public class StepRecord {
     @ProtoField(number = 1)
     public String pipelineId;
     @ProtoField(number = 2)

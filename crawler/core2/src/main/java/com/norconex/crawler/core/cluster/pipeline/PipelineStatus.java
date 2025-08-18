@@ -23,19 +23,25 @@ public enum PipelineStatus {
     PENDING,
     @ProtoEnumValue(1)
     RUNNING,
-    // Keep original COMPLETED mapping as 2 for backward compatibility
     @ProtoEnumValue(2)
     COMPLETED,
-    // Keep original FAILED mapping as 3
     @ProtoEnumValue(3)
     FAILED,
-    // New statuses appended AFTER legacy ones to preserve numeric codes
     @ProtoEnumValue(4)
     STOPPING,
     @ProtoEnumValue(5)
-    STOPPED;
+    STOPPED,
+    /**
+     * Typically set by the coordinator on when a worker fails to give signs
+     * of life.
+     */
+    @ProtoEnumValue(6)
+    EXPIRED;
 
     public boolean isTerminal() {
-        return this == STOPPED || this == COMPLETED || this == FAILED;
+        return this == STOPPED
+                || this == COMPLETED
+                || this == FAILED
+                || this == EXPIRED;
     }
 }

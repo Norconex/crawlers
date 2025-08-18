@@ -12,7 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.norconex.crawler.core2.CrawlDriver;
 import com.norconex.crawler.core2.cluster.ClusterConnector;
-import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanClusterConnector;
+import com.norconex.crawler.core2.mocks.cluster.MockMultiNodesConnector;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlDriverFactory;
 
 /**
@@ -44,7 +44,8 @@ public @interface ClusterNodesTest {
     int[] nodes() default { 1, 2 };
 
     /** Cluster connector class to instantiate per session. */
-    Class<? extends ClusterConnector> connector() default InfinispanClusterConnector.class;
+    Class<? extends ClusterConnector> connector() default MockMultiNodesConnector.class;
+    //    Class<? extends ClusterConnector> connector() default InfinispanClusterConnector.class;
 
     /** Driver factory (supplier) used to create the crawler driver. */
     Class<? extends Supplier<

@@ -42,7 +42,7 @@ public class PipelineTest {
         var cacheName = ClusterTestUtil.uniqueCacheName("pipetest");
 
         var pipeline = new Pipeline("test-pipeline", List.of(
-                new BasePipelineStep("step1") {
+                new BaseStep("step1") {
                     @Override
                     public void execute(CrawlSession sess) {
                         System.err.println("XXX IN STEP 1");
@@ -54,7 +54,7 @@ public class PipelineTest {
                                 .getNodeName(), "distributed");
                     }
                 }.setDistributed(true),
-                new BasePipelineStep("step2") {
+                new BaseStep("step2") {
                     @Override
                     public void execute(CrawlSession sess) {
                         System.err.println("XXX IN STEP 2");

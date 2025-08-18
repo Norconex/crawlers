@@ -14,12 +14,11 @@
  */
 package com.norconex.crawler.core.cluster.pipeline;
 
-import java.util.List;
+import org.apache.commons.collections4.Bag;
 
-import com.norconex.crawler.core.cluster.impl.infinispan.PipelineStepRecord;
 import com.norconex.crawler.core2.session.CrawlSession;
 
-public interface PipelineStep {
+public interface Step {
     String getId();
 
     boolean isDistributed();
@@ -28,5 +27,6 @@ public interface PipelineStep {
 
     void stop(CrawlSession session);
 
-    PipelineStepRecord reduce(List<PipelineStepRecord> stepRecords);
+    PipelineStatus reduce(
+            CrawlSession session, Bag<PipelineStatus> statuses);
 }
