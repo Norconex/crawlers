@@ -17,9 +17,7 @@ package com.norconex.crawler.core.cluster.pipeline;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Timeout;
@@ -67,36 +65,17 @@ public class PipelineTest {
                     }
                 }));
 
-        // Start pipeline execution: launch workers on non-coordinator nodes first
-        var futures = new ArrayList<CompletableFuture<PipelineResult>>();
-        sessions.stream()
-                .filter(s -> !s.getCluster().getLocalNode().isCoordinator())
-                .forEach(s -> futures.add(s.getCluster()
-                        .getPipelineManager().executePipeline(pipeline)));
-        // Then start coordinator so all workers are listening before first step is published
-        sessions.stream()
-                .filter(s -> s.getCluster().getLocalNode().isCoordinator())
-                .findFirst()
-                .ifPresent(s -> futures.add(s.getCluster()
-                        .getPipelineManager().executePipeline(pipeline)));
+        var results =
+                PipelineTestUtil.executeOrderlyAndWait(pipeline, sessions);
 
-        // Wait for pipeline completion on all nodes
-        CompletableFuture
-                .allOf(futures.toArray(new CompletableFuture[0]))
-                .join();
+        assertThat(results)
+                .extracting(PipelineResult::getStatus)
+                .containsOnly(PipelineStatus.COMPLETED);
 
         // Wait until all steps have executed and written to the shared cache
         var cache = ClusterTestUtil.stringCache(sessions.get(0), cacheName);
         var expectedDistributedCount = nodeCount == 1 ? 1 : 2;
         var expectedCacheSize = expectedDistributedCount + 1;
-
-        // start debug
-        LOG.info("XXX CACHE SIZE: {}", cache.size());
-        cache.forEach((k, v) -> {
-            LOG.info("XXX CACHE ENTRY: k={}; v={}", k, v);
-        });
-
-        // end debug
 
         ClusterTestUtil.waitForCacheSize(
                 cache, expectedCacheSize, Duration.ofSeconds(20));
@@ -104,7 +83,6 @@ public class PipelineTest {
         var distributedCount = new AtomicInteger();
         var nonDistributedCount = new AtomicInteger();
         cache.forEach((k, v) -> {
-            LOG.info("XXX CACHE ENTRY: k={}; v={}", k, v);
             if ("distributed".equals(v)) {
                 distributedCount.incrementAndGet();
             } else if ("non-distributed".equals(v)) {
@@ -119,6 +97,5 @@ public class PipelineTest {
         assertThat(nonDistributedCount.get())
                 .as("Expected one non-coordinator(s)")
                 .isEqualTo(1);
-
     }
 }

@@ -166,6 +166,7 @@ public final class ClusterTestUtil {
 
     /**
      * Waits until the cache size reaches expected or timeout.
+     * Can be used to ensures eventual-consistency safety.
      * @param cache cache to wait on
      * @param expected expected cache size
      * @param timeout maximum time to wait
