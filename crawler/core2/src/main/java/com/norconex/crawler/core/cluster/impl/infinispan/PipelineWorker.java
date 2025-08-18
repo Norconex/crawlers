@@ -14,6 +14,11 @@
  */
 package com.norconex.crawler.core.cluster.impl.infinispan;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.Step;
@@ -25,7 +30,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class PipelineWorker {
+public class PipelineWorker implements AutoCloseable {
     private final InfinispanCluster cluster;
     private final Cache<StepRecord> currentStepCache;
     private final Cache<StepRecord> workerStatusCache;
@@ -34,6 +39,11 @@ public class PipelineWorker {
     private PipelineStatus workerStatus = PipelineStatus.PENDING;
     private final String pipeKey;
     private final String pipeWorkerKey;
+
+    private final ScheduledExecutorService statusUpdater =
+            Executors.newSingleThreadScheduledExecutor();
+    private volatile boolean running = false;
+    private final AtomicBoolean closed = new AtomicBoolean(false);
 
     public PipelineWorker(
             @NonNull InfinispanCluster cluster,
@@ -50,6 +60,13 @@ public class PipelineWorker {
 
     void start() {
         Thread.currentThread().setName("WORKER");
+        running = true;
+        // Periodically update worker status
+        statusUpdater.scheduleAtFixedRate(() -> {
+            if (running) {
+                updateWorkerStatus(workerStatus);
+            }
+        }, 0, 10, TimeUnit.SECONDS); // adjust period as needed
         // Publish an initial readiness status so coordinator knows this worker exists
         try {
             var firstStepId = pipeline.getSteps().firstKey();
@@ -59,15 +76,22 @@ public class PipelineWorker {
             rec.setStatus(PipelineStatus.PENDING);
             rec.setUpdatedAt(System.currentTimeMillis());
             workerStatusCache.put(pipeWorkerKey, rec);
-            LOG.debug("Registered worker readiness for pipeline {} on node {} (stepId={})", pipeline.getId(), cluster.getLocalNode().getNodeName(), firstStepId);
+            LOG.debug(
+                    "Registered worker readiness for pipeline {} on node {} (stepId={})",
+                    pipeline.getId(), cluster.getLocalNode().getNodeName(),
+                    firstStepId);
         } catch (Exception e) {
-            LOG.warn("Could not publish initial worker readiness for pipeline {} on node {}: {}", pipeline.getId(), cluster.getLocalNode().getNodeName(), e.toString());
+            LOG.warn(
+                    "Could not publish initial worker readiness for pipeline {} on node {}: {}",
+                    pipeline.getId(), cluster.getLocalNode().getNodeName(),
+                    e.toString());
         }
         var stepRec = currentStepCache.get(pipeKey).orElse(null);
         if (stepRec != null && stepRec.getStepId() != null) {
             execute(getStep(pipeline, stepRec), stepRec);
         } else if (stepRec != null) {
-            LOG.warn("Ignoring invalid current step record with null stepId for pipeline {} (key={}). Will wait for a valid update.",
+            LOG.warn(
+                    "Ignoring invalid current step record with null stepId for pipeline {} (key={}). Will wait for a valid update.",
                     pipeline.getId(), pipeKey);
         }
         cluster.getCacheManager().addPipelineCurrentStepListener(
@@ -75,13 +99,22 @@ public class PipelineWorker {
                     System.err.println("XXX GOT SOMETHING?");
                     if (rec.getPipelineId().equals(pipeline.getId())) {
                         if (rec.getStepId() == null) {
-                            LOG.warn("Received pipeline step record with null stepId for pipeline {} (key={}). Ignoring.",
+                            LOG.warn(
+                                    "Received pipeline step record with null stepId for pipeline {} (key={}). Ignoring.",
                                     pipeline.getId(), key);
                             return;
                         }
                         execute(getStep(pipeline, rec), rec);
                     }
                 }));
+    }
+
+    @Override
+    public void close() {
+        if (closed.compareAndSet(false, true)) {
+            running = false;
+            statusUpdater.shutdownNow();
+        }
     }
 
     void execute(Step step, StepRecord stepRec) {
@@ -95,11 +128,8 @@ public class PipelineWorker {
             return;
         }
 
-        if (stepRec.getStatus() != PipelineStatus.RUNNING) {
-            // Ignore terminal or transitional statuses; coordinator drives progression.
-            return;
-        }
-        if (!step.isDistributed()) {
+        if ((stepRec.getStatus() != PipelineStatus.RUNNING)
+                || !step.isDistributed()) {
             // Coordinator runs non-distributed steps; worker stays silent.
             return;
         }
@@ -120,7 +150,8 @@ public class PipelineWorker {
 
     private void updateWorkerStatus(PipelineStatus status) {
         workerStatus = status;
-        String stepId = currentStep != null ? currentStep.getId() : pipeline.getSteps().firstKey();
+        var stepId = currentStep != null ? currentStep.getId()
+                : pipeline.getSteps().firstKey();
         var rec = new StepRecord();
         rec.setPipelineId(pipeline.getId());
         rec.setStepId(stepId);

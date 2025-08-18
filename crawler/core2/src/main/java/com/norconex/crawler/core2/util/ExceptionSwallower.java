@@ -14,9 +14,9 @@
  */
 package com.norconex.crawler.core2.util;
 
-import java.io.Closeable;
-
 import org.apache.commons.lang3.function.FailableRunnable;
+
+import com.norconex.crawler.core2.CrawlerException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -70,14 +70,14 @@ public final class ExceptionSwallower {
      * are ignored.
      * @param closeables one ore more resources to close
      */
-    public static void close(Closeable... closeables) {
+    public static void close(AutoCloseable... closeables) {
         if (closeables == null) {
             return;
         }
-        for (Closeable closeable : closeables) {
+        for (AutoCloseable closeable : closeables) {
             if (closeable == null)
                 continue;
-            String resourceName = closeable.getClass().getName();
+            var resourceName = closeable.getClass().getName();
             try {
                 closeable.close();
                 LOG.info("Successfully closed resource: {}", resourceName);
@@ -85,7 +85,7 @@ public final class ExceptionSwallower {
                 LOG.error("Failed to close resource: {}", resourceName, e);
                 // For critical resources, escalate or rethrow
                 if (isCriticalResource(closeable)) {
-                    throw new RuntimeException(
+                    throw new CrawlerException(
                             "Critical resource failed to close: "
                                     + resourceName,
                             e);
@@ -97,8 +97,8 @@ public final class ExceptionSwallower {
     /**
      * Determines if a resource is critical (e.g., cluster or cache manager).
      */
-    private static boolean isCriticalResource(Closeable closeable) {
-        String name = closeable.getClass().getSimpleName().toLowerCase();
+    private static boolean isCriticalResource(AutoCloseable closeable) {
+        var name = closeable.getClass().getSimpleName().toLowerCase();
         return name.contains("cluster") || name.contains("cachemanager");
     }
 
@@ -106,8 +106,9 @@ public final class ExceptionSwallower {
      * Ensures that any exceptions thrown while closing the supplied resource
      * are swallowed and a custom message logged.
      * @param closeable resource to close
+     * @param msg message to display in case of failure to close
      */
-    public static void close(Closeable closeable, String msg) {
+    public static void close(AutoCloseable closeable, String msg) {
         if (closeable == null) {
             return;
         }
@@ -119,11 +120,11 @@ public final class ExceptionSwallower {
      * are swallowed and no messages are logged about the exception.
      * @param closeables one or more resources to close
      */
-    public static void closeQuietly(Closeable... closeables) {
+    public static void closeQuietly(AutoCloseable... closeables) {
         if (closeables == null) {
             return;
         }
-        for (Closeable closeable : closeables) {
+        for (AutoCloseable closeable : closeables) {
             close(closeable, null);
         }
     }

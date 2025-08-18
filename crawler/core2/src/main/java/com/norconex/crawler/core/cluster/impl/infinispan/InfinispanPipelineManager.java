@@ -15,6 +15,13 @@
 package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
@@ -27,48 +34,82 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
-public class InfinispanPipelineManager implements PipelineManager {
+public class InfinispanPipelineManager
+        implements PipelineManager, AutoCloseable {
 
     //TODO make configurable
     private static long TIMEOUT_MS = 60_000;
+    private static final long SHUTDOWN_AWAIT_SECONDS = 5;
 
-    //    private final PipelineRegistry registry =
-    //            new PipelineRegistry();
-    //    private final Map<String, Pipeline> nodePipelines = new HashMap<>();
     private final InfinispanCluster cluster;
 
-    //TODO if I am coordinator, manage/run the pipeline.
-    // else, keep it aside and listen for which current step to process,
-    // and pull the right one from the pipeline we just got.
+    private final ExecutorService executor =
+            Executors.newCachedThreadPool(new ThreadFactory() {
+                private final ThreadFactory delegate =
+                        Executors.defaultThreadFactory();
+                private final AtomicInteger seq = new AtomicInteger();
+
+                @Override
+                public Thread newThread(Runnable r) {
+                    var t = delegate.newThread(r);
+                    t.setName("PIPE-" + cluster.getLocalNode().getNodeName()
+                            + "-" + seq.getAndIncrement());
+                    t.setDaemon(true);
+                    return t;
+                }
+            });
+
+    private final Map<String, PipelineWorker> workers = new ConcurrentHashMap<>();
 
     @Override
     public CompletableFuture<Void> executePipeline(@NonNull Pipeline pipeline) {
-        boolean isCoordinator = cluster.getLocalNode().isCoordinator();
-        var future = new CompletableFuture<Void>();
+        var isCoordinator = cluster.getLocalNode().isCoordinator();
+        var resultFuture = new CompletableFuture<Void>();
+        var pipelineId = pipeline.getId();
 
-        // Start coordinator (async) only on coordinator node
         if (isCoordinator) {
-            LOG.debug("Starting pipeline coordinator for {} on node {}", pipeline.getId(), cluster.getLocalNode().getNodeName());
-            new Thread(() -> new PipelineCoordinator(cluster, pipeline).start(),
-                    "PIPE-COORD-" + cluster.getLocalNode().getNodeName()).start();
+            LOG.debug("Starting pipeline coordinator for {} on node {}",
+                    pipeline.getId(), cluster.getLocalNode().getNodeName());
+            CompletableFuture
+                    .runAsync(() -> new PipelineCoordinator(cluster, pipeline)
+                            .start(), executor)
+                    .exceptionally(ex -> {
+                        LOG.error("Pipeline coordinator failed", ex);
+                        resultFuture.completeExceptionally(ex);
+                        return null;
+                    });
         }
 
-        // Start worker (async) on every node
-        LOG.debug("Starting pipeline worker for {} on node {}", pipeline.getId(), cluster.getLocalNode().getNodeName());
-        new Thread(() -> new PipelineWorker(cluster, pipeline).start(),
-                "PIPE-WORKER-" + cluster.getLocalNode().getNodeName()).start();
+        LOG.debug("Starting pipeline worker for {} on node {}",
+                pipeline.getId(), cluster.getLocalNode().getNodeName());
+        var worker = new PipelineWorker(cluster, pipeline);
+        workers.put(pipelineId, worker);
+        CompletableFuture
+                .runAsync(worker::start, executor)
+                .exceptionally(ex -> {
+                    LOG.error("Pipeline worker failed", ex);
+                    resultFuture.completeExceptionally(ex);
+                    closeWorker(pipelineId);
+                    return null;
+                });
 
-        // Completion logic
-        new Thread(() -> {
+        // Completion logic (retain previous polling behavior)
+        CompletableFuture.runAsync(() -> {
             try {
                 ConcurrentUtil.waitUntil(() -> isPipelineDone(pipeline));
-                future.complete(null);
+                closeWorker(pipelineId);
+                if (!resultFuture.isDone()) {
+                    resultFuture.complete(null);
+                }
             } catch (RuntimeException e) {
-                future.completeExceptionally(e);
+                closeWorker(pipelineId);
+                if (!resultFuture.isDone()) {
+                    resultFuture.completeExceptionally(e);
+                }
             }
-        }, (isCoordinator ? "PIPE-WAIT-COORD-" : "PIPE-WAIT-") + cluster.getLocalNode().getNodeName()).start();
+        }, executor);
 
-        return future;
+        return resultFuture;
     }
 
     private boolean isPipelineDone(Pipeline pipeline) {
@@ -93,5 +134,34 @@ public class InfinispanPipelineManager implements PipelineManager {
                 })
                 .isPresent();
 
+    }
+
+    private void closeWorker(String pipelineId) {
+        var w = workers.remove(pipelineId);
+        if (w != null) {
+            try { w.close(); } catch (Exception e) {
+                LOG.debug("Error closing worker for pipeline {}: {}", pipelineId, e.toString());
+            }
+        }
+    }
+
+    @Override
+    public void close() {
+        executor.shutdown(); // disable new tasks, let running complete
+        try {
+            if (!executor.awaitTermination(SHUTDOWN_AWAIT_SECONDS,
+                    TimeUnit.SECONDS)) {
+                executor.shutdownNow(); // cancel running tasks
+                if (!executor.awaitTermination(SHUTDOWN_AWAIT_SECONDS,
+                        TimeUnit.SECONDS)) {
+                    LOG.warn("Executor did not terminate cleanly.");
+                }
+            }
+        } catch (InterruptedException ie) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+        workers.values().forEach(w -> { try { w.close(); } catch (Exception ignore) {} });
+        workers.clear();
     }
 }

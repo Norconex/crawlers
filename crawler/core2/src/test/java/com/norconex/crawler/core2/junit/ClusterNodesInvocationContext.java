@@ -1,6 +1,9 @@
 package com.norconex.crawler.core2.junit;
 
+import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +16,6 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
 
-import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
 import com.norconex.crawler.core2.CrawlConfig;
@@ -34,6 +36,7 @@ class ClusterNodesInvocationContext implements TestTemplateInvocationContext {
     private final int nodeCount;
     private final ClusterNodesTest annotation;
     private String sharedCrawlerId; // ensures same crawlerId across sessions
+    private Path tempRootDir; // root temp dir for this invocation (one per test)
 
     @Override
     public String getDisplayName(int invocationIndex) {
@@ -45,9 +48,25 @@ class ClusterNodesInvocationContext implements TestTemplateInvocationContext {
         if (sharedCrawlerId == null) {
             sharedCrawlerId = "clusterNodesTest-" + System.nanoTime();
         }
+        if (tempRootDir == null) {
+            try {
+                tempRootDir =
+                        Files.createTempDirectory(sharedCrawlerId + "-work");
+            } catch (IOException e) {
+                throw new RuntimeException(
+                        "Could not create temporary work directory", e);
+            }
+        }
         List<CrawlSession> sessions = new ArrayList<>();
         for (var i = 0; i < nodeCount; i++) {
-            sessions.add(createSession(annotation));
+            var nodeDir = tempRootDir.resolve("node-" + i);
+            try {
+                Files.createDirectories(nodeDir);
+            } catch (IOException e) {
+                throw new RuntimeException(
+                        "Could not create node work directory: " + nodeDir, e);
+            }
+            sessions.add(createSession(annotation, nodeDir));
         }
         // Wait for membership if requested
         if (annotation.waitForMembership()) {
@@ -70,10 +89,10 @@ class ClusterNodesInvocationContext implements TestTemplateInvocationContext {
         }
         return List.of(
                 new SessionsParameterResolver(nodeCount, sessions),
-                new SessionsCleanup(sessions));
+                new SessionsCleanup(sessions, tempRootDir));
     }
 
-    private CrawlSession createSession(ClusterNodesTest ann) {
+    private CrawlSession createSession(ClusterNodesTest ann, Path workDir) {
         try {
             if (sharedCrawlerId == null) {
                 sharedCrawlerId = "clusterNodesTest-" + System.nanoTime();
@@ -82,12 +101,13 @@ class ClusterNodesInvocationContext implements TestTemplateInvocationContext {
                     .getDeclaredConstructor().newInstance();
             var cfg = new CrawlConfig();
             cfg.setId(sharedCrawlerId); // unified id across nodes
+            cfg.setWorkDir(workDir);
             ClusterConnector connector =
                     ann.connector().getDeclaredConstructor().newInstance();
             if (connector instanceof InfinispanClusterConnector ic) {
                 ic.getConfiguration().setInfinispan(
-                        InfinispanUtil
-                                .configBuilderHolder(ann.infinispanConfig()));
+                        InfinispanUtil.configBuilderHolder(
+                                ann.infinispanConfig()));
             }
             cfg.setClusterConnector(connector);
             return CrawlSessionFactory.create(driverFactory.get(), cfg);
@@ -153,6 +173,7 @@ class ClusterNodesInvocationContext implements TestTemplateInvocationContext {
     @RequiredArgsConstructor
     static class SessionsCleanup implements AfterEachCallback {
         private final List<CrawlSession> sessions;
+        private final Path tempRootDir; // may be null
 
         @Override
         public void afterEach(ExtensionContext context) throws Exception {
@@ -163,6 +184,23 @@ class ClusterNodesInvocationContext implements TestTemplateInvocationContext {
                     /* ignore */ }
             }
             sessions.clear();
+            if (tempRootDir != null) {
+                try {
+                    // Recursively delete temp directory
+                    Files.walk(tempRootDir)
+                            // delete children first
+                            .sorted((a, b) -> b.compareTo(a))
+                            .forEach(p -> {
+                                try {
+                                    Files.deleteIfExists(p);
+                                } catch (IOException e) {
+                                    /* ignore */
+                                }
+                            });
+                } catch (IOException e) {
+                    // ignore cleanup failures
+                }
+            }
         }
     }
 }

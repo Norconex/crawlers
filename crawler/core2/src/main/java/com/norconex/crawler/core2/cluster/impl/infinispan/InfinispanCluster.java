@@ -87,21 +87,29 @@ public class InfinispanCluster implements Cluster {
     @Override
     public void stop() {
         LOG.info("Stopping InfinispanCluster (entire cluster) ...");
-        // Stop task manager if present
-        if (taskManager != null) {
-            ExceptionSwallower.close(taskManager);
-            taskManager = null;
-        }
-        // Stop local node if present
-        if (localNode != null) {
-            ExceptionSwallower.close(localNode);
-            localNode = null;
-        }
-        // Stop cache manager (stops cluster)
-        if (cacheManager != null) {
-            ExceptionSwallower.close(cacheManager);
-            cacheManager = null;
-        }
+        //TODO send stop command to cluster/cache for all nodes to pick up.
+
+        //        // Stop task manager if present
+        //        if (taskManager != null) {
+        //            ExceptionSwallower.close(taskManager);
+        //            taskManager = null;
+        //        }
+        //        // Stop pipeline manager if present
+        //        if (pipelineManager != null) {
+        //            ExceptionSwallower.close(pipelineManager);
+        //            pipelineManager = null;
+        //        }
+        //        // Stop local node if present
+        //        if (localNode != null) {
+        //            ExceptionSwallower.close(localNode);
+        //            localNode = null;
+        //        }
+        //        // Stop cache manager (stops cluster)
+        //        if (cacheManager != null) {
+        //            ExceptionSwallower.close(cacheManager);
+        //            cacheManager = null;
+        //        }
+        close();
         LOG.info("InfinispanCluster stopped.");
     }
 
@@ -109,14 +117,11 @@ public class InfinispanCluster implements Cluster {
     public void close() {
         LOG.info("Disconnecting InfinispanCluster node ...");
         // Only disconnect this node, do not stop the cluster
-        if (taskManager != null) {
-            ExceptionSwallower.close(taskManager);
-            taskManager = null;
-        }
-        if (localNode != null) {
-            ExceptionSwallower.close(localNode);
-            localNode = null;
-        }
+        ExceptionSwallower.close(
+                taskManager,
+                pipelineManager,
+                localNode,
+                cacheManager);
         // Do NOT close cacheManager here (leave cluster running)
         LOG.info("InfinispanCluster node disconnected.");
     }
