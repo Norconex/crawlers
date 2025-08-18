@@ -102,6 +102,16 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
                 .addListener(listener);
     }
 
+    public void removePipelineCurrentStepListener(Object listener) {
+        cacheManager.getCache(CacheNames.PIPE_CURRENT_STEP)
+                .removeListener(listener);
+    }
+
+    public void removePipelineWorkerStatusListener(Object listener) {
+        cacheManager.getCache(CacheNames.PIPE_WORKER_STATUS)
+                .removeListener(listener);
+    }
+
     //TODO REMOVE LISTENERS WHEN DONE WITH PIPELINE EXECUTION
 
     //    public Cache<PipelineStepRecord> getXPipelineStepTrackerCache() {

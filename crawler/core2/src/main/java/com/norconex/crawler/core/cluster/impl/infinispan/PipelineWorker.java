@@ -16,6 +16,7 @@ package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -42,6 +43,9 @@ public class PipelineWorker implements AutoCloseable {
 
     private final ScheduledExecutorService statusUpdater =
             Executors.newSingleThreadScheduledExecutor();
+    private ScheduledFuture<?> statusFuture;
+    // listener reference so we can remove it on close
+    private Object stepListener;
     private volatile boolean running = false;
     private final AtomicBoolean closed = new AtomicBoolean(false);
 
@@ -62,7 +66,7 @@ public class PipelineWorker implements AutoCloseable {
         Thread.currentThread().setName("WORKER");
         running = true;
         // Periodically update worker status
-        statusUpdater.scheduleAtFixedRate(() -> {
+        statusFuture = statusUpdater.scheduleAtFixedRate(() -> {
             if (running) {
                 updateWorkerStatus(workerStatus);
             }
@@ -94,26 +98,48 @@ public class PipelineWorker implements AutoCloseable {
                     "Ignoring invalid current step record with null stepId for pipeline {} (key={}). Will wait for a valid update.",
                     pipeline.getId(), pipeKey);
         }
-        cluster.getCacheManager().addPipelineCurrentStepListener(
-                new PipelineStepChangeListener((key, rec) -> {
-                    System.err.println("XXX GOT SOMETHING?");
-                    if (rec.getPipelineId().equals(pipeline.getId())) {
-                        if (rec.getStepId() == null) {
-                            LOG.warn(
-                                    "Received pipeline step record with null stepId for pipeline {} (key={}). Ignoring.",
-                                    pipeline.getId(), key);
-                            return;
-                        }
-                        execute(getStep(pipeline, rec), rec);
-                    }
-                }));
+        stepListener = new PipelineStepChangeListener((key, rec) -> {
+            System.err.println("XXX GOT SOMETHING?");
+            if (rec.getPipelineId().equals(pipeline.getId())) {
+                if (rec.getStepId() == null) {
+                    LOG.warn(
+                            "Received pipeline step record with null stepId for pipeline {} (key={}). Ignoring.",
+                            pipeline.getId(), key);
+                    return;
+                }
+                execute(getStep(pipeline, rec), rec);
+            }
+        });
+        cluster.getCacheManager().addPipelineCurrentStepListener(stepListener);
     }
 
     @Override
     public void close() {
         if (closed.compareAndSet(false, true)) {
+            LOG.debug("Closing PipelineWorker for pipeline {}", pipeline.getId());
             running = false;
-            statusUpdater.shutdownNow();
+            if (statusFuture != null) {
+                statusFuture.cancel(true);
+            }
+            // attempt graceful shutdown of scheduler
+            statusUpdater.shutdown();
+            try {
+                if (!statusUpdater.awaitTermination(2, TimeUnit.SECONDS)) {
+                    statusUpdater.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                statusUpdater.shutdownNow();
+            }
+            if (stepListener != null) {
+                try {
+                    cluster.getCacheManager().removePipelineCurrentStepListener(stepListener);
+                } catch (Exception e) {
+                    LOG.debug("Could not remove step listener for pipeline {}: {}", pipeline.getId(), e.toString());
+                }
+                stepListener = null;
+            }
+            LOG.debug("PipelineWorker closed for pipeline {}", pipeline.getId());
         }
     }
 
