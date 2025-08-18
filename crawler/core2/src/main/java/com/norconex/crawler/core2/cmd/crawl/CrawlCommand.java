@@ -155,7 +155,6 @@ public class CrawlCommand implements Command {
 
         @Override
         public void stop(CrawlSession session) {
-            LOG.warn("XXXXX stopped called here.");
             if (logger != null) {
                 logger.stop();
             }

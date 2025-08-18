@@ -49,7 +49,8 @@ public class PipelineWorker implements AutoCloseable {
     private Object stepListener;
     private volatile boolean running = false;
     private final AtomicBoolean closed = new AtomicBoolean(false);
-    private final CompletableFuture<Void> completion = new CompletableFuture<>();
+    private final CompletableFuture<Void> completion =
+            new CompletableFuture<>();
 
     public PipelineWorker(
             @NonNull InfinispanCluster cluster,
@@ -82,30 +83,31 @@ public class PipelineWorker implements AutoCloseable {
             rec.setStatus(PipelineStatus.PENDING);
             rec.setUpdatedAt(System.currentTimeMillis());
             workerStatusCache.put(pipeWorkerKey, rec);
-            LOG.debug(
-                    "Registered worker readiness for pipeline {} on node {} (stepId={})",
-                    pipeline.getId(), cluster.getLocalNode().getNodeName(),
+            LOG.debug("Registered worker readiness for pipeline {} on node {} "
+                    + "(stepId={})",
+                    pipeline.getId(),
+                    cluster.getLocalNode().getNodeName(),
                     firstStepId);
         } catch (Exception e) {
-            LOG.warn(
-                    "Could not publish initial worker readiness for pipeline {} on node {}: {}",
-                    pipeline.getId(), cluster.getLocalNode().getNodeName(),
+            LOG.warn("Could not publish initial worker readiness for "
+                    + "pipeline {} on node {}: {}",
+                    pipeline.getId(),
+                    cluster.getLocalNode().getNodeName(),
                     e.toString());
         }
         var stepRec = currentStepCache.get(pipeKey).orElse(null);
         if (stepRec != null && stepRec.getStepId() != null) {
             execute(getStep(pipeline, stepRec), stepRec);
         } else if (stepRec != null) {
-            LOG.warn(
-                    "Ignoring invalid current step record with null stepId for pipeline {} (key={}). Will wait for a valid update.",
+            LOG.warn("Ignoring invalid current step record with null stepId "
+                    + "for pipeline {} (key={}). Will wait for a valid update.",
                     pipeline.getId(), pipeKey);
         }
         stepListener = new PipelineStepChangeListener((key, rec) -> {
-            System.err.println("XXX GOT SOMETHING?");
             if (rec.getPipelineId().equals(pipeline.getId())) {
                 if (rec.getStepId() == null) {
-                    LOG.warn(
-                            "Received pipeline step record with null stepId for pipeline {} (key={}). Ignoring.",
+                    LOG.warn("Received pipeline step record with null stepId "
+                            + "for pipeline {} (key={}). Ignoring.",
                             pipeline.getId(), key);
                     return;
                 }
@@ -118,7 +120,8 @@ public class PipelineWorker implements AutoCloseable {
     @Override
     public void close() {
         if (closed.compareAndSet(false, true)) {
-            LOG.debug("Closing PipelineWorker for pipeline {}", pipeline.getId());
+            LOG.debug("Closing PipelineWorker for pipeline {}",
+                    pipeline.getId());
             running = false;
             if (statusFuture != null) {
                 statusFuture.cancel(true);
@@ -135,13 +138,17 @@ public class PipelineWorker implements AutoCloseable {
             }
             if (stepListener != null) {
                 try {
-                    cluster.getCacheManager().removePipelineCurrentStepListener(stepListener);
+                    cluster.getCacheManager()
+                            .removePipelineCurrentStepListener(stepListener);
                 } catch (Exception e) {
-                    LOG.debug("Could not remove step listener for pipeline {}: {}", pipeline.getId(), e.toString());
+                    LOG.debug("Could not remove step listener for "
+                            + "pipeline {}: {}",
+                            pipeline.getId(), e.toString());
                 }
                 stepListener = null;
             }
-            LOG.debug("PipelineWorker closed for pipeline {}", pipeline.getId());
+            LOG.debug("PipelineWorker closed for pipeline {}",
+                    pipeline.getId());
             completion.complete(null);
         }
     }
@@ -151,12 +158,10 @@ public class PipelineWorker implements AutoCloseable {
     }
 
     void execute(Step step, StepRecord stepRec) {
-        System.err.println("XXX WORKER EXECUTE: " + stepRec);
-
         currentStep = step;
         if (step == null) {
-            LOG.debug(
-                    "No current step yet for pipeline {} on node {}. Waiting for coordinator to publish a step.",
+            LOG.debug("No current step yet for pipeline {} on node {}. "
+                    + "Waiting for coordinator to publish a step.",
                     pipeline.getId(), cluster.getLocalNode().getNodeName());
             return;
         }
@@ -190,8 +195,6 @@ public class PipelineWorker implements AutoCloseable {
         rec.setStepId(stepId);
         rec.setStatus(status);
         rec.setUpdatedAt(System.currentTimeMillis());
-        System.err.println(
-                "XXX updating worker status: " + pipeWorkerKey + " -> " + rec);
         workerStatusCache.put(pipeWorkerKey, rec);
     }
 
@@ -202,79 +205,3 @@ public class PipelineWorker implements AutoCloseable {
         return pipeline.getStep(rec.getStepId());
     }
 }
-
-//        if (!Keys.CURRENT_TASK.equals(key))
-//            return;
-//        PipelineStepRecord env = taskCache.get(key);
-//        if (env == null || env.phase() != TaskPhase.PUBLISHED)
-//            return;
-//
-//        TaskPayload t = env.payload();
-//        try {
-//            // Optionally: write a "RUNNING" hint somewhere if you want
-//            executeTask(t); // <- your actual work
-//            statusCache.put(Keys.statusKey(t.taskId(), nodeId), "OK");
-//        } catch (Exception ex) {
-//            statusCache.put(Keys.statusKey(t.taskId(), nodeId),
-//                    "FAILED:" + ex.getClass().getSimpleName());
-//        }
-
-//    private final String nodeId;
-//    private final Cache<String, TaskEnvelope> taskCache;
-//    private final Cache<String, String> statusCache; // value: "OK" | "FAILED:<reason>"
-
-//    public class TaskListener {
-//        @CacheEntryCreated
-//        @CacheEntryModified
-//        public void
-//                onTask(CacheEntryCreatedEvent<String, PipelineStepRecord> e) {
-//            if (!e.isPre()) {
-//                System.out.println("New task received: " + e.getKey());
-//            }
-//        }
-//    }
-//
-//    public TaskListener(String nodeId, Cache<String, TaskEnvelope> taskCache, Cache<String, String> statusCache) {
-//      this.nodeId = nodeId;
-//      this.taskCache = taskCache;
-//      this.statusCache = statusCache;
-//    }
-//
-//    @CacheEntryCreated
-//    public void onCreated(CacheEntryCreatedEvent<String, TaskEnvelope> e) {
-//        if (!e.isPre())
-//            react(e.getKey());
-//    }
-//
-//    @CacheEntryModified
-//    public void onModified(CacheEntryModifiedEvent<String, TaskEnvelope> e) {
-//        if (!e.isPre())
-//            react(e.getKey());
-//    }
-//
-//    private void react(String key) {
-//        if (!Keys.CURRENT_TASK.equals(key))
-//            return;
-//        TaskEnvelope env = taskCache.get(key);
-//        if (env == null || env.phase() != TaskPhase.PUBLISHED)
-//            return;
-//
-//        TaskPayload t = env.payload();
-//        try {
-//            // Optionally: write a "RUNNING" hint somewhere if you want
-//            executeTask(t); // <- your actual work
-//            statusCache.put(Keys.statusKey(t.taskId(), nodeId), "OK");
-//        } catch (Exception ex) {
-//            statusCache.put(Keys.statusKey(t.taskId(), nodeId),
-//                    "FAILED:" + ex.getClass().getSimpleName());
-//        }
-//    }
-//
-//    private void executeTask(TaskPayload t) {
-//        // Your worker logic here — deterministic, idempotent if possible
-//    }
-//
-//    //
-//    //    and register it on each worker:
-//    //
-//    //    cache.addListener(new TaskListener());

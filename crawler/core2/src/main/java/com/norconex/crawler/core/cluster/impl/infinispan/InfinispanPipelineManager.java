@@ -23,12 +23,12 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
 import com.norconex.crawler.core.cluster.pipeline.PipelineResult;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanCluster;
-import com.norconex.crawler.core2.util.ConcurrentUtil;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -67,29 +67,35 @@ public class InfinispanPipelineManager
             new ConcurrentHashMap<>();
 
     @Override
-    public CompletableFuture<PipelineResult> executePipeline(@NonNull Pipeline pipeline) {
+    public CompletableFuture<PipelineResult>
+            executePipeline(@NonNull Pipeline pipeline) {
         var isCoordinator = cluster.getLocalNode().isCoordinator();
         var resultFuture = new CompletableFuture<PipelineResult>();
         var pipelineId = pipeline.getId();
 
-        CompletableFuture<PipelineResult> coordinatorFuture = CompletableFuture.completedFuture(null);
+        CompletableFuture<PipelineResult> coordinatorFuture =
+                CompletableFuture.completedFuture(null);
 
         if (isCoordinator) {
             LOG.debug("Starting pipeline coordinator for {} on node {}",
                     pipeline.getId(), cluster.getLocalNode().getNodeName());
             var coordinator = new PipelineCoordinator(cluster, pipeline);
             coordinators.put(pipelineId, coordinator);
-            coordinatorFuture = CompletableFuture.runAsync(coordinator::start, executor)
-                    .exceptionally(ex -> {
-                        LOG.error("Pipeline coordinator failed", ex);
-                        resultFuture.completeExceptionally(ex);
-                        closeCoordinator(pipelineId);
-                        return null; // swallow here; resultFuture already exceptional
-                    })
-                    .thenCompose(v -> {
-                        var c = coordinators.get(pipelineId);
-                        return c != null ? c.getCompletionFuture() : CompletableFuture.<PipelineResult>completedFuture(null);
-                    });
+            coordinatorFuture =
+                    CompletableFuture.runAsync(coordinator::start, executor)
+                            .exceptionally(ex -> {
+                                LOG.error("Pipeline coordinator failed", ex);
+                                resultFuture.completeExceptionally(ex);
+                                closeCoordinator(pipelineId);
+                                return null; // swallow here; resultFuture already exceptional
+                            })
+                            .thenCompose(v -> {
+                                var c = coordinators.get(pipelineId);
+                                return c != null ? c.getCompletionFuture()
+                                        : CompletableFuture.<
+                                                PipelineResult>completedFuture(
+                                                        null);
+                            });
         }
 
         LOG.debug("Starting pipeline worker for {} on node {}",
@@ -104,9 +110,12 @@ public class InfinispanPipelineManager
                     return null;
                 });
 
-        CompletableFuture<PipelineResult> pipelineCompletionFuture = isCoordinator
-                ? coordinatorFuture
-                : CompletableFuture.supplyAsync(() -> buildWorkerSideResult(pipeline), executor);
+        var pipelineCompletionFuture =
+                isCoordinator
+                        ? coordinatorFuture
+                        : CompletableFuture.supplyAsync(
+                                () -> buildWorkerSideResult(pipeline),
+                                executor);
 
         pipelineCompletionFuture.whenComplete((res, ex) -> {
             if (ex != null) {
@@ -124,58 +133,34 @@ public class InfinispanPipelineManager
         return resultFuture;
     }
 
-    private boolean isPipelineDone(Pipeline pipeline) {
-        var pipelineCache = cluster
-                .getCacheManager()
-                .getPipelineCurrentStepCache();
-        var key = CacheKeys.pipelineKey(cluster, pipeline);
-        return pipelineCache
-                .get(key)
-                .filter(rec -> {
-                    if (rec.getStatus().isTerminal()) {
-                        LOG.info("Pipeline terminated with status: {}",
-                                rec.getStatus());
-                        return true;
-                    }
-                    if (TIMEOUT_MS > 0 && System.currentTimeMillis()
-                            - rec.getUpdatedAt() > TIMEOUT_MS) {
-                        LOG.info("Pipeline timed out after {} ms, terminating.", TIMEOUT_MS);
-                        return true;
-                    }
-                    return false;
-                })
-                .isPresent();
-
-    }
-
     private PipelineResult buildWorkerSideResult(Pipeline pipeline) {
-        var pipelineCache = cluster.getCacheManager().getPipelineCurrentStepCache();
+        var pipelineCache =
+                cluster.getCacheManager().getPipelineCurrentStepCache();
         var key = CacheKeys.pipelineKey(cluster, pipeline);
-        boolean done = false;
-        boolean timedOut = false;
+        var done = false;
+        var timedOut = false;
         StepRecord rec = null;
         while (!done) {
             rec = pipelineCache.get(key).orElse(null);
-            if (rec != null && rec.getStatus() != null && rec.getStatus().isTerminal()) {
+            if (rec != null && rec.getStatus() != null
+                    && rec.getStatus().isTerminal()) {
                 done = true;
                 break;
             }
-            if (TIMEOUT_MS > 0 && rec != null && (System.currentTimeMillis() - rec.getUpdatedAt() > TIMEOUT_MS)) {
+            if (TIMEOUT_MS > 0 && rec != null && (System.currentTimeMillis()
+                    - rec.getUpdatedAt() > TIMEOUT_MS)) {
                 done = true;
                 timedOut = true;
                 break;
             }
-            if (rec == null) {
-                try { Thread.sleep(200); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
-            } else {
-                try { Thread.sleep(250); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
-            }
+            Sleeper.sleepMillis(250);
         }
-        long finishedAt = System.currentTimeMillis();
+        var finishedAt = System.currentTimeMillis();
         PipelineStatus status;
         String lastStepId;
         if (rec == null) {
-            status = timedOut ? PipelineStatus.EXPIRED : PipelineStatus.EXPIRED; // retain previous fallback
+            status = PipelineStatus.EXPIRED;
+            //status = timedOut ? PipelineStatus.EXPIRED : PipelineStatus.EXPIRED; // retain previous fallback
             lastStepId = null;
         } else {
             status = rec.getStatus();

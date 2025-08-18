@@ -34,36 +34,29 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PipelineTest {
 
+    //TODO test late-join, expired (after making it configurable)
+    // and more use cases.
+
     @ClusterNodesTest(nodes = { 1, 2 })
     void testSingleAndMultiNodesPipelineStep(
             int nodeCount, List<CrawlSession> sessions) {
         var cacheName = ClusterTestUtil.uniqueCacheName("pipetest");
 
         var pipeline = new Pipeline("test-pipeline", List.of(
-                new BaseStep("step1") {
-                    @Override
-                    public void execute(CrawlSession sess) {
-                        System.err.println("XXX IN STEP 1");
-                        var cache =
-                                ClusterTestUtil.stringCache(sess, cacheName);
-                        cache.put("step1:" + sess
-                                .getCluster()
-                                .getLocalNode()
-                                .getNodeName(), "distributed");
-                    }
-                }.setDistributed(true),
-                new BaseStep("step2") {
-                    @Override
-                    public void execute(CrawlSession sess) {
-                        System.err.println("XXX IN STEP 2");
-                        var cache =
-                                ClusterTestUtil.stringCache(sess, cacheName);
-                        cache.put("step2:" + sess
-                                .getCluster()
-                                .getLocalNode()
-                                .getNodeName(), "non-distributed");
-                    }
-                }));
+                PipelineTestUtil.distributedStep("step1", sess -> {
+                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
+                    cache.put("step1:" + sess
+                            .getCluster()
+                            .getLocalNode()
+                            .getNodeName(), "distributed");
+                }),
+                PipelineTestUtil.nonDistributedStep("step2", sess -> {
+                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
+                    cache.put("step2:" + sess
+                            .getCluster()
+                            .getLocalNode()
+                            .getNodeName(), "non-distributed");
+                })));
 
         var results =
                 PipelineTestUtil.executeOrderlyAndWait(pipeline, sessions);

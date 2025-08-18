@@ -17,11 +17,28 @@ package com.norconex.crawler.core.cluster.pipeline;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 import com.norconex.crawler.core2.session.CrawlSession;
 
 public final class PipelineTestUtil {
     private PipelineTestUtil() {
+    }
+
+    public static Step nonDistributedStep(
+            String stepId, Consumer<CrawlSession> executor) {
+        return new BaseStep(stepId) {
+            @Override
+            public void execute(CrawlSession session) {
+                executor.accept(session);
+            }
+        };
+    }
+
+    public static Step distributedStep(
+            String stepId, Consumer<CrawlSession> executor) {
+        return ((BaseStep) nonDistributedStep(stepId, executor))
+                .setDistributed(true);
     }
 
     /**
