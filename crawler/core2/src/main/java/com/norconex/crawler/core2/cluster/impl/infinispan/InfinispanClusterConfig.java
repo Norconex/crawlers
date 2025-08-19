@@ -32,6 +32,9 @@ public class InfinispanClusterConfig {
     private ConfigurationBuilderHolder infinispan =
             InfinispanUtil.defaultConfigBuilderHolder();
 
+    //
+    //
+    //TODO DELETE BELOW:
     private TaskRetentionConfig retention = new TaskRetentionConfig();
 
     @Data

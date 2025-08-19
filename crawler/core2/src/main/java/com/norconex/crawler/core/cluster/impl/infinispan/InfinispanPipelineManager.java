@@ -39,8 +39,6 @@ import lombok.extern.slf4j.Slf4j;
 public class InfinispanPipelineManager
         implements PipelineManager, AutoCloseable {
 
-    // Overall pipeline execution timeout (ms). 0 or negative = unlimited.
-    private static long TIMEOUT_MS = 0; // was 60_000; unlimited by default
     private static final long SHUTDOWN_AWAIT_SECONDS = 5;
 
     private final InfinispanCluster cluster;
@@ -68,7 +66,7 @@ public class InfinispanPipelineManager
 
     @Override
     public CompletableFuture<PipelineResult>
-            executePipeline(@NonNull Pipeline pipeline) {
+            executePipeline(@NonNull Pipeline pipeline, long timeoutMs) {
         var isCoordinator = cluster.getLocalNode().isCoordinator();
         var resultFuture = new CompletableFuture<PipelineResult>();
         var pipelineId = pipeline.getId();
@@ -110,12 +108,11 @@ public class InfinispanPipelineManager
                     return null;
                 });
 
-        var pipelineCompletionFuture =
-                isCoordinator
-                        ? coordinatorFuture
-                        : CompletableFuture.supplyAsync(
-                                () -> buildWorkerSideResult(pipeline),
-                                executor);
+        var pipelineCompletionFuture = isCoordinator
+                ? coordinatorFuture
+                : CompletableFuture.supplyAsync(
+                        () -> buildWorkerSideResult(pipeline, timeoutMs),
+                        executor);
 
         pipelineCompletionFuture.whenComplete((res, ex) -> {
             if (ex != null) {
@@ -133,7 +130,8 @@ public class InfinispanPipelineManager
         return resultFuture;
     }
 
-    private PipelineResult buildWorkerSideResult(Pipeline pipeline) {
+    private PipelineResult buildWorkerSideResult(
+            Pipeline pipeline, long timeout) {
         var pipelineCache =
                 cluster.getCacheManager().getPipelineCurrentStepCache();
         var key = CacheKeys.pipelineKey(cluster, pipeline);
@@ -145,29 +143,21 @@ public class InfinispanPipelineManager
             if (rec != null && rec.getStatus() != null
                     && rec.getStatus().isTerminal()) {
                 done = true;
-                break;
-            }
-            if (TIMEOUT_MS > 0 && rec != null && (System.currentTimeMillis()
-                    - rec.getUpdatedAt() > TIMEOUT_MS)) {
+            } else if (timeout > 0 && rec != null && (System.currentTimeMillis()
+                    - rec.getUpdatedAt() > timeout)) {
                 done = true;
                 timedOut = true;
-                break;
+            } else {
+                Sleeper.sleepMillis(250);
             }
-            Sleeper.sleepMillis(250);
         }
         var finishedAt = System.currentTimeMillis();
         PipelineStatus status;
         String lastStepId;
-        if (rec == null) {
+        status = rec.getStatus();
+        lastStepId = rec.getStepId();
+        if (timedOut && !status.isTerminal()) {
             status = PipelineStatus.EXPIRED;
-            //status = timedOut ? PipelineStatus.EXPIRED : PipelineStatus.EXPIRED; // retain previous fallback
-            lastStepId = null;
-        } else {
-            status = rec.getStatus();
-            lastStepId = rec.getStepId();
-            if (timedOut && !status.isTerminal()) {
-                status = PipelineStatus.EXPIRED;
-            }
         }
         return PipelineResult.builder()
                 .pipelineId(pipeline.getId())

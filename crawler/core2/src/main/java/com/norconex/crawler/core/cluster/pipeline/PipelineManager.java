@@ -16,7 +16,18 @@ package com.norconex.crawler.core.cluster.pipeline;
 
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Responsible for pipeline execution.
+ */
 public interface PipelineManager {
 
-    CompletableFuture<PipelineResult> executePipeline(Pipeline pipeline);
+    /**
+     * Executes a pipeline with an optional timeout. Use zero or a negative
+     * value for unlimited (no timeout).
+     * @param pipeline the pipeline to execute
+     * @param timeout halt the pipeline if it takes longer and the timeout
+     * @return a future containing the pipeline execution result
+     */
+    CompletableFuture<PipelineResult> executePipeline(
+            Pipeline pipeline, long timeout);
 }

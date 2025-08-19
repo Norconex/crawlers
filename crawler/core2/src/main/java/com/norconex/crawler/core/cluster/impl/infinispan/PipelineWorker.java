@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core.cluster.impl.infinispan;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -51,6 +53,7 @@ public class PipelineWorker implements AutoCloseable {
     private final AtomicBoolean closed = new AtomicBoolean(false);
     private final CompletableFuture<Void> completion =
             new CompletableFuture<>();
+    private final Set<String> encounteredSteps = new HashSet<>();
 
     public PipelineWorker(
             @NonNull InfinispanCluster cluster,
@@ -166,12 +169,23 @@ public class PipelineWorker implements AutoCloseable {
             return;
         }
 
+        if (encounteredSteps.contains(step.getId())) {
+            // not sure why it happens frequently and if normal:
+            LOG.info("Pipeline {} step {} has already been executed or is "
+                    + "being executed on node {}.",
+                    stepRec.getPipelineId(),
+                    stepRec.getStepId(),
+                    cluster.getLocalNode().getNodeName());
+            return;
+        }
+        encounteredSteps.add(step.getId());
+
         if ((stepRec.getStatus() != PipelineStatus.RUNNING)
                 || !step.isDistributed()) {
             // Coordinator runs non-distributed steps; worker stays silent.
             return;
         }
-        LOG.info("Executing pipeline {} task {}.",
+        LOG.info("Executing pipeline {} step {}.",
                 stepRec.getPipelineId(), stepRec.getStepId());
         try {
             updateWorkerStatus(PipelineStatus.RUNNING);

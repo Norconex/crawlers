@@ -149,6 +149,12 @@ public class CrawlConfig {
     private Duration deferredShutdownDuration = Duration.ZERO;
 
     /**
+     * The maximum amount of time a crawler is allowed to run. Zero or a
+     * negative value means unlimited. Default is zero (unlimited).
+     */
+    private Duration maxCrawlDuration = Duration.ZERO;
+
+    /**
      * The cluster used to run the crawler. Default (Infinispan) handles
      * both running the crawler on single and multiple nodes.
      */

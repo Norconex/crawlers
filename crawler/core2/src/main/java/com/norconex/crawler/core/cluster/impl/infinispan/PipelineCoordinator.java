@@ -49,7 +49,8 @@ public class PipelineCoordinator implements AutoCloseable {
 
     private Object workerStatusListener;
     private final AtomicBoolean closed = new AtomicBoolean(false);
-    private final CompletableFuture<PipelineResult> completion = new CompletableFuture<>();
+    private final CompletableFuture<PipelineResult> completion =
+            new CompletableFuture<>();
 
     private String lastStepId;
     private PipelineStatus finalStatus = PipelineStatus.PENDING;
@@ -69,13 +70,15 @@ public class PipelineCoordinator implements AutoCloseable {
     void start() {
         Thread.currentThread().setName("COORDINATOR");
         // detect resume: if cache already had a record
-        resumed = pipelineRecordsCache.get(CacheKeys.pipelineKey(cluster, pipeline)).isPresent();
+        resumed = pipelineRecordsCache
+                .get(CacheKeys.pipelineKey(cluster, pipeline)).isPresent();
         workerStatusListener = new PipelineStepChangeListener((key, rec) -> {
             if (rec.getPipelineId().equals(pipeline.getId())) {
                 updateWorkerStatus(key, rec);
             }
         });
-        cluster.getCacheManager().addPipelineWorkerStatusListener(workerStatusListener);
+        cluster.getCacheManager()
+                .addPipelineWorkerStatusListener(workerStatusListener);
         doCoordinatePipelineExecution();
         LOG.info("Pipeline {}  terminated.", pipeline.getId());
         finishedAt = System.currentTimeMillis();
@@ -106,7 +109,7 @@ public class PipelineCoordinator implements AutoCloseable {
             LOG.debug("Published RUNNING for pipeline {} step {}",
                     pipeline.getId(), step.getId());
 
-            var execStatus = step.isDistributed() && cluster.getNodeCount() > 1
+            var execStatus = step.isDistributed()
                     ? executeOnAllNodes(step, key, stepRec)
                     : executeLocally(step);
 
@@ -184,8 +187,8 @@ public class PipelineCoordinator implements AutoCloseable {
             {} EXPIRED, \
             {} DROPPED, \
             {} JOINED""",
-                statuses.size(),
                 step.getId(),
+                statuses.size(),
                 statuses.getCount(PipelineStatus.COMPLETED),
                 statuses.getCount(PipelineStatus.FAILED),
                 statuses.getCount(PipelineStatus.STOPPED),
@@ -243,9 +246,13 @@ public class PipelineCoordinator implements AutoCloseable {
         if (closed.compareAndSet(false, true)) {
             if (workerStatusListener != null) {
                 try {
-                    cluster.getCacheManager().removePipelineWorkerStatusListener(workerStatusListener);
+                    cluster.getCacheManager()
+                            .removePipelineWorkerStatusListener(
+                                    workerStatusListener);
                 } catch (Exception e) {
-                    LOG.debug("Could not remove worker status listener for pipeline {}: {}", pipeline.getId(), e.toString());
+                    LOG.debug(
+                            "Could not remove worker status listener for pipeline {}: {}",
+                            pipeline.getId(), e.toString());
                 }
                 workerStatusListener = null;
             }
@@ -254,7 +261,8 @@ public class PipelineCoordinator implements AutoCloseable {
                     .status(finalStatus)
                     .lastStepId(lastStepId)
                     .startedAt(startedAt)
-                    .finishedAt(finishedAt == 0 ? System.currentTimeMillis() : finishedAt)
+                    .finishedAt(finishedAt == 0 ? System.currentTimeMillis()
+                            : finishedAt)
                     .resumed(resumed)
                     .timedOut(false)
                     .build());

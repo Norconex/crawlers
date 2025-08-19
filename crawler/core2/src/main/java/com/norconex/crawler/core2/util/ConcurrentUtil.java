@@ -148,9 +148,30 @@ public final class ConcurrentUtil {
      */
     public static boolean waitUntil(
             @NonNull BooleanSupplier condition, Duration timeout) {
+        return waitUntil(condition, timeout, null);
+    }
+
+    /**
+     * In some cases we do not want to block any thread when waiting for
+     * a future completion. This method instead loops (with a tiny delay)
+     * until the supplier returns <code>true</code>. If a timeout is specified
+     * the method will return once the time out is reached, with a
+     * {@code false} value.
+     * @param condition condition evaluated (<code>true</code> to exit the loop)
+     * @param timeout optional duration after which to throw
+     * @param checkInterval the amount of time to wait between each condition
+     *     check
+     * @return {@code true} if returning under the specified timeout or if
+     *         timeout is {@code null}.
+     */
+    public static boolean waitUntil(
+            @NonNull BooleanSupplier condition,
+            Duration timeout,
+            Duration checkInterval) {
         var watch = StopWatch.createStarted();
+        var interval = checkInterval == null ? 100 : checkInterval.toMillis();
         while (!condition.getAsBoolean()) {
-            Sleeper.sleepMillis(100);
+            Sleeper.sleepMillis(interval);
             if (timeout != null && watch.getTime() > timeout.toMillis()) {
                 return false;
             }

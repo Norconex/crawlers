@@ -29,7 +29,6 @@ public class Pipeline {
     private final String id;
     private final OrderedMap<String, Step> steps =
             new ListOrderedMap<>();
-    //    private PipelineStatus status;
 
     public Pipeline(String id) {
         this.id = id;

@@ -16,33 +16,112 @@ package com.norconex.crawler.core.cluster.pipeline;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.commons.lang.TimeIdGenerator;
+import com.norconex.crawler.core2.cluster.Cache;
 import com.norconex.crawler.core2.junit.ClusterNodesTest;
 import com.norconex.crawler.core2.junit.ClusterTestUtil;
 import com.norconex.crawler.core2.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core2.stubs.CrawlSessionStubber;
+import com.norconex.crawler.core2.util.ConcurrentUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Timeout(60)
 @WithTestWatcherLogging
 @Slf4j
-public class PipelineTest {
+class PipelineTest {
 
-    //TODO test late-join, expired (after making it configurable)
+    //TODO expired (after making it configurable)
     // and more use cases.
 
-    @ClusterNodesTest(nodes = { 1, 2 })
-    void testSingleAndMultiNodesPipelineStep(
-            int nodeCount, List<CrawlSession> sessions) {
-        var cacheName = ClusterTestUtil.uniqueCacheName("pipetest");
+    /*
+     * Tests that a late-joining node can pick up execution at the current
+     * pipeline step.
+     */
+    @Test
+    void testLateJoiningNode(@TempDir Path tempDir) {
+        var cacheName = ClusterTestUtil.uniqueCacheName("pipetest-latejoin");
 
-        var pipeline = new Pipeline("test-pipeline", List.of(
+        var pipeline = new Pipeline("test-latejoin", List.of(
+                PipelineTestUtil.distributedStep("step1", sess -> {
+                    System.err.println("XXX in step 1: "
+                            + sess.getCluster().getLocalNode().getNodeName()
+                            + "  coord:"
+                            + sess.getCluster().getLocalNode().isCoordinator());
+                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
+                    cache.put("step1:" + TimeIdGenerator.next(), "byOneNode");
+                }),
+                PipelineTestUtil.distributedStep("step2", sess -> {
+                    System.err.println("XXX in step 2: "
+                            + sess.getCluster().getLocalNode().getNodeName()
+                            + "  coord:"
+                            + sess.getCluster().getLocalNode().isCoordinator());
+                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
+                    cache.put("step2:" + TimeIdGenerator.next(), "byTwoNodes");
+                    // Don't leave until second session has written something
+                    // to prevent the pipeline from completing before
+                    // the second session starts.
+                    ConcurrentUtil.waitUntil(() -> cache.size() == 3,
+                            Duration.ofSeconds(10), Duration.ofMillis(200));
+                })));
+
+        // --- Create and start first session/node ---
+        CompletableFuture<PipelineResult> future1;
+        Cache<String> cache;
+        try (var session1 = CrawlSessionStubber
+                .multiNodesCrawlSession(tempDir.resolve("node1"))) {
+
+            System.err.println("Started node 1");
+            cache = ClusterTestUtil.stringCache(session1, cacheName);
+            future1 = session1.getCluster().getPipelineManager()
+                    .executePipeline(pipeline, 0);
+            System.err.println("Started pipeline execution on node 1");
+
+            // Wait for step1 to be completed by node1
+            ClusterTestUtil.waitForCacheSize(cache, 2, Duration.ofSeconds(10));
+
+            try (var session2 = CrawlSessionStubber
+                    .multiNodesCrawlSession(tempDir.resolve("node2"))) {
+                System.err.println("Started node 2");
+                var future2 = session2.getCluster().getPipelineManager()
+                        .executePipeline(pipeline, 0);
+                System.err.println("Started pipeline execution on node 2");
+
+                // Wait for both to complete
+                CompletableFuture.allOf(future1, future2).join();
+
+                List<String> values = new ArrayList<>();
+                cache.forEach((k, v) -> values.add(v));
+
+                System.err.println("VALUES: " + String.join(", ", values));
+                assertThat(values).containsExactlyInAnyOrder(
+                        "byOneNode", "byTwoNodes", "byTwoNodes");
+            }
+        }
+    }
+
+    /*
+     * Tests that a distributed pipeline step is run on all nodes
+     * and a non-distributed step on a single node only.
+     */
+    @ClusterNodesTest(nodes = { 1, 2 })
+    void testStepNodeDistribution(
+            int nodeCount, List<CrawlSession> sessions) {
+        var cacheName = ClusterTestUtil.uniqueCacheName("pipetest-distrib");
+
+        var pipeline = new Pipeline("test-distrib", List.of(
                 PipelineTestUtil.distributedStep("step1", sess -> {
                     var cache = ClusterTestUtil.stringCache(sess, cacheName);
                     cache.put("step1:" + sess

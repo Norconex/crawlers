@@ -45,7 +45,6 @@ public @interface ClusterNodesTest {
 
     /** Cluster connector class to instantiate per session. */
     Class<? extends ClusterConnector> connector() default MockMultiNodesConnector.class;
-    //    Class<? extends ClusterConnector> connector() default InfinispanClusterConnector.class;
 
     /** Driver factory (supplier) used to create the crawler driver. */
     Class<? extends Supplier<
@@ -64,4 +63,6 @@ public @interface ClusterNodesTest {
 
     /** Timeout in seconds for waiting for cluster membership. */
     int membershipTimeoutSeconds() default 10;
+
+    //    Class<? extends Function<CrawlSession, Long>> waitOnChange;
 }

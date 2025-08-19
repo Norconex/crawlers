@@ -44,6 +44,8 @@ public class CrawlCommand implements Command {
     public void execute(CrawlSession session) {
         var ctx = session.getCrawlContext();
 
+        //TODO apply maxCrawlDuration (pass timeout to pipeline)
+
         pendingLoggerStopped.set(false); // just in case
         if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {
             CrawlerMetricsJMX.register(ctx);
