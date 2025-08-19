@@ -63,7 +63,6 @@ public final class PipelineTestUtil {
         for (var s : sessions) {
             var newValue = 0;
             while ((newValue = incrementSupplier.get()) == prevValue) {
-                System.err.println("XXX new value: " + newValue);
                 Sleeper.sleepMillis(500);
             }
             prevValue = newValue;

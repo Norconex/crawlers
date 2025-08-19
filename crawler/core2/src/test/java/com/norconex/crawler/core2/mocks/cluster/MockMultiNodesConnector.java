@@ -16,15 +16,12 @@ package com.norconex.crawler.core2.mocks.cluster;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.cluster.Cluster;
-import com.norconex.crawler.core2.cluster.ClusterConnector;
 import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanClusterConnector;
 import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanUtil;
 
-public final class MockMultiNodesConnector implements ClusterConnector {
+public final class MockMultiNodesConnector extends InfinispanClusterConnector {
     @Override
     public Cluster connect() {
-        //TODO add to configuration something that will stall the crawler
-        // until two are present, up to a max time
         return Configurable.configure(
                 new InfinispanClusterConnector(),
                 c -> c.setInfinispan(InfinispanUtil.configBuilderHolder(

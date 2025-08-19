@@ -15,7 +15,9 @@
 package com.norconex.crawler.core2.stubs;
 
 import java.nio.file.Path;
+import java.util.function.Consumer;
 
+import com.norconex.crawler.core2.CrawlConfig;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlDriverFactory;
 import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.session.CrawlSessionFactory;
@@ -25,43 +27,30 @@ public final class CrawlSessionStubber {
     }
 
     public static CrawlSession multiNodesCrawlSession(Path workDir) {
+        return multiNodesCrawlSession(workDir, null);
+    }
+
+    public static CrawlSession multiNodesCrawlSession(
+            Path workDir, Consumer<CrawlConfig> configModifier) {
         var config = CrawlerConfigStubber.memoryCrawlerConfig(workDir);
         config.setClusterConnector(
                 ClusterStubber.multiMemoryNodesClusterConnector());
+        if (configModifier != null) {
+            configModifier.accept(config);
+        }
         return CrawlSessionFactory.create(
                 MockCrawlDriverFactory.create(),
                 config);
     }
 
+    //TODO if the multiNodes version works as well and tests are as fast
+    // then delete this one and corredponding config:
     public static CrawlSession singleNodeCrawlSession(Path workDir) {
         var config = CrawlerConfigStubber.memoryCrawlerConfig(workDir);
         config.setClusterConnector(
                 ClusterStubber.singleMemoryNodeClusterConnector());
-        //        var conn = new InfinispanClusterConnector();
-        //        var clusterConfig = conn.getConfiguration();
-        //        clusterConfig.getInfinispan().getGlobalConfigurationBuilder()
-        //                .transport()
-        //                .nodeName(workDir.getFileName().toString());
-        //        clusterConfig.getInfinispan().getGlobalConfigurationBuilder()
-        //                .globalState()
-        //                .persistentLocation(workDir.toString());
-        //        config.setClusterConnector(conn);
         return CrawlSessionFactory.create(
                 MockCrawlDriverFactory.create(),
                 config);
-
-        //        var config = CrawlerConfigStubber.memoryCrawlerConfig(workDir);
-        //        var conn = new InfinispanClusterConnector();
-        //        var clusterConfig = conn.getConfiguration();
-        //        clusterConfig.getInfinispan().getGlobalConfigurationBuilder()
-        //                .transport()
-        //                .nodeName(workDir.getFileName().toString());
-        //        clusterConfig.getInfinispan().getGlobalConfigurationBuilder()
-        //                .globalState()
-        //                .persistentLocation(workDir.toString());
-        //        config.setClusterConnector(conn);
-        //        return CrawlSessionFactory.create(
-        //                MockCrawlDriverFactory.create(),
-        //                config);
     }
 }

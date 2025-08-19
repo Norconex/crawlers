@@ -16,11 +16,10 @@ package com.norconex.crawler.core2.mocks.cluster;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.cluster.Cluster;
-import com.norconex.crawler.core2.cluster.ClusterConnector;
 import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanClusterConnector;
 import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanUtil;
 
-public final class MockSingleNodeConnector implements ClusterConnector {
+public final class MockSingleNodeConnector extends InfinispanClusterConnector {
     @Override
     public Cluster connect() {
         return Configurable.configure(

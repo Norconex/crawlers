@@ -43,9 +43,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 class PipelineTest {
 
-    //TODO expired (after making it configurable)
-    // and more use cases.
-
     /*
      * Tests that a late-joining node can pick up execution at the current
      * pipeline step.
@@ -56,18 +53,10 @@ class PipelineTest {
 
         var pipeline = new Pipeline("test-latejoin", List.of(
                 PipelineTestUtil.distributedStep("step1", sess -> {
-                    System.err.println("XXX in step 1: "
-                            + sess.getCluster().getLocalNode().getNodeName()
-                            + "  coord:"
-                            + sess.getCluster().getLocalNode().isCoordinator());
                     var cache = ClusterTestUtil.stringCache(sess, cacheName);
                     cache.put("step1:" + TimeIdGenerator.next(), "byOneNode");
                 }),
                 PipelineTestUtil.distributedStep("step2", sess -> {
-                    System.err.println("XXX in step 2: "
-                            + sess.getCluster().getLocalNode().getNodeName()
-                            + "  coord:"
-                            + sess.getCluster().getLocalNode().isCoordinator());
                     var cache = ClusterTestUtil.stringCache(sess, cacheName);
                     cache.put("step2:" + TimeIdGenerator.next(), "byTwoNodes");
                     // Don't leave until second session has written something
@@ -82,22 +71,17 @@ class PipelineTest {
         Cache<String> cache;
         try (var session1 = CrawlSessionStubber
                 .multiNodesCrawlSession(tempDir.resolve("node1"))) {
-
-            System.err.println("Started node 1");
             cache = ClusterTestUtil.stringCache(session1, cacheName);
             future1 = session1.getCluster().getPipelineManager()
                     .executePipeline(pipeline, 0);
-            System.err.println("Started pipeline execution on node 1");
 
             // Wait for step1 to be completed by node1
             ClusterTestUtil.waitForCacheSize(cache, 2, Duration.ofSeconds(10));
 
             try (var session2 = CrawlSessionStubber
                     .multiNodesCrawlSession(tempDir.resolve("node2"))) {
-                System.err.println("Started node 2");
                 var future2 = session2.getCluster().getPipelineManager()
                         .executePipeline(pipeline, 0);
-                System.err.println("Started pipeline execution on node 2");
 
                 // Wait for both to complete
                 CompletableFuture.allOf(future1, future2).join();

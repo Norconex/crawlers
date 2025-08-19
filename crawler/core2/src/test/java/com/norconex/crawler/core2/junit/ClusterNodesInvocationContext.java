@@ -105,9 +105,11 @@ class ClusterNodesInvocationContext implements TestTemplateInvocationContext {
             ClusterConnector connector =
                     ann.connector().getDeclaredConstructor().newInstance();
             if (connector instanceof InfinispanClusterConnector ic) {
-                ic.getConfiguration().setInfinispan(
-                        InfinispanUtil.configBuilderHolder(
-                                ann.infinispanConfig()));
+                ic.getConfiguration()
+                        .setInfinispan(InfinispanUtil.configBuilderHolder(
+                                ann.infinispanConfig()))
+                        .setNodeExpiryTimeout(Duration
+                                .ofMillis(ann.infinispanNodeExpiryTimeout()));
             }
             cfg.setClusterConnector(connector);
             return CrawlSessionFactory.create(driverFactory.get(), cfg);

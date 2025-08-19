@@ -14,6 +14,9 @@
  */
 package com.norconex.crawler.core.cluster.impl.infinispan;
 
+import static java.util.Optional.ofNullable;
+
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,14 +34,13 @@ import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core2.cluster.Cache;
 import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanCluster;
+import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanClusterConnector;
 import com.norconex.crawler.core2.session.CrawlSession;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class PipelineCoordinator implements AutoCloseable {
-
-    private static long TIMEOUT_MS = 30_000;
 
     private final InfinispanCluster cluster;
     private final Cache<StepRecord> pipelineRecordsCache;
@@ -57,6 +59,8 @@ public class PipelineCoordinator implements AutoCloseable {
     private long startedAt = System.currentTimeMillis();
     private long finishedAt;
     private boolean resumed;
+    private CrawlSession session;
+    private long nodeExpiryTimeoutMs = 30_000;
 
     public PipelineCoordinator(InfinispanCluster cluster, Pipeline pipeline) {
         this.cluster = cluster;
@@ -65,6 +69,16 @@ public class PipelineCoordinator implements AutoCloseable {
                 cluster.getCacheManager().getPipelineCurrentStepCache();
         workerStatusCache =
                 cluster.getCacheManager().getPipelineWorkerStatusCache();
+        session = CrawlSession.get(cluster.getLocalNode());
+
+        var connector = session.getCrawlContext().getCrawlConfig()
+                .getClusterConnector();
+        if (connector instanceof InfinispanClusterConnector conn) {
+            nodeExpiryTimeoutMs =
+                    ofNullable(conn.getConfiguration().getNodeExpiryTimeout())
+                            .map(Duration::toMillis)
+                            .orElse(nodeExpiryTimeoutMs);
+        }
     }
 
     void start() {
@@ -202,7 +216,7 @@ public class PipelineCoordinator implements AutoCloseable {
     }
 
     private boolean hasTimedOut(StepRecord rec) {
-        return System.currentTimeMillis() - rec.updatedAt > TIMEOUT_MS;
+        return System.currentTimeMillis() - rec.updatedAt > nodeExpiryTimeoutMs;
     }
 
     private StepRecord resolveFirstStep(String key, Pipeline pipeline) {

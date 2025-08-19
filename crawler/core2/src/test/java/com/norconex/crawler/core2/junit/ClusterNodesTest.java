@@ -56,6 +56,12 @@ public @interface ClusterNodesTest {
     String infinispanConfig() default "/cache/infinispan-cluster-test.xml";
 
     /**
+     * Infinispan node expiry timeout in milliseconds (only used when
+     * connector is Infinispan). Default is 30 seconds.
+     */
+    long infinispanNodeExpiryTimeout() default 30_000;
+
+    /**
      * Whether to wait for the cluster membership to reach the node count
      * before test execution.
      */

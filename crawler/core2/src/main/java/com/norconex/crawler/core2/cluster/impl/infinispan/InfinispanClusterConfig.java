@@ -32,9 +32,16 @@ public class InfinispanClusterConfig {
     private ConfigurationBuilderHolder infinispan =
             InfinispanUtil.defaultConfigBuilderHolder();
 
+    /**
+     * Maximum amount of time to wait before declaring a node as
+     * "expired" when running a crawler task across multiple nodes.
+     * The minimum value is 10 seconds. Defaults to 30 seconds.
+     */
+    private Duration nodeExpiryTimeout = Duration.ofSeconds(30);
+
     //
     //
-    //TODO DELETE BELOW:
+    //TODO DELETE BELOW: vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     private TaskRetentionConfig retention = new TaskRetentionConfig();
 
     @Data
