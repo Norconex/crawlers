@@ -44,6 +44,16 @@ import lombok.extern.slf4j.Slf4j;
 class PipelineTest {
 
     /*
+     * Tests that a pipeline receiving a stop request will indicate to all
+     * nodes they must stop and respond accordingly.
+     */
+    //    @ClusterNodesTest(nodes = { 1, 2 })
+    void testStop(
+            int nodeCount, List<CrawlSession> sessions) {
+        //TODO implement me
+    }
+
+    /*
      * Tests that a late-joining node can pick up execution at the current
      * pipeline step.
      */

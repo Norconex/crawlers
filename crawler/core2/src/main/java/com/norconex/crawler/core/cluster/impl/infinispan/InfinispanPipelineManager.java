@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core.cluster.impl.infinispan;
 
+import static java.util.Optional.ofNullable;
+
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -128,6 +130,17 @@ public class InfinispanPipelineManager
             }
         });
         return resultFuture;
+    }
+
+    @Override
+    public CompletableFuture<Void> stopPipeline(
+            String pipelineId, long timeout) {
+        //Stop corresponding worker and then possible coordinator
+        //TODO implement properly
+        ofNullable(workers.get(pipelineId)).ifPresent(PipelineWorker::stop);
+        ofNullable(coordinators.get(pipelineId))
+                .ifPresent(PipelineCoordinator::stop);
+        return null;
     }
 
     private PipelineResult buildWorkerSideResult(

@@ -46,6 +46,7 @@ public class PipelineCoordinator implements AutoCloseable {
     private final Cache<StepRecord> pipelineRecordsCache;
     private final Cache<StepRecord> workerStatusCache;
     private final Pipeline pipeline;
+    private Step currentLocalStep;
     private final Map<String, StepRecord> workerStatuses =
             new HashMap<>();
 
@@ -99,6 +100,18 @@ public class PipelineCoordinator implements AutoCloseable {
         close();
     }
 
+    void stop() {
+        //TODO implement properly... likely coordinator driving stop
+        // execution
+
+        if (currentLocalStep != null) {
+            currentLocalStep.stop(session);
+            //TODO wait for all nodes to be stopped and update global
+            // status
+        }
+        close();
+    }
+
     void doCoordinatePipelineExecution() {
         // initial sweep
         workerStatusCache.forEach(this::updateWorkerStatus);
@@ -124,7 +137,7 @@ public class PipelineCoordinator implements AutoCloseable {
                     pipeline.getId(), step.getId());
 
             var execStatus = step.isDistributed()
-                    ? executeOnAllNodes(step, key, stepRec)
+                    ? executeOnAllNodes(step, stepRec)
                     : executeLocally(step);
 
             stepRec.setStatus(execStatus);
@@ -148,6 +161,7 @@ public class PipelineCoordinator implements AutoCloseable {
     }
 
     private PipelineStatus executeLocally(Step step) {
+        currentLocalStep = step;
         LOG.info("Running step {} on a single node.", step.getId());
         try {
             step.execute(CrawlSession.get(cluster.getLocalNode()));
@@ -160,8 +174,8 @@ public class PipelineCoordinator implements AutoCloseable {
         }
     }
 
-    private PipelineStatus executeOnAllNodes(Step step, String pipeKey,
-            StepRecord runningRec) {
+    private PipelineStatus executeOnAllNodes(Step step, StepRecord runningRec) {
+        currentLocalStep = null;
         LOG.info("Running step {} on all nodes.", step.getId());
 
         var reducedStatus = PipelineStatus.PENDING;

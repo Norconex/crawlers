@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CrawlCommand implements Command {
 
     public static final String SYS_PROP_ENABLE_JMX = "enableJMX";
-    public static final String KEY_CRAWL_PIPELINE = "crawlPipeline";
+    //    public static final String KEY_CRAWL_PIPELINE = "crawlPipeline";
     private static final String PROGRESS_LOGGER_KEY = "progressLogger";
     private final AtomicBoolean pendingLoggerStopped = new AtomicBoolean();
 

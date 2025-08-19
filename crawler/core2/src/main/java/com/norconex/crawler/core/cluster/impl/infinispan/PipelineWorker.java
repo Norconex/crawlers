@@ -120,6 +120,16 @@ public class PipelineWorker implements AutoCloseable {
         cluster.getCacheManager().addPipelineCurrentStepListener(stepListener);
     }
 
+    // end this worker by stopping any active task first then closing.
+    public void stop() {
+        //TODO implement properly... likely coordinator driving stop
+        // execution and worker updating their statuses
+        if (currentStep != null) {
+            currentStep.stop(CrawlSession.get(cluster.getLocalNode()));
+        }
+        close();
+    }
+
     @Override
     public void close() {
         if (closed.compareAndSet(false, true)) {
