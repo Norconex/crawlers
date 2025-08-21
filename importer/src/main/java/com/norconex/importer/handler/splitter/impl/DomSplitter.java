@@ -90,12 +90,40 @@ import lombok.Data;
  *
  * {@nx.xml.example
  * <handler class="DOMSplitter" selector="div.contact" />
+ *
+ * <handler class="DOMSplitter" selector="#job-table tbody tr.data-row" referenceField="a.jobTitle-link" attributeField= "href"/>
  * }
  *
  * <p>
  * The above example splits contacts found in an HTML document, each one being
  * stored within a div with a class named "contact".
+ *
+ * The 2nd example splits contacts and also assigning document reference for each splitted element.
  * </p>
+ * <pre>
+ * &lt;div id="job-table"&gt;
+ *     &lt;div class="searchResultsShell"&gt;
+ *         &lt;table id="searchresults"&gt;
+ *             &lt;tbody&gt;
+ *                 &lt;tr class="data-row"&gt;
+ *                     &lt;td class="colTitle"&gt;
+ *                         &lt;span class="jobTitle"&gt;
+ *                             &lt;a href="reference_a" class="jobTitle-link"&gt;Title A&lt;/a&gt;
+ *                         &lt;/span&gt;
+ *                     &lt;/td&gt;
+ *                 &lt;/tr&gt;
+ *                 &lt;tr class="data-row"&gt;
+ *                     &lt;td class="colTitle"&gt;
+ *                         &lt;span class="jobTitle "&gt;
+ *                             &lt;a href="reference_b" class="jobTitle-link"&gt;Title B&lt;/a&gt;
+ *                         &lt;/span&gt;
+ *                     &lt;/td&gt;
+ *                 &lt;/tr&gt;
+ *             &lt;/tbody&gt;
+ *         &lt;/table&gt;
+ *     &lt;/div&gt;
+ * &lt;/div&gt;
+ * </pre>
  *
  * @see XmlStreamSplitter
  */

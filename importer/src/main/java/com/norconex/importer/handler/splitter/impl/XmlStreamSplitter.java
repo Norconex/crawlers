@@ -67,12 +67,14 @@ import lombok.extern.slf4j.Slf4j;
  * &lt;animals&gt;
  *   &lt;species name="mouse"&gt;
  *     &lt;animal&gt;
+ *       &lt;id&gt;9827&lt;/id&gt;
  *       &lt;name&gt;Itchy&lt;/name&gt;
  *       &lt;race&gt;cartoon&lt;/race&gt;
  *     &lt;/animal&gt;
  *   &lt;/species&gt;
  *   &lt;species name="cat"&gt;
  *     &lt;animal&gt;
+ *       &lt;id&gt;709394&lt;/id&gt;
  *       &lt;name&gt;Scratchy&lt;/name&gt;
  *       &lt;race&gt;cartoon&lt;/race&gt;
  *     &lt;/animal&gt;
@@ -106,6 +108,9 @@ import lombok.extern.slf4j.Slf4j;
  *
  * {@nx.xml.example
  * <handler class="XMLStreamSplitter" path="/animals/species/animal" />
+ *
+ * <handler class="XMLStreamSplitter" path="/animals/species/animal" referenceField="/animals/species/animal/id"/>
+ *
  * }
  *
  * <p>
