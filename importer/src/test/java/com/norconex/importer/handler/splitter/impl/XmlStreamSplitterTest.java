@@ -89,13 +89,14 @@ class XmlStreamSplitterTest {
                 </animal>
               </species>
             </animals>""";
+
     @Test
     void testCustomNestedReferenceField() throws IOException {
         var splitter = new XmlStreamSplitter();
         splitter.getConfiguration()
-            .setPath("/animals/species/animal")
-            .setReferenceField("/animals/species/animal/nested/url")
-            .setContentTypeMatcher(TextMatcher.regex(".*"));
+                .setPath("/animals/species/animal")
+                .setReferenceField("/animals/species/animal/nested/url")
+                .setContentTypeMatcher(TextMatcher.regex(".*"));
 
         var docs = split(sampleXMLwithNestedReference, splitter);
 
@@ -109,7 +110,6 @@ class XmlStreamSplitterTest {
         var content = TestUtil.getContentAsString(docs.get(1));
         assertThat(content).contains("<name>Scratchy</name>");
     }
-
 
     @Test
     void testCustomReferenceField() throws IOException {

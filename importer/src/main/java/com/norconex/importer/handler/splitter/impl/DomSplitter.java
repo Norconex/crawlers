@@ -170,7 +170,7 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
             childMeta.loadFromMap(docCtx.metadata());
             var childContent = elm.outerHtml();
             var childEmbedRef = elm.cssSelector();
-//            var childRef = docCtx.reference() + "!" + childEmbedRef;
+            //            var childRef = docCtx.reference() + "!" + childEmbedRef;
 
             // --- START: ReferenceField logic ---
             String extractedRef = null;
@@ -196,7 +196,6 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
                 childRef = docCtx.reference() + "!" + elm.cssSelector();
             }
             // --- END: ReferenceField logic ---
-
 
             CachedInputStream content = null;
             if (childContent.length() > 0) {

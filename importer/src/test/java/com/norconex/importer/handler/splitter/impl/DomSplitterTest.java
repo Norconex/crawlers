@@ -31,6 +31,68 @@ import com.norconex.importer.doc.Doc;
 
 class DomSplitterTest {
 
+
+    @Test
+    void testRefieldAndAttrFieldVariants2() throws IOException{
+        String htmlb = """
+            <html>
+            	<body>
+            		<div id="job-table">
+            			<div class="searchResultsShell">
+            				<table id="searchresults" class="searchResults full table table-striped table-hover" cellpadding="0" cellspacing="0">
+            					<tbody>
+            						<tr class="data-row">
+            							<td class="colTitle" headers="hdrTitle">
+            								<span class="jobTitle hidden-phone">
+            									<a href="/job/Toronto-Associate-ProfessorProfessor-Lawson-Chair-in-Climate-Policy-Innovation-ON/594178317/" class="jobTitle-link">Associate Professor/Professor - Lawson Chair in Climate Policy Innovation</a>
+            								</span>
+            	
+            							</td>
+            						</tr>
+            						<tr class="data-row">
+            							<td class="colTitle" headers="hdrTitle">
+            								<span class="jobTitle hidden-phone">
+            									<a href="/job/Toronto-Associate-Professor-Evolutionary-Genetics-and-Hybridization-ON/594177517/" class="jobTitle-link">Associate Professor - Evolutionary Genetics and Hybridization</a>
+            								</span>
+                        
+            							</td>
+            						</tr>
+            						<tr class="data-row">
+            							<td class="colTitle" headers="hdrTitle">
+            								<span class="jobTitle hidden-phone">
+            									<a href="/job/Toronto-Assistant-Professor-Strategic-Management-ON/594180317/" class="jobTitle-link">Assistant Professor - Strategic Management</a>
+            								</span>
+            							</td>
+            						</tr>
+            					</tbody>
+            				</table>
+            			</div>
+            		</div>
+            	</body>
+            </html>
+            """;
+
+        var splittera = new DomSplitter();
+        splittera.getConfiguration().setSelector("#job-table tbody tr.data-row");
+        splittera.getConfiguration().setReferenceField("a.jobTitle-link");
+        splittera.getConfiguration().setAttributeField("href");
+
+        var docsa = split(htmlb, splittera);
+        Assertions.assertEquals(3, docsa.size());
+
+        Assertions.assertTrue(docsa.get(0).getReference().endsWith("/job/Toronto-Associate-ProfessorProfessor-Lawson-Chair-in-Climate-Policy-Innovation-ON/594178317/"));
+        Assertions.assertTrue(docsa.get(1).getReference().endsWith("/job/Toronto-Associate-Professor-Evolutionary-Genetics-and-Hybridization-ON/594177517/"));
+        Assertions.assertTrue(docsa.get(2).getReference().endsWith("/job/Toronto-Assistant-Professor-Strategic-Management-ON/594180317/"));
+
+//        Assertions.assertEquals(3, docs1.size());
+//        Assertions.assertEquals("https://example.com/alice",
+//            docs1.get(0).getReference());
+//        Assertions.assertEquals("https://example.com/bob",
+//            docs1.get(1).getReference());
+//        Assertions.assertEquals("https://example.com/dalton",
+//            docs1.get(2).getReference());
+    }
+
     @Test
     void testRefFieldAndAttrFieldVariants() throws IOException {
 
@@ -43,7 +105,7 @@ class DomSplitterTest {
                 <div class="person" id="p2"><a class="link" href="https://example.com/bob">Bob</a></div>
                 <div class="person" id="p3"><a class="link" href="https://example.com/dalton">Dalton</a></div>
             </div>
-            <div class="person" id="other">         
+            <div class="person" id="other">
                 <div class="person" id="blah1"><a class="link" href="https://example.com/alice">Alice</a></div>
                 <div class="person" id="blah2"><a class="link" href="https://example.com/bob">Bob</a></div>
                 <div class="person" id="blah3"><a class="link" href="https://example.com/dalton">Dalton</a></div>
@@ -60,9 +122,6 @@ class DomSplitterTest {
         Assertions.assertTrue(docsa.get(0).getReference().endsWith("p1"));
         Assertions.assertTrue(docsa.get(1).getReference().endsWith("p2"));
         Assertions.assertTrue(docsa.get(2).getReference().endsWith("p3"));
-
-
-
 
         // --- Case 0: ?? ---
         String html0 = """
@@ -84,8 +143,6 @@ class DomSplitterTest {
         Assertions.assertTrue(docs0.get(1).getReference().endsWith("p2"));
         Assertions.assertTrue(docs0.get(2).getReference().endsWith("p3"));
 
-
-
         // --- Case 1: refField= "a.link", attrField="href" ---
         String html = """
         <html>
@@ -104,9 +161,12 @@ class DomSplitterTest {
 
         var docs1 = split(html, splitter1);
         Assertions.assertEquals(3, docs1.size());
-        Assertions.assertEquals("https://example.com/alice", docs1.get(0).getReference());
-        Assertions.assertEquals("https://example.com/bob", docs1.get(1).getReference());
-        Assertions.assertEquals("https://example.com/dalton", docs1.get(2).getReference());
+        Assertions.assertEquals("https://example.com/alice",
+                docs1.get(0).getReference());
+        Assertions.assertEquals("https://example.com/bob",
+                docs1.get(1).getReference());
+        Assertions.assertEquals("https://example.com/dalton",
+                docs1.get(2).getReference());
 
         // --- Case 2: refField = "span.link", attrField = null (uses .text()) ---
         String html2 = """
@@ -126,9 +186,12 @@ class DomSplitterTest {
 
         var docs2 = split(html2, splitter2);
         Assertions.assertEquals(3, docs2.size());
-        Assertions.assertEquals("https://example.com/alice", docs2.get(0).getReference());
-        Assertions.assertEquals("https://example.com/bob", docs2.get(1).getReference());
-        Assertions.assertEquals("https://example.com/dalton", docs2.get(2).getReference());
+        Assertions.assertEquals("https://example.com/alice",
+                docs2.get(0).getReference());
+        Assertions.assertEquals("https://example.com/bob",
+                docs2.get(1).getReference());
+        Assertions.assertEquals("https://example.com/dalton",
+                docs2.get(2).getReference());
 
         // --- Case 3: refField = "span.name", attrField = "missing" (fallback to parent!cssSelector) ---
         String html3 = """
@@ -152,12 +215,10 @@ class DomSplitterTest {
         Assertions.assertTrue(docs3.get(1).getReference().endsWith("p2"));
         Assertions.assertTrue(docs3.get(2).getReference().endsWith("p3"));
 
-//        Assertions.assertTrue(docs3.get(0).getReference().startsWith("n/a!div.person:nth-child"));
-//        Assertions.assertTrue(docs3.get(1).getReference().startsWith("n/a!div.person:nth-child"));
-//        Assertions.assertTrue(docs3.get(2).getReference().startsWith("n/a!div.person:nth-child"));
+        //        Assertions.assertTrue(docs3.get(0).getReference().startsWith("n/a!div.person:nth-child"));
+        //        Assertions.assertTrue(docs3.get(1).getReference().startsWith("n/a!div.person:nth-child"));
+        //        Assertions.assertTrue(docs3.get(2).getReference().startsWith("n/a!div.person:nth-child"));
     }
-
-
 
     @Test
     void testHtmlDOMSplit() throws IOException {
