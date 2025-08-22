@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.collections.bag.HashBag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
@@ -54,47 +55,115 @@ class PipelineTest {
         //TODO implement me
     }
 
-    //    /*
-    //     * Test all steps are executed without errors and the results show it.
-    //     */
-    //    @ClusterNodesTest(nodes = { 1, 2 })
-    //    void testPartiallyFailedPipelineResult(
-    //            int nodeCount, List<CrawlSession> sessions) {
-    //        var cacheName = ClusterTestUtil.uniqueCacheName(
-    //                "pipetest-partial-fail");
-    //
-    //        var pipeline = new Pipeline("test-completion", List.of(
-    //                PipelineTestUtil.distributedStep("step1", sess -> {
-    //                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
-    //                    cache.put(nodeKey("step1", sess), "byStep1");
-    //                }),
-    //                PipelineTestUtil.distributedStep("step2", sess -> {
-    //                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
-    //                    cache.put(nodeKey("step2", sess), "byStep2");
-    //                }),
-    //                PipelineTestUtil.distributedStep("step3", sess -> {
-    //                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
-    //                    cache.put(nodeKey("step3", sess), "byStep3");
-    //                })));
-    //
-    //        var results =
-    //                PipelineTestUtil.executeOrderlyAndWait(pipeline, sessions);
-    //
-    //        assertThat(results)
-    //                .extracting(PipelineResult::getStatus)
-    //                .containsOnly(PipelineStatus.COMPLETED);
-    //        assertThat(results)
-    //                .extracting(PipelineResult::getLastStepId)
-    //                .containsOnly("step3");
-    //        assertThat(results)
-    //                .extracting(PipelineResult::isTimedOut)
-    //                .containsOnly(false);
-    //
-    //        assertThat(results)
-    //                .extracting("startedAt", "finishedAt")
-    //                .allMatch(tuple -> (long) tuple.toArray()[1] > (long) tuple
-    //                        .toArray()[0]);
-    //    }
+    /*
+     * Test a FAILED pipeline when all nodes failed.
+     */
+    @ClusterNodesTest(nodes = { 1, 2 })
+    void testAllFailedPipelineResult(
+            int nodeCount, List<CrawlSession> sessions) {
+        var cacheName = ClusterTestUtil.uniqueCacheName(
+                "pipetest-all-fail");
+        var completedSteps = new HashBag();
+        var pipeline = new Pipeline("test-all-fail", List.of(
+                PipelineTestUtil.distributedStep("step1", sess -> {
+                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
+                    cache.put(nodeKey("step1", sess), "byStep1");
+                    completedSteps.add("step1");
+                }),
+                PipelineTestUtil.distributedStep("step2", sess -> {
+                    throw new PipelineException("I am a fake failure");
+                }),
+                PipelineTestUtil.distributedStep("step3", sess -> {
+                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
+                    cache.put(nodeKey("step3", sess), "byStep3");
+                    completedSteps.add("step3");
+                })));
+
+        var results =
+                PipelineTestUtil.executeOrderlyAndWait(pipeline, sessions);
+
+        assertThat(completedSteps.getCount("step1")).isEqualTo(nodeCount);
+        assertThat(completedSteps.getCount("step2")).isZero();
+        assertThat(completedSteps.getCount("step3")).isZero();
+
+        assertThat(results)
+                .extracting(PipelineResult::getStatus)
+                .containsOnly(PipelineStatus.FAILED);
+        assertThat(results)
+                .extracting(PipelineResult::getLastStepId)
+                .containsOnly("step2");
+        assertThat(results)
+                .extracting(PipelineResult::isTimedOut)
+                .containsOnly(false);
+        assertThat(results)
+                .extracting("startedAt", "finishedAt")
+                .allMatch(tuple -> (long) tuple.toArray()[1] > (long) tuple
+                        .toArray()[0]);
+    }
+
+    /*
+     * Test a COMPLETED pipeline when only 1 node failed out of 2,
+     * or FAILED if a single node.
+     */
+    @ClusterNodesTest(nodes = { 1, 2 })
+    void testPartiallyFailedPipelineResult(
+            int nodeCount, List<CrawlSession> sessions) {
+        var cacheName = ClusterTestUtil.uniqueCacheName(
+                "pipetest-partial-fail");
+
+        var cnt = new AtomicInteger();
+        var completedSteps = new HashBag();
+
+        var pipeline = new Pipeline("test-partial-fail", List.of(
+                PipelineTestUtil.distributedStep("step1", sess -> {
+                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
+                    cache.put(nodeKey("step1", sess), "byStep1");
+                    completedSteps.add("step1");
+                }),
+                PipelineTestUtil.distributedStep("step2", sess -> {
+                    if (cnt.getAndIncrement() == 0) {
+                        throw new PipelineException("I am a fake failure");
+                    }
+                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
+                    cache.put(nodeKey("step2", sess), "byStep2");
+                    completedSteps.add("step2");
+                }),
+                PipelineTestUtil.distributedStep("step3", sess -> {
+                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
+                    cache.put(nodeKey("step3", sess), "byStep3");
+                    completedSteps.add("step3");
+                })));
+
+        var results =
+                PipelineTestUtil.executeOrderlyAndWait(pipeline, sessions);
+
+        if (nodeCount == 1) {
+            assertThat(completedSteps.getCount("step1")).isEqualTo(1);
+            assertThat(completedSteps.getCount("step2")).isZero();
+            assertThat(completedSteps.getCount("step3")).isZero();
+        } else {
+            assertThat(completedSteps.getCount("step1")).isEqualTo(nodeCount);
+            assertThat(completedSteps.getCount("step2"))
+                    .isEqualTo(nodeCount - 1);
+            assertThat(completedSteps.getCount("step3")).isEqualTo(nodeCount);
+        }
+
+        assertThat(results)
+                .extracting(PipelineResult::getStatus)
+                .containsOnly(nodeCount > 1 ? PipelineStatus.COMPLETED
+                        : PipelineStatus.FAILED);
+        assertThat(results)
+                .extracting(PipelineResult::getLastStepId)
+                .containsOnly(nodeCount > 1 ? "step3" : "step2");
+        assertThat(results)
+                .extracting(PipelineResult::isTimedOut)
+                .containsOnly(false);
+
+        assertThat(results)
+                .extracting("startedAt", "finishedAt")
+                .allMatch(tuple -> (long) tuple.toArray()[1] > (long) tuple
+                        .toArray()[0]);
+    }
 
     /*
      * Test all steps are executed without errors and the results show it.

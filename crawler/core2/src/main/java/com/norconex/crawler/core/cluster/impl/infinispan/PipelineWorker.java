@@ -14,8 +14,6 @@
  */
 package com.norconex.crawler.core.cluster.impl.infinispan;
 
-import static java.util.Optional.ofNullable;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -211,13 +209,16 @@ public class PipelineWorker implements AutoCloseable {
         private boolean aborted = false;
         private StepRecord rec = null;
 
-        private boolean isLastStepAndTerminal(Pipeline pipeline) {
-            return ofNullable(rec)
-                    .filter(r -> Objects.equal(r.getStepId(),
-                            pipeline.getLastStep().getId()))
-                    .map(StepRecord::getStatus)
-                    .filter(PipelineStatus::isTerminal)
-                    .isPresent();
+        // it is terminated if the step is terminal and non COMPLETED, or
+        // if the step is the last one and COMPLETED
+        private boolean isPipelineTerminated(Pipeline pipeline) {
+            if (rec == null) {
+                return false;
+            }
+            return rec.getStatus().isTerminal()
+                    && ((rec.getStatus() != PipelineStatus.COMPLETED)
+                            || Objects.equal(rec.getStepId(),
+                                    pipeline.getLastStep().getId()));
         }
 
         // Given the coordinator does not update the steps cache unless there
@@ -233,7 +234,7 @@ public class PipelineWorker implements AutoCloseable {
         var state = new PipelineState();
         while (!state.done && !Thread.currentThread().isInterrupted()) {
             state.rec = stepCache.get(pipeKey).orElse(null);
-            if (state.isLastStepAndTerminal(pipeline)) {
+            if (state.isPipelineTerminated(pipeline)) {
                 state.done = true;
             } else if (state.isExpired(timeout)) {
                 state.done = true;
