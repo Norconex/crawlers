@@ -12,43 +12,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cluster.impl.infinispan;
-
-import java.util.function.BiConsumer;
+package com.norconex.crawler.core.cluster.impl.infinispan.event;
 
 import org.infinispan.notifications.Listener;
+import org.infinispan.notifications.Listener.Observation;
 import org.infinispan.notifications.cachelistener.annotation.CacheEntryCreated;
 import org.infinispan.notifications.cachelistener.annotation.CacheEntryModified;
-import org.infinispan.notifications.cachelistener.event.CacheEntryCreatedEvent;
-import org.infinispan.notifications.cachelistener.event.CacheEntryModifiedEvent;
+import org.infinispan.notifications.cachelistener.event.CacheEntryEvent;
 
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-@Listener(clustered = true)
+@Listener(clustered = true, observation = Observation.POST)
 @RequiredArgsConstructor
-public class PipelineStepChangeListener {
-
+public class CacheEntryChangeListenerAdapter<T> {
+    @Getter
     @NonNull
-    private final BiConsumer<String, StepRecord> stepRecCallback;
+    private final CacheEntryChangeListener<T> delegate;
 
     @CacheEntryCreated
-    public void onCreated(
-            CacheEntryCreatedEvent<String, StepRecord> e) {
-        if (!e.isPre()) {
-            react(e.getKey(), e.getValue());
-        }
-    }
-
     @CacheEntryModified
-    public void onModified(
-            CacheEntryModifiedEvent<String, StepRecord> e) {
-        if (!e.isPre()) {
-            react(e.getKey(), e.getNewValue());
+    public void onEntryChanged(CacheEntryEvent<String, T> event) {
+        if (event.getValue() != null) {
+            delegate.onEntryChanged(event.getKey(), event.getValue());
         }
-    }
-
-    private void react(String key, StepRecord stepRec) {
-        stepRecCallback.accept(key, stepRec);
     }
 }

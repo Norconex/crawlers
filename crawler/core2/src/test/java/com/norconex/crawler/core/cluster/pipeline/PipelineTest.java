@@ -27,7 +27,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.crawler.core2.cluster.Cache;
 import com.norconex.crawler.core2.junit.ClusterNodesTest;
 import com.norconex.crawler.core2.junit.ClusterTestUtil;
@@ -43,6 +42,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 class PipelineTest {
 
+    //TODO test node expiry and seemless coordinator change detection
+
     /*
      * Tests that a pipeline receiving a stop request will indicate to all
      * nodes they must stop and respond accordingly.
@@ -51,6 +52,90 @@ class PipelineTest {
     void testStop(
             int nodeCount, List<CrawlSession> sessions) {
         //TODO implement me
+    }
+
+    //    /*
+    //     * Test all steps are executed without errors and the results show it.
+    //     */
+    //    @ClusterNodesTest(nodes = { 1, 2 })
+    //    void testPartiallyFailedPipelineResult(
+    //            int nodeCount, List<CrawlSession> sessions) {
+    //        var cacheName = ClusterTestUtil.uniqueCacheName(
+    //                "pipetest-partial-fail");
+    //
+    //        var pipeline = new Pipeline("test-completion", List.of(
+    //                PipelineTestUtil.distributedStep("step1", sess -> {
+    //                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
+    //                    cache.put(nodeKey("step1", sess), "byStep1");
+    //                }),
+    //                PipelineTestUtil.distributedStep("step2", sess -> {
+    //                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
+    //                    cache.put(nodeKey("step2", sess), "byStep2");
+    //                }),
+    //                PipelineTestUtil.distributedStep("step3", sess -> {
+    //                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
+    //                    cache.put(nodeKey("step3", sess), "byStep3");
+    //                })));
+    //
+    //        var results =
+    //                PipelineTestUtil.executeOrderlyAndWait(pipeline, sessions);
+    //
+    //        assertThat(results)
+    //                .extracting(PipelineResult::getStatus)
+    //                .containsOnly(PipelineStatus.COMPLETED);
+    //        assertThat(results)
+    //                .extracting(PipelineResult::getLastStepId)
+    //                .containsOnly("step3");
+    //        assertThat(results)
+    //                .extracting(PipelineResult::isTimedOut)
+    //                .containsOnly(false);
+    //
+    //        assertThat(results)
+    //                .extracting("startedAt", "finishedAt")
+    //                .allMatch(tuple -> (long) tuple.toArray()[1] > (long) tuple
+    //                        .toArray()[0]);
+    //    }
+
+    /*
+     * Test all steps are executed without errors and the results show it.
+     */
+    @ClusterNodesTest(nodes = { 1, 2 })
+    void testCompletedPipelineResult(
+            int nodeCount, List<CrawlSession> sessions) {
+        var cacheName = ClusterTestUtil.uniqueCacheName(
+                "pipetest-completion");
+
+        var pipeline = new Pipeline("test-completion", List.of(
+                PipelineTestUtil.distributedStep("step1", sess -> {
+                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
+                    cache.put(nodeKey("step1", sess), "byStep1");
+                }),
+                PipelineTestUtil.distributedStep("step2", sess -> {
+                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
+                    cache.put(nodeKey("step2", sess), "byStep2");
+                }),
+                PipelineTestUtil.distributedStep("step3", sess -> {
+                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
+                    cache.put(nodeKey("step3", sess), "byStep3");
+                })));
+
+        var results =
+                PipelineTestUtil.executeOrderlyAndWait(pipeline, sessions);
+
+        assertThat(results)
+                .extracting(PipelineResult::getStatus)
+                .containsOnly(PipelineStatus.COMPLETED);
+        assertThat(results)
+                .extracting(PipelineResult::getLastStepId)
+                .containsOnly("step3");
+        assertThat(results)
+                .extracting(PipelineResult::isTimedOut)
+                .containsOnly(false);
+
+        assertThat(results)
+                .extracting("startedAt", "finishedAt")
+                .allMatch(tuple -> (long) tuple.toArray()[1] > (long) tuple
+                        .toArray()[0]);
     }
 
     /*
@@ -64,11 +149,11 @@ class PipelineTest {
         var pipeline = new Pipeline("test-latejoin", List.of(
                 PipelineTestUtil.distributedStep("step1", sess -> {
                     var cache = ClusterTestUtil.stringCache(sess, cacheName);
-                    cache.put("step1:" + TimeIdGenerator.next(), "byOneNode");
+                    cache.put(nodeKey("step1", sess), "byOneNode");
                 }),
                 PipelineTestUtil.distributedStep("step2", sess -> {
                     var cache = ClusterTestUtil.stringCache(sess, cacheName);
-                    cache.put("step2:" + TimeIdGenerator.next(), "byTwoNodes");
+                    cache.put(nodeKey("step2", sess), "byTwoNodes");
                     // Don't leave until second session has written something
                     // to prevent the pipeline from completing before
                     // the second session starts.
@@ -76,34 +161,40 @@ class PipelineTest {
                             Duration.ofSeconds(10), Duration.ofMillis(200));
                 })));
 
-        // --- Create and start first session/node ---
         CompletableFuture<PipelineResult> future1;
-        Cache<String> cache;
+        CompletableFuture<PipelineResult> future2;
+        Cache<String> cache1;
+        List<String> values = new ArrayList<>();
+
         try (var session1 = CrawlSessionStubber
                 .multiNodesCrawlSession(tempDir.resolve("node1"))) {
-            cache = ClusterTestUtil.stringCache(session1, cacheName);
+            cache1 = ClusterTestUtil.stringCache(session1, cacheName);
             future1 = session1.getCluster().getPipelineManager()
                     .executePipeline(pipeline, 0);
 
             // Wait for step1 to be completed by node1
-            ClusterTestUtil.waitForCacheSize(cache, 2, Duration.ofSeconds(10));
+            ClusterTestUtil.waitForCacheSize(cache1, 2, Duration.ofSeconds(10));
 
             try (var session2 = CrawlSessionStubber
                     .multiNodesCrawlSession(tempDir.resolve("node2"))) {
-                var future2 = session2.getCluster().getPipelineManager()
+                future2 = session2.getCluster().getPipelineManager()
                         .executePipeline(pipeline, 0);
+                var cache2 = ClusterTestUtil.stringCache(session2, cacheName);
 
-                // Wait for both to complete
+                ClusterTestUtil.waitForCacheSize(cache2, 3,
+                        Duration.ofSeconds(20));
+
+                // Wait for both to complete before any session closes
                 CompletableFuture.allOf(future1, future2).join();
 
-                List<String> values = new ArrayList<>();
-                cache.forEach((k, v) -> values.add(v));
-
-                System.err.println("VALUES: " + String.join(", ", values));
-                assertThat(values).containsExactlyInAnyOrder(
-                        "byOneNode", "byTwoNodes", "byTwoNodes");
+                // Adding values here to the List since we don't replicate
+                // the nodes for testing, the moment session1 closes, the count
+                // will go down due to having lost session 2 records
+                cache2.forEach((k, v) -> values.add(v));
             }
         }
+        assertThat(values).containsExactlyInAnyOrder(
+                "byOneNode", "byTwoNodes", "byTwoNodes");
     }
 
     /*
@@ -163,5 +254,13 @@ class PipelineTest {
         assertThat(nonDistributedCount.get())
                 .as("Expected one non-coordinator(s)")
                 .isEqualTo(1);
+    }
+
+    private static String nodeKey(String prefix, CrawlSession session) {
+        return prefix + ":" + session
+                .getCluster()
+                .getLocalNode()
+                .getNodeName();
+
     }
 }

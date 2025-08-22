@@ -12,20 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cluster;
+package com.norconex.crawler.core.cluster.impl.infinispan.event;
 
-import java.io.Serializable;
-import com.norconex.crawler.core2.session.CrawlSession;
-
-/**
- * Task to be executed on the cluster.
- *
- * @param <T> type of object returned (may be {@link Void}).
- */
-public interface ClusterTask<T> extends Serializable { // now Serializable for remote execution
-    T execute(CrawlSession session);
-
-    default void stop(CrawlSession session) {
-        throw new UnsupportedOperationException("Implement me!");
-    }
+public interface CacheEntryChangeListener<T> {
+    void onEntryChanged(String key, T value);
 }

@@ -19,18 +19,24 @@ import static java.util.Optional.ofNullable;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.infinispan.commons.marshall.ProtoStreamMarshaller;
 import org.infinispan.manager.DefaultCacheManager;
+import org.infinispan.notifications.Listener;
+import org.infinispan.notifications.cachemanagerlistener.annotation.ViewChanged;
+import org.infinispan.notifications.cachemanagerlistener.event.ViewChangedEvent;
 import org.infinispan.remoting.transport.Address;
 
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanPipelineManager;
+import com.norconex.crawler.core.cluster.impl.infinispan.event.CoordinatorChangeListener;
 import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.util.ExceptionSwallower;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,7 +53,25 @@ public class InfinispanCluster implements Cluster {
     private InfinispanTaskManager taskManager;
     private InfinispanPipelineManager pipelineManager;
 
+    private final List<CoordinatorChangeListener> coordinatorListeners =
+            new CopyOnWriteArrayList<>();
+    // so that if both previous coordinator and the new one are not this node
+    // we do not trigger the event for no reason.
+    private volatile boolean lastCoordinatorState = false;
+
     private final InfinispanClusterConfig configuration;
+
+    @Listener
+    @RequiredArgsConstructor
+    public static class ClusterViewListener {
+        @NonNull
+        private final InfinispanCluster cluster;
+
+        @ViewChanged
+        public void viewChanged(ViewChangedEvent event) {
+            cluster.checkCoordinatorStatus();
+        }
+    }
 
     public String getCrawlerId() {
         return CrawlSession.get(localNode).getCrawlerId();
@@ -82,6 +106,38 @@ public class InfinispanCluster implements Cluster {
         localNode = new InfinispanClusterNode(defCacheManager);
         taskManager = new InfinispanTaskManager(this);
         pipelineManager = new InfinispanPipelineManager(this);
+
+        // Listen for coordinator change events
+        defCacheManager.addListener(new ClusterViewListener(this));
+    }
+
+    /**
+     * Adds a listener that will be triggered the moment it is added and
+     * subsequently, when <b>this node</b> gets promoted or demoted as
+     * coordinator.
+     * @param listener the listener to add
+     */
+    public void addCoordinatorChangeListener(
+            CoordinatorChangeListener listener) {
+        coordinatorListeners.add(listener);
+        // we explicitly fire when registering a listener
+        listener.onCoordinatorChange(localNode.isCoordinator());
+    }
+
+    public void removeCoordinatorChangeListener(
+            CoordinatorChangeListener listener) {
+        coordinatorListeners.remove(listener);
+    }
+
+    // Call this periodically or on cluster events
+    private void checkCoordinatorStatus() {
+        var isCoordinator = localNode.isCoordinator();
+        if (isCoordinator != lastCoordinatorState) {
+            lastCoordinatorState = isCoordinator;
+            for (CoordinatorChangeListener l : coordinatorListeners) {
+                l.onCoordinatorChange(isCoordinator);
+            }
+        }
     }
 
     @Override
@@ -130,6 +186,7 @@ public class InfinispanCluster implements Cluster {
      * Returns the number of nodes in the cluster.
      * @return node count
      */
+    @Override
     public int getNodeCount() {
         return ofNullable(cacheManager)
                 .map(InfinispanCacheManager::vendor)
@@ -141,6 +198,7 @@ public class InfinispanCluster implements Cluster {
      * Returns the names of all nodes in the cluster.
      * @return node names
      */
+    @Override
     public List<String> getNodeNames() {
         var members = ofNullable(cacheManager)
                 .map(InfinispanCacheManager::vendor)
@@ -155,4 +213,5 @@ public class InfinispanCluster implements Cluster {
                 .map(Address::toString)
                 .toList();
     }
+
 }

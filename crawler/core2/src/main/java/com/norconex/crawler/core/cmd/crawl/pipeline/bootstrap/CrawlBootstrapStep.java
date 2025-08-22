@@ -12,20 +12,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cluster;
+package com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap;
 
-import java.io.Serializable;
+import org.apache.commons.collections4.CollectionUtils;
+
+import com.norconex.crawler.core.cluster.pipeline.BaseStep;
 import com.norconex.crawler.core2.session.CrawlSession;
 
 /**
- * Task to be executed on the cluster.
- *
- * @param <T> type of object returned (may be {@link Void}).
+ * Bootstrap session artifacts, including the cluster, making it ready for
+ * crawling.
  */
-public interface ClusterTask<T> extends Serializable { // now Serializable for remote execution
-    T execute(CrawlSession session);
+public class CrawlBootstrapStep extends BaseStep {
 
-    default void stop(CrawlSession session) {
-        throw new UnsupportedOperationException("Implement me!");
+    public CrawlBootstrapStep(String id) {
+        super(id);
+    }
+
+    @Override
+    public void execute(CrawlSession session) {
+        var ctx = session.getCrawlContext();
+
+        if (CollectionUtils.isNotEmpty(ctx.getBootstrappers())) {
+            ctx.getBootstrappers().forEach(boot -> boot.bootstrap(session));
+        }
     }
 }

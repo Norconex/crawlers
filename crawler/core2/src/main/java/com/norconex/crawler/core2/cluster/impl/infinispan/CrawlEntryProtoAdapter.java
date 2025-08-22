@@ -14,13 +14,19 @@
  */
 package com.norconex.crawler.core2.cluster.impl.infinispan;
 
+import static java.util.Optional.ofNullable;
+
 import java.lang.reflect.InvocationTargetException;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.stream.Stream;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 import org.infinispan.protostream.annotations.Proto;
 import org.infinispan.protostream.annotations.ProtoField;
@@ -28,6 +34,7 @@ import org.infinispan.protostream.annotations.ProtoField;
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.crawler.core2.cluster.CacheException;
 import com.norconex.crawler.core2.ledger.CrawlEntry;
+import com.norconex.crawler.core2.ledger.ProcessingStatus;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -49,19 +56,25 @@ public class CrawlEntryProtoAdapter {
     @ProtoField(number = 2)
     public String reference;
 
-    //    @GenericField
-    //    private ProcessingStatus processingStatus;
-
     @ProtoField(number = 3)
-    public String metaChecksum;
+    @GenericField
+    public ProcessingStatus processingStatus;
 
     @ProtoField(number = 4)
-    public String contentChecksum;
-
-    //    @GenericField
-    //    private ZonedDateTime queuedAt;
+    public String metaChecksum;
 
     @ProtoField(number = 5)
+    public String contentChecksum;
+
+    @ProtoField(number = 6)
+    @GenericField
+    public long queuedAt;
+
+    @ProtoField(number = 7)
+    @GenericField
+    public long processingAt;
+
+    @ProtoField(number = 8)
     public Map<String, String> otherProps;
 
     public CrawlEntryProtoAdapter() {
@@ -71,17 +84,19 @@ public class CrawlEntryProtoAdapter {
         try {
             type = entry.getClass().getName();
             reference = entry.getReference();
-            //            processingStatus = entry.getProcessingStatus();
+            processingStatus = entry.getProcessingStatus();
             metaChecksum = entry.getMetaChecksum();
             contentChecksum = entry.getContentChecksum();
-            //            queuedAt = entry.getQueuedAt();
+            queuedAt = toEpoch(entry.getQueuedAt());
+            processingAt = toEpoch(entry.getProcessingAt());
             var props = BeanUtils.describe(entry);
             Stream.of(
                     CrawlEntry.Fields.reference,
                     CrawlEntry.Fields.processingStatus,
                     CrawlEntry.Fields.metaChecksum,
+                    CrawlEntry.Fields.contentChecksum,
                     CrawlEntry.Fields.queuedAt,
-                    CrawlEntry.Fields.contentChecksum).forEach(props::remove);
+                    CrawlEntry.Fields.processingAt).forEach(props::remove);
             otherProps = props;
         } catch (IllegalAccessException | InvocationTargetException
                 | NoSuchMethodException e) {
@@ -98,10 +113,11 @@ public class CrawlEntryProtoAdapter {
             var entry = (CrawlEntry) ClassUtil.newInstance(
                     ClassUtils.getClass(type));
             entry.setReference(reference);
-            //            entry.setProcessingStatus(processingStatus);
+            entry.setProcessingStatus(processingStatus);
             entry.setMetaChecksum(metaChecksum);
             entry.setContentChecksum(contentChecksum);
-            //            entry.setQueuedAt(queuedAt);
+            entry.setQueuedAt(toZdt(queuedAt));
+            entry.setProcessingAt(toZdt(processingAt));
             if (otherProps != null) {
                 BeanUtils.populate(entry, otherProps);
             }
@@ -113,64 +129,14 @@ public class CrawlEntryProtoAdapter {
         }
     }
 
-    //    @ProtoField(number = 1)
-    //    public String getType() {
-    //        return type;
-    //    }
-    //
-    //    public void setType(String type) {
-    //        this.type = type;
-    //    }
-    //
-    //    @ProtoField(number = 2)
-    //    public String getReference() {
-    //        return reference;
-    //    }
-    //
-    //    public void setReference(String reference) {
-    //        this.reference = reference;
-    //    }
-    //
-    //    //    @ProtoField(number = 3)
-    //    //    public ProcessingStatus getProcessingStatus() {
-    //    //        return processingStatus;
-    //    //    }
-    //    //    public void setProcessingStatus(ProcessingStatus processingStatus) {
-    //    //        this.processingStatus = processingStatus;
-    //    //    }
-    //
-    //    @ProtoField(number = 3)
-    //    public String getMetaChecksum() {
-    //        return metaChecksum;
-    //    }
-    //
-    //    public void setMetaChecksum(String metaChecksum) {
-    //        this.metaChecksum = metaChecksum;
-    //    }
-    //
-    //    @ProtoField(number = 4)
-    //    public String getContentChecksum() {
-    //        return contentChecksum;
-    //    }
-    //
-    //    public void setContentChecksum(String contentChecksum) {
-    //        this.contentChecksum = contentChecksum;
-    //    }
-    //
-    //    //    @ProtoField(number = 6)
-    //    //    public ZonedDateTime getQueuedAt() {
-    //    //        return queuedAt;
-    //    //    }
-    //    //    public void setQueuedAt(ZonedDateTime queuedAt) {
-    //    //        this.queuedAt = queuedAt;
-    //    //    }
-    //
-    //    @ProtoField(number = 5)
-    //    public Map<String, String> getOtherProps() {
-    //        return otherProps;
-    //    }
-    //
-    //    public void setOtherProps(Map<String, String> otherProps) {
-    //        this.otherProps = otherProps;
-    //    }
+    private static long toEpoch(ZonedDateTime zdt) {
+        return ofNullable(zdt)
+                .map(dt -> dt.toInstant().toEpochMilli())
+                .orElse(0L);
+    }
+
+    private static ZonedDateTime toZdt(long epoch) {
+        return epoch <= 0 ? null
+                : Instant.ofEpochMilli(epoch).atZone(ZoneOffset.UTC);
+    }
 }

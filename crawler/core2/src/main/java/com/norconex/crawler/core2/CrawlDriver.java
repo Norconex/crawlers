@@ -44,6 +44,9 @@ public class CrawlDriver {
     private final Class<? extends CrawlConfig> crawlerConfigClass =
             CrawlConfig.class;
 
+    //    @Default
+    //    private final Pipeline crawlPipeline = null;
+
     @Default
     private final List<CrawlBootstrapper> bootstrappers =
             new ArrayList<>(List.of(

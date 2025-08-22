@@ -14,8 +14,11 @@
  */
 package com.norconex.crawler.core2.ledger;
 
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -66,7 +69,8 @@ public final class CrawlEntryLedger {
 
     // we use aliases for previous and current ledgers as we can't assume
     // we can physically rename them and copying data over could be
-    // too inefficient.
+    // too inefficient. The "indexed" suffix is picked up in Infinispan
+    // default config.
     private static final String LEDGER_A = "ledger_a_indexed";
     private static final String LEDGER_B = "ledger_b_indexed";
 
@@ -84,9 +88,6 @@ public final class CrawlEntryLedger {
     private CrawlSession session;
 
     public void init(CrawlSession session) {
-        //            @NonNull CrawlSession session,
-        //            @NonNull CacheManager manager,
-        //            long runMaxDocs) {
         LOG.info("Initializing crawl entry ledger...");
         this.session = session;
         cacheManager = session.getCluster().getCacheManager();
@@ -289,7 +290,7 @@ public final class CrawlEntryLedger {
             ProcessingStatus status, Consumer<CrawlEntry> c) {
         currentLedger.queryIterator("FROM %s WHERE %s".formatted(
                 CrawlEntry.class.getName(),
-                processingStatusQuery(status)))
+                fromWhereStatusQuery(status)))
                 .forEachRemaining(c::accept);
     }
 
@@ -310,7 +311,7 @@ public final class CrawlEntryLedger {
     }
 
     public void clearQueue() {
-        currentLedger.delete(processingStatusQuery(ProcessingStatus.QUEUED));
+        currentLedger.delete(fromWhereStatusQuery(ProcessingStatus.QUEUED));
     }
 
     public void queue(@NonNull CrawlEntry crawlEntry) {
@@ -324,35 +325,38 @@ public final class CrawlEntryLedger {
                 .build());
     }
 
+    public List<CrawlEntry> nextQueuedBatch(int batchSize) {
+        List<CrawlEntry> batch = new ArrayList<>(batchSize);
+        currentLedger.queryStream(
+                fromWhereStatusQuery(ProcessingStatus.QUEUED),
+                entry -> {
+                    if (batch.size() >= batchSize)
+                        return;
+                    var ref = entry.getReference();
+                    var claimed = claimQueuedEntry(ref);
+                    claimed.ifPresent(batch::add);
+                },
+                bonifiedBatchSize(batchSize));
+        return batch;
+    }
+
+    // To stream in slightly larger batches for efficiency on multi-nodes
+    private int bonifiedBatchSize(int batchSize) {
+        var nodeCnt = session.getCluster().getNodeCount();
+        var nodeFactor = (int) Math.ceil(Math.min(nodeCnt - 1, 5) * 0.5);
+        return batchSize + (nodeFactor * batchSize);
+    }
+
     public Optional<CrawlEntry> nextQueued() {
         // Find the first QUEUED entry
-        var query = processingStatusQuery(ProcessingStatus.QUEUED);
+        var query = fromWhereStatusQuery(ProcessingStatus.QUEUED);
         var queuedEntries = currentLedger.queryIterator(query);
         if (!queuedEntries.hasNext()) {
             return Optional.empty();
         }
         var entry = queuedEntries.next();
         var reference = entry.getReference();
-
-        // Atomically set status to PROCESSING only if still QUEUED
-        var updated = currentLedger.computeIfPresent(reference, (k, v) -> {
-            if (v.getProcessingStatus() == ProcessingStatus.QUEUED) {
-                v.setProcessingStatus(ProcessingStatus.PROCESSING);
-            }
-            return v;
-        });
-
-        if (updated.isPresent() && updated.get()
-                .getProcessingStatus() == ProcessingStatus.PROCESSING) {
-            // Update status counters
-            statusCounters.get(ProcessingStatus.QUEUED).decrementAndGet();
-            statusCounters.get(ProcessingStatus.PROCESSING).incrementAndGet();
-            LOG.debug("Polled entry from queue and set to PROCESSING: {}",
-                    reference);
-            return updated;
-        }
-        // If status was not QUEUED, try next
-        return Optional.empty();
+        return claimQueuedEntry(reference);
     }
 
     //    public boolean forEachQueued(
@@ -383,7 +387,7 @@ public final class CrawlEntryLedger {
      * @return matching entries
      */
     public Iterator<CrawlEntry> getEntriesByStatus(ProcessingStatus status) {
-        return currentLedger.queryIterator(processingStatusQuery(status));
+        return currentLedger.queryIterator(fromWhereStatusQuery(status));
     }
 
     /**
@@ -403,7 +407,7 @@ public final class CrawlEntryLedger {
      * @return number of entries deleted
      */
     public long deleteByStatus(ProcessingStatus status) {
-        var count = currentLedger.delete(processingStatusQuery(status));
+        var count = currentLedger.delete(fromWhereStatusQuery(status));
         // Reset the counter to 0 since we deleted all entries with this status
         statusCounters.get(status).reset();
         return count;
@@ -486,8 +490,40 @@ public final class CrawlEntryLedger {
         return isMax;
     }
 
-    private String processingStatusQuery(ProcessingStatus status) {
+    /**
+     * Atomically claims a QUEUED entry for processing, updating its status and timestamp.
+     * Updates status counters if successful.
+     * @param reference the reference to claim
+     * @return the updated entry if successfully claimed, otherwise empty
+     */
+    private Optional<CrawlEntry> claimQueuedEntry(String reference) {
+        var updated = currentLedger.computeIfPresent(reference, (k, v) -> {
+            if (v.getProcessingStatus() == ProcessingStatus.QUEUED) {
+                v.setProcessingStatus(ProcessingStatus.PROCESSING);
+                v.setProcessingAt(ZonedDateTime.now());
+            }
+            return v;
+        });
+        if (updated.isPresent() && updated.get()
+                .getProcessingStatus() == ProcessingStatus.PROCESSING) {
+            statusCounters.get(ProcessingStatus.QUEUED).decrementAndGet();
+            statusCounters.get(ProcessingStatus.PROCESSING).incrementAndGet();
+            return updated;
+        }
+        return Optional.empty();
+    }
+
+    private String fromWhereStatusQuery(ProcessingStatus status) {
         return "FROM %s WHERE processingStatus = '%s'"
                 .formatted(CrawlEntry.class.getName(), status.name());
     }
+
+    private String fromOrderedQueuedQuery() {
+        return "FROM %s WHERE processingStatus = '%s' ORDER BY %s"
+                .formatted(
+                        CrawlEntry.class.getName(),
+                        ProcessingStatus.QUEUED.name(),
+                        CrawlEntry.Fields.queuedAt);
+    }
+
 }

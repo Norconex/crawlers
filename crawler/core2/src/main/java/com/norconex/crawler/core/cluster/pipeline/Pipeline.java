@@ -47,4 +47,12 @@ public class Pipeline {
         return Objects.requireNonNull(steps.get(stepId),
                 "No cluster pipeline step found for step id: " + stepId);
     }
+
+    public Step getFirstStep() {
+        return steps.isEmpty() ? null : steps.get(steps.firstKey());
+    }
+
+    public Step getLastStep() {
+        return steps.isEmpty() ? null : steps.get(steps.lastKey());
+    }
 }

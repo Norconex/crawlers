@@ -51,7 +51,8 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
     private static final long LOCK_ACQUISITION_TIMEOUT_MS = 5000;
     private static final long STATUS_POLLING_INTERVAL_MS = 200;
 
-    private static final ScheduledExecutorService SCHEDULER = Executors.newScheduledThreadPool(2);
+    private static final ScheduledExecutorService SCHEDULER =
+            Executors.newScheduledThreadPool(2);
 
     // Metadata helper
     private record AllOnceMetadata(
@@ -60,10 +61,11 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
             long endTime,
             Set<String> snapshotMembers,
             Set<String> successNodes,
-            Map<String,String> failureReasons,
+            Map<String, String> failureReasons,
             boolean completed,
             boolean failed,
-            AllOncePolicy policy) implements java.io.Serializable {}
+            AllOncePolicy policy) implements java.io.Serializable {
+    }
 
     final Cache<String, TaskState> taskStatusCache;
     final Cache<String, StringSerializedObject> taskResultCache;
@@ -345,7 +347,8 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
             String taskName,
             ClusterTask<T> task,
             ClusterReducer<T, R> reducer) {
-        return runOnAllOnceAsync(taskName, task, reducer, AllOncePolicy.defaults());
+        return runOnAllOnceAsync(taskName, task, reducer,
+                AllOncePolicy.defaults());
     }
 
     @Override
@@ -373,30 +376,37 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
                     if (cached != null) {
                         resultFuture.complete((R) cached.toObject());
                     } else {
-                        resultFuture.completeExceptionally(new RuntimeException("No cached result found"));
+                        resultFuture.completeExceptionally(
+                                new RuntimeException("No cached result found"));
                     }
                     return;
                 } else if (TaskState.FAILED.equals(state)) {
-                    resultFuture.completeExceptionally(new RuntimeException("Task previously failed"));
+                    resultFuture.completeExceptionally(
+                            new RuntimeException("Task previously failed"));
                     return;
                 }
 
                 // Attempt to become trigger
-                var prev = taskStatusCache.putIfAbsent(triggerKey, TaskState.RUNNING);
+                var prev = taskStatusCache.putIfAbsent(triggerKey,
+                        TaskState.RUNNING);
                 if (prev != null) {
                     // Another node is trigger or already done; wait.
                     while (true) {
                         var s = taskStatusCache.get(triggerKey);
                         if (TaskState.COMPLETED.equals(s)) {
-                            var cached = taskResultCache.get(onceAllKey + ":final");
+                            var cached =
+                                    taskResultCache.get(onceAllKey + ":final");
                             if (cached != null) {
                                 resultFuture.complete((R) cached.toObject());
                             } else {
-                                resultFuture.completeExceptionally(new RuntimeException("No cached result found after completion"));
+                                resultFuture.completeExceptionally(
+                                        new RuntimeException(
+                                                "No cached result found after completion"));
                             }
                             return;
                         } else if (TaskState.FAILED.equals(s)) {
-                            resultFuture.completeExceptionally(new RuntimeException("Task failed"));
+                            resultFuture.completeExceptionally(
+                                    new RuntimeException("Task failed"));
                             return;
                         }
                         Thread.sleep(STATUS_POLLING_INTERVAL_MS);
@@ -404,36 +414,46 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
                 }
 
                 // === Trigger execution ===
-                LOG.info("[{}] Trigger node starting cluster-wide once task '{}' with policy {}", nodeId, taskName, policy);
+                LOG.info(
+                        "[{}] Trigger node starting cluster-wide once task '{}' with policy {}",
+                        nodeId, taskName, policy);
                 // Serialize task & reducer
-                taskResultCache.put(taskDefKey, new StringSerializedObject(task));
+                taskResultCache.put(taskDefKey,
+                        new StringSerializedObject(task));
                 if (reducer != null) {
-                    taskResultCache.put(reducerDefKey, new StringSerializedObject(reducer));
+                    taskResultCache.put(reducerDefKey,
+                            new StringSerializedObject(reducer));
                 }
 
                 // Snapshot members and persist
                 var members = new HashSet<>(cluster.getNodeNames());
-                taskResultCache.put(membersKey, new StringSerializedObject(members));
+                taskResultCache.put(membersKey,
+                        new StringSerializedObject(members));
                 var startTime = System.currentTimeMillis();
 
                 // Containers
                 var successNodes = new HashSet<String>();
-                var failureReasons = new HashMap<String,String>();
-                var lastNewResultTime = new long[]{System.currentTimeMillis()};
+                var failureReasons = new HashMap<String, String>();
+                var lastNewResultTime =
+                        new long[] { System.currentTimeMillis() };
 
                 // Execute locally with heartbeat support
-                executeWithHeartbeat(taskName, onceAllKey, hbKeyPrefix + nodeId, policy, () -> {
-                    var localResult = task.execute(CrawlSession.get(cluster.getLocalNode()));
-                    taskResultCache.put(resultKeyPrefix + nodeId, new StringSerializedObject(localResult));
-                    successNodes.add(nodeId);
-                    lastNewResultTime[0] = System.currentTimeMillis();
-                });
+                executeWithHeartbeat(taskName, onceAllKey, hbKeyPrefix + nodeId,
+                        policy, () -> {
+                            var localResult = task.execute(
+                                    CrawlSession.get(cluster.getLocalNode()));
+                            taskResultCache.put(resultKeyPrefix + nodeId,
+                                    new StringSerializedObject(localResult));
+                            successNodes.add(nodeId);
+                            lastNewResultTime[0] = System.currentTimeMillis();
+                        });
 
                 // Monitoring loop
                 while (true) {
                     // Collect new successes
                     for (String m : members) {
-                        if (successNodes.contains(m) || failureReasons.containsKey(m)) {
+                        if (successNodes.contains(m)
+                                || failureReasons.containsKey(m)) {
                             continue;
                         }
                         var res = taskResultCache.get(resultKeyPrefix + m);
@@ -449,20 +469,25 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
                             continue;
                         }
                         // Stale heartbeat detection
-                        if (policy.getStaleHeartbeatMs() > 0 && policy.getHeartbeatIntervalMs() > 0) {
+                        if (policy.getStaleHeartbeatMs() > 0
+                                && policy.getHeartbeatIntervalMs() > 0) {
                             var hb = taskResultCache.get(hbKeyPrefix + m);
                             if (hb != null) {
                                 long last = (Long) hb.toObject();
-                                if (System.currentTimeMillis() - last > policy.getStaleHeartbeatMs()) {
+                                if (System.currentTimeMillis() - last > policy
+                                        .getStaleHeartbeatMs()) {
                                     failureReasons.put(m, "STALE_HEARTBEAT");
-                                    lastNewResultTime[0] = System.currentTimeMillis();
+                                    lastNewResultTime[0] =
+                                            System.currentTimeMillis();
                                 }
                             }
                         }
                     }
 
-                    boolean allAccounted = successNodes.size() + failureReasons.size() == members.size();
-                    boolean quorumReached = successNodes.size() >= Math.max(1, policy.getMinSuccesses());
+                    boolean allAccounted = successNodes.size()
+                            + failureReasons.size() == members.size();
+                    boolean quorumReached = successNodes.size() >= Math.max(1,
+                            policy.getMinSuccesses());
 
                     boolean finalizeNow = false;
                     if (policy.isRequireAll()) {
@@ -471,7 +496,9 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
                         if (allAccounted) {
                             finalizeNow = true;
                         } else if (policy.getIdleResultWaitMs() >= 0 &&
-                                System.currentTimeMillis() - lastNewResultTime[0] >= policy.getIdleResultWaitMs()) {
+                                System.currentTimeMillis()
+                                        - lastNewResultTime[0] >= policy
+                                                .getIdleResultWaitMs()) {
                             finalizeNow = true;
                         }
                     }
@@ -479,18 +506,29 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
                     if (finalizeNow) {
                         boolean zeroSuccess = successNodes.isEmpty();
                         if (zeroSuccess && policy.isFailIfZeroSuccess()) {
-                            LOG.warn("[{}] runOnAllOnce '{}' failing: zero successes (failIfZeroSuccess=true)", nodeId, taskName);
-                            var meta = new AllOnceMetadata(taskName, startTime, System.currentTimeMillis(), members,
-                                    successNodes, failureReasons, false, true, policy);
-                            taskResultCache.put(metaKey, new StringSerializedObject(meta));
+                            LOG.warn(
+                                    "[{}] runOnAllOnce '{}' failing: zero successes (failIfZeroSuccess=true)",
+                                    nodeId, taskName);
+                            var meta = new AllOnceMetadata(taskName, startTime,
+                                    System.currentTimeMillis(), members,
+                                    successNodes, failureReasons, false, true,
+                                    policy);
+                            taskResultCache.put(metaKey,
+                                    new StringSerializedObject(meta));
                             taskStatusCache.put(triggerKey, TaskState.FAILED);
-                            resultFuture.completeExceptionally(new RuntimeException("No successful node executions"));
+                            resultFuture
+                                    .completeExceptionally(new RuntimeException(
+                                            "No successful node executions"));
                         } else {
                             // Build result list from success nodes preserving deterministic order
-                            var ordered = members.stream().filter(successNodes::contains).collect(Collectors.toList());
-                            java.util.List<T> resultsList = new java.util.ArrayList<>();
+                            var ordered = members.stream()
+                                    .filter(successNodes::contains)
+                                    .collect(Collectors.toList());
+                            java.util.List<T> resultsList =
+                                    new java.util.ArrayList<>();
                             for (String s : ordered) {
-                                var so = taskResultCache.get(resultKeyPrefix + s);
+                                var so = taskResultCache
+                                        .get(resultKeyPrefix + s);
                                 if (so != null) {
                                     resultsList.add((T) so.toObject());
                                 }
@@ -499,18 +537,27 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
                             if (reducer != null) {
                                 reduced = reducer.reduce(resultsList);
                             } else {
-                                reduced = resultsList.isEmpty() ? null : (R) resultsList.get(0);
+                                reduced = resultsList.isEmpty() ? null
+                                        : (R) resultsList.get(0);
                             }
-                            taskResultCache.put(onceAllKey + ":final", new StringSerializedObject(reduced));
-                            var meta = new AllOnceMetadata(taskName, startTime, System.currentTimeMillis(), members,
-                                    successNodes, failureReasons, true, false, policy);
-                            taskResultCache.put(metaKey, new StringSerializedObject(meta));
-                            taskStatusCache.put(triggerKey, TaskState.COMPLETED);
+                            taskResultCache.put(onceAllKey + ":final",
+                                    new StringSerializedObject(reduced));
+                            var meta = new AllOnceMetadata(taskName, startTime,
+                                    System.currentTimeMillis(), members,
+                                    successNodes, failureReasons, true, false,
+                                    policy);
+                            taskResultCache.put(metaKey,
+                                    new StringSerializedObject(meta));
+                            taskStatusCache.put(triggerKey,
+                                    TaskState.COMPLETED);
                             resultFuture.complete(reduced);
                             if (!failureReasons.isEmpty()) {
-                                LOG.warn("[{}] runOnAllOnce '{}' completed with partial failures: {}", nodeId, taskName, failureReasons);
+                                LOG.warn(
+                                        "[{}] runOnAllOnce '{}' completed with partial failures: {}",
+                                        nodeId, taskName, failureReasons);
                             }
-                            scheduleCleanup(onceAllKey, members, successNodes, failureReasons.keySet(), policy);
+                            scheduleCleanup(onceAllKey, members, successNodes,
+                                    failureReasons.keySet(), policy);
                         }
                         return;
                     }
@@ -518,7 +565,8 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
                     Thread.sleep(STATUS_POLLING_INTERVAL_MS);
                 }
             } catch (Exception e) {
-                LOG.error("[{}] Trigger execution for '{}' failed: {}", nodeId, taskName, e.getMessage());
+                LOG.error("[{}] Trigger execution for '{}' failed: {}", nodeId,
+                        taskName, e.getMessage());
                 taskStatusCache.put(triggerKey, TaskState.FAILED);
                 resultFuture.completeExceptionally(e);
             }
@@ -527,31 +575,44 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
         return resultFuture;
     }
 
-    private void executeWithHeartbeat(String taskName, String onceAllKey, String hbKey,
+    private void executeWithHeartbeat(String taskName, String onceAllKey,
+            String hbKey,
             AllOncePolicy policy, Runnable action) {
         if (policy.getHeartbeatIntervalMs() <= 0) {
-            try { action.run(); } catch (RuntimeException e) { throw e; }
+            try {
+                action.run();
+            } catch (RuntimeException e) {
+                throw e;
+            }
             return;
         }
         var done = new AtomicBoolean(false);
         ScheduledFuture<?> hbFuture = SCHEDULER.scheduleAtFixedRate(() -> {
             try {
-                taskResultCache.put(hbKey, new StringSerializedObject(System.currentTimeMillis()));
+                taskResultCache.put(hbKey,
+                        new StringSerializedObject(System.currentTimeMillis()));
             } catch (Exception e) {
-                LOG.debug("[{}] Heartbeat update failed for {}: {}", nodeId, taskName, e.getMessage());
+                LOG.debug("[{}] Heartbeat update failed for {}: {}", nodeId,
+                        taskName, e.getMessage());
             }
-        }, 0, policy.getHeartbeatIntervalMs(), java.util.concurrent.TimeUnit.MILLISECONDS);
+        }, 0, policy.getHeartbeatIntervalMs(),
+                java.util.concurrent.TimeUnit.MILLISECONDS);
         try {
             action.run();
         } finally {
             done.set(true);
             hbFuture.cancel(false);
             // final heartbeat to mark completion
-            try { taskResultCache.put(hbKey, new StringSerializedObject(System.currentTimeMillis())); } catch (Exception ex) { /*ignore*/ }
+            try {
+                taskResultCache.put(hbKey,
+                        new StringSerializedObject(System.currentTimeMillis()));
+            } catch (Exception ex) {
+                /*ignore*/ }
         }
     }
 
-    private void scheduleCleanup(String onceAllKey, Set<String> members, Set<String> successes, Set<String> failures, AllOncePolicy policy) {
+    private void scheduleCleanup(String onceAllKey, Set<String> members,
+            Set<String> successes, Set<String> failures, AllOncePolicy policy) {
         if (policy.getRetentionMs() <= 0) {
             return; // keep forever
         }
@@ -566,7 +627,8 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
                     taskResultCache.remove(hbKeyPrefix + m);
                 }
             } catch (Exception e) {
-                LOG.debug("[{}] Cleanup skipped for '{}' due to: {}", nodeId, onceAllKey, e.getMessage());
+                LOG.debug("[{}] Cleanup skipped for '{}' due to: {}", nodeId,
+                        onceAllKey, e.getMessage());
             }
         }, policy.getRetentionMs(), java.util.concurrent.TimeUnit.MILLISECONDS);
     }
@@ -577,39 +639,62 @@ public class InfinispanTaskManager implements TaskManager, Closeable {
         public void onCreate(CacheEntryCreatedEvent<String, TaskState> e) {
             handle(e.getKey(), e.getValue(), e.isPre());
         }
+
         @CacheEntryModified
         public void onModify(CacheEntryModifiedEvent<String, TaskState> e) {
             handle(e.getKey(), e.getValue(), e.isPre());
         }
+
         private void handle(String key, TaskState state, boolean pre) {
-            if (pre) { return; }
-            if (state != TaskState.RUNNING) { return; }
-            if (!key.endsWith(":allonce:trigger")) { return; }
-            var onceAllKey = key.substring(0, key.length() - ":trigger".length());
+            if (pre) {
+                return;
+            }
+            if (state != TaskState.RUNNING) {
+                return;
+            }
+            if (!key.endsWith(":allonce:trigger")) {
+                return;
+            }
+            var onceAllKey =
+                    key.substring(0, key.length() - ":trigger".length());
             var resultKeyPrefix = onceAllKey + ":result:";
             var taskDefKey = onceAllKey + ":def:task";
             var errorKeyPrefix = onceAllKey + ":error:";
             var hbKeyPrefix = onceAllKey + ":hb:";
             // If this node already produced a result or error, skip
-            if (taskResultCache.get(resultKeyPrefix + nodeId) != null || taskResultCache.get(errorKeyPrefix + nodeId) != null) { return; }
+            if (taskResultCache.get(resultKeyPrefix + nodeId) != null
+                    || taskResultCache.get(errorKeyPrefix + nodeId) != null) {
+                return;
+            }
             try {
                 var serTask = taskResultCache.get(taskDefKey);
                 if (serTask == null) {
-                    LOG.warn("[{}] Task definition not yet available for key '{}'", nodeId, key);
+                    LOG.warn(
+                            "[{}] Task definition not yet available for key '{}'",
+                            nodeId, key);
                     return; // Will catch on modification event
                 }
                 @SuppressWarnings("unchecked")
                 var task = (ClusterTask<Object>) serTask.toObject();
                 // Basic heartbeat emission (without policy retrieval, using defaults)
-                taskResultCache.put(hbKeyPrefix + nodeId, new StringSerializedObject(System.currentTimeMillis()));
-                var result = task.execute(CrawlSession.get(cluster.getLocalNode()));
-                taskResultCache.put(resultKeyPrefix + nodeId, new StringSerializedObject(result));
-                LOG.info("[{}] Executed once-all task '{}' after trigger", nodeId, onceAllKey);
+                taskResultCache.put(hbKeyPrefix + nodeId,
+                        new StringSerializedObject(System.currentTimeMillis()));
+                var result =
+                        task.execute(CrawlSession.get(cluster.getLocalNode()));
+                taskResultCache.put(resultKeyPrefix + nodeId,
+                        new StringSerializedObject(result));
+                LOG.info("[{}] Executed once-all task '{}' after trigger",
+                        nodeId, onceAllKey);
             } catch (Exception ex) {
-                LOG.error("[{}] Remote execution failure for key '{}': {}", nodeId, key, ex.getMessage());
+                LOG.error("[{}] Remote execution failure for key '{}': {}",
+                        nodeId, key, ex.getMessage());
                 try {
-                    taskResultCache.put(errorKeyPrefix + nodeId, new StringSerializedObject(ex.getClass().getSimpleName()+":"+ex.getMessage()));
-                } catch (Exception ignore) { /* ignore */ }
+                    taskResultCache.put(errorKeyPrefix + nodeId,
+                            new StringSerializedObject(
+                                    ex.getClass().getSimpleName() + ":"
+                                            + ex.getMessage()));
+                } catch (Exception ignore) {
+                    /* ignore */ }
             }
         }
     }
