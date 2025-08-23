@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.collections.bag.HashBag;
 import org.junit.jupiter.api.Test;
@@ -53,6 +54,73 @@ class PipelineTest {
     void testStop(
             int nodeCount, List<CrawlSession> sessions) {
         //TODO implement me
+    }
+
+    /*
+     * Tests that a coordinator leaving the cluster will have another node
+     * promoted coordinator and finish the pipeline.
+     */
+    //    @ClusterNodesTest(nodes = 2)
+    void testCoordinatorSwitch(int nodeCount, List<CrawlSession> sessions) {
+        var cacheName =
+                ClusterTestUtil.uniqueCacheName("pipetest-coord-switch")
+                        + "_replicated"; // replicated infinispan config
+        var firstCoordinatorName = new AtomicReference<>();
+        var secondCoordinatorName = new AtomicReference<>();
+
+        // step1 should be done only by node A and step 4 by node B.
+        var pipeline = new Pipeline("test-coord-switch", List.of(
+                PipelineTestUtil.distributedStep("step1", sess -> {
+                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
+                    cache.put(nodeKey("step1", sess), "step1-coord-"
+                            + sess.getCluster().getLocalNode().isCoordinator());
+                }),
+                PipelineTestUtil.nonDistributedStep("step2", sess -> {
+                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
+                    cache.put(nodeKey("step2", sess), "step2-coord-"
+                            + sess.getCluster().getLocalNode().isCoordinator());
+                }),
+                PipelineTestUtil.distributedStep("step3", sess -> {
+                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
+                    if (isCoord(sess)) {
+                        firstCoordinatorName.set(nodeName(sess));
+                    } else {
+                        secondCoordinatorName.set(nodeName(sess));
+                    }
+
+                    // Wait that both nodes have written step1 then
+                    // fail the coordinator.
+                    ConcurrentUtil.waitUntil(() -> cache.size() == 3,
+                            Duration.ofSeconds(10), Duration.ofMillis(200));
+                    if (isCoord(sess)) {
+                        try {
+                            sess.close();
+                        } catch (Exception e) {
+                            LOG.error("Error while closing session.", e);
+                        }
+                    }
+                    cache.put(nodeKey("step3", sess), "step3-coord-"
+                            + sess.getCluster().getLocalNode().isCoordinator());
+                }),
+                PipelineTestUtil.nonDistributedStep("step4", sess -> {
+                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
+                    cache.put(nodeKey("step4", sess), "step4-coord-"
+                            + sess.getCluster().getLocalNode().isCoordinator());
+                })));
+
+        var results = PipelineTestUtil.executeAndWait(pipeline, sessions);
+
+        var cache = ClusterTestUtil.stringCache(sessions.stream()
+                .filter(sess -> !sess.isClosed()).findFirst().get(), cacheName);
+
+        assertThat(results)
+                .extracting(PipelineResult::getStatus)
+                .containsOnly(PipelineStatus.COMPLETED);
+
+        assertThat(cache.size()).isEqualTo(5);
+
+        //        assertThat(values).containsExactlyInAnyOrder(
+        //                "byOneNode", "byTwoNodes", "byTwoNodes");
     }
 
     /*
@@ -188,8 +256,7 @@ class PipelineTest {
                     cache.put(nodeKey("step3", sess), "byStep3");
                 })));
 
-        var results =
-                PipelineTestUtil.executeOrderlyAndWait(pipeline, sessions);
+        var results = PipelineTestUtil.executeAndWait(pipeline, sessions);
 
         assertThat(results)
                 .extracting(PipelineResult::getStatus)
@@ -326,10 +393,23 @@ class PipelineTest {
     }
 
     private static String nodeKey(String prefix, CrawlSession session) {
-        return prefix + ":" + session
+        return prefix + ":" + nodeName(session);
+
+    }
+
+    private static String nodeName(CrawlSession session) {
+        return session
                 .getCluster()
                 .getLocalNode()
                 .getNodeName();
+
+    }
+
+    private static boolean isCoord(CrawlSession session) {
+        return session
+                .getCluster()
+                .getLocalNode()
+                .isCoordinator();
 
     }
 }

@@ -26,6 +26,7 @@ public final class MockMultiNodesConnector extends InfinispanClusterConnector {
                 new InfinispanClusterConnector(),
                 c -> c.setInfinispan(InfinispanUtil.configBuilderHolder(
                         "/cache/infinispan-cluster-test.xml")))
+                //"/cache/infinispan.xml")))
                 .connect();
     }
 }

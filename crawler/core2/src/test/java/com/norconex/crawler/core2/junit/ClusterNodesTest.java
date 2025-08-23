@@ -69,6 +69,4 @@ public @interface ClusterNodesTest {
 
     /** Timeout in seconds for waiting for cluster membership. */
     int membershipTimeoutSeconds() default 10;
-
-    //    Class<? extends Function<CrawlSession, Long>> waitOnChange;
 }

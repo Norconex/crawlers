@@ -129,6 +129,21 @@ public final class PipelineTestUtil {
         return waitAndGetAll(futures);
     }
 
+    /**
+     * Execute all nodes, with no guarantee of coordinator being first.
+     * @param pipeline the pipeline to execute
+     * @param sessions the multi-node sessions
+     * @return results for each node
+     */
+    public static List<PipelineResult> executeAndWait(
+            Pipeline pipeline, List<CrawlSession> sessions) {
+        var futures = new ArrayList<CompletableFuture<PipelineResult>>();
+        sessions.stream()
+                .forEach(s -> futures.add(s.getCluster()
+                        .getPipelineManager().executePipeline(pipeline, 0)));
+        return waitAndGetAll(futures);
+    }
+
     public static List<PipelineResult> waitAndGetAll(
             List<CompletableFuture<PipelineResult>> futures) {
 

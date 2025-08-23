@@ -105,7 +105,7 @@ public class CrawlEntryProtoAdapter {
 
     }
 
-    CrawlEntry toCrawlEntry() {
+    public CrawlEntry toCrawlEntry() {
         if (StringUtils.isBlank(type)) {
             throw new CacheException("Crawl entry type is not defined.");
         }

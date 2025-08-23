@@ -26,6 +26,8 @@ import java.util.function.Consumer;
 import com.norconex.crawler.core2.cluster.Cache;
 import com.norconex.crawler.core2.cluster.CacheManager;
 import com.norconex.crawler.core2.cluster.Counter;
+import com.norconex.crawler.core2.cluster.impl.infinispan.CrawlEntryCacheAdapter;
+import com.norconex.crawler.core2.cluster.impl.infinispan.CrawlEntryProtoAdapter;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.session.LaunchMode;
@@ -98,10 +100,12 @@ public final class CrawlEntryLedger {
         var previousAlias = LEDGER_A.equals(currentAlias)
                 ? LEDGER_B
                 : LEDGER_A;
-        currentLedger = cacheManager.getCache(currentAlias, CrawlEntry.class);
-        previousLedger = cacheManager.cacheExists(previousAlias)
-                ? cacheManager.getCache(previousAlias, CrawlEntry.class)
-                : null;
+                currentLedger = new CrawlEntryCacheAdapter(cacheManager.getCache(
+                        currentAlias, CrawlEntryProtoAdapter.class));
+                previousLedger = cacheManager.cacheExists(previousAlias)
+                        ? new CrawlEntryCacheAdapter(cacheManager
+                                .getCache(previousAlias, CrawlEntryProtoAdapter.class))
+                        : null;
 
         // Initialize status counters for each ProcessingStatus value
         for (ProcessingStatus status : ProcessingStatus.values()) {

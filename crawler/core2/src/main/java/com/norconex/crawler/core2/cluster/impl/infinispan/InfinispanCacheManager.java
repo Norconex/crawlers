@@ -13,6 +13,7 @@ import com.norconex.crawler.core.cluster.impl.infinispan.CacheNames;
 import com.norconex.crawler.core.cluster.impl.infinispan.StepRecord;
 import com.norconex.crawler.core.cluster.impl.infinispan.event.CacheEntryChangeListener;
 import com.norconex.crawler.core.cluster.impl.infinispan.event.CacheEntryChangeListenerAdapter;
+import com.norconex.crawler.core.cluster.pipeline.PipelineException;
 import com.norconex.crawler.core2.cluster.Cache;
 import com.norconex.crawler.core2.cluster.CacheException;
 import com.norconex.crawler.core2.cluster.CacheManager;
@@ -27,67 +28,68 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
 
     private static final String GENERIC_CACHE_NAME = "generic_cache";
 
-    private final DefaultCacheManager cacheManager;
+    private final DefaultCacheManager dcm;
     private final Map<CacheEntryChangeListener<?>,
             CacheEntryChangeListenerAdapter<?>> adapterMappings =
                     new ConcurrentHashMap<>();
+    // Per-cache locks to serialize first-time creation/definition
+    private final Map<String, Object> cacheLocks = new ConcurrentHashMap<>();
 
     public InfinispanCacheManager(DefaultCacheManager cacheManager) {
-        this.cacheManager = cacheManager;
+        dcm = cacheManager;
     }
 
     @Override
     public <T> Cache<T> getCache(String name, Class<T> valueType) {
-        return new InfinispanCacheAdapter<>(cacheManager.getCache(name));
+        return new InfinispanCacheAdapter<>(getInfiniCache(name));
     }
 
     @Override
     public CacheSet getCacheSet(String name) {
         return new InfinispanCacheSetAdapter(
-                cacheManager.<String, Object>getCache(name)
-                        .keySet());
+                getInfiniCache(name).keySet());
     }
 
     @Override
     public Cache<String> getGenericCache() {
-        if (!cacheManager.cacheExists(GENERIC_CACHE_NAME)) {
-            cacheManager.defineConfiguration(GENERIC_CACHE_NAME,
+        if (!dcm.cacheExists(GENERIC_CACHE_NAME)) {
+            dcm.defineConfiguration(GENERIC_CACHE_NAME,
                     new ConfigurationBuilder().build());
         }
-        return new InfinispanCacheAdapter<>(
-                cacheManager.getCache(GENERIC_CACHE_NAME));
+        return new InfinispanCacheAdapter<>(dcm.getCache(GENERIC_CACHE_NAME));
     }
 
     @Override
     public boolean cacheExists(String name) {
-        return cacheManager.cacheExists(name);
+        return dcm.cacheExists(name);
     }
 
     @Override
     public Counter getCounter(String name) {
+        //        org.infinispan.Cache<String, Long> counterCache =
+        //                dcm.<String, Long>getCache("counter-cache");
         org.infinispan.Cache<String, Long> counterCache =
-                cacheManager.<String, Long>getCache("counter-cache");
+                getInfiniCache("counter-cache");
         return new InfinispanCounter(counterCache, name);
     }
 
     @Override
     public void close() {
         try {
-            cacheManager.close();
+            dcm.close();
         } catch (IOException e) {
             throw new CacheException("Could not close cache manager.", e);
         }
     }
 
     public DefaultCacheManager vendor() {
-        return cacheManager;
+        return dcm;
     }
 
     @Override
     public void forEach(BiConsumer<String, Cache<?>> c) {
-        cacheManager.getCacheNames()
-                .forEach(name -> c.accept(name, new InfinispanCacheAdapter<>(
-                        cacheManager.getCache(name, true))));
+        dcm.getCacheNames().forEach(name -> c.accept(
+                name, new InfinispanCacheAdapter<>(dcm.getCache(name, true))));
     }
 
     //--- Infinispan-specific custom caches ------------------------------------
@@ -96,15 +98,14 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
     }
 
     public Cache<StepRecord> getPipelineWorkerStatusesCache() {
-        return getCache(CacheNames.PIPE_WORKER_STATUSES,
-                StepRecord.class);
+        return getCache(CacheNames.PIPE_WORKER_STATUSES, StepRecord.class);
     }
 
     public void addCacheEntryChangeListener(
             @NonNull CacheEntryChangeListener<?> listener, String cacheName) {
         var adapter = new CacheEntryChangeListenerAdapter<>(listener);
         adapterMappings.put(listener, adapter);
-        cacheManager.getCache(cacheName).addListener(adapter);
+        dcm.getCache(cacheName).addListener(adapter);
     }
 
     public void removeCacheEntryChangeListener(
@@ -112,7 +113,7 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
         var adapter = adapterMappings.get(listener);
         if (adapter != null) {
             try {
-                cacheManager.getCache(CacheNames.PIPE_CURRENT_STEP)
+                dcm.getCache(CacheNames.PIPE_CURRENT_STEP)
                         .removeListener(adapter);
             } catch (Exception e) {
                 LOG.debug("Could not remove pipeline current step "
@@ -121,36 +122,66 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
         }
     }
 
-    //    /**
-    //     * Adds a listener that will be triggered with the current step when
-    //     * the current step changes. The current step changes prior to adding
-    //     * this listener are not passed.
-    //     * @param listener the listener to add
-    //     */
-    //    public void addPipelineCurrentStepListener(
-    //            CacheEntryChangeListener<StepRecord> listener) {
-    //        addCacheEntryChangeListener(listener, CacheNames.PIPE_CURRENT_STEP);
-    //    }
-    //
-    //    public void removePipelineCurrentStepListener(
-    //            CacheEntryChangeListener<StepRecord> listener) {
-    //        removeCacheEntryChangeListener(listener, CacheNames.PIPE_CURRENT_STEP);
-    //
-    //    }
-    //
-    //    public void addPipelineWorkerStatusesListener(Object listener) {
-    //        cacheManager.getCache(CacheNames.PIPE_WORKER_STATUSES)
-    //                .addListener(listener);
-    //    }
-    //
-    //    public void removePipelineWorkerStatusesListener(Object listener) {
-    //        try {
-    //            cacheManager.getCache(CacheNames.PIPE_WORKER_STATUSES)
-    //                    .removeListener(listener);
-    //        } catch (Exception e) {
-    //            LOG.debug("Could not remove pipeline worker status listener: {}",
-    //                    e.toString());
-    //        }
-    //    }
+    // Use the default cache in the default cache container:
+    //   <cache-container name="default" default-cache="base-template">
+    private <T> org.infinispan.Cache<String, T> getInfiniCache(
+            String cacheName) {
 
+        if (dcm.cacheExists(cacheName)) {
+            return dcm.getCache(cacheName);
+        }
+        try {
+            // Serialize definition/start per cache name to avoid races
+            var lock = cacheLocks.computeIfAbsent(cacheName, k -> new Object());
+            synchronized (lock) {
+                // Double-check after acquiring the lock
+                if (dcm.cacheExists(cacheName)) {
+                    return dcm.getCache(cacheName);
+                }
+
+                var existingCfg = dcm.getCacheConfiguration(cacheName);
+                if (existingCfg != null) {
+                    // If a template exists with this name/pattern, materialize it
+                    if (existingCfg.isTemplate()) {
+                        LOG.info(
+                                "Materializing template configuration for cache '{}'",
+                                cacheName);
+                        var concrete = new ConfigurationBuilder()
+                                .read(existingCfg)
+                                .template(false)
+                                .build();
+                        dcm.defineConfiguration(cacheName, concrete);
+                    }
+                    // If non-template config exists, nothing to define
+                    return dcm.getCache(cacheName);
+                }
+
+                // No named config: try to base on default cache configuration
+                var defaultCfg = dcm.getDefaultCacheConfiguration();
+                if (defaultCfg != null) {
+                    LOG.info("Defining cache '{}' from default configuration.",
+                            cacheName);
+                    var concrete = new ConfigurationBuilder()
+                            .read(defaultCfg)
+                            .template(false)
+                            .build();
+                    dcm.defineConfiguration(cacheName, concrete);
+                    return dcm.getCache(cacheName);
+                }
+
+                // As a last resort, rely on container wildcard mappings
+                // (e.g., *_indexed) to resolve on first getCache call.
+                LOG.info(
+                        "Starting cache '{}' using container mappings (no explicit/default config found).",
+                        cacheName);
+                return dcm.getCache(cacheName);
+            }
+        } catch (RuntimeException e) {
+            throw new PipelineException(
+                    ("Could not create Infinispan cache %s from "
+                            + "default cache configuration.")
+                                    .formatted(cacheName),
+                    e);
+        }
+    }
 }

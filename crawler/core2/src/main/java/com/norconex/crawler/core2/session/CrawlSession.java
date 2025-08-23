@@ -89,6 +89,7 @@ public class CrawlSession implements Closeable {
     private State state;
     private ScheduledExecutorService heartbeatScheduler =
             Executors.newScheduledThreadPool(1);
+    private boolean closed;
 
     /**
      * Gets the crawl session associated with the given cluster node.
@@ -156,8 +157,18 @@ public class CrawlSession implements Closeable {
         return state.crawlState;
     }
 
+    public boolean isClosed() {
+        return closed;
+    }
+
     @Override
     public void close() {
+        if (closed) {
+            LOG.debug("CrawlSession already closed.");
+            return;
+        }
+        closed = true;
+
         LOG.info("Closing CrawlSession...");
 
         LOG.info("Closing heartbeat scheduler...");
@@ -184,6 +195,10 @@ public class CrawlSession implements Closeable {
     }
 
     void init() {
+        if (closed) {
+            throw new IllegalStateException(
+                    "Cannot initialize a closed CrawlSession.");
+        }
         createDir(crawlContext.getTempDir()); // also creates workDir
         cluster.init(crawlContext.getWorkDir());
         sessionCache = cluster.getCacheManager().getCache(
@@ -249,12 +264,6 @@ public class CrawlSession implements Closeable {
                     sess.saveCrawlState(st);
                     return st;
                 }).get();
-    }
-
-    private Snapshot resolveSnapshotOnce() {
-        var snap = doResolveSnapshotOnce();
-        sessionCache.put(SESSION_SNAPSHOT_KEY, SerialUtil.toJsonString(snap));
-        return snap;
     }
 
     private Snapshot doResolveSnapshotOnce() {

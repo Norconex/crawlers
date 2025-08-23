@@ -15,8 +15,20 @@
       <expiration max-idle="30000"/>
       <state-transfer enabled="true" timeout="30000"/>
     </distributed-cache-configuration>
-
+    
     <distributed-cache-configuration name="*" configuration="default"/>
+    <!-- 
+
+    <distributed-cache-configuration
+      name="replicated-template"
+      mode="SYNC"
+      owners="2"
+      statistics="true"
+      configuration="base-template"
+    />
+
+    <distributed-cache-configuration name="*_replicated" configuration="replicated-template"/>
+     -->
 
   </cache-container>
 
