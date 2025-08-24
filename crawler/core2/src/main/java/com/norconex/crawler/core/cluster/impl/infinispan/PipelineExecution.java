@@ -149,8 +149,8 @@ public class PipelineExecution implements AutoCloseable {
     //--- Private methods ------------------------------------------------------
 
     private void logMode(String reason) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Pipeline {} node {} role: {} ({}).",
+        if (LOG.isInfoEnabled()) {
+            LOG.info("Pipeline {} node {} role: {} ({}).",
                     pipeline.getId(),
                     cluster.getLocalNode().getNodeName(),
                     isCoordinator ? "COORDINATOR" : "WORKER",

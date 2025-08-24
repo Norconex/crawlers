@@ -20,7 +20,6 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.collections4.Bag;
@@ -30,12 +29,12 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.cluster.impl.infinispan.event.CacheEntryChangeListener;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
-import com.norconex.crawler.core.cluster.pipeline.PipelineResult;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core2.cluster.Cache;
 import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanCluster;
 import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanClusterConnector;
+import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanUtil;
 import com.norconex.crawler.core2.session.CrawlSession;
 
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PipelineCoordinator implements AutoCloseable {
 
     private final InfinispanCluster cluster;
-    private final Cache<StepRecord> pipelineCurrentStepCache;
+    private final Cache<StepRecord> pipelineActiveStepCache;
     private final Cache<StepRecord> workerStatusCache;
     private final Pipeline pipeline;
     private Step currentLocalStep;
@@ -53,14 +52,7 @@ public class PipelineCoordinator implements AutoCloseable {
 
     private CacheEntryChangeListener<StepRecord> workerStatusListener;
     private final AtomicBoolean closed = new AtomicBoolean(false);
-    private final CompletableFuture<PipelineResult> completion =
-            new CompletableFuture<>();
 
-    private String lastStepId;
-    private PipelineStatus finalStatus = PipelineStatus.PENDING;
-    private long startedAt = System.currentTimeMillis();
-    private long finishedAt;
-    private boolean resumed;
     private CrawlSession session;
     private long nodeExpiryTimeoutMs = 30_000;
 
@@ -69,7 +61,7 @@ public class PipelineCoordinator implements AutoCloseable {
     public PipelineCoordinator(InfinispanCluster cluster, Pipeline pipeline) {
         this.cluster = cluster;
         this.pipeline = pipeline;
-        pipelineCurrentStepCache =
+        pipelineActiveStepCache =
                 cluster.getCacheManager().getPipelineStepCache();
         workerStatusCache =
                 cluster.getCacheManager().getPipelineWorkerStatusesCache();
@@ -87,9 +79,6 @@ public class PipelineCoordinator implements AutoCloseable {
 
     void start() {
         Thread.currentThread().setName("COORDINATOR");
-        // detect resume: if cache already had a record
-        resumed = pipelineCurrentStepCache
-                .get(CacheKeys.pipelineKey(cluster, pipeline)).isPresent();
         workerStatusListener = (key, rec) -> {
             if (rec.getPipelineId().equals(pipeline.getId())) {
                 updateWorkerStatus(key, rec);
@@ -99,7 +88,7 @@ public class PipelineCoordinator implements AutoCloseable {
                 .addWorkerStatusListener(workerStatusListener);
         doCoordinatePipelineExecution();
         LOG.info("Pipeline {}  terminated.", pipeline.getId());
-        finishedAt = System.currentTimeMillis();
+        System.currentTimeMillis();
         close();
     }
 
@@ -117,44 +106,61 @@ public class PipelineCoordinator implements AutoCloseable {
 
     void doCoordinatePipelineExecution() {
         // initial sweep
-        workerStatusCache.forEach(this::updateWorkerStatus);
+        //        workerStatusCache.forEach(this::updateWorkerStatus);
 
         var key = CacheKeys.pipelineKey(cluster, pipeline);
 
-        var currentRec = resolveFirstStep(key, pipeline);
+        var activePipeRec = resolveFirstStepToRun(key, pipeline);
+
         // If pipeline already terminal, just record and exit without modifying caches.
-        if (currentRec.getStatus() != null
-                && currentRec.getStatus().isTerminal()) {
-            lastStepId = currentRec.getStepId();
-            finalStatus = currentRec.getStatus();
-            LOG.debug(
-                    "Coordinator detected terminal pipeline {} at step {} with status {}. Not restarting.",
-                    pipeline.getId(), lastStepId, finalStatus);
+
+        //TODO when a new run, does the crawler wipe out the pipeline state
+        // or shall we rely on the run ID or equivalent to know if
+        // we restart when pipeline is terminated or just leave?
+        // For now, we leave here.
+        if (InfinispanUtil.isPipelineTerminated(pipeline, activePipeRec)) {
+            LOG.debug("Coordinator detected terminal pipeline {} at step {} "
+                    + "with status {}. Exiting.",
+                    pipeline.getId(),
+                    activePipeRec.getStepId(),
+                    activePipeRec.getStatus());
             return;
         }
-        var firstStep = pipeline.getStep(currentRec.getStepId());
-        var resumingRunningStep =
-                currentRec.getStatus() == PipelineStatus.RUNNING;
+
+        var firstStepToRun = pipeline.getStep(activePipeRec.getStepId());
+        // If picking up from another coordinator, log it.
+        if (firstStepToRun != pipeline.getFirstStep()
+                || activePipeRec.getStatus() == PipelineStatus.RUNNING) {
+            LOG.info("Resuming coordination of pipeline {} at step {} "
+                    + "with status {} on node {}.",
+                    pipeline.getId(),
+                    activePipeRec.stepId,
+                    activePipeRec.status,
+                    cluster.getLocalNode().getNodeName());
+        }
+        //        var resumingRunningStep =
+        //                activePipeRec.getStatus() == PipelineStatus.RUNNING;
 
         var steps = pipeline
                 .getSteps()
                 .values()
                 .stream()
-                .dropWhile(step -> !step.getId().equals(firstStep.getId()))
+                .dropWhile(step -> !step.getId().equals(firstStepToRun.getId()))
                 .toList();
 
         for (var step : steps) {
-            var stepRec = currentRec;
-            if ((!resumingRunningStep || (step != firstStep))) {
-                // normal path (not resuming mid-running step)
-                workerStatuses.clear();
+            var stepRec = activePipeRec;
+            workerStatuses.clear();
+            //TODO not sure why this seems needed (likely race condition) since
+            // we have the listener to workers... and we technically don't
+            // need to know there state before starting a step.
+            workerStatusCache.forEach(this::updateWorkerStatus);
+
+            // could be RUNNING already if recovering from other coordinator.
+            if (stepRec.getStatus() != PipelineStatus.RUNNING) {
                 stepRec = createRunningStepRecord(step);
-                pipelineCurrentStepCache.put(key, stepRec);
+                pipelineActiveStepCache.put(key, stepRec);
                 LOG.debug("Published RUNNING for pipeline {} step {}",
-                        pipeline.getId(), step.getId());
-            } else {
-                LOG.debug(
-                        "Resuming mid-step for pipeline {} step {} (keeping existing RUNNING record).",
                         pipeline.getId(), step.getId());
             }
 
@@ -164,17 +170,27 @@ public class PipelineCoordinator implements AutoCloseable {
 
             stepRec.setStatus(execStatus);
             stepRec.setUpdatedAt(System.currentTimeMillis());
-            pipelineCurrentStepCache.put(key, stepRec);
+            //            lastActiveStepId = step.getId();
+            //            finalStatus = execStatus;
+            if (!InfinispanUtil.isClusterRunning(cluster)) {
+                System.err.println("XXX execStatus: " + execStatus);
+                LOG.warn("Coordinator node went down on {}. It will no longer "
+                        + "execute pipeine {}.",
+                        cluster.getLocalNode().getNodeName(),
+                        pipeline.getId());
+                //                throw new PipelineException(
+                //                        "Coordinator went down!!!!!!!!!!!!!!!!!!!!!!!!!");
+                return;
+            }
+            pipelineActiveStepCache.put(key, stepRec);
             LOG.debug("Published {} for pipeline {} step {}", execStatus,
                     pipeline.getId(), step.getId());
-            lastStepId = step.getId();
-            finalStatus = execStatus;
             if (execStatus == PipelineStatus.FAILED) {
                 LOG.info("Aborting pipeline execution...");
                 return;
             }
             // after the first iteration, no longer resuming mid-step
-            resumingRunningStep = false;
+            //            resumingRunningStep = false;
         }
         // if we exit loop without failure, finalStatus already set to last step status
     }
@@ -220,6 +236,9 @@ public class PipelineCoordinator implements AutoCloseable {
             if (reducedStatus.isTerminal()) {
                 logTerminalNodeStatuses(step, statuses, nodeNames);
             } else {
+                if (Thread.currentThread().isInterrupted()) {
+                    break;
+                }
                 Sleeper.sleepMillis(250);
             }
         }
@@ -257,10 +276,10 @@ public class PipelineCoordinator implements AutoCloseable {
         return System.currentTimeMillis() - rec.updatedAt > nodeExpiryTimeoutMs;
     }
 
-    private StepRecord resolveFirstStep(String key, Pipeline pipeline) {
+    private StepRecord resolveFirstStepToRun(String key, Pipeline pipeline) {
 
         // get starting step
-        var stepRec = pipelineCurrentStepCache
+        var stepRec = pipelineActiveStepCache
                 .get(key)
                 .orElse(null);
         if (stepRec == null) {
@@ -295,32 +314,17 @@ public class PipelineCoordinator implements AutoCloseable {
 
     @Override
     public void close() {
-        if (closed.compareAndSet(false, true)) {
-            if (workerStatusListener != null) {
-                try {
-                    cluster.getPipelineManager()
-                            .removeWorkerStatusListener(workerStatusListener);
-                } catch (Exception e) {
-                    LOG.debug(
-                            "Could not remove worker status listener for pipeline {}: {}",
-                            pipeline.getId(), e.toString());
-                }
-                workerStatusListener = null;
+        if (closed.compareAndSet(false, true)
+                && (workerStatusListener != null)) {
+            try {
+                cluster.getPipelineManager()
+                        .removeWorkerStatusListener(workerStatusListener);
+            } catch (Exception e) {
+                LOG.debug(
+                        "Could not remove worker status listener for pipeline {}: {}",
+                        pipeline.getId(), e.toString());
             }
-            completion.complete(PipelineResult.builder()
-                    .pipelineId(pipeline.getId())
-                    .status(finalStatus)
-                    .lastStepId(lastStepId)
-                    .startedAt(startedAt)
-                    .finishedAt(finishedAt == 0 ? System.currentTimeMillis()
-                            : finishedAt)
-                    .resumed(resumed)
-                    .timedOut(false)
-                    .build());
+            workerStatusListener = null;
         }
-    }
-
-    public CompletableFuture<PipelineResult> getCompletionFuture() {
-        return completion;
     }
 }

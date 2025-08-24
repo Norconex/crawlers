@@ -21,15 +21,18 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.commons.collections.bag.HashBag;
+import org.apache.commons.collections4.bag.HashBag;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core2.cluster.Cache;
+import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanCacheManager;
 import com.norconex.crawler.core2.junit.ClusterNodesTest;
 import com.norconex.crawler.core2.junit.ClusterTestUtil;
 import com.norconex.crawler.core2.junit.WithTestWatcherLogging;
@@ -59,14 +62,15 @@ class PipelineTest {
     /*
      * Tests that a coordinator leaving the cluster will have another node
      * promoted coordinator and finish the pipeline.
+     * (matches owners=2 + 1 from infinispan config)
      */
-    //    @ClusterNodesTest(nodes = 2)
+    @ClusterNodesTest(nodes = 3, infinispanNodeExpiryTimeout = 5000)
     void testCoordinatorSwitch(int nodeCount, List<CrawlSession> sessions) {
         var cacheName =
                 ClusterTestUtil.uniqueCacheName("pipetest-coord-switch")
-                        + "_replicated"; // replicated infinispan config
+                        + "_replicated"; // matches infinispan config
         var firstCoordinatorName = new AtomicReference<>();
-        var secondCoordinatorName = new AtomicReference<>();
+        var isOneNodeDown = new AtomicBoolean();
 
         // step1 should be done only by node A and step 4 by node B.
         var pipeline = new Pipeline("test-coord-switch", List.of(
@@ -84,43 +88,68 @@ class PipelineTest {
                     var cache = ClusterTestUtil.stringCache(sess, cacheName);
                     if (isCoord(sess)) {
                         firstCoordinatorName.set(nodeName(sess));
-                    } else {
-                        secondCoordinatorName.set(nodeName(sess));
+                        //                    } else {
+                        //                        secondCoordinatorName.set(nodeName(sess));
                     }
 
                     // Wait that both nodes have written step1 then
                     // fail the coordinator.
-                    ConcurrentUtil.waitUntil(() -> cache.size() == 3,
+                    ConcurrentUtil.waitUntil(() -> cache.size() == 4,
                             Duration.ofSeconds(10), Duration.ofMillis(200));
-                    if (isCoord(sess)) {
+                    if (isCoord(sess) && !isOneNodeDown.getAndSet(true)) {
                         try {
-                            sess.close();
+                            LOG.info("Test closing prematurely to "
+                                    + "simulate node leaving.");
+                            ((InfinispanCacheManager) sess.getCluster()
+                                    .getCacheManager()).vendor().close();
+                            //                            cacheManager.getTransport().stop();
+                            //                            sess.close();
                         } catch (Exception e) {
                             LOG.error("Error while closing session.", e);
                         }
+                    } else {
+                        cache.put(nodeKey("step3", sess), "step3-coord-"
+                                + sess.getCluster().getLocalNode()
+                                        .isCoordinator());
                     }
-                    cache.put(nodeKey("step3", sess), "step3-coord-"
-                            + sess.getCluster().getLocalNode().isCoordinator());
                 }),
-                PipelineTestUtil.nonDistributedStep("step4", sess -> {
+                PipelineTestUtil.distributedStep("step4", sess -> {
+                    System.err.println("XXX STEP 4");
                     var cache = ClusterTestUtil.stringCache(sess, cacheName);
                     cache.put(nodeKey("step4", sess), "step4-coord-"
                             + sess.getCluster().getLocalNode().isCoordinator());
+                    //                    ConcurrentUtil.waitUntil(() -> cache.size() == 8,
+                    //                            Duration.ofSeconds(10), Duration.ofMillis(200));
                 })));
 
         var results = PipelineTestUtil.executeAndWait(pipeline, sessions);
 
         var cache = ClusterTestUtil.stringCache(sessions.stream()
-                .filter(sess -> !sess.isClosed()).findFirst().get(), cacheName);
+                .filter(sess -> !sess.getCluster().getLocalNode().getNodeName()
+                        .equals(firstCoordinatorName.get()))
+                .findFirst().get(), cacheName);
 
         assertThat(results)
                 .extracting(PipelineResult::getStatus)
-                .containsOnly(PipelineStatus.COMPLETED);
+                .containsOnly(PipelineStatus.COMPLETED,
+                        PipelineStatus.FAILED);
 
-        assertThat(cache.size()).isEqualTo(5);
+        var completedSteps = new HashBag<String>();
+        cache.forEach((k, v) -> {
+            System.err.println("XXX in cache: " + k);
+            var stepId = StringUtils.substringBefore(k, ":");
+            completedSteps.add(stepId);
+        });
 
-        //        assertThat(values).containsExactlyInAnyOrder(
-        //                "byOneNode", "byTwoNodes", "byTwoNodes");
+        // should step3 be reattempted in case its load needs to be
+        // reprocessed, hence expecting 2 entries for "step3"?
+        assertThat(completedSteps).containsExactlyInAnyOrder(
+                "step1", "step1", "step1", "step2", "step3", "step3", "step4",
+                "step4");
+
+        // step 2 and 4 should be by different nodes but each being coordinator
+        assertThat(cache.get("step2:" + firstCoordinatorName).get())
+                .endsWith("coord-true");
     }
 
     /*
@@ -131,7 +160,7 @@ class PipelineTest {
             int nodeCount, List<CrawlSession> sessions) {
         var cacheName = ClusterTestUtil.uniqueCacheName(
                 "pipetest-all-fail");
-        var completedSteps = new HashBag();
+        var completedSteps = new HashBag<>();
         var pipeline = new Pipeline("test-all-fail", List.of(
                 PipelineTestUtil.distributedStep("step1", sess -> {
                     var cache = ClusterTestUtil.stringCache(sess, cacheName);
@@ -180,7 +209,7 @@ class PipelineTest {
                 "pipetest-partial-fail");
 
         var cnt = new AtomicInteger();
-        var completedSteps = new HashBag();
+        var completedSteps = new HashBag<String>();
 
         var pipeline = new Pipeline("test-partial-fail", List.of(
                 PipelineTestUtil.distributedStep("step1", sess -> {

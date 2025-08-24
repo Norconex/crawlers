@@ -18,10 +18,12 @@ import static java.util.Optional.ofNullable;
 
 import java.io.Closeable;
 
+import org.infinispan.lifecycle.ComponentStatus;
 import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.remoting.transport.Address;
 
 import com.norconex.crawler.core2.cluster.ClusterNode;
+import com.norconex.crawler.core2.util.ExceptionSwallower;
 
 import lombok.RequiredArgsConstructor;
 
@@ -37,13 +39,6 @@ public class InfinispanClusterNode implements ClusterNode, Closeable {
                 .map(Address::toString)
                 .orElse("local");
     }
-    //
-    //    @Override
-    //    public String getAddress() {
-    //        return ofNullable(cacheManager.getAddress())
-    //                .map(Address::toString)
-    //                .orElse("local");
-    //    }
 
     /**
      * @return true if this JVM is effectively standalone
@@ -77,14 +72,16 @@ public class InfinispanClusterNode implements ClusterNode, Closeable {
         if (isStandaloneNode()) {
             return true;
         }
-        return cacheManager.isCoordinator();
+        return cacheManager.getStatus() == ComponentStatus.RUNNING
+                && cacheManager.isCoordinator();
     }
 
     @Override
     public void close() {
         // Only close the cache manager if this node is being disconnected
-        if (cacheManager != null) {
-            cacheManager.stop();
+        if (cacheManager != null
+                && cacheManager.getStatus() == ComponentStatus.RUNNING) {
+            ExceptionSwallower.swallow(cacheManager::stop);
         }
     }
 }

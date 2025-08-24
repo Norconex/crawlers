@@ -71,38 +71,6 @@
   
   <jgroups>
     <stack name="crawler-udp">
-      <!-- SHARED_LOOPBACK: Suitable for local testing or single-machine clusters -->
-      <SHARED_LOOPBACK bind_addr="localhost"/>
-      
-      <!-- PING and MERGE3: Handle discovery and cluster merging -->
-      <PING/>
-      <MERGE3 max_interval="30000" min_interval="10000"/>
-      
-      <!-- FD_SOCK and FD_ALL3: Provide failure detection -->
-      <FD_SOCK start_port="57800"/>
-      <FD_ALL3 timeout="12000" interval="3000"/>
-      
-      <!-- VERIFY_SUSPECT: Confirms suspected node failures -->
-      <VERIFY_SUSPECT timeout="1500"/>
-      
-      <!-- NAKACK2 and UNICAST3: Handle reliable multicast and unicast messaging -->
-      <pbcast.NAKACK2 use_mcast_xmit="false"/>
-      <UNICAST3/>
-      
-      <!-- STABLE: Ensures garbage collection of old messages -->
-      <pbcast.STABLE desired_avg_gossip="50000"/>
-      
-      <!-- GMS: Manages group membership -->
-      <pbcast.GMS print_local_addr="true" join_timeout="3000"/>
-      
-      <!-- UFC and MFC: Handle flow control -->
-      <UFC max_credits="20000000" min_threshold="0.4"/>
-      <MFC max_credits="20000000" min_threshold="0.4"/>
-      
-      <!-- FRAG2: Handles message fragmentation -->
-      <FRAG2 frag_size="60000"/>
-    
-<!--
       <UDP/>
       <PING/>
       <MERGE3/>
@@ -114,7 +82,6 @@
       <UFC/>
       <MFC/>
       <FRAG2/>
--->
     </stack>
   </jgroups>  
 

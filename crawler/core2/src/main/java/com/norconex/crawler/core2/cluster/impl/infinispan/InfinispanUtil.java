@@ -19,11 +19,43 @@ import java.io.IOException;
 import org.infinispan.commons.dataconversion.MediaType;
 import org.infinispan.configuration.parsing.ConfigurationBuilderHolder;
 import org.infinispan.configuration.parsing.ParserRegistry;
+import org.infinispan.lifecycle.ComponentStatus;
 
+import com.google.common.base.Objects;
+import com.norconex.crawler.core.cluster.impl.infinispan.StepRecord;
+import com.norconex.crawler.core.cluster.pipeline.Pipeline;
+import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core2.cluster.CacheException;
 
 public final class InfinispanUtil {
     private InfinispanUtil() {
+    }
+
+    /**
+     * Whether a pipeline should be considered "terminated", either by
+     * completing all steps (success), or having a non-COMPLETED terminal
+     * status on any of the steps (aborting the pipeline).
+     * A {@code null} step record suggests no steps have yet run so
+     * we consider it non-terminated.
+     * @param pipeline the pipeline
+     * @param stepRecord the record of the last step ran/attempted.
+     * @return true if terminated
+     */
+    public static boolean isPipelineTerminated(
+            Pipeline pipeline, StepRecord stepRecord) {
+        if (stepRecord == null) {
+            return false;
+        }
+        return stepRecord.getStatus() != null
+                && stepRecord.getStatus().isTerminal()
+                && ((stepRecord.getStatus() != PipelineStatus.COMPLETED)
+                        || Objects.equal(stepRecord.getStepId(),
+                                pipeline.getLastStep().getId()));
+    }
+
+    public static boolean isClusterRunning(InfinispanCluster cluster) {
+        return cluster.getCacheManager().vendor()
+                .getStatus() == ComponentStatus.RUNNING;
     }
 
     public static ConfigurationBuilderHolder configBuilderHolder(
