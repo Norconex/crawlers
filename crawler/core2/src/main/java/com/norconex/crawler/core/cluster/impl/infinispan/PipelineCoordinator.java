@@ -36,6 +36,7 @@ import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanCluster;
 import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanClusterConnector;
 import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanUtil;
 import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core2.util.ExceptionSwallower;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -88,7 +89,6 @@ public class PipelineCoordinator implements AutoCloseable {
                 .addWorkerStatusListener(workerStatusListener);
         doCoordinatePipelineExecution();
         LOG.info("Pipeline {}  terminated.", pipeline.getId());
-        System.currentTimeMillis();
         close();
     }
 
@@ -138,8 +138,6 @@ public class PipelineCoordinator implements AutoCloseable {
                     activePipeRec.status,
                     cluster.getLocalNode().getNodeName());
         }
-        //        var resumingRunningStep =
-        //                activePipeRec.getStatus() == PipelineStatus.RUNNING;
 
         var steps = pipeline
                 .getSteps()
@@ -170,16 +168,11 @@ public class PipelineCoordinator implements AutoCloseable {
 
             stepRec.setStatus(execStatus);
             stepRec.setUpdatedAt(System.currentTimeMillis());
-            //            lastActiveStepId = step.getId();
-            //            finalStatus = execStatus;
             if (!InfinispanUtil.isClusterRunning(cluster)) {
-                System.err.println("XXX execStatus: " + execStatus);
                 LOG.warn("Coordinator node went down on {}. It will no longer "
                         + "execute pipeine {}.",
                         cluster.getLocalNode().getNodeName(),
                         pipeline.getId());
-                //                throw new PipelineException(
-                //                        "Coordinator went down!!!!!!!!!!!!!!!!!!!!!!!!!");
                 return;
             }
             pipelineActiveStepCache.put(key, stepRec);
@@ -189,8 +182,6 @@ public class PipelineCoordinator implements AutoCloseable {
                 LOG.info("Aborting pipeline execution...");
                 return;
             }
-            // after the first iteration, no longer resuming mid-step
-            //            resumingRunningStep = false;
         }
         // if we exit loop without failure, finalStatus already set to last step status
     }
@@ -314,17 +305,19 @@ public class PipelineCoordinator implements AutoCloseable {
 
     @Override
     public void close() {
-        if (closed.compareAndSet(false, true)
-                && (workerStatusListener != null)) {
-            try {
-                cluster.getPipelineManager()
-                        .removeWorkerStatusListener(workerStatusListener);
-            } catch (Exception e) {
-                LOG.debug(
-                        "Could not remove worker status listener for pipeline {}: {}",
-                        pipeline.getId(), e.toString());
+        ExceptionSwallower.runWithInterruptClear(() -> {
+            if (closed.compareAndSet(false, true)
+                    && (workerStatusListener != null)) {
+                try {
+                    cluster.getPipelineManager()
+                            .removeWorkerStatusListener(workerStatusListener);
+                } catch (Exception e) {
+                    LOG.debug(
+                            "Could not remove worker status listener for pipeline {}: {}",
+                            pipeline.getId(), e.toString());
+                }
+                workerStatusListener = null;
             }
-            workerStatusListener = null;
-        }
+        });
     }
 }

@@ -32,13 +32,13 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core2.cluster.Cache;
-import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanCacheManager;
 import com.norconex.crawler.core2.junit.ClusterNodesTest;
 import com.norconex.crawler.core2.junit.ClusterTestUtil;
 import com.norconex.crawler.core2.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.stubs.CrawlSessionStubber;
 import com.norconex.crawler.core2.util.ConcurrentUtil;
+import com.norconex.crawler.core2.util.ExceptionSwallower;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -97,16 +97,15 @@ class PipelineTest {
                     ConcurrentUtil.waitUntil(() -> cache.size() == 4,
                             Duration.ofSeconds(10), Duration.ofMillis(200));
                     if (isCoord(sess) && !isOneNodeDown.getAndSet(true)) {
-                        try {
-                            LOG.info("Test closing prematurely to "
-                                    + "simulate node leaving.");
-                            ((InfinispanCacheManager) sess.getCluster()
-                                    .getCacheManager()).vendor().close();
-                            //                            cacheManager.getTransport().stop();
-                            //                            sess.close();
-                        } catch (Exception e) {
-                            LOG.error("Error while closing session.", e);
-                        }
+                        ExceptionSwallower.runWithInterruptClear(() -> {
+                            try {
+                                LOG.info("Test closing prematurely to "
+                                        + "simulate node leaving.");
+                                sess.close();
+                            } catch (Exception e) {
+                                LOG.error("Error while closing session.", e);
+                            }
+                        });
                     } else {
                         cache.put(nodeKey("step3", sess), "step3-coord-"
                                 + sess.getCluster().getLocalNode()
@@ -114,7 +113,6 @@ class PipelineTest {
                     }
                 }),
                 PipelineTestUtil.distributedStep("step4", sess -> {
-                    System.err.println("XXX STEP 4");
                     var cache = ClusterTestUtil.stringCache(sess, cacheName);
                     cache.put(nodeKey("step4", sess), "step4-coord-"
                             + sess.getCluster().getLocalNode().isCoordinator());
@@ -136,7 +134,6 @@ class PipelineTest {
 
         var completedSteps = new HashBag<String>();
         cache.forEach((k, v) -> {
-            System.err.println("XXX in cache: " + k);
             var stepId = StringUtils.substringBefore(k, ":");
             completedSteps.add(stepId);
         });

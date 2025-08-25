@@ -88,7 +88,12 @@ public class CrawlSession implements Closeable {
     private Snapshot snapshot;
     private State state;
     private ScheduledExecutorService heartbeatScheduler =
-            Executors.newScheduledThreadPool(1);
+            Executors.newScheduledThreadPool(1, r -> {
+                var t = new Thread(r, "heartbeat-scheduler");
+                t.setDaemon(true);
+                return t;
+            });
+    private java.util.concurrent.ScheduledFuture<?> heartbeatFuture;
     private boolean closed;
 
     /**
@@ -172,20 +177,28 @@ public class CrawlSession implements Closeable {
         LOG.info("Closing CrawlSession...");
 
         LOG.info("Closing heartbeat scheduler...");
+        if (heartbeatFuture != null) {
+            heartbeatFuture.cancel(true);
+        }
         heartbeatScheduler.shutdown();
         try {
             if (!heartbeatScheduler.awaitTermination(5, TimeUnit.SECONDS)) {
-                LOG.warn("Heartbeat scheduler did not terminate in time.");
+                heartbeatScheduler.shutdownNow();
             } else {
                 LOG.info("Heartbeat scheduler closed.");
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            heartbeatScheduler.shutdownNow();
             LOG.warn(
                     "Interrupted while waiting for heartbeat scheduler to terminate.",
                     e);
         }
-        ExceptionSwallower.close(crawlContext, cluster);
+        heartbeatScheduler = null;
+        heartbeatFuture = null;
+        ExceptionSwallower.runWithInterruptClear(() -> {
+            ExceptionSwallower.close(crawlContext, cluster);
+        });
         if (cluster.getLocalNode() != null) {
             SESSIONS.remove(cluster.getLocalNode().getNodeName());
         }
@@ -238,20 +251,17 @@ public class CrawlSession implements Closeable {
     }
 
     private void scheduleHeartbeat() {
-        // on top of getting the latest status we define a slow hearbeat
-        // scheduler in each node, but we ask that only one node updates it
-        // with the latest status/date.
-        // This is mainly so joining and idle nodes can know if
-        // the cluster is still active,
-        heartbeatScheduler.scheduleAtFixedRate(
+        heartbeatFuture = heartbeatScheduler.scheduleAtFixedRate(
                 this::beatHeart,
                 SESSION_HEARTBEAT_INTERVAL,
                 SESSION_HEARTBEAT_INTERVAL,
                 TimeUnit.MILLISECONDS);
-
     }
 
     private void beatHeart() {
+        if (closed || cluster == null) {
+            return;
+        }
         // Heartbeat must execute every interval. Using runOnOneOnce would
         // prevent subsequent executions on the same session. We only want
         // exactly one node to perform each heart beat invocation, but the

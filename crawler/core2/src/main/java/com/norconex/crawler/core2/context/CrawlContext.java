@@ -45,7 +45,6 @@ import com.norconex.crawler.core2.ledger.CrawlEntry;
 import com.norconex.crawler.core2.ledger.CrawlEntryLedger;
 import com.norconex.crawler.core2.metrics.CrawlerMetrics;
 import com.norconex.crawler.core2.session.CrawlSession;
-import com.norconex.crawler.core2.util.ConfigUtil;
 import com.norconex.crawler.core2.util.ExceptionSwallower;
 import com.norconex.crawler.core2.util.ScopedThreadFactoryCreator;
 import com.norconex.importer.Importer;
@@ -96,22 +95,14 @@ public class CrawlContext implements Closeable {
     private final List<CrawlBootstrapper> bootstrappers;
     private final CrawlDocPipelines docPipelines;
     private final Fetcher fetcher;
-    //    private final Cluster cluster;
     private final Path workDir;
     private final Path tempDir;
     private final CachedStreamFactory streamFactory;
     private final Class<? extends CrawlEntry> crawlEntryType;
-    //    private final LaunchMode launchMode;
-    //    private final CrawlMode crawlMode;
-    //    private final CrawlSessionProperties sessionProperties;
     private final ScopedThreadFactoryCreator threadFactoryCreator;
 
     //--- Convenience methods --------------------------------------------------
 
-    //    public static CrawlContext get(Grid grid) {
-    //        return (CrawlContext) grid.getContext(NAME);
-    //    }
-    //
     /**
      * Gets the crawler id.
      * @return crawler id
@@ -124,15 +115,6 @@ public class CrawlContext implements Closeable {
     public String toString() {
         return getId();
     }
-
-    //    public boolean isResumedSession() {
-    //        return launchMode == LaunchMode.RESUMED;
-    //    }
-    //
-    //    public boolean isIncrementalCrawl() {
-    //        return crawlMode == CrawlMode.INCREMENTAL;
-    //    }
-    //
 
     public CrawlEntry createCrawlEntry(@NonNull String reference) {
         var docContext = ClassUtil.newInstance(crawlEntryType);
@@ -165,7 +147,6 @@ public class CrawlContext implements Closeable {
     @Override
     public void close() {
         LOG.info("Closing CrawlContext...");
-        swallow(getImporter()::close);
 
         // Defer shutdown
         swallow(() -> Optional.ofNullable(
@@ -180,18 +161,17 @@ public class CrawlContext implements Closeable {
                     LOG.info("Shutdown resumed.");
                 }));
 
+        swallow(getImporter()::close);
         ExceptionSwallower.close(getCommitterService());
-
         swallow(MDC::clear);
+        swallow(getEventManager()::clearListeners);
         ExceptionSwallower.close(getMetrics()::close);
-        var tempDir = ConfigUtil.resolveTempDir(getCrawlConfig());
         swallow(() -> {
             if (tempDir != null) {
                 FileUtil.delete(tempDir.toFile());
             }
         }, "Could not delete the temporary directory:" + tempDir);
 
-        swallow(getEventManager()::clearListeners);
         LOG.info("CrawlContext closed.");
     }
 }

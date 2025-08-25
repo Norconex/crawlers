@@ -129,5 +129,41 @@ public final class ExceptionSwallower {
         }
     }
 
+    /**
+     * Runs the given runnable, clearing the thread's interrupt flag before execution
+     * and restoring it after if it was set. Useful for shutdown/close logic that must
+     * not be interrupted.
+     * @param runnable the code to execute
+     */
+    public static void runWithInterruptClear(Runnable runnable) {
+        var wasInterrupted = Thread.interrupted(); // clears the flag
+        try {
+            runnable.run();
+        } finally {
+            if (wasInterrupted) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    /**
+     * Runs the given FailableRunnable, clearing the thread's interrupt flag before execution
+     * and restoring it after if it was set. Useful for shutdown/close logic that must
+     * not be interrupted. Any thrown exception is propagated.
+     * @param runnable the code to execute
+     * @throws Exception if the runnable throws
+     */
+    public static void runWithInterruptClearEx(
+            FailableRunnable<Exception> runnable) throws Exception {
+        var wasInterrupted = Thread.interrupted();
+        try {
+            runnable.run();
+        } finally {
+            if (wasInterrupted) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
     //    "Could not close resource."
 }

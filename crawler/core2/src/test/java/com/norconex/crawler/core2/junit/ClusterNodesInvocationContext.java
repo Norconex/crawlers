@@ -105,9 +105,10 @@ class ClusterNodesInvocationContext implements TestTemplateInvocationContext {
             ClusterConnector connector =
                     ann.connector().getDeclaredConstructor().newInstance();
             if (connector instanceof InfinispanClusterConnector ic) {
+                var builderHolder = InfinispanUtil.configBuilderHolder(
+                        ann.infinispanConfig());
                 ic.getConfiguration()
-                        .setInfinispan(InfinispanUtil.configBuilderHolder(
-                                ann.infinispanConfig()))
+                        .setInfinispan(builderHolder)
                         .setNodeExpiryTimeout(Duration
                                 .ofMillis(ann.infinispanNodeExpiryTimeout()));
             }

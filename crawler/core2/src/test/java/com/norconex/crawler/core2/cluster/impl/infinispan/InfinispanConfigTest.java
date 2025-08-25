@@ -21,7 +21,6 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core2.cluster.Cache;
 import com.norconex.crawler.core2.stubs.ClusterStubber;
 
 //TODO test persistence (check that already on "core" unit tests

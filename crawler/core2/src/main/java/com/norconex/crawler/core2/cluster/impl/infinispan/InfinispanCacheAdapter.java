@@ -1,5 +1,6 @@
 package com.norconex.crawler.core2.cluster.impl.infinispan;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -8,9 +9,10 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
 
 import org.infinispan.commons.api.query.Query;
+import org.infinispan.lifecycle.ComponentStatus;
 import org.infinispan.util.function.SerializableFunction;
 
 import com.norconex.crawler.core2.cluster.Cache;
@@ -29,86 +31,96 @@ class InfinispanCacheAdapter<T> implements Cache<T> {
 
     @Override
     public boolean isEmpty() {
-        return delegate.isEmpty();
+        return supplyIfCache(delegate::isEmpty, false);
     }
 
     @Override
     public void put(String key, T value) {
-        delegate.put(key, value);
+        runIfCache(() -> delegate.put(key, value));
     }
 
     @Override
     public Optional<T> get(String key) {
-        return Optional.ofNullable(delegate.get(key));
+        return Optional.ofNullable(
+                supplyIfCache(() -> delegate.get(key), null));
     }
 
     @Override
     public void remove(String key) {
-        delegate.remove(key);
+        runIfCache(() -> delegate.remove(key));
     }
 
     @Override
     public void clear() {
-        delegate.clear();
+        runIfCache(delegate::clear);
     }
 
     @Override
     public T computeIfAbsent(String key,
             Function<String, ? extends T> mappingFunction) {
-        return delegate.computeIfAbsent(key, mappingFunction);
+        return supplyIfCache(
+                () -> delegate.computeIfAbsent(key, mappingFunction), null);
     }
 
     @Override
     public Optional<T> computeIfPresent(String key,
             BiFunction<String, ? super T, ? extends T> remappingFunction) {
-        return Optional
-                .ofNullable(delegate.computeIfPresent(key, remappingFunction));
+        return Optional.ofNullable(supplyIfCache(
+                () -> delegate.computeIfPresent(key, remappingFunction), null));
     }
 
     @Override
     public Optional<T> compute(String key,
             BiFunction<String, ? super T, ? extends T> remappingFunction) {
-        return Optional.ofNullable(delegate.compute(key, remappingFunction));
+        return Optional.ofNullable(supplyIfCache(
+                () -> delegate.compute(key, remappingFunction), null));
     }
 
     @Override
     public T merge(String key, T value,
             BiFunction<? super T, ? super T, ? extends T> remappingFunction) {
-        return delegate.merge(key, value, remappingFunction);
+        return supplyIfCache(
+                () -> delegate.merge(key, value, remappingFunction), null);
     }
 
     @Override
     public boolean containsKey(String key) {
-        return delegate.containsKey(key);
+        return supplyIfCache(() -> delegate.containsKey(key), false);
     }
 
     @Override
     public T getOrDefault(String key, T defaultValue) {
-        return delegate.getOrDefault(key, defaultValue);
+        return supplyIfCache(
+                () -> delegate.getOrDefault(key, defaultValue), null);
     }
 
     @Override
     public T putIfAbsent(String key, T value) {
-        return delegate.putIfAbsent(key, value);
+        return supplyIfCache(() -> delegate.putIfAbsent(key, value), null);
     }
 
     @Override
     public boolean replace(String key, T oldValue, T newValue) {
-        return delegate.replace(key, oldValue, newValue);
+        return supplyIfCache(
+                () -> delegate.replace(key, oldValue, newValue), false);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public List<T> query(String queryExpression) {
-        return (List<T>) delegate.query(queryExpression).execute().list();
+        return (List<T>) supplyIfCache(
+                () -> delegate.query(queryExpression).execute().list(),
+                Collections.emptyList());
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public Iterator<T> queryIterator(String queryExpression) {
-        return (Iterator<T>) delegate.query(queryExpression).execute().list()
-                .stream()
-                .iterator();
+        return (Iterator<T>) supplyIfCache(
+                () -> delegate.query(queryExpression).execute().list()
+                        .stream()
+                        .iterator(),
+                Collections.emptyIterator());
     }
 
     @Override
@@ -121,121 +133,130 @@ class InfinispanCacheAdapter<T> implements Cache<T> {
     }
 
     @Override
-    public void queryStream(String queryExpression, Consumer<T> consumer,
-            int batchSize) {
-        if (batchSize <= 0) {
-            batchSize = DEFAULT_BATCH_SIZE;
-        }
+    public void queryStream(
+            String queryExpression, Consumer<T> consumer, int batchSize) {
+        runIfCache(() -> {
+            var bsize = batchSize <= 0 ? DEFAULT_BATCH_SIZE : batchSize;
 
-        // In Infinispan 15.2, it's better to use the paged approach for streaming
-        var totalCount = count(queryExpression);
-        var offset = 0;
+            // In Infinispan 15.2, it's better to use the paged approach for
+            // streaming
+            var totalCount = count(queryExpression);
+            var offset = 0;
 
-        LOG.debug(
-                "Starting streaming query with {} total results using batch size {}",
-                totalCount, batchSize);
+            LOG.debug("Starting streaming query with {} total results "
+                    + "using batch size {}", totalCount, bsize);
 
-        while (offset < totalCount) {
-            // Process one batch at a time
-            var batch = queryPaged(queryExpression, offset, batchSize);
-            if (batch.isEmpty()) {
-                break;
+            while (offset < totalCount) {
+                // Process one batch at a time
+                var batch = queryPaged(queryExpression, offset, bsize);
+                if (batch.isEmpty()) {
+                    break;
+                }
+
+                // Process each entry in the batch
+                batch.forEach(consumer);
+
+                offset += batch.size();
+
+                // Log progress
+                if (offset % (bsize * 10) == 0 || offset >= totalCount) {
+                    LOG.debug("Processed {} entries out of {}", offset,
+                            totalCount);
+                }
             }
 
-            // Process each entry in the batch
-            batch.forEach(consumer);
-
-            offset += batch.size();
-
-            // Log progress
-            if (offset % (batchSize * 10) == 0 || offset >= totalCount) {
-                LOG.debug("Processed {} entries out of {}", offset, totalCount);
-            }
-        }
-
-        LOG.debug("Finished streaming query, processed {} results", offset);
+            LOG.debug("Finished streaming query, processed {} results", offset);
+        });
     }
 
     @Override
     public long count(String queryExpression) {
-        Query<Object> query = delegate.query(queryExpression);
-        return query.execute().count().value();
+        return supplyIfCache(
+                () -> {
+                    Query<Object> query = delegate.query(queryExpression);
+                    return (long) query.execute().count().value();
+                }, -1L);
     }
 
     @Override
     public long size() {
-        return delegate.size();
+        return supplyIfCache(delegate::size, -1);
     }
 
     @Override
     public long delete(String queryExpression) {
-        // First check count to avoid unnecessary work
-        var totalCount = count(queryExpression);
-        if (totalCount == 0) {
-            return 0;
-        }
+        return (long) supplyIfCache(() -> {
 
-        // Use iterator-based deletion for better memory efficiency
-        var batchSize = DEFAULT_BATCH_SIZE;
-        var deletedCount = 0L;
-
-        LOG.debug("Deleting approximately {} entries matching: {}",
-                totalCount, queryExpression);
-
-        // Process in batches to avoid loading too many objects into memory at once
-        while (deletedCount < totalCount) {
-            Query<T> query = delegate.query(queryExpression);
-            query.maxResults(batchSize);
-
-            var batch = query.execute().list();
-            if (batch.isEmpty()) {
-                break;
+            // First check count to avoid unnecessary work
+            var totalCount = count(queryExpression);
+            if (totalCount == 0) {
+                return 0;
             }
 
-            // Find and delete the keys for this batch
-            List<String> keysToDelete = batch.stream()
-                    .flatMap(entry -> delegate.entrySet().stream()
-                            .filter(e -> e.getValue().equals(entry))
-                            .map((SerializableFunction<? super Entry<String, T>,
-                                    ? extends String>) Entry::getKey))
-                    .collect(Collectors.toList());
+            // Use iterator-based deletion for better memory efficiency
+            var batchSize = DEFAULT_BATCH_SIZE;
+            var deletedCount = 0L;
 
-            // Delete the found keys
-            keysToDelete.forEach(delegate::remove);
-            deletedCount += keysToDelete.size();
+            LOG.debug("Deleting approximately {} entries matching: {}",
+                    totalCount, queryExpression);
 
-            LOG.debug("Deleted {} entries so far", deletedCount);
-        }
+            // Process in batches to avoid loading too many objects into
+            // memory at once
+            while (deletedCount < totalCount) {
+                Query<T> query = delegate.query(queryExpression);
+                query.maxResults(batchSize);
 
-        LOG.debug("Finished deleting {} entries", deletedCount);
-        return deletedCount;
+                var batch = query.execute().list();
+                if (batch.isEmpty()) {
+                    break;
+                }
+
+                // Find and delete the keys for this batch
+                var keysToDelete = batch.stream().flatMap(
+                        entry -> delegate.entrySet().stream()
+                                .filter(e -> e.getValue().equals(entry))
+                                .map((SerializableFunction<
+                                        ? super Entry<String, T>,
+                                        String>) Entry::getKey))
+                        .toList();
+
+                // Delete the found keys
+                keysToDelete.forEach(delegate::remove);
+                deletedCount += keysToDelete.size();
+
+                LOG.debug("Deleted {} entries so far", deletedCount);
+            }
+
+            LOG.debug("Finished deleting {} entries", deletedCount);
+            return deletedCount;
+        }, -1);
     }
 
     @Override
     public void forEach(BiConsumer<String, ? super T> action) {
-        delegate.forEach((k, v) -> action.accept(k, v));
+        runIfCache(() -> delegate.forEach(action::accept));
     }
 
-    //
-    //    @Override
-    //    public void queryForEach(
-    //            String queryExpression, BiConsumer<String, ? super T> action) {
-    //
-    //        delegate.query(bn jkjkjkjkjkjkjku).execute().list()
-    //        .stream()
-    //        .iterator();
-    //
-    //        queryIterator(queryExpression).forEachRemaining(null);
-    //
-    //        QueryFactory queryFactory = Search.getQueryFactory(remoteCache);
-    //        Query<Object[]> query = queryFactory.create("SELECT __key, this FROM Person WHERE age > 30");
-    //
-    //        List<Object[]> results = query.execute().list();
-    //
-    //        results.forEach(entry -> {
-    //            String key = (String) entry[0];
-    //            Person value = (Person) entry[1];
-    //            // Use your BiConsumer
-    //        });
-    //    }
+    private <R> R supplyIfCache(Supplier<R> supplier, R defaultValue) {
+        return isCacheClosed() ? defaultValue : supplier.get();
+    }
+
+    private void runIfCache(Runnable runnalbe) {
+        if (!isCacheClosed()) {
+            runnalbe.run();
+        }
+    }
+
+    private boolean isCacheClosed() {
+        var status = delegate.getStatus();
+        if (status == ComponentStatus.TERMINATED
+                || status == ComponentStatus.FAILED) {
+            LOG.warn("Attempted to use cache '{}' after it was closed.",
+                    delegate.getName());
+            // Optionally: throw new IllegalStateException("Cache is closed");
+            return true; // or skip operation
+        }
+        return false;
+    }
+
 }

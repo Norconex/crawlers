@@ -3,6 +3,8 @@
   <cache-container name="default" statistics="true" default-cache="default">
     <transport cluster="test-cluster"/>
 
+    <!-- === Cache Templates === -->
+
     <distributed-cache-configuration
       name="default"
       mode="SYNC"
@@ -24,7 +26,6 @@
       statistics="true"
       configuration="default"
     />
-    <distributed-cache-configuration name="*_replicated" configuration="replicated-template"/>
 
     <distributed-cache-configuration name="indexed-template" configuration="default">
       <indexing enabled="true" storage="local-heap">
@@ -33,6 +34,10 @@
         </indexed-entities>
       </indexing>
     </distributed-cache-configuration>
+
+    <!-- === Cache Mappings === -->
+
+    <distributed-cache-configuration name="*_replicated" configuration="replicated-template"/>
     <distributed-cache-configuration name="*_indexed" configuration="indexed-template"/>
 
   </cache-container>
