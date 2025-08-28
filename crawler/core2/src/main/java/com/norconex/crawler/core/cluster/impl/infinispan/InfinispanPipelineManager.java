@@ -78,12 +78,20 @@ public class InfinispanPipelineManager
         return future;
     }
 
+    // invoked by cluster StopController listener
+    public void stop() {
+        pipelineExecutions.keySet().forEach(pipeId -> {
+            stopPipeline(pipeId, -1); //TODO make timeout configurable
+        });
+    }
+
     @Override
     public CompletableFuture<Void> stopPipeline(
             String pipelineId, long timeout) {
 
         var pipeExec = pipelineExecutions.get(pipelineId);
         if (pipeExec != null) {
+            LOG.info("Closing pipeline {}...", pipelineId);
             return pipeExec.stopPipeline(timeout);
         }
         return CompletableFuture.completedFuture(null);

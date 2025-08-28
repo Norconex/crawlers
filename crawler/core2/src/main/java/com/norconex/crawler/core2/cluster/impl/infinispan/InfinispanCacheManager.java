@@ -93,6 +93,11 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
     }
 
     //--- Infinispan-specific custom caches ------------------------------------
+
+    public Cache<String> getAdminCache() {
+        return getCache(CacheNames.ADMIN, String.class);
+    }
+
     public Cache<StepRecord> getPipelineStepCache() {
         return getCache(CacheNames.PIPE_CURRENT_STEP, StepRecord.class);
     }
@@ -113,8 +118,7 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
         var adapter = adapterMappings.get(listener);
         if (adapter != null) {
             try {
-                dcm.getCache(CacheNames.PIPE_CURRENT_STEP)
-                        .removeListener(adapter);
+                dcm.getCache(cacheName).removeListener(adapter);
             } catch (Exception e) {
                 LOG.debug("Could not remove pipeline current step "
                         + "listener: {}", e.toString());
@@ -141,10 +145,11 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
 
                 var existingCfg = dcm.getCacheConfiguration(cacheName);
                 if (existingCfg != null) {
-                    // If a template exists with this name/pattern, materialize it
+                    // If a template exists with this name/pattern,
+                    // materialize it
                     if (existingCfg.isTemplate()) {
-                        LOG.info(
-                                "Materializing template configuration for cache '{}'",
+                        LOG.info("Materializing template configuration for "
+                                + "cache '{}'",
                                 cacheName);
                         var concrete = new ConfigurationBuilder()
                                 .read(existingCfg)
@@ -171,8 +176,8 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
 
                 // As a last resort, rely on container wildcard mappings
                 // (e.g., *_indexed) to resolve on first getCache call.
-                LOG.info(
-                        "Starting cache '{}' using container mappings (no explicit/default config found).",
+                LOG.info("Starting cache '{}' using container mappings "
+                        + "(no explicit/default config found).",
                         cacheName);
                 return dcm.getCache(cacheName);
             }

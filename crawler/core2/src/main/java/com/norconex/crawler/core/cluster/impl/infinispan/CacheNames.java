@@ -19,6 +19,7 @@ public final class CacheNames {
     //TODO make default
     public static final String PIPE_CURRENT_STEP = "pipe_current_step";
     public static final String PIPE_WORKER_STATUSES = "pipe_worker_statuses";
+    public static final String ADMIN = "admin";
 
     private CacheNames() {
     }

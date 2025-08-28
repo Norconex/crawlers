@@ -57,6 +57,7 @@ public class PipelineWorker implements AutoCloseable {
     private CacheEntryChangeListener<StepRecord> pipelineStepListener;
     private volatile boolean running = false;
     private final AtomicBoolean closed = new AtomicBoolean(false);
+    private final AtomicBoolean stopRequested = new AtomicBoolean(false);
     private final CompletableFuture<Void> completion =
             new CompletableFuture<>();
     private final Set<String> encounteredSteps = new HashSet<>();
@@ -120,14 +121,18 @@ public class PipelineWorker implements AutoCloseable {
         return awaitPipelineTerminationResult(0L);
     }
 
-    // end this worker by stopping any active task first then closing.
+    /**
+     * End this worker by stopping any active task first then closing.
+     */
     public void stop() {
-        //TODO implement properly... likely coordinator driving stop
-        // execution and worker updating their statuses
-        if (currentStep != null) {
-            currentStep.stop(CrawlSession.get(cluster.getLocalNode()));
+        if (stopRequested.compareAndSet(false, true)) {
+            updateWorkerStatus(PipelineStatus.STOPPING);
+            if (currentStep != null) {
+                currentStep.stop(CrawlSession.get(cluster.getLocalNode()));
+            }
+            updateWorkerStatus(PipelineStatus.STOPPED);
+            // we don't close here. Closed by caller.
         }
-        close();
     }
 
     @Override

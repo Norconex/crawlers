@@ -36,6 +36,7 @@ import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanCluster;
 import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanClusterConnector;
 import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanUtil;
 import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core2.util.ConcurrentUtil;
 import com.norconex.crawler.core2.util.ExceptionSwallower;
 
 import lombok.extern.slf4j.Slf4j;
@@ -53,9 +54,11 @@ public class PipelineCoordinator implements AutoCloseable {
 
     private CacheEntryChangeListener<StepRecord> workerStatusListener;
     private final AtomicBoolean closed = new AtomicBoolean(false);
+    private final AtomicBoolean stopRequested = new AtomicBoolean(false);
 
     private CrawlSession session;
     private long nodeExpiryTimeoutMs = 30_000;
+    private StepRecord activePipeRec;
 
     //TODO make sure it respects crawler-wide timeout if set
 
@@ -93,15 +96,36 @@ public class PipelineCoordinator implements AutoCloseable {
     }
 
     void stop() {
-        //TODO implement properly... likely coordinator driving stop
-        // execution
+        ExceptionSwallower.runWithInterruptClear(() -> {
+            if (activePipeRec != null
+                    && stopRequested.compareAndSet(false, true)) {
+                var key = CacheKeys.pipelineKey(cluster, pipeline);
 
-        if (currentLocalStep != null) {
-            currentLocalStep.stop(session);
-            //TODO wait for all nodes to be stopped and update global
-            // status
-        }
-        close();
+                activePipeRec.setStatus(PipelineStatus.STOPPING);
+                activePipeRec.setUpdatedAt(System.currentTimeMillis());
+                pipelineActiveStepCache.put(key, activePipeRec);
+
+                if (currentLocalStep != null) {
+                    currentLocalStep.stop(session);
+                } else {
+                    var allStopped = ConcurrentUtil.waitUntil(
+                            () -> workerStatuses.values().stream().allMatch(
+                                    rec -> rec
+                                            .getStatus() == PipelineStatus.STOPPED),
+                            Duration.ofMinutes(1), Duration.ofSeconds(1));
+                    if (allStopped) {
+                        LOG.info("App pipeline workers stopped.");
+                    } else {
+                        LOG.warn("Not all pipeline workers stopped within a "
+                                + "minute.");
+                    }
+                }
+
+                activePipeRec.setUpdatedAt(System.currentTimeMillis());
+                activePipeRec.setStatus(PipelineStatus.STOPPED);
+                pipelineActiveStepCache.put(key, activePipeRec);
+            }
+        });
     }
 
     void doCoordinatePipelineExecution() {
@@ -110,7 +134,7 @@ public class PipelineCoordinator implements AutoCloseable {
 
         var key = CacheKeys.pipelineKey(cluster, pipeline);
 
-        var activePipeRec = resolveFirstStepToRun(key, pipeline);
+        activePipeRec = resolveFirstStepToRun(key, pipeline);
 
         // If pipeline already terminal, just record and exit without modifying caches.
 
@@ -147,7 +171,10 @@ public class PipelineCoordinator implements AutoCloseable {
                 .toList();
 
         for (var step : steps) {
-            var stepRec = activePipeRec;
+            if (stopRequested.get()) {
+                LOG.info("Stop requested before executing {}.", step.getId());
+            }
+
             workerStatuses.clear();
             //TODO not sure why this seems needed (likely race condition) since
             // we have the listener to workers... and we technically don't
@@ -155,19 +182,19 @@ public class PipelineCoordinator implements AutoCloseable {
             workerStatusCache.forEach(this::updateWorkerStatus);
 
             // could be RUNNING already if recovering from other coordinator.
-            if (stepRec.getStatus() != PipelineStatus.RUNNING) {
-                stepRec = createRunningStepRecord(step);
-                pipelineActiveStepCache.put(key, stepRec);
+            if (activePipeRec.getStatus() != PipelineStatus.RUNNING) {
+                activePipeRec = createRunningStepRecord(step);
+                pipelineActiveStepCache.put(key, activePipeRec);
                 LOG.debug("Published RUNNING for pipeline {} step {}",
                         pipeline.getId(), step.getId());
             }
 
             var execStatus = step.isDistributed()
-                    ? executeOnAllNodes(step, stepRec)
+                    ? executeOnAllNodes(step, activePipeRec)
                     : executeLocally(step);
 
-            stepRec.setStatus(execStatus);
-            stepRec.setUpdatedAt(System.currentTimeMillis());
+            activePipeRec.setStatus(execStatus);
+            activePipeRec.setUpdatedAt(System.currentTimeMillis());
             if (!InfinispanUtil.isClusterRunning(cluster)) {
                 LOG.warn("Coordinator node went down on {}. It will no longer "
                         + "execute pipeine {}.",
@@ -175,7 +202,7 @@ public class PipelineCoordinator implements AutoCloseable {
                         pipeline.getId());
                 return;
             }
-            pipelineActiveStepCache.put(key, stepRec);
+            pipelineActiveStepCache.put(key, activePipeRec);
             LOG.debug("Published {} for pipeline {} step {}", execStatus,
                     pipeline.getId(), step.getId());
             if (execStatus == PipelineStatus.FAILED) {

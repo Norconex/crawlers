@@ -20,7 +20,7 @@ import com.norconex.crawler.core2.cluster.Cache;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-class InfinispanCacheAdapter<T> implements Cache<T> {
+public class InfinispanCacheAdapter<T> implements Cache<T> {
 
     private final org.infinispan.Cache<String, T> delegate;
     private static final int DEFAULT_BATCH_SIZE = 100;
@@ -235,6 +235,10 @@ class InfinispanCacheAdapter<T> implements Cache<T> {
     @Override
     public void forEach(BiConsumer<String, ? super T> action) {
         runIfCache(() -> delegate.forEach(action::accept));
+    }
+
+    public org.infinispan.Cache<String, T> vendor() {
+        return delegate;
     }
 
     private <R> R supplyIfCache(Supplier<R> supplier, R defaultValue) {

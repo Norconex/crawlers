@@ -1,6 +1,11 @@
 Create a small config with free-form XML/JSON/Yaml in it to test 
 JDBC H2 configuration.
 
+- make stop calls idempotent and have cli start a node that just puts stop in an admin cache and have all nodes listening to that cache.
+-  all nodes will be a combination of: check on startup, listen, an slow polling.
+- maybe: have the option to pass a reason on command line when stopping, storing that reason.
+- make stop polling interval configurable
+
 
 To consider for testing: 
 

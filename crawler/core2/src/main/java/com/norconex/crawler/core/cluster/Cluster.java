@@ -47,6 +47,10 @@ public interface Cluster extends Closeable {
 
     void init(Path crawlerWorkDir);
 
+    //TODO consider adding a "reason" argument that we would store.
+    /**
+     * Requests to stop the cluster. Does not wait.
+     */
     void stop();
 
     @Override

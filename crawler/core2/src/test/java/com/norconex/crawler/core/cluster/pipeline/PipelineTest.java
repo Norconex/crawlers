@@ -15,6 +15,7 @@
 package com.norconex.crawler.core.cluster.pipeline;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.nio.file.Path;
 import java.time.Duration;
@@ -47,16 +48,51 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 class PipelineTest {
 
-    //TODO test node expiry and seemless coordinator change detection
+    //TODO test node expiry
 
     /*
      * Tests that a pipeline receiving a stop request will indicate to all
      * nodes they must stop and respond accordingly.
      */
-    //    @ClusterNodesTest(nodes = { 1, 2 })
-    void testStop(
-            int nodeCount, List<CrawlSession> sessions) {
-        //TODO implement me
+    @Test
+    void testStop(@TempDir Path tempDir) {
+        var cacheName = ClusterTestUtil.uniqueCacheName("pipetest-stop");
+
+        var pipeline = new Pipeline("test-stop", List.of(new BaseStep(
+                "waiting-step") {
+            @Override
+            public void execute(CrawlSession sess) {
+                var cache = ClusterTestUtil.stringCache(sess, cacheName);
+                cache.put(nodeKey("node1Waiting", sess), "true");
+                assertThatNoException().isThrownBy(() -> {
+                    ConcurrentUtil.waitUntil(() -> {
+                        if (isStopRequested()) {
+                            LOG.info("Stop requested. Ending step.");
+                            return true;
+                        }
+                        return false;
+                    }, Duration.ofSeconds(15), Duration.ofMillis(200));
+                });
+            }
+        }));
+
+        Cache<String> cache;
+
+        try (var session1 = CrawlSessionStubber
+                .multiNodesCrawlSession(tempDir.resolve("node1"))) {
+            cache = ClusterTestUtil.stringCache(session1, cacheName);
+            session1.getCluster().getPipelineManager()
+                    .executePipeline(pipeline, 0);
+
+            // Wait for step1 to be completed by node1
+            ClusterTestUtil.waitForCacheSize(cache, 1, Duration.ofSeconds(10));
+            LOG.info("Test awating step awaiting stop request...");
+
+            try (var session2 = CrawlSessionStubber
+                    .multiNodesCrawlSession(tempDir.resolve("node2"))) {
+                session2.getCluster().stop();
+            }
+        }
     }
 
     /*
@@ -88,8 +124,6 @@ class PipelineTest {
                     var cache = ClusterTestUtil.stringCache(sess, cacheName);
                     if (isCoord(sess)) {
                         firstCoordinatorName.set(nodeName(sess));
-                        //                    } else {
-                        //                        secondCoordinatorName.set(nodeName(sess));
                     }
 
                     // Wait that both nodes have written step1 then
@@ -116,8 +150,6 @@ class PipelineTest {
                     var cache = ClusterTestUtil.stringCache(sess, cacheName);
                     cache.put(nodeKey("step4", sess), "step4-coord-"
                             + sess.getCluster().getLocalNode().isCoordinator());
-                    //                    ConcurrentUtil.waitUntil(() -> cache.size() == 8,
-                    //                            Duration.ofSeconds(10), Duration.ofMillis(200));
                 })));
 
         var results = PipelineTestUtil.executeAndWait(pipeline, sessions);

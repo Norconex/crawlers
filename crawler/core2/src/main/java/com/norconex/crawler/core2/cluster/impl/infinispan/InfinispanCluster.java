@@ -30,6 +30,7 @@ import org.infinispan.remoting.transport.Address;
 
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanPipelineManager;
+import com.norconex.crawler.core.cluster.impl.infinispan.StopController;
 import com.norconex.crawler.core.cluster.impl.infinispan.event.CoordinatorChangeListener;
 import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.util.ExceptionSwallower;
@@ -58,6 +59,7 @@ public class InfinispanCluster implements Cluster {
     // so that if both previous coordinator and the new one are not this node
     // we do not trigger the event for no reason.
     private volatile boolean lastCoordinatorState = false;
+    private StopController stopController;
 
     private final InfinispanClusterConfig configuration;
 
@@ -109,6 +111,14 @@ public class InfinispanCluster implements Cluster {
 
         // Listen for coordinator change events
         defCacheManager.addListener(new ClusterViewListener(this));
+
+        stopController =
+                new StopController(cacheManager.getAdminCache(), ignored -> {
+                    pipelineManager.stop();
+                    //TODO more to stop?
+                    close();
+                });
+        stopController.start();
     }
 
     /**
@@ -140,33 +150,17 @@ public class InfinispanCluster implements Cluster {
         }
     }
 
+    // Store/send stop request
     @Override
     public void stop() {
         LOG.info("Stopping InfinispanCluster (entire cluster) ...");
-        //TODO send stop command to cluster/cache for all nodes to pick up.
-
-        //        // Stop task manager if present
-        //        if (taskManager != null) {
-        //            ExceptionSwallower.close(taskManager);
-        //            taskManager = null;
-        //        }
-        //        // Stop pipeline manager if present
-        //        if (pipelineManager != null) {
-        //            ExceptionSwallower.close(pipelineManager);
-        //            pipelineManager = null;
-        //        }
-        //        // Stop local node if present
-        //        if (localNode != null) {
-        //            ExceptionSwallower.close(localNode);
-        //            localNode = null;
-        //        }
-        //        // Stop cache manager (stops cluster)
-        //        if (cacheManager != null) {
-        //            ExceptionSwallower.close(cacheManager);
-        //            cacheManager = null;
-        //        }
-        close();
-        LOG.info("InfinispanCluster stopped.");
+        StopController.sendStop(getCacheManager().getAdminCache());
+        //TODO shall we close here? If so, we would have to make sendStop
+        // sync, or return a future.
+        // ANSWER: likely not... because the StopController will listen
+        // and we do it then.
+        //        close();
+        //        LOG.info("InfinispanCluster stopped.");
     }
 
     @Override
@@ -178,6 +172,7 @@ public class InfinispanCluster implements Cluster {
                 pipelineManager,
                 localNode,
                 cacheManager);
+        stopController.stop();
         // Do NOT close cacheManager here (leave cluster running)
         LOG.info("InfinispanCluster node disconnected.");
     }

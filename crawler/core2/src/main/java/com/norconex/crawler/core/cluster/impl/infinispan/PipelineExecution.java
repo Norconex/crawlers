@@ -44,14 +44,17 @@ public class PipelineExecution implements AutoCloseable {
 
     private final InfinispanCluster cluster;
     private final Pipeline pipeline;
+
+    //TODO since timeout is set by the crawler and is configured globally
+    // as a crawler setting, it should be a datetime instead, calculated from
+    // the start date of the crawler.  That way we don't have to worry
+    // about late joining nodes. They'll all have the same end datetime
+    // (if one is configured).  That value will be stored in a session-wide
+    // cache.
     private final long timeoutMs;
 
     private PipelineCoordinator coordinator;
-    private CompletableFuture<PipelineResult> coordinatorFuture =
-            CompletableFuture.completedFuture(null);
-
     private PipelineWorker worker;
-    private CompletableFuture<PipelineResult> workerFuture;
 
     private boolean executed;
 
@@ -63,12 +66,6 @@ public class PipelineExecution implements AutoCloseable {
     private final CoordinatorChangeListener coordChangeListener;
 
     private boolean isCoordinator;
-    //    private enum ExecutionMode {
-    //        WORKER_ONLY, COORDINATOR
-    //    }
-
-    //    // set on execute and coordinator changes
-    //    private volatile ExecutionMode mode;
 
     public PipelineExecution(
             InfinispanCluster cluster, Pipeline pipeline, long timeoutMs) {
