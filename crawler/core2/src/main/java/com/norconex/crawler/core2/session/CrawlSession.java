@@ -28,8 +28,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import com.norconex.commons.lang.event.Event;
+import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cluster.Cluster;
-import com.norconex.crawler.core2.CrawlerException;
 import com.norconex.crawler.core2.cluster.Cache;
 import com.norconex.crawler.core2.cluster.ClusterNode;
 import com.norconex.crawler.core2.context.CrawlContext;

@@ -20,7 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.text.TextMatcher.Method;
-import com.norconex.crawler.core2.CrawlerException;
+import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core2.doc.CrawlDocMetaConstants;
 import com.norconex.crawler.core2.doc.operations.checksum.AbstractDocumentChecksummer;
 import com.norconex.crawler.core2.doc.operations.checksum.ChecksumUtil;

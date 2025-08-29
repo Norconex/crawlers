@@ -28,7 +28,7 @@ import org.apache.commons.lang3.SystemUtils;
 
 import com.norconex.committer.core.Committer;
 import com.norconex.commons.lang.PackageManifest;
-import com.norconex.crawler.core2.CrawlConfig;
+import com.norconex.crawler.core.CrawlConfig;
 
 public final class About {
     /** Simple ASCI art of Norconex. */

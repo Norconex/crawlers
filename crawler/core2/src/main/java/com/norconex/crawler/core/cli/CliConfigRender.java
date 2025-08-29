@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cli;
+package com.norconex.crawler.core.cli;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 
 import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
-import com.norconex.crawler.core2.Crawler;
+import com.norconex.crawler.core.Crawler;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;

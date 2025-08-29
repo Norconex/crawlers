@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2;
+package com.norconex.crawler.core;
 
 import static java.util.Optional.ofNullable;
 
@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.crawler.core2.cmd.Command;
 import com.norconex.crawler.core2.cmd.clean.CleanCommand;
 import com.norconex.crawler.core2.cmd.crawl.CrawlCommand;
+import com.norconex.crawler.core2.cmd.stop.StopCommand;
 import com.norconex.crawler.core2.cmd.storeexport.StoreExportCommand;
 import com.norconex.crawler.core2.cmd.storeimport.StoreImportCommand;
 import com.norconex.crawler.core2.session.CrawlSession;
@@ -35,8 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Crawler {
-    //
-    //    private static final String CLUSTER_WORKDIR_NAME = "cluster";
 
     @Getter
     private final CrawlDriver crawlDriver;
@@ -72,14 +71,7 @@ public class Crawler {
     }
 
     public void stop() {
-        // Since we are stopping we are not initializing
-        // the context and not explicitly connecting to the grid
-        //        var gridWorkDir = ConfigUtil
-        //                .resolveWorkDir(crawlConfig).resolve(CLUSTER_WORKDIR_NAME);
-        //        crawlConfig.getCluster().stop();
-        var cluster = crawlConfig.getClusterConnector().connect();
-        cluster.stop();
-        cluster.close();
+        executeCommand(new StopCommand());
     }
 
     public void storageExport(Path dir, boolean pretty) {
@@ -113,18 +105,6 @@ public class Crawler {
                                 .ifPresent(c -> c.accept(sess));
             }
         });
-        //        sessionManager.withCrawlContext(ctx -> {
-        //            try {
-        //                ofNullable(ctx.getCallbacks()
-        //                        .getBeforeCommand())
-        //                                .ifPresent(c -> c.accept(ctx));
-        //                command.execute(ctx);
-        //            } finally {
-        //                ofNullable(ctx.getCallbacks()
-        //                        .getAfterCommand())
-        //                                .ifPresent(c -> c.accept(ctx));
-        //            }
-        //        });
     }
 
     public void withCrawlSession(Consumer<CrawlSession> c) {
@@ -134,32 +114,3 @@ public class Crawler {
         }
     }
 }
-
-//TODO for each type of cluster ID
-
-//       run: new distributed memory ID, then store it in persistent cache
-//   session: new distributed memory ID, and check if previous run as completed, else, use the previous ID for the session id
-//   crawler: there is alreay a crawler id.
-
-/*
-
-
-    "A crawl session consists of one or more runs. Each run represents a single launch of the crawler, whether it is the initial start or a resume after a pause."
-
-IDEAS:
-
-    •  crawler: Core crawling logic and orchestration
-    •  cache: Caching abstractions and implementations
-    •  fetch: HTTP or resource fetching utilities
-    •  parse: Content parsing and extraction
-    •  model: Data models (e.g., Page, Link)
-    •  storage: Persistence and data storage
-    •  config: Configuration management
-    •  util: General utilities and helpers
-    •  extension: Extension points and plugin interfaces
-    •  exception: Custom exceptions
-
-
-*/
-//MAYBE: have a CrawlerClient for all commands and keep Crawler just
-// for crawling (have import/export, cleaning, etc, done by other classes)?

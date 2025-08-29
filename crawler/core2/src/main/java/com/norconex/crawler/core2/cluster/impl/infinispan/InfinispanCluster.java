@@ -79,6 +79,7 @@ public class InfinispanCluster implements Cluster {
         return CrawlSession.get(localNode).getCrawlerId();
     }
 
+    //TODO why synchronized?
     @Override
     public synchronized void init(Path workDir) {
         var builderHolder = configuration.getInfinispan();

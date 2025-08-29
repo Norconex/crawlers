@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2;
+package com.norconex.crawler.core;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -47,8 +47,8 @@ public class CrawlCallbacks {
 
     /**
      * Gives crawler implementations a chance to do something right after
-     * the {@link CrawlTask_TO_MIGRATE} is done processing its last reference, before all
-     * task resources are shut down.
+     * the {@link CrawlTask_TO_MIGRATE} is done processing its last reference,
+     * before all task resources are shut down.
      * Invoked right after
      * {@link CrawlerEvent#TASK_RUN_END} (depending which of the two is
      * triggered).

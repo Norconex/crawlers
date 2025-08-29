@@ -7,6 +7,40 @@ JDBC H2 configuration.
 - make stop polling interval configurable
 
 
+RANDOM:
+
+
+//TODO for each type of cluster ID
+
+//       run: new distributed memory ID, then store it in persistent cache
+//   session: new distributed memory ID, and check if previous run as completed, else, use the previous ID for the session id
+//   crawler: there is alreay a crawler id.
+
+/*
+
+
+    "A crawl session consists of one or more runs. Each run represents a single launch of the crawler, whether it is the initial start or a resume after a pause."
+
+IDEAS:
+
+    •  crawler: Core crawling logic and orchestration
+    •  cache: Caching abstractions and implementations
+    •  fetch: HTTP or resource fetching utilities
+    •  parse: Content parsing and extraction
+    •  model: Data models (e.g., Page, Link)
+    •  storage: Persistence and data storage
+    •  config: Configuration management
+    •  util: General utilities and helpers
+    •  extension: Extension points and plugin interfaces
+    •  exception: Custom exceptions
+
+
+*/
+//MAYBE: have a CrawlerClient for all commands and keep Crawler just
+// for crawling (have import/export, cleaning, etc, done by other classes)?
+
+
+
 To consider for testing: 
 
 ```xml

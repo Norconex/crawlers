@@ -25,7 +25,7 @@ import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.norconex.crawler.core2.CrawlerException;
+import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core2.cluster.Cache;
 import com.norconex.crawler.core2.cmd.Command;
 import com.norconex.crawler.core2.event.CrawlerEvent;

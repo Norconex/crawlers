@@ -17,9 +17,9 @@ package com.norconex.crawler.core2.junit;
 import org.apache.commons.lang3.function.FailableConsumer;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
-import com.norconex.crawler.core2.CrawlConfig;
-import com.norconex.crawler.core2.CrawlDriver;
-import com.norconex.crawler.core2.Crawler;
+import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlDriver;
+import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.event.listeners.CrawlerLifeCycleListener;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlDriverFactory;

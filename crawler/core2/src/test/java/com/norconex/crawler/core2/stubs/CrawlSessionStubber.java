@@ -17,7 +17,7 @@ package com.norconex.crawler.core2.stubs;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
-import com.norconex.crawler.core2.CrawlConfig;
+import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlDriverFactory;
 import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.session.CrawlSessionFactory;

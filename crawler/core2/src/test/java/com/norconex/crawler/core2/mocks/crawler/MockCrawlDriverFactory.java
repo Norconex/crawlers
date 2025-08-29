@@ -16,8 +16,8 @@ package com.norconex.crawler.core2.mocks.crawler;
 
 import java.util.function.Supplier;
 
-import com.norconex.crawler.core2.CrawlDriver;
-import com.norconex.crawler.core2.CrawlDriver.FetchDriver;
+import com.norconex.crawler.core.CrawlDriver;
+import com.norconex.crawler.core.CrawlDriver.FetchDriver;
 import com.norconex.crawler.core2.ledger.CrawlEntry;
 import com.norconex.crawler.core2.mocks.fetch.MockFetchResponseImpl;
 import com.norconex.crawler.core2.stubs.PipelineStubs;

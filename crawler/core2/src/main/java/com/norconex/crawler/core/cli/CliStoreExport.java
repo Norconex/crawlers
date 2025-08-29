@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2019-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,27 +12,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cli;
+package com.norconex.crawler.core.cli;
 
-import com.norconex.crawler.core2.Crawler;
+import java.nio.file.Path;
+
+import com.norconex.crawler.core.Crawler;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 
 /**
- * Stop a crawler.
+ * Export crawl store to specified file.
  */
 @Command(
-    name = "stop",
-    description = "Stop a crawler"
+    name = "storeexport",
+    description = "Export crawl store to specified directory"
 )
 @EqualsAndHashCode
 @ToString
-public class CliStop extends CliBase {
+public class CliStoreExport extends CliBase {
+
+    @Option(
+        names = { "-d", "-dir" },
+        description = "Export directory",
+        required = true
+    )
+    private Path dir;
+
+    @Option(
+        names = { "-pretty" },
+        description = "Pretty-print the exported JSON files.",
+        required = false
+    )
+    private boolean pretty;
+
+    //TODO make compress configurable?
 
     @Override
     protected void runCommand(Crawler crawler) {
-        crawler.stop();
+        crawler.storageExport(dir, pretty);
     }
 }

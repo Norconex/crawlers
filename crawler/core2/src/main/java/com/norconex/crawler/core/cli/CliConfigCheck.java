@@ -12,23 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cli;
+package com.norconex.crawler.core.cli;
 
-import com.norconex.crawler.core2.Crawler;
+import com.norconex.crawler.core.Crawler;
 
 import picocli.CommandLine.Command;
 
 /**
- * Clean the Collector crawling history.
+ * Validate configuration file format and quit.
  */
 @Command(
-    name = "clean",
-    description = "Clean the Collector crawling history (to start fresh)"
+    name = "configcheck",
+    description = "Validate configuration file syntax"
 )
-public class CliClean extends CliBase {
-
+public class CliConfigCheck extends CliBase {
     @Override
-    protected void runCommand(Crawler crawler) {
-        crawler.clean();
+    public void runCommand(Crawler crawler) {
+        // Reaching this method means no errors were found. Simply state so.
+        out().println();
+        out().println("No configuration errors detected.");
+        out().flush();
     }
 }

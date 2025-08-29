@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2;
+package com.norconex.crawler.core;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,9 +43,6 @@ public class CrawlDriver {
     @Default
     private final Class<? extends CrawlConfig> crawlerConfigClass =
             CrawlConfig.class;
-
-    //    @Default
-    //    private final Pipeline crawlPipeline = null;
 
     @Default
     private final List<CrawlBootstrapper> bootstrappers =

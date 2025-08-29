@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.cluster.pipeline;
 
-import com.norconex.crawler.core2.CrawlerException;
+import com.norconex.crawler.core.CrawlerException;
 
 import lombok.experimental.StandardException;
 

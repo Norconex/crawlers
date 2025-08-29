@@ -16,7 +16,7 @@ package com.norconex.crawler.core2.cmd.crawl.pipeline;
 
 import org.apache.commons.lang3.mutable.MutableLong;
 
-import com.norconex.crawler.core2.CrawlConfig.OrphansStrategy;
+import com.norconex.crawler.core.CrawlConfig.OrphansStrategy;
 import com.norconex.crawler.core2.cluster.ClusterTask;
 import com.norconex.crawler.core2.cmd.crawl.pipeline.process.CrawlProcessTask.ProcessQueueAction;
 import com.norconex.crawler.core2.context.CrawlContext;

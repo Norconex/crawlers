@@ -16,7 +16,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core2.CrawlConfig;
+import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core2.cluster.ClusterContinuousTask.WorkResult;
 import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanClusterConnector;
 import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanTaskManager;

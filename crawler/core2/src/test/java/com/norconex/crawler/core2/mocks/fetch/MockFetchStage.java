@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core2.mocks.fetch;
 
-import com.norconex.crawler.core2.CrawlerException;
+import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core2.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core2.doc.pipelines.importer.stages.AbstractImporterStage;
 import com.norconex.crawler.core2.fetch.FetchDirective;

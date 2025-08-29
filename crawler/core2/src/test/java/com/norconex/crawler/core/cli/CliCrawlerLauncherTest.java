@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cli;
+package com.norconex.crawler.core.cli;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -254,8 +254,7 @@ class CliCrawlerLauncherTest {
     void testStoreExportImport(int numOfNodes) {
         var exportDir = tempDir.resolve("exportdir");
         var exportFile =
-                exportDir.resolve(MockCrawlerBuilder.CRAWLER_ID
-                        + ".zip");
+                exportDir.resolve(MockCrawlerBuilder.CRAWLER_ID + ".zip");
         var configFile = CrawlerConfigStubber.writeConfigToDir(
                 tempDir, cfg -> {});
 
@@ -289,7 +288,7 @@ class CliCrawlerLauncherTest {
      */
     private void waitForFileUnlock(Path file, long timeoutMillis,
             long pollMillis) {
-        long start = System.currentTimeMillis();
+        var start = System.currentTimeMillis();
         while (System.currentTimeMillis() - start < timeoutMillis) {
             try (var channel = Files.newByteChannel(file)) {
                 // If we can open the file, it's not locked
@@ -586,20 +585,4 @@ class CliCrawlerLauncherTest {
                 .build()
                 .launch();
     }
-
-    //    //TODO DELETE ME:
-    //    private MockCliExit launch(
-    //            Class<? extends ClusterConnector> clusterConnClass,
-    //            String... cmdArgs) {
-    //        return MockCliLauncher
-    //                .builder()
-    //                .args(List.of(cmdArgs))
-    //                .workDir(tempDir)
-    //                .logErrors(true)
-    //                .configModifier(cfg -> cfg.setClusterConnector(
-    //                        ClassUtil.newInstance(clusterConnClass)))
-    //                .build()
-    //                .launch();
-    //    }
-
 }

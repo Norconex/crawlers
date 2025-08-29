@@ -16,7 +16,7 @@ package com.norconex.crawler.core2.cmd.crawl.pipeline.bootstrap.queue;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.crawler.core2.CrawlConfig;
+import com.norconex.crawler.core.CrawlConfig;
 
 import lombok.extern.slf4j.Slf4j;
 

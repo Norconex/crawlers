@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
-import com.norconex.crawler.core2.CrawlConfig;
+import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
 

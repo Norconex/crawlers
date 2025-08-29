@@ -22,10 +22,10 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
-import com.norconex.crawler.core2.CrawlConfig;
-import com.norconex.crawler.core2.Crawler;
 import com.norconex.crawler.core2.cluster.CacheManager;
 import com.norconex.crawler.core2.cluster.TaskManager;
 import com.norconex.crawler.core2.context.CrawlContext;

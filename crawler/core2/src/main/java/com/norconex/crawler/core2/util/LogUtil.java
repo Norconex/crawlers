@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.MDC;
 
 import com.norconex.commons.lang.file.FileUtil;
-import com.norconex.crawler.core2.CrawlConfig;
+import com.norconex.crawler.core.CrawlConfig;
 
 import lombok.NonNull;
 

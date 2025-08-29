@@ -26,8 +26,8 @@ import org.jeasy.random.EasyRandom;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import com.norconex.crawler.core2.CrawlConfig;
-import com.norconex.crawler.core2.CrawlDriver;
+import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core2.cluster.ClusterConnector;
 import com.norconex.crawler.core2.mocks.cluster.MockSingleNodeConnector;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlDriverFactory;

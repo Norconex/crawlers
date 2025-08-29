@@ -16,7 +16,7 @@ package com.norconex.crawler.core2.util;
 
 import org.apache.commons.lang3.function.FailableRunnable;
 
-import com.norconex.crawler.core2.CrawlerException;
+import com.norconex.crawler.core.CrawlerException;
 
 import lombok.extern.slf4j.Slf4j;
 

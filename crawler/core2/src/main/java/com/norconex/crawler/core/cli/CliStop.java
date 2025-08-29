@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,25 +12,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cli;
+package com.norconex.crawler.core.cli;
 
-import com.norconex.crawler.core2.Crawler;
+import com.norconex.crawler.core.Crawler;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import picocli.CommandLine.Command;
 
 /**
- * Validate configuration file format and quit.
+ * Stop a crawler.
  */
 @Command(
-    name = "configcheck",
-    description = "Validate configuration file syntax"
+    name = "stop",
+    description = "Stop a crawler"
 )
-public class CliConfigCheck extends CliBase {
+@EqualsAndHashCode
+@ToString
+public class CliStop extends CliBase {
+
     @Override
-    public void runCommand(Crawler crawler) {
-        // Reaching this method means no errors were found. Simply state so.
-        out().println();
-        out().println("No configuration errors detected.");
-        out().flush();
+    protected void runCommand(Crawler crawler) {
+        crawler.stop();
     }
 }

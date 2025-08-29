@@ -18,7 +18,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 import com.norconex.commons.lang.file.FileUtil;
-import com.norconex.crawler.core2.CrawlConfig;
+import com.norconex.crawler.core.CrawlConfig;
 
 import lombok.NonNull;
 

@@ -12,36 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cli;
+package com.norconex.crawler.core.cli;
 
-import java.nio.file.Path;
+import com.norconex.crawler.core.Crawler;
 
-import com.norconex.crawler.core2.Crawler;
-
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
 
 /**
- * Import crawl store from specified file.
+ * Clean the Collector crawling history.
  */
 @Command(
-    name = "storeimport",
-    description = "Import crawl store from specified files"
+    name = "clean",
+    description = "Clean the Collector crawling history (to start fresh)"
 )
-@EqualsAndHashCode
-@ToString
-public class CliStoreImport extends CliBase {
-    @Option(
-        names = { "-f", "-file" },
-        description = "Data store files to import.",
-        required = true
-    )
-    private Path inFile;
+public class CliClean extends CliBase {
 
     @Override
     protected void runCommand(Crawler crawler) {
-        crawler.storageImport(inFile);
+        crawler.clean();
     }
 }

@@ -19,8 +19,8 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
-import com.norconex.crawler.core2.CrawlConfig;
-import com.norconex.crawler.core2.Crawler;
+import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core2.session.CrawlSession;
 
 import lombok.Data;

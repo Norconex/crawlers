@@ -12,11 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cli;
+package com.norconex.crawler.core.cli;
 
 import java.nio.file.Path;
 
-import com.norconex.crawler.core2.Crawler;
+import com.norconex.crawler.core.Crawler;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -24,34 +24,24 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 /**
- * Export crawl store to specified file.
+ * Import crawl store from specified file.
  */
 @Command(
-    name = "storeexport",
-    description = "Export crawl store to specified directory"
+    name = "storeimport",
+    description = "Import crawl store from specified files"
 )
 @EqualsAndHashCode
 @ToString
-public class CliStoreExport extends CliBase {
-
+public class CliStoreImport extends CliBase {
     @Option(
-        names = { "-d", "-dir" },
-        description = "Export directory",
+        names = { "-f", "-file" },
+        description = "Data store files to import.",
         required = true
     )
-    private Path dir;
-
-    @Option(
-        names = { "-pretty" },
-        description = "Pretty-print the exported JSON files.",
-        required = false
-    )
-    private boolean pretty;
-
-    //TODO make compress configurable?
+    private Path inFile;
 
     @Override
     protected void runCommand(Crawler crawler) {
-        crawler.storageExport(dir, pretty);
+        crawler.storageImport(inFile);
     }
 }
