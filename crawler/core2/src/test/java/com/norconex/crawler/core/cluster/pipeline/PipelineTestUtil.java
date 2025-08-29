@@ -67,7 +67,7 @@ public final class PipelineTestUtil {
             }
             prevValue = newValue;
             futures.add(s.getCluster()
-                    .getPipelineManager().executePipeline(pipeline, 0));
+                    .getPipelineManager().executePipeline(pipeline));
         }
 
         return waitAndGetAll(futures);
@@ -94,7 +94,7 @@ public final class PipelineTestUtil {
             }
             applyInterval = true;
             futures.add(s.getCluster()
-                    .getPipelineManager().executePipeline(pipeline, 0));
+                    .getPipelineManager().executePipeline(pipeline));
         }
 
         return waitAndGetAll(futures);
@@ -117,14 +117,14 @@ public final class PipelineTestUtil {
         sessions.stream()
                 .filter(s -> !s.getCluster().getLocalNode().isCoordinator())
                 .forEach(s -> futures.add(s.getCluster()
-                        .getPipelineManager().executePipeline(pipeline, 0)));
+                        .getPipelineManager().executePipeline(pipeline)));
         // Then start coordinator so all workers are listening before first
         // step is published
         sessions.stream()
                 .filter(s -> s.getCluster().getLocalNode().isCoordinator())
                 .findFirst()
                 .ifPresent(s -> futures.add(s.getCluster()
-                        .getPipelineManager().executePipeline(pipeline, 0)));
+                        .getPipelineManager().executePipeline(pipeline)));
 
         return waitAndGetAll(futures);
     }
@@ -140,7 +140,7 @@ public final class PipelineTestUtil {
         var futures = new ArrayList<CompletableFuture<PipelineResult>>();
         sessions.stream()
                 .forEach(s -> futures.add(s.getCluster()
-                        .getPipelineManager().executePipeline(pipeline, 0)));
+                        .getPipelineManager().executePipeline(pipeline)));
         return waitAndGetAll(futures);
     }
 

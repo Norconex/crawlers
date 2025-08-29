@@ -25,6 +25,11 @@ public interface Step {
 
     void execute(CrawlSession session);
 
+    /**
+     * Requests for the step to stop. The method may return before the
+     * step is actually stopped (up to implementation).
+     * @param session crawl session
+     */
     void stop(CrawlSession session);
 
     PipelineStatus reduce(

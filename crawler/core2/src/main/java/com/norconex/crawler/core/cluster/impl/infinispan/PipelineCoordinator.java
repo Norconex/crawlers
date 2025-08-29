@@ -129,14 +129,12 @@ public class PipelineCoordinator implements AutoCloseable {
     }
 
     void doCoordinatePipelineExecution() {
-        // initial sweep
-        //        workerStatusCache.forEach(this::updateWorkerStatus);
-
         var key = CacheKeys.pipelineKey(cluster, pipeline);
 
         activePipeRec = resolveFirstStepToRun(key, pipeline);
 
-        // If pipeline already terminal, just record and exit without modifying caches.
+        // If pipeline already terminal, just record and exit without
+        // modifying caches.
 
         //TODO when a new run, does the crawler wipe out the pipeline state
         // or shall we rely on the run ID or equivalent to know if

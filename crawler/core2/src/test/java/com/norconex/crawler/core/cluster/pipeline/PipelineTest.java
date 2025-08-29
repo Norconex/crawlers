@@ -82,7 +82,7 @@ class PipelineTest {
                 .multiNodesCrawlSession(tempDir.resolve("node1"))) {
             cache = ClusterTestUtil.stringCache(session1, cacheName);
             session1.getCluster().getPipelineManager()
-                    .executePipeline(pipeline, 0);
+                    .executePipeline(pipeline);
 
             // Wait for step1 to be completed by node1
             ClusterTestUtil.waitForCacheSize(cache, 1, Duration.ofSeconds(10));
@@ -364,7 +364,7 @@ class PipelineTest {
                 .multiNodesCrawlSession(tempDir.resolve("node1"))) {
             cache1 = ClusterTestUtil.stringCache(session1, cacheName);
             future1 = session1.getCluster().getPipelineManager()
-                    .executePipeline(pipeline, 0);
+                    .executePipeline(pipeline);
 
             // Wait for step1 to be completed by node1
             ClusterTestUtil.waitForCacheSize(cache1, 2, Duration.ofSeconds(10));
@@ -372,7 +372,7 @@ class PipelineTest {
             try (var session2 = CrawlSessionStubber
                     .multiNodesCrawlSession(tempDir.resolve("node2"))) {
                 future2 = session2.getCluster().getPipelineManager()
-                        .executePipeline(pipeline, 0);
+                        .executePipeline(pipeline);
                 var cache2 = ClusterTestUtil.stringCache(session2, cacheName);
 
                 ClusterTestUtil.waitForCacheSize(cache2, 3,

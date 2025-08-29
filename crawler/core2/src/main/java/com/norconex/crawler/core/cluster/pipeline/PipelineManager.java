@@ -25,19 +25,16 @@ public interface PipelineManager {
      * Executes a pipeline with an optional timeout. Use zero or a negative
      * value for unlimited (no timeout).
      * @param pipeline the pipeline to execute
-     * @param timeout halt the pipeline if it takes longer and the timeout
      * @return a future containing the pipeline execution result
      */
-    CompletableFuture<PipelineResult> executePipeline(
-            Pipeline pipeline, long timeout);
+    CompletableFuture<PipelineResult> executePipeline(Pipeline pipeline);
 
     /**
      * Stops a pipeline execution with an optional timeout waiting for
      * confirmation. Use zero or a  negative value for unlimited (no timeout).
      * @param pipelineId id of the pipeline to stop
-     * @param timeout returns after the specified timeout
      * @return a future triggered when stopped or timeout reached
      */
-    CompletableFuture<Void> stopPipeline(String pipelineId, long timeout);
+    CompletableFuture<Void> stopPipeline(String pipelineId);
 
 }

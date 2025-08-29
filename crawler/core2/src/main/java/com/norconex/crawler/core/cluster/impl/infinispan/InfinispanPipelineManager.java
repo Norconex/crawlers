@@ -33,8 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 public class InfinispanPipelineManager
         implements PipelineManager, AutoCloseable {
 
-    private static final long SHUTDOWN_AWAIT_SECONDS = 5;
-
     private final InfinispanCluster cluster;
 
     private final Map<String, PipelineExecution> pipelineExecutions =
@@ -43,7 +41,7 @@ public class InfinispanPipelineManager
 
     @Override
     public CompletableFuture<PipelineResult>
-            executePipeline(@NonNull Pipeline pipeline, long timeoutMs) {
+            executePipeline(@NonNull Pipeline pipeline) {
 
         if (closed) {
             throw new IllegalStateException(
@@ -62,7 +60,7 @@ public class InfinispanPipelineManager
 
         // Create execution without try-with-resources so it is not closed
         // immediately. We close it when the returned future completes.
-        var exec = new PipelineExecution(cluster, pipeline, timeoutMs);
+        var exec = new PipelineExecution(cluster, pipeline);
         pipelineExecutions.put(pipeline.getId(), exec);
         var future = exec.execute();
         future.whenComplete((r, e) -> {
@@ -80,19 +78,16 @@ public class InfinispanPipelineManager
 
     // invoked by cluster StopController listener
     public void stop() {
-        pipelineExecutions.keySet().forEach(pipeId -> {
-            stopPipeline(pipeId, -1); //TODO make timeout configurable
-        });
+        pipelineExecutions.keySet().forEach(this::stopPipeline);
     }
 
     @Override
-    public CompletableFuture<Void> stopPipeline(
-            String pipelineId, long timeout) {
+    public CompletableFuture<Void> stopPipeline(String pipelineId) {
 
         var pipeExec = pipelineExecutions.get(pipelineId);
         if (pipeExec != null) {
             LOG.info("Closing pipeline {}...", pipelineId);
-            return pipeExec.stopPipeline(timeout);
+            return pipeExec.stopPipeline();
         }
         return CompletableFuture.completedFuture(null);
     }
@@ -100,9 +95,7 @@ public class InfinispanPipelineManager
     @Override
     public void close() {
         closed = true;
-        pipelineExecutions.values().forEach(pipeExec -> {
-            pipeExec.stopPipeline(SHUTDOWN_AWAIT_SECONDS);
-        });
+        pipelineExecutions.values().forEach(PipelineExecution::stopPipeline);
         pipelineExecutions.clear();
     }
 

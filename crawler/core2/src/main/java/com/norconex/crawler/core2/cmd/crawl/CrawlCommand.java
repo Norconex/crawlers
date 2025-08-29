@@ -76,6 +76,9 @@ public class CrawlCommand implements Command {
             LOG.error("Crawler execution failed.", e);
         }
 
+        //TODO have thread/timer that invoke stopPipeline(id) with the
+        // timeout value from crawler configuration.
+
         //        var result = ctx.getGrid()
         //                .getCompute()
         //                .executePipeline(CrawlPipelineFactory.create(ctx));

@@ -45,14 +45,6 @@ public class PipelineExecution implements AutoCloseable {
     private final InfinispanCluster cluster;
     private final Pipeline pipeline;
 
-    //TODO since timeout is set by the crawler and is configured globally
-    // as a crawler setting, it should be a datetime instead, calculated from
-    // the start date of the crawler.  That way we don't have to worry
-    // about late joining nodes. They'll all have the same end datetime
-    // (if one is configured).  That value will be stored in a session-wide
-    // cache.
-    private final long timeoutMs;
-
     private PipelineCoordinator coordinator;
     private PipelineWorker worker;
 
@@ -68,10 +60,9 @@ public class PipelineExecution implements AutoCloseable {
     private boolean isCoordinator;
 
     public PipelineExecution(
-            InfinispanCluster cluster, Pipeline pipeline, long timeoutMs) {
+            InfinispanCluster cluster, Pipeline pipeline) {
         this.cluster = cluster;
         this.pipeline = pipeline;
-        this.timeoutMs = timeoutMs;
         coordChangeListener = this::handleCoordinatorChange;
         cluster.addCoordinatorChangeListener(coordChangeListener);
     }
@@ -91,8 +82,8 @@ public class PipelineExecution implements AutoCloseable {
 
         // No matter which node is coordinator at any moment in time,
         // the worker will always complete after the coordinator
-        // sends a cluster-wide terminal signal for the last step. So it is safe to
-        // only track the worker's future.
+        // sends a cluster-wide terminal signal for the last step. So it is
+        // safe to only track the worker's future.
         return startWorker();
     }
 
@@ -114,7 +105,7 @@ public class PipelineExecution implements AutoCloseable {
 
     //TODO make distinction between stopping a process on a node vs stopping
     // on the cluster, vs shutting down.
-    public CompletableFuture<Void> stopPipeline(long timeout) {
+    public CompletableFuture<Void> stopPipeline() {
         //Stop corresponding worker and then possible coordinator
         //TODO implement properly
         ofNullable(worker).ifPresent(PipelineWorker::stop);
