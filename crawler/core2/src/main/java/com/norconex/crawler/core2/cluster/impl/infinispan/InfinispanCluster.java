@@ -29,6 +29,7 @@ import org.infinispan.notifications.cachemanagerlistener.event.ViewChangedEvent;
 import org.infinispan.remoting.transport.Address;
 
 import com.norconex.crawler.core.cluster.Cluster;
+import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanClusterConfig;
 import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanPipelineManager;
 import com.norconex.crawler.core.cluster.impl.infinispan.StopController;
 import com.norconex.crawler.core.cluster.impl.infinispan.event.CoordinatorChangeListener;

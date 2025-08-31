@@ -16,6 +16,7 @@ package com.norconex.crawler.core2.cluster.impl.infinispan;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.cluster.Cluster;
+import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanClusterConfig;
 import com.norconex.crawler.core2.cluster.ClusterConnector;
 
 import lombok.EqualsAndHashCode;

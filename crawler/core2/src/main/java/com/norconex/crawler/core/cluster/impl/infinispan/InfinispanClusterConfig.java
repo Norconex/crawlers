@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cluster.impl.infinispan;
+package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import java.time.Duration;
 
@@ -20,6 +20,7 @@ import org.infinispan.configuration.parsing.ConfigurationBuilderHolder;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanUtil;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

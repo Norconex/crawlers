@@ -1,4 +1,4 @@
-package com.norconex.crawler.core2.cluster.impl.infinispan;
+package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import java.io.IOException;
 import java.io.StringWriter;
