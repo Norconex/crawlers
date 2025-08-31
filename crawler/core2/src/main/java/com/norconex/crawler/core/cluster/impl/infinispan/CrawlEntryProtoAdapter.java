@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cluster.impl.infinispan;
+package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import static java.util.Optional.ofNullable;
 
@@ -32,7 +32,7 @@ import org.infinispan.protostream.annotations.Proto;
 import org.infinispan.protostream.annotations.ProtoField;
 
 import com.norconex.commons.lang.ClassUtil;
-import com.norconex.crawler.core2.cluster.CacheException;
+import com.norconex.crawler.core.cluster.CacheException;
 import com.norconex.crawler.core2.ledger.CrawlEntry;
 import com.norconex.crawler.core2.ledger.ProcessingStatus;
 

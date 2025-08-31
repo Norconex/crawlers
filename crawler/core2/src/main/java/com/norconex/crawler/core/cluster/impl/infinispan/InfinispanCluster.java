@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cluster.impl.infinispan;
+package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import static java.util.Optional.ofNullable;
 
@@ -29,9 +29,6 @@ import org.infinispan.notifications.cachemanagerlistener.event.ViewChangedEvent;
 import org.infinispan.remoting.transport.Address;
 
 import com.norconex.crawler.core.cluster.Cluster;
-import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanClusterConfig;
-import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanPipelineManager;
-import com.norconex.crawler.core.cluster.impl.infinispan.StopController;
 import com.norconex.crawler.core.cluster.impl.infinispan.event.CoordinatorChangeListener;
 import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.util.ExceptionSwallower;

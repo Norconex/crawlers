@@ -1,4 +1,4 @@
-package com.norconex.crawler.core2.cluster;
+package com.norconex.crawler.core.cluster;
 
 import java.util.function.BiConsumer;
 

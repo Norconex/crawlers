@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core2.cluster.Cache;
+import com.norconex.crawler.core.cluster.Cache;
 import com.norconex.crawler.core2.junit.ClusterNodesTest;
 import com.norconex.crawler.core2.junit.ClusterTestUtil;
 import com.norconex.crawler.core2.junit.WithTestWatcherLogging;

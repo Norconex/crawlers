@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.cluster.impl.infinispan.CacheNames;
-import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanCacheManager;
+import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanCacheManager;
 
 class CacheDistributionTest {
 

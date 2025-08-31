@@ -12,21 +12,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cluster.impl.infinispan;
+package com.norconex.crawler.core.cluster;
 
-import org.infinispan.protostream.annotations.Proto;
-import org.infinispan.protostream.annotations.ProtoEnumValue;
+import java.util.Iterator;
+import java.util.function.Consumer;
 
-@Proto
-public enum TaskType {
-    @ProtoEnumValue(0)
-    RUN_ONE_ONCE,
-    @ProtoEnumValue(1)
-    RUN_ONE,
-    @ProtoEnumValue(2)
-    RUN_ALL,
-    @ProtoEnumValue(3)
-    RUN_ALL_ONCE,
-    @ProtoEnumValue(4)
-    CONTINUOUS
+public interface CacheSet {
+
+    //TODO add listener
+
+    boolean isEmpty();
+
+    void add(String key);
+
+    void remove(String key);
+
+    void clear();
+
+    boolean contains(String key);
+
+    Iterator<String> iterator();
+
+    long size();
+
+    void forEach(Consumer<String> action);
 }

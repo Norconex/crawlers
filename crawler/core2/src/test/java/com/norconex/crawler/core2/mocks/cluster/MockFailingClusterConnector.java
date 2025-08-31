@@ -15,7 +15,7 @@
 package com.norconex.crawler.core2.mocks.cluster;
 
 import com.norconex.crawler.core.cluster.Cluster;
-import com.norconex.crawler.core2.cluster.ClusterConnector;
+import com.norconex.crawler.core.cluster.ClusterConnector;
 
 import lombok.Data;
 

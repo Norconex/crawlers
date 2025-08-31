@@ -1,9 +1,9 @@
-package com.norconex.crawler.core2.cluster.impl.infinispan;
+package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import java.util.Iterator;
 import java.util.function.Consumer;
 
-import com.norconex.crawler.core2.cluster.CacheSet;
+import com.norconex.crawler.core.cluster.CacheSet;
 
 import lombok.extern.slf4j.Slf4j;
 

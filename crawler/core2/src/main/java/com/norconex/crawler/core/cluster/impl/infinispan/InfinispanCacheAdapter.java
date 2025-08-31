@@ -1,4 +1,4 @@
-package com.norconex.crawler.core2.cluster.impl.infinispan;
+package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -15,7 +15,7 @@ import org.infinispan.commons.api.query.Query;
 import org.infinispan.lifecycle.ComponentStatus;
 import org.infinispan.util.function.SerializableFunction;
 
-import com.norconex.crawler.core2.cluster.Cache;
+import com.norconex.crawler.core.cluster.Cache;
 
 import lombok.extern.slf4j.Slf4j;
 

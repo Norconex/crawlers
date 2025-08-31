@@ -16,7 +16,7 @@ package com.norconex.crawler.core.spi;
 
 import com.norconex.commons.lang.bean.spi.BasePolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core2.cluster.ClusterConnector;
+import com.norconex.crawler.core.cluster.ClusterConnector;
 import com.norconex.crawler.core2.cmd.crawl.pipeline.process.ProcessUpsertTest;
 import com.norconex.crawler.core2.junit.CrawlTestCapturer;
 import com.norconex.crawler.core2.mocks.cli.MockCliEventWriter;

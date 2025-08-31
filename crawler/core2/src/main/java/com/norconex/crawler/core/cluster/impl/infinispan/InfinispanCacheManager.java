@@ -1,4 +1,4 @@
-package com.norconex.crawler.core2.cluster.impl.infinispan;
+package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -13,16 +13,14 @@ import org.infinispan.configuration.cache.ConfigurationBuilder;
 import org.infinispan.lifecycle.ComponentStatus;
 import org.infinispan.manager.DefaultCacheManager;
 
-import com.norconex.crawler.core.cluster.impl.infinispan.CacheNames;
-import com.norconex.crawler.core.cluster.impl.infinispan.StepRecord;
+import com.norconex.crawler.core.cluster.Cache;
+import com.norconex.crawler.core.cluster.CacheException;
+import com.norconex.crawler.core.cluster.CacheManager;
+import com.norconex.crawler.core.cluster.CacheSet;
+import com.norconex.crawler.core.cluster.Counter;
 import com.norconex.crawler.core.cluster.impl.infinispan.event.CacheEntryChangeListener;
 import com.norconex.crawler.core.cluster.impl.infinispan.event.CacheEntryChangeListenerAdapter;
 import com.norconex.crawler.core.cluster.pipeline.PipelineException;
-import com.norconex.crawler.core2.cluster.Cache;
-import com.norconex.crawler.core2.cluster.CacheException;
-import com.norconex.crawler.core2.cluster.CacheManager;
-import com.norconex.crawler.core2.cluster.CacheSet;
-import com.norconex.crawler.core2.cluster.Counter;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;

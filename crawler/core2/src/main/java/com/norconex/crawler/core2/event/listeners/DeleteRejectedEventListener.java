@@ -18,7 +18,7 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core2.cluster.CacheSet;
+import com.norconex.crawler.core.cluster.CacheSet;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.session.CrawlSession;
 

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cluster.impl.infinispan;
+package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import static java.util.Optional.ofNullable;
 
@@ -22,7 +22,7 @@ import org.infinispan.lifecycle.ComponentStatus;
 import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.remoting.transport.Address;
 
-import com.norconex.crawler.core2.cluster.ClusterNode;
+import com.norconex.crawler.core.cluster.ClusterNode;
 import com.norconex.crawler.core2.util.ExceptionSwallower;
 
 import lombok.RequiredArgsConstructor;

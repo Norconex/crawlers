@@ -12,28 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cluster;
+package com.norconex.crawler.core.cluster;
 
-import java.util.Iterator;
-import java.util.function.Consumer;
+public interface ClusterConnector {
 
-public interface CacheSet {
-
-    //TODO add listener
-
-    boolean isEmpty();
-
-    void add(String key);
-
-    void remove(String key);
-
-    void clear();
-
-    boolean contains(String key);
-
-    Iterator<String> iterator();
-
-    long size();
-
-    void forEach(Consumer<String> action);
+    Cluster connect();
 }

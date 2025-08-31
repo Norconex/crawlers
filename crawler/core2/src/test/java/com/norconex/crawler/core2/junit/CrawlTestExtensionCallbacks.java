@@ -34,7 +34,7 @@ import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core2.cluster.ClusterConnector;
+import com.norconex.crawler.core.cluster.ClusterConnector;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlerBuilder;

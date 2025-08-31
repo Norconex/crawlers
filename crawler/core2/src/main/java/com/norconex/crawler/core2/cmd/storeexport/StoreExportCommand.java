@@ -28,7 +28,7 @@ import org.apache.commons.lang3.mutable.MutableLong;
 
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core2.cluster.Cache;
+import com.norconex.crawler.core.cluster.Cache;
 import com.norconex.crawler.core2.cmd.Command;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.session.CrawlSession;

@@ -12,13 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cluster.impl.infinispan;
+package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import org.infinispan.protostream.GeneratedSchema;
 import org.infinispan.protostream.annotations.ProtoSchema;
 import org.infinispan.protostream.annotations.ProtoSyntax;
 
-import com.norconex.crawler.core.cluster.impl.infinispan.StepRecord;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core2.ledger.ProcessingStatus;
 
@@ -27,9 +26,6 @@ import com.norconex.crawler.core2.ledger.ProcessingStatus;
     includeClasses = {
             CrawlEntryProtoAdapter.class,
             StringSerializedObject.class,
-            TaskState.class,
-            TaskType.class,
-            TaskRecord.class,
             StepRecord.class,
             PipelineStatus.class,
             ProcessingStatus.class

@@ -23,11 +23,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import com.norconex.crawler.core2.cluster.Cache;
-import com.norconex.crawler.core2.cluster.CacheManager;
-import com.norconex.crawler.core2.cluster.Counter;
-import com.norconex.crawler.core2.cluster.impl.infinispan.CrawlEntryCacheAdapter;
-import com.norconex.crawler.core2.cluster.impl.infinispan.CrawlEntryProtoAdapter;
+import com.norconex.crawler.core.cluster.Cache;
+import com.norconex.crawler.core.cluster.CacheManager;
+import com.norconex.crawler.core.cluster.Counter;
+import com.norconex.crawler.core.cluster.impl.infinispan.CrawlEntryCacheAdapter;
+import com.norconex.crawler.core.cluster.impl.infinispan.CrawlEntryProtoAdapter;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.session.CrawlSession;
 

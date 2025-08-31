@@ -18,10 +18,10 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 
+import com.norconex.crawler.core.cluster.CacheManager;
 import com.norconex.crawler.core.cluster.Cluster;
+import com.norconex.crawler.core.cluster.ClusterNode;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
-import com.norconex.crawler.core2.cluster.CacheManager;
-import com.norconex.crawler.core2.cluster.ClusterNode;
 
 import lombok.Data;
 

@@ -22,7 +22,6 @@ import com.norconex.crawler.core.cluster.impl.infinispan.event.CacheEntryChangeL
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
 import com.norconex.crawler.core.cluster.pipeline.PipelineResult;
-import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanCluster;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;

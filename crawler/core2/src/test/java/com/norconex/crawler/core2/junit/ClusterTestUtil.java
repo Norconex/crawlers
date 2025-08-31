@@ -9,8 +9,8 @@ import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.Sleeper;
+import com.norconex.crawler.core.cluster.Cache;
 import com.norconex.crawler.core.cluster.Cluster;
-import com.norconex.crawler.core2.cluster.Cache;
 import com.norconex.crawler.core2.session.CrawlSession;
 
 /** Utility helpers for cluster-related tests. */

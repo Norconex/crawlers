@@ -24,8 +24,7 @@ import org.infinispan.notifications.Listener;
 import org.infinispan.notifications.cachelistener.annotation.CacheEntryCreated;
 import org.infinispan.notifications.cachelistener.event.CacheEntryCreatedEvent;
 
-import com.norconex.crawler.core2.cluster.Cache;
-import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanCacheAdapter;
+import com.norconex.crawler.core.cluster.Cache;
 
 import lombok.extern.slf4j.Slf4j;
 

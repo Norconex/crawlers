@@ -23,8 +23,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.norconex.crawler.core2.cluster.Cache;
-import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanCacheManager;
+import com.norconex.crawler.core.cluster.Cache;
+import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanCacheManager;
 import com.norconex.crawler.core2.ledger.CrawlEntryLedger;
 import com.norconex.crawler.core2.session.CrawlSession;
 

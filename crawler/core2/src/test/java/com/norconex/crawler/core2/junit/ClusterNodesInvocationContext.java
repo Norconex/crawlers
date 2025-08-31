@@ -18,12 +18,12 @@ import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
 
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
+import com.norconex.crawler.core.cluster.CacheManager;
 import com.norconex.crawler.core.cluster.Cluster;
+import com.norconex.crawler.core.cluster.ClusterConnector;
+import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanClusterConnector;
+import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanUtil;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
-import com.norconex.crawler.core2.cluster.CacheManager;
-import com.norconex.crawler.core2.cluster.ClusterConnector;
-import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanClusterConnector;
-import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanUtil;
 import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.session.CrawlSessionFactory;
 

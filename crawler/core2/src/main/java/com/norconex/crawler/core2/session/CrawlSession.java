@@ -24,12 +24,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.norconex.commons.lang.event.Event;
 import com.norconex.crawler.core.CrawlerException;
+import com.norconex.crawler.core.cluster.Cache;
 import com.norconex.crawler.core.cluster.Cluster;
+import com.norconex.crawler.core.cluster.ClusterNode;
 import com.norconex.crawler.core.session.CrawlResumeState;
 import com.norconex.crawler.core.session.CrawlRunInfo;
 import com.norconex.crawler.core.session.CrawlRunInfoResolver;
-import com.norconex.crawler.core2.cluster.Cache;
-import com.norconex.crawler.core2.cluster.ClusterNode;
 import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.util.ExceptionSwallower;

@@ -15,7 +15,6 @@
 package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
-import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanCluster;
 
 public final class CacheKeys {
     private CacheKeys() {

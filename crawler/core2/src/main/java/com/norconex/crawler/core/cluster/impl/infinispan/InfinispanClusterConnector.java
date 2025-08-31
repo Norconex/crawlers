@@ -12,11 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cluster;
+package com.norconex.crawler.core.cluster.impl.infinispan;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.cluster.Cluster;
+import com.norconex.crawler.core.cluster.ClusterConnector;
 
-public interface ClusterConnector {
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-    Cluster connect();
+@EqualsAndHashCode
+@Getter
+public class InfinispanClusterConnector
+        implements ClusterConnector, Configurable<InfinispanClusterConfig> {
+
+    private final InfinispanClusterConfig configuration =
+            new InfinispanClusterConfig();
+
+    @Override
+    public Cluster connect() {
+        return new InfinispanCluster(configuration);
+    }
 }

@@ -20,7 +20,6 @@ import org.infinispan.configuration.parsing.ConfigurationBuilderHolder;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanUtil;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

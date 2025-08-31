@@ -27,14 +27,11 @@ import org.apache.commons.collections4.bag.HashBag;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.Sleeper;
+import com.norconex.crawler.core.cluster.Cache;
 import com.norconex.crawler.core.cluster.impl.infinispan.event.CacheEntryChangeListener;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.Step;
-import com.norconex.crawler.core2.cluster.Cache;
-import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanCluster;
-import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanClusterConnector;
-import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanUtil;
 import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.util.ConcurrentUtil;
 import com.norconex.crawler.core2.util.ExceptionSwallower;

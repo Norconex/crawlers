@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cluster.impl.infinispan;
+package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import static java.util.Optional.ofNullable;
 
@@ -25,7 +25,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.norconex.crawler.core2.cluster.Cache;
+import com.norconex.crawler.core.cluster.Cache;
 import com.norconex.crawler.core2.ledger.CrawlEntry;
 
 /**

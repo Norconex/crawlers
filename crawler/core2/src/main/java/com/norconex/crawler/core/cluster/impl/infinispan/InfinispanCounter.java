@@ -1,8 +1,8 @@
-package com.norconex.crawler.core2.cluster.impl.infinispan;
+package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import org.infinispan.Cache;
 
-import com.norconex.crawler.core2.cluster.Counter;
+import com.norconex.crawler.core.cluster.Counter;
 
 class InfinispanCounter implements Counter {
     private final Cache<String, Long> cache;

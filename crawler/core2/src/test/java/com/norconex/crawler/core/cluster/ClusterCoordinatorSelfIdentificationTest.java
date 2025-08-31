@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core2.cluster.Cache;
 import com.norconex.crawler.core2.junit.ClusterNodesTest;
 import com.norconex.crawler.core2.junit.ClusterTestUtil;
 import com.norconex.crawler.core2.session.CrawlSession;

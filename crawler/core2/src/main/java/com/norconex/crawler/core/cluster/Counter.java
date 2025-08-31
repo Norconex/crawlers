@@ -1,4 +1,4 @@
-package com.norconex.crawler.core2.cluster;
+package com.norconex.crawler.core.cluster;
 
 public interface Counter {
     long incrementAndGet();

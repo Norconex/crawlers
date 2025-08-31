@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cluster;
+package com.norconex.crawler.core.cluster;
 
 import java.util.Iterator;
 import java.util.List;

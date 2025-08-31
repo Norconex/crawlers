@@ -19,7 +19,7 @@ import java.util.List;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
 
-import com.norconex.crawler.core2.cluster.ClusterConnector;
+import com.norconex.crawler.core.cluster.ClusterConnector;
 
 import lombok.RequiredArgsConstructor;
 

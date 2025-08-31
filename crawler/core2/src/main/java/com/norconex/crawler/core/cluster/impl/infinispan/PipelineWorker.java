@@ -24,14 +24,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.norconex.commons.lang.Sleeper;
+import com.norconex.crawler.core.cluster.Cache;
 import com.norconex.crawler.core.cluster.impl.infinispan.event.CacheEntryChangeListener;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineResult;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.Step;
-import com.norconex.crawler.core2.cluster.Cache;
-import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanCluster;
-import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanUtil;
 import com.norconex.crawler.core2.session.CrawlSession;
 
 import lombok.Getter;

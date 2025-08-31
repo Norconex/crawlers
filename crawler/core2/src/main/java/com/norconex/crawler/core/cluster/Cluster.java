@@ -19,8 +19,6 @@ import java.nio.file.Path;
 import java.util.List;
 
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
-import com.norconex.crawler.core2.cluster.CacheManager;
-import com.norconex.crawler.core2.cluster.ClusterNode;
 
 public interface Cluster extends Closeable {
 

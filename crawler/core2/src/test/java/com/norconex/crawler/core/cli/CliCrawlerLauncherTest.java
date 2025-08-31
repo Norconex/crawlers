@@ -43,7 +43,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import com.norconex.committer.core.CommitterEvent;
 import com.norconex.committer.core.service.CommitterServiceEvent;
 import com.norconex.commons.lang.TimeIdGenerator;
-import com.norconex.crawler.core2.cluster.ClusterConnector;
+import com.norconex.crawler.core.cluster.ClusterConnector;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.junit.WithLogLevel;
 import com.norconex.crawler.core2.junit.WithTestWatcherLogging;

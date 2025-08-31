@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cluster.impl.infinispan;
+package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import java.io.IOException;
 
@@ -22,10 +22,9 @@ import org.infinispan.configuration.parsing.ParserRegistry;
 import org.infinispan.lifecycle.ComponentStatus;
 
 import com.google.common.base.Objects;
-import com.norconex.crawler.core.cluster.impl.infinispan.StepRecord;
+import com.norconex.crawler.core.cluster.CacheException;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
-import com.norconex.crawler.core2.cluster.CacheException;
 
 public final class InfinispanUtil {
     private InfinispanUtil() {

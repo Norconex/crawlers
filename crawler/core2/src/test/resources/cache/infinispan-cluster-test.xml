@@ -27,7 +27,7 @@
     <distributed-cache-configuration name="indexed-template" configuration="default">
       <indexing enabled="true" storage="local-heap">
         <indexed-entities>
-          <indexed-entity>com.norconex.crawler.core2.cluster.impl.infinispan.CrawlEntryProtoAdapter</indexed-entity>
+          <indexed-entity>com.norconex.crawler.core.cluster.impl.infinispan.CrawlEntryProtoAdapter</indexed-entity>
         </indexed-entities>
       </indexing>
     </distributed-cache-configuration>

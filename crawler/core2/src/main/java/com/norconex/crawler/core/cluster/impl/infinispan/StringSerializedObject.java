@@ -1,9 +1,9 @@
-package com.norconex.crawler.core2.cluster.impl.infinispan;
+package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import org.infinispan.protostream.annotations.Proto;
 import org.infinispan.protostream.annotations.ProtoField;
 
-import com.norconex.crawler.core2.cluster.CacheException;
+import com.norconex.crawler.core.cluster.CacheException;
 import com.norconex.crawler.core2.util.SerialUtil;
 
 import lombok.Data;

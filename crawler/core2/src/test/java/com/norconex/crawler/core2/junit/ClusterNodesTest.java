@@ -11,7 +11,7 @@ import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.norconex.crawler.core.CrawlDriver;
-import com.norconex.crawler.core2.cluster.ClusterConnector;
+import com.norconex.crawler.core.cluster.ClusterConnector;
 import com.norconex.crawler.core2.mocks.cluster.MockMultiNodesConnector;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlDriverFactory;
 

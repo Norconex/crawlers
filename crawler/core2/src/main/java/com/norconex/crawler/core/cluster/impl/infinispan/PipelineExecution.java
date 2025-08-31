@@ -27,7 +27,6 @@ import com.norconex.crawler.core.cluster.impl.infinispan.event.CoordinatorChange
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineException;
 import com.norconex.crawler.core.cluster.pipeline.PipelineResult;
-import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanCluster;
 import com.norconex.crawler.core2.util.ExceptionSwallower;
 
 import lombok.extern.slf4j.Slf4j;
