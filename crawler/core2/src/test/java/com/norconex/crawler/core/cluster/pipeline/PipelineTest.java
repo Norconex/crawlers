@@ -22,6 +22,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -105,20 +107,27 @@ class PipelineTest {
         var cacheName =
                 ClusterTestUtil.uniqueCacheName("pipetest-coord-switch")
                         + "_replicated"; // matches infinispan config
-        var firstCoordinatorName = new AtomicReference<>();
+        var firstCoordinatorName = new AtomicReference<String>();
         var isOneNodeDown = new AtomicBoolean();
+        ConcurrentMap<String, String> observed = new ConcurrentHashMap<>();
 
         // step1 should be done only by node A and step 4 by node B.
         var pipeline = new Pipeline("test-coord-switch", List.of(
                 PipelineTestUtil.distributedStep("step1", sess -> {
                     var cache = ClusterTestUtil.stringCache(sess, cacheName);
-                    cache.put(nodeKey("step1", sess), "step1-coord-"
-                            + sess.getCluster().getLocalNode().isCoordinator());
+                    var key = nodeKey("step1", sess);
+                    var val = "step1-coord-"
+                            + sess.getCluster().getLocalNode().isCoordinator();
+                    cache.put(key, val);
+                    observed.put(key, val);
                 }),
                 PipelineTestUtil.nonDistributedStep("step2", sess -> {
                     var cache = ClusterTestUtil.stringCache(sess, cacheName);
-                    cache.put(nodeKey("step2", sess), "step2-coord-"
-                            + sess.getCluster().getLocalNode().isCoordinator());
+                    var key = nodeKey("step2", sess);
+                    var val = "step2-coord-"
+                            + sess.getCluster().getLocalNode().isCoordinator();
+                    cache.put(key, val);
+                    observed.put(key, val);
                 }),
                 PipelineTestUtil.distributedStep("step3", sess -> {
                     var cache = ClusterTestUtil.stringCache(sess, cacheName);
@@ -126,38 +135,58 @@ class PipelineTest {
                         firstCoordinatorName.set(nodeName(sess));
                     }
 
-                    // Wait that both nodes have written step1 then
-                    // fail the coordinator.
-                    ConcurrentUtil.waitUntil(() -> cache.size() == 4,
-                            Duration.ofSeconds(10), Duration.ofMillis(200));
+                    // Wait until all nodes wrote step1 and step2 is present
+                    assertThatNoException().isThrownBy(() -> {
+                        ConcurrentUtil.waitUntil(
+                                () -> countWithPrefix(observed, "step1:")
+                                        >= nodeCount
+                                        && hasAnyWithPrefix(observed, "step2:"),
+                                Duration.ofSeconds(20),
+                                Duration.ofMillis(200));
+                    });
+
+                    // Now terminate the coordinator exactly once
                     if (isCoord(sess) && !isOneNodeDown.getAndSet(true)) {
                         ExceptionSwallower.runWithInterruptClear(() -> {
                             try {
                                 LOG.info("Test closing prematurely to "
-                                        + "simulate node leaving.");
+                                        + "simulate node leaving ({}).",
+                                        nodeName(sess));
                                 sess.close();
                             } catch (Exception e) {
                                 LOG.error("Error while closing session.", e);
                             }
                         });
                     } else {
-                        cache.put(nodeKey("step3", sess), "step3-coord-"
+                        var key = nodeKey("step3", sess);
+                        var val = "step3-coord-"
                                 + sess.getCluster().getLocalNode()
-                                        .isCoordinator());
+                                        .isCoordinator();
+                        cache.put(key, val);
+                        observed.put(key, val);
                     }
                 }),
                 PipelineTestUtil.distributedStep("step4", sess -> {
                     var cache = ClusterTestUtil.stringCache(sess, cacheName);
-                    cache.put(nodeKey("step4", sess), "step4-coord-"
-                            + sess.getCluster().getLocalNode().isCoordinator());
+                    var key = nodeKey("step4", sess);
+                    var val = "step4-coord-"
+                            + sess.getCluster().getLocalNode().isCoordinator();
+                    cache.put(key, val);
+                    observed.put(key, val);
                 })));
 
-        var results = PipelineTestUtil.executeAndWait(pipeline, sessions);
+        // Launch workers first, then coordinator to reduce races
+        var results = PipelineTestUtil.executeOrderlyAndWait(pipeline, sessions);
 
-        var cache = ClusterTestUtil.stringCache(sessions.stream()
-                .filter(sess -> !sess.getCluster().getLocalNode().getNodeName()
-                        .equals(firstCoordinatorName.get()))
-                .findFirst().get(), cacheName);
+        // Wait until all expected writes are visible after failover (from in-memory observed)
+        assertThatNoException().isThrownBy(() -> {
+            ConcurrentUtil.waitUntil(
+                    () -> countWithPrefix(observed, "step1:") == nodeCount
+                            && countWithPrefix(observed, "step2:") == 1
+                            && countWithPrefix(observed, "step3:") == nodeCount - 1
+                            && countWithPrefix(observed, "step4:") == nodeCount - 1,
+                    Duration.ofSeconds(20), Duration.ofMillis(200));
+        });
 
         assertThat(results)
                 .extracting(PipelineResult::getStatus)
@@ -165,20 +194,42 @@ class PipelineTest {
                         PipelineStatus.FAILED);
 
         var completedSteps = new HashBag<String>();
-        cache.forEach((k, v) -> {
+        observed.forEach((k, v) -> {
             var stepId = StringUtils.substringBefore(k, ":");
             completedSteps.add(stepId);
         });
 
-        // should step3 be reattempted in case its load needs to be
-        // reprocessed, hence expecting 2 entries for "step3"?
+        // Expect 3x step1 (all nodes), 1x step2 (old coordinator),
+        // 2x step3 and 2x step4 (remaining nodes after failover)
         assertThat(completedSteps).containsExactlyInAnyOrder(
                 "step1", "step1", "step1", "step2", "step3", "step3", "step4",
                 "step4");
 
-        // step 2 and 4 should be by different nodes but each being coordinator
-        assertThat(cache.get("step2:" + firstCoordinatorName).get())
+        // step 2 must have been recorded by the original coordinator
+        assertThat(observed.get("step2:" + firstCoordinatorName.get()))
                 .endsWith("coord-true");
+    }
+
+    // --- test helpers --------------------------------------------------------
+
+    private static int countWithPrefix(ConcurrentMap<String, String> map, String prefix) {
+        var cnt = new AtomicInteger();
+        map.forEach((k, v) -> {
+            if (k.startsWith(prefix)) {
+                cnt.incrementAndGet();
+            }
+        });
+        return cnt.get();
+    }
+
+    private static boolean hasAnyWithPrefix(ConcurrentMap<String, String> map, String prefix) {
+        var found = new AtomicBoolean(false);
+        map.forEach((k, v) -> {
+            if (!found.get() && k.startsWith(prefix)) {
+                found.set(true);
+            }
+        });
+        return found.get();
     }
 
     /*
