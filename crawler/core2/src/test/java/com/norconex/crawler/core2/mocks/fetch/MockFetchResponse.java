@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core2.mocks.fetch;
 
-import com.norconex.crawler.core2.fetch.FetchResponse;
+import com.norconex.crawler.core.fetch.FetchResponse;
 import com.norconex.crawler.core2.ledger.ProcessingOutcome;
 
 public interface MockFetchResponse extends FetchResponse {

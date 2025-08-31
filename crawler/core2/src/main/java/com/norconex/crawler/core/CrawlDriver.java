@@ -19,12 +19,12 @@ import java.util.List;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.event.EventManager;
+import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
+import com.norconex.crawler.core.fetch.MultiFetcher.ResponseAggregator;
+import com.norconex.crawler.core.fetch.MultiFetcher.UnsuccessfulResponseFactory;
 import com.norconex.crawler.core2.cmd.crawl.pipeline.bootstrap.CrawlBootstrapper;
 import com.norconex.crawler.core2.cmd.crawl.pipeline.bootstrap.ledger.DocLedgerBootstrapper;
 import com.norconex.crawler.core2.cmd.crawl.pipeline.bootstrap.queue.QueueBootstrapper;
-import com.norconex.crawler.core2.doc.pipelines.CrawlDocPipelines;
-import com.norconex.crawler.core2.fetch.MultiFetcher.ResponseAggregator;
-import com.norconex.crawler.core2.fetch.MultiFetcher.UnsuccessfulResponseFactory;
 import com.norconex.crawler.core2.ledger.CrawlEntry;
 
 import lombok.Builder;

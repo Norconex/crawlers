@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core2.stubs;
 
-import com.norconex.crawler.core2.doc.CrawlDocContext;
+import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core2.ledger.CrawlEntry;
 
 public final class CrawlDocContextStubber {

@@ -37,6 +37,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,6 +49,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 @Slf4j
+@ToString(onlyExplicitlyIncluded = true)
 public class CrawlSession implements Closeable {
 
     private static final String SESSION_STATE_KEY = "session.state";
@@ -108,6 +110,7 @@ public class CrawlSession implements Closeable {
      * configuration.
      * @return crawler id
      */
+    @ToString.Include(name = "crawlerId")
     public String getCrawlerId() {
         return crawlContext.getId();
     }
@@ -119,6 +122,7 @@ public class CrawlSession implements Closeable {
      * same session id.
      * @return crawl session id
      */
+    @ToString.Include(name = "crawlSessionId")
     public String getCrawlSessionId() {
         return crawlRunInfo.getCrawlSessionId();
     }
@@ -129,10 +133,12 @@ public class CrawlSession implements Closeable {
      * session or creating a new one.
      * @return crawl run id
      */
+    @ToString.Include(name = "crawlRunId")
     public String getCrawlRunId() {
         return crawlRunInfo.getCrawlRunId();
     }
 
+    @ToString.Include(name = "incremental")
     public boolean isIncremental() {
         return crawlRunInfo.getCrawlMode() == CrawlMode.INCREMENTAL;
     }
@@ -142,6 +148,7 @@ public class CrawlSession implements Closeable {
         return crawlRunInfo.getCrawlMode();
     }
 
+    @ToString.Include(name = "resumed")
     public boolean isResumed() {
         return crawlRunInfo.getCrawlResumeState() == CrawlResumeState.RESUMED;
     }
@@ -151,12 +158,14 @@ public class CrawlSession implements Closeable {
         return crawlRunInfo.getCrawlResumeState();
     }
 
+    @ToString.Include(name = "crawlState")
     public CrawlState getCrawlState() {
         // always get it fresh when requesting it explicitly
         state = loadState();
         return state.crawlState;
     }
 
+    @ToString.Include
     public boolean isClosed() {
         return closed;
     }
@@ -331,6 +340,12 @@ public class CrawlSession implements Closeable {
                 .source(source)
                 .build());
     }
+
+    //    public String toString() {
+    //        return null;
+    //    }
+    //
+    //
 
     private void saveCrawlState(State state) {
         crawlSessionCache.put(SESSION_STATE_KEY,

@@ -154,7 +154,7 @@ public class StoreExportCommand implements Command {
                 writer.writePOJOField("object", obj);
                 writer.writeEndObject();
                 var c = cnt.incrementAndGet();
-                var percent = Math.floorDiv(c * 100, qty);
+                var percent = qty == 0 ? 0 : Math.floorDiv(c * 100, qty);
                 if (percent != lastPercent.longValue()) {
                     LOG.info(" {}%", percent);
                 }

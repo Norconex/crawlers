@@ -24,9 +24,9 @@ import java.util.function.Consumer;
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.cmd.crawl.pipeline.bootstrap.CrawlBootstrapper;
-import com.norconex.crawler.core2.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core2.util.LogUtil;
 
 import lombok.EqualsAndHashCode;

@@ -30,10 +30,9 @@ class CrawlerEventTest {
     @CrawlTest(focus = Focus.SESSION)
     void testCrawlerEvent(CrawlSession session) {
         var event = event(session, b -> {});
-
         assertThat(event.getSource()).hasToString("somesubject");
-        assertThat(event.getCrawlSession())
-                .hasToString(MockCrawlerBuilder.CRAWLER_ID);
+        assertThat(event.getCrawlSession().toString())
+                .contains("crawlerId=" + MockCrawlerBuilder.CRAWLER_ID);
         assertThat(event.getCrawlEntry().getReference()).isEqualTo("someref");
         assertThat(event).hasToString("someref - somemessage");
 
@@ -43,9 +42,10 @@ class CrawlerEventTest {
         event = event(session, b -> b.message(null));
         assertThat(event).hasToString("someref - somesubject");
 
-        event = event(session, b -> b.message(null).source(null));
-        assertThat(event)
-                .hasToString("someref - " + MockCrawlerBuilder.CRAWLER_ID);
+        event = event(session, b -> b.message(null).source(session));
+        assertThat(event.toString())
+                .contains("someref",
+                        "crawlerId=" + MockCrawlerBuilder.CRAWLER_ID);
     }
 
     private CrawlerEvent event(

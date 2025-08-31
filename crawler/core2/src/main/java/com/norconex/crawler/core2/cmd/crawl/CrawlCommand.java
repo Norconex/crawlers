@@ -20,7 +20,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlState;
-import com.norconex.crawler.core2.cluster.ClusterTask;
 import com.norconex.crawler.core2.cmd.Command;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.metrics.CrawlerMetricsJMX;
@@ -147,27 +146,27 @@ public class CrawlCommand implements Command {
         //        }, Executors.newFixedThreadPool(1));
     }
 
-    static class LoggerTask implements ClusterTask<Void> {
-        private CrawlProgressLogger logger;
-
-        @Override
-        public Void execute(CrawlSession session) {
-            logger = new CrawlProgressLogger(session.getCrawlContext());
-            logger.start();
-            return null;
-        }
-
-        @Override
-        public void stop(CrawlSession session) {
-            if (logger != null) {
-                logger.stop();
-            }
-            // Signal that logger has stopped
-            //            var cmd =
-            //                    (CrawlCommand) session.getCrawlContext().getCommand();
-            //            if (cmd != null) {
-            //                cmd.pendingLoggerStopped.set(true);
-            //            }
-        }
-    }
+    //    static class LoggerTask implements ClusterTask<Void> {
+    //        private CrawlProgressLogger logger;
+    //
+    //        @Override
+    //        public Void execute(CrawlSession session) {
+    //            logger = new CrawlProgressLogger(session.getCrawlContext());
+    //            logger.start();
+    //            return null;
+    //        }
+    //
+    //        @Override
+    //        public void stop(CrawlSession session) {
+    //            if (logger != null) {
+    //                logger.stop();
+    //            }
+    //            // Signal that logger has stopped
+    //            //            var cmd =
+    //            //                    (CrawlCommand) session.getCrawlContext().getCommand();
+    //            //            if (cmd != null) {
+    //            //                cmd.pendingLoggerStopped.set(true);
+    //            //            }
+    //        }
+    //    }
 }

@@ -14,9 +14,12 @@
  */
 package com.norconex.crawler.core.cmd.crawl.pipeline;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.norconex.crawler.core.CrawlConfig.OrphansStrategy;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
+import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapStep;
 import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessStep;
 import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessStep.ProcessQueueAction;
@@ -28,22 +31,39 @@ public final class CrawlPipelineFactory {
     }
 
     public static Pipeline create(CrawlSession session) {
-        return new Pipeline("crawlPipeline", List.of(
-                new CrawlBootstrapStep("bootstrap"),
-                new CrawlProcessStep("crawlMainProcessTask",
-                        ProcessQueueAction.CRAWL_ALL)));
-        // step: handle orphans (decide what to do
+        var steps = new ArrayList<Step>();
+        steps.add(new CrawlBootstrapStep("bootstrap"));
+        steps.add(new CrawlProcessStep("crawlDocuments",
+                ProcessQueueAction.CRAWL_ALL)
+                        .setDistributed(true));
+
+        var orphStrategy = session.getCrawlContext().getCrawlConfig().getOrphansStrategy();
+        if (orphStrategy == OrphansStrategy.DELETE) {
+            // queue orphans for deletion
+            // delete orphans (distrib)
+//            new CrawlHandleOrphansPrepareStep("handleOrphansPrepare"),
+//            new CrawlProcessStep("handleOrphansExecute",
+//                    ProcessQueueAction.CRAWL_ALL)
+//                            .setDistributed(true)
+        } else if (orphStrategy == OrphansStrategy.PROCESS) {
+            // queue orphans for crawling 
+            // crawl orphans (distrib)
+//            new CrawlHandleOrphansPrepareStep("handleOrphansPrepare"),
+//            new CrawlProcessStep("handleOrphansExecute",
+//                    ProcessQueueAction.CRAWL_ALL)
+        }
+        return new Pipeline("crawlPipeline", steps);
         // step: process orphans
-        // step: cleanup? 
+        // step: cleanup?
 
         /*
         return () -> {
             var taskManager = session.getCluster().getTaskManager();
-        
+
             // Bootstrap the cluster, making it ready for crawling (once per session)
         DONE: taskManager.runOnOneOnceSync(
                     "crawlBootstrapTask", new CrawlBootstrapTask());
-        
+
             // Start main continuous crawl across all nodes
         DONE: taskManager.startContinuous(
                     "crawlMainProcess",
@@ -51,12 +71,12 @@ public final class CrawlPipelineFactory {
                             ProcessQueueAction.CRAWL_ALL));
             // Wait for completion (auto or explicit stop)
             taskManager.awaitContinuousCompletion("crawlMainProcess").join();
-        
+
             // Resolve orphans (on one)
-            var orphanActionOpt = taskManager.runOnOneOnceSync(
+        DONE    var orphanActionOpt = taskManager.runOnOneOnceSync(
                     "crawlHandleOrphansTask",
                     new CrawlHandleOrphansTask());
-        
+
             orphanActionOpt.ifPresent(action -> {
                 // Process orphans using another continuous phase so late joiners can still help
                 taskManager.startContinuous(

@@ -15,7 +15,7 @@
 package com.norconex.crawler.core2.cmd.crawl.pipeline.bootstrap.queue;
 
 import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core2.doc.pipelines.queue.ReferencesProvider;
+import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 
 import lombok.extern.slf4j.Slf4j;
 

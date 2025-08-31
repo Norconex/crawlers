@@ -14,14 +14,14 @@
  */
 package com.norconex.crawler.core2.cmd.crawl.pipeline.process;
 
-import static com.norconex.crawler.core2.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizerConfig.DEFAULT_FALLBACK_STRATEGY;
+import static com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizerConfig.DEFAULT_FALLBACK_STRATEGY;
 import static java.util.Optional.ofNullable;
 
 import java.util.HashSet;
 import java.util.Optional;
 
 import com.norconex.commons.lang.bean.BeanUtil;
-import com.norconex.crawler.core2.doc.operations.spoil.SpoiledReferenceStrategy;
+import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategy;
 import com.norconex.crawler.core2.ledger.ProcessingOutcome;
 import com.norconex.crawler.core2.ledger.ProcessingStatus;
 

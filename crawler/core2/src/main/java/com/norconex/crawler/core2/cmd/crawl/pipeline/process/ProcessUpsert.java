@@ -14,9 +14,9 @@
  */
 package com.norconex.crawler.core2.cmd.crawl.pipeline.process;
 
-import com.norconex.crawler.core2.doc.CrawlDocContext;
-import com.norconex.crawler.core2.doc.pipelines.committer.CommitterPipelineContext;
-import com.norconex.crawler.core2.doc.pipelines.importer.ImporterPipelineContext;
+import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
+import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.ledger.ProcessingOutcome;
 import com.norconex.importer.response.ImporterResponse;

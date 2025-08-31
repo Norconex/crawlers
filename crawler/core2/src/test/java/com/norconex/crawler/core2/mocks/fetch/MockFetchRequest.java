@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core2.mocks.fetch;
 
-import com.norconex.crawler.core2.fetch.FetchRequest;
+import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core2.stubs.DocStubber;
 import com.norconex.importer.doc.Doc;
 

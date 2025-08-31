@@ -19,12 +19,12 @@ import com.norconex.commons.lang.bean.spi.BasePolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.cluster.ClusterConnector;
 import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanClusterConnector;
-import com.norconex.crawler.core2.doc.operations.checksum.DocumentChecksummer;
-import com.norconex.crawler.core2.doc.operations.checksum.MetadataChecksummer;
-import com.norconex.crawler.core2.doc.operations.filter.DocumentFilter;
-import com.norconex.crawler.core2.doc.operations.filter.MetadataFilter;
-import com.norconex.crawler.core2.doc.operations.filter.ReferenceFilter;
-import com.norconex.crawler.core2.doc.operations.spoil.SpoiledReferenceStrategizer;
+import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
+import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
+import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
+import com.norconex.crawler.core.doc.operations.filter.MetadataFilter;
+import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
+import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 
 /**
  * <p>

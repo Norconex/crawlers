@@ -15,10 +15,10 @@
 package com.norconex.crawler.core2.mocks.fetch;
 
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core2.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core2.doc.pipelines.importer.stages.AbstractImporterStage;
-import com.norconex.crawler.core2.fetch.FetchDirective;
-import com.norconex.crawler.core2.fetch.FetchException;
+import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
+import com.norconex.crawler.core.doc.pipelines.importer.stages.AbstractImporterStage;
+import com.norconex.crawler.core.fetch.FetchDirective;
+import com.norconex.crawler.core.fetch.FetchException;
 
 import lombok.NonNull;
 

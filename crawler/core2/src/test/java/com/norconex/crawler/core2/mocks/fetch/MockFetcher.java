@@ -17,10 +17,10 @@ package com.norconex.crawler.core2.mocks.fetch;
 import java.io.ByteArrayInputStream;
 
 import com.norconex.commons.lang.TimeIdGenerator;
-import com.norconex.crawler.core2.fetch.AbstractFetcher;
-import com.norconex.crawler.core2.fetch.BaseFetcherConfig;
-import com.norconex.crawler.core2.fetch.FetchException;
-import com.norconex.crawler.core2.fetch.FetchRequest;
+import com.norconex.crawler.core.fetch.AbstractFetcher;
+import com.norconex.crawler.core.fetch.BaseFetcherConfig;
+import com.norconex.crawler.core.fetch.FetchException;
+import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core2.ledger.ProcessingOutcome;
 
 import lombok.Data;
