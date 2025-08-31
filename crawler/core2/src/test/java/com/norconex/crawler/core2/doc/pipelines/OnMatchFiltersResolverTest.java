@@ -25,6 +25,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core2.doc.operations.filter.impl.GenericReferenceFilter;
@@ -36,7 +37,6 @@ import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
 import com.norconex.crawler.core2.ledger.ProcessingOutcome;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlerBuilder;
-import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
 
 class OnMatchFiltersResolverTest {

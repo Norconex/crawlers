@@ -24,14 +24,14 @@ import java.util.stream.IntStream;
 
 import org.apache.commons.collections4.CollectionUtils;
 
+import com.norconex.crawler.core.session.CrawlMode;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.cluster.ClusterTask;
 import com.norconex.crawler.core2.doc.CrawlDocContext;
 import com.norconex.crawler.core2.doc.CrawlDocMetaConstants;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.ledger.CrawlEntry;
 import com.norconex.crawler.core2.ledger.ProcessingOutcome;
-import com.norconex.crawler.core2.session.CrawlMode;
-import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.util.ConcurrentUtil;
 import com.norconex.crawler.core2.util.LogUtil;
 import com.norconex.importer.doc.Doc;

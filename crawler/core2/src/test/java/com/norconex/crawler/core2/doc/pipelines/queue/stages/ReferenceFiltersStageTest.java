@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core2.doc.operations.filter.impl.GenericReferenceFilter;
@@ -27,7 +28,6 @@ import com.norconex.crawler.core2.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
 import com.norconex.crawler.core2.ledger.CrawlEntry;
-import com.norconex.crawler.core2.session.CrawlSession;
 
 class ReferenceFiltersStageTest {
 

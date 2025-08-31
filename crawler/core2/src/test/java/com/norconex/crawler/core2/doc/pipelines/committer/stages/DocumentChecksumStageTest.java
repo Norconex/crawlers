@@ -20,10 +20,10 @@ import java.io.StringReader;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.doc.pipelines.committer.CommitterPipelineContext;
 import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
 import com.norconex.crawler.core2.stubs.DocStubber;
 

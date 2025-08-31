@@ -28,8 +28,8 @@ import com.norconex.crawler.core.cluster.CacheManager;
 import com.norconex.crawler.core.cluster.Counter;
 import com.norconex.crawler.core.cluster.impl.infinispan.CrawlEntryCacheAdapter;
 import com.norconex.crawler.core.cluster.impl.infinispan.CrawlEntryProtoAdapter;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.event.CrawlerEvent;
-import com.norconex.crawler.core2.session.CrawlSession;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;

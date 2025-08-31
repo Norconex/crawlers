@@ -19,11 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.function.Consumer;
 
 import com.norconex.crawler.core.cli.CliException;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
 import com.norconex.crawler.core2.ledger.CrawlEntry;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlerBuilder;
-import com.norconex.crawler.core2.session.CrawlSession;
 
 class CrawlerEventTest {
 

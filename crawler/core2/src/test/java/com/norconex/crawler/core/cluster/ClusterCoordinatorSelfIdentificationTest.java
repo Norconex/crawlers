@@ -9,9 +9,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Timeout;
 
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.junit.ClusterNodesTest;
 import com.norconex.crawler.core2.junit.ClusterTestUtil;
-import com.norconex.crawler.core2.session.CrawlSession;
 
 /**
  * Simple multi-node test writing each node role (coordinator / non-coordinator)

@@ -15,7 +15,8 @@
 package com.norconex.crawler.core2.cluster;
 
 import java.io.Serializable;
-import com.norconex.crawler.core2.session.CrawlSession;
+
+import com.norconex.crawler.core.session.CrawlSession;
 
 /**
  * Task to be executed on the cluster.

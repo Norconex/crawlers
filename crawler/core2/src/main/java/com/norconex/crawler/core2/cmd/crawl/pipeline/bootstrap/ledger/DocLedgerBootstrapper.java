@@ -17,8 +17,8 @@ package com.norconex.crawler.core2.cmd.crawl.pipeline.bootstrap.ledger;
 import java.util.Locale;
 
 import com.norconex.commons.lang.PercentFormatter;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.cmd.crawl.pipeline.bootstrap.CrawlBootstrapper;
-import com.norconex.crawler.core2.session.CrawlSession;
 
 import lombok.extern.slf4j.Slf4j;
 

@@ -16,9 +16,9 @@ package com.norconex.crawler.core2.metrics;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.session.CrawlSession;
 
 class CrawlerMetricsJMXTest {
 

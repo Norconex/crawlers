@@ -21,8 +21,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core2.session.CrawlMode;
-import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.util.ConcurrentUtil;
 import com.norconex.crawler.core2.util.SerialUtil;
 

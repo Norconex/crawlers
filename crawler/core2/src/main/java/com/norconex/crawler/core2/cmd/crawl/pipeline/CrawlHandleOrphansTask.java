@@ -17,11 +17,11 @@ package com.norconex.crawler.core2.cmd.crawl.pipeline;
 import org.apache.commons.lang3.mutable.MutableLong;
 
 import com.norconex.crawler.core.CrawlConfig.OrphansStrategy;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.cluster.ClusterTask;
 import com.norconex.crawler.core2.cmd.crawl.pipeline.process.CrawlProcessTask.ProcessQueueAction;
 import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.doc.pipelines.queue.QueuePipelineContext;
-import com.norconex.crawler.core2.session.CrawlSession;
 
 import lombok.extern.slf4j.Slf4j;
 

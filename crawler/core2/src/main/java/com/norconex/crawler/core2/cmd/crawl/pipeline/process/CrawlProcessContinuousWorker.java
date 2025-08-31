@@ -2,6 +2,8 @@ package com.norconex.crawler.core2.cmd.crawl.pipeline.process;
 
 import static java.util.Optional.ofNullable;
 
+import com.norconex.crawler.core.session.CrawlMode;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.cluster.ClusterContinuousTask;
 import com.norconex.crawler.core2.cmd.crawl.pipeline.process.CrawlProcessTask.ProcessQueueAction;
 import com.norconex.crawler.core2.doc.CrawlDocContext;
@@ -9,8 +11,6 @@ import com.norconex.crawler.core2.doc.CrawlDocMetaConstants;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.ledger.CrawlEntry;
 import com.norconex.crawler.core2.ledger.ProcessingOutcome;
-import com.norconex.crawler.core2.session.CrawlMode;
-import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.importer.doc.Doc;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

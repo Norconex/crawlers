@@ -14,8 +14,6 @@
  */
 package com.norconex.crawler.core.session;
 
-import com.norconex.crawler.core2.session.CrawlMode;
-
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;

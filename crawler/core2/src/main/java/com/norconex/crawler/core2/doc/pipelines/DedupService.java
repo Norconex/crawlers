@@ -17,8 +17,8 @@ package com.norconex.crawler.core2.doc.pipelines;
 import java.util.Optional;
 
 import com.norconex.crawler.core.cluster.Cache;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.ledger.CrawlEntry;
-import com.norconex.crawler.core2.session.CrawlSession;
 
 import lombok.extern.slf4j.Slf4j;
 

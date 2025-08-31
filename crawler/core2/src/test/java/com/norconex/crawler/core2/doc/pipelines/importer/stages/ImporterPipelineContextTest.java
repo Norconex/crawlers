@@ -18,12 +18,12 @@ import static com.norconex.crawler.core2.fetch.FetchDirective.DOCUMENT;
 import static com.norconex.crawler.core2.fetch.FetchDirective.METADATA;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core2.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
 
 class ImporterPipelineContextTest {

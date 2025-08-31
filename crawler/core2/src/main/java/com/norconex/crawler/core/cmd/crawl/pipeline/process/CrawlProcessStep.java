@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 import com.norconex.crawler.core.cluster.pipeline.BaseStep;
-import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.util.ConcurrentUtil;
 
 import lombok.extern.slf4j.Slf4j;

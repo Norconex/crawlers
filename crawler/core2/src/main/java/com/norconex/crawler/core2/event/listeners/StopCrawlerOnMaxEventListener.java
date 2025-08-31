@@ -24,9 +24,9 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.event.listeners.StopCrawlerOnMaxEventListenerConfig.OnMultiple;
-import com.norconex.crawler.core2.session.CrawlSession;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

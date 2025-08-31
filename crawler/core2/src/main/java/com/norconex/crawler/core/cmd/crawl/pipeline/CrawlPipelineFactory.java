@@ -20,7 +20,7 @@ import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapStep;
 import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessStep;
 import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessStep.ProcessQueueAction;
-import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlSession;
 
 public final class CrawlPipelineFactory {
 

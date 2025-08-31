@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.session;
+package com.norconex.crawler.core.session;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -27,9 +27,6 @@ import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cluster.Cache;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.ClusterNode;
-import com.norconex.crawler.core.session.CrawlResumeState;
-import com.norconex.crawler.core.session.CrawlRunInfo;
-import com.norconex.crawler.core.session.CrawlRunInfoResolver;
 import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.util.ExceptionSwallower;
@@ -173,7 +170,6 @@ public class CrawlSession implements Closeable {
         cluster.init(crawlContext.getWorkDir());
         crawlSessionCache = cluster.getCacheManager().getCrawlSessionCache();
         SESSIONS.put(cluster.getLocalNode().getNodeName(), this);
-        System.err.println("XXX session initialized.");
         try {
             //NOTE: this resolver will also clear the session cache if needed.
             // The crawlRunCache does not need clearing as it is ephemeral

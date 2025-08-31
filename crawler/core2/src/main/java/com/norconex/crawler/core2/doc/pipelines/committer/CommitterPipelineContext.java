@@ -15,8 +15,8 @@
 package com.norconex.crawler.core2.doc.pipelines.committer;
 
 import com.norconex.committer.core.Committer;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.doc.CrawlDocContext;
-import com.norconex.crawler.core2.session.CrawlSession;
 
 import lombok.Data;
 

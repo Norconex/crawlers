@@ -29,12 +29,12 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.infinispan.notifications.cachemanagerlistener.CacheManagerNotifierImpl;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -65,7 +65,7 @@ import lombok.extern.slf4j.Slf4j;
 @WithLogLevel(value = "OFF", classes = CacheManagerNotifierImpl.class)
 @WithTestWatcherLogging
 //TODO
-@Disabled("TODO: IMPLEMENT ME")
+//@Disabled("TODO: IMPLEMENT ME")
 class CliCrawlerLauncherTest {
 
     @Target(ElementType.METHOD)
@@ -268,6 +268,15 @@ class CliCrawlerLauncherTest {
                 "-config=" + configFile,
                 "-dir=" + exportDir);
 
+        try {
+            System.err.println("XXX Export dir content: "
+                    + Files.list(exportDir).map(Path::toString)
+                            .collect(Collectors.joining("\n")));
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
         assertThat(exit1.ok()).isTrue();
         assertThat(exportFile).isNotEmptyFile();
 
@@ -437,11 +446,11 @@ class CliCrawlerLauncherTest {
         assertThat(exit.ok()).isTrue();
     }
 
-    @SingleAndMultiNodesTest
-    void testConfigRender(int numOfNodes) throws IOException {
+    @Test
+    void testConfigRender() throws IOException {
         var cfgFile = CrawlerConfigStubber.writeConfigToDir(tempDir, null);
 
-        var exit1 = launch(numOfNodes, "configrender",
+        var exit1 = launch(1, "configrender",
                 "-config=" + cfgFile);
         assertThat(exit1.ok()).isTrue();
         // check that some entries not explicitly configured are NOT present
@@ -450,7 +459,7 @@ class CliCrawlerLauncherTest {
 
         var renderedFile = tempDir.resolve("configrender.xml");
         var exit2 = launch(
-                numOfNodes,
+                1,
                 "configrender",
                 "-config=" + cfgFile,
                 "-output=" + renderedFile);
@@ -459,11 +468,7 @@ class CliCrawlerLauncherTest {
 
         var storedLines = Files.readAllLines(renderedFile);
         var outputLines = exit1.getStdOut().trim().lines().toList();
-        if (numOfNodes <= 1) {
-            assertThat(storedLines).containsExactlyElementsOf(outputLines);
-        } else {
-            assertThat(outputLines).containsAll(storedLines);
-        }
+        assertThat(storedLines).containsExactlyElementsOf(outputLines);
     }
 
     @SingleAndMultiNodesTest

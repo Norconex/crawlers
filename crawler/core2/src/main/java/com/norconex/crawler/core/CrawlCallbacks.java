@@ -17,8 +17,8 @@ package com.norconex.crawler.core;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.event.CrawlerEvent;
-import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.importer.doc.Doc;
 
 import lombok.Builder;

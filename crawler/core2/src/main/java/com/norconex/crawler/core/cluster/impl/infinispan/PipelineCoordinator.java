@@ -32,7 +32,7 @@ import com.norconex.crawler.core.cluster.impl.infinispan.event.CacheEntryChangeL
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.Step;
-import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.util.ConcurrentUtil;
 import com.norconex.crawler.core2.util.ExceptionSwallower;
 

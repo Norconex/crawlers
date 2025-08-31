@@ -17,7 +17,7 @@ package com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap;
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.norconex.crawler.core.cluster.pipeline.BaseStep;
-import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlSession;
 
 /**
  * Bootstrap session artifacts, including the cluster, making it ready for

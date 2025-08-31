@@ -23,10 +23,10 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
 
 class ImportModuleStageTest {

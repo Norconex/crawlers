@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import com.norconex.commons.lang.Sleeper;
-import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlSession;
 
 public final class PipelineTestUtil {
     private PipelineTestUtil() {

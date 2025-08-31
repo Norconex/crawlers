@@ -14,9 +14,9 @@
  */
 package com.norconex.crawler.core2.cmd.stop;
 
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.cmd.Command;
 import com.norconex.crawler.core2.event.CrawlerEvent;
-import com.norconex.crawler.core2.session.CrawlSession;
 
 import lombok.extern.slf4j.Slf4j;
 

@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core2.cmd.crawl.pipeline.bootstrap;
 
-import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlSession;
 
 @FunctionalInterface
 public interface CrawlBootstrapper {

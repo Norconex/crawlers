@@ -35,10 +35,10 @@ import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.cluster.ClusterConnector;
+import com.norconex.crawler.core.session.CrawlSessionFactory;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlerBuilder;
-import com.norconex.crawler.core2.session.CrawlSessionFactory;
 import com.norconex.crawler.core2.stubs.CrawlerConfigStubber;
 
 import lombok.RequiredArgsConstructor;

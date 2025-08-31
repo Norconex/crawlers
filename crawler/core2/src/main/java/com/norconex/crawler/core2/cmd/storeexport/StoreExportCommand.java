@@ -29,9 +29,10 @@ import org.apache.commons.lang3.mutable.MutableLong;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cluster.Cache;
+import com.norconex.crawler.core.cluster.CacheException;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.cmd.Command;
 import com.norconex.crawler.core2.event.CrawlerEvent;
-import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.util.SerialUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -53,6 +54,24 @@ public class StoreExportCommand implements Command {
 
         Thread.currentThread().setName(ctx.getId() + "/STORE_EXPORT");
         session.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_BEGIN, this);
+
+        //Export/Import are meant to run on a single node only. We ensure
+        // this by checking if we are the coordinator.
+
+        if (session.getCluster().getLocalNode().isCoordinator()) {
+            try {
+                exportAllStores(session);
+            } catch (Exception e) {
+                throw new CacheException(
+                        "A problem occured while exporting crawler caches.", e);
+            }
+        } else {
+            LOG.warn("""
+                Exporting can only be performed on a single node. \
+                Another node started the export process so this one \
+                will ignore the request.""");
+        }
+
         //TODO migrate to pipeline
         //        try {
         //            session.getCluster().getTaskManager()
@@ -64,10 +83,10 @@ public class StoreExportCommand implements Command {
         //                        }
         //                        return null;
         //                    });
-        //        } catch (Exception e) {
-        //            throw new CrawlerException(
-        //                    "A problem occured while exporting crawler storage.", e);
-        //        }
+        //                } catch (Exception e) {
+        //                    throw new CrawlerException(
+        //                            "A problem occured while exporting crawler storage.", e);
+        //                }
         session.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_END, this);
     }
 

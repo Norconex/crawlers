@@ -16,7 +16,7 @@ package com.norconex.crawler.core.cluster.pipeline;
 
 import org.apache.commons.collections4.Bag;
 
-import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlSession;
 
 public interface Step {
     String getId();

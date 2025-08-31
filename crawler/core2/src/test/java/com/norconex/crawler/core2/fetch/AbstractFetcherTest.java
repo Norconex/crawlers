@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.xml.Xml;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core2.event.CrawlerEvent;
@@ -32,7 +33,6 @@ import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
 import com.norconex.crawler.core2.mocks.fetch.MockFetchRequest;
 import com.norconex.crawler.core2.mocks.fetch.MockFetcher;
-import com.norconex.crawler.core2.session.CrawlSession;
 
 class AbstractFetcherTest {
 

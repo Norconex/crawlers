@@ -16,7 +16,7 @@ package com.norconex.crawler.core2.metrics;
 
 import java.io.Closeable;
 
-import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlSession;
 
 /**
  * Interface used to access crawler metrics across the application.

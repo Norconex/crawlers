@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.session;
+package com.norconex.crawler.core.session;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -40,7 +40,6 @@ public final class CrawlSessionFactory {
         createDir(ctx.getTempDir()); // also creates workDir
         var session = new CrawlSession(cluster, ctx);
         session.init();
-        //TODO DELETEME: Done in session init:        ctx.init(session);
         return session;
     }
 

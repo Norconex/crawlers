@@ -27,8 +27,8 @@ import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.cluster.CacheManager;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.context.CrawlContext;
-import com.norconex.crawler.core2.session.CrawlSession;
 
 /**
  * Resolves test method parameters. Invoked after

@@ -14,10 +14,10 @@
  */
 package com.norconex.crawler.core2.doc.pipelines.importer;
 
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.doc.CrawlDocContext;
 import com.norconex.crawler.core2.fetch.FetchDirective;
 import com.norconex.crawler.core2.fetch.FetchDirectiveSupport;
-import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.importer.response.ImporterResponse;
 
 import lombok.Data;

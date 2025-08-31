@@ -18,12 +18,12 @@ import static com.norconex.crawler.core2.doc.pipelines.ChecksumStageUtil.resolve
 import static com.norconex.crawler.core2.doc.pipelines.ChecksumStageUtil.resolveMetaChecksum;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.doc.pipelines.committer.CommitterPipelineContext;
 import com.norconex.crawler.core2.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
 import com.norconex.crawler.core2.ledger.ProcessingOutcome;
-import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
 
 class ChecksumStageUtilTest {

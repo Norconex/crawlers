@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.session;
+package com.norconex.crawler.core.session;
 
 /**
  * Whether we are executing a full or incremental crawler run.

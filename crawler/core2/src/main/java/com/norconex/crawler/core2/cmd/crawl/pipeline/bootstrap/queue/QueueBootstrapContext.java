@@ -16,8 +16,8 @@ package com.norconex.crawler.core2.cmd.crawl.pipeline.bootstrap.queue;
 
 import java.util.function.Consumer;
 
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.ledger.CrawlEntry;
-import com.norconex.crawler.core2.session.CrawlSession;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -18,12 +18,12 @@ import static com.norconex.crawler.core2.util.ExceptionSwallower.swallow;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlState;
 import com.norconex.crawler.core2.cluster.ClusterTask;
 import com.norconex.crawler.core2.cmd.Command;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.metrics.CrawlerMetricsJMX;
-import com.norconex.crawler.core2.session.CrawlSession;
-import com.norconex.crawler.core2.session.CrawlState;
 
 import lombok.extern.slf4j.Slf4j;
 

@@ -26,9 +26,10 @@ import org.apache.commons.io.IOUtils;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.norconex.crawler.core.cluster.Cache;
+import com.norconex.crawler.core.cluster.CacheException;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.cmd.Command;
 import com.norconex.crawler.core2.event.CrawlerEvent;
-import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.util.SerialUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -46,6 +47,16 @@ public class StoreImportCommand implements Command {
 
         Thread.currentThread().setName(ctx.getId() + "/STORE_IMPORT");
         session.fire(CrawlerEvent.CRAWLER_STORE_IMPORT_BEGIN, this);
+
+        //Export/Import are meant to run on a single node only. We ensure
+        // this by checking if we are the coordinator.
+
+        try {
+            importAllStores(session);
+        } catch (Exception e) {
+            throw new CacheException("Could not import file: " + inFile, e);
+        }
+
         //TODO migrate to pipeline
         //        try {
         //            session.getCluster().getTaskManager()

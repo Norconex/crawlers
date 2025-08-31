@@ -19,8 +19,8 @@ import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.event.Event;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.ledger.CrawlEntry;
-import com.norconex.crawler.core2.session.CrawlSession;
 
 import lombok.AccessLevel;
 import lombok.Data;

@@ -16,10 +16,10 @@ package com.norconex.crawler.core2.doc.pipelines.committer.stages;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.doc.pipelines.committer.CommitterPipelineContext;
 import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
 
 class CommitModuleStageTest {

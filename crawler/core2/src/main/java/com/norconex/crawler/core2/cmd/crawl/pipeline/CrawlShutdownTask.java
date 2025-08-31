@@ -16,8 +16,8 @@ package com.norconex.crawler.core2.cmd.crawl.pipeline;
 
 import org.apache.commons.lang3.NotImplementedException;
 
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.cluster.ClusterTask;
-import com.norconex.crawler.core2.session.CrawlSession;
 
 public class CrawlShutdownTask implements ClusterTask<Void> {
 

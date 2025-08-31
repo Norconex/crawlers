@@ -25,13 +25,13 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoSettings;
 
 import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.doc.pipelines.DedupService;
 import com.norconex.crawler.core2.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core2.fetch.FetchDirective;
 import com.norconex.crawler.core2.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core2.ledger.ProcessingOutcome;
-import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
 
 @MockitoSettings

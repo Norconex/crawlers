@@ -23,6 +23,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.doc.CrawlDocMetaConstants;
 import com.norconex.crawler.core2.doc.operations.checksum.impl.GenericMetadataChecksummer;
 import com.norconex.crawler.core2.doc.pipelines.importer.ImporterPipelineContext;
@@ -31,7 +32,6 @@ import com.norconex.crawler.core2.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core2.junit.CrawlTest;
 import com.norconex.crawler.core2.junit.CrawlTest.Focus;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlerBuilder;
-import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
 
 class MetadataChecksumStageTest {

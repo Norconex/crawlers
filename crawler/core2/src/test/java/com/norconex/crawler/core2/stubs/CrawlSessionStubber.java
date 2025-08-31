@@ -18,9 +18,9 @@ import java.nio.file.Path;
 import java.util.function.Consumer;
 
 import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlSessionFactory;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlDriverFactory;
-import com.norconex.crawler.core2.session.CrawlSession;
-import com.norconex.crawler.core2.session.CrawlSessionFactory;
 
 public final class CrawlSessionStubber {
     private CrawlSessionStubber() {

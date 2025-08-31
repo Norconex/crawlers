@@ -24,8 +24,8 @@ import com.norconex.crawler.core.cluster.ClusterConnector;
 import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanClusterConnector;
 import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanUtil;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
-import com.norconex.crawler.core2.session.CrawlSession;
-import com.norconex.crawler.core2.session.CrawlSessionFactory;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlSessionFactory;
 
 import lombok.RequiredArgsConstructor;
 

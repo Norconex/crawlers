@@ -16,7 +16,7 @@ package com.norconex.crawler.core2.cmd.crawl.pipeline.process;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.time.DurationFormatter;
-import com.norconex.crawler.core2.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlSession;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

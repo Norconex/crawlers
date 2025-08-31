@@ -14,9 +14,9 @@
  */
 package com.norconex.crawler.core2.doc.pipelines.queue;
 
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.doc.CrawlDocContext;
 import com.norconex.crawler.core2.ledger.CrawlEntry;
-import com.norconex.crawler.core2.session.CrawlSession;
 
 import lombok.Data;
 

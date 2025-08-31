@@ -20,11 +20,11 @@ import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.event.listeners.CrawlerLifeCycleListener;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlDriverFactory;
 import com.norconex.crawler.core2.mocks.crawler.MockCrawlerBuilder;
-import com.norconex.crawler.core2.session.CrawlSession;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

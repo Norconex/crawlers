@@ -25,8 +25,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.norconex.crawler.core.cluster.Cache;
 import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanCacheManager;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core2.ledger.CrawlEntryLedger;
-import com.norconex.crawler.core2.session.CrawlSession;
 
 import lombok.extern.slf4j.Slf4j;
 
