@@ -14,7 +14,17 @@
  */
 package com.norconex.crawler.core2.session;
 
+/**
+ * Whether we are executing a full or incremental crawler run.
+ */
 public enum CrawlMode {
+    /**
+     * Disregard any previous crawl and crawl as if it was the first time.
+     */
     FULL,
+    /**
+     * Crawl taking into account previously crawled documents and only
+     * commit those that have been added, removed, or modified.
+     */
     INCREMENTAL
 }

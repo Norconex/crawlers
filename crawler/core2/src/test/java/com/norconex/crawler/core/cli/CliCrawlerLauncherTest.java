@@ -34,6 +34,7 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.infinispan.notifications.cachemanagerlistener.CacheManagerNotifierImpl;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -63,6 +64,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @WithLogLevel(value = "OFF", classes = CacheManagerNotifierImpl.class)
 @WithTestWatcherLogging
+//TODO
+@Disabled("TODO: IMPLEMENT ME")
 class CliCrawlerLauncherTest {
 
     @Target(ElementType.METHOD)

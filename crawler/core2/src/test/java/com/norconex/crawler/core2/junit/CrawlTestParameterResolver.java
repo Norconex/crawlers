@@ -27,7 +27,6 @@ import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
 import com.norconex.crawler.core2.cluster.CacheManager;
-import com.norconex.crawler.core2.cluster.TaskManager;
 import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.session.CrawlSession;
 
@@ -48,7 +47,6 @@ public class CrawlTestParameterResolver implements ParameterResolver {
                 CrawlSession.class,
                 CrawlContext.class,
                 Cluster.class,
-                TaskManager.class,
                 CacheManager.class,
                 MemoryCommitter.class,
                 Path.class)
@@ -87,11 +85,6 @@ public class CrawlTestParameterResolver implements ParameterResolver {
         // Cluster
         if (Cluster.class.isAssignableFrom(paramType)) {
             return params.getCrawlSession().getCluster();
-        }
-
-        // TaskManager
-        if (TaskManager.class.isAssignableFrom(paramType)) {
-            return params.getCrawlSession().getCluster().getTaskManager();
         }
 
         // PipelineManager

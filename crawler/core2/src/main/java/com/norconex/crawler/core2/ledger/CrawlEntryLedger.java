@@ -30,7 +30,6 @@ import com.norconex.crawler.core2.cluster.impl.infinispan.CrawlEntryCacheAdapter
 import com.norconex.crawler.core2.cluster.impl.infinispan.CrawlEntryProtoAdapter;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.session.CrawlSession;
-import com.norconex.crawler.core2.session.LaunchMode;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -73,8 +72,8 @@ public final class CrawlEntryLedger {
     // we can physically rename them and copying data over could be
     // too inefficient. The "indexed" suffix is picked up in Infinispan
     // default config.
-    private static final String LEDGER_A = "ledger_a_indexed";
-    private static final String LEDGER_B = "ledger_b_indexed";
+    private static final String LEDGER_A = "ledger_a";
+    private static final String LEDGER_B = "ledger_b";
 
     // Status counter prefix for efficiently tracking entry counts by status
     private static final String STATUS_COUNTER_PREFIX = "status-counter-";
@@ -95,17 +94,17 @@ public final class CrawlEntryLedger {
         cacheManager = session.getCluster().getCacheManager();
 
         // Caches:
-        var currentAlias = cacheManager.getGenericCache()
+        var currentAlias = cacheManager.getCrawlSessionCache()
                 .computeIfAbsent(CURRENT_LEDGER_ALIAS_KEY, k -> LEDGER_A);
         var previousAlias = LEDGER_A.equals(currentAlias)
                 ? LEDGER_B
                 : LEDGER_A;
-                currentLedger = new CrawlEntryCacheAdapter(cacheManager.getCache(
-                        currentAlias, CrawlEntryProtoAdapter.class));
-                previousLedger = cacheManager.cacheExists(previousAlias)
-                        ? new CrawlEntryCacheAdapter(cacheManager
-                                .getCache(previousAlias, CrawlEntryProtoAdapter.class))
-                        : null;
+        currentLedger = new CrawlEntryCacheAdapter(cacheManager.getCache(
+                currentAlias, CrawlEntryProtoAdapter.class));
+        previousLedger = cacheManager.cacheExists(previousAlias)
+                ? new CrawlEntryCacheAdapter(cacheManager
+                        .getCache(previousAlias, CrawlEntryProtoAdapter.class))
+                : null;
 
         // Initialize status counters for each ProcessingStatus value
         for (ProcessingStatus status : ProcessingStatus.values()) {
@@ -115,7 +114,7 @@ public final class CrawlEntryLedger {
         }
 
         // If this is a fresh run, initialize counters based on current cache content
-        if (session.getLaunchMode() != LaunchMode.RESUMED) {
+        if (session.isResumed()) {
             initializeStatusCounters();
         }
 
@@ -123,7 +122,7 @@ public final class CrawlEntryLedger {
         long runMaxDocs =
                 session.getCrawlContext().getCrawlConfig().getMaxDocuments();
         totalMaxDocsThisRun = runMaxDocs;
-        var resumed = session.getLaunchMode() == LaunchMode.RESUMED;
+        var resumed = session.isResumed();
         if (resumed && runMaxDocs > -1) {
             totalMaxDocsThisRun +=
                     statusCounters.get(ProcessingStatus.PROCESSED).get();
@@ -428,12 +427,12 @@ public final class CrawlEntryLedger {
             previousLedger.clear();
         }
 
-        var currentAlias = cacheManager.getGenericCache()
+        var currentAlias = cacheManager.getCrawlSessionCache()
                 .get(CURRENT_LEDGER_ALIAS_KEY).get();
         currentAlias = LEDGER_A.equals(currentAlias)
                 ? LEDGER_B
                 : LEDGER_A;
-        cacheManager.getGenericCache()
+        cacheManager.getCrawlSessionCache()
                 .put(CURRENT_LEDGER_ALIAS_KEY, currentAlias);
         var previousAlias = LEDGER_A.equals(currentAlias)
                 ? LEDGER_B

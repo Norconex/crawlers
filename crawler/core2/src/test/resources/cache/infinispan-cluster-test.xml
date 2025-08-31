@@ -15,9 +15,6 @@
       <expiration max-idle="30000"/>
       <state-transfer enabled="true" timeout="30000"/>
     </distributed-cache-configuration>
-<!--     
-    <distributed-cache-configuration name="*" configuration="default"/>
- -->
 
     <distributed-cache-configuration
       name="replicated-template"
@@ -35,11 +32,33 @@
       </indexing>
     </distributed-cache-configuration>
 
+    <distributed-cache-configuration 
+      name="ephemeral-template"
+      mode="SYNC"
+      statistics="true"
+    >
+      <expiration lifespan="-1"/>
+      <persistence passivation="false"/>
+    </distributed-cache-configuration>
+
+
     <!-- === Cache Mappings === -->
 
     <distributed-cache-configuration name="*_replicated" configuration="replicated-template"/>
     <distributed-cache-configuration name="*_indexed" configuration="indexed-template"/>
+    <distributed-cache-configuration name="*_ephemeral" configuration="ephemeral-template"/>
 
+    <!--
+      Explicitly create caches (instances) to avoid runtime definition races.
+      Matches names in CacheNames class and some others.
+      -->
+    <distributed-cache name="crawler" configuration="default"/>
+    <distributed-cache name="crawlSession" configuration="default"/>
+    <distributed-cache name="crawlRun" configuration="ephemeral-template"/>
+    <distributed-cache name="pipeCurrentStep" configuration="default"/>
+    <distributed-cache name="pipeWorkerStatuses" configuration="default"/>
+    <distributed-cache name="ledger_a" configuration="indexed-template"/>
+    <distributed-cache name="ledger_b" configuration="indexed-template"/>
   </cache-container>
 
 </infinispan>

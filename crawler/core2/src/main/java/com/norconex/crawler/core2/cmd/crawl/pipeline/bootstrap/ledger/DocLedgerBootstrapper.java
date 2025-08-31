@@ -19,7 +19,6 @@ import java.util.Locale;
 import com.norconex.commons.lang.PercentFormatter;
 import com.norconex.crawler.core2.cmd.crawl.pipeline.bootstrap.CrawlBootstrapper;
 import com.norconex.crawler.core2.session.CrawlSession;
-import com.norconex.crawler.core2.session.LaunchMode;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,30 +39,26 @@ public final class DocLedgerBootstrapper implements CrawlBootstrapper {
 
     //NOTE: Runs after the DocProcessingLedger#init() method has been invoked.
 
-    public static final String BOOTSTRAP_KEY = "ledger.bootstrap";
+    public static final String BOOTSTRAP_KEY = "ledger.bootstrapped";
 
     @Override
     public void bootstrap(CrawlSession session) {
-        session.getCrawlContext();
-        var globalCache =
-                session.getCluster().getCacheManager().getGenericCache();
-
-        if (Boolean.parseBoolean(
-                globalCache.get(BOOTSTRAP_KEY).orElse("false"))) {
-            throw new IllegalStateException("Already initializing.");
+        if (session.getBoolean(BOOTSTRAP_KEY)) {
+            throw new IllegalStateException(
+                    "Already initialized or initializing.");
         }
-        globalCache.put(BOOTSTRAP_KEY, "true");
+        session.setBoolean(BOOTSTRAP_KEY, true);
         try {
             prepareForCrawl(session);
         } finally {
-            globalCache.put(BOOTSTRAP_KEY, "false");
+            session.setBoolean(BOOTSTRAP_KEY, false);
         }
     }
 
     private static void prepareForCrawl(CrawlSession session) {
         var crawlContext = session.getCrawlContext();
         var ledger = crawlContext.getCrawlEntryLedger();
-        if (session.getLaunchMode() == LaunchMode.RESUMED) {
+        if (session.isResumed()) {
             if (LOG.isInfoEnabled()) {
                 //TODO use total count to track progress independently
                 var processedCount = ledger.getProcessedCount();

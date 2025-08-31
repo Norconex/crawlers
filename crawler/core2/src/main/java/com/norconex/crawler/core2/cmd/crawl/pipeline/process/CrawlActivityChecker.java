@@ -17,7 +17,6 @@ package com.norconex.crawler.core2.cmd.crawl.pipeline.process;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.crawler.core2.session.CrawlSession;
-import com.norconex.crawler.core2.session.CrawlState;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @RequiredArgsConstructor
 @Slf4j
+//TODO still needed? Done by cluster?
 class CrawlActivityChecker {
     private final CrawlSession session;
     @Getter
@@ -84,12 +84,14 @@ class CrawlActivityChecker {
             // can be resumed later if needed.
             // This is done here so that the crawl state is updated
             // before the task is stopped.
-            session.getCluster().getTaskManager().runOnOneSync(
-                    "updateCrawlState",
-                    ses -> {
-                        ses.updateCrawlState(CrawlState.PAUSED);
-                        return null;
-                    });
+
+            //TODO migrate this?
+            //            session.getCluster().getTaskManager().runOnOneSync(
+            //                    "updateCrawlState",
+            //                    ses -> {
+            //                        ses.updateCrawlState(CrawlState.PAUSED);
+            //                        return null;
+            //                    });
             //            ctx.getGrid().getCompute().executeTask(GridTaskBuilder
             //                    .create("updateCrawlState")
             //                    .singleNode()

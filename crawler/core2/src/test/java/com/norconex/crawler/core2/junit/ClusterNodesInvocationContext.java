@@ -22,7 +22,6 @@ import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
 import com.norconex.crawler.core2.cluster.CacheManager;
 import com.norconex.crawler.core2.cluster.ClusterConnector;
-import com.norconex.crawler.core2.cluster.TaskManager;
 import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanClusterConnector;
 import com.norconex.crawler.core2.cluster.impl.infinispan.InfinispanUtil;
 import com.norconex.crawler.core2.session.CrawlSession;
@@ -143,7 +142,6 @@ class ClusterNodesInvocationContext implements TestTemplateInvocationContext {
             if (CrawlSession.class.isAssignableFrom(t)
                     || Cluster.class.isAssignableFrom(t)
                     || CacheManager.class.isAssignableFrom(t)
-                    || TaskManager.class.isAssignableFrom(t)
                     || PipelineManager.class.isAssignableFrom(t))
                 return true;
             return false;
@@ -164,8 +162,6 @@ class ClusterNodesInvocationContext implements TestTemplateInvocationContext {
                 return first.getCluster();
             if (CacheManager.class.isAssignableFrom(t))
                 return first.getCluster().getCacheManager();
-            if (TaskManager.class.isAssignableFrom(t))
-                return first.getCluster().getTaskManager();
             if (PipelineManager.class.isAssignableFrom(t))
                 return first.getCluster().getPipelineManager();
             throw new IllegalArgumentException(

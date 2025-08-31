@@ -58,8 +58,18 @@ public class InfinispanCacheAdapter<T> implements Cache<T> {
     @Override
     public T computeIfAbsent(String key,
             Function<String, ? extends T> mappingFunction) {
-        return supplyIfCache(
-                () -> delegate.computeIfAbsent(key, mappingFunction), null);
+        return supplyIfCache(() -> {
+            // Avoid serializing non-serializable lambdas across the cluster.
+            // Use a safe get/putIfAbsent pattern which remains atomic for insertion
+            // and returns the winning value.
+            T existing = delegate.get(key);
+            if (existing != null) {
+                return existing;
+            }
+            T newVal = mappingFunction.apply(key);
+            T prev = delegate.putIfAbsent(key, newVal);
+            return prev != null ? prev : newVal;
+        }, null);
     }
 
     @Override

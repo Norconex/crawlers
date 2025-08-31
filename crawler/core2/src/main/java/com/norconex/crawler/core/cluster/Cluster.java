@@ -21,7 +21,6 @@ import java.util.List;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
 import com.norconex.crawler.core2.cluster.CacheManager;
 import com.norconex.crawler.core2.cluster.ClusterNode;
-import com.norconex.crawler.core2.cluster.TaskManager;
 
 public interface Cluster extends Closeable {
 
@@ -40,8 +39,6 @@ public interface Cluster extends Closeable {
     ClusterNode getLocalNode();
 
     CacheManager getCacheManager();
-
-    TaskManager getTaskManager();
 
     PipelineManager getPipelineManager();
 

@@ -22,7 +22,6 @@ import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
 import com.norconex.crawler.core2.cluster.CacheManager;
 import com.norconex.crawler.core2.cluster.ClusterNode;
-import com.norconex.crawler.core2.cluster.TaskManager;
 
 import lombok.Data;
 
@@ -48,11 +47,6 @@ public class MockFailingCluster implements Cluster {
 
     @Override
     public CacheManager getCacheManager() {
-        throw new UnsupportedOperationException("IN_TEST");
-    }
-
-    @Override
-    public TaskManager getTaskManager() {
         throw new UnsupportedOperationException("IN_TEST");
     }
 

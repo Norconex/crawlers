@@ -36,7 +36,7 @@ public final class CrawlContextTestUtil {
     //                        .setCrawlMode(CrawlMode.FULL)
     //                        .setCrawlState(CrawlState.RUNNING)
     //                        .setLastUpdated(System.currentTimeMillis())
-    //                        .setLaunchMode(LaunchMode.NEW))
+    //                        .setLaunchMode(CrawlSessionState.NEW))
     //                .build()
     //                .create();
     //    }

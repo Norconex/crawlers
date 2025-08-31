@@ -51,7 +51,6 @@ public class InfinispanCluster implements Cluster {
 
     private InfinispanClusterNode localNode;
     private InfinispanCacheManager cacheManager;
-    private InfinispanTaskManager taskManager;
     private InfinispanPipelineManager pipelineManager;
 
     private final List<CoordinatorChangeListener> coordinatorListeners =
@@ -71,6 +70,9 @@ public class InfinispanCluster implements Cluster {
 
         @ViewChanged
         public void viewChanged(ViewChangedEvent event) {
+            LOG.info("Cluster membership changed: {} → {}",
+                    event.getOldMembers().size(),
+                    event.getNewMembers().size());
             cluster.checkCoordinatorStatus();
         }
     }
@@ -107,7 +109,6 @@ public class InfinispanCluster implements Cluster {
         defCacheManager.start();
         cacheManager = new InfinispanCacheManager(defCacheManager);
         localNode = new InfinispanClusterNode(defCacheManager);
-        taskManager = new InfinispanTaskManager(this);
         pipelineManager = new InfinispanPipelineManager(this);
 
         // Listen for coordinator change events
@@ -169,7 +170,6 @@ public class InfinispanCluster implements Cluster {
         LOG.info("Disconnecting InfinispanCluster node ...");
         // Only disconnect this node, do not stop the cluster
         ExceptionSwallower.close(
-                taskManager,
                 pipelineManager,
                 localNode,
                 cacheManager);

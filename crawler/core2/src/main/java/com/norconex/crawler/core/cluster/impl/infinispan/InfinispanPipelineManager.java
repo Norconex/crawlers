@@ -95,7 +95,6 @@ public class InfinispanPipelineManager
     @Override
     public void close() {
         closed = true;
-        pipelineExecutions.values().forEach(PipelineExecution::stopPipeline);
         pipelineExecutions.clear();
     }
 

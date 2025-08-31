@@ -193,9 +193,30 @@ public final class ConcurrentUtil {
     public static void waitUntilOrThrow(
             @NonNull BooleanSupplier condition, Duration timeout)
             throws TimeoutException {
+        waitUntilOrThrow(condition, timeout, null);
+    }
+
+    /**
+     * In some cases we do not want to block any thread when waiting for
+     * a future completion. This method instead loops (with a tiny delay)
+     * until the supplier returns <code>true</code>. If a timeout is specified
+     * the method will throw if it waited for more time than the timeout
+     * duration.
+     * @param condition condition evaluated (<code>true</code> to exit the loop)
+     * @param timeout optional duration after which to throw
+     * @param checkInterval the amount of time to wait between each condition
+     *     check
+     * @throws TimeoutException when waiting for more than specified timeout.
+     */
+    public static void waitUntilOrThrow(
+            @NonNull BooleanSupplier condition,
+            Duration timeout,
+            Duration checkInterval)
+            throws TimeoutException {
         var watch = StopWatch.createStarted();
+        var interval = checkInterval == null ? 100 : checkInterval.toMillis();
         while (!condition.getAsBoolean()) {
-            Sleeper.sleepMillis(100);
+            Sleeper.sleepMillis(interval);
             if (timeout != null && watch.getTime() > timeout.toMillis()) {
                 throw new TimeoutException("Waited for too long. Timed out "
                         + "after " + timeout.toMillis() + "ms");

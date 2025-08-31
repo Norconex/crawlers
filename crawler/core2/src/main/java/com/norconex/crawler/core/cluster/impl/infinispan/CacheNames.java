@@ -16,10 +16,12 @@ package com.norconex.crawler.core.cluster.impl.infinispan;
 
 public final class CacheNames {
 
-    //TODO make default
-    public static final String PIPE_CURRENT_STEP = "pipe_current_step";
-    public static final String PIPE_WORKER_STATUSES = "pipe_worker_statuses";
+    public static final String PIPE_CURRENT_STEP = "pipeCurrentStep";
+    public static final String PIPE_WORKER_STATUSES = "pipeWorkerStatuses";
     public static final String ADMIN = "admin";
+    public static final String CRAWLER = "crawler";
+    public static final String CRAWL_SESSION = "crawlSession";
+    public static final String CRAWL_RUN = "crawlRun";
 
     private CacheNames() {
     }

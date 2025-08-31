@@ -29,44 +29,35 @@ public class CleanCommand implements Command {
         Thread.currentThread().setName(ctx.getId() + "/CLEAN");
         session.fire(CrawlerEvent.CRAWLER_CLEAN_BEGIN, this);
 
-        session.getCluster()
-                .getTaskManager().runOnOneOnceSync(
-                        "cleanTask", sess -> {
-                            sess.getCrawlContext().getCommitterService()
-                                    .clean();
-                            // Close metrics prematurely, before cleaning, or
-                            // it will want to report on a blown-away store:
-                            sess.getCrawlContext().getMetrics().close();
-                            return null;
-                            //                            cntx.getCluster().getCacheManager().destroy();
-                        });
-        //                .getCompute()
-        //                .executeTask(GridTaskBuilder.create("cleanTask")
-        //                        .singleNode()
-        //                        .processor(grid -> {
-        //                            var cntx = CrawlContext.get(grid);
-        //                            cntx.getCommitterService().clean();
-        //                            // Close metrics prematurely, before cleaning, or
-        //                            // it will want to report on a blown-away store:
-        //                            cntx.getMetrics().close();
-        //                            cntx.getGrid().getStorage().destroy();
-        //                        })
-        //                        .build());
-        //        var result = ctx.getCluster().getTaskManager().runOnOneOnceAndWait(
-        //                null, null)
-        //                .getCompute()
-        //                .executeTask(GridTaskBuilder.create("cleanTask")
-        //                        .singleNode()
-        //                        .processor(grid -> {
-        //                            var cntx = CrawlContext.get(grid);
-        //                            cntx.getCommitterService().clean();
-        //                            // Close metrics prematurely, before cleaning, or
-        //                            // it will want to report on a blown-away store:
-        //                            cntx.getMetrics().close();
-        //                            cntx.getGrid().getStorage().destroy();
-        //                        })
-        //                        .build());
+        session.getCrawlContext().getCommitterService().clean();
+        //TODO shall we destroy (i.e., delete physical DB) instead of clear?
+        session.getCluster().getCacheManager().forEach((cacheName, cache) -> {
+            cache.clear();
+        });
 
+        //        session.getCluster()
+        //                .getTaskManager().runOnOneOnceSync(
+        //                        "cleanTask", sess -> {
+        //                            sess.getCrawlContext().getCommitterService()
+        //                                    .clean();
+        //                            // Close metrics prematurely, before cleaning, or
+        //                            // it will want to report on a blown-away store:
+        //                            sess.getCrawlContext().getMetrics().close();
+        //                            return null;
+        //                            //                            cntx.getCluster().getCacheManager().destroy();
+        //                        });
+        //                .getCompute()
+        //                .executeTask(GridTaskBuilder.create("cleanTask")
+        //                        .singleNode()
+        //                        .processor(grid -> {
+        //                            var cntx = CrawlContext.get(grid);
+        //                            cntx.getCommitterService().clean();
+        //                            // Close metrics prematurely, before cleaning, or
+        //                            // it will want to report on a blown-away store:
+        //                            cntx.getMetrics().close();
+        //                            cntx.getGrid().getStorage().destroy();
+        //                        })
+        //                        .build());
         //        if (result.getState() != TaskState.COMPLETED) {
         //            LOG.warn("Command returned with a non-completed status: {}",
         //                    result);

@@ -18,18 +18,16 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import com.norconex.commons.lang.event.Event;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cluster.Cluster;
+import com.norconex.crawler.core.session.CrawlResumeState;
+import com.norconex.crawler.core.session.CrawlRunInfo;
+import com.norconex.crawler.core.session.CrawlRunInfoResolver;
 import com.norconex.crawler.core2.cluster.Cache;
 import com.norconex.crawler.core2.cluster.ClusterNode;
 import com.norconex.crawler.core2.context.CrawlContext;
@@ -55,19 +53,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CrawlSession implements Closeable {
 
-    //TODO have state methods, like isQueueInitialized? or is that too specific
-    // to an action (crawl action).
-
-    private static final String SESSION_SNAPSHOT_KEY = "session.snapshot";
     private static final String SESSION_STATE_KEY = "session.state";
     private static final String START_REFS_QUEUED_KEY =
             "session.startRefsQueuingComplete";
 
-    //TODO make these timeouts configurable?
-    private static final long SESSION_HEARTBEAT_INTERVAL =
-            Duration.ofMinutes(2).toMillis();
-    private static final long SESSION_TIMEOUT =
-            Duration.ofMinutes(4).toMillis();
+    //TODO make this timeouts configurable?
+    //    private static final long SESSION_HEARTBEAT_INTERVAL =
+    //            Duration.ofMinutes(2).toMillis();
 
     // <address, ...>
     private static final Map<String, CrawlSession> SESSIONS =
@@ -84,16 +76,16 @@ public class CrawlSession implements Closeable {
     private final Cluster cluster;
     @Getter
     private final CrawlContext crawlContext;
-    private Cache<String> sessionCache;
-    private Snapshot snapshot;
+    private Cache<String> crawlSessionCache;
+    private CrawlRunInfo crawlRunInfo;
     private State state;
-    private ScheduledExecutorService heartbeatScheduler =
-            Executors.newScheduledThreadPool(1, r -> {
-                var t = new Thread(r, "heartbeat-scheduler");
-                t.setDaemon(true);
-                return t;
-            });
-    private java.util.concurrent.ScheduledFuture<?> heartbeatFuture;
+    //    private ScheduledExecutorService heartbeatScheduler =
+    //            Executors.newScheduledThreadPool(1, r -> {
+    //                var t = new Thread(r, "heartbeat-scheduler");
+    //                t.setDaemon(true);
+    //                return t;
+    //            });
+    //    private java.util.concurrent.ScheduledFuture<?> heartbeatFuture;
     private boolean closed;
 
     /**
@@ -130,30 +122,36 @@ public class CrawlSession implements Closeable {
      * same session id.
      * @return crawl session id
      */
-    public String getSessionId() {
-        return snapshot.getCrawlSessionId();
+    public String getCrawlSessionId() {
+        return crawlRunInfo.getCrawlSessionId();
     }
 
     /**
      * A crawl run unique identifier, which is renewed every time the
-     * crawler is launched, regardless whether it was resumed or not.
+     * crawler is launched, regardless whether we are resuming an existing
+     * session or creating a new one.
      * @return crawl run id
      */
-    public String getRunId() {
-        return snapshot.getCrawlRunId();
+    public String getCrawlRunId() {
+        return crawlRunInfo.getCrawlRunId();
     }
 
-    public boolean isExpired() {
-        return System.currentTimeMillis()
-                - state.getLastUpdated() > SESSION_TIMEOUT;
+    public boolean isIncremental() {
+        return crawlRunInfo.getCrawlMode() == CrawlMode.INCREMENTAL;
     }
 
+    @Deprecated
     public CrawlMode getCrawlMode() {
-        return snapshot.getCrawlMode();
+        return crawlRunInfo.getCrawlMode();
     }
 
-    public LaunchMode getLaunchMode() {
-        return snapshot.getLaunchMode();
+    public boolean isResumed() {
+        return crawlRunInfo.getCrawlResumeState() == CrawlResumeState.RESUMED;
+    }
+
+    @Deprecated
+    public CrawlResumeState getResumeState() {
+        return crawlRunInfo.getCrawlResumeState();
     }
 
     public CrawlState getCrawlState() {
@@ -166,6 +164,33 @@ public class CrawlSession implements Closeable {
         return closed;
     }
 
+    void init() {
+        if (closed) {
+            throw new IllegalStateException(
+                    "Cannot initialize a closed CrawlSession.");
+        }
+        createDir(crawlContext.getTempDir()); // also creates workDir
+        cluster.init(crawlContext.getWorkDir());
+        crawlSessionCache = cluster.getCacheManager().getCrawlSessionCache();
+        SESSIONS.put(cluster.getLocalNode().getNodeName(), this);
+        System.err.println("XXX session initialized.");
+        try {
+            //NOTE: this resolver will also clear the session cache if needed.
+            // The crawlRunCache does not need clearing as it is ephemeral
+            crawlRunInfo = CrawlRunInfoResolver.resolve(this);
+
+            //TODO will always setting it have an impact for non crawl commands?
+            if (cluster.getLocalNode().isCoordinator()) {
+                updateCrawlState(CrawlState.RUNNING);
+            }
+            //            scheduleHeartbeat();
+            crawlContext.init(this);
+        } catch (RuntimeException e) {
+            SESSIONS.remove(cluster.getLocalNode().getNodeName());
+            throw e;
+        }
+    }
+
     @Override
     public void close() {
         if (closed) {
@@ -176,26 +201,26 @@ public class CrawlSession implements Closeable {
 
         LOG.info("Closing CrawlSession...");
 
-        LOG.info("Closing heartbeat scheduler...");
-        if (heartbeatFuture != null) {
-            heartbeatFuture.cancel(true);
-        }
-        heartbeatScheduler.shutdown();
-        try {
-            if (!heartbeatScheduler.awaitTermination(5, TimeUnit.SECONDS)) {
-                heartbeatScheduler.shutdownNow();
-            } else {
-                LOG.info("Heartbeat scheduler closed.");
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            heartbeatScheduler.shutdownNow();
-            LOG.warn(
-                    "Interrupted while waiting for heartbeat scheduler to terminate.",
-                    e);
-        }
-        heartbeatScheduler = null;
-        heartbeatFuture = null;
+        //        LOG.info("Closing heartbeat scheduler...");
+        //        if (heartbeatFuture != null) {
+        //            heartbeatFuture.cancel(true);
+        //        }
+        //        heartbeatScheduler.shutdown();
+        //        try {
+        //            if (!heartbeatScheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+        //                heartbeatScheduler.shutdownNow();
+        //            } else {
+        //                LOG.info("Heartbeat scheduler closed.");
+        //            }
+        //        } catch (InterruptedException e) {
+        //            Thread.currentThread().interrupt();
+        //            heartbeatScheduler.shutdownNow();
+        //            LOG.warn(
+        //                    "Interrupted while waiting for heartbeat scheduler to terminate.",
+        //                    e);
+        //        }
+        //        heartbeatScheduler = null;
+        //        heartbeatFuture = null;
         ExceptionSwallower.runWithInterruptClear(() -> {
             ExceptionSwallower.close(crawlContext, cluster);
         });
@@ -207,132 +232,32 @@ public class CrawlSession implements Closeable {
 
     }
 
-    void init() {
-        if (closed) {
-            throw new IllegalStateException(
-                    "Cannot initialize a closed CrawlSession.");
-        }
-        createDir(crawlContext.getTempDir()); // also creates workDir
-        cluster.init(crawlContext.getWorkDir());
-        sessionCache = cluster.getCacheManager().getCache(
-                "sessionCache", String.class);
-        SESSIONS.put(cluster.getLocalNode().getNodeName(), this);
-        try {
-            state = cluster.getTaskManager().runOnOneOnceSync( //NOSONAR
-                    "resolveState", CrawlSession::resolveStateStatic).get();
-            snapshot = cluster.getTaskManager().runOnOneOnceSync( //NOSONAR
-                    "resolveSession", CrawlSession::resolveSnapshotOnceStatic)
-                    .get();
-            scheduleHeartbeat();
-            crawlContext.init(this);
-        } catch (RuntimeException e) {
-            SESSIONS.remove(cluster.getLocalNode().getNodeName());
-            throw e;
-        }
-    }
+    //    private void scheduleHeartbeat() {
+    //        heartbeatFuture = heartbeatScheduler.scheduleAtFixedRate(
+    //                this::beatHeart,
+    //                SESSION_HEARTBEAT_INTERVAL,
+    //                SESSION_HEARTBEAT_INTERVAL,
+    //                TimeUnit.MILLISECONDS);
+    //    }
 
-    private static State resolveStateStatic(CrawlSession session) {
-        // the first time we grab whatever existing state, then we schedule.
-        var astate = session.loadState();
-        if (astate == null) {
-            // no state found, assume we're starting it
-            astate = new State().setCrawlState(CrawlState.RUNNING)
-                    .setLastUpdated(System.currentTimeMillis());
-            session.saveCrawlState(astate);
-        }
-        return astate;
-    }
-
-    private static Snapshot resolveSnapshotOnceStatic(CrawlSession session) {
-        var snap = session.doResolveSnapshotOnce();
-        session.sessionCache.put(SESSION_SNAPSHOT_KEY,
-                SerialUtil.toJsonString(snap));
-        return snap;
-    }
-
-    private void scheduleHeartbeat() {
-        heartbeatFuture = heartbeatScheduler.scheduleAtFixedRate(
-                this::beatHeart,
-                SESSION_HEARTBEAT_INTERVAL,
-                SESSION_HEARTBEAT_INTERVAL,
-                TimeUnit.MILLISECONDS);
-    }
-
-    private void beatHeart() {
-        if (closed || cluster == null) {
-            return;
-        }
-        // Heartbeat must execute every interval. Using runOnOneOnce would
-        // prevent subsequent executions on the same session. We only want
-        // exactly one node to perform each heart beat invocation, but the
-        // task itself must be repeatable across the life of the session.
-        state = cluster.getTaskManager().runOnOneSync( //NOSONAR
-                "session.heartbeat", sess -> {
-                    var currentState = sess.loadState();
-                    var st = new State().setCrawlState(currentState.crawlState)
-                            .setLastUpdated(System.currentTimeMillis());
-                    sess.saveCrawlState(st);
-                    return st;
-                }).get();
-    }
-
-    private Snapshot doResolveSnapshotOnce() {
-        var id = getCrawlerId();
-        var snapshotOpt = sessionCache.get(SESSION_SNAPSHOT_KEY);
-        if (snapshotOpt.isEmpty()) {
-            LOG.info("No previous crawl session detected for crawler {}. "
-                    + "Starting a new full crawl session.", id);
-            var uuid = UUID.randomUUID().toString();
-            return new Snapshot()
-                    .setCrawlerId(getCrawlerId())
-                    .setCrawlSessionId(uuid)
-                    .setCrawlRunId(uuid)
-                    .setCrawlMode(CrawlMode.FULL)
-                    .setLaunchMode(LaunchMode.NEW);
-        }
-
-        var snap = SerialUtil.fromJson(snapshotOpt.get(), Snapshot.class);
-
-        return switch (state.crawlState) {
-            case RUNNING -> {
-                if (isExpired()) {
-                    LOG.warn("A crawl session for crawler {} was "
-                            + "detected but expired. Trying to resume it.", id);
-                    snap.setLaunchMode(LaunchMode.RESUMED)
-                            .setCrawlRunId(UUID.randomUUID().toString());
-                } else {
-                    LOG.info("Joining crawl session for crawler {}.", id);
-                }
-                yield snap;
-            }
-            case PAUSED -> {
-                LOG.info("A previously paused crawl session was detected for "
-                        + "crawler {}. Resuming it.", id);
-                snap.setLaunchMode(LaunchMode.RESUMED)
-                        .setCrawlRunId(UUID.randomUUID().toString());
-                yield snap;
-            }
-            case COMPLETED -> {
-                LOG.info("""
-                    A previously completed crawl session was detected \
-                    for crawler {}. Starting a new incremental crawl \
-                    session.""", id);
-                var uuid = UUID.randomUUID().toString();
-                snap.setCrawlMode(CrawlMode.INCREMENTAL)
-                        .setLaunchMode(LaunchMode.NEW)
-                        .setCrawlSessionId(uuid)
-                        .setCrawlRunId(uuid);
-                yield snap;
-            }
-            case FAILED -> {
-                LOG.warn("A crawl session for crawler {} was detected but is "
-                        + "marked as failed. Trying to resume it.", id);
-                snap.setLaunchMode(LaunchMode.RESUMED)
-                        .setCrawlRunId(UUID.randomUUID().toString());
-                yield snap;
-            }
-        };
-    }
+    //    private void beatHeart() {
+    //        if (closed || cluster == null) {
+    //        }
+    //        // Heartbeat must execute every interval. Using runOnOneOnce would
+    //        // prevent subsequent executions on the same session. We only want
+    //        // exactly one node to perform each heart beat invocation, but the
+    //        // task itself must be repeatable across the life of the session.
+    //
+    //        //TODO need to migrate this? I think it is done by cluster now
+    //        //        state = cluster.getTaskManager().runOnOneSync( //NOSONAR
+    //        //                "session.heartbeat", sess -> {
+    //        //                    var currentState = sess.loadState();
+    //        //                    var st = new State().setCrawlState(currentState.crawlState)
+    //        //                            .setLastUpdated(System.currentTimeMillis());
+    //        //                    sess.saveCrawlState(st);
+    //        //                    return st;
+    //        //                }).get();
+    //    }
 
     /**
      * Sets a session attribute as a string.
@@ -340,7 +265,7 @@ public class CrawlSession implements Closeable {
      * @param value attribute value
      */
     public void setString(String key, String value) {
-        sessionCache.put(key, value);
+        crawlSessionCache.put(key, value);
     }
 
     /**
@@ -349,7 +274,7 @@ public class CrawlSession implements Closeable {
      * @return value attribute value
      */
     public Optional<String> getString(String key) {
-        return sessionCache.get(key);
+        return crawlSessionCache.get(key);
     }
 
     /**
@@ -358,7 +283,7 @@ public class CrawlSession implements Closeable {
      * @param value attribute value
      */
     public void setBoolean(String key, boolean value) {
-        sessionCache.put(key, Boolean.toString(value));
+        crawlSessionCache.put(key, Boolean.toString(value));
     }
 
     /**
@@ -367,7 +292,8 @@ public class CrawlSession implements Closeable {
      * @return value attribute value
      */
     public boolean getBoolean(String key) {
-        return sessionCache.get(key).map(Boolean::parseBoolean).orElse(false);
+        return crawlSessionCache.get(key).map(Boolean::parseBoolean)
+                .orElse(false);
     }
 
     public boolean isStartRefsQueueingComplete() {
@@ -411,12 +337,14 @@ public class CrawlSession implements Closeable {
     }
 
     private void saveCrawlState(State state) {
-        sessionCache.put(SESSION_STATE_KEY, SerialUtil.toJsonString(state));
+        crawlSessionCache.put(SESSION_STATE_KEY,
+                SerialUtil.toJsonString(state));
     }
 
-    private State loadState() {
+    //TODO make package private
+    public State loadState() {
         return SerialUtil.fromJson(
-                sessionCache.getOrDefault(SESSION_STATE_KEY, null),
+                crawlSessionCache.getOrDefault(SESSION_STATE_KEY, null),
                 State.class);
     }
 
@@ -430,17 +358,8 @@ public class CrawlSession implements Closeable {
 
     @Data
     @Accessors(chain = true)
-    static class Snapshot {
-        private String crawlerId;
-        private String crawlSessionId;
-        private String crawlRunId;
-        private CrawlMode crawlMode;
-        private LaunchMode launchMode;
-    }
-
-    @Data
-    @Accessors(chain = true)
-    static class State {
+    //TODO make package private
+    public static class State {
         private CrawlState crawlState;
         private long lastUpdated;
     }

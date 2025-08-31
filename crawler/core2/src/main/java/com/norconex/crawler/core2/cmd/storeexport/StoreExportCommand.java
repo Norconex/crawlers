@@ -53,20 +53,21 @@ public class StoreExportCommand implements Command {
 
         Thread.currentThread().setName(ctx.getId() + "/STORE_EXPORT");
         session.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_BEGIN, this);
-        try {
-            session.getCluster().getTaskManager()
-                    .runOnOneSync("storeImportTask", sess -> {
-                        try {
-                            exportAllStores(sess);
-                        } catch (IOException e) {
-                            throw new CrawlerException(e);
-                        }
-                        return null;
-                    });
-        } catch (Exception e) {
-            throw new CrawlerException(
-                    "A problem occured while exporting crawler storage.", e);
-        }
+        //TODO migrate to pipeline
+        //        try {
+        //            session.getCluster().getTaskManager()
+        //                    .runOnOneSync("storeImportTask", sess -> {
+        //                        try {
+        //                            exportAllStores(sess);
+        //                        } catch (IOException e) {
+        //                            throw new CrawlerException(e);
+        //                        }
+        //                        return null;
+        //                    });
+        //        } catch (Exception e) {
+        //            throw new CrawlerException(
+        //                    "A problem occured while exporting crawler storage.", e);
+        //        }
         session.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_END, this);
     }
 

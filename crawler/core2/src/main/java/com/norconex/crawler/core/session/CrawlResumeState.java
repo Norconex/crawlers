@@ -12,22 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cmd.crawl.pipeline.bootstrap;
+package com.norconex.crawler.core.session;
 
-import org.apache.commons.collections4.CollectionUtils;
-
-import com.norconex.crawler.core2.cluster.ClusterTask;
-import com.norconex.crawler.core2.session.CrawlSession;
-
-public class CrawlBootstrapTask implements ClusterTask<Void> {
-
-    @Override
-    public Void execute(CrawlSession session) {
-        var ctx = session.getCrawlContext();
-
-        if (CollectionUtils.isNotEmpty(ctx.getBootstrappers())) {
-            ctx.getBootstrappers().forEach(boot -> boot.bootstrap(session));
-        }
-        return null;
-    }
+/**
+ * Describes the state of the crawler when launched (new launch or resuming a
+ * non completed/failed one).
+ */
+public enum CrawlResumeState {
+    /**
+     * The crawler started from the beginning (first-time or restarted after
+     * success, regardless of crawl mode -- incremental or full).
+     */
+    NEW,
+    /**
+     * The crawler resumed from a prior incomplete execution (e.g., paused
+     * or failed).
+     */
+    RESUMED
 }

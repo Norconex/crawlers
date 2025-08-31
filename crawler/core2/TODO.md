@@ -1,3 +1,14 @@
+crawlRunId resolution logic:
+==============================
+
+Upon being created, an infinispan cluster will store in an ephemeral cache
+(crawlerRunCache) a computeOrGet id.  Then the coordinator will compare 
+that one with the one in crawl-session cache and if different will know
+if we are resuming or not.  In either case, it updates the crawlSessionState
+in the crawlSessionCache.
+
+
+
 Create a small config with free-form XML/JSON/Yaml in it to test 
 JDBC H2 configuration.
 
@@ -8,6 +19,9 @@ JDBC H2 configuration.
 
 
 RANDOM:
+
+crawlerId
+clusterRunId
 
 
 //TODO for each type of cluster ID

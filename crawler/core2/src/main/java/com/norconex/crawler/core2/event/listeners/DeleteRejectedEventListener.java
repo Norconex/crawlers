@@ -21,7 +21,6 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core2.cluster.CacheSet;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.session.CrawlSession;
-import com.norconex.importer.doc.Doc;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -107,15 +106,16 @@ public class DeleteRejectedEventListener implements
         // two crawl executions.
         refCache = getRefCache(crawlSession);
 
-        crawlSession
-                .getCluster()
-                .getTaskManager()
-                .runOnOneOnceSync("deleteRejectedListenerInit", sess -> {
-                    LOG.info("Clearing any previous deleted "
-                            + "references cache.");
-                    getRefCache(crawlSession).clear();
-                    return null;
-                });
+        //TODO migrate this:
+        //        crawlSession
+        //                .getCluster()
+        //                .getTaskManager()
+        //                .runOnOneOnceSync("deleteRejectedListenerInit", sess -> {
+        //                    LOG.info("Clearing any previous deleted "
+        //                            + "references cache.");
+        //                    getRefCache(crawlSession).clear();
+        //                    return null;
+        //                });
     }
 
     private void storeRejection(CrawlerEvent event) {
@@ -137,21 +137,22 @@ public class DeleteRejectedEventListener implements
     }
 
     private void commitDeletions(CrawlSession crawlSession) {
-        crawlSession
-                .getCluster()
-                .getTaskManager()
-                .runOnOneOnceSync("deleteRejectedListenerCommit", sess -> {
-                    var refs = getRefCache(sess);
-                    if (LOG.isInfoEnabled()) {
-                        LOG.info("Committing {} rejected references "
-                                + "for deletion...", refs.size());
-                    }
-                    refs.forEach(
-                            ref -> sess.getCrawlContext().getCommitterService()
-                                    .delete(new Doc(ref)));
-                    LOG.info("Done committing rejected references.");
-                    return null;
-                });
+        //TODO migrate this:
+        //        crawlSession
+        //                .getCluster()
+        //                .getTaskManager()
+        //                .runOnOneOnceSync("deleteRejectedListenerCommit", sess -> {
+        //                    var refs = getRefCache(sess);
+        //                    if (LOG.isInfoEnabled()) {
+        //                        LOG.info("Committing {} rejected references "
+        //                                + "for deletion...", refs.size());
+        //                    }
+        //                    refs.forEach(
+        //                            ref -> sess.getCrawlContext().getCommitterService()
+        //                                    .delete(new Doc(ref)));
+        //                    LOG.info("Done committing rejected references.");
+        //                    return null;
+        //                });
     }
 
     private static CacheSet getRefCache(CrawlSession session) {

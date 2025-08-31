@@ -16,19 +16,14 @@ package com.norconex.crawler.core2.cmd.crawl;
 
 import static com.norconex.crawler.core2.util.ExceptionSwallower.swallow;
 
-import java.time.Duration;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.norconex.crawler.core2.cluster.ClusterTask;
 import com.norconex.crawler.core2.cmd.Command;
-import com.norconex.crawler.core2.cmd.crawl.pipeline.CrawlPipelineFactory;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.metrics.CrawlerMetricsJMX;
 import com.norconex.crawler.core2.session.CrawlSession;
 import com.norconex.crawler.core2.session.CrawlState;
-import com.norconex.crawler.core2.util.ConcurrentUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -60,21 +55,22 @@ public class CrawlCommand implements Command {
 
         trackProgress(session);
 
-        try {
-            CrawlPipelineFactory.create(session).run();
-            if (!ConcurrentUtil.waitUntil(() -> session
-                    .getCrawlState()
-                    .isTerminal(), Duration.ofSeconds(5))) {
-                updateCrawlState(session, CrawlState.COMPLETED);
-                LOG.info("Crawler completed execution.");
-            } else {
-                LOG.debug("Crawl state not terminal after waiting, setting it "
-                        + "to COMPLETED.");
-            }
-        } catch (Exception e) {
-            updateCrawlState(session, CrawlState.FAILED);
-            LOG.error("Crawler execution failed.", e);
-        }
+        //TODO migrate to pipeline:
+        //        try {
+        //            CrawlPipelineFactory.create(session).run();
+        //            if (!ConcurrentUtil.waitUntil(() -> session
+        //                    .getCrawlState()
+        //                    .isTerminal(), Duration.ofSeconds(5))) {
+        //                updateCrawlState(session, CrawlState.COMPLETED);
+        //                LOG.info("Crawler completed execution.");
+        //            } else {
+        //                LOG.debug("Crawl state not terminal after waiting, setting it "
+        //                        + "to COMPLETED.");
+        //            }
+        //        } catch (Exception e) {
+        //            updateCrawlState(session, CrawlState.FAILED);
+        //            LOG.error("Crawler execution failed.", e);
+        //        }
 
         //TODO have thread/timer that invoke stopPipeline(id) with the
         // timeout value from crawler configuration.
@@ -100,7 +96,8 @@ public class CrawlCommand implements Command {
         //            }
         //        }
 
-        session.getCluster().getTaskManager().stopTask(PROGRESS_LOGGER_KEY);
+        //TODO migrate this stopTask?
+        //     session.getCluster().getTaskManager().stopTask(PROGRESS_LOGGER_KEY);
 
         //        ctx.getGrid().getCompute().stopTask(PROGRESS_LOGGER_KEY);
 
@@ -123,29 +120,31 @@ public class CrawlCommand implements Command {
     }
 
     private void updateCrawlState(CrawlSession session, CrawlState state) {
-        session.getCluster().getTaskManager().runOnOneSync("updateCrawlState",
-                sess -> {
-                    sess.updateCrawlState(state);
-                    return null;
-                });
+        //TODO still needed?
+        //        session.getCluster().getTaskManager().runOnOneSync("updateCrawlState",
+        //                sess -> {
+        //                    sess.updateCrawlState(state);
+        //                    return null;
+        //                });
     }
 
     private void trackProgress(CrawlSession session) {
-        // only 1 node reports progress
-        CompletableFuture.runAsync(() -> {
-            var taskManager = session.getCluster().getTaskManager();
-            var loggerTask = new LoggerTask();
-            taskManager.runOnOneSync(PROGRESS_LOGGER_KEY, loggerTask);
-            // Wait for logger to actually stop before setting flag
-            while (!pendingLoggerStopped.get()) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-            }
-        }, Executors.newFixedThreadPool(1));
+        //TODO still needed?
+        //        // only 1 node reports progress
+        //        CompletableFuture.runAsync(() -> {
+        //            var taskManager = session.getCluster().getTaskManager();
+        //            var loggerTask = new LoggerTask();
+        //            taskManager.runOnOneSync(PROGRESS_LOGGER_KEY, loggerTask);
+        //            // Wait for logger to actually stop before setting flag
+        //            while (!pendingLoggerStopped.get()) {
+        //                try {
+        //                    Thread.sleep(100);
+        //                } catch (InterruptedException e) {
+        //                    Thread.currentThread().interrupt();
+        //                    break;
+        //                }
+        //            }
+        //        }, Executors.newFixedThreadPool(1));
     }
 
     static class LoggerTask implements ClusterTask<Void> {

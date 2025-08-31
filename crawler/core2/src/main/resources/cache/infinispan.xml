@@ -6,14 +6,16 @@
   ABOUT THIS FILE:
   Default Infinispan configuration used by the crawler to work out-of-the-box
   either standalone or in a cluster.  When running the crawler in a cluster,
-  you are encouraged to use a shared database instead (e.g., JDBC) so storage
-  persists beyond the crawler nodes lifespan.
+  you are encouraged to configure Infinispan to use a shared database instead 
+  (e.g., JDBC) so storage persists beyond the crawler nodes life span.
   
   More details about Infinispan cache configuration:  
   https://infinispan.org/docs/stable/titles/configuring/configuring.html
    -->
             
   <cache-container name="default" default-cache="base-template">
+
+    <!-- === GLOBAL SETTINGS =============================================== -->
   
     <transport cluster="${infinispan.cluster.name:cluster}" stack="crawler-udp" />
   
@@ -24,6 +26,9 @@
         -->
       <persistent-location path="__DERIVED__/cache/infinispan"/>
     </global-state>
+
+
+    <!-- === CACHE TEMPLATES =============================================== -->
   
     <!-- 
       Cache configuration used as default if the crawler tries to load a 
@@ -53,8 +58,6 @@
       </indexing>
     </distributed-cache-configuration>
 
-    <distributed-cache-configuration name="*_indexed" configuration="indexed-template"/>
-
     <!-- Cache used for sharing and also persisting arbitrary counters.  -->
     <distributed-cache 
       name="counter-cache"
@@ -66,6 +69,31 @@
         <file-store />
       </persistence>
     </distributed-cache>
+
+    <!-- For caches that don't survive a cluster run. -->
+    <distributed-cache 
+      name="ephemeral-template" 
+      owners="2"
+      mode="SYNC"
+      statistics="true"
+    >
+      <expiration lifespan="-1"/>
+      <persistence passivation="false"/>
+    </distributed-cache>
+
+    <!-- === CACHE MAPPINGS ================================================ -->
+
+    <distributed-cache-configuration name="*_indexed"   configuration="indexed-template"/>
+    <distributed-cache-configuration name="*_ephemeral" configuration="ephemeral-template"/>
+
+    <!-- Explicitly create caches we know are used by crawler-core. -->
+    <distributed-cache name="crawler"            configuration="base-template"/>
+    <distributed-cache name="crawlSession"       configuration="base-template"/>
+    <distributed-cache name="crawlRun"           configuration="ephemeral-template"/>
+    <distributed-cache name="pipeCurrentStep"    configuration="base-template"/>
+    <distributed-cache name="pipeWorkerStatuses" configuration="base-template"/>
+    <distributed-cache name="ledger_a"           configuration="indexed-template"/>
+    <distributed-cache name="ledger_b"           configuration="indexed-template"/>
 
   </cache-container>
   

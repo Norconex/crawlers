@@ -25,7 +25,6 @@ import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core2.cluster.Cache;
 import com.norconex.crawler.core2.cmd.Command;
 import com.norconex.crawler.core2.event.CrawlerEvent;
@@ -47,20 +46,21 @@ public class StoreImportCommand implements Command {
 
         Thread.currentThread().setName(ctx.getId() + "/STORE_IMPORT");
         session.fire(CrawlerEvent.CRAWLER_STORE_IMPORT_BEGIN, this);
-        try {
-            session.getCluster().getTaskManager()
-                    .runOnOneSync("storeImportTask", sess -> {
-                        try {
-                            importAllStores(session);
-                        } catch (ClassNotFoundException
-                                | IOException e) {
-                            throw new CrawlerException(e);
-                        }
-                        return null;
-                    });
-        } catch (Exception e) {
-            throw new CrawlerException("Could not import file: " + inFile, e);
-        }
+        //TODO migrate to pipeline
+        //        try {
+        //            session.getCluster().getTaskManager()
+        //                    .runOnOneSync("storeImportTask", sess -> {
+        //                        try {
+        //                            importAllStores(session);
+        //                        } catch (ClassNotFoundException
+        //                                | IOException e) {
+        //                            throw new CrawlerException(e);
+        //                        }
+        //                        return null;
+        //                    });
+        //        } catch (Exception e) {
+        //            throw new CrawlerException("Could not import file: " + inFile, e);
+        //        }
         session.fire(CrawlerEvent.CRAWLER_STORE_IMPORT_END, this);
     }
 

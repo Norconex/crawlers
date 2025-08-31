@@ -27,7 +27,6 @@ import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core2.cmd.crawl.pipeline.bootstrap.CrawlBootstrapper;
 import com.norconex.crawler.core2.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core2.session.CrawlSession;
-import com.norconex.crawler.core2.session.LaunchMode;
 import com.norconex.crawler.core2.util.LogUtil;
 
 import lombok.EqualsAndHashCode;
@@ -69,7 +68,7 @@ public class QueueBootstrapper implements CrawlBootstrapper {
     @Override
     public void bootstrap(CrawlSession session) {
         var crawlContext = session.getCrawlContext();
-        if (session.getLaunchMode() == LaunchMode.RESUMED) {
+        if (session.isResumed()) {
             LOG.info("Unfinished previous crawl detected. Resuming...");
         } else {
             LOG.info("Queueing start references ({})...",
