@@ -22,18 +22,16 @@ import java.util.concurrent.CompletableFuture;
 public interface PipelineManager {
 
     /**
-     * Executes a pipeline with an optional timeout. Use zero or a negative
-     * value for unlimited (no timeout).
+     * Executes a pipeline.
      * @param pipeline the pipeline to execute
      * @return a future containing the pipeline execution result
      */
     CompletableFuture<PipelineResult> executePipeline(Pipeline pipeline);
 
     /**
-     * Stops a pipeline execution with an optional timeout waiting for
-     * confirmation. Use zero or a  negative value for unlimited (no timeout).
+     * Stops a pipeline execution.
      * @param pipelineId id of the pipeline to stop
-     * @return a future triggered when stopped or timeout reached
+     * @return a future triggered when stopped
      */
     CompletableFuture<Void> stopPipeline(String pipelineId);
 

@@ -32,6 +32,9 @@ public interface Step {
      */
     void stop(CrawlSession session);
 
-    PipelineStatus reduce(
-            CrawlSession session, Bag<PipelineStatus> statuses);
+    PipelineStatus reduce(CrawlSession session, Bag<PipelineStatus> statuses);
+
+    default Object progressTracker() {
+        return null;
+    }
 }

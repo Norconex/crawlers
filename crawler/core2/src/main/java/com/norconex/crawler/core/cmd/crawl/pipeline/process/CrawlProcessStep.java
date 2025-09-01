@@ -68,9 +68,9 @@ public class CrawlProcessStep extends BaseStep {
         }
         LOG.info("Processing crawler queue...");
         try {
-            ofNullable(ctx.getCallbacks().getBeforeCrawlTask())
-                    .ifPresent(cb -> cb.accept(session));
-            //TODO add timeout?
+            //TODO DELETE THIS:
+            //            ofNullable(ctx.getCallbacks().getBeforeCrawlTask())
+            //                    .ifPresent(cb -> cb.accept(session));
 
             var cfg = ctx.getCrawlConfig();
 
@@ -112,8 +112,9 @@ public class CrawlProcessStep extends BaseStep {
                     futures.toArray(new CompletableFuture[0])).join();
             ConcurrentUtil.cleanShutdown(executor);
         } finally {
-            ofNullable(ctx.getCallbacks().getAfterCrawlTask())
-                    .ifPresent(cb -> cb.accept(session));
+            //TODO DELETE THIS:
+            //            ofNullable(ctx.getCallbacks().getAfterCrawlTask())
+            //                    .ifPresent(cb -> cb.accept(session));
         }
     }
 

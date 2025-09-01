@@ -15,10 +15,10 @@
 package com.norconex.crawler.core;
 
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
+import com.norconex.crawler.core.cmd.Command;
+import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.importer.doc.Doc;
 
 import lombok.Builder;
@@ -29,31 +29,36 @@ import lombok.Getter;
 public class CrawlCallbacks {
 
     /**
-     * Invoked after a command is initialized, but before it gets executed.
+     * Convenience interface providing a default implementation of
+     * execute that ignores all commands but {@link CrawlCommand} and
+     * offers an overloaded {@code accept} method with a single argument.
      */
-    Consumer<CrawlSession> beforeCommand;
+    public interface CrawlCommandCallback
+            extends BiConsumer<CrawlSession, Class<? extends Command>> {
+        @Override
+        default void accept(
+                CrawlSession session, Class<? extends Command> commandClass) {
+            if (CrawlCommand.class.isAssignableFrom(commandClass)) {
+                accept(session);
+            }
+        }
+
+        void accept(CrawlSession t);
+    }
+
+    /**
+     * Invoked after a command is initialized, but before it gets executed.
+     * Rely on the supplied command class to know which command.
+     * @see CrawlCommandCallback
+     */
+    BiConsumer<CrawlSession, Class<? extends Command>> beforeCommand;
     /**
      * Invoked after a command has been executed, but before resources are
      * closed.
+     * Rely on the supplied command class to know which command.
+     * @see CrawlCommandCallback
      */
-    Consumer<CrawlSession> afterCommand;
-
-    /**
-     * Gives crawler implementations a chance to prepare before execution
-     * of {@link CrawlTask_TO_MIGRATE} starts. Invoked right after the
-     * {@link CrawlerEvent#TASK_RUN_BEGIN} event is fired.
-     */
-    Consumer<CrawlSession> beforeCrawlTask;
-
-    /**
-     * Gives crawler implementations a chance to do something right after
-     * the {@link CrawlTask_TO_MIGRATE} is done processing its last reference,
-     * before all task resources are shut down.
-     * Invoked right after
-     * {@link CrawlerEvent#TASK_RUN_END} (depending which of the two is
-     * triggered).
-     */
-    Consumer<CrawlSession> afterCrawlTask;
+    BiConsumer<CrawlSession, Class<? extends Command>> afterCommand;
 
     //MAYBE: are those used? Should they be?
     // Add those that are missing to ReferencesProcessor

@@ -15,14 +15,20 @@
 package com.norconex.crawler.core.cmd.crawl;
 
 import static com.norconex.crawler.core2.util.ExceptionSwallower.swallow;
+import static java.util.Optional.ofNullable;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.norconex.crawler.core.cluster.pipeline.PipelineResult;
+import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cmd.Command;
+import com.norconex.crawler.core.cmd.crawl.pipeline.CrawlPipelineFactory;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlState;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.metrics.CrawlerMetricsJMX;
+import com.norconex.crawler.core2.util.ConcurrentUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,63 +60,31 @@ public class CrawlCommand implements Command {
 
         trackProgress(session);
 
-        //TODO migrate to pipeline:
-        //        try {
-        //            CrawlPipelineFactory.create(session).run();
-        //            if (!ConcurrentUtil.waitUntil(() -> session
-        //                    .getCrawlState()
-        //                    .isTerminal(), Duration.ofSeconds(5))) {
-        //                updateCrawlState(session, CrawlState.COMPLETED);
-        //                LOG.info("Crawler completed execution.");
-        //            } else {
-        //                LOG.debug("Crawl state not terminal after waiting, setting it "
-        //                        + "to COMPLETED.");
-        //            }
-        //        } catch (Exception e) {
-        //            updateCrawlState(session, CrawlState.FAILED);
-        //            LOG.error("Crawler execution failed.", e);
-        //        }
+        CrawlState finalState = null;
+        try {
+            var pipeFuture = session.getCluster().getPipelineManager()
+                    .executePipeline(CrawlPipelineFactory.create(session));
 
-        //TODO have thread/timer that invoke stopPipeline(id) with the
-        // timeout value from crawler configuration.
+            // Max duration is already handled in CrawlProcessStep, here we
+            // have it again just as a safeguard, but we pad to give time to
+            // CrawlProcessStep to finish normally after timeout.
+            var maxDuration = ctx.getCrawlConfig().getMaxCrawlDuration();
+            var result =
+                    (maxDuration != null && maxDuration.toMillis() > 0)
+                            ? ConcurrentUtil.get(pipeFuture, 5,
+                                    TimeUnit.MINUTES)
+                            : ConcurrentUtil.get(pipeFuture);
 
-        //        var result = ctx.getGrid()
-        //                .getCompute()
-        //                .executePipeline(CrawlPipelineFactory.create(ctx));
+            finalState = session.oncePerSessionAndGet("final-status-task",
+                    () -> storeFinalCrawlState(session, result));
+        } catch (Exception e) {
+            LOG.error("Crawler execution failed.", e);
+            finalState = CrawlState.FAILED;
+            session.updateCrawlState(CrawlState.FAILED);
+        }
 
-        //        // If there is a terminal crawl state already set, we use it, else
-        //        // we wait a bit for one, in case it hasn't been synched yet, then,
-        //        // we rely on pipeline last task state as fallback.
-        //        if (!ConcurrentUtil.waitUntil(() -> ctx.getSessionProperties()
-        //                .getCrawlState()
-        //                .map(CrawlState::isTerminal)
-        //                .orElse(false), Duration.ofSeconds(5))) {
-        //            if (result.getState() == TaskState.COMPLETED) {
-        //                updateCrawlState(ctx, CrawlState.COMPLETED);
-        //                LOG.info("Crawler completed execution.");
-        //            } else {
-        //                updateCrawlState(ctx, CrawlState.FAILED);
-        //                LOG.info("Crawler execution failed or otherwise ended "
-        //                        + "before completion.");
-        //            }
-        //        }
-
-        //TODO migrate this stopTask?
-        //     session.getCluster().getTaskManager().stopTask(PROGRESS_LOGGER_KEY);
-
-        //        ctx.getGrid().getCompute().stopTask(PROGRESS_LOGGER_KEY);
-
-        //TODO check if we should reintroduce waiting for logger shutdown
-        // as with latest code it seems to always shut down before returning
-        //        try {
-        //            ConcurrentUtil.waitUntilOrThrow(
-        //                    //TODO make it configurable???
-        //                    pendingLoggerStopped::get, Duration.ofSeconds(60));
-        //        } catch (TimeoutException e) {
-        //            throw new CrawlerException("Could not stop progress logger.", e);
-        //        }
         session.fire(CrawlerEvent.CRAWLER_CRAWL_END, this);
-        LOG.info("Node done crawling with state: {}", session.getCrawlState());
+        LOG.info("Crawler terminated with state: {}", finalState);
 
         if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {
             LOG.info("Unregistering JMX crawler MBeans.");
@@ -118,13 +92,21 @@ public class CrawlCommand implements Command {
         }
     }
 
-    private void updateCrawlState(CrawlSession session, CrawlState state) {
-        //TODO still needed?
-        //        session.getCluster().getTaskManager().runOnOneSync("updateCrawlState",
-        //                sess -> {
-        //                    sess.updateCrawlState(state);
-        //                    return null;
-        //                });
+    private CrawlState storeFinalCrawlState(
+            CrawlSession session, PipelineResult result) {
+        var pipeStatus = ofNullable(result).map(PipelineResult::getStatus)
+                .orElse(PipelineStatus.FAILED);
+        LOG.info("Crawl pipeline status: {}", pipeStatus);
+        var state = switch (pipeStatus) {
+            case FAILED, EXPIRED, STOPPING, PENDING, RUNNING ->
+                    CrawlState.FAILED;
+            case COMPLETED -> CrawlState.COMPLETED;
+            case STOPPED -> CrawlState.STOPPED;
+            default -> throw new IllegalArgumentException(
+                    "Unexpected value: " + pipeStatus);
+        };
+        session.updateCrawlState(state);
+        return state;
     }
 
     private void trackProgress(CrawlSession session) {

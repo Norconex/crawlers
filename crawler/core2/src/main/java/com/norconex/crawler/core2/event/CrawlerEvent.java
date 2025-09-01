@@ -37,8 +37,6 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 public class CrawlerEvent extends Event {
 
-    //MAYBE rename some to be "CRAWLTASK_..."?
-
     private static final long serialVersionUID = 1L;
 
     /**

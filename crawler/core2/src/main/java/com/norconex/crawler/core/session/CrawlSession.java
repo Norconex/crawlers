@@ -16,11 +16,13 @@ package com.norconex.crawler.core.session;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 import com.norconex.commons.lang.event.Event;
 import com.norconex.crawler.core.CrawlerException;
@@ -115,6 +117,35 @@ public class CrawlSession implements Closeable {
         return crawlContext.getId();
     }
 
+    public void oncePerSession(String taskId, Runnable runnable) {
+        var key = "once-" + taskId;
+        crawlSessionCache.computeIfAbsent(key, k -> {
+            runnable.run();
+            return "1";
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T oncePerSessionAndGet(String taskId, Supplier<T> supplier) {
+        var key = "once-get-" + taskId;
+        var stored = crawlSessionCache.computeIfAbsent(key, k -> {
+            var value = supplier.get();
+            if (value == null) {
+                return "#NULL#"; // explicit null marker
+            }
+            if (!(value instanceof Serializable serializable)) {
+                throw new CrawlerException(
+                        "Value for oncePerSessionAnGet must be Serializable: "
+                                + value.getClass());
+            }
+            return SerialUtil.toBase64String(serializable);
+        });
+        if (stored == null || "#NULL#".equals(stored)) {
+            return null;
+        }
+        return (T) SerialUtil.fromBase64String(stored);
+    }
+
     /**
      * A crawl session unique identifier, which represents a
      * begin-to-end crawl, regardless how many times it may have been
@@ -143,19 +174,9 @@ public class CrawlSession implements Closeable {
         return crawlRunInfo.getCrawlMode() == CrawlMode.INCREMENTAL;
     }
 
-    @Deprecated
-    public CrawlMode getCrawlMode() {
-        return crawlRunInfo.getCrawlMode();
-    }
-
     @ToString.Include(name = "resumed")
     public boolean isResumed() {
         return crawlRunInfo.getCrawlResumeState() == CrawlResumeState.RESUMED;
-    }
-
-    @Deprecated
-    public CrawlResumeState getResumeState() {
-        return crawlRunInfo.getCrawlResumeState();
     }
 
     @ToString.Include(name = "crawlState")

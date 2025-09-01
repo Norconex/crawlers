@@ -97,12 +97,14 @@ public class Crawler {
             try {
                 ofNullable(sess.getCrawlContext().getCallbacks()
                         .getBeforeCommand())
-                                .ifPresent(c -> c.accept(sess));
+                                .ifPresent(c -> c.accept(sess,
+                                        command.getClass()));
                 command.execute(sess);
             } finally {
                 ofNullable(sess.getCrawlContext().getCallbacks()
                         .getAfterCommand())
-                                .ifPresent(c -> c.accept(sess));
+                                .ifPresent(c -> c.accept(sess,
+                                        command.getClass()));
             }
         });
     }
