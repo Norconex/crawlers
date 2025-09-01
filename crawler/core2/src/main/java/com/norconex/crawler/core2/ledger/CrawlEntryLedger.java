@@ -291,9 +291,8 @@ public final class CrawlEntryLedger {
 
     private void forEachProcessingStatus(
             ProcessingStatus status, Consumer<CrawlEntry> c) {
-        currentLedger.queryIterator("FROM %s WHERE %s".formatted(
-                CrawlEntry.class.getName(),
-                fromWhereStatusQuery(status)))
+        currentLedger.queryIterator(
+                fromWhereStatusQuery(status))
                 .forEachRemaining(c::accept);
     }
 

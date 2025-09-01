@@ -12,14 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core2.cmd.crawl.pipeline.process;
+package com.norconex.crawler.core.cmd.crawl.pipeline.process;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlState;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -27,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
  * considered active. When applicable, will wait until that information
  * can be established.
  */
-@RequiredArgsConstructor
 @Slf4j
 //TODO still needed? Done by cluster?
 class CrawlActivityChecker {
@@ -35,10 +36,24 @@ class CrawlActivityChecker {
     @Getter
     private final boolean deleting;
 
+    private final long expireAt;
+
     private static boolean isResolving;
     private static boolean isPresumedActive = true;
-    private boolean maxDocsReached;
+    private static AtomicBoolean canContinue = new AtomicBoolean(true);
+    //    private boolean maxDocsReached;
 
+    public CrawlActivityChecker(CrawlSession session, boolean deleting) {
+        this.session = session;
+        this.deleting = deleting;
+        var maxDuration = session
+                .getCrawlContext().getCrawlConfig().getMaxCrawlDuration();
+        expireAt = (maxDuration == null || maxDuration.toMillis() <= 0)
+                ? 0
+                : System.currentTimeMillis() + maxDuration.toMillis();
+    }
+
+    //TODO can we do without synchronize?
     synchronized boolean isActive() {
         if (!isPresumedActive) {
             return false;
@@ -56,7 +71,7 @@ class CrawlActivityChecker {
     }
 
     private boolean doIsActive() {
-        if (isMaxDocsApplicableAndReached()) {
+        if (!canContinue()) {
             return false;
         }
         if (isQueueInitializedAndEmpty()) {
@@ -65,44 +80,44 @@ class CrawlActivityChecker {
         return true;
     }
 
-    boolean isMaxDocsApplicableAndReached() {
-        // If deleting we don't care about checking if max is reached,
-        // we proceed.
-        if (deleting) {
+    boolean canContinue() {
+        if (!canContinue.get()) {
             return false;
         }
 
-        if (maxDocsReached) {
+        var can = doCanContinue();
+        if (!can) {
+            LOG.info("Pausing crawler. Will resume on next start.");
+            //TODO should it be PAUSED? Should we call stop on cluster instead?
+            session.updateCrawlState(CrawlState.STOPPED);
+        }
+
+        canContinue.set(can);
+        return can;
+    }
+
+    boolean doCanContinue() {
+        // If deleting we don't care about checking if max is reached,
+        // we proceed.
+        if (deleting) {
             return true;
+        }
+
+        if (isCrawlExpired()) {
+            LOG.info("Max crawl duration reached.");
+            return false;
         }
 
         if (session.getCrawlContext().getCrawlEntryLedger()
                 .isMaxDocsProcessedReached()) {
-            LOG.info("Pausing crawler. Will resume on next start.");
-            maxDocsReached = true;
-            // We update the crawl state to PAUSED so that the crawler
-            // can be resumed later if needed.
-            // This is done here so that the crawl state is updated
-            // before the task is stopped.
-
-            //TODO migrate this?
-            //            session.getCluster().getTaskManager().runOnOneSync(
-            //                    "updateCrawlState",
-            //                    ses -> {
-            //                        ses.updateCrawlState(CrawlState.PAUSED);
-            //                        return null;
-            //                    });
-            //            ctx.getGrid().getCompute().executeTask(GridTaskBuilder
-            //                    .create("updateCrawlState")
-            //                    .singleNode()
-            //                    .processor(g -> CrawlContext
-            //                            .get(g)
-            //                            .getSessionProperties()
-            //                            .updateCrawlState(CrawlState.PAUSED))
-            //                    .build());
-            return true;
+            LOG.info("Max number of documents reached.");
+            return false;
         }
-        return false;
+        return true;
+    }
+
+    private boolean isCrawlExpired() {
+        return expireAt > 0 && System.currentTimeMillis() > expireAt;
     }
 
     private boolean isQueueInitializedAndEmpty() {

@@ -19,12 +19,20 @@ import static java.util.Optional.ofNullable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 import com.norconex.crawler.core.cluster.pipeline.BaseStep;
+import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
 import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core2.event.CrawlerEvent;
+import com.norconex.crawler.core2.ledger.CrawlEntry;
+import com.norconex.crawler.core2.ledger.ProcessingOutcome;
 import com.norconex.crawler.core2.util.ConcurrentUtil;
+import com.norconex.crawler.core2.util.LogUtil;
+import com.norconex.importer.doc.Doc;
 
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -44,10 +52,8 @@ public class CrawlProcessStep extends BaseStep {
         CRAWL_ALL, DELETE_ALL
     }
 
-    private static final int MAX_REF_BATCH_SIZE = 10;
-
     private final ProcessQueueAction queueAction;
-    private boolean stopRequested;
+    private BatchDispatcher batchDispatcher;
 
     public CrawlProcessStep(String id, ProcessQueueAction queueAction) {
         super(id);
@@ -57,7 +63,7 @@ public class CrawlProcessStep extends BaseStep {
     @Override
     public void execute(CrawlSession session) {
         var ctx = session.getCrawlContext();
-        if (stopRequested) {
+        if (isStopRequested()) {
             return;
         }
         LOG.info("Processing crawler queue...");
@@ -66,10 +72,18 @@ public class CrawlProcessStep extends BaseStep {
                     .ifPresent(cb -> cb.accept(session));
             //TODO add timeout?
 
-            var numThreads = ctx.getCrawlConfig().getNumThreads();
+            var cfg = ctx.getCrawlConfig();
 
-            // move tfc to context?
-            new AtomicInteger();
+            var numThreads = cfg.getNumThreads();
+
+            batchDispatcher = BatchDispatcher.builder()
+                    .maxBatchSize(cfg.getMaxQueueBatchSize())
+                    .lowWatermark(Math.max(1, cfg.getMaxQueueBatchSize() / 5))
+                    .maxEmptyPolls(10)
+                    .pollIntervalMillis(1000)
+                    .session(session)
+                    .build();
+
             var executor = Executors.newFixedThreadPool(
                     numThreads, ctx.getThreadFactoryCreator()
                             .create(session.getCrawlerId()));
@@ -78,12 +92,14 @@ public class CrawlProcessStep extends BaseStep {
             // borrowed refs and check if ref after each iteration.
             // OR (better?) check after each batch if there are dormant ones
             // only if we are coordinator.
+            //            maxBatchSize: This is the upper limit for how many items a node/thread should process in one batch, preventing any node from hogging too many items.
+            //          •  Dynamic batch size per node: By dividing the total queue count by the number of active nodes, you ensure a fair distribution of work and avoid overloading a single node.
+            //        •  Final batch size: Use min(maxBatchSize, queueCount / nodeCount) to determine the actual batch size for each node at each fetch.
 
             var futures = IntStream.range(0, numThreads)
                     .mapToObj(i -> CompletableFuture.runAsync(() -> {
                         try {
-                            System.err.println("TODO: Process queue.");
-                            //                            processQueue(session, i);
+                            processQueue(session, i);
                         } catch (Exception e) {
                             LOG.error("Problem running task {} {} of {}.",
                                     "crawl-" + session.getCrawlerId(),
@@ -105,19 +121,6 @@ public class CrawlProcessStep extends BaseStep {
     //TODO have coordinator periodically cleanup staled references via
     // scheduler (or after each X docs?).
 
-    //    @Override
-    //    public void stop(CrawlSession session) {
-    //        stopRequested = true;
-    //        grid.getCompute().executeTask(GridTaskBuilder
-    //                .create("updateCrawlState")
-    //                .singleNode()
-    //                .processor(g -> CrawlContext
-    //                        .get(g)
-    //                        .getSessionProperties()
-    //                        .updateCrawlState(CrawlState.PAUSED))
-    //                .build());
-    //    }
-    /*
     // just invoked in its own thread
     void processQueue(CrawlSession session, int threadIndex) {
         LOG.debug("Crawler thread #{} starting...", threadIndex);
@@ -126,6 +129,7 @@ public class CrawlProcessStep extends BaseStep {
         LogUtil.setMdcCrawlerId(session.getCrawlerId());
 
         try {
+            //TODO make this a member variable?
             var activityChecker = new CrawlActivityChecker(
                     session, queueAction == ProcessQueueAction.DELETE_ALL);
             // TODO shall we check for "stopped" and other states?
@@ -133,8 +137,8 @@ public class CrawlProcessStep extends BaseStep {
             // other ending conditions
             // At this point all threads/nodes shall reach the same
             // conclusion and break, effectively ending crawling.
-            while (!stopRequested
-                    && !activityChecker.isMaxDocsApplicableAndReached()
+            while (!isStopRequested()
+                    && activityChecker.canContinue()
                     && processNextInQueue(session, activityChecker))
                 ;
         } catch (Exception e) {
@@ -152,10 +156,8 @@ public class CrawlProcessStep extends BaseStep {
         var crawlCtx = session.getCrawlContext();
         var docProcessCtx = new ProcessContext().crawlSession(session);
         try {
-            var currentEntry = crawlCtx
-                    .getCrawlEntryLedger()
-                    .nextQueued()
-                    .orElse(null);
+            var currentEntry = batchDispatcher.take();
+
             LOG.trace("Pulled next reference from Queue: {}", currentEntry);
 
             if (currentEntry == null) {
@@ -165,9 +167,9 @@ public class CrawlProcessStep extends BaseStep {
                 return activityChecker.isActive();
             }
 
-            var doc = new Doc(currentEntry.getReference());
+            var doc = new Doc(currentEntry.getReference()); //NOSONAR
             CrawlEntry previousEntry = null;
-            if (session.getCrawlMode() == CrawlMode.INCREMENTAL) {
+            if (session.isIncremental()) {
                 previousEntry = crawlCtx
                         .getCrawlEntryLedger()
                         .getPreviousEntry(currentEntry.getReference())
@@ -201,6 +203,9 @@ public class CrawlProcessStep extends BaseStep {
                             docProcessCtx.docContext().getDoc()));
             return true;
         } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
             if (handleExceptionAndCheckIfStopCrawler(
                     session, docProcessCtx, e)) {
                 session.getCluster().stop();
@@ -229,8 +234,7 @@ public class CrawlProcessStep extends BaseStep {
         var docContext = docProcessCtx.docContext();
         if (docContext == null) {
             LOG.error("An unrecoverable error was detected. The crawler will "
-                    + "stop.",
-                    e);
+                    + "stop.", e);
             crawlCtx.getEventManager().fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.CRAWLER_ERROR)
@@ -278,5 +282,4 @@ public class CrawlProcessStep extends BaseStep {
                 of your crawler config.""", e);
         return !stopTheCrawler;
     }
-    */
 }

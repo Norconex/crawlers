@@ -214,6 +214,12 @@ public class CrawlConfig {
     private int maxDocuments = -1;
 
     /**
+     * The maximum number of references a node will read at once from the queue,
+     * to process locally.
+     */
+    private int maxQueueBatchSize = 50;
+
+    /**
      * The maximum depth the crawler should go. The exact definition of depth
      * is crawler-specific. Examples: levels of sub-directories,
      * number of URL clicks to reach a page, etc. Refer to specific crawler

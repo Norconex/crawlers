@@ -15,16 +15,19 @@
 package com.norconex.crawler.core.cmd.crawl.pipeline;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import com.norconex.crawler.core.CrawlConfig.OrphansStrategy;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapStep;
+import com.norconex.crawler.core.cmd.crawl.pipeline.orphans.RequeueOrphansForDeletionStep;
 import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessStep;
 import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessStep.ProcessQueueAction;
 import com.norconex.crawler.core.session.CrawlSession;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public final class CrawlPipelineFactory {
 
     private CrawlPipelineFactory() {
@@ -37,76 +40,23 @@ public final class CrawlPipelineFactory {
                 ProcessQueueAction.CRAWL_ALL)
                         .setDistributed(true));
 
-        var orphStrategy = session.getCrawlContext().getCrawlConfig().getOrphansStrategy();
-        if (orphStrategy == OrphansStrategy.DELETE) {
-            // queue orphans for deletion
-            // delete orphans (distrib)
-//            new CrawlHandleOrphansPrepareStep("handleOrphansPrepare"),
-//            new CrawlProcessStep("handleOrphansExecute",
-//                    ProcessQueueAction.CRAWL_ALL)
-//                            .setDistributed(true)
+        var orphStrategy =
+                session.getCrawlContext().getCrawlConfig().getOrphansStrategy();
+        if (orphStrategy == null || orphStrategy == OrphansStrategy.IGNORE) {
+            LOG.info("Ignoring possible orphans as per orphan strategy.");
+        } else if (orphStrategy == OrphansStrategy.DELETE) {
+            steps.add(new RequeueOrphansForDeletionStep(
+                    "queueOrphansForDeletion"));
+            steps.add(new CrawlProcessStep("deleteOrphans",
+                    ProcessQueueAction.DELETE_ALL)
+                            .setDistributed(true));
         } else if (orphStrategy == OrphansStrategy.PROCESS) {
-            // queue orphans for crawling 
-            // crawl orphans (distrib)
-//            new CrawlHandleOrphansPrepareStep("handleOrphansPrepare"),
-//            new CrawlProcessStep("handleOrphansExecute",
-//                    ProcessQueueAction.CRAWL_ALL)
+            steps.add(new RequeueOrphansForDeletionStep(
+                    "queueOrphansForProcessing"));
+            steps.add(new CrawlProcessStep("crawlOrphans",
+                    ProcessQueueAction.CRAWL_ALL)
+                            .setDistributed(true));
         }
         return new Pipeline("crawlPipeline", steps);
-        // step: process orphans
-        // step: cleanup?
-
-        /*
-        return () -> {
-            var taskManager = session.getCluster().getTaskManager();
-
-            // Bootstrap the cluster, making it ready for crawling (once per session)
-        DONE: taskManager.runOnOneOnceSync(
-                    "crawlBootstrapTask", new CrawlBootstrapTask());
-
-            // Start main continuous crawl across all nodes
-        DONE: taskManager.startContinuous(
-                    "crawlMainProcess",
-                    new CrawlProcessContinuousWorker(
-                            ProcessQueueAction.CRAWL_ALL));
-            // Wait for completion (auto or explicit stop)
-            taskManager.awaitContinuousCompletion("crawlMainProcess").join();
-
-            // Resolve orphans (on one)
-        DONE    var orphanActionOpt = taskManager.runOnOneOnceSync(
-                    "crawlHandleOrphansTask",
-                    new CrawlHandleOrphansTask());
-
-            orphanActionOpt.ifPresent(action -> {
-                // Process orphans using another continuous phase so late joiners can still help
-                taskManager.startContinuous(
-                        "crawlOrphansProcess" + action,
-                        new CrawlProcessContinuousWorker(action));
-                taskManager.awaitContinuousCompletion(
-                        "crawlOrphansProcess" + action).join();
-            });
-        };
-        */
     }
-    //    public static GridPipeline create(CrawlContext ctx) {
-    //        return new GridPipeline("crawlPipeline", List.of(
-    //
-    //                // Prepare for crawling (on one)
-    //                new Stage(new CrawlBootstrapTask("crawlBootstrapTask"))
-    //                        .withAlways(true),
-    //
-    //                // Crawl (on all)
-    //                new Stage(new CrawlProcessTask(
-    //                        "crawlMainProcessTask", ProcessQueueAction.CRAWL_ALL)),
-    //
-    //                // Resolve orphans (on one)
-    //                new Stage(new CrawlHandleOrphansTask("crawlHandleOrphansTask")),
-    //
-    //                // Crawl/delete orphans (on all)
-    //                new Stage((grid, prev) -> Optional.ofNullable(prev.getResult())
-    //                        .map(ProcessQueueAction.class::cast)
-    //                        .map(action -> new CrawlProcessTask(
-    //                                "crawlOrphanTask" + action, action))
-    //                        .orElse(null))));
-    //    }
 }
