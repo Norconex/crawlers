@@ -21,14 +21,14 @@ import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.norconex.crawler.core.cmd.Command;
+import com.norconex.crawler.core.cmd.clean.CleanCommand;
+import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
+import com.norconex.crawler.core.cmd.stop.StopCommand;
+import com.norconex.crawler.core.cmd.storeexport.StoreExportCommand;
+import com.norconex.crawler.core.cmd.storeimport.StoreImportCommand;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionFactory;
-import com.norconex.crawler.core2.cmd.Command;
-import com.norconex.crawler.core2.cmd.clean.CleanCommand;
-import com.norconex.crawler.core2.cmd.crawl.CrawlCommand;
-import com.norconex.crawler.core2.cmd.stop.StopCommand;
-import com.norconex.crawler.core2.cmd.storeexport.StoreExportCommand;
-import com.norconex.crawler.core2.cmd.storeimport.StoreImportCommand;
 import com.norconex.crawler.core2.util.LogUtil;
 
 import lombok.Getter;

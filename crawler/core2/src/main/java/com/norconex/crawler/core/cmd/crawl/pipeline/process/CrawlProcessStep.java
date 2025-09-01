@@ -73,6 +73,12 @@ public class CrawlProcessStep extends BaseStep {
             var executor = Executors.newFixedThreadPool(
                     numThreads, ctx.getThreadFactoryCreator()
                             .create(session.getCrawlerId()));
+
+            //TODO have coordinator launch the monitoring of dormant
+            // borrowed refs and check if ref after each iteration.
+            // OR (better?) check after each batch if there are dormant ones
+            // only if we are coordinator.
+
             var futures = IntStream.range(0, numThreads)
                     .mapToObj(i -> CompletableFuture.runAsync(() -> {
                         try {
@@ -118,7 +124,7 @@ public class CrawlProcessStep extends BaseStep {
         Thread.currentThread()
                 .setName(session.getCrawlerId() + "#" + threadIndex);
         LogUtil.setMdcCrawlerId(session.getCrawlerId());
-    
+
         try {
             var activityChecker = new CrawlActivityChecker(
                     session, queueAction == ProcessQueueAction.DELETE_ALL);
@@ -137,12 +143,12 @@ public class CrawlProcessStep extends BaseStep {
             LOG.error("Problem in thread execution.", e);
         }
     }
-    
+
     // true to continue and false to abort/break
     private boolean processNextInQueue(
             CrawlSession session,
             CrawlActivityChecker activityChecker) {
-    
+
         var crawlCtx = session.getCrawlContext();
         var docProcessCtx = new ProcessContext().crawlSession(session);
         try {
@@ -151,14 +157,14 @@ public class CrawlProcessStep extends BaseStep {
                     .nextQueued()
                     .orElse(null);
             LOG.trace("Pulled next reference from Queue: {}", currentEntry);
-    
+
             if (currentEntry == null) {
                 //TODO ensure this can't create infinite loop if for weird
                 // reasons the crawler is always reported active.
                 // or make sure it does not happen
                 return activityChecker.isActive();
             }
-    
+
             var doc = new Doc(currentEntry.getReference());
             CrawlEntry previousEntry = null;
             if (session.getCrawlMode() == CrawlMode.INCREMENTAL) {
@@ -167,27 +173,27 @@ public class CrawlProcessStep extends BaseStep {
                         .getPreviousEntry(currentEntry.getReference())
                         .orElse(null);
             }
-    
+
             doc.getMetadata().set(CrawlDocMetaConstants.IS_DOC_NEW,
                     previousEntry == null);
-    
+
             var docContext = CrawlDocContext.builder()
                     .currentCrawlEntry(currentEntry)
                     .previousCrawlEntry(previousEntry)
                     .doc(doc)
                     .build();
             docProcessCtx.docContext(docContext);
-    
+
             // Before document processing
             ofNullable(crawlCtx.getCallbacks().getBeforeDocumentProcessing())
                     .ifPresent(bdp -> bdp.accept(session, doc));
-    
+
             if (activityChecker.isDeleting()) {
                 ProcessDelete.execute(docProcessCtx);
             } else {
                 ProcessUpsert.execute(docProcessCtx);
             }
-    
+
             // After document processing
             ofNullable(crawlCtx.getCallbacks().getAfterDocumentProcessing())
                     .ifPresent(adp -> adp.accept(
@@ -205,16 +211,16 @@ public class CrawlProcessStep extends BaseStep {
         }
         return true;
     }
-    
+
     // true to stop crawler
     private boolean handleExceptionAndCheckIfStopCrawler(
             CrawlSession session,
             ProcessContext docProcessCtx, Exception e) {
-    
+
         var crawlCtx = session.getCrawlContext();
-    
+
         //TODO check nested exception for a match.
-    
+
         var stopTheCrawler = true;
         // if an exception was thrown and there is no CrawlDocRecord we
         // stop the crawler since it means we can't no longer read for the
@@ -233,7 +239,7 @@ public class CrawlProcessStep extends BaseStep {
                             .build());
             return stopTheCrawler;
         }
-    
+
         docContext.getCurrentCrawlEntry()
                 .setProcessingOutcome(ProcessingOutcome.ERROR);
         if (LOG.isDebugEnabled()) {
@@ -252,7 +258,7 @@ public class CrawlProcessStep extends BaseStep {
                         .exception(e)
                         .build());
         ProcessFinalize.execute(docProcessCtx);
-    
+
         // Rethrow exception if we want the crawler to stop
         var exceptionClasses = crawlCtx.getCrawlConfig()
                 .getStopOnExceptions();
