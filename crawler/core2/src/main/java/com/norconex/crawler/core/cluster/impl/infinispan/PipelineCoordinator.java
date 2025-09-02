@@ -55,7 +55,7 @@ public class PipelineCoordinator implements AutoCloseable {
 
     private CrawlSession session;
     private long nodeExpiryTimeoutMs = 30_000;
-    private StepRecord activePipeRec;
+    private StepRecord activeStepRecord;
 
     //TODO make sure it respects crawler-wide timeout if set
 
@@ -94,13 +94,13 @@ public class PipelineCoordinator implements AutoCloseable {
 
     void stop() {
         ExceptionSwallower.runWithInterruptClear(() -> {
-            if (activePipeRec != null
+            if (activeStepRecord != null
                     && stopRequested.compareAndSet(false, true)) {
                 var key = CacheKeys.pipelineKey(cluster, pipeline);
 
-                activePipeRec.setStatus(PipelineStatus.STOPPING);
-                activePipeRec.setUpdatedAt(System.currentTimeMillis());
-                pipelineActiveStepCache.put(key, activePipeRec);
+                activeStepRecord.setStatus(PipelineStatus.STOPPING);
+                activeStepRecord.setUpdatedAt(System.currentTimeMillis());
+                pipelineActiveStepCache.put(key, activeStepRecord);
 
                 if (currentLocalStep != null) {
                     currentLocalStep.stop(session);
@@ -118,17 +118,20 @@ public class PipelineCoordinator implements AutoCloseable {
                     }
                 }
 
-                activePipeRec.setUpdatedAt(System.currentTimeMillis());
-                activePipeRec.setStatus(PipelineStatus.STOPPED);
-                pipelineActiveStepCache.put(key, activePipeRec);
+                activeStepRecord.setUpdatedAt(System.currentTimeMillis());
+                activeStepRecord.setStatus(PipelineStatus.STOPPED);
+                pipelineActiveStepCache.put(key, activeStepRecord);
             }
         });
     }
 
     void doCoordinatePipelineExecution() {
+
+        //TODO add progress reporter here?
+
         var key = CacheKeys.pipelineKey(cluster, pipeline);
 
-        activePipeRec = resolveFirstStepToRun(key, pipeline);
+        activeStepRecord = resolveFirstStepToRun(key, pipeline);
 
         // If pipeline already terminal, just record and exit without
         // modifying caches.
@@ -137,24 +140,24 @@ public class PipelineCoordinator implements AutoCloseable {
         // or shall we rely on the run ID or equivalent to know if
         // we restart when pipeline is terminated or just leave?
         // For now, we leave here.
-        if (InfinispanUtil.isPipelineTerminated(pipeline, activePipeRec)) {
+        if (InfinispanUtil.isPipelineTerminated(pipeline, activeStepRecord)) {
             LOG.debug("Coordinator detected terminal pipeline {} at step {} "
                     + "with status {}. Exiting.",
                     pipeline.getId(),
-                    activePipeRec.getStepId(),
-                    activePipeRec.getStatus());
+                    activeStepRecord.getStepId(),
+                    activeStepRecord.getStatus());
             return;
         }
 
-        var firstStepToRun = pipeline.getStep(activePipeRec.getStepId());
+        var firstStepToRun = pipeline.getStep(activeStepRecord.getStepId());
         // If picking up from another coordinator, log it.
         if (firstStepToRun != pipeline.getFirstStep()
-                || activePipeRec.getStatus() == PipelineStatus.RUNNING) {
+                || activeStepRecord.getStatus() == PipelineStatus.RUNNING) {
             LOG.info("Resuming coordination of pipeline {} at step {} "
                     + "with status {} on node {}.",
                     pipeline.getId(),
-                    activePipeRec.stepId,
-                    activePipeRec.status,
+                    activeStepRecord.stepId,
+                    activeStepRecord.status,
                     cluster.getLocalNode().getNodeName());
         }
 
@@ -177,19 +180,19 @@ public class PipelineCoordinator implements AutoCloseable {
             workerStatusCache.forEach(this::updateWorkerStatus);
 
             // could be RUNNING already if recovering from other coordinator.
-            if (activePipeRec.getStatus() != PipelineStatus.RUNNING) {
-                activePipeRec = createRunningStepRecord(step);
-                pipelineActiveStepCache.put(key, activePipeRec);
+            if (activeStepRecord.getStatus() != PipelineStatus.RUNNING) {
+                activeStepRecord = createRunningStepRecord(step);
+                pipelineActiveStepCache.put(key, activeStepRecord);
                 LOG.debug("Published RUNNING for pipeline {} step {}",
                         pipeline.getId(), step.getId());
             }
 
             var execStatus = step.isDistributed()
-                    ? executeOnAllNodes(step, activePipeRec)
+                    ? executeOnAllNodes(step, activeStepRecord)
                     : executeLocally(step);
 
-            activePipeRec.setStatus(execStatus);
-            activePipeRec.setUpdatedAt(System.currentTimeMillis());
+            activeStepRecord.setStatus(execStatus);
+            activeStepRecord.setUpdatedAt(System.currentTimeMillis());
             if (!InfinispanUtil.isClusterRunning(cluster)) {
                 LOG.warn("Coordinator node went down on {}. It will no longer "
                         + "execute pipeine {}.",
@@ -197,7 +200,7 @@ public class PipelineCoordinator implements AutoCloseable {
                         pipeline.getId());
                 return;
             }
-            pipelineActiveStepCache.put(key, activePipeRec);
+            pipelineActiveStepCache.put(key, activeStepRecord);
             LOG.debug("Published {} for pipeline {} step {}", execStatus,
                     pipeline.getId(), step.getId());
             if (execStatus == PipelineStatus.FAILED) {
@@ -205,7 +208,8 @@ public class PipelineCoordinator implements AutoCloseable {
                 return;
             }
         }
-        // if we exit loop without failure, finalStatus already set to last step status
+        // if we exit loop without failure, finalStatus already set to last
+        // step status
     }
 
     private void updateWorkerStatus(String key, StepRecord stepRec) {

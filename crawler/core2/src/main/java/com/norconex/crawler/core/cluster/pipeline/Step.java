@@ -18,6 +18,8 @@ import org.apache.commons.collections4.Bag;
 
 import com.norconex.crawler.core.session.CrawlSession;
 
+import lombok.Data;
+
 public interface Step {
     String getId();
 
@@ -34,7 +36,18 @@ public interface Step {
 
     PipelineStatus reduce(CrawlSession session, Bag<PipelineStatus> statuses);
 
-    default Object progressTracker() {
+    /**
+     * Optional method returning the current progress of this step. Returns
+     * {@code null} if this task does not track its progress.
+     * @return progress or {@code null}
+     */
+    default StepProgress getProgress() {
         return null;
+    }
+
+    @Data
+    public static class StepProgress {
+        private final float progress;
+        private final String message;
     }
 }

@@ -32,6 +32,8 @@ import com.norconex.commons.lang.time.DurationUnit;
 import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.metrics.CrawlerMetrics;
 import com.norconex.crawler.core2.metrics.CrawlerMetricsImpl;
+import com.norconex.crawler.core.cluster.pipeline.PipelineProgress;
+import java.util.function.Supplier;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -68,8 +70,16 @@ public class CrawlProgressLogger {
             .withLowestUnit(DurationUnit.SECOND);
     private final NumberFormat intFormatter = NumberFormat.getIntegerInstance();
 
+    // Optional supplier to fetch current pipeline progress (coordinator view)
+    private final Supplier<PipelineProgress> pipelineProgressSupplier;
+
     // Minimum 1 second
     public CrawlProgressLogger(CrawlContext ctx) {
+        this(ctx, null);
+    }
+
+    public CrawlProgressLogger(CrawlContext ctx,
+            Supplier<PipelineProgress> pipelineProgressSupplier) {
         monitor = ctx.getMetrics();
         var minInterval = ctx.getCrawlConfig().getMinProgressLoggingInterval();
         if (minInterval == null || minInterval.getSeconds() < 1) {
@@ -77,6 +87,7 @@ public class CrawlProgressLogger {
         } else {
             minLoggingInterval = minInterval;
         }
+        this.pipelineProgressSupplier = pipelineProgressSupplier;
     }
 
     public void setStopCheckCallback(Runnable callback) {
@@ -215,7 +226,7 @@ public class CrawlProgressLogger {
                 (processedCount - prevProcessedCount) * 1000,
                 elapsed - prevElapsed,
                 1);
-        return String.format(
+        var base = String.format(
                 "%s(%s) processed "
                         + "| %s(%s) queued | %s processed/sec | %s elapsed",
                 processedCount,
@@ -224,6 +235,35 @@ public class CrawlProgressLogger {
                 queuedDelta,
                 throughput,
                 elapsedTime);
+        var stepInfo = stepProgressMessage();
+        return stepInfo == null || stepInfo.isEmpty() ? base : base + " | " + stepInfo;
+    }
+
+    private String stepProgressMessage() {
+        if (pipelineProgressSupplier == null) {
+            return null;
+        }
+        try {
+            var pp = pipelineProgressSupplier.get();
+            if (pp == null || pp.getCurrentStepId() == null) {
+                return null;
+            }
+            // Only show when running and we have a progress value > 0
+            var pct = Math.round(pp.getStepProgress() * 100f);
+            if (pct <= 0 && (pp.getStatus() == null || !pp.getStatus().isTerminal())) {
+                return null;
+            }
+            var label = pp.getCurrentStepId();
+            var idxStr = (pp.getCurrentStepIndex() > 0 || pp.getStepCount() > 0)
+                    ? ("step " + (pp.getCurrentStepIndex() + 1) + "/" + pp.getStepCount() + " ")
+                    : "";
+            var msg = pp.getStepMessage();
+            var suffix = (msg != null && !msg.isBlank()) ? (" — " + msg) : "";
+            return (idxStr + label + " " + pct + "%").trim() + suffix;
+        } catch (Exception e) {
+            // Be resilient in logger; never break logging due to supplier issues
+            return null;
+        }
     }
 
     private String debugMessage(

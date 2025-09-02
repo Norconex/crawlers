@@ -35,4 +35,11 @@ public interface PipelineManager {
      */
     CompletableFuture<Void> stopPipeline(String pipelineId);
 
+    /**
+     * A snapshot of pipeline progress made so far.
+     * @param pipelineId id of the pipeline to stop
+     * @return pipeline progress
+     */
+    PipelineProgress getPipelineProgress(String pipelineId);
+
 }

@@ -24,6 +24,7 @@ import java.util.stream.IntStream;
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.norconex.crawler.core.cluster.pipeline.BaseStep;
+import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
 import com.norconex.crawler.core.session.CrawlSession;
@@ -54,6 +55,8 @@ public class CrawlProcessStep extends BaseStep {
 
     private final ProcessQueueAction queueAction;
     private BatchDispatcher batchDispatcher;
+    // Keep a reference to the session so getProgress() can compute cluster-wide progress
+    private volatile CrawlSession sessionRef;
 
     public CrawlProcessStep(String id, ProcessQueueAction queueAction) {
         super(id);
@@ -62,6 +65,8 @@ public class CrawlProcessStep extends BaseStep {
 
     @Override
     public void execute(CrawlSession session) {
+        // store session for progress computations
+        this.sessionRef = session;
         var ctx = session.getCrawlContext();
         if (isStopRequested()) {
             return;
@@ -116,6 +121,22 @@ public class CrawlProcessStep extends BaseStep {
             //            ofNullable(ctx.getCallbacks().getAfterCrawlTask())
             //                    .ifPresent(cb -> cb.accept(session));
         }
+    }
+
+    @Override
+    public Step.StepProgress getProgress() {
+        // Only compute for active session; otherwise unknown
+        var s = sessionRef;
+        if (s == null) {
+            return null;
+        }
+        var ledger = s.getCrawlContext().getCrawlEntryLedger();
+        long processed = ledger.getProcessedCount();
+        long queued = ledger.getQueueCount();
+        long denom = processed + queued;
+        float progress = denom <= 0 ? 0.0f : (float) (processed / (double) denom);
+        String msg = "processed=" + processed + ", queued=" + queued;
+        return new Step.StepProgress(progress, msg);
     }
 
     //TODO get a batch of URLs (up to X, configurable)

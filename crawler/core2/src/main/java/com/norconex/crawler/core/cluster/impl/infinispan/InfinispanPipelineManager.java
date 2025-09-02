@@ -18,10 +18,14 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import com.norconex.crawler.core.cluster.impl.infinispan.event.CacheEntryChangeListener;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
+import com.norconex.crawler.core.cluster.pipeline.PipelineProgress;
 import com.norconex.crawler.core.cluster.pipeline.PipelineResult;
+import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -89,6 +93,36 @@ public class InfinispanPipelineManager
             return pipeExec.stopPipeline();
         }
         return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public PipelineProgress getPipelineProgress(String pipelineId) {
+        var exec = pipelineExecutions.get(pipelineId);
+        if (exec == null) {
+            return PipelineProgress.builder()
+                    .status(PipelineStatus.PENDING)
+                    .build();
+        }
+        var pipeline = exec.getPipeline();
+        var key = CacheKeys.pipelineKey(cluster, pipeline);
+        var activeStepOpt =
+                cluster.getCacheManager().getPipelineStepCache().get(key);
+        var b = PipelineProgress.builder()
+                .status(PipelineStatus.PENDING)
+                .stepCount(pipeline.getSteps().size());
+        activeStepOpt.ifPresent(stepRec -> {
+            b.currentStepId(stepRec.getStepId())
+                    .status(stepRec.getStatus())
+                    .currentStepIndex(ArrayUtils.indexOf(
+                            pipeline.getSteps().keySet().toArray(),
+                            stepRec.getStepId()));
+            var stepProg = pipeline.getStep(stepRec.getStepId()).getProgress();
+            if (stepProg != null) {
+                b.stepProgress(stepProg.getProgress())
+                        .stepMessage(stepProg.getMessage());
+            }
+        });
+        return b.build();
     }
 
     @Override

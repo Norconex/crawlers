@@ -1,0 +1,36 @@
+package com.norconex.crawler.core.cluster.pipeline;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.Test;
+
+class PipelineProgressBeanTest {
+
+    static class StubManager implements PipelineManager {
+        private final PipelineProgress progress;
+        StubManager(PipelineProgress progress) { this.progress = progress; }
+        @Override public java.util.concurrent.CompletableFuture<PipelineResult> executePipeline(Pipeline pipeline) { throw new UnsupportedOperationException(); }
+        @Override public java.util.concurrent.CompletableFuture<Void> stopPipeline(String pipelineId) { throw new UnsupportedOperationException(); }
+        @Override public PipelineProgress getPipelineProgress(String pipelineId) { return progress; }
+    }
+
+    @Test
+    void mapsProgressFields() {
+        var p = PipelineProgress.builder()
+                .status(PipelineStatus.RUNNING)
+                .currentStepId("crawlDocuments")
+                .currentStepIndex(1)
+                .stepCount(3)
+                .stepProgress(0.42f)
+                .stepMessage("processed=420, queued=580")
+                .build();
+        var bean = new PipelineProgressBean(new StubManager(p), "any");
+
+        assertThat(bean.getStatus()).isEqualTo("RUNNING");
+        assertThat(bean.getCurrentStepId()).isEqualTo("crawlDocuments");
+        assertThat(bean.getCurrentStepIndex()).isEqualTo(1);
+        assertThat(bean.getStepCount()).isEqualTo(3);
+        assertThat(bean.getStepProgress()).isEqualTo(0.42f);
+        assertThat(bean.getStepMessage()).isEqualTo("processed=420, queued=580");
+    }
+}

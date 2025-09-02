@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -36,6 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.infinispan.notifications.cachemanagerlistener.CacheManagerNotifierImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -64,6 +66,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @WithLogLevel(value = "OFF", classes = CacheManagerNotifierImpl.class)
 @WithTestWatcherLogging
+@Timeout(value = 30, unit = TimeUnit.SECONDS)
 //TODO
 //@Disabled("TODO: IMPLEMENT ME")
 class CliCrawlerLauncherTest {

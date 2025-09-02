@@ -29,6 +29,8 @@ import com.norconex.crawler.core.cluster.pipeline.PipelineException;
 import com.norconex.crawler.core.cluster.pipeline.PipelineResult;
 import com.norconex.crawler.core2.util.ExceptionSwallower;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -42,6 +44,7 @@ public class PipelineExecution implements AutoCloseable {
     private static final long SHUTDOWN_AWAIT_SECONDS = 5;
 
     private final InfinispanCluster cluster;
+    @Getter(value = AccessLevel.PACKAGE)
     private final Pipeline pipeline;
 
     private PipelineCoordinator coordinator;

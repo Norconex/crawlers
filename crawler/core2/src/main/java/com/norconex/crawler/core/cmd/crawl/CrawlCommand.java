@@ -17,15 +17,20 @@ package com.norconex.crawler.core.cmd.crawl;
 import static com.norconex.crawler.core2.util.ExceptionSwallower.swallow;
 import static java.util.Optional.ofNullable;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
+import com.norconex.crawler.core.cluster.pipeline.PipelineProgress;
+import com.norconex.crawler.core.cluster.pipeline.PipelineProgressJMX;
 import com.norconex.crawler.core.cluster.pipeline.PipelineResult;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.crawl.pipeline.CrawlPipelineFactory;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlState;
+import com.norconex.crawler.core2.cmd.crawl.CrawlProgressLogger;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.metrics.CrawlerMetricsJMX;
 import com.norconex.crawler.core2.util.ConcurrentUtil;
@@ -37,7 +42,7 @@ public class CrawlCommand implements Command {
 
     public static final String SYS_PROP_ENABLE_JMX = "enableJMX";
     //    public static final String KEY_CRAWL_PIPELINE = "crawlPipeline";
-    private static final String PROGRESS_LOGGER_KEY = "progressLogger";
+    //    private static final String PROGRESS_LOGGER_KEY = "progressLogger";
     private final AtomicBoolean pendingLoggerStopped = new AtomicBoolean();
 
     @Override
@@ -58,12 +63,44 @@ public class CrawlCommand implements Command {
         Thread.currentThread().setName(ctx.getId() + "/CRAWL");
         session.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN, this);
 
-        trackProgress(session);
+        // Build pipeline once so we can pass its id to the logger supplier
+        var pipeline = CrawlPipelineFactory.create(session);
+
+        // Register PipelineProgress MXBean on every node when JMX is enabled
+        var pipelineJmxRegistered = false;
+        if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {
+            try {
+                PipelineProgressJMX.register(
+                        ctx,
+                        session.getCluster().getPipelineManager(),
+                        pipeline.getId());
+                pipelineJmxRegistered = true;
+            } catch (Exception e) {
+                LOG.warn("Could not register PipelineProgress MXBean: {}",
+                        e.toString());
+            }
+        }
+
+        // Start coordinator-only progress logger with pipeline progress supplier
+        CrawlProgressLogger logger = null;
+        if (session.getCluster().getLocalNode().isCoordinator()) {
+            Supplier<PipelineProgress> supplier = () -> {
+                try {
+                    return session.getCluster().getPipelineManager()
+                            .getPipelineProgress(pipeline.getId());
+                } catch (Exception e) {
+                    return null; // logger is resilient to nulls
+                }
+            };
+            logger = new CrawlProgressLogger(ctx, supplier);
+            var finalLogger = logger;
+            CompletableFuture.runAsync(finalLogger::start);
+        }
 
         CrawlState finalState = null;
         try {
             var pipeFuture = session.getCluster().getPipelineManager()
-                    .executePipeline(CrawlPipelineFactory.create(session));
+                    .executePipeline(pipeline);
 
             // Max duration is already handled in CrawlProcessStep, here we
             // have it again just as a safeguard, but we pad to give time to
@@ -75,10 +112,26 @@ public class CrawlCommand implements Command {
                                     TimeUnit.MINUTES)
                             : ConcurrentUtil.get(pipeFuture);
 
+            // Stop logger now that pipeline finished
+            if (logger != null) {
+                try {
+                    logger.stop();
+                } catch (Exception ignore) {
+                }
+            }
             finalState = session.oncePerSessionAndGet("final-status-task",
                     () -> storeFinalCrawlState(session, result));
         } catch (Exception e) {
             LOG.error("Crawler execution failed.", e);
+            if (session.getCluster().getLocalNode().isCoordinator()) {
+                // Attempt to stop logger even on failure
+                try {
+                    if (logger != null) {
+                        logger.stop();
+                    }
+                } catch (Exception ignore) {
+                }
+            }
             finalState = CrawlState.FAILED;
             session.updateCrawlState(CrawlState.FAILED);
         }
@@ -89,6 +142,9 @@ public class CrawlCommand implements Command {
         if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {
             LOG.info("Unregistering JMX crawler MBeans.");
             swallow(() -> CrawlerMetricsJMX.unregister(ctx));
+            if (pipelineJmxRegistered) {
+                swallow(() -> PipelineProgressJMX.unregister(ctx));
+            }
         }
     }
 
@@ -109,24 +165,24 @@ public class CrawlCommand implements Command {
         return state;
     }
 
-    private void trackProgress(CrawlSession session) {
-        //TODO still needed?
-        //        // only 1 node reports progress
-        //        CompletableFuture.runAsync(() -> {
-        //            var taskManager = session.getCluster().getTaskManager();
-        //            var loggerTask = new LoggerTask();
-        //            taskManager.runOnOneSync(PROGRESS_LOGGER_KEY, loggerTask);
-        //            // Wait for logger to actually stop before setting flag
-        //            while (!pendingLoggerStopped.get()) {
-        //                try {
-        //                    Thread.sleep(100);
-        //                } catch (InterruptedException e) {
-        //                    Thread.currentThread().interrupt();
-        //                    break;
-        //                }
-        //            }
-        //        }, Executors.newFixedThreadPool(1));
-    }
+    //    private void trackProgress(CrawlSession session) {
+    //        //TODO still needed?
+    //        //        // only 1 node reports progress
+    //        //        CompletableFuture.runAsync(() -> {
+    //        //            var taskManager = session.getCluster().getTaskManager();
+    //        //            var loggerTask = new LoggerTask();
+    //        //            taskManager.runOnOneSync(PROGRESS_LOGGER_KEY, loggerTask);
+    //        //            // Wait for logger to actually stop before setting flag
+    //        //            while (!pendingLoggerStopped.get()) {
+    //        //                try {
+    //        //                    Thread.sleep(100);
+    //        //                } catch (InterruptedException e) {
+    //        //                    Thread.currentThread().interrupt();
+    //        //                    break;
+    //        //                }
+    //        //            }
+    //        //        }, Executors.newFixedThreadPool(1));
+    //    }
 
     //    static class LoggerTask implements ClusterTask<Void> {
     //        private CrawlProgressLogger logger;

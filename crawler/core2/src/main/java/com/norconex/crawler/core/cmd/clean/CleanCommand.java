@@ -27,24 +27,24 @@ public class CleanCommand implements Command {
     public void execute(CrawlSession session) {
         var ctx = session.getCrawlContext();
         Thread.currentThread().setName(ctx.getId() + "/CLEAN");
+        session.fire(CrawlerEvent.CRAWLER_CLEAN_BEGIN, this);
 
         session.getCrawlContext().getCommitterService().clean();
 
         // Cleaning the cache should be done by a single node.
         if (session.getCluster().getLocalNode().isCoordinator()) {
-            session.fire(CrawlerEvent.CRAWLER_CLEAN_BEGIN, this);
             session.getCluster().getCacheManager()
                     .forEach((cacheName, cache) -> {
                         cache.clear();
                     });
             LOG.info("Clean command executed.");
-            session.fire(CrawlerEvent.CRAWLER_CLEAN_END, this);
         } else {
             LOG.warn("""
                     Cleaning of caches can only be performed on a single node. \
                     Another node started that cleaning process so this one \
                     will ignore the cache cleaning request.""");
         }
+        session.fire(CrawlerEvent.CRAWLER_CLEAN_END, this);
 
         //        //TODO shall we destroy (i.e., delete physical DB) instead of clear?
         //
