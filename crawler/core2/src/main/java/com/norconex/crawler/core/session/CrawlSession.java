@@ -29,6 +29,7 @@ import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cluster.Cache;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.ClusterNode;
+import com.norconex.crawler.core.cluster.SerializedEnvelope;
 import com.norconex.crawler.core2.context.CrawlContext;
 import com.norconex.crawler.core2.event.CrawlerEvent;
 import com.norconex.crawler.core2.util.ExceptionSwallower;
@@ -58,7 +59,14 @@ public class CrawlSession implements Closeable {
     private static final String START_REFS_QUEUED_KEY =
             "session.startRefsQueuingComplete";
 
-    //TODO make this timeouts configurable?
+    // Storage markers for oncePerCacheAndGet encoded values.
+    // - #NULL#: explicit null
+    // - #B64#: Java-Serializable value, Base64 encoded
+    // - #SSO#: JSON-wrapped {className, serializedJson}
+    private static final String MARKER_NULL = "#NULL#";
+    private static final String MARKER_B64 = "#B64#";
+    private static final String MARKER_WRAPPED_JSON = "#SSO#";
+
     //    private static final long SESSION_HEARTBEAT_INTERVAL =
     //            Duration.ofMinutes(2).toMillis();
 
@@ -78,6 +86,7 @@ public class CrawlSession implements Closeable {
     @Getter
     private final CrawlContext crawlContext;
     private Cache<String> crawlSessionCache;
+    private Cache<String> crawlRunCache;
     private CrawlRunInfo crawlRunInfo;
     private State state;
     //    private ScheduledExecutorService heartbeatScheduler =
@@ -118,32 +127,19 @@ public class CrawlSession implements Closeable {
     }
 
     public void oncePerSession(String taskId, Runnable runnable) {
-        var key = "once-" + taskId;
-        crawlSessionCache.computeIfAbsent(key, k -> {
-            runnable.run();
-            return "1";
-        });
+        oncePerCache(crawlSessionCache, taskId, runnable);
     }
 
-    @SuppressWarnings("unchecked")
     public <T> T oncePerSessionAndGet(String taskId, Supplier<T> supplier) {
-        var key = "once-get-" + taskId;
-        var stored = crawlSessionCache.computeIfAbsent(key, k -> {
-            var value = supplier.get();
-            if (value == null) {
-                return "#NULL#"; // explicit null marker
-            }
-            if (!(value instanceof Serializable serializable)) {
-                throw new CrawlerException(
-                        "Value for oncePerSessionAnGet must be Serializable: "
-                                + value.getClass());
-            }
-            return SerialUtil.toBase64String(serializable);
-        });
-        if (stored == null || "#NULL#".equals(stored)) {
-            return null;
-        }
-        return (T) SerialUtil.fromBase64String(stored);
+        return oncePerCacheAndGet(crawlSessionCache, taskId, supplier);
+    }
+
+    public void oncePerRun(String taskId, Runnable runnable) {
+        oncePerCache(crawlRunCache, taskId, runnable);
+    }
+
+    public <T> T oncePerRunAndGet(String taskId, Supplier<T> supplier) {
+        return oncePerCacheAndGet(crawlRunCache, taskId, supplier);
     }
 
     /**
@@ -199,6 +195,7 @@ public class CrawlSession implements Closeable {
         createDir(crawlContext.getTempDir()); // also creates workDir
         cluster.init(crawlContext.getWorkDir());
         crawlSessionCache = cluster.getCacheManager().getCrawlSessionCache();
+        crawlRunCache = cluster.getCacheManager().getCrawlRunCache();
         SESSIONS.put(cluster.getLocalNode().getNodeName(), this);
         try {
             //NOTE: this resolver will also clear the session cache if needed.
@@ -362,17 +359,6 @@ public class CrawlSession implements Closeable {
                 .build());
     }
 
-    //    public String toString() {
-    //        return null;
-    //    }
-    //
-    //
-
-    private void saveCrawlState(State state) {
-        crawlSessionCache.put(SESSION_STATE_KEY,
-                SerialUtil.toJsonString(state));
-    }
-
     //TODO make package private
     public State loadState() {
         return SerialUtil.fromJson(
@@ -386,6 +372,63 @@ public class CrawlSession implements Closeable {
         } catch (IOException e) {
             throw new CrawlerException("Could not create directory: " + dir, e);
         }
+    }
+
+    private void saveCrawlState(State state) {
+        crawlSessionCache.put(SESSION_STATE_KEY,
+                SerialUtil.toJsonString(state));
+    }
+
+    private void oncePerCache(
+            Cache<String> cache, String taskId, Runnable runnable) {
+        var key = "once-" + taskId;
+        cache.computeIfAbsent(key, k -> {
+            runnable.run();
+            return "1";
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T oncePerCacheAndGet(
+            Cache<String> cache, String taskId, Supplier<T> supplier) {
+        var key = "once-get-" + taskId;
+        var stored = cache.computeIfAbsent(key, k -> {
+            var value = supplier.get();
+            if (value == null) {
+                return MARKER_NULL; // explicit null marker
+            }
+            if (value instanceof Serializable serializable) {
+                return MARKER_B64 + SerialUtil.toBase64String(serializable);
+            }
+            // Fallback: use neutral envelope for JSON payload + class name
+            var env = SerializedEnvelope.wrap(value);
+            return MARKER_WRAPPED_JSON + SerialUtil.toJsonString(env);
+        });
+        if (stored == null || MARKER_NULL.equals(stored)) {
+            return null;
+        }
+        if (stored.startsWith(MARKER_B64)) {
+            return (T) SerialUtil.fromBase64String(
+                    stored.substring(MARKER_B64.length()));
+        }
+        if (stored.startsWith(MARKER_WRAPPED_JSON)) {
+            var json = stored.substring(MARKER_WRAPPED_JSON.length());
+            var env = SerialUtil.fromJson(json, SerializedEnvelope.class);
+            if (env == null) {
+                return null;
+            }
+            try {
+                return (T) env.unwrap();
+            } catch (CrawlerException e) {
+                LOG.warn(
+                        "Could not resolve class for JSON-wrapped value of key '{}': {}. Returning null.",
+                        key, e.getMessage());
+                return null;
+            }
+        }
+        throw new CrawlerException(
+                ("Unknown encoding for oncePerCacheAndGet key '%s'.")
+                        .formatted(key));
     }
 
     @Data

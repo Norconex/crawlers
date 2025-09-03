@@ -62,12 +62,12 @@ public class InfinispanCacheAdapter<T> implements Cache<T> {
             // Avoid serializing non-serializable lambdas across the cluster.
             // Use a safe get/putIfAbsent pattern which remains atomic for insertion
             // and returns the winning value.
-            T existing = delegate.get(key);
+            var existing = delegate.get(key);
             if (existing != null) {
                 return existing;
             }
             T newVal = mappingFunction.apply(key);
-            T prev = delegate.putIfAbsent(key, newVal);
+            var prev = delegate.putIfAbsent(key, newVal);
             return prev != null ? prev : newVal;
         }, null);
     }
@@ -195,7 +195,7 @@ public class InfinispanCacheAdapter<T> implements Cache<T> {
 
     @Override
     public long delete(String queryExpression) {
-        return (long) supplyIfCache(() -> {
+        return supplyIfCache(() -> {
 
             // First check count to avoid unnecessary work
             var totalCount = count(queryExpression);
@@ -239,7 +239,7 @@ public class InfinispanCacheAdapter<T> implements Cache<T> {
 
             LOG.debug("Finished deleting {} entries", deletedCount);
             return deletedCount;
-        }, -1);
+        }, -1).longValue();
     }
 
     @Override

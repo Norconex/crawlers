@@ -151,7 +151,7 @@ public final class ExceptionSwallower {
      * and restoring it after if it was set. Useful for shutdown/close logic that must
      * not be interrupted. Any thrown exception is propagated.
      * @param runnable the code to execute
-     * @throws Exception if the runnable throws
+     * @throws Exception if the runnable throws 
      */
     public static void runWithInterruptClearEx(
             FailableRunnable<Exception> runnable) throws Exception {

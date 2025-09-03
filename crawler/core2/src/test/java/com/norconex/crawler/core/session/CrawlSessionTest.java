@@ -75,6 +75,26 @@ class CrawlSessionTest {
         assertThat(v3).isEqualTo("bar");
     }
 
+    @Test
+    void oncePerSessionAndGet_handlesNonSerializableViaJsonWrapper() {
+        var pojo = new NonSer("abc", 7);
+        var out1 = session.oncePerSessionAndGet("nser", () -> pojo);
+        assertThat(out1).isEqualTo(pojo);
+        // subsequent calls must return cached value, not recompute
+        var out2 = session.oncePerSessionAndGet("nser",
+                () -> new NonSer("zzz", 9));
+        assertThat(out2).isEqualTo(pojo);
+    }
+
+    @Test
+    void oncePerSessionAndGet_handlesExplicitNull() {
+        var out1 = session.oncePerSessionAndGet("null", () -> null);
+        assertThat(out1).isNull();
+        // cached null should be returned on subsequent calls
+        var out2 = session.oncePerSessionAndGet("null", () -> "ignored");
+        assertThat(out2).isNull();
+    }
+
     // Simple in-memory cache for testing
     static class InMemoryCache<V> implements Cache<V> {
         private final java.util.Map<String, V> map = new java.util.HashMap<>();
@@ -215,6 +235,34 @@ class CrawlSessionTest {
         public void forEach(
                 java.util.function.BiConsumer<String, ? super V> action) {
             map.forEach(action);
+        }
+    }
+
+    // Non-serializable POJO but JSON-friendly for wrapper tests
+    public static class NonSer {
+        public String name;
+        public int value;
+
+        public NonSer() {
+        }
+
+        public NonSer(String name, int value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (!(o instanceof NonSer n))
+                return false;
+            return value == n.value && java.util.Objects.equals(name, n.name);
+        }
+
+        @Override
+        public int hashCode() {
+            return java.util.Objects.hash(name, value);
         }
     }
 }

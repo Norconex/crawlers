@@ -32,12 +32,33 @@ public class CleanCommand implements Command {
         session.getCrawlContext().getCommitterService().clean();
 
         // Cleaning the cache should be done by a single node.
-        if (session.getCluster().getLocalNode().isCoordinator()) {
-            session.getCluster().getCacheManager()
-                    .forEach((cacheName, cache) -> {
+        // Use a lightweight cluster-wide lock in the admin cache to ensure
+        // only one node performs the clear even under racy coordinator checks.
+        var isCoordinator = session.getCluster().getLocalNode().isCoordinator();
+        if (isCoordinator) {
+            var cacheManager = session.getCluster().getCacheManager();
+            var ephemeralCache = cacheManager.getCrawlRunCache();
+            var lockKey = "clean.lock";
+            var ownerId = ctx.getId() + ":" + Thread.currentThread().getName();
+            var acquired = ephemeralCache.putIfAbsent(lockKey, ownerId) == null;
+            if (acquired) {
+                try {
+                    cacheManager.forEach((cacheName, cache) -> {
                         cache.clear();
                     });
-            LOG.info("Clean command executed.");
+                    LOG.info("Clean command executed.");
+                } finally {
+                    // Only remove if still owned by us
+                    // (avoid clearing someone else's lock in rare races)
+                    var current = ephemeralCache.get(lockKey);
+                    if (ownerId.equals(current.orElse(null))) {
+                        ephemeralCache.remove(lockKey);
+                    }
+                }
+            } else {
+                LOG.warn("Another node is already performing cache cleaning "
+                        + "(lock held); skipping cache clear on this node.");
+            }
         } else {
             LOG.warn("""
                     Cleaning of caches can only be performed on a single node. \
@@ -45,38 +66,5 @@ public class CleanCommand implements Command {
                     will ignore the cache cleaning request.""");
         }
         session.fire(CrawlerEvent.CRAWLER_CLEAN_END, this);
-
-        //        //TODO shall we destroy (i.e., delete physical DB) instead of clear?
-        //
-        //        //        session.getCluster()
-        //        //                .getTaskManager().runOnOneOnceSync(
-        //        //                        "cleanTask", sess -> {
-        //        //                            sess.getCrawlContext().getCommitterService()
-        //        //                                    .clean();
-        //        //                            // Close metrics prematurely, before cleaning, or
-        //        //                            // it will want to report on a blown-away store:
-        //        //                            sess.getCrawlContext().getMetrics().close();
-        //        //                            return null;
-        //        //                            //                            cntx.getCluster().getCacheManager().destroy();
-        //        //                        });
-        //        //                .getCompute()
-        //        //                .executeTask(GridTaskBuilder.create("cleanTask")
-        //        //                        .singleNode()
-        //        //                        .processor(grid -> {
-        //        //                            var cntx = CrawlContext.get(grid);
-        //        //                            cntx.getCommitterService().clean();
-        //        //                            // Close metrics prematurely, before cleaning, or
-        //        //                            // it will want to report on a blown-away store:
-        //        //                            cntx.getMetrics().close();
-        //        //                            cntx.getGrid().getStorage().destroy();
-        //        //                        })
-        //        //                        .build());
-        //        //        if (result.getState() != TaskState.COMPLETED) {
-        //        //            LOG.warn("Command returned with a non-completed status: {}",
-        //        //                    result);
-        //        //        } else {
-        //        LOG.info("Clean command executed.");
-        //        //        }
-        //        session.fire(CrawlerEvent.CRAWLER_CLEAN_END, this);
     }
 }

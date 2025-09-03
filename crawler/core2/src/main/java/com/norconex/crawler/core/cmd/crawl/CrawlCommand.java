@@ -41,15 +41,11 @@ import lombok.extern.slf4j.Slf4j;
 public class CrawlCommand implements Command {
 
     public static final String SYS_PROP_ENABLE_JMX = "enableJMX";
-    //    public static final String KEY_CRAWL_PIPELINE = "crawlPipeline";
-    //    private static final String PROGRESS_LOGGER_KEY = "progressLogger";
     private final AtomicBoolean pendingLoggerStopped = new AtomicBoolean();
 
     @Override
     public void execute(CrawlSession session) {
         var ctx = session.getCrawlContext();
-
-        //TODO apply maxCrawlDuration (pass timeout to pipeline)
 
         pendingLoggerStopped.set(false); // just in case
         if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {
@@ -164,47 +160,4 @@ public class CrawlCommand implements Command {
         session.updateCrawlState(state);
         return state;
     }
-
-    //    private void trackProgress(CrawlSession session) {
-    //        //TODO still needed?
-    //        //        // only 1 node reports progress
-    //        //        CompletableFuture.runAsync(() -> {
-    //        //            var taskManager = session.getCluster().getTaskManager();
-    //        //            var loggerTask = new LoggerTask();
-    //        //            taskManager.runOnOneSync(PROGRESS_LOGGER_KEY, loggerTask);
-    //        //            // Wait for logger to actually stop before setting flag
-    //        //            while (!pendingLoggerStopped.get()) {
-    //        //                try {
-    //        //                    Thread.sleep(100);
-    //        //                } catch (InterruptedException e) {
-    //        //                    Thread.currentThread().interrupt();
-    //        //                    break;
-    //        //                }
-    //        //            }
-    //        //        }, Executors.newFixedThreadPool(1));
-    //    }
-
-    //    static class LoggerTask implements ClusterTask<Void> {
-    //        private CrawlProgressLogger logger;
-    //
-    //        @Override
-    //        public Void execute(CrawlSession session) {
-    //            logger = new CrawlProgressLogger(session.getCrawlContext());
-    //            logger.start();
-    //            return null;
-    //        }
-    //
-    //        @Override
-    //        public void stop(CrawlSession session) {
-    //            if (logger != null) {
-    //                logger.stop();
-    //            }
-    //            // Signal that logger has stopped
-    //            //            var cmd =
-    //            //                    (CrawlCommand) session.getCrawlContext().getCommand();
-    //            //            if (cmd != null) {
-    //            //                cmd.pendingLoggerStopped.set(true);
-    //            //            }
-    //        }
-    //    }
 }

@@ -14,14 +14,19 @@
  */
 package com.norconex.crawler.core.cluster.pipeline;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import com.norconex.commons.lang.Sleeper;
+import com.norconex.crawler.core.cluster.Cache;
 import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core2.junit.ClusterTestUtil;
+import com.norconex.crawler.core2.util.ConcurrentUtil;
 
 public final class PipelineTestUtil {
     private PipelineTestUtil() {
@@ -43,14 +48,69 @@ public final class PipelineTestUtil {
                 .setDistributed(true);
     }
 
+    // --- New test helpers ----------------------------------------------------
+
+    public static void prewarmStringCache(
+            CrawlSession session, String cacheName) {
+        var cache = ClusterTestUtil.stringCache(session, cacheName);
+        cache.put("__warmup__", "1");
+        cache.remove("__warmup__");
+    }
+
+    public static void prewarmStringCache(
+            List<CrawlSession> sessions, String cacheName) {
+        sessions.forEach(s -> prewarmStringCache(s, cacheName));
+    }
+
+    public static void briefWarmup(long millis) {
+        Sleeper.sleepMillis(millis);
+    }
+
+    public static void waitUntilFast(
+            BooleanSupplier condition, long timeoutSeconds) {
+        ConcurrentUtil.waitUntil(condition,
+                Duration.ofSeconds(timeoutSeconds),
+                Duration.ofMillis(100));
+    }
+
+    public static void waitUntilMedium(
+            BooleanSupplier condition, long timeoutSeconds) {
+        ConcurrentUtil.waitUntil(condition,
+                Duration.ofSeconds(timeoutSeconds),
+                Duration.ofMillis(150));
+    }
+
+    public static long countCacheKeysWithPrefix(Cache<String> cache,
+            String prefix) {
+        final long[] cnt = { 0 };
+        cache.forEach((k, v) -> {
+            if (k.startsWith(prefix)) {
+                cnt[0]++;
+            }
+        });
+        return cnt[0];
+    }
+
+    public static String nodeName(CrawlSession session) {
+        return session.getCluster().getLocalNode().getNodeName();
+    }
+
+    public static String nodeKey(String prefix, CrawlSession session) {
+        return prefix + ":" + nodeName(session);
+    }
+
+    public static boolean isCoord(CrawlSession session) {
+        return session.getCluster().getLocalNode().isCoordinator();
+    }
+
     /**
      * In a multi-node setup, execute the pipeline on different nodes
-     * waiting for the increment provider value to change between each
-     * (starting at zero).
+     * at interval between each. Can be used to simulate late-joining scenarios.
+     * This method does not assume pipeline completion status before
+     * other nodes join. This is for implementors to handle.
      * @param pipeline the pipeline to execute
      * @param sessions the multi-node sessions
-     * @param incrementSupplier function returning an incremented value
-     *     (or the same if no change)
+     * @param incrementSupplier supplies the increment to use
      * @return results for each node
      */
     public static List<PipelineResult> executeAtIncrementAndWait(
@@ -100,15 +160,6 @@ public final class PipelineTestUtil {
         return waitAndGetAll(futures);
     }
 
-    /**
-     * In a multi-node setup, execute the pipeline on the worker nodes first,
-     * and then the coordinator, to ensure all workers are listening for steps
-     * from the coordinator. Use when you want to make sure you have
-     * all your workers participating.
-     * @param pipeline the pipeline to execute
-     * @param sessions the multi-node sessions
-     * @return results for each node
-     */
     public static List<PipelineResult> executeOrderlyAndWait(
             Pipeline pipeline, List<CrawlSession> sessions) {
         // Start pipeline execution: launch workers on non-coordinator nodes
@@ -129,12 +180,6 @@ public final class PipelineTestUtil {
         return waitAndGetAll(futures);
     }
 
-    /**
-     * Execute all nodes, with no guarantee of coordinator being first.
-     * @param pipeline the pipeline to execute
-     * @param sessions the multi-node sessions
-     * @return results for each node
-     */
     public static List<PipelineResult> executeAndWait(
             Pipeline pipeline, List<CrawlSession> sessions) {
         var futures = new ArrayList<CompletableFuture<PipelineResult>>();

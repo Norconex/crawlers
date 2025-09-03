@@ -19,9 +19,14 @@ package com.norconex.crawler.core.cluster.pipeline;
  */
 public interface PipelineProgressMXBean {
     String getStatus();
+
     String getCurrentStepId();
+
     int getCurrentStepIndex();
+
     int getStepCount();
+
     float getStepProgress();
+
     String getStepMessage();
 }

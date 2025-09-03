@@ -33,7 +33,8 @@ import com.norconex.crawler.core2.context.CrawlContext;
  */
 public final class PipelineProgressJMX {
 
-    private PipelineProgressJMX() {}
+    private PipelineProgressJMX() {
+    }
 
     public static void register(CrawlContext ctx,
             PipelineManager manager, String pipelineId) {

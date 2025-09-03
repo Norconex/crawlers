@@ -94,17 +94,6 @@ public class CrawlProgressLogger {
         stopCheckCallback = callback;
     }
 
-    //    @Override
-    //    public Void
-    //            execute(com.norconex.crawler.core2.session.CrawlSession session) {
-    //        return start();
-    //    }
-    //
-    //    @Override
-    //    public void stop(com.norconex.crawler.core2.session.CrawlSession session) {
-    //        stop();
-    //    }
-
     public Void start() {
         stopTrackingRequested = false;
         if (minLoggingInterval != null && LOG.isInfoEnabled()) {
@@ -236,7 +225,8 @@ public class CrawlProgressLogger {
                 throughput,
                 elapsedTime);
         var stepInfo = stepProgressMessage();
-        return stepInfo == null || stepInfo.isEmpty() ? base : base + " | " + stepInfo;
+        return stepInfo == null || stepInfo.isEmpty() ? base
+                : base + " | " + stepInfo;
     }
 
     private String stepProgressMessage() {
@@ -250,12 +240,14 @@ public class CrawlProgressLogger {
             }
             // Only show when running and we have a progress value > 0
             var pct = Math.round(pp.getStepProgress() * 100f);
-            if (pct <= 0 && (pp.getStatus() == null || !pp.getStatus().isTerminal())) {
+            if (pct <= 0 && (pp.getStatus() == null
+                    || !pp.getStatus().isTerminal())) {
                 return null;
             }
             var label = pp.getCurrentStepId();
             var idxStr = (pp.getCurrentStepIndex() > 0 || pp.getStepCount() > 0)
-                    ? ("step " + (pp.getCurrentStepIndex() + 1) + "/" + pp.getStepCount() + " ")
+                    ? ("step " + (pp.getCurrentStepIndex() + 1) + "/"
+                            + pp.getStepCount() + " ")
                     : "";
             var msg = pp.getStepMessage();
             var suffix = (msg != null && !msg.isBlank()) ? (" — " + msg) : "";

@@ -14,14 +14,9 @@
  */
 package com.norconex.crawler.core.session;
 
-import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
 
-import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core2.util.ConcurrentUtil;
 import com.norconex.crawler.core2.util.SerialUtil;
 
 import de.huxhorn.sulky.ulid.ULID;
@@ -49,7 +44,7 @@ public final class CrawlRunInfoResolver {
     public static CrawlRunInfo resolve(CrawlSession session) {
         var runId = resolveCrawlRunId(session);
 
-        if (session.getCluster().getLocalNode().isCoordinator()) {
+        return session.oncePerRunAndGet("crawlrun-info", () -> {
             var info = getOrCreateCrawlRunInfo(session, runId);
             if (info.getCrawlResumeState() == CrawlResumeState.NEW) {
                 LOG.info("Clearing any previous session-specific "
@@ -61,28 +56,7 @@ public final class CrawlRunInfoResolver {
             }
             save(session, info);
             return info;
-        }
-        try {
-            return waitForMatchingRunInfo(session, runId);
-        } catch (TimeoutException e) {
-            throw new CrawlerException("Could not resolve crawl run "
-                    + "information for crawler " + session.getCrawlerId(), e);
-        }
-    }
-
-    private static CrawlRunInfo waitForMatchingRunInfo(
-            CrawlSession session, String runId) throws TimeoutException {
-        var runInfo = new AtomicReference<CrawlRunInfo>();
-        ConcurrentUtil.waitUntilOrThrow(() -> {
-            var infoOpt = load(session);
-            if (infoOpt.map(info -> Objects.equals(info.getCrawlRunId(), runId))
-                    .orElse(false)) {
-                runInfo.set(infoOpt.get());
-                return true;
-            }
-            return false;
-        }, Duration.ofSeconds(10), Duration.ofMillis(500));
-        return runInfo.get();
+        });
     }
 
     private static String resolveCrawlRunId(CrawlSession session) {

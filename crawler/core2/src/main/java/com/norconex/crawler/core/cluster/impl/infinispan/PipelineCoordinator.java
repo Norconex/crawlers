@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.collections4.Bag;
@@ -80,6 +81,8 @@ public class PipelineCoordinator implements AutoCloseable {
 
     void start() {
         Thread.currentThread().setName("COORDINATOR");
+        // Warm-up: wait briefly for stable cluster view and caches
+        waitForClusterWarmUp();
         workerStatusListener = (key, rec) -> {
             if (rec.getPipelineId().equals(pipeline.getId())) {
                 updateWorkerStatus(key, rec);
@@ -87,9 +90,67 @@ public class PipelineCoordinator implements AutoCloseable {
         };
         cluster.getPipelineManager()
                 .addWorkerStatusListener(workerStatusListener);
-        doCoordinatePipelineExecution();
+        try {
+            doCoordinatePipelineExecution();
+        } catch (RuntimeException e) {
+            if (!isInterruption(e)) {
+                throw e;
+            }
+            LOG.info("Coordinator interrupted/demoted while coordinating "
+                    + "pipeline {}, exiting gracefully.",
+                    pipeline.getId());
+        }
         LOG.info("Pipeline {}  terminated.", pipeline.getId());
         close();
+    }
+
+    private boolean isInterruption(Throwable t) {
+        if (Thread.currentThread().isInterrupted()) {
+            return true;
+        }
+        var cur = t;
+        var depth = 0;
+        while (cur != null && depth++ < 5) {
+            if (cur instanceof java.lang.InterruptedException
+                    || cur instanceof java.util.concurrent.CancellationException) {
+                return true;
+            }
+            cur = cur.getCause();
+        }
+        return false;
+    }
+
+    private void waitForClusterWarmUp() {
+        // Allow up to ~5 seconds for same-JVM multi-node tests to stabilize
+        var deadline = System.currentTimeMillis() + 5_000;
+        var cm = cluster.getCacheManager();
+        var lastNames = cluster.getNodeNames();
+        var stableTicks = 0;
+        while (System.currentTimeMillis() < deadline) {
+            if (!InfinispanUtil.isClusterRunning(cluster)) {
+                Sleeper.sleepMillis(50);
+                continue;
+            }
+            // Touch coordination caches to ensure they are created locally
+            try {
+                cm.getPipelineStepCache();
+                cm.getPipelineWorkerStatusesCache();
+            } catch (Exception e) {
+                // ignore and retry until deadline
+            }
+            var names = cluster.getNodeNames();
+            if (names.equals(lastNames)) {
+                stableTicks++;
+            } else {
+                stableTicks = 0;
+            }
+            lastNames = names;
+            if (stableTicks >= 5) { // ~500ms of stability
+                return;
+            }
+            Sleeper.sleepMillis(100);
+        }
+        LOG.debug("Cluster warm-up timed out; proceeding.");
     }
 
     void stop() {
@@ -213,6 +274,9 @@ public class PipelineCoordinator implements AutoCloseable {
     }
 
     private void updateWorkerStatus(String key, StepRecord stepRec) {
+        if (!pipeline.getId().equals(stepRec.getPipelineId())) {
+            return; // ignore statuses for other pipelines
+        }
         workerStatuses.put(
                 StringUtils.substringAfterLast(key, ":"), stepRec);
     }
@@ -240,13 +304,18 @@ public class PipelineCoordinator implements AutoCloseable {
             Bag<PipelineStatus> statuses = new HashBag<>();
             var nodeNames = cluster.getNodeNames();
             for (String nodeName : nodeNames) {
-                // we assume a node has not yet started if not found,
-                // so we default to PENDING so we can track for timeout
-                var stepRec = workerStatuses.computeIfAbsent(nodeName,
-                        nm -> createPendingStepRecord(step));
-                statuses.add(hasTimedOut(stepRec)
+                // Use the latest worker status if and only if it is for this step
+                var rec = workerStatuses.get(nodeName);
+                if (rec == null
+                        || !pipeline.getId().equals(rec.getPipelineId())
+                        || !Objects.equals(rec.getStepId(), step.getId())) {
+                    // stale status from a previous step: ignore and wait
+                    statuses.add(PipelineStatus.PENDING);
+                    continue;
+                }
+                statuses.add(hasTimedOut(rec)
                         ? PipelineStatus.EXPIRED
-                        : stepRec.getStatus());
+                        : rec.getStatus());
             }
             reducedStatus = step.reduce(
                     CrawlSession.get(cluster.getLocalNode()), statuses);
@@ -290,7 +359,10 @@ public class PipelineCoordinator implements AutoCloseable {
     }
 
     private boolean hasTimedOut(StepRecord rec) {
-        return System.currentTimeMillis() - rec.updatedAt > nodeExpiryTimeoutMs;
+        // Add a small grace to avoid false expirations during brief coordinator switches
+        var graceMs = 1000L;
+        return System.currentTimeMillis()
+                - rec.updatedAt > (nodeExpiryTimeoutMs + graceMs);
     }
 
     private StepRecord resolveFirstStepToRun(String key, Pipeline pipeline) {
@@ -311,10 +383,6 @@ public class PipelineCoordinator implements AutoCloseable {
         }
 
         return stepRec;
-    }
-
-    private StepRecord createPendingStepRecord(Step step) {
-        return createStepRecord(step, PipelineStatus.PENDING);
     }
 
     private StepRecord createRunningStepRecord(Step step) {

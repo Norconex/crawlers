@@ -4,6 +4,7 @@ import org.infinispan.protostream.annotations.Proto;
 import org.infinispan.protostream.annotations.ProtoField;
 
 import com.norconex.crawler.core.cluster.CacheException;
+import com.norconex.crawler.core.cluster.SerializedEnvelope;
 import com.norconex.crawler.core2.util.SerialUtil;
 
 import lombok.Data;
@@ -26,6 +27,31 @@ public final class StringSerializedObject {
             className = object.getClass().getName();
             serialized = SerialUtil.toJsonString(object);
         }
+    }
+
+    /**
+     * Creates a Protostream-compatible wrapper from a neutral envelope.
+     * @param env serialized envelope
+     * @return proto-wrapped object
+     */
+    public static StringSerializedObject fromEnvelope(SerializedEnvelope env) {
+        var sso = new StringSerializedObject();
+        if (env != null) {
+            sso.className = env.getClassName();
+            sso.serialized = env.getSerialized();
+        }
+        return sso;
+    }
+
+    /**
+     * Converts this wrapper to a neutral envelope for backend-agnostic use.
+     * @return serialized envelope
+     */
+    public SerializedEnvelope toEnvelope() {
+        var env = new SerializedEnvelope();
+        env.setClassName(className);
+        env.setSerialized(serialized);
+        return env;
     }
 
     @SuppressWarnings("unchecked")

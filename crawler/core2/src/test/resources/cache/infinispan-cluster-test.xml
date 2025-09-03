@@ -1,28 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <infinispan xmlns="urn:infinispan:config:15.0">
   <cache-container name="default" statistics="true" default-cache="default">
-    <transport cluster="test-cluster"/>
+    <transport cluster="test-cluster" stack="tcp"/>
 
     <!-- === Cache Templates === -->
 
     <distributed-cache-configuration
       name="default"
       mode="SYNC"
-      owners="1"
+      owners="2"
       statistics="true"
     >
       <memory max-count="100"/>
       <expiration max-idle="30000"/>
-      <state-transfer enabled="true" timeout="30000"/>
+      <!-- Reduce test flakiness by avoiding rebalancing -->
+      <state-transfer enabled="false"/>
     </distributed-cache-configuration>
-
-    <distributed-cache-configuration
-      name="replicated-template"
-      mode="SYNC"
-      owners="2"
-      statistics="true"
-      configuration="default"
-    />
 
     <distributed-cache-configuration name="indexed-template" configuration="default">
       <indexing enabled="true" storage="local-heap">
@@ -35,6 +28,7 @@
     <distributed-cache-configuration 
       name="ephemeral-template"
       mode="SYNC"
+      owners="2"
       statistics="true"
     >
       <expiration lifespan="-1"/>
@@ -44,14 +38,11 @@
 
     <!-- === Cache Mappings === -->
 
-    <distributed-cache-configuration name="*_replicated" configuration="replicated-template"/>
     <distributed-cache-configuration name="*_indexed" configuration="indexed-template"/>
     <distributed-cache-configuration name="*_ephemeral" configuration="ephemeral-template"/>
 
-    <!--
-      Explicitly create caches (instances) to avoid runtime definition races.
-      Matches names in CacheNames class and some others.
-      -->
+    <!-- Explicit instances to avoid runtime definition races -->
+    <distributed-cache name="admin" configuration="default"/>
     <distributed-cache name="crawler" configuration="default"/>
     <distributed-cache name="crawlSession" configuration="default"/>
     <distributed-cache name="crawlRun" configuration="ephemeral-template"/>

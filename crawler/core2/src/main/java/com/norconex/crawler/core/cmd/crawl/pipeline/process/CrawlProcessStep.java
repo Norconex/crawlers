@@ -55,7 +55,8 @@ public class CrawlProcessStep extends BaseStep {
 
     private final ProcessQueueAction queueAction;
     private BatchDispatcher batchDispatcher;
-    // Keep a reference to the session so getProgress() can compute cluster-wide progress
+    // Keep a reference to the session so getProgress() can compute
+    // cluster-wide progress
     private volatile CrawlSession sessionRef;
 
     public CrawlProcessStep(String id, ProcessQueueAction queueAction) {
@@ -66,61 +67,43 @@ public class CrawlProcessStep extends BaseStep {
     @Override
     public void execute(CrawlSession session) {
         // store session for progress computations
-        this.sessionRef = session;
+        sessionRef = session;
         var ctx = session.getCrawlContext();
         if (isStopRequested()) {
             return;
         }
         LOG.info("Processing crawler queue...");
-        try {
-            //TODO DELETE THIS:
-            //            ofNullable(ctx.getCallbacks().getBeforeCrawlTask())
-            //                    .ifPresent(cb -> cb.accept(session));
+        var cfg = ctx.getCrawlConfig();
 
-            var cfg = ctx.getCrawlConfig();
+        var numThreads = cfg.getNumThreads();
 
-            var numThreads = cfg.getNumThreads();
+        batchDispatcher = BatchDispatcher.builder()
+                .maxBatchSize(cfg.getMaxQueueBatchSize())
+                .lowWatermark(Math.max(1, cfg.getMaxQueueBatchSize() / 5))
+                .maxEmptyPolls(10)
+                .pollIntervalMillis(1000)
+                .session(session)
+                .build();
 
-            batchDispatcher = BatchDispatcher.builder()
-                    .maxBatchSize(cfg.getMaxQueueBatchSize())
-                    .lowWatermark(Math.max(1, cfg.getMaxQueueBatchSize() / 5))
-                    .maxEmptyPolls(10)
-                    .pollIntervalMillis(1000)
-                    .session(session)
-                    .build();
+        var executor = Executors.newFixedThreadPool(
+                numThreads, ctx.getThreadFactoryCreator()
+                        .create(session.getCrawlerId()));
 
-            var executor = Executors.newFixedThreadPool(
-                    numThreads, ctx.getThreadFactoryCreator()
-                            .create(session.getCrawlerId()));
-
-            //TODO have coordinator launch the monitoring of dormant
-            // borrowed refs and check if ref after each iteration.
-            // OR (better?) check after each batch if there are dormant ones
-            // only if we are coordinator.
-            //            maxBatchSize: This is the upper limit for how many items a node/thread should process in one batch, preventing any node from hogging too many items.
-            //          •  Dynamic batch size per node: By dividing the total queue count by the number of active nodes, you ensure a fair distribution of work and avoid overloading a single node.
-            //        •  Final batch size: Use min(maxBatchSize, queueCount / nodeCount) to determine the actual batch size for each node at each fetch.
-
-            var futures = IntStream.range(0, numThreads)
-                    .mapToObj(i -> CompletableFuture.runAsync(() -> {
-                        try {
-                            processQueue(session, i);
-                        } catch (Exception e) {
-                            LOG.error("Problem running task {} {} of {}.",
-                                    "crawl-" + session.getCrawlerId(),
-                                    i, numThreads, e);
-                            throw new CompletionException(e);
-                        }
-                    }, executor))
-                    .toList();
-            CompletableFuture.allOf(
-                    futures.toArray(new CompletableFuture[0])).join();
-            ConcurrentUtil.cleanShutdown(executor);
-        } finally {
-            //TODO DELETE THIS:
-            //            ofNullable(ctx.getCallbacks().getAfterCrawlTask())
-            //                    .ifPresent(cb -> cb.accept(session));
-        }
+        var futures = IntStream.range(0, numThreads)
+                .mapToObj(i -> CompletableFuture.runAsync(() -> {
+                    try {
+                        processQueue(session, i);
+                    } catch (Exception e) {
+                        LOG.error("Problem running task {} {} of {}.",
+                                "crawl-" + session.getCrawlerId(),
+                                i, numThreads, e);
+                        throw new CompletionException(e);
+                    }
+                }, executor))
+                .toList();
+        CompletableFuture.allOf(
+                futures.toArray(new CompletableFuture[0])).join();
+        ConcurrentUtil.cleanShutdown(executor);
     }
 
     @Override
@@ -131,11 +114,12 @@ public class CrawlProcessStep extends BaseStep {
             return null;
         }
         var ledger = s.getCrawlContext().getCrawlEntryLedger();
-        long processed = ledger.getProcessedCount();
-        long queued = ledger.getQueueCount();
-        long denom = processed + queued;
-        float progress = denom <= 0 ? 0.0f : (float) (processed / (double) denom);
-        String msg = "processed=" + processed + ", queued=" + queued;
+        var processed = ledger.getProcessedCount();
+        var queued = ledger.getQueueCount();
+        var denom = processed + queued;
+        var progress =
+                denom <= 0 ? 0.0f : (float) (processed / (double) denom);
+        var msg = "processed=" + processed + ", queued=" + queued;
         return new Step.StepProgress(progress, msg);
     }
 

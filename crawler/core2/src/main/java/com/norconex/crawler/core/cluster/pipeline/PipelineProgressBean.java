@@ -24,7 +24,8 @@ public class PipelineProgressBean implements PipelineProgressMXBean {
     private final PipelineManager pipelineManager;
     private final String pipelineId;
 
-    public PipelineProgressBean(PipelineManager pipelineManager, String pipelineId) {
+    public PipelineProgressBean(PipelineManager pipelineManager,
+            String pipelineId) {
         this.pipelineManager = Objects.requireNonNull(pipelineManager);
         this.pipelineId = Objects.requireNonNull(pipelineId);
     }
@@ -41,7 +42,7 @@ public class PipelineProgressBean implements PipelineProgressMXBean {
     public String getStatus() {
         var p = snapshot();
         return p.getStatus() != null ? p.getStatus().name() : null;
-        }
+    }
 
     @Override
     public String getCurrentStepId() {

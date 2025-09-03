@@ -8,10 +8,27 @@ class PipelineProgressBeanTest {
 
     static class StubManager implements PipelineManager {
         private final PipelineProgress progress;
-        StubManager(PipelineProgress progress) { this.progress = progress; }
-        @Override public java.util.concurrent.CompletableFuture<PipelineResult> executePipeline(Pipeline pipeline) { throw new UnsupportedOperationException(); }
-        @Override public java.util.concurrent.CompletableFuture<Void> stopPipeline(String pipelineId) { throw new UnsupportedOperationException(); }
-        @Override public PipelineProgress getPipelineProgress(String pipelineId) { return progress; }
+
+        StubManager(PipelineProgress progress) {
+            this.progress = progress;
+        }
+
+        @Override
+        public java.util.concurrent.CompletableFuture<PipelineResult>
+                executePipeline(Pipeline pipeline) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public java.util.concurrent.CompletableFuture<Void>
+                stopPipeline(String pipelineId) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public PipelineProgress getPipelineProgress(String pipelineId) {
+            return progress;
+        }
     }
 
     @Test
@@ -31,6 +48,7 @@ class PipelineProgressBeanTest {
         assertThat(bean.getCurrentStepIndex()).isEqualTo(1);
         assertThat(bean.getStepCount()).isEqualTo(3);
         assertThat(bean.getStepProgress()).isEqualTo(0.42f);
-        assertThat(bean.getStepMessage()).isEqualTo("processed=420, queued=580");
+        assertThat(bean.getStepMessage())
+                .isEqualTo("processed=420, queued=580");
     }
 }

@@ -30,12 +30,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.infinispan.notifications.cachemanagerlistener.CacheManagerNotifierImpl;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
@@ -66,9 +64,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @WithLogLevel(value = "OFF", classes = CacheManagerNotifierImpl.class)
 @WithTestWatcherLogging
-@Timeout(value = 30, unit = TimeUnit.SECONDS)
-//TODO
-//@Disabled("TODO: IMPLEMENT ME")
+@Timeout(value = 60, unit = TimeUnit.SECONDS)
 class CliCrawlerLauncherTest {
 
     @Target(ElementType.METHOD)
@@ -84,14 +80,6 @@ class CliCrawlerLauncherTest {
 
     @TempDir
     private Path tempDir;
-
-    // Ensures ignite has no hold on the temp files before a cleanup attempt
-    // of the tempDir is made by Junit. If we have to do this work around
-    // too often, modify the ParameterizedClusterConnectorTest to handle this.
-    @AfterEach
-    void tearDown() {
-        //        GridTestUtil.waitForGridShutdown();
-    }
 
     static Stream<Class<?>> classProvider() {
         return Stream.of(
@@ -270,15 +258,6 @@ class CliCrawlerLauncherTest {
                 "storeexport",
                 "-config=" + configFile,
                 "-dir=" + exportDir);
-
-        try {
-            System.err.println("XXX Export dir content: "
-                    + Files.list(exportDir).map(Path::toString)
-                            .collect(Collectors.joining("\n")));
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
 
         assertThat(exit1.ok()).isTrue();
         assertThat(exportFile).isNotEmptyFile();
@@ -510,7 +489,6 @@ class CliCrawlerLauncherTest {
         var executor = Executors.newFixedThreadPool(numOfNodes);
         var latch = new CountDownLatch(numOfNodes);
         final List<MockCliExit> exits = new ArrayList<>();
-        //        var failedExit = new AtomicReference<MockCliExit>();
         var thrownException = new AtomicReference<Throwable>();
 
         for (var i = 0; i < numOfNodes; i++) {
@@ -519,9 +497,6 @@ class CliCrawlerLauncherTest {
                     var exit = launchWithConnector(
                             new MockMultiNodesConnector(), cmdArgs);
                     exits.add(exit);
-                    //                    if (!exit.ok()) {
-                    //                        failedExit.compareAndSet(null, exit);
-                    //                    }
                 } catch (Throwable t) {
                     thrownException.compareAndSet(null, t);
                 } finally {

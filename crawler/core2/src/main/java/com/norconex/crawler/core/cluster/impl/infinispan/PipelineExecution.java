@@ -156,7 +156,8 @@ public class PipelineExecution implements AutoCloseable {
             }
             // new coordinator:
             if (isCoord && coordinator == null) {
-                // Promotion: only if we do not already have a coordinator instance
+                // Promotion: only if we do not already have a coordinator 
+                // instance
                 logMode("promotion to coordinator");
                 startCoordinator();
                 //                attachCoordinatorCompletion();
