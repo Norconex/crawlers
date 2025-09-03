@@ -17,11 +17,11 @@ package com.norconex.crawler.core.mocks.fetch;
 import java.io.ByteArrayInputStream;
 
 import com.norconex.commons.lang.TimeIdGenerator;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.BaseFetcherConfig;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchRequest;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -42,9 +42,9 @@ public class MockFetcher extends AbstractFetcher<BaseFetcherConfig> {
             throws FetchException {
         var req = (MockFetchRequest) fetchRequest;
         var resp = new MockFetchResponseImpl();
-        resp.setResolutionStatus(
-                returnBadStatus ? CrawlDocStatus.BAD_STATUS
-                        : CrawlDocStatus.NEW);
+        resp.setProcessingOutcome(
+                returnBadStatus ? ProcessingOutcome.BAD_STATUS
+                        : ProcessingOutcome.NEW);
         var content = randomDocContent
                 ? "Fake content for: " + req.getRef()
                         + "\nRandomness: " + TimeIdGenerator.next()

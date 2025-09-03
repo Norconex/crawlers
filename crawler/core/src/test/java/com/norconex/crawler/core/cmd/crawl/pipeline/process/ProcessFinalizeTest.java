@@ -19,26 +19,28 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.apache.commons.lang3.mutable.MutableObject;
 
-import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategy;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.stubs.CrawlDocContextStubber;
 
 class ProcessFinalizeTest {
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testThreadActionFinalize(CrawlContext crawlContext) {
+    @CrawlTest(focus = Focus.SESSION)
+    void testThreadActionFinalize(CrawlSession crawlSession) {
         var strategy = new MutableObject<>(
                 SpoiledReferenceStrategy.IGNORE);
         SpoiledReferenceStrategizer spoiledHandler =
                 (ref, state) -> strategy.getValue();
 
-        crawlContext.getCrawlConfig().setSpoiledReferenceStrategizer(
-                spoiledHandler);
+        crawlSession
+                .getCrawlContext()
+                .getCrawlConfig()
+                .setSpoiledReferenceStrategizer(
+                        spoiledHandler);
         var ctx = new ProcessContext();
 
         // no doc record set, exits right away
@@ -47,39 +49,40 @@ class ProcessFinalizeTest {
 
         // no doc set and no status set: one should be created and bad status
         ctx.finalized(false);
-        ctx.crawlContext(crawlContext);
-        ctx.docContext(new CrawlDocContext("ref"));
+        ctx.crawlSession(crawlSession);
+        ctx.docContext(CrawlDocContextStubber.fresh("ref"));
 
         ProcessFinalize.execute(ctx);
-        assertThat(ctx.doc()).isNotNull();
-        assertThat(ctx.docContext().getState()).isSameAs(
-                CrawlDocStatus.BAD_STATUS);
+        assertThat(ctx.docContext().getDoc()).isNotNull();
+        assertThat(ctx.docContext()
+                .getCurrentCrawlEntry()
+                .getProcessingOutcome())
+                        .isSameAs(ProcessingOutcome.BAD_STATUS);
 
         // spoiled strategies
-        var doc = ctx.doc();
-        ctx.doc(
-                new CrawlDoc(
-                        doc.getDocContext(),
-                        new CrawlDocContext(doc.getDocContext()),
-                        doc.getInputStream()));
+
+        ctx.docContext(CrawlDocContextStubber.incremental("ref"));
+        var currentEntry = ctx.docContext().getCurrentCrawlEntry();
+        var prevEntry = ctx.docContext().getPreviousCrawlEntry();
 
         ctx.finalized(false);
-        ctx.docContext().setState(CrawlDocStatus.BAD_STATUS);
+        currentEntry.setProcessingOutcome(ProcessingOutcome.BAD_STATUS);
         strategy.setValue(SpoiledReferenceStrategy.DELETE);
         assertThatNoException().isThrownBy(() -> {
             ProcessFinalize.execute(ctx);
         });
 
         ctx.finalized(false);
-        ctx.docContext().setState(CrawlDocStatus.BAD_STATUS);
+        currentEntry.setProcessingOutcome(ProcessingOutcome.BAD_STATUS);
         strategy.setValue(SpoiledReferenceStrategy.GRACE_ONCE);
         assertThatNoException().isThrownBy(() -> {
             ProcessFinalize.execute(ctx);
         });
 
         ctx.finalized(false);
-        ctx.docContext().setState(CrawlDocStatus.BAD_STATUS);
-        ctx.doc().getCachedDocContext().setState(CrawlDocStatus.MODIFIED);
+        currentEntry.setProcessingOutcome(ProcessingOutcome.BAD_STATUS);
+        //        ctx.docContext().setProcessingOutcome(ProcessingOutcome.BAD_STATUS);
+        prevEntry.setProcessingOutcome(ProcessingOutcome.MODIFIED);
         strategy.setValue(SpoiledReferenceStrategy.GRACE_ONCE);
         assertThatNoException().isThrownBy(() -> {
             ProcessFinalize.execute(ctx);
@@ -87,8 +90,8 @@ class ProcessFinalizeTest {
 
         // good status with modified ref
         ctx.finalized(false);
-        ctx.docContext().setState(CrawlDocStatus.MODIFIED);
-        ctx.docContext().setOriginalReference("original");
+        currentEntry.setProcessingOutcome(ProcessingOutcome.MODIFIED);
+        currentEntry.addToReferenceTrail("original");
         assertThatNoException().isThrownBy(() -> {
             ProcessFinalize.execute(ctx);
         });

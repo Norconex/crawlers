@@ -14,40 +14,49 @@
  */
 package com.norconex.crawler.core.cmd.crawl.pipeline;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.ArrayList;
 
-import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapTask;
-import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessTask;
-import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessTask.ProcessQueueAction;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.grid.core.compute.GridPipeline;
-import com.norconex.grid.core.compute.Stage;
+import com.norconex.crawler.core.CrawlConfig.OrphansStrategy;
+import com.norconex.crawler.core.cluster.pipeline.Pipeline;
+import com.norconex.crawler.core.cluster.pipeline.Step;
+import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapStep;
+import com.norconex.crawler.core.cmd.crawl.pipeline.orphans.RequeueOrphansForDeletionStep;
+import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessStep;
+import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessStep.ProcessQueueAction;
+import com.norconex.crawler.core.session.CrawlSession;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public final class CrawlPipelineFactory {
 
     private CrawlPipelineFactory() {
     }
 
-    public static GridPipeline create(CrawlContext ctx) {
-        return new GridPipeline("crawlPipeline", List.of(
+    public static Pipeline create(CrawlSession session) {
+        var steps = new ArrayList<Step>();
+        steps.add(new CrawlBootstrapStep("bootstrap"));
+        steps.add(new CrawlProcessStep("crawlDocuments",
+                ProcessQueueAction.CRAWL_ALL)
+                        .setDistributed(true));
 
-                // Prepare for crawling (on one)
-                new Stage(new CrawlBootstrapTask("crawlBootstrapTask"))
-                        .withAlways(true),
-
-                // Crawl (on all)
-                new Stage(new CrawlProcessTask(
-                        "crawlMainProcessTask", ProcessQueueAction.CRAWL_ALL)),
-
-                // Resolve orphans (on one)
-                new Stage(new CrawlHandleOrphansTask("crawlHandleOrphansTask")),
-
-                // Crawl/delete orphans (on all)
-                new Stage((grid, prev) -> Optional.ofNullable(prev.getResult())
-                        .map(ProcessQueueAction.class::cast)
-                        .map(action -> new CrawlProcessTask(
-                                "crawlOrphanTask" + action, action))
-                        .orElse(null))));
+        var orphStrategy =
+                session.getCrawlContext().getCrawlConfig().getOrphansStrategy();
+        if (orphStrategy == null || orphStrategy == OrphansStrategy.IGNORE) {
+            LOG.info("Ignoring possible orphans as per orphan strategy.");
+        } else if (orphStrategy == OrphansStrategy.DELETE) {
+            steps.add(new RequeueOrphansForDeletionStep(
+                    "queueOrphansForDeletion"));
+            steps.add(new CrawlProcessStep("deleteOrphans",
+                    ProcessQueueAction.DELETE_ALL)
+                            .setDistributed(true));
+        } else if (orphStrategy == OrphansStrategy.PROCESS) {
+            steps.add(new RequeueOrphansForDeletionStep(
+                    "queueOrphansForProcessing"));
+            steps.add(new CrawlProcessStep("crawlOrphans",
+                    ProcessQueueAction.CRAWL_ALL)
+                            .setDistributed(true));
+        }
+        return new Pipeline("crawlPipeline", steps);
     }
 }

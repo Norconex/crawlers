@@ -39,7 +39,7 @@ class CrawlTestExtension implements TestTemplateInvocationContextProvider {
     public Stream<TestTemplateInvocationContext>
             provideTestTemplateInvocationContexts(ExtensionContext context) {
         var annotation = findAnnotation(context.getTestMethod()).orElseThrow();
-        var connectorClasses = annotation.gridConnectors();
+        var connectorClasses = annotation.clusters();
         return Stream.of(connectorClasses).map(
                 conn -> new CrawlTestInvocationContext(conn, annotation));
     }

@@ -26,7 +26,7 @@ import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListenerConfig.OnMultiple;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.session.CrawlSession;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -101,7 +101,7 @@ public class StopCrawlerOnMaxEventListener implements
     private Map<String, AtomicLong> eventCounts = new ConcurrentHashMap<>();
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private CrawlContext crawlContext;
+    private CrawlSession crawlSession;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
@@ -111,7 +111,7 @@ public class StopCrawlerOnMaxEventListener implements
     public void accept(Event event) {
         if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
             eventCounts.clear();
-            crawlContext = ((CrawlerEvent) event).getSource();
+            crawlSession = ((CrawlerEvent) event).getCrawlSession();
         }
 
         if (!configuration.getEventMatcher().matches(event.getName())) {
@@ -131,8 +131,8 @@ public class StopCrawlerOnMaxEventListener implements
             stopRequested.set(true);
             LOG.info("Maximum number of {} events reached for crawler: {}. "
                     + "Issuing a stop request.",
-                    configuration.getMaximum(), crawlContext.getId());
-            crawlContext.getGrid().stop();
+                    configuration.getMaximum(), crawlSession.getCrawlerId());
+            crawlSession.getCluster().stop();
         }
     }
 

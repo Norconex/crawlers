@@ -14,10 +14,10 @@
  */
 package com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap;
 
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.session.CrawlSession;
 
 @FunctionalInterface
 public interface CrawlBootstrapper {
 
-    void bootstrap(CrawlContext crawlContext);
+    void bootstrap(CrawlSession crawlSession);
 }

@@ -23,7 +23,7 @@ import com.norconex.importer.doc.DocMetaConstants;
  */
 public final class CrawlDocMetaConstants {
 
-    //TODO XXX MAYBE: have constants a construct instead, which could
+    //TODO MAYBE: have constants a construct instead, which could
     // have a formal name, and a way to parse each property received
     // to see if it fits.  We could put a listener on the metadata Properties
     // so this formal ones are updated on the fly.

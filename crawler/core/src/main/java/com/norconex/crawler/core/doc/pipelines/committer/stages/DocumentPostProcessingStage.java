@@ -25,17 +25,18 @@ public class DocumentPostProcessingStage
 
     @Override
     public boolean test(CommitterPipelineContext ctx) {
-        for (DocumentConsumer postProc : ctx.getCrawlContext()
+        for (DocumentConsumer postProc : ctx.getCrawlSession().getCrawlContext()
                 .getCrawlConfig()
                 .getPostImportConsumers()) {
-            postProc.accept(ctx.getCrawlContext().getFetcher(), ctx.getDoc());
-            ctx.getCrawlContext().fire(
-                    CrawlerEvent.builder()
-                            .name(CrawlerEvent.DOCUMENT_POSTIMPORTED)
-                            .source(ctx.getCrawlContext())
-                            .subject(postProc)
-                            .docContext(ctx.getDoc().getDocContext())
-                            .build());
+            postProc.accept(
+                    ctx.getCrawlSession().getCrawlContext().getFetcher(),
+                    ctx.getDocContext().getDoc());
+            ctx.getCrawlSession().fire(CrawlerEvent.builder()
+                    .name(CrawlerEvent.DOCUMENT_POSTIMPORTED)
+                    .crawlSession(ctx.getCrawlSession())
+                    .source(postProc)
+                    .crawlEntry(ctx.getDocContext().getCurrentCrawlEntry())
+                    .build());
         }
         return true;
     }

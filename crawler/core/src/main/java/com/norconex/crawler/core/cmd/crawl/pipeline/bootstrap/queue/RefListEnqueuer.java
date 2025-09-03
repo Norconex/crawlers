@@ -29,7 +29,7 @@ public class RefListEnqueuer implements ReferenceEnqueuer {
 
     @Override
     public int enqueue(QueueBootstrapContext ctx) {
-        var cfg = ctx.getCrawlContext().getCrawlConfig();
+        var cfg = ctx.getCrawlSession().getCrawlContext().getCrawlConfig();
         var cnt = 0;
         for (String ref : cfg.getStartReferences()) {
             if (StringUtils.isNotBlank(ref)) {

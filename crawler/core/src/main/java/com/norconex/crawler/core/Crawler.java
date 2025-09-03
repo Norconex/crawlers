@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,59 +17,34 @@ package com.norconex.crawler.core;
 import static java.util.Optional.ofNullable;
 
 import java.nio.file.Path;
+import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.clean.CleanCommand;
 import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
+import com.norconex.crawler.core.cmd.stop.StopCommand;
 import com.norconex.crawler.core.cmd.storeexport.StoreExportCommand;
 import com.norconex.crawler.core.cmd.storeimport.StoreImportCommand;
-import com.norconex.crawler.core.session.CrawlSessionManager;
-import com.norconex.crawler.core.util.ConfigUtil;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlSessionFactory;
 import com.norconex.crawler.core.util.LogUtil;
-import com.norconex.grid.core.BaseGridConnectionContext;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-//TODO maybe rename to Crawler and have server side be CrawlerNode?
-
-/**
- * <p>
- * Crawler. Facade to crawl-related commands.
- * </p>
- * <h2>JMX Support</h2>
- * <p>
- * JMX support is disabled by default. To enable it, set the system property
- * "enableJMX" to <code>true</code>. You can do so by adding this to your Java
- * launch command:
- * </p>
- *
- * <pre>
- *     -DenableJMX=true
- * </pre>
- *
- * @see CrawlConfig
- */
 @Slf4j
-@EqualsAndHashCode
 public class Crawler {
-
-    private static final String GRID_WORKDIR_NAME = "grid";
 
     @Getter
     private final CrawlDriver crawlDriver;
     @Getter
     private final CrawlConfig crawlConfig;
 
-    private final CrawlSessionManager sessionManager;
-
     public Crawler(CrawlDriver crawlDriver, CrawlConfig crawlConfig) {
         this.crawlDriver = crawlDriver;
         this.crawlConfig = crawlConfig;
-        sessionManager = new CrawlSessionManager(crawlDriver, crawlConfig);
     }
 
     /**
@@ -96,13 +71,7 @@ public class Crawler {
     }
 
     public void stop() {
-        // Since we are stopping we are not initializing
-        // the context and not explicitly connecting to the grid
-        var gridWorkDir = ConfigUtil
-                .resolveWorkDir(crawlConfig).resolve(GRID_WORKDIR_NAME);
-        crawlConfig.getGridConnector().shutdownGrid(
-                new BaseGridConnectionContext(gridWorkDir,
-                        crawlConfig.getId()));
+        executeCommand(new StopCommand());
     }
 
     public void storageExport(Path dir, boolean pretty) {
@@ -124,17 +93,26 @@ public class Crawler {
         validateConfig(crawlConfig);
         LogUtil.logCommandIntro(LOG, crawlConfig);
         LOG.info("Executing command: {}", command.getClass().getSimpleName());
-        sessionManager.withCrawlContext(ctx -> {
+        withCrawlSession(sess -> {
             try {
-                ofNullable(ctx.getCallbacks()
+                ofNullable(sess.getCrawlContext().getCallbacks()
                         .getBeforeCommand())
-                                .ifPresent(c -> c.accept(ctx));
-                command.execute(ctx);
+                                .ifPresent(c -> c.accept(sess,
+                                        command.getClass()));
+                command.execute(sess);
             } finally {
-                ofNullable(ctx.getCallbacks()
+                ofNullable(sess.getCrawlContext().getCallbacks()
                         .getAfterCommand())
-                                .ifPresent(c -> c.accept(ctx));
+                                .ifPresent(c -> c.accept(sess,
+                                        command.getClass()));
             }
         });
+    }
+
+    public void withCrawlSession(Consumer<CrawlSession> c) {
+        try (var session =
+                CrawlSessionFactory.create(crawlDriver, crawlConfig)) {
+            c.accept(session);
+        }
     }
 }

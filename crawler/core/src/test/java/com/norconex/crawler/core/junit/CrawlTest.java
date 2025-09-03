@@ -28,10 +28,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
+import com.norconex.crawler.core.cluster.ClusterConnector;
+import com.norconex.crawler.core.mocks.cluster.MockSingleNodeConnector;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
-import com.norconex.crawler.core.stubs.StubCrawlerConfig;
-import com.norconex.grid.core.GridConnector;
-import com.norconex.grid.local.LocalGridConnector;
+import com.norconex.crawler.core.stubs.CrawlerConfigStubber;
 
 /**
  * <p>
@@ -89,14 +89,14 @@ public @interface CrawlTest {
          */
         CRAWL,
         /**
-         * Initializes the crawler context before each text execution and
+         * Initializes the crawl session before each text execution and
          * closes it after each.
          * Does not crawl and outcome is unexpected if trying to launch a crawl
          * while the separate crawler context is active.
          * The resolvable <code>Crawler</code> method arguments is always
          * {@code null}.
          */
-        CONTEXT,
+        SESSION,
         /**
          * Makes resolvable method arguments available without initialization.
          * The resolvable <code>Crawler</code> method arguments is always
@@ -112,10 +112,8 @@ public @interface CrawlTest {
     Class<? extends Supplier<
             CrawlDriver>> driverFactory() default MockCrawlDriverFactory.class;
 
-    Class<? extends GridConnector>[] gridConnectors() default {
-            LocalGridConnector.class,
-            //TODO put me back:            IgniteGridConnector.class
-            //            IgniteGridTestConnector.class
+    Class<? extends ClusterConnector>[] clusters() default {
+            MockSingleNodeConnector.class
     };
 
     /**
@@ -191,7 +189,7 @@ public @interface CrawlTest {
             implements Supplier<EasyRandom> {
         @Override
         public EasyRandom get() {
-            return StubCrawlerConfig.RANDOMIZER;
+            return CrawlerConfigStubber.RANDOMIZER;
         }
     }
 }

@@ -14,9 +14,9 @@
  */
 package com.norconex.crawler.core.mocks.fetch;
 
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.fetch.FetchRequest;
-import com.norconex.crawler.core.stubs.CrawlDocStubs;
+import com.norconex.crawler.core.stubs.DocStubber;
+import com.norconex.importer.doc.Doc;
 
 import lombok.Data;
 import lombok.Getter;
@@ -27,10 +27,10 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public class MockFetchRequest implements FetchRequest {
 
-    private final CrawlDoc doc;
+    private final Doc doc;
 
     public MockFetchRequest(String ref) {
-        doc = CrawlDocStubs.crawlDoc(ref);
+        doc = DocStubber.doc(ref);
     }
 
     public String getRef() {

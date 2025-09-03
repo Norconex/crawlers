@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
-import com.norconex.crawler.core.stubs.CrawlDocStubs;
+import com.norconex.crawler.core.stubs.DocStubber;
 
 class ExtensionReferenceFilterTest {
 
@@ -104,14 +104,10 @@ class ExtensionReferenceFilterTest {
         var f = new ExtensionReferenceFilter();
         f.getConfiguration()
                 .setExtensions(Set.of("pdf"));
-        assertThat(
-                f.acceptDocument(
-                        CrawlDocStubs.crawlDoc(
-                                "http://example.com/test.pdf"))).isTrue();
-        assertThat(
-                f.acceptMetadata(
-                        "http://example.com/test.pdf", new Properties()))
-                                .isTrue();
+        assertThat(f.acceptDocument(DocStubber.doc(
+                "http://example.com/test.pdf"))).isTrue();
+        assertThat(f.acceptMetadata(
+                "http://example.com/test.pdf", new Properties())).isTrue();
     }
 
     private ExtensionReferenceFilter initFilter(Set<String> extensions) {

@@ -14,8 +14,6 @@
  */
 package com.norconex.crawler.core.metrics;
 
-import static java.util.Optional.ofNullable;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -25,9 +23,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.norconex.crawler.core.doc.CrawlDocLedger;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.grid.core.storage.GridMap;
+import com.norconex.crawler.core.cluster.Cache;
+import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanCacheManager;
+import com.norconex.crawler.core.ledger.CrawlEntryLedger;
+import com.norconex.crawler.core.session.CrawlSession;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,42 +39,102 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
 
     //MAYBE: have it configured to decide what to capture? Cons: may conflict
     // with listeners expectations.
-    private CrawlDocLedger ledger;
+    private CrawlEntryLedger ledger;
     private final ConcurrentHashMap<String, Long> eventCountsLocalBatch =
             new ConcurrentHashMap<>();
-    private GridMap<Long> eventCountsStore;
+    private Cache<Long> eventCountsStore;
     private ScheduledExecutorService scheduler;
     private boolean closed;
+    private boolean closedAndFlushed;
 
     private final Lock flushLock = new ReentrantLock();
 
     private final MetricsCache cache = new MetricsCache();
 
+    private CrawlSession crawlSession;
+
+    public CrawlerMetricsImpl() {
+        LOG.info("[CrawlerMetricsImpl] Created instance: {}",
+                System.identityHashCode(this));
+    }
+
     @Override
-    public void init(CrawlContext crawlContext) {
+    public void init(CrawlSession crawlSession) {
         cache.clear();
-        ledger = crawlContext.getDocLedger();
-        eventCountsStore = crawlContext.getGrid().getStorage().getMap(
+        var ctx = crawlSession.getCrawlContext();
+        ledger = ctx.getCrawlEntryLedger();
+        eventCountsStore = crawlSession.getCluster().getCacheManager().getCache(
                 "CrawlerMetrics.eventCounts", Long.class);
-        crawlContext.getEventManager().addListener(
+        ctx.getEventManager().addListener(
                 event -> batchIncrementCounter(event.getName(), 1L));
         scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(this::flushBatch,
                 BATCH_INTERVAL, BATCH_INTERVAL, TimeUnit.MILLISECONDS);
+        this.crawlSession = crawlSession;
     }
 
     public void batchIncrementCounter(String eventName, long incrementBy) {
         eventCountsLocalBatch.merge(eventName, incrementBy, Long::sum);
     }
 
+    private static void atomicIncrement(Cache<Long> store, String key,
+            long increment) {
+        try {
+            // Use a simple get-then-put pattern with retries for atomicity
+            var updated = false;
+            var attempts = 0;
+            while (!updated && attempts < 3) {
+                var currentValue = store.get(key);
+                Long currentLongValue = 0L;
+                if (!currentValue.isEmpty()) {
+                    Object val = currentValue.get();
+                    if (val instanceof Long longVal) {
+                        currentLongValue = longVal;
+                    } else if (val instanceof Integer intVal) {
+                        currentLongValue = intVal.longValue();
+                    } else {
+                        throw new ClassCastException(
+                                "Unsupported type in eventCountsStore: "
+                                        + val.getClass());
+                    }
+                }
+                Long newValue = currentLongValue + increment;
+
+                if (currentValue.isEmpty()) {
+                    // For new entries, putIfAbsent is atomic
+                    var result = store.putIfAbsent(key, newValue);
+                    updated = (result == null);
+                } else {
+                    // For existing entries, replace is atomic
+                    updated = store.replace(key, currentLongValue, newValue);
+                }
+
+                attempts++;
+            }
+        } catch (Exception e) {
+            LOG.error("Error updating event count cache for key: " + key, e);
+            throw e;
+        }
+    }
+
     private void flushBatch() {
+        if (closedAndFlushed) {
+            LOG.debug("CrawlerMetrics already flushed and closed.");
+            return;
+        }
+        if (eventCountsStore != null) {
+            try {
+                ((InfinispanCacheManager) crawlSession.getCluster()
+                        .getCacheManager()).vendor();
+            } catch (Exception e) {
+                LOG.warn("Could not get cache manager: {}", e.getMessage());
+            }
+        }
         if (flushLock.tryLock()) {
             try {
                 eventCountsLocalBatch.forEach((eventName, increment) -> {
                     try {
-                        eventCountsStore.update(eventName,
-                                count -> (ofNullable(count).orElse(0L)
-                                        + increment));
+                        atomicIncrement(eventCountsStore, eventName, increment);
                         eventCountsLocalBatch.put(eventName, 0L);
                     } catch (Exception e) {
                         LOG.error("Error updating event count cache for event: "
@@ -110,7 +169,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
     @Override
     public long getCachedCount() {
         if (!isClosed()) {
-            cache.cachedCount.set(ledger.getCachedCount());
+            cache.cachedCount.set(ledger.getPreviousEntryCount());
         }
         return cache.cachedCount.get();
     }
@@ -118,10 +177,16 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
     @Override
     public Map<String, Long> getEventCounts() {
         if (!isClosed()) {
-            eventCountsStore.forEach((event, count) -> {
-                cache.eventCounts.put(event, count);
-                return true;
-            });
+            try {
+                eventCountsStore.forEach(cache.eventCounts::put);
+            } catch (Exception e) {
+                LOG.warn("CrawlerMetrics: Could not sync event counts from "
+                        + "cluster (cluster may be shutting down): {}",
+                        e.getMessage());
+            }
+        } else {
+            LOG.info("CrawlerMetrics: Cluster is closed, returning last known "
+                    + "event counts (not syncing).");
         }
         return cache.eventCounts;
     }
@@ -137,11 +202,16 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
 
     @Override
     public void close() {
+        LOG.info("Closing CrawlerMetrics...");
         if (closed) {
+            LOG.info("CrawlerMetrics already closed.");
             return;
         }
         closed = true;
+        LOG.info("Flusing CrawlerMetrics data...");
         flushBatch();
+        closedAndFlushed = true;
+        LOG.info("Shutting down CrawlerMetrics scheduler...");
         if (scheduler != null) {
             scheduler.shutdown();
             try {
@@ -153,6 +223,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
                 Thread.currentThread().interrupt();
             }
         }
+        LOG.info("CrawlerMetrics closed.");
     }
 
     /**

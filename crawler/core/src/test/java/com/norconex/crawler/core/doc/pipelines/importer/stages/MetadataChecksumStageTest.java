@@ -31,25 +31,25 @@ import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.core.stubs.CrawlDocStubs;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.stubs.CrawlDocContextStubber;
 
 class MetadataChecksumStageTest {
 
     @TempDir
     private Path tempDir;
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testMetadataChecksumStage(CrawlContext crawlCtx) {
-        var doc = CrawlDocStubs.crawlDoc(
+    @CrawlTest(focus = Focus.SESSION)
+    void testMetadataChecksumStage(CrawlSession session) {
+        var docCtx = CrawlDocContextStubber.fresh(
                 "ref", "content", "myfield", "somevalue");
-        crawlCtx.getCrawlConfig().setMetadataFetchSupport(
+        session.getCrawlContext().getCrawlConfig().setMetadataFetchSupport(
                 FetchDirectiveSupport.REQUIRED);
 
         // without a checksummer
-        var ctx = new ImporterPipelineContext(crawlCtx, doc);
+        var ctx = new ImporterPipelineContext(session, docCtx);
         new MetadataChecksumStage(FetchDirective.METADATA).test(ctx);
-        assertThat(doc.getMetadata().getString(
+        assertThat(docCtx.getDoc().getMetadata().getString(
                 CrawlDocMetaConstants.CHECKSUM_METADATA)).isNull();
 
         // with a checksummer
@@ -57,9 +57,10 @@ class MetadataChecksumStageTest {
         checksummer.getConfiguration()
                 .setFieldMatcher(TextMatcher.basic("myfield"))
                 .setKeep(true);
-        crawlCtx.getCrawlConfig().setMetadataChecksummer(checksummer);
+        session.getCrawlContext().getCrawlConfig()
+                .setMetadataChecksummer(checksummer);
         new MetadataChecksumStage(FetchDirective.METADATA).test(ctx);
-        assertThat(doc.getMetadata().getString(
+        assertThat(docCtx.getDoc().getMetadata().getString(
                 CrawlDocMetaConstants.CHECKSUM_METADATA)).isEqualTo(
                         "myfield=somevalue;");
     }
@@ -80,21 +81,21 @@ class MetadataChecksumStageTest {
                     cfg.setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED)
                             .setMetadataChecksummer(checksummer);
                 })
-                .withCrawlContext(crawlCtx -> {
-                    var doc = CrawlDocStubs.crawlDocWithCache(
+                .build()
+                .withCrawlSession(session -> {
+                    var docCtx = CrawlDocContextStubber.incremental(
                             "ref", "content", "key", "value");
-                    doc.getDocContext().setMetaChecksum(
+                    docCtx.getCurrentCrawlEntry().setMetaChecksum(
                             checksummer.createMetadataChecksum(meta));
 
-                    doc.getCachedDocContext().setMetaChecksum(
+                    docCtx.getPreviousCrawlEntry().setMetaChecksum(
                             checksummer.createMetadataChecksum(meta));
 
-                    var ctx = new ImporterPipelineContext(crawlCtx, doc);
+                    var ctx = new ImporterPipelineContext(session, docCtx);
 
                     var stage =
                             new MetadataChecksumStage(FetchDirective.METADATA);
                     assertThat(stage.test(ctx)).isFalse();
-                    return null;
                 });
 
     }

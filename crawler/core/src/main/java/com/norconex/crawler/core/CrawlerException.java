@@ -17,8 +17,7 @@ package com.norconex.crawler.core;
 import lombok.experimental.StandardException;
 
 /**
- * Runtime exception for most unrecoverable issues thrown by a
- * crawler.
+ * Runtime exception for most issues thrown by a crawler.
  */
 @StandardException
 public class CrawlerException extends RuntimeException {

@@ -29,6 +29,8 @@ import com.norconex.committer.core.Committer;
 import com.norconex.commons.lang.bean.jackson.JsonXmlCollection;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.event.EventListener;
+import com.norconex.crawler.core.cluster.ClusterConnector;
+import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanClusterConnector;
 import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
 import com.norconex.crawler.core.doc.operations.DocumentConsumer;
 import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
@@ -43,8 +45,6 @@ import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.grid.core.GridConnector;
-import com.norconex.grid.local.LocalGridConnector;
 import com.norconex.importer.ImporterConfig;
 
 import jakarta.validation.constraints.Min;
@@ -149,9 +149,17 @@ public class CrawlConfig {
     private Duration deferredShutdownDuration = Duration.ZERO;
 
     /**
-     * The Grid Connector.
+     * The maximum amount of time a crawler is allowed to run. Zero or a
+     * negative value means unlimited. Default is zero (unlimited).
      */
-    private GridConnector gridConnector = new LocalGridConnector();
+    private Duration maxCrawlDuration = Duration.ZERO;
+
+    /**
+     * The cluster used to run the crawler. Default (Infinispan) handles
+     * both running the crawler on single and multiple nodes.
+     */
+    private ClusterConnector clusterConnector =
+            new InfinispanClusterConnector();
 
     /**
      * Whether the start references should be loaded asynchronously. When
@@ -204,6 +212,12 @@ public class CrawlConfig {
      * </p>
      */
     private int maxDocuments = -1;
+
+    /**
+     * The maximum number of references a node will read at once from the queue,
+     * to process locally.
+     */
+    private int maxQueueBatchSize = 50;
 
     /**
      * The maximum depth the crawler should go. The exact definition of depth

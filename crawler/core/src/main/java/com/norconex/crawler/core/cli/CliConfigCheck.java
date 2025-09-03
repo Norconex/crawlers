@@ -31,5 +31,6 @@ public class CliConfigCheck extends CliBase {
         // Reaching this method means no errors were found. Simply state so.
         out().println();
         out().println("No configuration errors detected.");
+        out().flush();
     }
 }

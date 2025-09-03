@@ -20,19 +20,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.session.CrawlSession;
 
 class ReferenceFiltersStageTest {
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testReferenceFiltersStage(CrawlContext crawlCtx) {
-        var docRecord = new CrawlDocContext("ref");
+    @CrawlTest(focus = Focus.SESSION)
+    void testReferenceFiltersStage(
+            CrawlSession session, CrawlContext crawlCtx) {
+        var currentEntry = new CrawlEntry("ref");
         var stage = new ReferenceFiltersStage();
 
         // match - include
@@ -41,7 +43,7 @@ class ReferenceFiltersStageTest {
                         new GenericReferenceFilter(), cfg -> cfg
                                 .setValueMatcher(TextMatcher.basic("ref"))
                                 .setOnMatch(OnMatch.INCLUDE))));
-        var ctx1 = new QueuePipelineContext(crawlCtx, docRecord);
+        var ctx1 = new QueuePipelineContext(session, currentEntry);
         assertThat(stage.test(ctx1)).isTrue();
 
         // match - exclude
@@ -50,7 +52,7 @@ class ReferenceFiltersStageTest {
                         new GenericReferenceFilter(), cfg -> cfg
                                 .setValueMatcher(TextMatcher.basic("ref"))
                                 .setOnMatch(OnMatch.EXCLUDE))));
-        var ctx2 = new QueuePipelineContext(crawlCtx, docRecord);
+        var ctx2 = new QueuePipelineContext(session, currentEntry);
         assertThat(stage.test(ctx2)).isFalse();
 
         // no match - include
@@ -60,7 +62,7 @@ class ReferenceFiltersStageTest {
                         new GenericReferenceFilter(), cfg -> cfg
                                 .setValueMatcher(TextMatcher.basic("noref"))
                                 .setOnMatch(OnMatch.INCLUDE))));
-        var ctx3 = new QueuePipelineContext(crawlCtx, docRecord);
+        var ctx3 = new QueuePipelineContext(session, currentEntry);
         assertThat(stage.test(ctx3)).isFalse();
     }
 }

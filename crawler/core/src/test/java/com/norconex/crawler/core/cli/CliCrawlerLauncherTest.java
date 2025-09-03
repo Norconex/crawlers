@@ -18,32 +18,61 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.io.IOException;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
-import org.junit.jupiter.api.AfterEach;
+import org.apache.commons.lang3.StringUtils;
+import org.infinispan.notifications.cachemanagerlistener.CacheManagerNotifierImpl;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import com.norconex.committer.core.CommitterEvent;
 import com.norconex.committer.core.service.CommitterServiceEvent;
-import com.norconex.commons.lang.ClassUtil;
-import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.TimeIdGenerator;
+import com.norconex.crawler.core.cluster.ClusterConnector;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.junit.ParameterizedGridConnectorTest;
+import com.norconex.crawler.core.junit.WithLogLevel;
+import com.norconex.crawler.core.junit.WithTestWatcherLogging;
+import com.norconex.crawler.core.mocks.cli.MockCliEventWriter;
 import com.norconex.crawler.core.mocks.cli.MockCliExit;
 import com.norconex.crawler.core.mocks.cli.MockCliLauncher;
+import com.norconex.crawler.core.mocks.cluster.MockMultiNodesConnector;
+import com.norconex.crawler.core.mocks.cluster.MockSingleNodeConnector;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
-import com.norconex.crawler.core.stubs.StubCrawlerConfig;
-import com.norconex.grid.core.GridConnector;
+import com.norconex.crawler.core.stubs.CrawlerConfigStubber;
+import com.norconex.crawler.core.util.About;
+import com.norconex.crawler.core.util.ConcurrentUtil;
+import com.norconex.crawler.core.util.LogUtil;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@WithLogLevel(value = "OFF", classes = CacheManagerNotifierImpl.class)
+@WithTestWatcherLogging
+@Timeout(value = 60, unit = TimeUnit.SECONDS)
 class CliCrawlerLauncherTest {
+
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @ParameterizedTest(name = "with  {index} node(s)")
+    @ValueSource(ints = { 1, 2 })
+    public @interface SingleAndMultiNodesTest {
+    }
 
     // MAYBE: a class for each crawler action/test?
     // MAYBE: write unit tests for <app> help command
@@ -52,17 +81,23 @@ class CliCrawlerLauncherTest {
     @TempDir
     private Path tempDir;
 
-    // Ensures ignite has no hold on the temp files before a cleanup attempt
-    // of the tempDir is made by Junit. If we have to do this work around
-    // too often, modify the ParameterizedGridConnectorTest to handle this.
-    @AfterEach
-    void tearDown() {
-        //        GridTestUtil.waitForGridShutdown();
+    static Stream<Class<?>> classProvider() {
+        return Stream.of(
+                MockSingleNodeConnector.class,
+                MockMultiNodesConnector.class);
     }
 
-    @ParameterizedGridConnectorTest
-    void testNoArgs(Class<? extends GridConnector> gridConnClass) {
-        var exit = launch(gridConnClass);
+    @SingleAndMultiNodesTest
+    @WithLogLevel(
+        value = "INFO",
+        classes = {
+                CliCrawlerLauncherTest.class,
+                MockCliLauncher.class,
+                MockCliEventWriter.class
+        }
+    )
+    void testNoArgs(int numOfNodes) {
+        var exit = launch(numOfNodes);
         assertThat(exit.ok()).isFalse();
         assertThat(exit.getStdErr()).contains("No arguments provided.");
         assertThat(exit.getStdOut()).contains(
@@ -71,8 +106,7 @@ class CliCrawlerLauncherTest {
     }
 
     @Test
-    void testErrors()
-            throws Exception {
+    void testErrors() throws Exception {
         // Bad args
         var exit1 = launchVerbatim("potato", "--soup");
         assertThat(exit1.ok()).isFalse();
@@ -124,9 +158,9 @@ class CliCrawlerLauncherTest {
 
     }
 
-    @ParameterizedGridConnectorTest
-    void testHelp(Class<? extends GridConnector> gridConnClass) {
-        var exit = launch(gridConnClass, "-h");
+    @SingleAndMultiNodesTest
+    void testHelp(int numOfNodes) {
+        var exit = launch(numOfNodes, "-h");
         assertThat(exit.ok()).isTrue();
         assertThat(exit.getStdOut()).contains(
                 "Usage:",
@@ -140,9 +174,20 @@ class CliCrawlerLauncherTest {
                 "storeimport");
     }
 
-    @ParameterizedGridConnectorTest
-    void testVersion(Class<? extends GridConnector> gridConnClass) {
-        var exit = launch(gridConnClass, "-v");
+    @SingleAndMultiNodesTest
+    @WithLogLevel(
+        value = "INFO",
+        classes = {
+                CliCrawlerLauncherTest.class,
+                MockCliLauncher.class,
+                MockCliEventWriter.class,
+                About.class,
+                CliRunner.class,
+                LogUtil.class
+        }
+    )
+    void testVersion(int numOfNodes) {
+        var exit = launch(numOfNodes, "-v");
         assertThat(exit.ok()).isTrue();
         assertThat(exit.getStdOut()).contains(
                 "C R A W L E R",
@@ -153,16 +198,33 @@ class CliCrawlerLauncherTest {
                 .doesNotContain("null");
     }
 
-    @ParameterizedGridConnectorTest
-    void testConfigCheck(Class<? extends GridConnector> gridConnClass) {
-        var exit = launch(gridConnClass, "configcheck", "-config=");
+    @SingleAndMultiNodesTest
+    @WithLogLevel(
+        value = "INFO",
+        classes = {
+                CliCrawlerLauncherTest.class,
+                MockCliLauncher.class,
+                MockCliEventWriter.class,
+                CliConfigCheck.class
+        }
+    )
+    void testConfigCheck(int numOfNodes) {
+        var exit = launch(numOfNodes, "configcheck", "-config=");
         assertThat(exit.ok()).isTrue();
         assertThat(exit.getStdOut()).containsIgnoringWhitespaces(
                 "No configuration errors detected.");
     }
 
-    @ParameterizedGridConnectorTest
-    void testBadConfig(Class<? extends GridConnector> gridConnClass)
+    @SingleAndMultiNodesTest
+    @WithLogLevel(
+        value = "INFO",
+        classes = {
+                CliCrawlerLauncherTest.class,
+                MockCliLauncher.class,
+                MockCliEventWriter.class
+        }
+    )
+    void testBadConfig(int numOfNodes)
             throws IOException {
         var cfgFile = tempDir.resolve("badconfig.xml");
         Files.writeString(cfgFile, """
@@ -173,7 +235,7 @@ class CliCrawlerLauncherTest {
 
         assertThatExceptionOfType(ConstraintViolationException.class)
                 .isThrownBy(() -> { //NOSONAR
-                    launch(gridConnClass,
+                    launch(numOfNodes,
                             "configcheck",
                             "-config=" + cfgFile
                                     .toAbsolutePath());
@@ -182,19 +244,17 @@ class CliCrawlerLauncherTest {
                 .contains("\"numThreads\" must be greater than or equal to 1.");
     }
 
-    @ParameterizedGridConnectorTest
-    void testStoreExportImport(
-            Class<? extends GridConnector> gridConnClass) {
+    @SingleAndMultiNodesTest
+    void testStoreExportImport(int numOfNodes) {
         var exportDir = tempDir.resolve("exportdir");
         var exportFile =
-                exportDir.resolve(MockCrawlerBuilder.CRAWLER_ID
-                        + ".zip");
-        var configFile = StubCrawlerConfig.writeConfigToDir(
+                exportDir.resolve(MockCrawlerBuilder.CRAWLER_ID + ".zip");
+        var configFile = CrawlerConfigStubber.writeConfigToDir(
                 tempDir, cfg -> {});
 
         // Export
         var exit1 = launch(
-                gridConnClass,
+                numOfNodes,
                 "storeexport",
                 "-config=" + configFile,
                 "-dir=" + exportDir);
@@ -202,27 +262,55 @@ class CliCrawlerLauncherTest {
         assertThat(exit1.ok()).isTrue();
         assertThat(exportFile).isNotEmptyFile();
 
-        // Wait a bit for mvstore lock to be released.
-        Sleeper.sleepSeconds(5);
+        // Wait for locks to be released after export
+        waitForFileUnlock(exportFile, 30_000, 500);
 
         // Import
         var exit2 = launch(
-                gridConnClass,
+                numOfNodes,
                 "storeimport",
                 "-config=" + configFile,
                 "-file=" + exportFile);
         assertThat(exit2.ok()).isTrue();
     }
 
-    @ParameterizedGridConnectorTest
-    void testStart(Class<? extends GridConnector> gridConnClass) {
-        var exit1 = launch(gridConnClass, "start", "-config=");
+    /**
+     * Waits until the given file is unlocked (not held by any process).
+     * @param file the file to check
+     * @param timeoutMillis max time to wait
+     * @param pollMillis polling interval
+     */
+    private void waitForFileUnlock(Path file, long timeoutMillis,
+            long pollMillis) {
+        var start = System.currentTimeMillis();
+        while (System.currentTimeMillis() - start < timeoutMillis) {
+            try (var channel = Files.newByteChannel(file)) {
+                // If we can open the file, it's not locked
+                return;
+            } catch (IOException e) {
+                // File is locked, wait and retry
+                try {
+                    Thread.sleep(pollMillis);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException(
+                            "Interrupted while waiting for file unlock", ie);
+                }
+            }
+        }
+        throw new RuntimeException("Timeout waiting for file unlock: " + file);
+    }
+
+    @SingleAndMultiNodesTest
+    void testStart(int numOfNodes) {
+        var exit1 = launch(numOfNodes, "start", "-config=");
         if (!exit1.ok()) {
             LOG.error("Could not start crawler properly. Output:\n{}",
                     exit1);
         }
         assertThat(exit1.ok()).isTrue();
-        assertThat(exit1.getEvents()).containsExactly(
+
+        String[] expected = {
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
@@ -232,17 +320,28 @@ class CliCrawlerLauncherTest {
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END);
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
+        };
+
+        if (numOfNodes <= 1) {
+            // Single nodes will receive only one set and we can check for order
+            assertThat(exit1.getEvents()).containsExactly(expected);
+        } else {
+            // Multi nodes we'll make sure they are contained but there will
+            // be duplicates so we can't guarantee order.
+            assertThat(exit1.getEvents()).contains(expected);
+        }
     }
 
-    @ParameterizedGridConnectorTest
-    void testStartAfterClean(Class<? extends GridConnector> gridConnClass) {
+    @SingleAndMultiNodesTest
+    void testStartAfterClean(int numOfNodes) {
 
         var exit2 = launch(
-                gridConnClass, "start", "-clean", "-config=");
+                numOfNodes, "start", "-clean", "-config=");
         assertThat(exit2.ok()).withFailMessage(exit2.getStdErr())
                 .isTrue();
-        assertThat(exit2.getEvents()).containsExactly(
+
+        String[] expected = {
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
@@ -272,16 +371,27 @@ class CliCrawlerLauncherTest {
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END);
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
+        };
+
+        if (numOfNodes <= 1) {
+            // Single nodes will receive only one set and we can check for order
+            assertThat(exit2.getEvents()).containsExactly(expected);
+        } else {
+            // Multi nodes we'll make sure they are contained but there will
+            // be duplicates so we can't guarantee order.
+            assertThat(exit2.getEvents()).contains(expected);
+        }
+
         //TODO verify that crawlstore from previous run was deleted
         // and recreated
     }
 
-    @ParameterizedGridConnectorTest
-    void testClean(Class<? extends GridConnector> gridConnClass) {
-        var exit = launch(gridConnClass, "clean", "-config=");
+    @SingleAndMultiNodesTest
+    void testClean(int numOfNodes) {
+        var exit = launch(numOfNodes, "clean", "-config=");
         assertThat(exit.ok()).isTrue();
-        assertThat(exit.getEvents()).containsExactly(
+        String[] expected = {
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
@@ -295,53 +405,66 @@ class CliCrawlerLauncherTest {
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END);
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
+        };
+        if (numOfNodes <= 1) {
+            // Single nodes will receive only one set and we can check for order
+            assertThat(exit.getEvents()).containsExactly(expected);
+        } else {
+            // Multi nodes we'll make sure they are contained but there will
+            // be duplicates so we can't guarantee order.
+            assertThat(exit.getEvents()).contains(expected);
+        }
 
     }
 
     //TODO move this to its own test with more elaborate tests involving
     // actually stopping a crawl session and being on a cluster?
-    @ParameterizedGridConnectorTest
-    void testStop(Class<? extends GridConnector> gridConnClass) {
+    @SingleAndMultiNodesTest
+    void testStop(int numOfNodes) {
         // we are just testing that the CLI is launching, not that it actually
         // stopped, which is tested separately.
-        var exit = launch(gridConnClass, "stop", "-config=");
+        var exit = launch(numOfNodes, "stop", "-config=");
         assertThat(exit.ok()).isTrue();
     }
 
-    @ParameterizedGridConnectorTest
-    void testConfigRender(Class<? extends GridConnector> gridConnClass)
-            throws IOException {
-        var cfgFile = StubCrawlerConfig.writeConfigToDir(tempDir,
-                cfg -> {});
+    @Test
+    void testConfigRender() throws IOException {
+        var cfgFile = CrawlerConfigStubber.writeConfigToDir(tempDir, null);
 
-        var exit1 = launch(gridConnClass, "configrender",
+        var exit1 = launch(1, "configrender",
                 "-config=" + cfgFile);
         assertThat(exit1.ok()).isTrue();
         // check that some entries not explicitly configured are NOT present
         // (with V4, "default" values are not exported):
         assertThat(exit1.getStdOut()).doesNotContain("<importer");
 
-        cfgFile = StubCrawlerConfig.writeConfigToDir(tempDir,
-                cfg -> {});
-
         var renderedFile = tempDir.resolve("configrender.xml");
         var exit2 = launch(
-                gridConnClass,
+                1,
                 "configrender",
                 "-config=" + cfgFile,
                 "-output=" + renderedFile);
 
         assertThat(exit2.ok()).isTrue();
-        assertThat(Files.readString(renderedFile).trim()).isEqualTo(
-                exit1.getStdOut().trim());
+
+        var storedLines = Files.readAllLines(renderedFile);
+        var outputLines = exit1.getStdOut().trim().lines().toList();
+        assertThat(storedLines).containsExactlyElementsOf(outputLines);
     }
 
-    @ParameterizedGridConnectorTest
-    void testFailingConfigRender(
-            Class<? extends GridConnector> gridConnClass) {
+    @SingleAndMultiNodesTest
+    @WithLogLevel(
+        value = "INFO",
+        classes = {
+                CliCrawlerLauncherTest.class,
+                MockCliLauncher.class,
+                MockCliEventWriter.class
+        }
+    )
+    void testFailingConfigRender(int numOfNodes) {
         var exit = launch(
-                gridConnClass,
+                numOfNodes,
                 "configrender",
                 "-config=",
                 // passing a directory to get FileNotFoundException
@@ -353,17 +476,98 @@ class CliCrawlerLauncherTest {
         return MockCliLauncher.launchVerbatim(cmdArgs);
     }
 
+    //NOTE: when testing with multiple nodes, the return MockCliExit
+    // will have merged text merged in unpredictable ways as well as
+    // merged events. If one exit is not OK, then the one returned is not OK.
     private MockCliExit launch(
-            Class<? extends GridConnector> gridConnClass,
+            int numOfNodes,
+            String... cmdArgs) {
+        if (numOfNodes <= 1) {
+            return launchWithConnector(new MockSingleNodeConnector(), cmdArgs);
+        }
+
+        var executor = Executors.newFixedThreadPool(numOfNodes);
+        var latch = new CountDownLatch(numOfNodes);
+        final List<MockCliExit> exits = new ArrayList<>();
+        var thrownException = new AtomicReference<Throwable>();
+
+        for (var i = 0; i < numOfNodes; i++) {
+            executor.submit(() -> {
+                try {
+                    var exit = launchWithConnector(
+                            new MockMultiNodesConnector(), cmdArgs);
+                    exits.add(exit);
+                } catch (Throwable t) {
+                    thrownException.compareAndSet(null, t);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        // Wait for all threads to finish
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            ConcurrentUtil.wrapAsCompletionException(e);
+        }
+        executor.shutdown();
+
+        // Propagate exception if any
+        if (thrownException.get() != null) {
+            if (thrownException.get() instanceof RuntimeException re) {
+                throw re;
+            }
+            if (thrownException.get() instanceof Error err) {
+                throw err;
+            }
+            throw new RuntimeException(thrownException.get());
+        }
+
+        // Fallback logic
+        if (exits.isEmpty()) {
+            LOG.info("No CLI launch exit objects returned.");
+            return null;
+        }
+
+        // Reduce exits in a single one
+        var mergedExit = new MockCliExit();
+        for (MockCliExit ex : exits) {
+            if (mergedExit.getCode() == -1 || mergedExit.ok()) {
+                mergedExit.setCode(ex.getCode());
+            }
+            mergedExit.setStdErr(
+                    mergeNonBlank(mergedExit.getStdErr(), ex.getStdErr()));
+            mergedExit.setStdOut(
+                    mergeNonBlank(mergedExit.getStdOut(), ex.getStdOut()));
+            mergedExit.getEvents().addAll(ex.getEvents());
+        }
+        return mergedExit;
+    }
+
+    String mergeNonBlank(String str1, String str2) {
+        var b = new StringBuilder();
+        if (StringUtils.isNotBlank(str1)) {
+            b.append(str1);
+        }
+        if (StringUtils.isNotBlank(str2)) {
+            if (!b.isEmpty()) {
+                b.append('\n');
+            }
+            b.append(str2);
+        }
+        return b.toString();
+    }
+
+    private MockCliExit launchWithConnector(
+            ClusterConnector conn,
             String... cmdArgs) {
         return MockCliLauncher
                 .builder()
                 .args(List.of(cmdArgs))
                 .workDir(tempDir)
                 .logErrors(true)
-                .configModifier(cfg -> cfg
-                        .setGridConnector(ClassUtil
-                                .newInstance(gridConnClass)))
+                .configModifier(cfg -> cfg.setClusterConnector(conn))
                 .build()
                 .launch();
     }

@@ -42,7 +42,7 @@ public class CommonAttribsResolutionStage
 
     @Override
     public boolean test(ImporterPipelineContext ctx) {
-        CommonAttributesResolver.resolve(ctx.getDoc());
+        CommonAttributesResolver.resolve(ctx.getDocContext().getDoc());
         return true;
     }
 }

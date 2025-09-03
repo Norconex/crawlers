@@ -18,8 +18,7 @@ import java.util.Locale;
 
 import com.norconex.commons.lang.PercentFormatter;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapper;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.core.session.LaunchMode;
+import com.norconex.crawler.core.session.CrawlSession;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
  * </p>
  * <p>
  * Stores in the global cache whether it is currently initializing
- * under the key {@value #KEY_INITIALIZING}.
+ * under the key {@value #BOOTSTRAP_KEY}.
  * </p>
  */
 @Slf4j
@@ -40,33 +39,33 @@ public final class DocLedgerBootstrapper implements CrawlBootstrapper {
 
     //NOTE: Runs after the DocProcessingLedger#init() method has been invoked.
 
-    public static final String KEY_INITIALIZING = "ledgerInitializing";
+    public static final String BOOTSTRAP_KEY = "ledger.bootstrapped";
 
     @Override
-    public void bootstrap(CrawlContext crawlContext) {
-        var globalCache =
-                crawlContext.getGrid().getStorage().getSessionAttributes();
-
-        if (Boolean.parseBoolean(globalCache.get(KEY_INITIALIZING))) {
-            throw new IllegalStateException("Already initializing.");
+    public void bootstrap(CrawlSession session) {
+        if (session.getBoolean(BOOTSTRAP_KEY)) {
+            throw new IllegalStateException(
+                    "Already initialized or initializing.");
         }
-        globalCache.put(KEY_INITIALIZING, "true");
+        session.setBoolean(BOOTSTRAP_KEY, true);
         try {
-            prepareForCrawl(crawlContext);
+            prepareForCrawl(session);
         } finally {
-            globalCache.put(KEY_INITIALIZING, "false");
+            session.setBoolean(BOOTSTRAP_KEY, false);
         }
     }
 
-    private static void prepareForCrawl(CrawlContext crawlContext) {
-        var ledger = crawlContext.getDocLedger();
-        if (crawlContext.getResumeState() == LaunchMode.RESUMED) {
+    private static void prepareForCrawl(CrawlSession session) {
+        var crawlContext = session.getCrawlContext();
+        var ledger = crawlContext.getCrawlEntryLedger();
+        if (session.isResumed()) {
             if (LOG.isInfoEnabled()) {
                 //TODO use total count to track progress independently
                 var processedCount = ledger.getProcessedCount();
+                var cachedCount = ledger.getPreviousEntryCount();
                 var totalCount = processedCount
                         + ledger.getQueueCount()
-                        + ledger.getCachedCount();
+                        + cachedCount;
                 LOG.info("RESUMING \"{}\" at {} ({}/{}).",
                         crawlContext.getId(),
                         PercentFormatter.format(
@@ -75,7 +74,8 @@ public final class DocLedgerBootstrapper implements CrawlBootstrapper {
                 LOG.debug("Resuming from:"
                         + "\n    Queued: " + ledger.getQueueCount()
                         + "\n Processed: " + processedCount
-                        + "\n    Cached: " + ledger.getCachedCount());
+                        + "\n    Cached: "
+                        + cachedCount);
             }
         } else {
             ledger.clearQueue();
@@ -83,10 +83,10 @@ public final class DocLedgerBootstrapper implements CrawlBootstrapper {
             // Valid Processed -> Cached
             LOG.info("Caching any valid references from previous run.");
 
-            ledger.cacheProcessed();
+            ledger.archiveCurrentLedger();
 
             if (LOG.isInfoEnabled()) {
-                var cacheCount = ledger.getCachedCount();
+                var cacheCount = ledger.getPreviousEntryCount();
                 if (cacheCount > 0) {
                     LOG.info("STARTING an incremental crawl from previous {} "
                             + "valid references.", cacheCount);

@@ -34,12 +34,12 @@ import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.cluster.ClusterConnector;
+import com.norconex.crawler.core.session.CrawlSessionFactory;
+import com.norconex.crawler.core.stubs.CrawlerConfigStubber;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
-import com.norconex.crawler.core.session.TestSessionUtil;
-import com.norconex.crawler.core.stubs.StubCrawlerConfig;
-import com.norconex.grid.core.GridConnector;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CrawlTestExtensionCallbacks implements
         BeforeTestExecutionCallback, AfterTestExecutionCallback {
 
-    private final Class<? extends GridConnector> gridConnectorClass;
+    private final Class<? extends ClusterConnector> clusterClass;
     private final CrawlTest annotation;
 
     @Override
@@ -75,22 +75,21 @@ public class CrawlTestExtensionCallbacks implements
                 .get();
 
         var crawlConfig = annotation.randomConfig()
-                ? StubCrawlerConfig.randomMemoryCrawlerConfig(
+                ? CrawlerConfigStubber.randomMemoryCrawlerConfig(
                         tempDir,
                         spec.crawlerConfigClass(),
                         ClassUtil.newInstance(annotation
                                 .randomizer())
                                 .get())
-                : StubCrawlerConfig.memoryCrawlerConfig(
+                : CrawlerConfigStubber.memoryCrawlerConfig(
                         tempDir,
                         spec.crawlerConfigClass());
 
         // set grid connector
-        LOG.info("Setting grid connector: {}", gridConnectorClass);
-        GridConnector gridConnector =
-                gridConnectorClass.getDeclaredConstructor()
-                        .newInstance();
-        crawlConfig.setGridConnector(gridConnector);
+        LOG.info("Creating cluster: {}", clusterClass);
+        ClusterConnector conn = clusterClass.getDeclaredConstructor()
+                .newInstance();
+        crawlConfig.setClusterConnector(conn);
 
         // apply custom config from text
         if (StringUtils.isNotBlank(annotation.config())) {
@@ -120,34 +119,34 @@ public class CrawlTestExtensionCallbacks implements
                     .crawlDriver(toCrawlDriver(annotation
                             .driverFactory()))
                     .config(crawlConfig)
-                    .crawler();
+                    .build();
             var captures = CrawlTestCapturer.capture(crawler,
                     Crawler::crawl);
             return new CrawlTestParameters()
                     .setCrawler(crawler)
                     .setCrawlConfig(crawlConfig)
-                    .setCrawlContext(captures.getContext())
-                    .setMemoryCommitter(
-                            captures.getCommitter())
+                    .setCrawlSession(captures.getSession())
+                    .setMemoryCommitter(captures.getCommitter())
                     .setWorkDir(tempDir);
         }
 
-        // --- Focus: CONTEXT ---
-        if (annotation.focus() == Focus.CONTEXT) {
-            var ctx = TestSessionUtil.createCrawlerContext(
-                    toCrawlDriver(annotation
-                            .driverFactory()),
-                    crawlConfig,
-                    tempDir);
-            ctx.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN); // simulate
+        // --- Focus: SESSION ---
+        if (annotation.focus() == Focus.SESSION) {
+            var sess = CrawlSessionFactory.create(
+                    toCrawlDriver(annotation.driverFactory()),
+                    crawlConfig);
+            sess.getCluster().getLocalNode();
+
+            // simulate crawl begin event
+            sess.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN, this);
             return new CrawlTestParameters()
                     .setCrawler(null)
                     .setCrawlConfig(crawlConfig)
-                    .setCrawlContext(ctx)
-                    .setMemoryCommitter(
-                            (MemoryCommitter) crawlConfig
-                                    .getCommitters()
-                                    .get(0))
+                    .setCrawlSession(sess)
+                    //                    .setCrawlContext(ctx)
+                    .setMemoryCommitter((MemoryCommitter) crawlConfig
+                            .getCommitters()
+                            .get(0))
                     .setWorkDir(tempDir);
         }
 
@@ -155,11 +154,10 @@ public class CrawlTestExtensionCallbacks implements
         return new CrawlTestParameters()
                 .setCrawler(null)
                 .setCrawlConfig(crawlConfig)
-                .setCrawlContext(null)
-                .setMemoryCommitter(
-                        (MemoryCommitter) crawlConfig
-                                .getCommitters()
-                                .get(0))
+                //                .setCrawlContext(null)
+                .setMemoryCommitter((MemoryCommitter) crawlConfig
+                        .getCommitters()
+                        .get(0))
                 .setWorkDir(tempDir);
     }
 
@@ -168,13 +166,14 @@ public class CrawlTestExtensionCallbacks implements
 
         var params = CrawlTestParameters.get(context);
 
-        if (annotation.focus() == Focus.CONTEXT
-                && params.getCrawlContext() != null) {
+        if (annotation.focus() == Focus.SESSION
+                && params.getCrawlSession() != null) {
             // "crawl" focus handles the context already.
-            params.getCrawlContext().fire(
-                    CrawlerEvent.CRAWLER_CRAWL_END); // simulate
-            TestSessionUtil.destroyCrawlerContext(
-                    params.getCrawlContext());
+            params.getCrawlSession().fire(
+                    CrawlerEvent.CRAWLER_CRAWL_END, this); // simulate
+            params.getCrawlSession().close();
+            //            CrawlContextTestUtil.destroyCrawlerContext(
+            //                    params.getCrawlSession());
         }
         if (params.getMemoryCommitter() != null) {
             params.getMemoryCommitter().clean();

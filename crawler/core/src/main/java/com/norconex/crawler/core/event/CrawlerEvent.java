@@ -19,8 +19,8 @@ import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.event.Event;
-import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.session.CrawlSession;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -36,8 +36,6 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @EqualsAndHashCode(callSuper = true)
 public class CrawlerEvent extends Event {
-
-    //MAYBE rename some to be "CRAWLTASK_..."?
 
     private static final long serialVersionUID = 1L;
 
@@ -159,43 +157,50 @@ public class CrawlerEvent extends Event {
     //    public static final String DOCUMENT_SAVED = "DOCUMENT_SAVED";
 
     /**
-     * Gets the crawl data holding contextual information about the
-     * crawled reference.  CRAWLER_* events will return a {@code null}
-     * crawl data.
+     * Gets the document being processed associated with this event.
+     * CRAWLER_* events will return a {@code null} doc.
      */
-    private final CrawlDocContext docContext;
-    private final Object subject;
+    private final transient CrawlEntry crawlEntry;
+    private final transient CrawlSession crawlSession;
+    //    private final transient Object subject;
     //TODO keep a reference to actual document?
 
-    /**
-     * Gets the subject. That is often the entity being the target
-     * of the event (as opposed to the source).
-     * @return the subject
-     */
-    public Object getSubject() {
-        return subject;
+    public CrawlSession getCrawlSession() {
+        return crawlSession;
     }
 
-    @Override
-    public CrawlContext getSource() {
-        return (CrawlContext) super.getSource();
-    }
+    //    /**
+    //     * Gets the subject. That is often the entity being the target
+    //     * of the event (as opposed to the source).
+    //     * @return the subject
+    //     */
+    //    public Object getSubject() {
+    //        return subject;
+    //    }
+    //
+    //    /**
+    //     * The {@link CrawlSession}.
+    //     */
+    //    @Override
+    //    public CrawlSession getSource() {
+    //        return (CrawlSession) super.getSource();
+    //    }
 
     @Override
     public String toString() {
         var b = new StringBuilder();
         // always print the reference if we have it
-        if (docContext != null) {
-            b.append(docContext.getReference()).append(" - ");
+        if (crawlEntry != null) {
+            b.append(crawlEntry.getReference()).append(" - ");
         }
 
-        // print the first value set in that order: message, subject, source
+        // print the first value set in that order: message, source, session
         if (StringUtils.isNotBlank(getMessage())) {
             b.append(getMessage());
-        } else if (subject != null) {
-            b.append(subject.toString());
+        } else if (source != null) {
+            b.append(source.toString());
         } else {
-            b.append(Objects.toString(source));
+            b.append(Objects.toString(crawlSession));
         }
 
         return b.toString();

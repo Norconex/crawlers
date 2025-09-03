@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import com.norconex.crawler.core.doc.CrawlDocStatus;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -39,9 +39,9 @@ public class AggregatedFetchResponse implements FetchResponse {
     private final List<? extends FetchResponse> fetchResponses;
 
     @Override
-    public CrawlDocStatus getResolutionStatus() {
+    public ProcessingOutcome getProcessingOutcome() {
         return getLastFetchResponse().map(
-                FetchResponse::getResolutionStatus).orElse(null);
+                FetchResponse::getProcessingOutcome).orElse(null);
     }
 
     @Override

@@ -26,10 +26,10 @@ public class ImportModuleStage implements Predicate<ImporterPipelineContext> {
 
     @Override
     public boolean test(ImporterPipelineContext ctx) {
-        var importer = ctx.getCrawlContext().getImporter();
-        Doc doc = ctx.getDoc();
+        var importer = ctx.getCrawlSession().getCrawlContext().getImporter();
+        Doc doc = ctx.getDocContext().getDoc();
 
-        var isContentTypeSet = doc.getDocContext().getContentType() != null;
+        var isContentTypeSet = doc.getContentType() != null;
         var response = importer.importDocument(doc);
         ctx.setImporterResponse(response);
 
@@ -37,8 +37,7 @@ public class ImportModuleStage implements Predicate<ImporterPipelineContext> {
         // We make sure to set it to save it to store so IRecrawlableResolver
         // has one to deal with
         if (!isContentTypeSet && response.getDoc() != null) {
-            doc.getDocContext().setContentType(
-                    response.getDoc().getDocContext().getContentType());
+            doc.setContentType(response.getDoc().getContentType());
         }
 
         return true;

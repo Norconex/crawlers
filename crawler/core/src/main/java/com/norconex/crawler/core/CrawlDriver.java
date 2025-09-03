@@ -22,10 +22,10 @@ import com.norconex.commons.lang.event.EventManager;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapper;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.ledger.DocLedgerBootstrapper;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.QueueBootstrapper;
-import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
 import com.norconex.crawler.core.fetch.MultiFetcher.ResponseAggregator;
 import com.norconex.crawler.core.fetch.MultiFetcher.UnsuccessfulResponseFactory;
+import com.norconex.crawler.core.ledger.CrawlEntry;
 
 import lombok.Builder;
 import lombok.Builder.Default;
@@ -63,12 +63,12 @@ public class CrawlDriver {
     private final FetchDriver fetchDriver;
 
     /**
-     * The exact type of {@link CrawlDocContext} if your crawler is subclassing
-     * it. Defaults to {@link CrawlDocContext} class.
+     * The exact type of {@link CrawlEntry} if your crawler is subclassing
+     * it. Defaults to {@link CrawlEntry} class.
      */
     @Default
-    private final Class<? extends CrawlDocContext> docContextType =
-            CrawlDocContext.class;
+    private final Class<? extends CrawlEntry> crawlEntryType =
+            CrawlEntry.class;
 
     @Accessors(fluent = true)
     @Data

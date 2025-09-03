@@ -36,7 +36,7 @@ public class RefFileEnqueuer implements ReferenceEnqueuer {
 
     @Override
     public int enqueue(QueueBootstrapContext ctx) {
-        var cfg = ctx.getCrawlContext().getCrawlConfig();
+        var cfg = ctx.getCrawlSession().getCrawlContext().getCrawlConfig();
         var refsFiles = cfg.getStartReferencesFiles();
         var cnt = 0;
         for (Path refsFile : refsFiles) {

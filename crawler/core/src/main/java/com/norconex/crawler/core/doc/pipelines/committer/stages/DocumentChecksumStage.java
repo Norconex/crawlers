@@ -18,10 +18,10 @@ import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.pipelines.ChecksumStageUtil;
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 /**
  * Common pipeline stage for creating a document checksum.
@@ -32,25 +32,27 @@ public class DocumentChecksumStage
 
     @Override
     public boolean test(CommitterPipelineContext ctx) {
-        var checksummer = ctx.getCrawlContext()
+        var checksummer = ctx.getCrawlSession().getCrawlContext()
                 .getCrawlConfig()
                 .getDocumentChecksummer();
-        var docContext = ctx.getDoc().getDocContext();
+        var docContext = ctx.getDocContext();
+        var crawlEntry = docContext.getCurrentCrawlEntry();
 
         // if there are no checksum defined and state is not new/modified,
         // we treat all docs as new.
         if (checksummer == null) {
-            if (docContext.getState() == null
-                    || !docContext.getState().isNewOrModified()) {
+            if (crawlEntry.getProcessingOutcome() == null
+                    || !crawlEntry.getProcessingOutcome().isNewOrModified()) {
                 // NEW is default state (?)
-                docContext.setState(CrawlDocStatus.NEW);
+                crawlEntry.setProcessingOutcome(ProcessingOutcome.NEW);
             }
             return true;
         }
-        var newDocChecksum = checksummer.createDocumentChecksum(ctx.getDoc());
+        var newDocChecksum =
+                checksummer.createDocumentChecksum(docContext.getDoc());
 
         var accepted = ChecksumStageUtil.resolveDocumentChecksum(
-                newDocChecksum, ctx.getDoc());
+                newDocChecksum, docContext);
 
         if (!accepted) {
             var s = new StringBuilder()
@@ -58,12 +60,12 @@ public class DocumentChecksumStage
                     .append(" - ")
                     .append("Checksum=")
                     .append(StringUtils.abbreviate(newDocChecksum, 200));
-            ctx.getCrawlContext().fire(
+            ctx.getCrawlSession().fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.REJECTED_UNMODIFIED)
-                            .source(ctx.getCrawlContext())
-                            .docContext(ctx.getDoc().getDocContext())
-                            .subject(checksummer)
+                            .crawlSession(ctx.getCrawlSession())
+                            .crawlEntry(docContext.getCurrentCrawlEntry())
+                            .source(checksummer)
                             .message(s.toString())
                             .build());
         }

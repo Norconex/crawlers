@@ -14,9 +14,9 @@
  */
 package com.norconex.crawler.core.cmd;
 
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.session.CrawlSession;
 
 @FunctionalInterface
 public interface Command {
-    void execute(CrawlContext ctx);
+    void execute(CrawlSession session);
 }

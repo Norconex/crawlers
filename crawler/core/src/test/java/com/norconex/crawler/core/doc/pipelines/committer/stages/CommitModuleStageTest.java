@@ -19,25 +19,16 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.core.stubs.CrawlDocStubs;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.stubs.CrawlDocContextStubber;
 
 class CommitModuleStageTest {
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testCommitModuleStage(CrawlContext crwlCtx) {
-        var ctx = new CommitterPipelineContext(crwlCtx,
-                CrawlDocStubs.crawlDoc("ref"));
+    @CrawlTest(focus = Focus.SESSION)
+    void testCommitModuleStage(CrawlSession session) {
+        var ctx = new CommitterPipelineContext(
+                session, CrawlDocContextStubber.fresh("ref"));
         assertThatNoException().isThrownBy(
                 () -> new CommitModuleStage().test(ctx));
     }
-
-    //    @Test
-    //    void testCommitModuleStage(@TempDir Path tempDir) {
-    //        var ctx = new CommitterPipelineContext(
-    //                new MockCrawlerBuilder(tempDir).crawlerContext(),
-    //                CrawlDocStubs.crawlDoc("ref"));
-    //        assertThatNoException().isThrownBy(
-    //                () -> new CommitModuleStage().test(ctx));
-    //    }
 }

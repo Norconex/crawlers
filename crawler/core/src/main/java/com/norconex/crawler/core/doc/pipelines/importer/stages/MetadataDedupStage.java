@@ -14,10 +14,10 @@
  */
 package com.norconex.crawler.core.doc.pipelines.importer.stages;
 
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchDirective;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.event.CrawlerEvent;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -43,30 +43,29 @@ public class MetadataDedupStage extends AbstractImporterStage {
             return true;
         }
 
-        var docContext = ctx.getDoc().getDocContext();
+        var docContext = ctx.getDocContext();
         var dedupService = ctx
-                .getCrawlContext()
+                .getCrawlSession().getCrawlContext()
                 .getDedupService();
 
-        var duplRef = dedupService.findOrTrackMetadata(docContext);
+        var duplRef = dedupService
+                .findOrTrackMetadata(docContext.getCurrentCrawlEntry());
 
         if (duplRef.isPresent()) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(
-                        "REJECTED duplicate metadata checkum found for: {}",
-                        docContext.getReference());
-            }
-            docContext.setState(CrawlDocStatus.REJECTED);
-            ctx.getCrawlContext().fire(
+            LOG.debug("REJECTED duplicate metadata checkum found for: {}",
+                    docContext.getReference());
+            docContext.getCurrentCrawlEntry()
+                    .setProcessingOutcome(ProcessingOutcome.REJECTED);
+            ctx.getCrawlSession().fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.REJECTED_DUPLICATE)
-                            .source(ctx.getCrawlContext())
-                            .subject(duplRef.get())
-                            .docContext(docContext)
-                            .message(
-                                    "A document with the same metadata "
-                                            + "checksum was already processed: "
-                                            + duplRef.get())
+                            .crawlSession(ctx.getCrawlSession())
+                            .source(duplRef.get())
+                            .crawlEntry(
+                                    ctx.getDocContext().getCurrentCrawlEntry())
+                            .message("A document with the same metadata "
+                                    + "checksum was already processed: "
+                                    + duplRef.get())
                             .build());
             return false;
         }

@@ -16,8 +16,8 @@ package com.norconex.crawler.core.doc.operations;
 
 import java.util.function.BiConsumer;
 
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.fetch.Fetcher;
+import com.norconex.importer.doc.Doc;
 
 /**
  * Optional custom processing of a document just before or just after
@@ -25,7 +25,7 @@ import com.norconex.crawler.core.fetch.Fetcher;
  * the crawler configuration.
  */
 @FunctionalInterface
-public interface DocumentConsumer extends BiConsumer<Fetcher, CrawlDoc> {
+public interface DocumentConsumer extends BiConsumer<Fetcher, Doc> {
 
     /**
      * Processes a document.
@@ -33,5 +33,5 @@ public interface DocumentConsumer extends BiConsumer<Fetcher, CrawlDoc> {
      * @param doc crawl document
      */
     @Override
-    void accept(Fetcher fetcher, CrawlDoc doc);
+    void accept(Fetcher fetcher, Doc doc);
 }

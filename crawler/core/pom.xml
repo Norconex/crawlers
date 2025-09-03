@@ -30,7 +30,11 @@
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>      
       
     <cxf.version>3.4.5</cxf.version>
+    <infinispan.version>15.2.5.Final</infinispan.version>
     <jdom2.version>2.0.6.1</jdom2.version>
+    <jgroups.version>5.4.8.Final</jgroups.version>
+    <infinispan-protostream.version>15.0.13.Final</infinispan-protostream.version>
+    <sulky-ulid.version>8.2.0</sulky-ulid.version>
   </properties>
 
   <inceptionYear>2014</inceptionYear>
@@ -52,7 +56,32 @@
         <artifactId>jdom2</artifactId>
         <version>${jdom2.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.infinispan</groupId>
+        <artifactId>infinispan-bom</artifactId>
+        <version>${infinispan.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      
+      <!-- Protostream processor should be left to its default "provided"
+           scope but it prevents auto-generation in Eclipse.
+       -->
+      <dependency>
+        <groupId>org.infinispan.protostream</groupId>
+        <artifactId>protostream-processor</artifactId>
+        <version>${infinispan-protostream.version}</version>
+        <scope>compile</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.jgroups</groupId>
+        <artifactId>jgroups</artifactId>
+        <version>${jgroups.version}</version>
+      </dependency>
+
     </dependencies>
+    
   </dependencyManagement>
 
   <dependencies>
@@ -72,21 +101,57 @@
       <artifactId>nx-committer-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.norconex.crawler</groupId>
-      <artifactId>nx-grid-local</artifactId>
+      <groupId>org.infinispan</groupId>
+      <artifactId>infinispan-core</artifactId>
     </dependency>
-
+    <dependency>
+      <groupId>org.infinispan</groupId>
+      <artifactId>infinispan-query</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.infinispan.protostream</groupId>
+      <artifactId>protostream</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.infinispan.protostream</groupId>
+      <artifactId>protostream-processor</artifactId>
+      <!-- Commented, for it to work in Eclipse:
+      <scope>provided</scope>
+       -->
+    </dependency>
+    <dependency>
+      <groupId>org.infinispan</groupId>
+      <artifactId>infinispan-clustered-lock</artifactId>
+    </dependency>    
+    <dependency>
+      <groupId>org.infinispan</groupId>
+      <artifactId>infinispan-remote-query-client</artifactId>
+    </dependency>    
+    
+    <dependency>
+      <groupId>org.jgroups</groupId>
+      <artifactId>jgroups</artifactId>
+    </dependency>
+    
+    <dependency>
+      <groupId>de.huxhorn.sulky</groupId>
+      <artifactId>de.huxhorn.sulky.ulid</artifactId>
+      <version>${sulky-ulid.version}</version>
+    </dependency>
+    
     <dependency>
       <groupId>info.picocli</groupId>
       <artifactId>picocli</artifactId>
     </dependency>    
 
     <!-- Runtime --> 
+    <!--
     <dependency>
       <groupId>com.norconex.crawler</groupId>
       <artifactId>nx-grid-jdbc</artifactId>
       <scope>runtime</scope>
     </dependency>
+    -->
    
 
     <!-- Tests and provided. -->
@@ -97,6 +162,7 @@
       <type>zip</type>
       <scope>provided</scope>
     </dependency>
+    <!--
     <dependency>
       <groupId>com.norconex.crawler</groupId>
       <artifactId>nx-grid-core</artifactId>
@@ -104,6 +170,7 @@
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
+    -->
     
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -165,6 +232,26 @@
 
   <build>
     <plugins>
+    
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>org.infinispan.protostream</groupId>
+              <artifactId>protostream-processor</artifactId>
+              <version>${infinispan-protostream.version}</version>
+            </path>
+            <path>
+              <groupId>org.infinispan.protostream</groupId>
+              <artifactId>protostream</artifactId>
+              <version>${infinispan-protostream.version}</version>
+            </path>
+          </annotationProcessorPaths>
+        </configuration>
+      </plugin>
+    
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>

@@ -25,10 +25,10 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.io.CachedStreamFactory;
-import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
+import com.norconex.crawler.core.stubs.DocStubber;
 import com.norconex.importer.doc.Doc;
 
 class Md5DocumentChecksummerTest {
@@ -37,15 +37,14 @@ class Md5DocumentChecksummerTest {
     void testCreateDocumentChecksumFromContent() throws IOException {
         // Simply should not fail and return something.
         var content = "Some content";
-        var is = new CachedStreamFactory(1024, 1024).newInputStream(content);
-        var doc = new Doc("N/A", is);
+        var doc = DocStubber.doc("N/A", content);
         var cs = new Md5DocumentChecksummer();
         cs.getConfiguration().setKeep(true);
         var checksum = cs.createDocumentChecksum(doc);
-        is.dispose();
+        doc.close();
         assertThat(checksum).isEqualTo("b53227da4280f0e18270f21dd77c91d0");
-        assertThat(
-                doc.getMetadata().getString(CrawlDocMetaConstants.CHECKSUM_DOC))
+        assertThat(doc.getMetadata().getString(
+                CrawlDocMetaConstants.CHECKSUM_DOC))
                         .isEqualTo("b53227da4280f0e18270f21dd77c91d0");
     }
 
@@ -53,15 +52,13 @@ class Md5DocumentChecksummerTest {
     void testCreateChecksumFromCombinedContentAndFields() throws IOException {
         // Simply should not fail and return something.
         var content = "Some content";
-        var is = new CachedStreamFactory(1024, 1024).newInputStream(content);
-        var props = new Properties();
-        props.add("field1", "value1");
-        props.add("field2", "value2");
-        var doc = new Doc("N/A", is, props);
+        var doc = DocStubber.doc("N/A", content,
+                "field1", "value1",
+                "field2", "value2");
         var cs = new Md5DocumentChecksummer();
         cs.getConfiguration().setCombineFieldsAndContent(true);
         var checksum = cs.createDocumentChecksum(doc);
-        is.dispose();
+        doc.close();
         assertThat(checksum).isEqualTo(
                 "e75e091aff05a39a9c585e2b4b18c9bc"
                         + "|b53227da4280f0e18270f21dd77c91d0");
@@ -70,88 +67,92 @@ class Md5DocumentChecksummerTest {
     @Test
     void testCreateDocumentChecksumFromMeta() throws IOException {
         // Simply should not fail and return something.
-        var is =
-                new CachedStreamFactory(1024, 1024).newInputStream();
-        var doc = new Doc("N/A", is);
-        doc.getMetadata().add("field1", "value1.1", "value1.2");
-        doc.getMetadata().add("field2", "value2");
-        var cs = new Md5DocumentChecksummer();
+        try (@SuppressWarnings("resource")
+        var doc = new Doc("N/A").setInputStream(
+                new CachedStreamFactory(1024, 1024).newInputStream())) {
 
-        // 2 matching fields
-        cs.getConfiguration().setFieldMatcher(TextMatcher.csv("field1,field2"));
-        var checksum1 = cs.createDocumentChecksum(doc);
-        Assertions.assertTrue(
-                StringUtils.isNotBlank(checksum1),
-                "No checksum was generated for two matching fields.");
+            doc.getMetadata().add("field1", "value1.1", "value1.2");
+            doc.getMetadata().add("field2", "value2");
+            var cs = new Md5DocumentChecksummer();
 
-        // 1 out of 2 matching fields
-        cs.getConfiguration().setFieldMatcher(TextMatcher.csv("field1,field3"));
-        var checksum2 = cs.createDocumentChecksum(doc);
-        Assertions.assertTrue(
-                StringUtils.isNotBlank(checksum2),
-                "No checksum was generated for 1 of two matching fields.");
+            // 2 matching fields
+            cs.getConfiguration()
+                    .setFieldMatcher(TextMatcher.csv("field1,field2"));
+            var checksum1 = cs.createDocumentChecksum(doc);
+            Assertions.assertTrue(
+                    StringUtils.isNotBlank(checksum1),
+                    "No checksum was generated for two matching fields.");
 
-        // No matching fields
-        cs.getConfiguration().setFieldMatcher(TextMatcher.csv("field4,field5"));
-        var checksum3 = cs.createDocumentChecksum(doc);
-        Assertions.assertNull(
-                checksum3,
-                "Checksum for no matching fields should have been null.");
+            // 1 out of 2 matching fields
+            cs.getConfiguration()
+                    .setFieldMatcher(TextMatcher.csv("field1,field3"));
+            var checksum2 = cs.createDocumentChecksum(doc);
+            Assertions.assertTrue(
+                    StringUtils.isNotBlank(checksum2),
+                    "No checksum was generated for 1 of two matching fields.");
 
-        // Regex
-        cs.getConfiguration().setFieldMatcher(TextMatcher.regex("field.*"));
-        var checksum4 = cs.createDocumentChecksum(doc);
-        Assertions.assertTrue(
-                StringUtils.isNotBlank(checksum4),
-                "No checksum was generated.");
+            // No matching fields
+            cs.getConfiguration()
+                    .setFieldMatcher(TextMatcher.csv("field4,field5"));
+            var checksum3 = cs.createDocumentChecksum(doc);
+            Assertions.assertNull(
+                    checksum3,
+                    "Checksum for no matching fields should have been null.");
 
-        // Regex only no match
-        cs.getConfiguration().setFieldMatcher(TextMatcher.regex("NOfield.*"));
-        var checksum5 = cs.createDocumentChecksum(doc);
-        Assertions.assertNull(
-                checksum5,
-                "Checksum for no matching regex should have been null.");
+            // Regex
+            cs.getConfiguration().setFieldMatcher(TextMatcher.regex("field.*"));
+            var checksum4 = cs.createDocumentChecksum(doc);
+            Assertions.assertTrue(
+                    StringUtils.isNotBlank(checksum4),
+                    "No checksum was generated.");
 
-        is.dispose();
+            // Regex only no match
+            cs.getConfiguration()
+                    .setFieldMatcher(TextMatcher.regex("NOfield.*"));
+            var checksum5 = cs.createDocumentChecksum(doc);
+            Assertions.assertNull(
+                    checksum5,
+                    "Checksum for no matching regex should have been null.");
+        }
     }
 
     // https://github.com/Norconex/collector-http/issues/388
     @Test
     void testCombineFieldsAndContent() throws IOException {
         // Simply should not fail and return something.
-        var is =
-                new CachedStreamFactory(1024, 1024).newInputStream("Content");
-        var doc = new Doc("N/A", is);
-        doc.getMetadata().add("field1", "value1.1", "value1.2");
-        doc.getMetadata().add("field2", "value2");
-        var cs = new Md5DocumentChecksummer();
+        try (@SuppressWarnings("resource")
+        var doc = new Doc("N/A")
+                .setInputStream(new CachedStreamFactory(1024, 1024)
+                        .newInputStream("Content"))) {
+            doc.getMetadata().add("field1", "value1.1", "value1.2");
+            doc.getMetadata().add("field2", "value2");
+            var cs = new Md5DocumentChecksummer();
 
-        // With no source fields, should use content only.
-        var contentChecksum = cs.createDocumentChecksum(doc);
+            // With no source fields, should use content only.
+            var contentChecksum = cs.createDocumentChecksum(doc);
 
-        // With source fields, should use fields only.
-        cs.getConfiguration().setFieldMatcher(TextMatcher.regex("field.*"));
-        var fieldsChecksum = cs.createDocumentChecksum(doc);
+            // With source fields, should use fields only.
+            cs.getConfiguration().setFieldMatcher(TextMatcher.regex("field.*"));
+            var fieldsChecksum = cs.createDocumentChecksum(doc);
 
-        // When combining, should use both fields and content.
-        cs.getConfiguration().setCombineFieldsAndContent(true);
-        var combinedChecksum = cs.createDocumentChecksum(doc);
+            // When combining, should use both fields and content.
+            cs.getConfiguration().setCombineFieldsAndContent(true);
+            var combinedChecksum = cs.createDocumentChecksum(doc);
 
-        // The 3 checksums should be non-null, but different.
-        Assertions.assertNotNull(
-                contentChecksum,
-                "Null content checksum.");
-        Assertions.assertNotNull(
-                fieldsChecksum,
-                "Null fields checksum.");
-        Assertions.assertNotNull(
-                combinedChecksum,
-                "Null combined checksum.");
+            // The 3 checksums should be non-null, but different.
+            Assertions.assertNotNull(
+                    contentChecksum,
+                    "Null content checksum.");
+            Assertions.assertNotNull(
+                    fieldsChecksum,
+                    "Null fields checksum.");
+            Assertions.assertNotNull(
+                    combinedChecksum,
+                    "Null combined checksum.");
 
-        Assertions.assertNotEquals(contentChecksum, fieldsChecksum);
-        Assertions.assertNotEquals(fieldsChecksum, combinedChecksum);
-
-        is.dispose();
+            Assertions.assertNotEquals(contentChecksum, fieldsChecksum);
+            Assertions.assertNotEquals(fieldsChecksum, combinedChecksum);
+        }
     }
 
     @Test

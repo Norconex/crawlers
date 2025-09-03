@@ -16,9 +16,9 @@ package com.norconex.crawler.core.doc.pipelines.committer.stages;
 
 import java.util.function.Predicate;
 
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,28 +34,29 @@ public class DocumentDedupStage implements Predicate<CommitterPipelineContext> {
 
     @Override
     public boolean test(CommitterPipelineContext ctx) {
-        var docContext = ctx.getDoc().getDocContext();
+        var docContext = ctx.getDocContext();
 
-        var dedupService = ctx.getCrawlContext().getDedupService();
+        var dedupService =
+                ctx.getCrawlSession().getCrawlContext().getDedupService();
 
-        var duplRef = dedupService.findOrTrackDocument(docContext);
+        var duplRef = dedupService
+                .findOrTrackDocument(docContext.getCurrentCrawlEntry());
         if (duplRef.isPresent()) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug(
-                        "REJECTED duplicate content checkum found for: {}",
+                LOG.debug("REJECTED duplicate content checkum found for: {}",
                         docContext.getReference());
             }
-            docContext.setState(CrawlDocStatus.REJECTED);
-            ctx.getCrawlContext().fire(
-                    CrawlerEvent.builder()
-                            .name(CrawlerEvent.REJECTED_DUPLICATE)
-                            .source(ctx.getCrawlContext())
-                            .subject(duplRef.get())
-                            .docContext(ctx.getDoc().getDocContext())
-                            .message("A document with the same content "
-                                    + "checksum was already processed: "
-                                    + duplRef.get())
-                            .build());
+            docContext.getCurrentCrawlEntry().setProcessingOutcome(
+                    ProcessingOutcome.REJECTED);
+            ctx.getCrawlSession().fire(CrawlerEvent.builder()
+                    .name(CrawlerEvent.REJECTED_DUPLICATE)
+                    .crawlSession(ctx.getCrawlSession())
+                    .source(duplRef.get())
+                    .crawlEntry(ctx.getDocContext().getCurrentCrawlEntry())
+                    .message("A document with the same content "
+                            + "checksum was already processed: "
+                            + duplRef.get())
+                    .build());
             return false;
         }
         return true;

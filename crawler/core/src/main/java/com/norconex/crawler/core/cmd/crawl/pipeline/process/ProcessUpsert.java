@@ -14,14 +14,11 @@
  */
 package com.norconex.crawler.core.cmd.crawl.pipeline.process;
 
-import org.apache.commons.io.input.NullInputStream;
-
-import com.norconex.commons.lang.io.CachedInputStream;
-import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
+import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.importer.response.ImporterResponse;
 
 import lombok.extern.slf4j.Slf4j;
@@ -46,24 +43,24 @@ final class ProcessUpsert {
         // The importer pipeline also takes care of fetching
         //TODO shall fetching be handled by core, and we just pass
         // fetched doc to importer pipeline?
-        var docRecord = ctx.doc().getDocContext();
+        var crawlCtx = ctx.crawlSession().getCrawlContext();
+        var currentEntry = ctx.docContext().getCurrentCrawlEntry();
 
-        LOG.debug("Processing reference: {}", ctx.doc().getReference());
+        LOG.debug("Processing reference: {}", currentEntry.getReference());
 
-        var response = ctx
-                .crawlContext()
+        var response = crawlCtx
                 .getDocPipelines()
                 .getImporterPipeline()
                 .apply(new ImporterPipelineContext(
-                        ctx.crawlContext(), ctx.doc()));
+                        ctx.crawlSession(), ctx.docContext()));
         ctx.importerResponse(response);
 
         // no response means rejected even if it should not be the
         // way to do it
         if (response == null) {
-            if ((docRecord.getState() != null)
-                    && docRecord.getState().isNewOrModified()) {
-                docRecord.setState(CrawlDocStatus.REJECTED);
+            if ((currentEntry.getProcessingOutcome() != null)
+                    && currentEntry.getProcessingOutcome().isNewOrModified()) {
+                currentEntry.setProcessingOutcome(ProcessingOutcome.REJECTED);
             }
             ProcessFinalize.execute(ctx);
             return false;
@@ -84,15 +81,17 @@ final class ProcessUpsert {
 
             //TODO have a createEmbeddedDoc method instead?
             // TODO have a docInfoFactory instead and arguments
-            /// dictate whether it is a child, embedded, or top level
-            var childDocRec = ctx
-                    .crawlContext()
-                    .createDocContext(ctx.docContext());
-            childDocRec.setReference(childResponse.getReference());
-            var childCachedDocRec = ctx
-                    .crawlContext()
-                    .getDocLedger()
-                    .getCached(childResponse.getReference())
+            // dictate whether it is a child, embedded, or top level
+            var childCurrentEntry = ctx
+                    .crawlSession()
+                    .getCrawlContext()
+                    .createCrawlEntry(childResponse.getReference());
+            //            childDocRec.setReference(childResponse.getReference());
+            var childPreviousEntry = ctx
+                    .crawlSession()
+                    .getCrawlContext()
+                    .getCrawlEntryLedger()
+                    .getPreviousEntry(childResponse.getReference())
                     .orElse(null);
 
             // Here we create a CrawlDoc since the document from the response
@@ -101,21 +100,21 @@ final class ProcessUpsert {
             //TODO refactor Doc vs CrawlDoc to have only one instance
             // so we do not have to create such copy?
             var childResponseDoc = childResponse.getDoc();
-            var childCrawlDoc = new CrawlDoc(
-                    childDocRec, childCachedDocRec,
-                    childResponseDoc == null
-                            ? CachedInputStream.cache(new NullInputStream(0))
-                            : childResponseDoc.getInputStream());
-            if (childResponseDoc != null) {
-                childCrawlDoc.getMetadata().putAll(
-                        childResponseDoc.getMetadata());
-            }
+            var childDocContext = CrawlDocContext
+                    .builder()
+                    .currentCrawlEntry(childCurrentEntry)
+                    .previousCrawlEntry(childPreviousEntry)
+                    .doc(childResponseDoc)
+                    .build();
+            //            if (childResponseDoc != null) {
+            //                childDocContext.getOtherProps().putAll(
+            //                        childResponseDoc.getMetadata());
+            //            }
 
             var childCtx = new ProcessContext()
-                    .crawlContext(ctx.crawlContext())
+                    .crawlSession(ctx.crawlSession())
                     //                    .orphan(ctx.orphan())
-                    .doc(childCrawlDoc)
-                    .docContext(childDocRec)
+                    .docContext(childDocContext)
                     .importerResponse(childResponse);
 
             processImportResponse(childCtx);
@@ -123,7 +122,9 @@ final class ProcessUpsert {
     }
 
     private static boolean commitOrRejectDocument(ProcessContext ctx) {
-        var docRecord = ctx.doc().getDocContext();
+        var session = ctx.crawlSession();
+        var crawlCtx = session.getCrawlContext();
+        var currentEntry = ctx.docContext().getCurrentCrawlEntry();
         var response = ctx.importerResponse();
 
         // ok, there's a resonse, but is it good?
@@ -134,34 +135,31 @@ final class ProcessUpsert {
         }
 
         if (response.isSuccess()) {
-            ctx.crawlContext().fire(
-                    CrawlerEvent.builder()
-                            .name(CrawlerEvent.DOCUMENT_IMPORTED)
-                            .source(ctx.crawlContext())
-                            .docContext(docRecord)
-                            .subject(response)
-                            .message(msg)
-                            .build());
-            ctx.crawlContext()
-                    .getDocPipelines()
+            session.fire(CrawlerEvent.builder()
+                    .name(CrawlerEvent.DOCUMENT_IMPORTED)
+                    .crawlSession(ctx.crawlSession())
+                    .crawlEntry(currentEntry)
+                    .source(response)
+                    .message(msg)
+                    .build());
+            crawlCtx.getDocPipelines()
                     .getCommitterPipeline()
-                    .accept(new CommitterPipelineContext(
-                            ctx.crawlContext(), ctx.doc()));
+                    .accept(new CommitterPipelineContext(ctx.crawlSession(),
+                            ctx.docContext()));
             return true;
         }
 
-        docRecord.setState(CrawlDocStatus.REJECTED);
-        ctx.crawlContext().fire(
-                CrawlerEvent.builder()
-                        .name(CrawlerEvent.REJECTED_IMPORT)
-                        .source(ctx.crawlContext())
-                        .docContext(docRecord)
-                        .subject(response)
-                        .message(msg)
-                        .build());
+        currentEntry.setProcessingOutcome(ProcessingOutcome.REJECTED);
+        session.fire(CrawlerEvent.builder()
+                .name(CrawlerEvent.REJECTED_IMPORT)
+                .crawlSession(ctx.crawlSession())
+                .crawlEntry(currentEntry)
+                .source(response)
+                .message(msg)
+                .build());
         LOG.debug(
                 "Importing unsuccessful for \"{}\": {}",
-                docRecord.getReference(),
+                currentEntry.getReference(),
                 response.getDescription());
 
         return false;

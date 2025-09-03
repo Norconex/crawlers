@@ -23,56 +23,60 @@ import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.core.stubs.CrawlDocStubs;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.stubs.CrawlDocContextStubber;
+import com.norconex.crawler.core.stubs.DocStubber;
 
 class DocumentChecksumStageTest {
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testDocumentChecksumStage(CrawlContext crawlCtx) {
-        var doc = CrawlDocStubs.crawlDoc("ref");
-        var ctx = new CommitterPipelineContext(crawlCtx, doc);
+    @CrawlTest(focus = Focus.SESSION)
+    void testDocumentChecksumStage(CrawlSession session) {
+        var docContext = CrawlDocContextStubber.fresh("ref");
+        var ctx = new CommitterPipelineContext(session, docContext);
         var stage = new DocumentChecksumStage();
         stage.test(ctx);
 
-        assertThat(doc.getDocContext().getContentChecksum()).isEqualTo(
-                CrawlDocStubs.CRAWLDOC_CONTENT_MD5);
+        assertThat(docContext.getCurrentCrawlEntry().getContentChecksum())
+                .isEqualTo(DocStubber.CRAWLDOC_CONTENT_MD5);
     }
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testNoDocumentChecksummer(CrawlContext crawlCtx) {
+    @CrawlTest(focus = Focus.SESSION)
+    void testNoDocumentChecksummer(CrawlSession session) {
 
-        var doc = CrawlDocStubs.crawlDoc("ref");
+        var docContext = CrawlDocContextStubber.fresh("ref");
         BeanMapper.DEFAULT.read(
-                crawlCtx.getCrawlConfig(),
+                session.getCrawlContext().getCrawlConfig(),
                 new StringReader("""
                         <crawler id="id">\
                         <documentChecksummer />\
                         </crawler>"""),
                 Format.XML);
 
-        var ctx = new CommitterPipelineContext(crawlCtx, doc);
+        var ctx = new CommitterPipelineContext(session, docContext);
         var stage = new DocumentChecksumStage();
         stage.test(ctx);
 
-        assertThat(doc.getDocContext().getContentChecksum()).isNull();
+        assertThat(docContext.getCurrentCrawlEntry().getContentChecksum())
+                .isNull();
     }
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testRejectedUnmodified(CrawlContext crawlCtx) {
+    @CrawlTest(focus = Focus.SESSION)
+    void testRejectedUnmodified(CrawlSession session) {
 
-        var doc = CrawlDocStubs.crawlDocWithCache("ref", "content");
-        doc.getDocContext().setContentChecksum(crawlCtx
-                .getCrawlConfig()
-                .getDocumentChecksummer()
-                .createDocumentChecksum(doc));
+        var docContext = CrawlDocContextStubber.incremental("ref", "content");
+        docContext.getCurrentCrawlEntry().setContentChecksum(
+                session.getCrawlContext()
+                        .getCrawlConfig()
+                        .getDocumentChecksummer()
+                        .createDocumentChecksum(docContext.getDoc()));
 
-        doc.getCachedDocContext().setContentChecksum(crawlCtx
-                .getCrawlConfig()
-                .getDocumentChecksummer()
-                .createDocumentChecksum(doc));
+        docContext.getPreviousCrawlEntry().setContentChecksum(
+                session.getCrawlContext()
+                        .getCrawlConfig()
+                        .getDocumentChecksummer()
+                        .createDocumentChecksum(docContext.getDoc()));
 
-        var ctx = new CommitterPipelineContext(crawlCtx, doc);
+        var ctx = new CommitterPipelineContext(session, docContext);
 
         var stage = new DocumentChecksumStage();
         assertThat(stage.test(ctx)).isFalse();

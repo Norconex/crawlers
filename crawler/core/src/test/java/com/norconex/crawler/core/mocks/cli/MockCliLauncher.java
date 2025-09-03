@@ -25,10 +25,11 @@ import org.apache.commons.lang3.mutable.MutableObject;
 
 import com.norconex.commons.lang.SystemUtil;
 import com.norconex.commons.lang.SystemUtil.Captured;
+import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
-import com.norconex.crawler.core.stubs.StubCrawlerConfig;
+import com.norconex.crawler.core.stubs.CrawlerConfigStubber;
 import com.norconex.crawler.core.util.ConfigUtil;
 
 import lombok.Builder;
@@ -48,6 +49,7 @@ public class MockCliLauncher {
     private final boolean logErrors;
 
     public MockCliExit launch() {
+        var eventFile = workDir.resolve(TimeIdGenerator.next() + ".txt");
         var workDirRef = new MutableObject<Path>();
         Consumer<CrawlConfig> modifierWrapper = cfg -> {
             workDirRef.setValue(ConfigUtil.resolveWorkDir(cfg));
@@ -56,7 +58,9 @@ public class MockCliLauncher {
             }
             if (cfg.getEventListeners().stream()
                     .noneMatch(MockCliEventWriter.class::isInstance)) {
-                cfg.addEventListener(new MockCliEventWriter());
+                var eventWriter = new MockCliEventWriter();
+                eventWriter.setEventFile(eventFile);
+                cfg.addEventListener(eventWriter);
             }
         };
 
@@ -64,11 +68,11 @@ public class MockCliLauncher {
         Path cfgFile = null;
         if (StringUtils.isNotBlank(cfgFileStr)) {
             cfgFile = Path.of(cfgFileStr);
-            StubCrawlerConfig.writeOrUpdateConfigToFile(cfgFile,
+            CrawlerConfigStubber.writeOrUpdateConfigToFile(cfgFile,
                     modifierWrapper);
 
         } else {
-            cfgFile = StubCrawlerConfig.writeConfigToDir(
+            cfgFile = CrawlerConfigStubber.writeConfigToDir(
                     workDir, modifierWrapper);
         }
 
@@ -86,13 +90,29 @@ public class MockCliLauncher {
 
         var exit = launchVerbatim(cmdArgs);
 
-        if (logErrors && StringUtils.isNotBlank(exit.getStdErr())) {
-            LOG.error(exit.getStdErr());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(exit.getStdOut());
         }
 
-        exit.getEvents().addAll(MockCliEventWriter.EVENTS);
+        if ((LOG.isDebugEnabled() || logErrors)
+                && StringUtils.isNotBlank(exit.getStdErr())) {
+            LOG.error(exit.getStdErr());
+        }
+        exit.getEvents().addAll(MockCliEventWriter.parseEvents(eventFile));
         return exit;
     }
+
+    //    /**
+    //     * Does not interpret the command or modify the config file.
+    //     * The returned exit object does not have captured events.
+    //     * @param cmdArgs arguments
+    //     * @return exit value (0 means all good)
+    //     */
+    //    public static int launchVerbatim(String... cmdArgs) {
+    //        return CliCrawlerLauncher.launch(
+    //                MockCrawlDriverFactory.create(),
+    //                cmdArgs);
+    //    }
 
     /**
      * Does not interpret the command or modify the config file.
@@ -101,9 +121,7 @@ public class MockCliLauncher {
      * @return exit object
      */
     public static MockCliExit launchVerbatim(String... cmdArgs) {
-        MockCliEventWriter.EVENTS.clear();
-
-        Captured<Integer> captured = SystemUtil.callAndCaptureOutput(
+        Captured<Integer> captured = SystemUtil.withOutputCapture(
                 () -> CliCrawlerLauncher.launch(
                         MockCrawlDriverFactory.create(),
                         cmdArgs));
@@ -113,6 +131,30 @@ public class MockCliLauncher {
         exit.setStdErr(captured.getStdErr());
         return exit;
     }
+
+    //        /**
+    //         * Does not interpret the command or modify the config file.
+    //         * The returned exit object does not have captured events.
+    //         * @param cmdArgs arguments
+    //         * @return exit object
+    //         */
+    //        public static MockCliExit launchVerbatim(String... cmdArgs) {
+    //            MockCliEventWriter.EVENTS.clear();
+    //
+    //            //TODO callAndCaptureOutput is synchronized... bad for testing
+    //            // have a version that is not... or... add the loop within
+    //            // the runnable that is passed to it (maybe better).
+    //
+    //            Captured<Integer> captured = SystemUtil.callAndCaptureOutput(
+    //                    () -> CliCrawlerLauncher.launch(
+    //                            MockCrawlDriverFactory.create(),
+    //                            cmdArgs));
+    //            var exit = new MockCliExit();
+    //            exit.setCode(captured.getReturnValue());
+    //            exit.setStdOut(captured.getStdOut());
+    //            exit.setStdErr(captured.getStdErr());
+    //            return exit;
+    //        }
 
     // null, no supplied
     // empty, arg name supplied, no value

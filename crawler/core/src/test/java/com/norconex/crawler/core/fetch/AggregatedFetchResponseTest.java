@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.core.doc.CrawlDocStatus;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.Data;
 
@@ -46,8 +46,8 @@ class AggregatedFetchResponseTest {
         }
 
         @Override
-        public CrawlDocStatus getResolutionStatus() {
-            return CrawlDocStatus.MODIFIED;
+        public ProcessingOutcome getProcessingOutcome() {
+            return ProcessingOutcome.MODIFIED;
         }
     }
 
@@ -61,8 +61,8 @@ class AggregatedFetchResponseTest {
         assertThat(gmfr.getStatusCode()).isEqualTo(123);
         assertThat(gmfr.getReasonPhrase()).isEqualTo("Just because.");
         assertThat(gmfr.getException().getMessage()).isEqualTo("TEST");
-        assertThat(gmfr.getResolutionStatus())
-                .isSameAs(CrawlDocStatus.MODIFIED);
+        assertThat(gmfr.getProcessingOutcome())
+                .isSameAs(ProcessingOutcome.MODIFIED);
         assertThat(gmfr.getFetchResponses()).containsExactlyInAnyOrder(
                 resp1, resp2);
         assertThat(gmfr.getLastFetchResponse()).containsSame(resp2);

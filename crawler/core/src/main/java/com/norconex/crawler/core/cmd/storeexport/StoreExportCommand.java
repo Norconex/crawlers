@@ -28,15 +28,12 @@ import org.apache.commons.lang3.mutable.MutableLong;
 
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.crawler.core.CrawlerException;
+import com.norconex.crawler.core.cluster.Cache;
+import com.norconex.crawler.core.cluster.CacheException;
 import com.norconex.crawler.core.cmd.Command;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.util.SerialUtil;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.grid.core.compute.GridTaskBuilder;
-import com.norconex.grid.core.storage.GridMap;
-import com.norconex.grid.core.storage.GridQueue;
-import com.norconex.grid.core.storage.GridSet;
-import com.norconex.grid.core.storage.GridStore;
-import com.norconex.grid.core.util.SerialUtil;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,46 +49,49 @@ public class StoreExportCommand implements Command {
     // set stopRequested on context?  Or do it higher up on context?
 
     @Override
-    public void execute(CrawlContext ctx) {
+    public void execute(CrawlSession session) {
+        var ctx = session.getCrawlContext();
+
         Thread.currentThread().setName(ctx.getId() + "/STORE_EXPORT");
-        ctx.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_BEGIN);
-        try {
-            ctx.getGrid().getCompute()
-                    .executeTask(GridTaskBuilder.create("storeExportTask")
-                            .singleNode()
-                            .processor(grid -> {
-                                try {
-                                    exportAllStores(ctx);
-                                } catch (IOException e) {
-                                    throw new CrawlerException(e);
-                                }
-                            })
-                            .build());
-        } catch (Exception e) {
-            throw new CrawlerException(
-                    "A problem occured while exporting crawler storage.", e);
+
+        // Export/Import are meant to run on a single node only. We ensure
+        // this by checking if we are the coordinator.
+
+        if (session.getCluster().getLocalNode().isCoordinator()) {
+            session.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_BEGIN, this);
+            try {
+                exportAllStores(session);
+            } catch (Exception e) {
+                throw new CacheException(
+                        "A problem occured while exporting crawler caches.", e);
+            }
+            session.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_END, this);
+        } else {
+            LOG.warn("""
+                Exporting can only be performed on a single node. \
+                Another node started the export process so this one \
+                will ignore the request.""");
         }
-        ctx.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_END);
     }
 
-    private void exportAllStores(CrawlContext crawlContext)
+    private void exportAllStores(CrawlSession session)
             throws IOException {
-        var storage = crawlContext.getGrid().getStorage();
+        var cacheManager = session.getCluster().getCacheManager();
         Files.createDirectories(exportDir);
 
         var outFile = exportDir.resolve(
-                FileUtil.toSafeFileName(crawlContext.getId() + ".zip"));
+                FileUtil.toSafeFileName(session.getCrawlerId() + ".zip"));
         LOG.info("Exporting crawler storage to file: {}", outFile);
 
         try (var zipOS = new ZipOutputStream(
                 IOUtils.buffer(Files.newOutputStream(outFile)), UTF_8)) {
-            storage.forEachStore(store -> {
-                var name = store.getName();
-                var type = store.getType();
+            cacheManager.forEach((name, cache) -> {
+
+                //                                var type = cache.getType();
                 try {
                     zipOS.putNextEntry(new ZipEntry(
                             FileUtil.toSafeFileName(name) + ".json"));
-                    exportOneStore(crawlContext, store, zipOS, type);
+                    exportOneStore(session, name, cache, zipOS);//, type);
                     zipOS.flush();
                     zipOS.closeEntry();
                 } catch (IOException e) {
@@ -105,42 +105,44 @@ public class StoreExportCommand implements Command {
     }
 
     private void exportOneStore(
-            CrawlContext crawlContext,
-            GridStore<?> store,
-            OutputStream out,
-            Class<?> type) throws IOException {
+            CrawlSession session,
+            String name,
+            Cache<?> cache,
+            OutputStream out
+    //            ,
+    //            Class<?> type
+    ) throws IOException {
 
         var writer = SerialUtil.jsonGenerator(out);
         if (pretty) {
             writer.useDefaultPrettyPrinter();
         }
-        var qty = store.size();
+        var qty = cache.size();
 
-        LOG.info("Exporting {} entries from \"{}\".", qty, store.getName());
+        LOG.info("Exporting {} entries from \"{}\".", qty, name);
 
         var cnt = new MutableLong();
         var lastPercent = new MutableLong();
         writer.writeStartObject();
-        writer.writeStringField("crawler", crawlContext.getId());
-        writer.writeStringField("store", store.getName());
-        writer.writeStringField("storeType", storeSuperClassName(store));
-        writer.writeStringField("objectType", type.getName());
+        writer.writeStringField("crawler", session.getCrawlerId());
+        writer.writeStringField("store", name);
+        //        writer.writeStringField("storeType", storeSuperClassName(cache));
+        //        writer.writeStringField("objectType", type.getName());
         writer.writeFieldName("records");
         writer.writeStartArray();
 
-        store.forEach((id, obj) -> {
+        cache.forEach((id, obj) -> {
             try {
                 writer.writeStartObject();
                 writer.writeStringField("id", id);
                 writer.writePOJOField("object", obj);
                 writer.writeEndObject();
                 var c = cnt.incrementAndGet();
-                var percent = Math.floorDiv(c * 100, qty);
+                var percent = qty == 0 ? 0 : Math.floorDiv(c * 100, qty);
                 if (percent != lastPercent.longValue()) {
                     LOG.info(" {}%", percent);
                 }
                 lastPercent.setValue(percent);
-                return true;
             } catch (IOException e) {
                 throw new CrawlerException("Could not export " + id, e);
             }
@@ -151,14 +153,14 @@ public class StoreExportCommand implements Command {
         writer.flush();
     }
 
-    private String storeSuperClassName(GridStore<?> store) {
-        var concreteClass = store.getClass();
-        if (GridQueue.class.isAssignableFrom(concreteClass)) {
-            return GridQueue.class.getName();
-        }
-        if (GridSet.class.isAssignableFrom(concreteClass)) {
-            return GridSet.class.getName();
-        }
-        return GridMap.class.getName();
-    }
+    //    private String storeSuperClassName(GridStore<?> store) {
+    //        var concreteClass = store.getClass();
+    //        if (GridQueue.class.isAssignableFrom(concreteClass)) {
+    //            return GridQueue.class.getName();
+    //        }
+    //        if (GridSet.class.isAssignableFrom(concreteClass)) {
+    //            return GridSet.class.getName();
+    //        }
+    //        return GridMap.class.getName();
+    //    }
 }

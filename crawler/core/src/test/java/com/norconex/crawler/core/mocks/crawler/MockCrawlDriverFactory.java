@@ -18,10 +18,13 @@ import java.util.function.Supplier;
 
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.CrawlDriver.FetchDriver;
-import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.ledger.CrawlEntry;
 import com.norconex.crawler.core.mocks.fetch.MockFetchResponseImpl;
 import com.norconex.crawler.core.stubs.PipelineStubs;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class MockCrawlDriverFactory implements Supplier<CrawlDriver> {
 
     public static CrawlDriver create() {
@@ -33,13 +36,16 @@ public class MockCrawlDriverFactory implements Supplier<CrawlDriver> {
         return CrawlDriver.builder()
                 .fetchDriver(new FetchDriver()
                         .responseAggregator((req, resps) -> resps.get(0))
-                        .unsuccesfulResponseFactory((crawlState, msg,
+                        .unsuccesfulResponseFactory((outcome, msg,
                                 e) -> new MockFetchResponseImpl()
                                         .setException(e)
                                         .setReasonPhrase(msg)
-                                        .setResolutionStatus(crawlState)))
+                                        .setProcessingOutcome(outcome)))
                 .docPipelines(PipelineStubs.pipelines())
-                .docContextType(CrawlDocContext.class)
+                //                .callbacks(CrawlCallbacks.builder().beforeCommand(sess -> {
+                //                    Sleeper.sleepSeconds(3);//TODO come up with something faster, like a latch
+                //                }).build())
+                .crawlEntryType(CrawlEntry.class)
                 .build();
     }
 }

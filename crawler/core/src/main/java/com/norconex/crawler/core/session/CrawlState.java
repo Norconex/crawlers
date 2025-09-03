@@ -16,11 +16,11 @@ package com.norconex.crawler.core.session;
 
 public enum CrawlState {
     RUNNING,
-    PAUSED,
+    STOPPED,
     COMPLETED,
     FAILED;
 
     public boolean isTerminal() {
-        return this == PAUSED || this == COMPLETED || this == FAILED;
+        return this == STOPPED || this == COMPLETED || this == FAILED;
     }
 }

@@ -17,29 +17,29 @@ package com.norconex.crawler.core.cmd.crawl.pipeline.process;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.core.stubs.CrawlDocStubs;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.stubs.CrawlDocContextStubber;
 
 class ProcessDeleteTest {
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testDocProcessorDelete(CrawlContext ctx, MemoryCommitter mem) {
+    @CrawlTest(focus = Focus.SESSION)
+    void testDocProcessorDelete(CrawlSession session, MemoryCommitter mem) {
 
-        var doc = CrawlDocStubs.crawlDoc("http://delete.me");
+        var docContext = CrawlDocContextStubber.fresh("http://delete.me");
+        docContext.getDoc();
 
         var docProcCtx = new ProcessContext()
                 .finalized(false)
-                .crawlContext(ctx)
-                .docContext(doc.getDocContext())
-                .doc(doc);
+                .crawlSession(session)
+                .docContext(docContext);
 
         ProcessDelete.execute(docProcCtx);
 
-        assertThat(docProcCtx.docContext().getState())
-                .isEqualTo(CrawlDocStatus.DELETED);
+        assertThat(docProcCtx.docContext().getCurrentCrawlEntry()
+                .getProcessingOutcome()).isEqualTo(ProcessingOutcome.DELETED);
         assertThat(mem.getDeleteCount()).isOne();
         assertThat(mem.getDeleteRequests()
                 .get(0)

@@ -19,21 +19,21 @@ import java.util.List;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
 
-import com.norconex.grid.core.GridConnector;
+import com.norconex.crawler.core.cluster.ClusterConnector;
 
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 class CrawlTestInvocationContext implements TestTemplateInvocationContext {
 
-    private final Class<? extends GridConnector> gridConnectorClass;
+    private final Class<? extends ClusterConnector> clusterConnectorClass;
     private final CrawlTest annotation;
 
     @Override
     public List<Extension> getAdditionalExtensions() {
         return List.of(
                 new CrawlTestExtensionCallbacks(
-                        gridConnectorClass, annotation),
+                        clusterConnectorClass, annotation),
                 new CrawlTestParameterResolver());
     }
 

@@ -26,30 +26,31 @@ import org.apache.commons.io.IOUtils;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.core.stubs.CrawlDocStubs;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.stubs.CrawlDocContextStubber;
 
 class ImportModuleStageTest {
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testImportModuleStage(CrawlContext crawlCtx) throws IOException {
-        var doc = CrawlDocStubs.crawlDoc("ref", "tomato");
-        crawlCtx.getCrawlConfig().getImporterConfig().setHandlers(
-                List.of(hctx -> {
-                    try {
-                        hctx.output().asWriter().write("potato");
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-                    return true;
-                }));
-        var ctx = new ImporterPipelineContext(crawlCtx, doc);
+    @CrawlTest(focus = Focus.SESSION)
+    void testImportModuleStage(CrawlSession session) throws IOException {
+        var docCtx = CrawlDocContextStubber.fresh("ref", "tomato");
+        session.getCrawlContext().getCrawlConfig().getImporterConfig()
+                .setHandlers(
+                        List.of(hctx -> {
+                            try {
+                                hctx.output().asWriter().write("potato");
+                            } catch (IOException e) {
+                                throw new UncheckedIOException(e);
+                            }
+                            return true;
+                        }));
+        var ctx = new ImporterPipelineContext(session, docCtx);
         var stage = new ImportModuleStage();
         stage.test(ctx);
 
         // no filters is equal to a match
         assertThat(IOUtils.toString(
-                ctx.getDoc().getInputStream(), UTF_8).trim())
+                ctx.getDocContext().getDoc().getInputStream(), UTF_8).trim())
                         .isEqualTo("potato");
     }
 }
