@@ -22,12 +22,12 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.ledger.ProcessingStatus;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core2.junit.CrawlTest;
-import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.ledger.CrawlEntry;
-import com.norconex.crawler.core2.ledger.ProcessingStatus;
-import com.norconex.crawler.core2.mocks.crawler.MockCrawlerBuilder;
 
 class CrawlDocLedgerTest {
 

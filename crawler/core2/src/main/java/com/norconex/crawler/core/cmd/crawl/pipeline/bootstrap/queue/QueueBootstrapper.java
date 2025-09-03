@@ -27,7 +27,7 @@ import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapper;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core2.util.LogUtil;
+import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;

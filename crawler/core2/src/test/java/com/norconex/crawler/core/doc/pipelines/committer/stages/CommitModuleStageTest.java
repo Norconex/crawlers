@@ -17,11 +17,10 @@ package com.norconex.crawler.core.doc.pipelines.committer.stages;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
-import com.norconex.crawler.core.doc.pipelines.committer.stages.CommitModuleStage;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core2.junit.CrawlTest;
-import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
+import com.norconex.crawler.core.stubs.CrawlDocContextStubber;
 
 class CommitModuleStageTest {
 
@@ -32,13 +31,4 @@ class CommitModuleStageTest {
         assertThatNoException().isThrownBy(
                 () -> new CommitModuleStage().test(ctx));
     }
-
-    //    @Test
-    //    void testCommitModuleStage(@TempDir Path tempDir) {
-    //        var ctx = new CommitterPipelineContext(
-    //                new MockCrawlerBuilder(tempDir).crawlerContext(),
-    //                CrawlDocStubs.crawlDoc("ref"));
-    //        assertThatNoException().isThrownBy(
-    //                () -> new CommitModuleStage().test(ctx));
-    //    }
 }

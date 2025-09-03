@@ -17,11 +17,11 @@ package com.norconex.crawler.core.cmd.crawl.pipeline.process;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core2.junit.CrawlTest;
-import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.ledger.ProcessingOutcome;
-import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
+import com.norconex.crawler.core.stubs.CrawlDocContextStubber;
 
 class ProcessDeleteTest {
 

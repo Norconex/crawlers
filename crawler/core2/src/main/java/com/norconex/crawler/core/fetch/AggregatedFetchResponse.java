@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import com.norconex.crawler.core2.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.AccessLevel;
 import lombok.Data;

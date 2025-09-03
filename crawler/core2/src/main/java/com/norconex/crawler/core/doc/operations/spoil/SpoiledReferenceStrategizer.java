@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.doc.operations.spoil;
 
-import com.norconex.crawler.core2.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 /**
  * <p>

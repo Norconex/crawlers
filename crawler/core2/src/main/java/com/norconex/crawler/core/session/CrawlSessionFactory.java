@@ -21,7 +21,7 @@ import java.nio.file.Path;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core2.context.CrawlContextFactory;
+import com.norconex.crawler.core.context.CrawlContextFactory;
 
 public final class CrawlSessionFactory {
 

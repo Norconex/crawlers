@@ -24,9 +24,9 @@ import java.util.function.Supplier;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.cluster.Cache;
+import com.norconex.crawler.core.junit.ClusterTestUtil;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core2.junit.ClusterTestUtil;
-import com.norconex.crawler.core2.util.ConcurrentUtil;
+import com.norconex.crawler.core.util.ConcurrentUtil;
 
 public final class PipelineTestUtil {
     private PipelineTestUtil() {

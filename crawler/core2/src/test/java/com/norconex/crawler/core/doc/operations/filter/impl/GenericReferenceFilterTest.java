@@ -24,8 +24,7 @@ import org.junit.jupiter.api.Test;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
-import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
-import com.norconex.crawler.core2.stubs.DocStubber;
+import com.norconex.crawler.core.stubs.DocStubber;
 
 class GenericReferenceFilterTest {
 

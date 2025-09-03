@@ -19,7 +19,7 @@ import org.infinispan.protostream.annotations.ProtoSchema;
 import org.infinispan.protostream.annotations.ProtoSyntax;
 
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
-import com.norconex.crawler.core2.ledger.ProcessingStatus;
+import com.norconex.crawler.core.ledger.ProcessingStatus;
 
 @ProtoSchema(
     syntax = ProtoSyntax.PROTO3,

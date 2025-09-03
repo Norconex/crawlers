@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.core2.ledger.ProcessingStatus;
+import com.norconex.crawler.core.ledger.ProcessingStatus;
 
 class CrawlDocContextTest {
 

@@ -25,7 +25,7 @@ import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.QueueBootstr
 import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
 import com.norconex.crawler.core.fetch.MultiFetcher.ResponseAggregator;
 import com.norconex.crawler.core.fetch.MultiFetcher.UnsuccessfulResponseFactory;
-import com.norconex.crawler.core2.ledger.CrawlEntry;
+import com.norconex.crawler.core.ledger.CrawlEntry;
 
 import lombok.Builder;
 import lombok.Builder.Default;

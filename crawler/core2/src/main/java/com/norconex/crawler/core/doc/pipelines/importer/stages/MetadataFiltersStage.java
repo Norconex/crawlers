@@ -19,8 +19,8 @@ import com.norconex.crawler.core.doc.operations.filter.MetadataFilter;
 import com.norconex.crawler.core.doc.pipelines.OnMatchFiltersResolver;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.fetch.FetchDirective;
-import com.norconex.crawler.core2.event.CrawlerEvent;
-import com.norconex.crawler.core2.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.event.CrawlerEvent;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;

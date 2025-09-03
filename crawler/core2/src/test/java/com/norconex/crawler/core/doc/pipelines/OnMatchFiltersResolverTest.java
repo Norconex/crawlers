@@ -25,19 +25,19 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.fetch.FetchUtil;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core2.context.CrawlContext;
-import com.norconex.crawler.core2.junit.CrawlTest;
-import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.ledger.ProcessingOutcome;
-import com.norconex.crawler.core2.mocks.crawler.MockCrawlerBuilder;
-import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
+import com.norconex.crawler.core.stubs.CrawlDocContextStubber;
 
 class OnMatchFiltersResolverTest {
 

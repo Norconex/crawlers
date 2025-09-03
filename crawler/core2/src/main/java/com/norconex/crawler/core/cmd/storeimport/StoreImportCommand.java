@@ -29,8 +29,8 @@ import com.norconex.crawler.core.cluster.Cache;
 import com.norconex.crawler.core.cluster.CacheException;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core2.event.CrawlerEvent;
-import com.norconex.crawler.core2.util.SerialUtil;
+import com.norconex.crawler.core.util.SerialUtil;
+import com.norconex.crawler.core.event.CrawlerEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

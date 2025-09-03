@@ -21,8 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
-
 class FetchDirectiveSupportTest {
 
     @Test

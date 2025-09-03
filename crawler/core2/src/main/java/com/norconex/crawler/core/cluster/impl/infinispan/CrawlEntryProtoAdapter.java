@@ -33,8 +33,8 @@ import org.infinispan.protostream.annotations.ProtoField;
 
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.crawler.core.cluster.CacheException;
-import com.norconex.crawler.core2.ledger.CrawlEntry;
-import com.norconex.crawler.core2.ledger.ProcessingStatus;
+import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.ledger.ProcessingStatus;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;

@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.cmd.crawl;
 
-import static com.norconex.crawler.core2.util.ExceptionSwallower.swallow;
+import static com.norconex.crawler.core.util.ExceptionSwallower.swallow;
 import static java.util.Optional.ofNullable;
 
 import java.util.concurrent.CompletableFuture;
@@ -30,10 +30,9 @@ import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.crawl.pipeline.CrawlPipelineFactory;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlState;
-import com.norconex.crawler.core2.cmd.crawl.CrawlProgressLogger;
-import com.norconex.crawler.core2.event.CrawlerEvent;
-import com.norconex.crawler.core2.metrics.CrawlerMetricsJMX;
-import com.norconex.crawler.core2.util.ConcurrentUtil;
+import com.norconex.crawler.core.util.ConcurrentUtil;
+import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.metrics.CrawlerMetricsJMX;
 
 import lombok.extern.slf4j.Slf4j;
 

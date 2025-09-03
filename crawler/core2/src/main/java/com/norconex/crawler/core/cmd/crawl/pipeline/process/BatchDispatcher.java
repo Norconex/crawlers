@@ -18,8 +18,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.norconex.crawler.core.ledger.CrawlEntry;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core2.ledger.CrawlEntry;
 
 import lombok.Builder;
 

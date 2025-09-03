@@ -23,7 +23,7 @@ import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.remoting.transport.Address;
 
 import com.norconex.crawler.core.cluster.ClusterNode;
-import com.norconex.crawler.core2.util.ExceptionSwallower;
+import com.norconex.crawler.core.util.ExceptionSwallower;
 
 import lombok.RequiredArgsConstructor;
 

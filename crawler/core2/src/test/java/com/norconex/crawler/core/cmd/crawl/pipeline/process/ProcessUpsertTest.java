@@ -20,11 +20,11 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core2.junit.CrawlTest;
-import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
-import com.norconex.crawler.core2.stubs.DocStubber;
+import com.norconex.crawler.core.stubs.CrawlDocContextStubber;
+import com.norconex.crawler.core.stubs.DocStubber;
 import com.norconex.importer.response.ImporterResponse;
 import com.norconex.importer.response.ImporterResponseProcessor;
 

@@ -17,7 +17,7 @@ package com.norconex.crawler.core.session;
 import java.util.Objects;
 import java.util.Optional;
 
-import com.norconex.crawler.core2.util.SerialUtil;
+import com.norconex.crawler.core.util.SerialUtil;
 
 import de.huxhorn.sulky.ulid.ULID;
 import lombok.extern.slf4j.Slf4j;

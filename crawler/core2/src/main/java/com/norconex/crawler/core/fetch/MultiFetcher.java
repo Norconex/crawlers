@@ -25,7 +25,7 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
-import com.norconex.crawler.core2.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.Builder;
 import lombok.Getter;

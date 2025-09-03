@@ -16,7 +16,7 @@ package com.norconex.crawler.core.doc.pipelines.importer.stages;
 
 import com.norconex.crawler.core.doc.operations.DocumentConsumer;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core2.event.CrawlerEvent;
+import com.norconex.crawler.core.event.CrawlerEvent;
 
 public class DocumentPreProcessingStage extends AbstractImporterStage {
     @Override

@@ -5,7 +5,7 @@ import org.infinispan.protostream.annotations.ProtoField;
 
 import com.norconex.crawler.core.cluster.CacheException;
 import com.norconex.crawler.core.cluster.SerializedEnvelope;
-import com.norconex.crawler.core2.util.SerialUtil;
+import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.Data;
 

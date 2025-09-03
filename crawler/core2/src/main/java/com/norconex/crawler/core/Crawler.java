@@ -29,7 +29,7 @@ import com.norconex.crawler.core.cmd.storeexport.StoreExportCommand;
 import com.norconex.crawler.core.cmd.storeimport.StoreImportCommand;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionFactory;
-import com.norconex.crawler.core2.util.LogUtil;
+import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

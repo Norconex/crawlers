@@ -22,7 +22,7 @@ import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.doc.operations.filter.FilterGroupResolver;
 import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core2.event.CrawlerEvent;
+import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.importer.doc.Doc;
 
 import jakarta.xml.bind.annotation.XmlAccessType;

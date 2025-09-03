@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.cmd.crawl.pipeline.process;
 
-import com.norconex.crawler.core2.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.extern.slf4j.Slf4j;
 

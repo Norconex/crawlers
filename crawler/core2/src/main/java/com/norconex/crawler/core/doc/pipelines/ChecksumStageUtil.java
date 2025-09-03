@@ -19,7 +19,7 @@ import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core2.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.extern.slf4j.Slf4j;
 

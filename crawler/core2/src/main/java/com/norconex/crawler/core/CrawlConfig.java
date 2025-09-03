@@ -42,9 +42,9 @@ import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
+import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core2.event.listeners.StopCrawlerOnMaxEventListener;
 import com.norconex.importer.ImporterConfig;
 
 import jakarta.validation.constraints.Min;

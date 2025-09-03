@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
+import com.norconex.crawler.core.stubs.CrawlDocContextStubber;
 
 class CrawlDocTest {
 

@@ -18,11 +18,11 @@ import com.norconex.commons.lang.bean.spi.BasePolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.cluster.ClusterConnector;
 import com.norconex.crawler.core.cmd.crawl.pipeline.process.ProcessUpsertTest;
-import com.norconex.crawler.core2.junit.CrawlTestCapturer;
-import com.norconex.crawler.core2.mocks.cli.MockCliEventWriter;
-import com.norconex.crawler.core2.mocks.cluster.MockFailingClusterConnector;
-import com.norconex.crawler.core2.mocks.cluster.MockMultiNodesConnector;
-import com.norconex.crawler.core2.mocks.cluster.MockSingleNodeConnector;
+import com.norconex.crawler.core.junit.CrawlTestCapturer;
+import com.norconex.crawler.core.mocks.cli.MockCliEventWriter;
+import com.norconex.crawler.core.mocks.cluster.MockFailingClusterConnector;
+import com.norconex.crawler.core.mocks.cluster.MockMultiNodesConnector;
+import com.norconex.crawler.core.mocks.cluster.MockSingleNodeConnector;
 import com.norconex.importer.response.ImporterResponseProcessor;
 
 public class CoreTestPtProvider extends BasePolymorphicTypeProvider {

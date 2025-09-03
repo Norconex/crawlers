@@ -17,7 +17,7 @@ package com.norconex.crawler.core.doc.operations.spoil.impl;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategy;
-import com.norconex.crawler.core2.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

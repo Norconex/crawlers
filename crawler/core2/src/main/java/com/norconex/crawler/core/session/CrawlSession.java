@@ -30,10 +30,10 @@ import com.norconex.crawler.core.cluster.Cache;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.ClusterNode;
 import com.norconex.crawler.core.cluster.SerializedEnvelope;
-import com.norconex.crawler.core2.context.CrawlContext;
-import com.norconex.crawler.core2.event.CrawlerEvent;
-import com.norconex.crawler.core2.util.ExceptionSwallower;
-import com.norconex.crawler.core2.util.SerialUtil;
+import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.util.ExceptionSwallower;
+import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.AccessLevel;
 import lombok.Data;

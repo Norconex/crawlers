@@ -22,8 +22,8 @@ import java.util.Optional;
 
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategy;
-import com.norconex.crawler.core2.ledger.ProcessingOutcome;
-import com.norconex.crawler.core2.ledger.ProcessingStatus;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.ledger.ProcessingStatus;
 
 import lombok.extern.slf4j.Slf4j;
 

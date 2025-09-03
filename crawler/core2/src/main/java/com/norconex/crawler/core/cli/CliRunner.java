@@ -15,7 +15,7 @@
 package com.norconex.crawler.core.cli;
 
 import com.norconex.crawler.core.CrawlDriver;
-import com.norconex.crawler.core2.util.About;
+import com.norconex.crawler.core.util.About;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

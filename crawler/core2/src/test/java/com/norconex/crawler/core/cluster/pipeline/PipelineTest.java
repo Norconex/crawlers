@@ -33,12 +33,12 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.cluster.Cache;
+import com.norconex.crawler.core.junit.ClusterNodesTest;
+import com.norconex.crawler.core.junit.ClusterTestUtil;
+import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core2.junit.ClusterNodesTest;
-import com.norconex.crawler.core2.junit.ClusterTestUtil;
-import com.norconex.crawler.core2.junit.WithTestWatcherLogging;
-import com.norconex.crawler.core2.stubs.CrawlSessionStubber;
-import com.norconex.crawler.core2.util.ExceptionSwallower;
+import com.norconex.crawler.core.stubs.CrawlSessionStubber;
+import com.norconex.crawler.core.util.ExceptionSwallower;
 
 import lombok.extern.slf4j.Slf4j;
 

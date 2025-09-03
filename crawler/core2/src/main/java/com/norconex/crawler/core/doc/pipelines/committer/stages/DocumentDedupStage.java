@@ -17,8 +17,8 @@ package com.norconex.crawler.core.doc.pipelines.committer.stages;
 import java.util.function.Predicate;
 
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
-import com.norconex.crawler.core2.event.CrawlerEvent;
-import com.norconex.crawler.core2.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.extern.slf4j.Slf4j;
 

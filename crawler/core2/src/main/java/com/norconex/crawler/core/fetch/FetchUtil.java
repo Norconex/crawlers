@@ -14,8 +14,8 @@
  */
 package com.norconex.crawler.core.fetch;
 
-import com.norconex.crawler.core2.context.CrawlContext;
-import com.norconex.crawler.core2.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.NonNull;
 

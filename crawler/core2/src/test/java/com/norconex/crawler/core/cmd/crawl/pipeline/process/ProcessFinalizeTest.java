@@ -21,11 +21,11 @@ import org.apache.commons.lang3.mutable.MutableObject;
 
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategy;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core2.junit.CrawlTest;
-import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.ledger.ProcessingOutcome;
-import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
+import com.norconex.crawler.core.stubs.CrawlDocContextStubber;
 
 class ProcessFinalizeTest {
 

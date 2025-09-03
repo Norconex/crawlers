@@ -25,8 +25,7 @@ import org.junit.jupiter.api.Test;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
-import com.norconex.crawler.core.doc.operations.filter.impl.ExtensionReferenceFilter;
-import com.norconex.crawler.core2.stubs.DocStubber;
+import com.norconex.crawler.core.stubs.DocStubber;
 
 class ExtensionReferenceFilterTest {
 

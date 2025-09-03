@@ -22,9 +22,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
-import com.norconex.crawler.core.doc.pipelines.committer.stages.DocumentDedupStage;
-import com.norconex.crawler.core2.mocks.crawler.MockCrawlerBuilder;
-import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core.stubs.CrawlDocContextStubber;
 
 class DocumentDedupStageTest {
 

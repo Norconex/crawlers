@@ -26,7 +26,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.norconex.crawler.core.cluster.Cache;
-import com.norconex.crawler.core2.ledger.CrawlEntry;
+import com.norconex.crawler.core.ledger.CrawlEntry;
 
 /**
  * A Cache adapter that automatically converts between the domain object

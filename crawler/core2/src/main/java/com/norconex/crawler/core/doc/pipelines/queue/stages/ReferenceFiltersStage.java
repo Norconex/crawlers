@@ -21,8 +21,8 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
 import com.norconex.crawler.core.doc.pipelines.OnMatchFiltersResolver;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
-import com.norconex.crawler.core2.event.CrawlerEvent;
-import com.norconex.crawler.core2.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.extern.slf4j.Slf4j;
 

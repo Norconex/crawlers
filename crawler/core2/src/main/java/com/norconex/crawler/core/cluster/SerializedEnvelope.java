@@ -1,7 +1,7 @@
 package com.norconex.crawler.core.cluster;
 
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core2.util.SerialUtil;
+import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

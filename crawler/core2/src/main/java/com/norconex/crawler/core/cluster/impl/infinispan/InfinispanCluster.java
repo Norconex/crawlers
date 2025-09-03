@@ -31,7 +31,7 @@ import org.infinispan.remoting.transport.Address;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.impl.infinispan.event.CoordinatorChangeListener;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core2.util.ExceptionSwallower;
+import com.norconex.crawler.core.util.ExceptionSwallower;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

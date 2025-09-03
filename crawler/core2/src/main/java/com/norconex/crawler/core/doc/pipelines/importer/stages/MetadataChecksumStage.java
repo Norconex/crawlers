@@ -19,8 +19,8 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.crawler.core.doc.pipelines.ChecksumStageUtil;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.fetch.FetchDirective;
-import com.norconex.crawler.core2.event.CrawlerEvent;
-import com.norconex.crawler.core2.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.event.CrawlerEvent;
 
 import lombok.NonNull;
 

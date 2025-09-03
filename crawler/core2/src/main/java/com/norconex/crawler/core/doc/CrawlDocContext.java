@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.doc;
 
-import com.norconex.crawler.core2.ledger.CrawlEntry;
+import com.norconex.crawler.core.ledger.CrawlEntry;
 import com.norconex.importer.doc.Doc;
 
 import lombok.Builder;

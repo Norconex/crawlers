@@ -34,8 +34,8 @@ import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core2.util.ConcurrentUtil;
-import com.norconex.crawler.core2.util.ExceptionSwallower;
+import com.norconex.crawler.core.util.ConcurrentUtil;
+import com.norconex.crawler.core.util.ExceptionSwallower;
 
 import lombok.extern.slf4j.Slf4j;
 

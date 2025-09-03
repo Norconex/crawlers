@@ -21,12 +21,11 @@ import java.io.StringReader;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
-import com.norconex.crawler.core.doc.pipelines.committer.stages.DocumentChecksumStage;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core2.junit.CrawlTest;
-import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
-import com.norconex.crawler.core2.stubs.DocStubber;
+import com.norconex.crawler.core.stubs.CrawlDocContextStubber;
+import com.norconex.crawler.core.stubs.DocStubber;
 
 class DocumentChecksumStageTest {
 

@@ -26,14 +26,13 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
 import com.norconex.crawler.core.doc.operations.checksum.impl.GenericMetadataChecksummer;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.doc.pipelines.importer.stages.MetadataChecksumStage;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core2.junit.CrawlTest;
-import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.mocks.crawler.MockCrawlerBuilder;
-import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
+import com.norconex.crawler.core.stubs.CrawlDocContextStubber;
 
 class MetadataChecksumStageTest {
 

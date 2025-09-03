@@ -24,11 +24,10 @@ import java.util.List;
 import org.apache.commons.io.IOUtils;
 
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.doc.pipelines.importer.stages.ImportModuleStage;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core2.junit.CrawlTest;
-import com.norconex.crawler.core2.junit.CrawlTest.Focus;
-import com.norconex.crawler.core2.stubs.CrawlDocContextStubber;
+import com.norconex.crawler.core.stubs.CrawlDocContextStubber;
 
 class ImportModuleStageTest {
 

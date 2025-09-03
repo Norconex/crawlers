@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.fetch;
 
-import com.norconex.crawler.core2.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 public interface FetchResponse {
 

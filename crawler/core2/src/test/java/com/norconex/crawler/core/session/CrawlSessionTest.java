@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import com.norconex.crawler.core.cluster.Cache;
 import com.norconex.crawler.core.cluster.CacheManager;
 import com.norconex.crawler.core.cluster.Cluster;
-import com.norconex.crawler.core2.context.CrawlContext;
+import com.norconex.crawler.core.context.CrawlContext;
 
 class CrawlSessionTest {
 

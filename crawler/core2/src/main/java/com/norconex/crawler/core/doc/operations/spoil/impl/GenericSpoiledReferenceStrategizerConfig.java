@@ -19,7 +19,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategy;
-import com.norconex.crawler.core2.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

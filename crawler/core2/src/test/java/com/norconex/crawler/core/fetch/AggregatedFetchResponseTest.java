@@ -20,9 +20,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.core.fetch.AggregatedFetchResponse;
-import com.norconex.crawler.core.fetch.FetchResponse;
-import com.norconex.crawler.core2.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.Data;
 

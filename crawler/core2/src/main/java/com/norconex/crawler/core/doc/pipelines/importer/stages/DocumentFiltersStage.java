@@ -19,8 +19,8 @@ import java.util.function.Predicate;
 import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
 import com.norconex.crawler.core.doc.pipelines.OnMatchFiltersResolver;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core2.event.CrawlerEvent;
-import com.norconex.crawler.core2.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.importer.doc.Doc;
 
 import lombok.extern.slf4j.Slf4j;

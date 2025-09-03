@@ -24,8 +24,8 @@ import java.util.function.Consumer;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core2.junit.CrawlTest;
-import com.norconex.crawler.core2.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core.junit.CrawlTest.Focus;
 
 class QueueBootstrapperTest {
 

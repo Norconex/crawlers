@@ -20,8 +20,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.crawler.core.doc.pipelines.ChecksumStageUtil;
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
-import com.norconex.crawler.core2.event.CrawlerEvent;
-import com.norconex.crawler.core2.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 /**
  * Common pipeline stage for creating a document checksum.
