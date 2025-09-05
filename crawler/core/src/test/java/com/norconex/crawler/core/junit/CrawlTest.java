@@ -29,7 +29,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.cluster.ClusterConnector;
-import com.norconex.crawler.core.mocks.cluster.MockSingleNodeConnector;
+import com.norconex.crawler.core.mocks.cluster.MockMultiNodesConnector;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
 import com.norconex.crawler.core.stubs.CrawlerConfigStubber;
 
@@ -113,7 +113,8 @@ public @interface CrawlTest {
             CrawlDriver>> driverFactory() default MockCrawlDriverFactory.class;
 
     Class<? extends ClusterConnector>[] clusters() default {
-            MockSingleNodeConnector.class
+            MockMultiNodesConnector.class
+            //MockSingleNodeConnector.class
     };
 
     /**

@@ -52,6 +52,21 @@ public interface Cache<T> {
 
     T getOrDefault(String key, T defaultValue);
 
+    /**
+     * If the specified key is not already associated with a value, associates
+     * it with the given value. This is equivalent to, for this cache:
+     * <pre>
+     * if (!cache.containsKey(key))
+     *     return map.put(key, value);
+     * else
+     *     return map.get(key);
+     *</pre>
+     * except that the action is performed atomically.
+     * @param key key with which the specified value is to be associated
+     * @param value  value to be associated with the specified key
+     * @return the previous value associated with the specified key, or
+     *     {@code null} if there was no mapping for the key.
+     */
     T putIfAbsent(String key, T value);
 
     /**

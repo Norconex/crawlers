@@ -107,6 +107,6 @@ public class StopController {
      * @param controlCache the cache to send the signal to
      */
     public static void sendStop(Cache<String> controlCache) {
-        controlCache.put(STOP_KEY, "1");
+        controlCache.putIfAbsent(STOP_KEY, "1");
     }
 }

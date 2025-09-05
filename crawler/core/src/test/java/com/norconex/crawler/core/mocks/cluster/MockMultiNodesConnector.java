@@ -19,7 +19,7 @@ import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanClusterConnector;
 import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanUtil;
 
-public final class MockMultiNodesConnector extends InfinispanClusterConnector {
+public class MockMultiNodesConnector extends InfinispanClusterConnector {
     @Override
     public Cluster connect() {
         return Configurable.configure(

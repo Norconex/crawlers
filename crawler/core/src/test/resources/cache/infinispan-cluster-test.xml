@@ -18,10 +18,35 @@
     </distributed-cache-configuration>
 
     <distributed-cache-configuration name="indexed-template" configuration="default">
-      <indexing enabled="true" storage="local-heap">
+      <indexing 
+        enabled="true" 
+        storage="local-heap"
+        startup-mode="auto"
+        indexing-mode="auto"
+      >
+        
+      
         <indexed-entities>
           <indexed-entity>com.norconex.crawler.core.cluster.impl.infinispan.CrawlEntryProtoAdapter</indexed-entity>
         </indexed-entities>
+      
+ <!--        
+ 
+        startup-mode="auto"
+        indexing-mode="auto"
+           <indexed-entity>com.norconex.crawler.core.ledger.CrawlEntry</indexed-entity>
+ 
+ <index-sharding shards="6" /> -->
+          <!-- Because we use an adapter, the entity name becomes by default 
+               the targetted class name unless we explicitely specify a 
+               package with it via annotations. -->
+<!--                
+<indexed-entity>com.norconex.crawler.core.cluster.impl.infinispan.CrawlEntryProtoAdapter</indexed-entity>
+           <indexed-entity>com.norconex.crawler.core.ledger.CrawlEntry</indexed-entity>
+ -->
+<!--
+            <indexed-entity>ledger.CrawlEntry</indexed-entity> 
+            -->
       </indexing>
     </distributed-cache-configuration>
 

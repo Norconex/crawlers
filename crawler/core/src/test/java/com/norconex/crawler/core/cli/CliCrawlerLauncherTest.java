@@ -418,12 +418,12 @@ class CliCrawlerLauncherTest {
 
     }
 
-    //TODO move this to its own test with more elaborate tests involving
-    // actually stopping a crawl session and being on a cluster?
     @SingleAndMultiNodesTest
     void testStop(int numOfNodes) {
         // we are just testing that the CLI is launching, not that it actually
         // stopped, which is tested separately.
+        // when testing with two nodes, it should be smart enough to not stop
+        // it twice
         var exit = launch(numOfNodes, "stop", "-config=");
         assertThat(exit.ok()).isTrue();
     }
@@ -512,6 +512,15 @@ class CliCrawlerLauncherTest {
             ConcurrentUtil.wrapAsCompletionException(e);
         }
         executor.shutdown();
+        try {
+            if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+                LOG.warn("Executor did not terminate in time, forcing shutdown.");
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
 
         // Propagate exception if any
         if (thrownException.get() != null) {

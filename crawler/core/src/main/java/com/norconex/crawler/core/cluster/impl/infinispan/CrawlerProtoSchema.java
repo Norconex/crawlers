@@ -29,10 +29,13 @@ import com.norconex.crawler.core.ledger.ProcessingStatus;
             StepRecord.class,
             PipelineStatus.class,
             ProcessingStatus.class
-    }
-    //    schemaFileName = "crawler.proto",
-    //    schemaFilePath = "proto/",
-    //    schemaPackageName = "proto"
+    },
+    //    schemaPackageName = "ledger",
+    //    ,
+    //    schemaPackageName = "ledger"
+    //,
+    schemaFileName = "crawler.proto",
+    schemaFilePath = "proto/"
 )
 public interface CrawlerProtoSchema extends GeneratedSchema {
     // No methods needed here
