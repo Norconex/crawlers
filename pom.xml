@@ -1250,10 +1250,12 @@
     <module>committer/azurecognitivesearch</module>
     <module>committer/apachekafka</module>
     <module>importer</module>
+    <!-- Grid modules temporarily disabled due to missing directories
     <module>grid/core</module>
     <module>grid/local</module>
     <module>grid/jdbc</module>
     <module>grid/calcite</module>
+    -->
     <module>crawler/core</module>
     <module>crawler/web</module>
     <module>crawler/fs</module>
