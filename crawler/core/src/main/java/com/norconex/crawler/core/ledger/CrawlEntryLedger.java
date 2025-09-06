@@ -14,7 +14,9 @@
  */
 package com.norconex.crawler.core.ledger;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Iterator;
@@ -26,10 +28,8 @@ import java.util.function.Consumer;
 import com.norconex.crawler.core.cluster.Cache;
 import com.norconex.crawler.core.cluster.CacheManager;
 import com.norconex.crawler.core.cluster.Counter;
-import com.norconex.crawler.core.cluster.impl.infinispan.CrawlEntryCacheAdapter;
-import com.norconex.crawler.core.cluster.impl.infinispan.CrawlEntryProtoAdapter;
-import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.session.CrawlSession;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -96,11 +96,16 @@ public final class CrawlEntryLedger {
         var previousAlias = LEDGER_A.equals(currentAlias)
                 ? LEDGER_B
                 : LEDGER_A;
-        currentLedger = new CrawlEntryCacheAdapter(cacheManager.getCache(
-                currentAlias, CrawlEntryProtoAdapter.class));
+        //        currentLedger = new CrawlEntryCacheAdapter(cacheManager.getCache(
+        //                currentAlias, CrawlEntryProtoAdapter.class));
+        //        previousLedger = cacheManager.cacheExists(previousAlias)
+        //                ? new CrawlEntryCacheAdapter(cacheManager
+        //                        .getCache(previousAlias, CrawlEntryProtoAdapter.class))
+        //                : null;
+        currentLedger = cacheManager.getCache(
+                currentAlias, CrawlEntry.class);
         previousLedger = cacheManager.cacheExists(previousAlias)
-                ? new CrawlEntryCacheAdapter(cacheManager
-                        .getCache(previousAlias, CrawlEntryProtoAdapter.class))
+                ? cacheManager.getCache(previousAlias, CrawlEntry.class)
                 : null;
 
         // Initialize status counters for each ProcessingStatus value
@@ -288,7 +293,6 @@ public final class CrawlEntryLedger {
     public List<CrawlEntry> nextQueuedBatch(int batchSize) {
         List<CrawlEntry> batch = new ArrayList<>(batchSize);
         currentLedger.queryStream(
-                //                fromWhereStatusQuery(ProcessingStatus.QUEUED),
                 fromOrderedQueuedQuery(),
                 entry -> {
                     if (batch.size() >= batchSize)
@@ -309,7 +313,6 @@ public final class CrawlEntryLedger {
     }
 
     public Optional<CrawlEntry> nextQueued() {
-        // Find the first QUEUED entry
         var query = fromWhereStatusQuery(ProcessingStatus.QUEUED);
         var queuedEntries = currentLedger.queryIterator(query);
         if (!queuedEntries.hasNext()) {
@@ -338,7 +341,8 @@ public final class CrawlEntryLedger {
      * @return matching entries
      */
     public Iterator<CrawlEntry> getEntriesByStatus(ProcessingStatus status) {
-        return currentLedger.queryIterator(fromWhereStatusQuery(status));
+        var entries = currentLedger.queryIterator(fromWhereStatusQuery(status));
+        return entries;
     }
 
     /**
@@ -369,12 +373,9 @@ public final class CrawlEntryLedger {
      * to start fresh.
      */
     public synchronized void archiveCurrentLedger() {
-        //TODO really clear cache or keep to have longer history of
-        // each items?
         if (previousLedger != null) {
             previousLedger.clear();
         }
-
         var currentAlias = cacheManager.getCrawlSessionCache()
                 .get(CURRENT_LEDGER_ALIAS_KEY).get();
         currentAlias = LEDGER_A.equals(currentAlias)
@@ -416,7 +417,7 @@ public final class CrawlEntryLedger {
         var updated = currentLedger.computeIfPresent(reference, (k, v) -> {
             if (v.getProcessingStatus() == ProcessingStatus.QUEUED) {
                 v.setProcessingStatus(ProcessingStatus.PROCESSING);
-                v.setProcessingAt(ZonedDateTime.now());
+                v.setProcessingAt(Instant.now().atZone(ZoneOffset.UTC));
             }
             return v;
         });
@@ -430,16 +431,23 @@ public final class CrawlEntryLedger {
     }
 
     private String fromWhereStatusQuery(ProcessingStatus status) {
-        return "FROM %s WHERE processingStatus = '%s'"
-                .formatted(CrawlEntry.class.getName(), status.name());
+        return "FROM %s WHERE processingStatus = '%s'".formatted(
+                CrawlEntry.class.getName(),
+                status.name());
     }
 
     private String fromOrderedQueuedQuery() {
-        return "FROM %s WHERE processingStatus = '%s' ORDER BY %s"
-                .formatted(
-                        CrawlEntry.class.getName(),
-                        ProcessingStatus.QUEUED.name(),
-                        CrawlEntry.Fields.queuedAt);
+        return "FROM %s WHERE processingStatus = '%s' ORDER BY %s".formatted(
+                CrawlEntry.class.getName(),
+                ProcessingStatus.QUEUED.name(),
+                CrawlEntry.Fields.queuedAt);
     }
+    //    private String fromOrderedQueuedQuery() {
+    //        return "FROM %s WHERE processingStatus = '%s' ORDER BY %s"
+    //                .formatted(
+    //                        CrawlEntry.class.getName(),
+    //                            ProcessingStatus.QUEUED.name(),
+    //                            CrawlEntry.Fields.queuedAt);
+    //    }
 
 }

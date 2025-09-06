@@ -56,9 +56,6 @@ public class CrawlEntry {
     private ZonedDateTime processingAt;
     @ToString.Exclude
     private ZonedDateTime processedAt;
-    //    @ToString.Exclude
-    //    private ZonedDateTime crawledAt;
-    //    private ZonedDateTime modifiedAt;
     private boolean orphan;
     private boolean deleted;
     private String reference;
@@ -140,28 +137,4 @@ public class CrawlEntry {
     public void setQueuedAt(ZonedDateTime queuedAt) {
         this.queuedAt = queuedAt;
     }
-
-    //    /**
-    //     * Gets the crawled date.
-    //     * @return the crawled date
-    //         */
-    //    public ZonedDateTime getCrawledAt() {
-    //        return crawledAt;
-    //    }
-    //
-    //    /**
-    //     * Sets the crawled date.
-    //     * @param crawledAt the crawled date
-    //     */
-    //    public void setCrawledAt(ZonedDateTime crawledAt) {
-    //        this.crawledAt = crawledAt;
-    //    }
-    //
-    //    public ZonedDateTime getModifiedAt() {
-    //        return modifiedAt;
-    //    }
-    //
-    //    public void setModifiedAt(ZonedDateTime modifiedAt) {
-    //        this.modifiedAt = modifiedAt;
-    //    }
 }

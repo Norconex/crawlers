@@ -50,8 +50,16 @@
       </persistence>
     </distributed-cache-configuration>
 
-    <distributed-cache-configuration name="indexed-template" configuration="base-template">
-      <indexing enabled="true" storage="local-heap">
+    <distributed-cache-configuration 
+      name="indexed-template" 
+      configuration="base-template"
+    >
+      <indexing 
+        enabled="true" 
+        storage="local-heap"
+        startup-mode="auto"
+        indexing-mode="auto"
+      >
         <indexed-entities>
           <indexed-entity>com.norconex.crawler.core.cluster.impl.infinispan.CrawlEntryProtoAdapter</indexed-entity>
         </indexed-entities>

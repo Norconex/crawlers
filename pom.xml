@@ -220,7 +220,6 @@
         <version>${project.version}</version>
       </dependency>
 
-
       <!-- Jackson dependencies -->
 
       <dependency>

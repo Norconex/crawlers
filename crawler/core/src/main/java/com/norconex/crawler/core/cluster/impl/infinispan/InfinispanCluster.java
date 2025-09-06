@@ -30,6 +30,7 @@ import org.infinispan.remoting.transport.Address;
 
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.impl.infinispan.event.CoordinatorChangeListener;
+import com.norconex.crawler.core.ledger.CrawlEntry;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 
@@ -112,11 +113,14 @@ public class InfinispanCluster implements Cluster {
         // Listen for coordinator change events
         defCacheManager.addListener(new ClusterViewListener(this));
 
+        // Telling it to index our adapter class.
+        // SearchMapping searchMapping = Search.getSearchMapping(defCacheManager);
+        // searchMapping.setAnnotatedEntity(CrawlEntryProtoAdapter.class);
+
         stopController =
                 new StopController(cacheManager.getAdminCache(), ignored -> {
                     pipelineManager.stop();
-                    //TODO more to stop?
-                    close();
+                    //closing should be done by framework later
                 });
         stopController.start();
     }

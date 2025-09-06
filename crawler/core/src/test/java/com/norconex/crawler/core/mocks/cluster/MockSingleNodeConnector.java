@@ -14,18 +14,16 @@
  */
 package com.norconex.crawler.core.mocks.cluster;
 
-import com.norconex.commons.lang.config.Configurable;
-import com.norconex.crawler.core.cluster.Cluster;
-import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanClusterConnector;
-import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanUtil;
-
-public final class MockSingleNodeConnector extends InfinispanClusterConnector {
-    @Override
-    public Cluster connect() {
-        return Configurable.configure(
-                new InfinispanClusterConnector(),
-                c -> c.setInfinispan(InfinispanUtil.configBuilderHolder(
-                        "/cache/infinispan-single-test.xml")))
-                .connect();
-    }
+public class MockSingleNodeConnector extends MockMultiNodesConnector {
 }
+
+//public final class MockSingleNodeConnector extends InfinispanClusterConnector {
+//    @Override
+//    public Cluster connect() {
+//        return Configurable.configure(
+//                new InfinispanClusterConnector(),
+//                c -> c.setInfinispan(InfinispanUtil.configBuilderHolder(
+//                        "/cache/infinispan-single-test.xml")))
+//                .connect();
+//    }
+//}

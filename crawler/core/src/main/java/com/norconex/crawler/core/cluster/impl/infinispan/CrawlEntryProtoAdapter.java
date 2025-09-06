@@ -28,7 +28,8 @@ import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
-import org.infinispan.protostream.annotations.Proto;
+import org.infinispan.protostream.annotations.ProtoAdapter;
+import org.infinispan.protostream.annotations.ProtoFactory;
 import org.infinispan.protostream.annotations.ProtoField;
 
 import com.norconex.commons.lang.ClassUtil;
@@ -36,79 +37,25 @@ import com.norconex.crawler.core.cluster.CacheException;
 import com.norconex.crawler.core.ledger.CrawlEntry;
 import com.norconex.crawler.core.ledger.ProcessingStatus;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
-/**
- * Protocol Buffers adapter for CrawlEntry serialization in Infinispan.
- * Only essential fields are serialized directly as ProtoFields, while
- * the rest are stored in a metadata map.
- */
-@Proto
+@ProtoAdapter(CrawlEntry.class)
 @Indexed
-@EqualsAndHashCode
-@ToString
 public class CrawlEntryProtoAdapter {
 
-    @ProtoField(number = 1)
-    public String type;
+    @ProtoFactory
+    public CrawlEntry create( //NOSONAR
+            String type,
+            String reference,
+            ProcessingStatus processingStatus,
+            String metaChecksum,
+            String contentChecksum,
+            long queuedAt,
+            long processingAt,
+            Map<String, String> otherProps) {
 
-    @ProtoField(number = 2)
-    public String reference;
-
-    @ProtoField(number = 3)
-    @GenericField
-    public ProcessingStatus processingStatus;
-
-    @ProtoField(number = 4)
-    public String metaChecksum;
-
-    @ProtoField(number = 5)
-    public String contentChecksum;
-
-    @ProtoField(number = 6)
-    @GenericField
-    public long queuedAt;
-
-    @ProtoField(number = 7)
-    @GenericField
-    public long processingAt;
-
-    @ProtoField(number = 8)
-    public Map<String, String> otherProps;
-
-    public CrawlEntryProtoAdapter() {
-    }
-
-    public CrawlEntryProtoAdapter(CrawlEntry entry) {
-        try {
-            type = entry.getClass().getName();
-            reference = entry.getReference();
-            processingStatus = entry.getProcessingStatus();
-            metaChecksum = entry.getMetaChecksum();
-            contentChecksum = entry.getContentChecksum();
-            queuedAt = toEpoch(entry.getQueuedAt());
-            processingAt = toEpoch(entry.getProcessingAt());
-            var props = BeanUtils.describe(entry);
-            Stream.of(
-                    CrawlEntry.Fields.reference,
-                    CrawlEntry.Fields.processingStatus,
-                    CrawlEntry.Fields.metaChecksum,
-                    CrawlEntry.Fields.contentChecksum,
-                    CrawlEntry.Fields.queuedAt,
-                    CrawlEntry.Fields.processingAt).forEach(props::remove);
-            otherProps = props;
-        } catch (IllegalAccessException | InvocationTargetException
-                | NoSuchMethodException e) {
-            throw new CacheException("Could not serialize crawl entry.", e);
-        }
-
-    }
-
-    public CrawlEntry toCrawlEntry() {
         if (StringUtils.isBlank(type)) {
             throw new CacheException("Crawl entry type is not defined.");
         }
+
         try {
             var entry = (CrawlEntry) ClassUtil.newInstance(
                     ClassUtils.getClass(type));
@@ -118,9 +65,11 @@ public class CrawlEntryProtoAdapter {
             entry.setContentChecksum(contentChecksum);
             entry.setQueuedAt(toZdt(queuedAt));
             entry.setProcessingAt(toZdt(processingAt));
+
             if (otherProps != null) {
                 BeanUtils.populate(entry, otherProps);
             }
+
             return entry;
         } catch (IllegalAccessException | InvocationTargetException
                 | ClassNotFoundException e) {
@@ -129,6 +78,64 @@ public class CrawlEntryProtoAdapter {
         }
     }
 
+    // Field extractors with indexing
+    @ProtoField(1)
+    public String getType(CrawlEntry entry) {
+        return entry.getClass().getName();
+    }
+
+    @ProtoField(2)
+    public String getReference(CrawlEntry entry) {
+        return entry.getReference();
+    }
+
+    @ProtoField(value = 3, name = "processingStatus")
+    @GenericField(name = "processingStatus")
+    public ProcessingStatus getProcessingStatus(CrawlEntry entry) {
+        return entry.getProcessingStatus();
+    }
+
+    @ProtoField(4)
+    public String getMetaChecksum(CrawlEntry entry) {
+        return entry.getMetaChecksum();
+    }
+
+    @ProtoField(5)
+    public String getContentChecksum(CrawlEntry entry) {
+        return entry.getContentChecksum();
+    }
+
+    @ProtoField(value = 6, name = "queuedAt")
+    @GenericField(name = "queuedAt")
+    public long getQueuedAt(CrawlEntry entry) {
+        return toEpoch(entry.getQueuedAt());
+    }
+
+    @ProtoField(7)
+    @GenericField
+    public long getProcessingAt(CrawlEntry entry) {
+        return toEpoch(entry.getProcessingAt());
+    }
+
+    @ProtoField(8)
+    public Map<String, String> getOtherProps(CrawlEntry entry) {
+        try {
+            var props = BeanUtils.describe(entry);
+            Stream.of(
+                    CrawlEntry.Fields.reference,
+                    CrawlEntry.Fields.processingStatus,
+                    CrawlEntry.Fields.metaChecksum,
+                    CrawlEntry.Fields.contentChecksum,
+                    CrawlEntry.Fields.queuedAt,
+                    CrawlEntry.Fields.processingAt).forEach(props::remove);
+            return props;
+        } catch (IllegalAccessException | InvocationTargetException
+                | NoSuchMethodException e) {
+            throw new CacheException("Could not serialize crawl entry.", e);
+        }
+    }
+
+    // Utility methods
     private static long toEpoch(ZonedDateTime zdt) {
         return ofNullable(zdt)
                 .map(dt -> dt.toInstant().toEpochMilli())
