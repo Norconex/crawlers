@@ -219,21 +219,7 @@
         <artifactId>nx-committer-core</artifactId>
         <version>${project.version}</version>
       </dependency>
-      <dependency>
-        <groupId>com.norconex.crawler</groupId>
-        <artifactId>nx-grid-core</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.norconex.crawler</groupId>
-        <artifactId>nx-grid-local</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.norconex.crawler</groupId>
-        <artifactId>nx-grid-jdbc</artifactId>
-        <version>${project.version}</version>
-      </dependency>
+
 
       <!-- Jackson dependencies -->
 
@@ -1250,10 +1236,6 @@
     <module>committer/azurecognitivesearch</module>
     <module>committer/apachekafka</module>
     <module>importer</module>
-    <module>grid/core</module>
-    <module>grid/local</module>
-    <module>grid/jdbc</module>
-    <module>grid/calcite</module>
     <module>crawler/core</module>
     <module>crawler/web</module>
     <module>crawler/fs</module>

@@ -45,14 +45,14 @@ java -version  # Verify Java 17+
 
 ### Build Commands
 ```bash
-# WARNING: Full reactor build currently fails due to missing grid/* modules
-# Use module-specific builds instead:
-
-# Compile single module (RECOMMENDED)
+# Compile single module (RECOMMENDED for development)
 mvn clean compile -pl committer/core
 
 # Compile multiple related modules
-mvn clean compile -pl committer/core,committer/solr,importer
+mvn clean compile -pl committer/core,committer/solr
+
+# Full reactor build (all modules)
+mvn clean compile
 
 # Full package with distribution (single module)
 mvn clean package -pl committer/core -Dmaven.javadoc.skip=true
@@ -92,21 +92,17 @@ mvn versions:display-dependency-updates -pl committer/core
 - Single module compile: ~10-20 seconds
 - Single module test: ~15-30 seconds  
 - Single module package: ~20-60 seconds
-- Full reactor operations: **Currently not supported due to missing modules**
+- Full reactor build: ~90-120 seconds (may fail at importer due to dependency issues)
 
 ### Known Build Issues & Workarounds
 
-1. **Missing Grid Modules**: The main POM references `grid/core`, `grid/local`, `grid/jdbc`, `grid/calcite` modules that don't exist
-   - **Workaround**: Always use `-pl module/path` to build specific modules
-   - **Never run**: `mvn clean install` without `-pl` flag
+1. **Importer Dependency Issues**: `edu.ucar:jj2000:jar:5.4` artifact may fail to resolve
+   - **Workaround**: Skip importer module with `-pl '!importer'` or use `-Dmaven.test.skip=true`
 
-2. **Importer Dependency Issues**: `edu.ucar:jj2000:jar:5.4` artifact may fail to resolve
-   - **Workaround**: Skip importer module or use `-Dmaven.test.skip=true`
-
-3. **EditorConfig Warnings**: XML files may show indent warnings  
+2. **EditorConfig Warnings**: XML files may show indent warnings  
    - **Expected behavior**: Warnings don't fail the build
 
-4. **Memory Requirements**: Use `-Xmx3g` for large builds
+3. **Memory Requirements**: Use `-Xmx3g` for large builds
    - **Example**: `mvn clean package -pl crawler/web -DargLine="-Xmx3g"`
 
 ## Project Layout and Architecture
@@ -172,15 +168,22 @@ mvn versions:display-dependency-updates -pl committer/core
 - **Test module isolation**: Always use `-pl module/path` for testing
 
 ### Module-Specific Development
-- **Always specify module**: Use `-pl committer/core` pattern
+- **Module-specific builds recommended**: Use `-pl committer/core` pattern for faster iteration
 - **Understand dependencies**: Check each module's POM for specific requirements
 - **Build incrementally**: Test module changes before full builds
+- **Skip problematic modules**: Use `-pl '!importer'` to exclude importer if needed
 
 ## Essential Commands Reference
 
 ```bash
 # Quick development cycle (single module)
 mvn clean compile test -pl committer/core
+
+# Full reactor build (all modules, may fail at importer)
+mvn clean compile
+
+# Build excluding importer module
+mvn clean compile -pl '!importer'
 
 # Full package with validation (single module)  
 mvn clean package -pl committer/core -Pjacoco
@@ -198,3 +201,4 @@ mvn formatter:validate editorconfig:check -pl committer/core
 ## Trust These Instructions
 
 These instructions are validated against the current codebase state. Only search for additional information if you encounter errors not covered here or if these instructions prove incomplete. The build patterns documented here are tested and work reliably for individual module development.
+
