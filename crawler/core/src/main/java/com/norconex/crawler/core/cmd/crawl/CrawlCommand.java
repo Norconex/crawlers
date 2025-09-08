@@ -18,8 +18,10 @@ import static com.norconex.crawler.core.util.ExceptionSwallower.swallow;
 import static java.util.Optional.ofNullable;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import com.norconex.crawler.core.cluster.pipeline.PipelineProgress;
@@ -28,11 +30,12 @@ import com.norconex.crawler.core.cluster.pipeline.PipelineResult;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.crawl.pipeline.CrawlPipelineFactory;
+import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.metrics.CrawlerMetricsJMX;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlState;
 import com.norconex.crawler.core.util.ConcurrentUtil;
-import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.metrics.CrawlerMetricsJMX;
+import com.norconex.crawler.core.util.ExceptionSwallower;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -76,8 +79,10 @@ public class CrawlCommand implements Command {
             }
         }
 
-        // Start coordinator-only progress logger with pipeline progress supplier
-        CrawlProgressLogger logger = null;
+        // Start coordinator-only progress logger with pipeline progress
+        // supplier
+        // TODO this likely does not survive a change of coordinator???
+        final var loggerRef = new AtomicReference<CrawlProgressLogger>();
         if (session.getCluster().getLocalNode().isCoordinator()) {
             Supplier<PipelineProgress> supplier = () -> {
                 try {
@@ -87,9 +92,9 @@ public class CrawlCommand implements Command {
                     return null; // logger is resilient to nulls
                 }
             };
-            logger = new CrawlProgressLogger(ctx, supplier);
-            var finalLogger = logger;
-            CompletableFuture.runAsync(finalLogger::start);
+            var logger = new CrawlProgressLogger(ctx, supplier);
+            loggerRef.set(logger);
+            CompletableFuture.runAsync(logger::start);
         }
 
         CrawlState finalState = null;
@@ -108,27 +113,11 @@ public class CrawlCommand implements Command {
                             : ConcurrentUtil.get(pipeFuture);
 
             // Stop logger now that pipeline finished
-            if (logger != null) {
-                try {
-                    logger.stop();
-                } catch (Exception ignore) {
-                }
-            }
+            closeLogger(loggerRef.get());
             finalState = session.oncePerSessionAndGet("final-status-task",
                     () -> storeFinalCrawlState(session, result));
         } catch (Exception e) {
-            LOG.error("Crawler execution failed.", e);
-            if (session.getCluster().getLocalNode().isCoordinator()) {
-                // Attempt to stop logger even on failure
-                try {
-                    if (logger != null) {
-                        logger.stop();
-                    }
-                } catch (Exception ignore) {
-                }
-            }
-            finalState = CrawlState.FAILED;
-            session.updateCrawlState(CrawlState.FAILED);
+            finalState = handleException(e, session, loggerRef.get());
         }
 
         session.fire(CrawlerEvent.CRAWLER_CRAWL_END, this);
@@ -141,6 +130,33 @@ public class CrawlCommand implements Command {
                 swallow(() -> PipelineProgressJMX.unregister(ctx));
             }
         }
+    }
+
+    private CrawlState handleException(
+            Exception e, CrawlSession session, CrawlProgressLogger logger) {
+        if (e instanceof CompletionException ce
+                && ce.getCause() instanceof InterruptedException) {
+            LOG.warn("Crawler interrupted, terminating gracefully.");
+            Thread.currentThread().interrupt(); // restore flag
+            session.updateCrawlState(CrawlState.STOPPED);
+            closeLogger(logger);
+            return CrawlState.STOPPED;
+        }
+        LOG.error("Crawler execution failed.", e);
+        if (session.getCluster().getLocalNode().isCoordinator()) {
+            // Attempt to stop logger even on failure
+            closeLogger(logger);
+        }
+        session.updateCrawlState(CrawlState.FAILED);
+        return CrawlState.FAILED;
+    }
+
+    private void closeLogger(CrawlProgressLogger logger) {
+        ExceptionSwallower.swallowQuietly(() -> {
+            if (logger != null) {
+                logger.stop();
+            }
+        });
     }
 
     private CrawlState storeFinalCrawlState(

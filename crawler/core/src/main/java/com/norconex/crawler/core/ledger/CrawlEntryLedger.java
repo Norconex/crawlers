@@ -15,7 +15,6 @@
 package com.norconex.crawler.core.ledger;
 
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -341,8 +340,7 @@ public final class CrawlEntryLedger {
      * @return matching entries
      */
     public Iterator<CrawlEntry> getEntriesByStatus(ProcessingStatus status) {
-        var entries = currentLedger.queryIterator(fromWhereStatusQuery(status));
-        return entries;
+        return currentLedger.queryIterator(fromWhereStatusQuery(status));
     }
 
     /**
@@ -377,7 +375,7 @@ public final class CrawlEntryLedger {
             previousLedger.clear();
         }
         var currentAlias = cacheManager.getCrawlSessionCache()
-                .get(CURRENT_LEDGER_ALIAS_KEY).get();
+                .get(CURRENT_LEDGER_ALIAS_KEY).orElse(null);
         currentAlias = LEDGER_A.equals(currentAlias)
                 ? LEDGER_B
                 : LEDGER_A;

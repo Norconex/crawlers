@@ -66,20 +66,10 @@
       </indexing>
     </distributed-cache-configuration>
 
-    <!-- Cache used for sharing and also persisting arbitrary counters.  -->
-    <distributed-cache 
-      name="counter-cache"
-      mode="SYNC"
-      owners="2"
-      statistics="true"
-    >
-      <persistence passivation="false">
-        <file-store />
-      </persistence>
-    </distributed-cache>
+
 
     <!-- For caches that don't survive a cluster run. -->
-    <distributed-cache 
+    <distributed-cache-configuration 
       name="ephemeral-template" 
       owners="2"
       mode="SYNC"
@@ -87,7 +77,7 @@
     >
       <expiration lifespan="-1"/>
       <persistence passivation="false"/>
-    </distributed-cache>
+    </distributed-cache-configuration>
 
     <!-- === CACHE MAPPINGS ================================================ -->
 
@@ -98,10 +88,22 @@
     <distributed-cache name="crawler"            configuration="base-template"/>
     <distributed-cache name="crawlSession"       configuration="base-template"/>
     <distributed-cache name="crawlRun"           configuration="ephemeral-template"/>
+    <distributed-cache name="crawlEventCounts"   configuration="base-template"/>
     <distributed-cache name="pipeCurrentStep"    configuration="base-template"/>
     <distributed-cache name="pipeWorkerStatuses" configuration="base-template"/>
     <distributed-cache name="ledger_a"           configuration="indexed-template"/>
     <distributed-cache name="ledger_b"           configuration="indexed-template"/>
+    <!-- Cache used for sharing and also persisting arbitrary counters.  -->
+    <distributed-cache 
+      name="counters"
+      mode="SYNC"
+      owners="2"
+      statistics="true"
+    >
+      <persistence passivation="false">
+        <file-store />
+      </persistence>
+    </distributed-cache>
 
   </cache-container>
   

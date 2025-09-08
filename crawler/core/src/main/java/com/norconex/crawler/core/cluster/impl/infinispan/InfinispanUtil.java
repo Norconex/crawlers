@@ -22,10 +22,14 @@ import org.infinispan.configuration.parsing.ParserRegistry;
 import org.infinispan.lifecycle.ComponentStatus;
 
 import com.google.common.base.Objects;
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.cluster.CacheException;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public final class InfinispanUtil {
     private InfinispanUtil() {
     }
@@ -42,14 +46,38 @@ public final class InfinispanUtil {
      */
     public static boolean isPipelineTerminated(
             Pipeline pipeline, StepRecord stepRecord) {
-        if (stepRecord == null) {
+        if (stepRecord == null || stepRecord.getStatus() == null) {
             return false;
         }
-        return stepRecord.getStatus() != null
-                && stepRecord.getStatus().isTerminal()
+        return stepRecord.getStatus().isTerminal()
                 && ((stepRecord.getStatus() != PipelineStatus.COMPLETED)
                         || Objects.equal(stepRecord.getStepId(),
                                 pipeline.getLastStep().getId()));
+    }
+
+    // either the first pipeline step or an existing one (joining mid-pipe).
+    public static StepRecord currentPipelineStepRecordOrFirst(
+            InfinispanCluster cluster, Pipeline pipeline) {
+        var pipelineKey = CacheKeys.pipelineKey(cluster, pipeline);
+        var stepRec = cluster.getCacheManager().getPipelineStepCache()
+                .get(pipelineKey)
+                .orElse(null);
+        if (stepRec == null) {
+            var stepId = pipeline.getFirstStep().getId();
+            stepRec = new StepRecord();
+            stepRec.setPipelineId(pipeline.getId());
+            stepRec.setStepId(stepId);
+            stepRec.setStatus(PipelineStatus.PENDING);
+            stepRec.setRunId(cluster.getCrawlSession().getCrawlRunId());
+            stepRec.setUpdatedAt(System.currentTimeMillis());
+        } else {
+            LOG.info("Resuming pipeline \"%s\" at step \"%s\" from status %s"
+                    .formatted(
+                            stepRec.getPipelineId(),
+                            stepRec.getStepId(),
+                            stepRec.getStatus()));
+        }
+        return stepRec;
     }
 
     public static boolean isClusterRunning(InfinispanCluster cluster) {
@@ -73,5 +101,30 @@ public final class InfinispanUtil {
 
     public static ConfigurationBuilderHolder defaultConfigBuilderHolder() {
         return configBuilderHolder("/cache/infinispan.xml");
+    }
+
+    public static void waitForClusterWarmUp(InfinispanCluster cluster) {
+        // Allow up to ~5 seconds for same-JVM multi-node tests to stabilize
+        var deadline = System.currentTimeMillis() + 5_000;
+        var lastNames = cluster.getNodeNames();
+        var stableTicks = 0;
+        while (System.currentTimeMillis() < deadline) {
+            if (!InfinispanUtil.isClusterRunning(cluster)) {
+                Sleeper.sleepMillis(50);
+                continue;
+            }
+            var names = cluster.getNodeNames();
+            if (names.equals(lastNames)) {
+                stableTicks++;
+            } else {
+                stableTicks = 0;
+            }
+            lastNames = names;
+            if (stableTicks >= 5) { // ~500ms of stability
+                return;
+            }
+            Sleeper.sleepMillis(100);
+        }
+        LOG.debug("Cluster warm-up timed out; proceeding.");
     }
 }

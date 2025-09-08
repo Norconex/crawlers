@@ -15,6 +15,7 @@
 package com.norconex.crawler.core.cluster.pipeline;
 
 import org.apache.commons.collections4.Bag;
+import org.apache.commons.collections4.bag.HashBag;
 
 import com.norconex.crawler.core.session.CrawlSession;
 
@@ -23,9 +24,11 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
 @Accessors(chain = true)
+@Slf4j
 public abstract class BaseStep implements Step {
 
     private final String id;
@@ -42,32 +45,43 @@ public abstract class BaseStep implements Step {
     @Override
     public PipelineStatus reduce(
             CrawlSession session, Bag<PipelineStatus> statuses) {
+        // Treat empty status bag as not-yet-started
+        // all pending
+        if (statuses.isEmpty() || statuses.stream()
+                .allMatch(status -> status == PipelineStatus.PENDING)) {
+            return PipelineStatus.PENDING;
+        }
+
+        // remove non-pending ones
+        var nonPendings = new HashBag<PipelineStatus>();
+        statuses.stream().forEach(status -> {
+            if (!status.isPending()) {
+                nonPendings.add(status, statuses.getCount(status));
+            }
+        });
+
         // all terminal
-        if (statuses.stream().allMatch(PipelineStatus::isTerminal)) {
-            if (statuses.getCount(PipelineStatus.COMPLETED) > 0) {
+        if (nonPendings.stream().allMatch(PipelineStatus::isTerminal)) {
+            if (nonPendings.getCount(PipelineStatus.COMPLETED) > 0) {
                 return PipelineStatus.COMPLETED;
             }
-            if (statuses.getCount(PipelineStatus.STOPPED) > 0) {
+            if (nonPendings.getCount(PipelineStatus.STOPPED) > 0) {
                 return PipelineStatus.STOPPED;
             }
-            if (statuses.getCount(PipelineStatus.FAILED) > 0) {
+            if (nonPendings.getCount(PipelineStatus.FAILED) > 0) {
                 return PipelineStatus.FAILED;
             }
             return PipelineStatus.EXPIRED;
         }
 
-        // all pending
-        if (statuses.stream()
-                .allMatch(status -> status == PipelineStatus.PENDING)) {
-            return PipelineStatus.PENDING;
-        }
-
         // all stopping or stopped
-        if (statuses.stream()
+        if (nonPendings.stream()
                 .allMatch(status -> status == PipelineStatus.STOPPING
                         || status == PipelineStatus.STOPPED)) {
             return PipelineStatus.STOPPING;
         }
+
+        //TODO maybe even if only one stopping, reduce to stopping?
 
         // We either have a mix of all running
         return PipelineStatus.RUNNING;

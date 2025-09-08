@@ -43,56 +43,78 @@ public final class CrawlRunInfoResolver {
      */
     public static CrawlRunInfo resolve(CrawlSession session) {
         var runId = resolveCrawlRunId(session);
+        var runCache = session.getCluster().getCacheManager()
+                .getCrawlRunCache();
+        var sessCache = session.getCluster().getCacheManager()
+                .getCrawlSessionCache();
 
-        return session.oncePerRunAndGet("crawlrun-info", () -> {
-            var info = getOrCreateCrawlRunInfo(session, runId);
-            if (info.getCrawlResumeState() == CrawlResumeState.NEW) {
-                LOG.info("Clearing any previous session-specific "
-                        + "cache information");
-                session.getCluster()
-                        .getCacheManager()
-                        .getCrawlSessionCache()
-                        .clear();
-            }
-            save(session, info);
-            return info;
-        });
+        // Fast-path: if another node already published the run info for
+        // this run in the ephemeral run cache, adopt it.
+        var existingJson = runCache.get(CRAWL_RUN_INFO_KEY).orElse(null);
+        if (existingJson != null) {
+            return SerialUtil.fromJson(existingJson, CrawlRunInfo.class);
+        }
+
+        // Try to derive next CrawlRunInfo based on prior persisted state
+        var prior = load(session).orElse(null);
+        final CrawlRunInfo info;
+        if (prior == null) {
+            info = newInfoForNewSession(session, runId);
+        } else if (Objects.equals(prior.getCrawlRunId(), runId)) {
+            LOG.info("Found an active crawl session. Joining it.");
+            info = prior;
+        } else {
+            var timedState = session.loadState();
+            info = buildForNextRun(session, runId, prior, timedState);
+        }
+
+        // Elect exactly one creator for this run's info using putIfAbsent.
+        var json = SerialUtil.toJsonString(info);
+        var prev = runCache.putIfAbsent(CRAWL_RUN_INFO_KEY, json);
+        if (prev != null) {
+            // Another node won the election; adopt the winning info.
+            return SerialUtil.fromJson(prev, CrawlRunInfo.class);
+        }
+
+        // We are the elected creator for this run. Perform one-time init.
+        if (prior == null) {
+            LOG.info(
+                    "Clearing any previous session-specific cache information");
+            sessCache.clear();
+        }
+        // Persist to session cache for cross-run reference and durability.
+        save(session, info);
+        return info;
     }
 
     private static String resolveCrawlRunId(CrawlSession session) {
-        return session.getCluster()
-                .getCacheManager()
-                .getCrawlRunCache()
-                .computeIfAbsent(
-                        CRAWL_RUN_ID_KEY, k -> "cr-" + new ULID().nextULID());
+        var cache = session.getCluster().getCacheManager().getCrawlRunCache();
+        var existing = cache.get(CRAWL_RUN_ID_KEY).orElse(null);
+        if (existing != null) {
+            return existing;
+        }
+        var newId = "cr-" + new ULID().nextULID();
+        var prev = cache.putIfAbsent(CRAWL_RUN_ID_KEY, newId);
+        return prev != null ? prev : newId;
     }
 
-    // Given crawlRunCache is ephemeral, we'll get or create an atomic
-    // computeOrGet id. Then the coordinator will compare that one with the
-    // one in crawl-session cache and if different will know if we are
-    // resuming or not.
-    private static CrawlRunInfo getOrCreateCrawlRunInfo(
+    private static CrawlRunInfo newInfoForNewSession(
             CrawlSession session, String runId) {
-        var info = load(session).orElse(null);
+        LOG.info("No previous crawl session detected. Going fresh.");
+        return CrawlRunInfo.builder()
+                .crawlRunId(runId)
+                .crawlSessionId("cs-" + new ULID().nextULID())
+                .crawlerId(session.getCrawlerId())
+                .crawlResumeState(CrawlResumeState.NEW)
+                .crawlMode(CrawlMode.FULL)
+                .build();
+    }
 
-        if (info == null) {
-            LOG.info("No previous crawl session detected. Going fresh.");
-            return CrawlRunInfo.builder()
-                    .crawlRunId(runId)
-                    .crawlSessionId("cs-" + new ULID().nextULID())
-                    .crawlerId(session.getCrawlerId())
-                    .crawlResumeState(CrawlResumeState.NEW)
-                    .crawlMode(CrawlMode.FULL)
-                    .build();
-        }
-
-        if (Objects.equals(info.getCrawlRunId(), runId)) {
-            LOG.info("Found an active crawl session. Joining it.");
-            return info;
-        }
-
-        var timedState = session.loadState();
-
+    private static CrawlRunInfo buildForNextRun(
+            CrawlSession session,
+            String runId,
+            CrawlRunInfo previous,
+            CrawlSession.State timedState) {
         var b = CrawlRunInfo.builder()
                 .crawlerId(session.getCrawlerId())
                 .crawlRunId(runId);
@@ -102,16 +124,16 @@ public final class CrawlRunInfoResolver {
                 LOG.warn("A previously aborted session was detected for "
                         + "crawler {}. Trying to resume it.",
                         session.getCrawlerId());
-                yield b.crawlMode(info.getCrawlMode())
-                        .crawlSessionId(info.getCrawlSessionId())
+                yield b.crawlMode(previous.getCrawlMode())
+                        .crawlSessionId(previous.getCrawlSessionId())
                         .crawlResumeState(CrawlResumeState.RESUMED)
                         .build();
             }
             case STOPPED -> {
                 LOG.info("A previously stopped crawl session was detected for "
                         + "crawler {}. Resuming it.", session.getCrawlerId());
-                yield b.crawlMode(info.getCrawlMode())
-                        .crawlSessionId(info.getCrawlSessionId())
+                yield b.crawlMode(previous.getCrawlMode())
+                        .crawlSessionId(previous.getCrawlSessionId())
                         .crawlResumeState(CrawlResumeState.RESUMED)
                         .build();
             }
@@ -129,8 +151,8 @@ public final class CrawlRunInfoResolver {
                 LOG.warn("A crawl session for crawler {} was detected but is "
                         + "marked as failed. Trying to resume it.",
                         session.getCrawlerId());
-                yield b.crawlMode(info.getCrawlMode())
-                        .crawlSessionId(info.getCrawlSessionId())
+                yield b.crawlMode(previous.getCrawlMode())
+                        .crawlSessionId(previous.getCrawlSessionId())
                         .crawlResumeState(CrawlResumeState.RESUMED)
                         .build();
             }

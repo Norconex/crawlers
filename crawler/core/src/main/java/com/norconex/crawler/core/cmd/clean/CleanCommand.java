@@ -34,36 +34,28 @@ public class CleanCommand implements Command {
         // Cleaning the cache should be done by a single node.
         // Use a lightweight cluster-wide lock in the admin cache to ensure
         // only one node performs the clear even under racy coordinator checks.
-        var isCoordinator = session.getCluster().getLocalNode().isCoordinator();
-        if (isCoordinator) {
-            var cacheManager = session.getCluster().getCacheManager();
-            var ephemeralCache = cacheManager.getCrawlRunCache();
-            var lockKey = "clean.lock";
-            var ownerId = ctx.getId() + ":" + Thread.currentThread().getName();
-            var acquired = ephemeralCache.putIfAbsent(lockKey, ownerId) == null;
-            if (acquired) {
-                try {
-                    cacheManager.forEach((cacheName, cache) -> {
-                        cache.clear();
-                    });
-                    LOG.info("Clean command executed.");
-                } finally {
-                    // Only remove if still owned by us
-                    // (avoid clearing someone else's lock in rare races)
-                    var current = ephemeralCache.get(lockKey);
-                    if (ownerId.equals(current.orElse(null))) {
-                        ephemeralCache.remove(lockKey);
-                    }
+        var cacheManager = session.getCluster().getCacheManager();
+        var ephemeralCache = cacheManager.getCrawlRunCache();
+        var lockKey = "clean.lock";
+        var ownerId = ctx.getId() + ":" + Thread.currentThread().getName();
+        var acquired = ephemeralCache.putIfAbsent(lockKey, ownerId) == null;
+        if (acquired) {
+            try {
+                cacheManager.forEach((cacheName, cache) -> {
+                    cache.clear();
+                });
+                LOG.info("Clean command executed.");
+            } finally {
+                // Only remove if still owned by us
+                // (avoid clearing someone else's lock in rare races)
+                var current = ephemeralCache.get(lockKey);
+                if (ownerId.equals(current.orElse(null))) {
+                    ephemeralCache.remove(lockKey);
                 }
-            } else {
-                LOG.warn("Another node is already performing cache cleaning "
-                        + "(lock held); skipping cache clear on this node.");
             }
         } else {
-            LOG.warn("""
-                    Cleaning of caches can only be performed on a single node. \
-                    Another node started that cleaning process so this one \
-                    will ignore the cache cleaning request.""");
+            LOG.warn("Another node is already performing cache cleaning "
+                    + "(lock held); skipping cache clear on this node.");
         }
         session.fire(CrawlerEvent.CRAWLER_CLEAN_END, this);
     }

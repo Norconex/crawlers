@@ -44,4 +44,39 @@ public enum PipelineStatus {
                 || this == FAILED
                 || this == EXPIRED;
     }
+
+    public boolean is(PipelineStatus status) {
+        if (status == null) {
+            return false;
+        }
+        return this == status;
+    }
+
+    public boolean isNot(PipelineStatus status) {
+        return !is(status);
+    }
+
+    public boolean isRunning() {
+        return this == RUNNING;
+    }
+
+    public boolean isStopping() {
+        return this == STOPPING;
+    }
+
+    public boolean isStopped() {
+        return this == STOPPED;
+    }
+
+    public boolean isComleted() {
+        return this == COMPLETED;
+    }
+
+    public boolean isPending() {
+        return this == PENDING;
+    }
+
+    public boolean isFailed() {
+        return this == FAILED;
+    }
 }

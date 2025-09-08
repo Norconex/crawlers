@@ -12,41 +12,24 @@
       statistics="true"
     >
       <memory max-count="100"/>
-      <expiration max-idle="30000"/>
+      <expiration max-idle="60000"/>
       <!-- Reduce test flakiness by avoiding rebalancing -->
-      <state-transfer enabled="false"/>
+      <state-transfer enabled="true"/>
     </distributed-cache-configuration>
 
-    <distributed-cache-configuration name="indexed-template" configuration="default">
+    <distributed-cache-configuration
+      name="indexed-template" 
+      configuration="default"
+    >
       <indexing 
         enabled="true" 
         storage="local-heap"
         startup-mode="auto"
         indexing-mode="auto"
       >
-        
-      
         <indexed-entities>
           <indexed-entity>com.norconex.crawler.core.cluster.impl.infinispan.CrawlEntryProtoAdapter</indexed-entity>
         </indexed-entities>
-      
- <!--        
- 
-        startup-mode="auto"
-        indexing-mode="auto"
-           <indexed-entity>com.norconex.crawler.core.ledger.CrawlEntry</indexed-entity>
- 
- <index-sharding shards="6" /> -->
-          <!-- Because we use an adapter, the entity name becomes by default 
-               the targetted class name unless we explicitely specify a 
-               package with it via annotations. -->
-<!--                
-<indexed-entity>com.norconex.crawler.core.cluster.impl.infinispan.CrawlEntryProtoAdapter</indexed-entity>
-           <indexed-entity>com.norconex.crawler.core.ledger.CrawlEntry</indexed-entity>
- -->
-<!--
-            <indexed-entity>ledger.CrawlEntry</indexed-entity> 
-            -->
       </indexing>
     </distributed-cache-configuration>
 
@@ -67,14 +50,16 @@
     <distributed-cache-configuration name="*_ephemeral" configuration="ephemeral-template"/>
 
     <!-- Explicit instances to avoid runtime definition races -->
-    <distributed-cache name="admin" configuration="default"/>
-    <distributed-cache name="crawler" configuration="default"/>
-    <distributed-cache name="crawlSession" configuration="default"/>
-    <distributed-cache name="crawlRun" configuration="ephemeral-template"/>
-    <distributed-cache name="pipeCurrentStep" configuration="default"/>
+    <distributed-cache name="admin"              configuration="default"/>
+    <distributed-cache name="counters"           configuration="default"/>
+    <distributed-cache name="crawler"            configuration="default"/>
+    <distributed-cache name="crawlSession"       configuration="default"/>
+    <distributed-cache name="crawlRun"           configuration="ephemeral-template"/>
+    <distributed-cache name="crawlEventCounts"   configuration="default"/>
+    <distributed-cache name="pipeCurrentStep"    configuration="default"/>
     <distributed-cache name="pipeWorkerStatuses" configuration="default"/>
-    <distributed-cache name="ledger_a" configuration="indexed-template"/>
-    <distributed-cache name="ledger_b" configuration="indexed-template"/>
+    <distributed-cache name="ledger_a"           configuration="indexed-template"/>
+    <distributed-cache name="ledger_b"           configuration="indexed-template"/>
   </cache-container>
 
 </infinispan>

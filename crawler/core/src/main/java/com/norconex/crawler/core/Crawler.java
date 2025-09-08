@@ -29,6 +29,7 @@ import com.norconex.crawler.core.cmd.storeexport.StoreExportCommand;
 import com.norconex.crawler.core.cmd.storeimport.StoreImportCommand;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionFactory;
+import com.norconex.crawler.core.util.ExceptionSwallower;
 import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.Getter;
@@ -61,9 +62,10 @@ public class Crawler {
      */
     public void crawl(boolean startClean) {
         if (startClean) {
-            executeCommand(new CleanCommand());
+            executeCommand(new CleanCommand(), new CrawlCommand());
+        } else {
+            executeCommand(new CrawlCommand());
         }
-        executeCommand(new CrawlCommand());
     }
 
     public void clean() {
@@ -89,22 +91,25 @@ public class Crawler {
         }
     }
 
-    private void executeCommand(Command command) {
+    private void executeCommand(Command... commands) {
         validateConfig(crawlConfig);
         LogUtil.logCommandIntro(LOG, crawlConfig);
-        LOG.info("Executing command: {}", command.getClass().getSimpleName());
         withCrawlSession(sess -> {
-            try {
-                ofNullable(sess.getCrawlContext().getCallbacks()
-                        .getBeforeCommand())
-                                .ifPresent(c -> c.accept(sess,
-                                        command.getClass()));
-                command.execute(sess);
-            } finally {
-                ofNullable(sess.getCrawlContext().getCallbacks()
-                        .getAfterCommand())
-                                .ifPresent(c -> c.accept(sess,
-                                        command.getClass()));
+            for (Command cmd : commands) {
+                try {
+                    LOG.info("Executing command: {}",
+                            cmd.getClass().getSimpleName());
+                    ofNullable(sess.getCrawlContext().getCallbacks()
+                            .getBeforeCommand()).ifPresent(
+                                    c -> c.accept(sess, cmd.getClass()));
+                    ExceptionSwallower
+                            .runWithInterruptClear(() -> cmd.execute(sess));
+                } finally {
+                    ofNullable(sess.getCrawlContext().getCallbacks()
+                            .getAfterCommand())
+                                    .ifPresent(c -> c.accept(sess,
+                                            cmd.getClass()));
+                }
             }
         });
     }

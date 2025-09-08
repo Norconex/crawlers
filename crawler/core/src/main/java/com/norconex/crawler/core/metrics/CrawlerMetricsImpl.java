@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CrawlerMetricsImpl implements CrawlerMetrics {
 
+    private static final String EVENT_COUNTS_CACHE = "crawlEventCounts";
     // Scheduled batch flush interval in seconds
     //TODO make configurable?
     private static final long BATCH_INTERVAL = TimeUnit.SECONDS.toMillis(1);
@@ -64,7 +65,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
         var ctx = crawlSession.getCrawlContext();
         ledger = ctx.getCrawlEntryLedger();
         eventCountsStore = crawlSession.getCluster().getCacheManager().getCache(
-                "CrawlerMetrics.eventCounts", Long.class);
+                EVENT_COUNTS_CACHE, Long.class);
         ctx.getEventManager().addListener(
                 event -> batchIncrementCounter(event.getName(), 1L));
         scheduler = Executors.newScheduledThreadPool(1);

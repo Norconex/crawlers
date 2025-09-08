@@ -14,22 +14,8 @@
  */
 package com.norconex.crawler.core.cluster.impl.infinispan;
 
-import static java.util.Optional.ofNullable;
-
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.collections4.Bag;
-import org.apache.commons.collections4.bag.HashBag;
-import org.apache.commons.lang3.StringUtils;
-
-import com.norconex.commons.lang.Sleeper;
-import com.norconex.crawler.core.cluster.Cache;
-import com.norconex.crawler.core.cluster.impl.infinispan.event.CacheEntryChangeListener;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.Step;
@@ -43,182 +29,104 @@ import lombok.extern.slf4j.Slf4j;
 public class PipelineCoordinator implements AutoCloseable {
 
     private final InfinispanCluster cluster;
-    private final Cache<StepRecord> pipelineActiveStepCache;
-    private final Cache<StepRecord> workerStatusCache;
     private final Pipeline pipeline;
-    private Step currentLocalStep;
-    private final Map<String, StepRecord> workerStatuses =
-            new HashMap<>();
-
-    private CacheEntryChangeListener<StepRecord> workerStatusListener;
-    private final AtomicBoolean closed = new AtomicBoolean(false);
-    private final AtomicBoolean stopRequested = new AtomicBoolean(false);
-
-    private CrawlSession session;
-    private long nodeExpiryTimeoutMs = 30_000;
-    private StepRecord activeStepRecord;
+    private PipelineCoordinatorState state;
+    private Step locallyExecutedStep;
 
     //TODO make sure it respects crawler-wide timeout if set
 
     public PipelineCoordinator(InfinispanCluster cluster, Pipeline pipeline) {
         this.cluster = cluster;
         this.pipeline = pipeline;
-        pipelineActiveStepCache =
-                cluster.getCacheManager().getPipelineStepCache();
-        workerStatusCache =
-                cluster.getCacheManager().getPipelineWorkerStatusesCache();
-        session = CrawlSession.get(cluster.getLocalNode());
-
-        var connector = session.getCrawlContext().getCrawlConfig()
-                .getClusterConnector();
-        if (connector instanceof InfinispanClusterConnector conn) {
-            nodeExpiryTimeoutMs =
-                    ofNullable(conn.getConfiguration().getNodeExpiryTimeout())
-                            .map(Duration::toMillis)
-                            .orElse(nodeExpiryTimeoutMs);
-        }
     }
 
     void start() {
         Thread.currentThread().setName("COORDINATOR");
         // Warm-up: wait briefly for stable cluster view and caches
-        waitForClusterWarmUp();
-        workerStatusListener = (key, rec) -> {
-            if (rec.getPipelineId().equals(pipeline.getId())) {
-                updateWorkerStatus(key, rec);
-            }
-        };
-        cluster.getPipelineManager()
-                .addWorkerStatusListener(workerStatusListener);
+        InfinispanUtil.waitForClusterWarmUp(cluster);
+
+        // Touch coordination caches to ensure they are created locally
+        try {
+            cluster.getCacheManager().getPipelineStepCache();
+            cluster.getCacheManager().getPipelineWorkerStatusCache();
+        } catch (Exception e) {
+            // ignore and retry until deadline
+        }
+
+        state = new PipelineCoordinatorState(cluster, pipeline);
         try {
             doCoordinatePipelineExecution();
+            LOG.info("Pipeline {}  terminated.", pipeline.getId());
         } catch (RuntimeException e) {
-            if (!isInterruption(e)) {
+            if (!ConcurrentUtil.isInterruption(e)) {
                 throw e;
             }
             LOG.info("Coordinator interrupted/demoted while coordinating "
                     + "pipeline {}, exiting gracefully.",
                     pipeline.getId());
         }
-        LOG.info("Pipeline {}  terminated.", pipeline.getId());
         close();
-    }
-
-    private boolean isInterruption(Throwable t) {
-        if (Thread.currentThread().isInterrupted()) {
-            return true;
-        }
-        var cur = t;
-        var depth = 0;
-        while (cur != null && depth++ < 5) {
-            if (cur instanceof java.lang.InterruptedException
-                    || cur instanceof java.util.concurrent.CancellationException) {
-                return true;
-            }
-            cur = cur.getCause();
-        }
-        return false;
-    }
-
-    private void waitForClusterWarmUp() {
-        // Allow up to ~5 seconds for same-JVM multi-node tests to stabilize
-        var deadline = System.currentTimeMillis() + 5_000;
-        var cm = cluster.getCacheManager();
-        var lastNames = cluster.getNodeNames();
-        var stableTicks = 0;
-        while (System.currentTimeMillis() < deadline) {
-            if (!InfinispanUtil.isClusterRunning(cluster)) {
-                Sleeper.sleepMillis(50);
-                continue;
-            }
-            // Touch coordination caches to ensure they are created locally
-            try {
-                cm.getPipelineStepCache();
-                cm.getPipelineWorkerStatusesCache();
-            } catch (Exception e) {
-                // ignore and retry until deadline
-            }
-            var names = cluster.getNodeNames();
-            if (names.equals(lastNames)) {
-                stableTicks++;
-            } else {
-                stableTicks = 0;
-            }
-            lastNames = names;
-            if (stableTicks >= 5) { // ~500ms of stability
-                return;
-            }
-            Sleeper.sleepMillis(100);
-        }
-        LOG.debug("Cluster warm-up timed out; proceeding.");
     }
 
     void stop() {
         ExceptionSwallower.runWithInterruptClear(() -> {
-            if (activeStepRecord != null
-                    && stopRequested.compareAndSet(false, true)) {
-                var key = CacheKeys.pipelineKey(cluster, pipeline);
-
-                activeStepRecord.setStatus(PipelineStatus.STOPPING);
-                activeStepRecord.setUpdatedAt(System.currentTimeMillis());
-                pipelineActiveStepCache.put(key, activeStepRecord);
-
-                if (currentLocalStep != null) {
-                    currentLocalStep.stop(session);
-                } else {
-                    var allStopped = ConcurrentUtil.waitUntil(
-                            () -> workerStatuses.values().stream().allMatch(
-                                    rec -> rec
-                                            .getStatus() == PipelineStatus.STOPPED),
-                            Duration.ofMinutes(1), Duration.ofSeconds(1));
-                    if (allStopped) {
-                        LOG.info("App pipeline workers stopped.");
-                    } else {
-                        LOG.warn("Not all pipeline workers stopped within a "
-                                + "minute.");
-                    }
-                }
-
-                activeStepRecord.setUpdatedAt(System.currentTimeMillis());
-                activeStepRecord.setStatus(PipelineStatus.STOPPED);
-                pipelineActiveStepCache.put(key, activeStepRecord);
+            if (state.getStopRequested().compareAndSet(false, true)) {
+                doStop();
             }
         });
     }
 
-    void doCoordinatePipelineExecution() {
+    @Override
+    public void close() {
+        ExceptionSwallower.runWithInterruptClear(() -> {
+            if (state != null && state.getClosed().compareAndSet(false, true)) {
+                ExceptionSwallower.close(state);
+            }
+        });
+    }
 
-        //TODO add progress reporter here?
+    //--- Private methods ------------------------------------------------------
 
-        var key = CacheKeys.pipelineKey(cluster, pipeline);
+    private void doStop() {
+        try {
+            state.pushPipelineStatus(PipelineStatus.STOPPING);
 
-        activeStepRecord = resolveFirstStepToRun(key, pipeline);
+            if (locallyExecutedStep != null) {
+                locallyExecutedStep.stop(cluster.getCrawlSession());
+            } else if (ConcurrentUtil.waitUntil(
+                    () -> state.isStatusOfAllWorkers(PipelineStatus.STOPPED),
+                    Duration.ofMinutes(1),
+                    Duration.ofSeconds(1))) {
+                LOG.info("App pipeline workers stopped.");
+            } else {
+                LOG.warn("Not all pipeline workers stopped within a minute.");
+            }
+            state.pushPipelineStatus(PipelineStatus.STOPPED);
+        } finally {
+            locallyExecutedStep = null;
+        }
+    }
 
-        // If pipeline already terminal, just record and exit without
-        // modifying caches.
+    private void doCoordinatePipelineExecution() {
 
-        //TODO when a new run, does the crawler wipe out the pipeline state
-        // or shall we rely on the run ID or equivalent to know if
-        // we restart when pipeline is terminated or just leave?
-        // For now, we leave here.
-        if (InfinispanUtil.isPipelineTerminated(pipeline, activeStepRecord)) {
+        final var currentStepRecord = state.getCurrentStepRecord();
+        if (InfinispanUtil.isPipelineTerminated(pipeline, currentStepRecord)) {
             LOG.debug("Coordinator detected terminal pipeline {} at step {} "
                     + "with status {}. Exiting.",
                     pipeline.getId(),
-                    activeStepRecord.getStepId(),
-                    activeStepRecord.getStatus());
+                    currentStepRecord.getStepId(),
+                    currentStepRecord.getStatus());
             return;
         }
 
-        var firstStepToRun = pipeline.getStep(activeStepRecord.getStepId());
-        // If picking up from another coordinator, log it.
-        if (firstStepToRun != pipeline.getFirstStep()
-                || activeStepRecord.getStatus() == PipelineStatus.RUNNING) {
+        var initialStep = state.getCurrentStep();
+        if (initialStep != pipeline.getFirstStep()
+                || currentStepRecord.getStatus().is(PipelineStatus.RUNNING)) {
             LOG.info("Resuming coordination of pipeline {} at step {} "
                     + "with status {} on node {}.",
                     pipeline.getId(),
-                    activeStepRecord.stepId,
-                    activeStepRecord.status,
+                    currentStepRecord.stepId,
+                    currentStepRecord.status,
                     cluster.getLocalNode().getNodeName());
         }
 
@@ -226,63 +134,41 @@ public class PipelineCoordinator implements AutoCloseable {
                 .getSteps()
                 .values()
                 .stream()
-                .dropWhile(step -> !step.getId().equals(firstStepToRun.getId()))
+                .dropWhile(step -> !step.getId().equals(initialStep.getId()))
                 .toList();
 
         for (var step : steps) {
-            if (stopRequested.get()) {
+            if (state.getStopRequested().get()) {
                 LOG.info("Stop requested before executing {}.", step.getId());
+                return;
             }
-
-            workerStatuses.clear();
-            //TODO not sure why this seems needed (likely race condition) since
-            // we have the listener to workers... and we technically don't
-            // need to know there state before starting a step.
-            workerStatusCache.forEach(this::updateWorkerStatus);
-
-            // could be RUNNING already if recovering from other coordinator.
-            if (activeStepRecord.getStatus() != PipelineStatus.RUNNING) {
-                activeStepRecord = createRunningStepRecord(step);
-                pipelineActiveStepCache.put(key, activeStepRecord);
-                LOG.debug("Published RUNNING for pipeline {} step {}",
-                        pipeline.getId(), step.getId());
-            }
+            state.setRunningStep(step);
 
             var execStatus = step.isDistributed()
-                    ? executeOnAllNodes(step, activeStepRecord)
+                    ? executeOnAllNodes(step, currentStepRecord)
                     : executeLocally(step);
 
-            activeStepRecord.setStatus(execStatus);
-            activeStepRecord.setUpdatedAt(System.currentTimeMillis());
             if (!InfinispanUtil.isClusterRunning(cluster)) {
-                LOG.warn("Coordinator node went down on {}. It will no longer "
-                        + "execute pipeine {}.",
+                LOG.warn("Cluster reported as no longer running after step {}. "
+                        + "This node {} will no longer execute pipeine {}.",
+                        currentStepRecord.stepId,
                         cluster.getLocalNode().getNodeName(),
                         pipeline.getId());
                 return;
             }
-            pipelineActiveStepCache.put(key, activeStepRecord);
-            LOG.debug("Published {} for pipeline {} step {}", execStatus,
-                    pipeline.getId(), step.getId());
+
+            state.pushPipelineStatus(execStatus);
+
             if (execStatus == PipelineStatus.FAILED) {
-                LOG.info("Aborting pipeline execution...");
+                LOG.info("Step {} reported as failed. Aborting pipeline "
+                        + "execution...", currentStepRecord.stepId);
                 return;
             }
         }
-        // if we exit loop without failure, finalStatus already set to last
-        // step status
-    }
-
-    private void updateWorkerStatus(String key, StepRecord stepRec) {
-        if (!pipeline.getId().equals(stepRec.getPipelineId())) {
-            return; // ignore statuses for other pipelines
-        }
-        workerStatuses.put(
-                StringUtils.substringAfterLast(key, ":"), stepRec);
     }
 
     private PipelineStatus executeLocally(Step step) {
-        currentLocalStep = step;
+        locallyExecutedStep = step;
         LOG.info("Running step {} on a single node.", step.getId());
         try {
             step.execute(CrawlSession.get(cluster.getLocalNode()));
@@ -292,126 +178,16 @@ public class PipelineCoordinator implements AutoCloseable {
         } catch (RuntimeException e) {
             LOG.error("Pipeline step {} failed.", step.getId(), e);
             return PipelineStatus.FAILED;
+        } finally {
+            locallyExecutedStep = null;
         }
     }
 
     private PipelineStatus executeOnAllNodes(Step step, StepRecord runningRec) {
-        currentLocalStep = null;
-        LOG.info("Running step {} on all nodes.", step.getId());
+        locallyExecutedStep = null;
+        LOG.info("Coordinating the run of step {} on all nodes.", step.getId());
 
-        var reducedStatus = PipelineStatus.PENDING;
-        while (!reducedStatus.isTerminal()) {
-            Bag<PipelineStatus> statuses = new HashBag<>();
-            var nodeNames = cluster.getNodeNames();
-            for (String nodeName : nodeNames) {
-                // Use the latest worker status if and only if it is for this step
-                var rec = workerStatuses.get(nodeName);
-                if (rec == null
-                        || !pipeline.getId().equals(rec.getPipelineId())
-                        || !Objects.equals(rec.getStepId(), step.getId())) {
-                    // stale status from a previous step: ignore and wait
-                    statuses.add(PipelineStatus.PENDING);
-                    continue;
-                }
-                statuses.add(hasTimedOut(rec)
-                        ? PipelineStatus.EXPIRED
-                        : rec.getStatus());
-            }
-            reducedStatus = step.reduce(
-                    CrawlSession.get(cluster.getLocalNode()), statuses);
-            if (reducedStatus.isTerminal()) {
-                logTerminalNodeStatuses(step, statuses, nodeNames);
-            } else {
-                if (Thread.currentThread().isInterrupted()) {
-                    break;
-                }
-                Sleeper.sleepMillis(250);
-            }
-        }
-        return reducedStatus;
+        return state.awaitTerminalWorkersReducedStatus();
     }
 
-    private void logTerminalNodeStatuses(
-            Step step,
-            Bag<PipelineStatus> statuses,
-            List<String> nodeNames) {
-        var allWorkerNames = workerStatuses.keySet();
-        LOG.info("""
-            Distributed step "{}" {} node statuses: \
-            {} COMPLETED, \
-            {} FAILED, \
-            {} STOPPED, \
-            {} EXPIRED, \
-            {} DROPPED, \
-            {} JOINED""",
-                step.getId(),
-                statuses.size(),
-                statuses.getCount(PipelineStatus.COMPLETED),
-                statuses.getCount(PipelineStatus.FAILED),
-                statuses.getCount(PipelineStatus.STOPPED),
-                statuses.getCount(PipelineStatus.EXPIRED),
-                allWorkerNames.stream()
-                        .filter(el -> !nodeNames.contains(el))
-                        .count(),
-                nodeNames.stream()
-                        .filter(el -> !allWorkerNames.contains(el))
-                        .count());
-    }
-
-    private boolean hasTimedOut(StepRecord rec) {
-        // Add a small grace to avoid false expirations during brief coordinator switches
-        var graceMs = 1000L;
-        return System.currentTimeMillis()
-                - rec.updatedAt > (nodeExpiryTimeoutMs + graceMs);
-    }
-
-    private StepRecord resolveFirstStepToRun(String key, Pipeline pipeline) {
-
-        // get starting step
-        var stepRec = pipelineActiveStepCache
-                .get(key)
-                .orElse(null);
-        if (stepRec == null) {
-            var stepId = pipeline.getSteps().firstKey();
-            stepRec = new StepRecord();
-            stepRec.setPipelineId(pipeline.getId());
-            stepRec.setStepId(stepId);
-        } else {
-            LOG.info("Resuming pipeline %s at step %s from status %s".formatted(
-                    stepRec.getPipelineId(), stepRec.getStepId(),
-                    stepRec.getStatus()));
-        }
-
-        return stepRec;
-    }
-
-    private StepRecord createRunningStepRecord(Step step) {
-        return createStepRecord(step, PipelineStatus.RUNNING);
-    }
-
-    private StepRecord createStepRecord(Step step, PipelineStatus status) {
-        return new StepRecord()
-                .setPipelineId(pipeline.getId())
-                .setStepId(step.getId())
-                .setStatus(status)
-                .setUpdatedAt(System.currentTimeMillis());
-    }
-
-    @Override
-    public void close() {
-        ExceptionSwallower.runWithInterruptClear(() -> {
-            if (closed.compareAndSet(false, true)
-                    && (workerStatusListener != null)) {
-                try {
-                    cluster.getPipelineManager()
-                            .removeWorkerStatusListener(workerStatusListener);
-                } catch (Exception e) {
-                    LOG.debug(
-                            "Could not remove worker status listener for pipeline {}: {}",
-                            pipeline.getId(), e.toString());
-                }
-                workerStatusListener = null;
-            }
-        });
-    }
 }

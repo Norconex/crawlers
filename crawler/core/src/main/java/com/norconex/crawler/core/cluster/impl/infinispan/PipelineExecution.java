@@ -109,7 +109,6 @@ public class PipelineExecution implements AutoCloseable {
     // on the cluster, vs shutting down.
     public CompletableFuture<Void> stopPipeline() {
         //Stop corresponding worker and then possible coordinator
-        //TODO implement properly
         ofNullable(worker).ifPresent(PipelineWorker::stop);
         ofNullable(coordinator).ifPresent(PipelineCoordinator::stop);
         close();
@@ -133,7 +132,6 @@ public class PipelineExecution implements AutoCloseable {
             executor.shutdownNow();
             Thread.currentThread().interrupt();
         }
-        ExceptionSwallower.close(worker, coordinator);
     }
 
     //--- Private methods ------------------------------------------------------
@@ -156,7 +154,7 @@ public class PipelineExecution implements AutoCloseable {
             }
             // new coordinator:
             if (isCoord && coordinator == null) {
-                // Promotion: only if we do not already have a coordinator 
+                // Promotion: only if we do not already have a coordinator
                 // instance
                 logMode("promotion to coordinator");
                 startCoordinator();
@@ -164,7 +162,6 @@ public class PipelineExecution implements AutoCloseable {
             } else if (!isCoord && coordinator != null) {
                 // demotion:
                 logMode("demotion from coordinator");
-                coordinator.close();
                 coordinator = null;
             }
         }
@@ -174,14 +171,19 @@ public class PipelineExecution implements AutoCloseable {
         LOG.debug("Starting pipeline coordinator for {} on node {}",
                 pipeline.getId(), cluster.getLocalNode().getNodeName());
         coordinator = new PipelineCoordinator(cluster, pipeline);
-        //        coordinatorFuture =
         CompletableFuture.runAsync(coordinator::start, executor)
-                .exceptionally(ex -> {
-                    LOG.error("Pipeline coordinator failed", ex);
-                    resultFuture.completeExceptionally(ex);
-                    // swallow here; resultFuture already exceptional
-                    ExceptionSwallower.close(coordinator);
-                    return null;
+                .whenComplete((result, ex) -> {
+                    // This code will always run, on success or failure.
+                    if (ex != null) {
+                        // An exception occurred in the pipeline start.
+                        LOG.error("Pipeline coordinator failed", ex);
+                        try {
+                            resultFuture.completeExceptionally(ex);
+                        } finally {
+                            ExceptionSwallower.close(coordinator);
+                        }
+                    }
+
                 });
     }
 

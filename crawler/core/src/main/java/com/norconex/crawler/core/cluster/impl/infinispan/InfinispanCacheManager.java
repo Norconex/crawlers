@@ -86,7 +86,7 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
     @Override
     public Counter getCounter(String name) {
         org.infinispan.Cache<String, Long> counterCache =
-                getInfiniCache("counter-cache");
+                getInfiniCache(CacheNames.COUNTERS);
         return new InfinispanCounter(counterCache, name);
     }
 
@@ -133,7 +133,7 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
         return getCache(CacheNames.PIPE_CURRENT_STEP, StepRecord.class);
     }
 
-    public Cache<StepRecord> getPipelineWorkerStatusesCache() {
+    public Cache<StepRecord> getPipelineWorkerStatusCache() {
         return getCache(CacheNames.PIPE_WORKER_STATUSES, StepRecord.class);
     }
 

@@ -30,7 +30,6 @@ import org.infinispan.remoting.transport.Address;
 
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.impl.infinispan.event.CoordinatorChangeListener;
-import com.norconex.crawler.core.ledger.CrawlEntry;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 
@@ -77,7 +76,11 @@ public class InfinispanCluster implements Cluster {
     }
 
     public String getCrawlerId() {
-        return CrawlSession.get(localNode).getCrawlerId();
+        return getCrawlSession().getCrawlerId();
+    }
+
+    public CrawlSession getCrawlSession() {
+        return CrawlSession.get(localNode);
     }
 
     //TODO why synchronized?

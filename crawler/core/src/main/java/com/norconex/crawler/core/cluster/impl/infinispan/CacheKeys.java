@@ -14,20 +14,46 @@
  */
 package com.norconex.crawler.core.cluster.impl.infinispan;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
+
+import lombok.NonNull;
 
 public final class CacheKeys {
     private CacheKeys() {
     }
 
     public static String pipelineKey(
-            InfinispanCluster cluster, Pipeline pipeline) {
-        return cluster.getCrawlerId() + ":" + pipeline.getId();
+            @NonNull InfinispanCluster cluster, @NonNull Pipeline pipeline) {
+        //NOTE: given the pipeline id can be human provided, we replace
+        // : with _ to avoid splitting issues.
+        return cluster.getCrawlSession().getCrawlSessionId()
+                + ":" + StringUtils.replace(pipeline.getId(), ":", "_");
     }
 
-    public static String pipelineWorkerKey(
-            InfinispanCluster cluster, Pipeline pipeline) {
-        return cluster.getCrawlerId() + ":" + pipeline.getId() + ":"
+    public static String pipelineWorkerNodeKey(
+            @NonNull InfinispanCluster cluster, @NonNull Pipeline pipeline) {
+        return pipelineWorkerKeyPrefix(cluster, pipeline)
                 + cluster.getLocalNode().getNodeName();
+    }
+
+    /**
+     * <p>
+     * The worker key without the node information, constructed as:
+     * </p>
+     * {@code crawlSessionId:pipelineId:crawlRunId:}
+     * <p>
+     * Can be used to get all worker entries for a given session and run.
+     * </p>
+     * @param cluster the cluster
+     * @param pipeline the pipeline
+     * @return the key prefix
+     */
+    public static String pipelineWorkerKeyPrefix(
+            @NonNull InfinispanCluster cluster, @NonNull Pipeline pipeline) {
+
+        return pipelineKey(cluster, pipeline) + ":"
+                + cluster.getCrawlSession().getCrawlRunId() + ":";
     }
 }

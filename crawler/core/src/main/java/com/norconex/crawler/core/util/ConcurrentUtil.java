@@ -16,6 +16,7 @@ package com.norconex.crawler.core.util;
 
 import java.time.Duration;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
@@ -59,6 +60,27 @@ public final class ConcurrentUtil {
                 throw new CompletionException(e);
             }
         }, executor), executor);
+    }
+
+    /**
+     * Shuts down an executor and await for confirmation up to the
+     * specified duration, after which a force shutdown is attempted.
+     * @param executor the executor to shut down
+     * @param maxWait max wait duration before forcing shutdown
+     */
+    public static void shutdownAndAwait(
+            ExecutorService executor, Duration maxWait) {
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(
+                    maxWait == null ? 0 : maxWait.toMillis(),
+                    TimeUnit.MILLISECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            executor.shutdownNow();
+        }
     }
 
     public static <T> CompletableFuture<T> withAutoShutdown(
@@ -268,5 +290,26 @@ public final class ConcurrentUtil {
                     "Task execution failed.", e.getCause());
         }
         return new CompletionException("Task failed.", e);
+    }
+
+    /**
+     * Whether the exception is, or has for cause, an interruption.
+     * @param t exception
+     * @return {@code true} if an interruption exception
+     */
+    public static boolean isInterruption(Throwable t) {
+        if (Thread.currentThread().isInterrupted()) {
+            return true;
+        }
+        var cur = t;
+        var depth = 0;
+        while (cur != null && depth++ < 5) {
+            if (cur instanceof InterruptedException
+                    || cur instanceof CancellationException) {
+                return true;
+            }
+            cur = cur.getCause();
+        }
+        return false;
     }
 }

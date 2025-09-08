@@ -14,56 +14,24 @@
  */
 package com.norconex.crawler.core.cluster.impl.infinispan;
 
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
+import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.norconex.commons.lang.Sleeper;
-import com.norconex.crawler.core.cluster.Cache;
-import com.norconex.crawler.core.cluster.impl.infinispan.event.CacheEntryChangeListener;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineResult;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
-import com.norconex.crawler.core.cluster.pipeline.Step;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.util.ConcurrentUtil;
 
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class PipelineWorker implements AutoCloseable {
     private final InfinispanCluster cluster;
-    private final Cache<StepRecord> pipeStepCache;
-    private final Cache<StepRecord> workerStatusCache;
-    private Pipeline pipeline;
-    @Getter
-    private Step currentStep;
-    private PipelineStatus workerStatus = PipelineStatus.PENDING;
-    private final String pipeKey;
-    private final String pipeWorkerKey;
-
-    private final ScheduledExecutorService statusUpdater =
-            Executors.newSingleThreadScheduledExecutor();
-    private ScheduledFuture<?> workerStatusFuture;
-    // listener reference so we can remove it on close
-    private CacheEntryChangeListener<StepRecord> pipelineStepListener;
-    private volatile boolean running = false;
-    private final AtomicBoolean closed = new AtomicBoolean(false);
-    private final AtomicBoolean stopRequested = new AtomicBoolean(false);
-    private final CompletableFuture<Void> completion =
-            new CompletableFuture<>();
-    // Use concurrent set to avoid races when listener fires concurrently
-    private final Set<String> encounteredSteps = ConcurrentHashMap.newKeySet();
-    private long startedAt;
-    private volatile Thread runnerThread;
+    private final Pipeline pipeline;
+    private PipelineWorkerState state;
 
     // Execute user steps off the Infinispan event thread to avoid blocking RPC
     private final ExecutorService stepExecutor =
@@ -86,323 +54,98 @@ public class PipelineWorker implements AutoCloseable {
             @NonNull Pipeline pipeline) {
         this.cluster = cluster;
         this.pipeline = pipeline;
-        pipeKey = CacheKeys.pipelineKey(cluster, pipeline);
-        pipeWorkerKey = CacheKeys.pipelineWorkerKey(cluster, pipeline);
-        pipeStepCache = cluster.getCacheManager().getPipelineStepCache();
-        workerStatusCache =
-                cluster.getCacheManager().getPipelineWorkerStatusesCache();
     }
 
     PipelineResult start() {
-        startedAt = System.currentTimeMillis();
         Thread.currentThread().setName("WORKER");
-        runnerThread = Thread.currentThread();
-        running = true;
-        // Periodically update worker status
-        workerStatusFuture = statusUpdater.scheduleAtFixedRate(() -> {
-            if (running) {
-                updateWorkerStatus(workerStatus);
-            }
-        }, 0, 1, TimeUnit.SECONDS); // short heartbeat to avoid false expiry
+        // Warm-up: wait briefly for stable cluster view and caches
+        InfinispanUtil.waitForClusterWarmUp(cluster);
 
-        var pipeStepRec = pipeStepCache.get(pipeKey).orElse(null);
-        if (pipeStepRec != null && pipeStepRec.getStepId() != null) {
-            executeStep(getStep(pipeline, pipeStepRec), pipeStepRec);
-        } else if (pipeStepRec != null) {
-            LOG.warn("Ignoring invalid current step record with null stepId "
-                    + "for pipeline {} (key={}). Will wait for a valid update.",
-                    pipeline.getId(), pipeKey);
-        }
-        pipelineStepListener = (key, pipeRec) -> {
-            if (pipeRec.getPipelineId().equals(pipeline.getId())) {
-                if (pipeRec.getStepId() == null) {
-                    LOG.warn("Received pipeline step record with null stepId "
-                            + "for pipeline {} (key={}). Ignoring.",
-                            pipeline.getId(), key);
-                    return;
-                }
-                if (pipeRec.getStatus() == PipelineStatus.RUNNING) {
-                    executeStep(getStep(pipeline, pipeRec), pipeRec);
-                } else {
-                    LOG.info("Pipeline {} step {} on node {}: {}",
-                            pipeRec.getPipelineId(),
-                            pipeRec.getStepId(),
-                            cluster.getLocalNode().getNodeName(),
-                            pipeRec.getStatus());
-                }
-            }
-        };
-        cluster.getPipelineManager()
-                .addStepChangeListener(pipelineStepListener);
+        state = new PipelineWorkerState(cluster, pipeline,
+                this::executeStep);
 
-        //TODO set timeout from coordinator not responding
-        //TODO set timeout for crawler-wide timeout (or done in PipelineExecution)?
-        return awaitPipelineTerminationResult(0L);
+        return new PipelineTerminationTracker(
+                cluster, pipeline, state).await(0L);
     }
 
     /**
      * End this worker by stopping any active task first then closing.
      */
     public void stop() {
-        if (stopRequested.compareAndSet(false, true)) {
-            updateWorkerStatus(PipelineStatus.STOPPING);
-            if (currentStep != null) {
-                currentStep.stop(CrawlSession.get(cluster.getLocalNode()));
-            }
-            updateWorkerStatus(PipelineStatus.STOPPED);
+        if (state != null
+                && state.getStopRequested().compareAndSet(false, true)) {
+            state.pushWorkerStatus(PipelineStatus.STOPPING);
+            state.getCurrentStep().stop(cluster.getCrawlSession());
+            state.pushWorkerStatus(PipelineStatus.STOPPED);
             // we don't close here. Closed by caller.
         }
     }
 
     @Override
     public void close() {
-        if (closed.compareAndSet(false, true)) {
-            LOG.debug("Closing PipelineWorker for pipeline {}",
-                    pipeline.getId());
-            running = false;
-            if (workerStatusFuture != null) {
-                workerStatusFuture.cancel(true);
-            }
-            // Proactively abort the runner loop so result becomes FAILED
-            var t = runnerThread;
-            if (t != null) {
-                t.interrupt();
-            }
-            // attempt graceful shutdown of scheduler
-            statusUpdater.shutdown();
-            try {
-                if (!statusUpdater.awaitTermination(2, TimeUnit.SECONDS)) {
-                    statusUpdater.shutdownNow();
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                statusUpdater.shutdownNow();
-            }
-            // shut down step executor
-            stepExecutor.shutdown();
-            try {
-                if (!stepExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                    stepExecutor.shutdownNow();
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                stepExecutor.shutdownNow();
-            }
-            if (pipelineStepListener != null) {
-                try {
-                    cluster.getPipelineManager()
-                            .removeStepChangeListener(pipelineStepListener);
-                } catch (Exception e) {
-                    LOG.debug("Could not remove step listener for "
-                            + "pipeline {}: {}",
-                            pipeline.getId(), e.toString());
-                }
-                pipelineStepListener = null;
-            }
-            LOG.debug("PipelineWorker closed for pipeline {}",
-                    pipeline.getId());
-            completion.complete(null);
+        if (state != null) {
+            state.close();
         }
+
+        // shut down step executor
+        ConcurrentUtil.shutdownAndAwait(stepExecutor, Duration.ofSeconds(5));
     }
 
-    public CompletableFuture<Void> getCompletionFuture() {
-        return completion;
-    }
-
-    // except for initial invocation, this method is called by a cache listener
-    private void executeStep(Step pipeStep, StepRecord pipeStepRec) {
-        currentStep = pipeStep;
+    //NOTE: only invoked when the current/new step is set to RUNNING
+    private void executeStep(StepRecord stepRec) {
+        var step = pipeline.getStep(stepRec.getStepId());
         if (!InfinispanUtil.isClusterRunning(cluster)) {
             LOG.warn("Infinispan cluster node not RUNNING for {}. "
                     + "Ignoring request to execute step {}.",
                     cluster.getLocalNode().getNodeName(),
-                    pipeStepRec.stepId);
-            return;
-        }
-        if (pipeStep == null) {
-            LOG.debug("No current step yet for pipeline {} on node {}. "
-                    + "Waiting for coordinator to publish a step.",
-                    pipeline.getId(), cluster.getLocalNode().getNodeName());
-            return;
-        }
-        if (pipeStepRec.getStatus().isTerminal()) {
-            LOG.warn("Request was made to execute pipeline {} step {} "
-                    + "on node {} while terminated: {}",
-                    pipeline.getId(),
-                    pipeStepRec.getStepId(),
-                    cluster.getLocalNode().getNodeName(),
-                    pipeStepRec.getStatus());
+                    stepRec.stepId);
             return;
         }
 
-        if ((pipeStepRec.getStatus() != PipelineStatus.RUNNING)
-                || !pipeStep.isDistributed()) {
+        if (!step.isDistributed()) {
             // Coordinator runs non-distributed steps; worker stays silent,
-            // and we ignore non-RUNNING records.
+            LOG.debug("Worker node {} got a request to execute non-distributed "
+                    + "step {}. Letting coordinator do it. Ignoring.",
+                    cluster.getLocalNode().getNodeName(),
+                    stepRec.getStepId());
             return;
         }
-        // Atomically skip if this step was already scheduled/executed
-        if (!encounteredSteps.add(pipeStep.getId())) {
-            LOG.info("Pipeline {} step {} has already been executed or is "
-                    + "executing. Node: {}.",
-                    pipeStepRec.getPipelineId(),
-                    pipeStepRec.getStepId(),
-                    cluster.getLocalNode().getNodeName());
+
+        if (!state.getEncounteredSteps().add(stepRec.getStepId())) {
+            LOG.debug("Worker node {} already got request to execute step {}. "
+                    + "Ignoring.",
+                    cluster.getLocalNode().getNodeName(),
+                    stepRec.getStepId());
             return;
         }
-        // Offload user step execution to avoid blocking Infinispan listener
+
+        // Offload step execution to avoid blocking Infinispan listener
         stepExecutor.submit(() -> {
-            LOG.info("Executing pipeline {} step {}.",
-                    pipeStepRec.getPipelineId(), pipeStepRec.getStepId());
+            LOG.info("Worker node {} executing pipeline {} step {}.",
+                    cluster.getLocalNode().getNodeName(),
+                    stepRec.getPipelineId(),
+                    stepRec.getStepId());
             try {
-                updateWorkerStatus(PipelineStatus.RUNNING);
-                pipeStep.execute(CrawlSession.get(cluster.getLocalNode()));
+                state.pushWorkerStatus(PipelineStatus.RUNNING);
+                step.execute(cluster.getCrawlSession());
                 // If we were closed/demoted during execution, report failure
                 if (Thread.currentThread().isInterrupted()
                         || !InfinispanUtil.isClusterRunning(cluster)) {
-                    LOG.warn(
-                            "Node {} closed/demoted during step {}, marking FAILED.",
+                    LOG.warn("Node {} closed/demoted during step {}, marking "
+                            + "as FAILED.",
                             cluster.getLocalNode().getNodeName(),
-                            pipeStepRec.getStepId());
-                    updateWorkerStatus(PipelineStatus.FAILED);
+                            stepRec.getStepId());
+                    state.pushWorkerStatus(PipelineStatus.FAILED);
                     return;
                 }
-                updateWorkerStatus(PipelineStatus.COMPLETED);
+                state.pushWorkerStatus(PipelineStatus.COMPLETED);
             } catch (RuntimeException e) {
                 LOG.error("Failure detected in pipeline {} step {} execution.",
-                        pipeStepRec.getPipelineId(),
-                        pipeStepRec.getStepId(),
+                        stepRec.getPipelineId(),
+                        stepRec.getStepId(),
                         e);
-                updateWorkerStatus(PipelineStatus.FAILED);
+                state.pushWorkerStatus(PipelineStatus.FAILED);
             }
         });
-    }
-
-    // From a worker standpoint
-    private static class PipelineState {
-        private boolean done = false;
-        private boolean timedOut = false;
-        private boolean threadAborted = false;
-        private StepRecord rec = null;
-
-        // it is terminated if the step is terminal and non COMPLETED, or
-        // if the step is the last one and COMPLETED
-        private boolean isPipelineTerminated(Pipeline pipeline) {
-            return InfinispanUtil.isPipelineTerminated(pipeline, rec);
-        }
-
-        // Given the coordinator does not update the steps cache unless there
-        // is a change, the expiry would be the crawler-wide max duration, if set.
-        private boolean isExpired(long timeout) {
-            return timeout > 0 && rec != null
-                    && (System.currentTimeMillis()
-                            - rec.getUpdatedAt() > timeout);
-        }
-    }
-
-    private PipelineResult awaitPipelineTerminationResult(long timeout) {
-        var state = new PipelineState();
-        while (!state.done && !Thread.currentThread().isInterrupted()) {
-            if (!resolvePipeState(state, timeout)) {
-                break;
-            }
-        }
-        if (Thread.currentThread().isInterrupted()) {
-            state.threadAborted = true;
-            Thread.currentThread().interrupt(); // preserve interrupt status
-        }
-        PipelineStatus status;
-        String lastAttemptedStepId;
-        if (state.rec != null) {
-            status = state.rec.getStatus();
-            lastAttemptedStepId = state.rec.getStepId();
-        } else {
-            status = PipelineStatus.PENDING;
-            lastAttemptedStepId = null;
-        }
-        // If this worker aborted (e.g., node closed/demoted), always report FAILED
-        if (state.threadAborted) {
-            LOG.warn("Worker aborted on node {}, marking as FAILED.",
-                    cluster.getLocalNode().getNodeName());
-            status = PipelineStatus.FAILED;
-        } else if (state.timedOut && (status == null || !status.isTerminal())) {
-            status = PipelineStatus.EXPIRED;
-        }
-        return PipelineResult.builder()
-                .pipelineId(pipeline.getId())
-                .status(status)
-                .lastStepId(lastAttemptedStepId)
-                .startedAt(startedAt)
-                .finishedAt(System.currentTimeMillis())
-                .resumed(false)
-                .timedOut(state.timedOut)
-                .build();
-    }
-
-    // returns true if could resolve, else if something's wrong
-    // and suggests breaking right away.
-    private boolean resolvePipeState(PipelineState state, long timeout) {
-        if (!InfinispanUtil.isClusterRunning(cluster)) {
-            LOG.warn("Infinispan node is closed: {}",
-                    cluster.getLocalNode().getNodeName());
-            state.done = true;
-            state.threadAborted = true;
-            return false;
-        }
-        state.rec = pipeStepCache.get(pipeKey).orElse(null);
-        if (state.isPipelineTerminated(pipeline)) {
-            state.done = true;
-        } else if (state.isExpired(timeout)) {
-            state.done = true;
-            state.timedOut = true;
-        } else if (!sleep()) {
-            state.done = true;
-            state.threadAborted = true;
-            return false;
-        }
-        return true;
-    }
-
-    // returns false if we could not sleep (thread was aborted)
-    private boolean sleep() {
-        try {
-            Sleeper.sleepMillis(250);
-            return true;
-        } catch (RuntimeException e) { // SleeperException wraps InterruptedException
-            if (Thread.currentThread().isInterrupted()) {
-                return false;
-            }
-            throw e; // propagate unexpected runtime issues
-        }
-    }
-
-    private void updateWorkerStatus(PipelineStatus status) {
-        workerStatus = status;
-        if (InfinispanUtil.isClusterRunning(cluster)) {
-            var stepId = currentStep != null ? currentStep.getId()
-                    : pipeline.getSteps().firstKey();
-            var rec = new StepRecord();
-            rec.setPipelineId(pipeline.getId());
-            rec.setStepId(stepId);
-            rec.setStatus(status);
-            rec.setUpdatedAt(System.currentTimeMillis());
-            try {
-                workerStatusCache.put(pipeWorkerKey, rec);
-            } catch (org.infinispan.commons.TimeoutException te) {
-                LOG.warn("Skipping worker status update for {} due to cache "
-                        + "lock timeout on key {}.",
-                        pipeline.getId(), pipeWorkerKey);
-            } catch (RuntimeException e) {
-                LOG.debug("Worker status update failed for {}: {}",
-                        pipeline.getId(), e.toString());
-            }
-        }
-    }
-
-    private Step getStep(Pipeline pipeline, StepRecord rec) {
-        if (rec == null || rec.getStepId() == null) {
-            return null;
-        }
-        return pipeline.getStep(rec.getStepId());
     }
 }

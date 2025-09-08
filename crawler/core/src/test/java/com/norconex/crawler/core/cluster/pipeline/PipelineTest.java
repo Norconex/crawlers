@@ -262,10 +262,15 @@ class PipelineTest {
                     completedSteps.add("step1");
                 }),
                 PipelineTestUtil.distributedStep("step2", sess -> {
+                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
+                    if (nodeCount == 2) {
+                        // Wait until both nodes have reached step 2.
+                        ClusterTestUtil.waitForCacheSize(cache, 2,
+                                Duration.ofSeconds(10));
+                    }
                     if (cnt.getAndIncrement() == 0) {
                         throw new PipelineException("I am a fake failure");
                     }
-                    var cache = ClusterTestUtil.stringCache(sess, cacheName);
                     cache.put(PipelineTestUtil.nodeKey("step2", sess),
                             "byStep2");
                     completedSteps.add("step2");
@@ -364,54 +369,32 @@ class PipelineTest {
                 PipelineTestUtil.distributedStep("step2", sess -> {
                     var cache = ClusterTestUtil.stringCache(sess, cacheName);
                     cache.put(PipelineTestUtil.nodeKey("step2", sess), "ok");
-                    com.norconex.commons.lang.Sleeper.sleepMillis(2000);
+                    // don't leave until the other node joined
+                    ClusterTestUtil.waitForCacheSize(cache, 3,
+                            Duration.ofSeconds(10));
                 })));
 
-        CompletableFuture<PipelineResult> f1 = null;
-        CompletableFuture<PipelineResult> f2 = null;
-        List<String> step2Nodes = new ArrayList<>();
+        final List<String> step2Nodes = new ArrayList<>();
 
         try (var s1 = CrawlSessionStubber
-                .multiNodesCrawlSession(tempDir.resolve("node1"));
-                var s2 = CrawlSessionStubber
-                        .multiNodesCrawlSession(tempDir.resolve("node2"))) {
-
-            // Ensure both nodes are visible to the coordinator
-            assertThatNoException().isThrownBy(() -> {
-                ClusterTestUtil.waitForClusterSize(List.of(s1, s2), 2,
-                        Duration.ofSeconds(10));
-            });
-            // Brief warm-up to let caches initialize locally
-            PipelineTestUtil.briefWarmup(150);
+                .multiNodesCrawlSession(tempDir.resolve("node1"))) {
 
             var c1 = ClusterTestUtil.stringCache(s1, cacheName);
-            var c2 = ClusterTestUtil.stringCache(s2, cacheName);
+            s1.getCluster().getPipelineManager().executePipeline(pipeline);
 
-            // Pre-warm both caches to minimize rebalancing latency
-            PipelineTestUtil.prewarmStringCache(s1, cacheName);
-            PipelineTestUtil.prewarmStringCache(s2, cacheName);
+            // wait until step 2 is reached before adding node 2
+            ClusterTestUtil.waitForCacheSize(c1, 2, Duration.ofSeconds(10));
 
-            f1 = s1.getCluster().getPipelineManager().executePipeline(pipeline);
+            LOG.info("Launching second node.");
+            try (var s2 = CrawlSessionStubber
+                    .multiNodesCrawlSession(tempDir.resolve("node2"))) {
+                s2.getCluster().getPipelineManager().executePipeline(pipeline);
+                var c2 = ClusterTestUtil.stringCache(s2, cacheName);
+                // wait until second node added its entry
+                ClusterTestUtil.waitForCacheSize(c2, 3, Duration.ofSeconds(10));
+            }
 
-            assertThatNoException().isThrownBy(() -> {
-                PipelineTestUtil.waitUntilFast(
-                        () -> PipelineTestUtil.countCacheKeysWithPrefix(c1,
-                                "step2:") >= 1,
-                        8);
-            });
-
-            f2 = s2.getCluster().getPipelineManager().executePipeline(pipeline);
-
-            assertThatNoException().isThrownBy(() -> {
-                PipelineTestUtil.waitUntilFast(
-                        () -> PipelineTestUtil.countCacheKeysWithPrefix(c2,
-                                "step2:") >= 2,
-                        8);
-            });
-
-            CompletableFuture.allOf(f1, f2).join();
-
-            c2.forEach((k, v) -> {
+            c1.forEach((k, v) -> {
                 if (k.startsWith("step2:")) {
                     step2Nodes.add(k.substring("step2:".length()));
                 }

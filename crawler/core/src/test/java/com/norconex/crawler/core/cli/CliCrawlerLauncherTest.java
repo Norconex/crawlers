@@ -280,8 +280,8 @@ class CliCrawlerLauncherTest {
      * @param timeoutMillis max time to wait
      * @param pollMillis polling interval
      */
-    private void waitForFileUnlock(Path file, long timeoutMillis,
-            long pollMillis) {
+    private void waitForFileUnlock(
+            Path file, long timeoutMillis, long pollMillis) {
         var start = System.currentTimeMillis();
         while (System.currentTimeMillis() - start < timeoutMillis) {
             try (var channel = Files.newByteChannel(file)) {
@@ -290,7 +290,7 @@ class CliCrawlerLauncherTest {
             } catch (IOException e) {
                 // File is locked, wait and retry
                 try {
-                    Thread.sleep(pollMillis);
+                    Thread.sleep(pollMillis); //NOSONAR
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
                     throw new RuntimeException(
@@ -303,10 +303,13 @@ class CliCrawlerLauncherTest {
 
     @SingleAndMultiNodesTest
     void testStart(int numOfNodes) {
+        var startTime = System.currentTimeMillis();
         var exit1 = launch(numOfNodes, "start", "-config=");
+        var endTime = System.currentTimeMillis();
+        LOG.info("testStart({}) completed in {} ms", numOfNodes,
+                (endTime - startTime));
         if (!exit1.ok()) {
-            LOG.error("Could not start crawler properly. Output:\n{}",
-                    exit1);
+            LOG.error("Could not start crawler properly. Output:\n{}", exit1);
         }
         assertThat(exit1.ok()).isTrue();
 
@@ -335,11 +338,13 @@ class CliCrawlerLauncherTest {
 
     @SingleAndMultiNodesTest
     void testStartAfterClean(int numOfNodes) {
-
-        var exit2 = launch(
-                numOfNodes, "start", "-clean", "-config=");
-        assertThat(exit2.ok()).withFailMessage(exit2.getStdErr())
-                .isTrue();
+        var startTime = System.currentTimeMillis();
+        var exit2 = launch(numOfNodes, "start", "-clean", "-config=");
+        var endTime = System.currentTimeMillis();
+        LOG.info("testStartAfterClean({}) completed in {} ms", numOfNodes,
+                (endTime - startTime));
+        assertThat(exit2).isNotNull();
+        assertThat(exit2.ok()).withFailMessage(exit2.getStdErr()).isTrue();
 
         String[] expected = {
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
@@ -354,16 +359,6 @@ class CliCrawlerLauncherTest {
                 CommitterEvent.COMMITTER_CLEAN_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_END,
                 CrawlerEvent.CRAWLER_CLEAN_END,
-
-                // Reset crawl context
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
-                CommitterEvent.COMMITTER_CLOSE_BEGIN,
-                CommitterEvent.COMMITTER_CLOSE_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
-                CommitterEvent.COMMITTER_INIT_BEGIN,
-                CommitterEvent.COMMITTER_INIT_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
 
                 // Regular crawl flow
                 CrawlerEvent.CRAWLER_CRAWL_BEGIN,
@@ -514,7 +509,8 @@ class CliCrawlerLauncherTest {
         executor.shutdown();
         try {
             if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
-                LOG.warn("Executor did not terminate in time, forcing shutdown.");
+                LOG.warn(
+                        "Executor did not terminate in time, forcing shutdown.");
                 executor.shutdownNow();
             }
         } catch (InterruptedException e) {

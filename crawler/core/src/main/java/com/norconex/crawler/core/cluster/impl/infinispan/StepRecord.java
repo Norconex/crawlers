@@ -37,4 +37,17 @@ public class StepRecord {
     public long updatedAt;
     @ProtoField(number = 4)
     public PipelineStatus status;
+    @ProtoField(number = 5)
+    public String runId;
+
+    public boolean hasTimedOut(long timeoutMs) {
+        if (timeoutMs == 0) {
+            return false;
+        }
+
+        // Add a small grace to avoid false expirations (e.g., during brief
+        // coordinator switches)
+        var graceMs = 1000L;
+        return (System.currentTimeMillis() - updatedAt) > (timeoutMs + graceMs);
+    }
 }
