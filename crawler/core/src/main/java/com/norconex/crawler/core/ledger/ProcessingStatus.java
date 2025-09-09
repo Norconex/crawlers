@@ -14,6 +14,9 @@
  */
 package com.norconex.crawler.core.ledger;
 
+import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
 import org.infinispan.protostream.annotations.Proto;
 import org.infinispan.protostream.annotations.ProtoEnumValue;
 
@@ -56,6 +59,18 @@ public enum ProcessingStatus {
 
     public boolean is(ProcessingStatus processingStage) {
         return processingStage != null && processingStage == this;
+    }
+
+    public static ProcessingStatus of(String processingStatus) {
+        var status =
+                StringUtils.upperCase(StringUtils.trimToNull(processingStatus));
+        if (status == null) {
+            return null;
+        }
+        return Stream.of(ProcessingStatus.values())
+                .filter(st -> st.name().equals(status))
+                .findFirst()
+                .orElse(null);
     }
 
 }

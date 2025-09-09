@@ -98,7 +98,6 @@ final class ProcessFinalize {
         try {
             currentEntry.setProcessingStatus(ProcessingStatus.PROCESSED);
             crawlCtx.getCrawlEntryLedger().updateEntry(currentEntry);
-
             markReferenceVariationsAsProcessed(ctx);
 
         } catch (Exception e) {

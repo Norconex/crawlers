@@ -11,6 +11,10 @@
       owners="2"
       statistics="true"
     >
+      <encoding>
+        <key media-type="application/x-protostream"/>
+        <value media-type="application/x-protostream"/>
+      </encoding>
       <memory max-count="100"/>
       <expiration max-idle="60000"/>
       <!-- Reduce test flakiness by avoiding rebalancing -->

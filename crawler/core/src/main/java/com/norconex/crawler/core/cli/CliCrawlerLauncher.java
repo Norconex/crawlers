@@ -33,6 +33,7 @@ public final class CliCrawlerLauncher {
 
     public static int launch(
             @NonNull CrawlDriver crawlDriver, String... args) {
+        System.setProperty("org.jboss.logging.provider", "slf4j");
 
         var cmdLine = new CommandLine(new CliRunner(crawlDriver));
 

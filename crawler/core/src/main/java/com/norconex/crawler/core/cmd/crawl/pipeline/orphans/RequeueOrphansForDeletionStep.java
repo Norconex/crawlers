@@ -37,7 +37,7 @@ public class RequeueOrphansForDeletionStep extends BaseStep {
     public void execute(CrawlSession session) {
         var ctx = session.getCrawlContext();
 
-        var orphanCount = ctx.getCrawlEntryLedger().getPreviousEntryCount();
+        var orphanCount = ctx.getCrawlEntryLedger().getBaselineCount();
         if (orphanCount == 0) {
             LOG.info("There are no orphans to process.");
             return;
@@ -46,7 +46,7 @@ public class RequeueOrphansForDeletionStep extends BaseStep {
         LOG.info("Queueing orphan references for deletion...");
 
         var count = new MutableLong();
-        ctx.getCrawlEntryLedger().forEachPrevious(entry -> {
+        ctx.getCrawlEntryLedger().forEachBaseline(entry -> {
             entry.setDeleted(true);
             ctx.getCrawlEntryLedger().queue(entry);
             count.increment();

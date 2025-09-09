@@ -19,20 +19,29 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.Timeout.ThreadMode;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.junit.CrawlTest;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
 
+@Timeout(
+    value = 30, unit = TimeUnit.SECONDS, threadMode = ThreadMode.SAME_THREAD
+)
 class QueueBootstrapperTest {
 
     public static class FromFilesConfigModifier
             implements Consumer<CrawlConfig> {
         @Override
         public void accept(CrawlConfig cfg) {
+            cfg.setMaxCrawlDuration(Duration.ofSeconds(30));
             var file1 = cfg.getWorkDir().resolve("start-file1.txt");
             var file2 = cfg.getWorkDir().resolve("start-file2.txt");
             try {

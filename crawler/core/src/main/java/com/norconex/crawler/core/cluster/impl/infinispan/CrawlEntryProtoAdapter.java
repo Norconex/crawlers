@@ -21,6 +21,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.apache.commons.beanutils.BeanUtils;
@@ -35,21 +36,25 @@ import org.infinispan.protostream.annotations.ProtoField;
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.crawler.core.cluster.CacheException;
 import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.core.ledger.ProcessingStatus;
 
 @ProtoAdapter(CrawlEntry.class)
 @Indexed
 public class CrawlEntryProtoAdapter {
 
+    private static final String NULL = "__NULL__";
+
     @ProtoFactory
     public CrawlEntry create( //NOSONAR
             String type,
             String reference,
-            ProcessingStatus processingStatus,
+            String processingStatus,
             String metaChecksum,
             String contentChecksum,
             long queuedAt,
             long processingAt,
+            String processingOutcome,
             Map<String, String> otherProps) {
 
         if (StringUtils.isBlank(type)) {
@@ -59,17 +64,22 @@ public class CrawlEntryProtoAdapter {
         try {
             var entry = (CrawlEntry) ClassUtil.newInstance(
                     ClassUtils.getClass(type));
-            entry.setReference(reference);
-            entry.setProcessingStatus(processingStatus);
-            entry.setMetaChecksum(metaChecksum);
-            entry.setContentChecksum(contentChecksum);
+            entry.setReference(nullable(reference));
+            entry.setProcessingStatus(
+                    nullable(processingStatus, ProcessingStatus::of));
+            entry.setMetaChecksum(nullable(metaChecksum));
+            entry.setContentChecksum(nullable(contentChecksum));
             entry.setQueuedAt(toZdt(queuedAt));
             entry.setProcessingAt(toZdt(processingAt));
-
+            entry.setProcessingOutcome(ProcessingOutcome.valueOf(
+                    nullable(processingOutcome)));
             if (otherProps != null) {
+                // Remove empty or placeholder values
+                otherProps.entrySet()
+                        .removeIf(en -> StringUtils.isEmpty(en.getValue())
+                                || NULL.equals(en.getValue()));
                 BeanUtils.populate(entry, otherProps);
             }
-
             return entry;
         } catch (IllegalAccessException | InvocationTargetException
                 | ClassNotFoundException e) {
@@ -81,31 +91,33 @@ public class CrawlEntryProtoAdapter {
     // Field extractors with indexing
     @ProtoField(1)
     public String getType(CrawlEntry entry) {
-        return entry.getClass().getName();
+        return nullSafe(entry.getClass().getName());
     }
 
     @ProtoField(2)
     public String getReference(CrawlEntry entry) {
-        return entry.getReference();
+        return nullSafe(entry.getReference());
     }
 
-    @ProtoField(value = 3, name = "processingStatus")
+    @ProtoField(value = 3)
     @GenericField(name = "processingStatus")
-    public ProcessingStatus getProcessingStatus(CrawlEntry entry) {
-        return entry.getProcessingStatus();
+    public String getProcessingStatus(CrawlEntry entry) {
+        return ofNullable(entry.getProcessingStatus())
+                .map(ProcessingStatus::name)
+                .orElse(NULL);
     }
 
     @ProtoField(4)
     public String getMetaChecksum(CrawlEntry entry) {
-        return entry.getMetaChecksum();
+        return nullSafe(entry.getMetaChecksum());
     }
 
     @ProtoField(5)
     public String getContentChecksum(CrawlEntry entry) {
-        return entry.getContentChecksum();
+        return nullSafe(entry.getContentChecksum());
     }
 
-    @ProtoField(value = 6, name = "queuedAt")
+    @ProtoField(value = 6)
     @GenericField(name = "queuedAt")
     public long getQueuedAt(CrawlEntry entry) {
         return toEpoch(entry.getQueuedAt());
@@ -118,6 +130,13 @@ public class CrawlEntryProtoAdapter {
     }
 
     @ProtoField(8)
+    public String getProcessingOutcome(CrawlEntry entry) {
+        return ofNullable(entry.getProcessingOutcome())
+                .map(ProcessingOutcome::toString)
+                .orElse(NULL);
+    }
+
+    @ProtoField(9)
     public Map<String, String> getOtherProps(CrawlEntry entry) {
         try {
             var props = BeanUtils.describe(entry);
@@ -127,7 +146,10 @@ public class CrawlEntryProtoAdapter {
                     CrawlEntry.Fields.metaChecksum,
                     CrawlEntry.Fields.contentChecksum,
                     CrawlEntry.Fields.queuedAt,
+                    CrawlEntry.Fields.processingOutcome,
                     CrawlEntry.Fields.processingAt).forEach(props::remove);
+            // Only replace nulls, not empty strings
+            props.replaceAll((k, v) -> v == null ? NULL : v);
             return props;
         } catch (IllegalAccessException | InvocationTargetException
                 | NoSuchMethodException e) {
@@ -145,5 +167,17 @@ public class CrawlEntryProtoAdapter {
     private static ZonedDateTime toZdt(long epoch) {
         return epoch <= 0 ? null
                 : Instant.ofEpochMilli(epoch).atZone(ZoneOffset.UTC);
+    }
+
+    private static String nullSafe(String value) {
+        return value == null ? NULL : value;
+    }
+
+    private static String nullable(String value) {
+        return NULL.equals(value) ? null : value;
+    }
+
+    private static <T> T nullable(String value, Function<String, T> f) {
+        return f.apply(nullable(value));
     }
 }

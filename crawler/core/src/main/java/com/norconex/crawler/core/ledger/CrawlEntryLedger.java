@@ -75,7 +75,7 @@ public final class CrawlEntryLedger {
     private static final String STATUS_COUNTER_PREFIX = "status-counter-";
 
     private Cache<CrawlEntry> currentLedger;
-    private Cache<CrawlEntry> previousLedger;
+    private Cache<CrawlEntry> baselineLedger;
     private long totalMaxDocsThisRun;
 
     // Map to hold references to status-specific counters
@@ -103,7 +103,7 @@ public final class CrawlEntryLedger {
         //                : null;
         currentLedger = cacheManager.getCache(
                 currentAlias, CrawlEntry.class);
-        previousLedger = cacheManager.cacheExists(previousAlias)
+        baselineLedger = cacheManager.cacheExists(previousAlias)
                 ? cacheManager.getCache(previousAlias, CrawlEntry.class)
                 : null;
 
@@ -172,6 +172,7 @@ public final class CrawlEntryLedger {
         // Update status counters if needed
         if (previous.isPresent()) {
             ProcessingStatus oldStatus = previous.get().getProcessingStatus();
+
             if (oldStatus != newStatus) {
                 statusCounters.get(oldStatus).decrementAndGet();
                 statusCounters.get(newStatus).incrementAndGet();
@@ -225,45 +226,6 @@ public final class CrawlEntryLedger {
                 .orElse(ProcessingStatus.UNTRACKED);
     }
 
-    Object deleteMe() {
-        return totalMaxDocsThisRun;
-    }
-
-    //--- Processed ---
-
-    public long getProcessedCount() {
-        return statusCounters.get(ProcessingStatus.PROCESSED).get();
-    }
-
-    public boolean isProcessedEmpty() {
-        return statusCounters.get(ProcessingStatus.PROCESSED).get() == 0;
-    }
-
-    public void forEachQueued(Consumer<CrawlEntry> c) {
-        forEachProcessingStatus(ProcessingStatus.QUEUED, c);
-    }
-
-    public void forEachProcessing(Consumer<CrawlEntry> c) {
-        forEachProcessingStatus(ProcessingStatus.PROCESSING, c);
-    }
-
-    public void forEachProcessed(Consumer<CrawlEntry> c) {
-        forEachProcessingStatus(ProcessingStatus.PROCESSED, c);
-    }
-
-    private void forEachProcessingStatus(
-            ProcessingStatus status, Consumer<CrawlEntry> c) {
-        currentLedger.queryIterator(
-                fromWhereStatusQuery(status))
-                .forEachRemaining(c::accept);
-    }
-
-    public void forEachPrevious(Consumer<CrawlEntry> c) {
-        if (previousLedger != null) {
-            previousLedger.forEach((k, v) -> c.accept(v));
-        }
-    }
-
     //--- Queue ---
 
     public boolean isQueueEmpty() {
@@ -276,11 +238,17 @@ public final class CrawlEntryLedger {
 
     public void clearQueue() {
         currentLedger.delete(fromWhereStatusQuery(ProcessingStatus.QUEUED));
+        statusCounters.get(ProcessingStatus.QUEUED).reset();
+    }
+
+    public void forEachQueued(Consumer<CrawlEntry> c) {
+        forEachProcessingStatus(ProcessingStatus.QUEUED, c);
     }
 
     public void queue(@NonNull CrawlEntry crawlEntry) {
         crawlEntry.setProcessingStatus(ProcessingStatus.QUEUED);
         currentLedger.put(crawlEntry.getReference(), crawlEntry);
+        statusCounters.get(ProcessingStatus.QUEUED).incrementAndGet();
         LOG.debug("Saved queued: {}", crawlEntry.getReference());
         session.fire(CrawlerEvent.builder()
                 .name(CrawlerEvent.DOCUMENT_QUEUED)
@@ -304,13 +272,6 @@ public final class CrawlEntryLedger {
         return batch;
     }
 
-    // To stream in slightly larger batches for efficiency on multi-nodes
-    private int bonifiedBatchSize(int batchSize) {
-        var nodeCnt = session.getCluster().getNodeCount();
-        var nodeFactor = (int) Math.ceil(Math.min(nodeCnt - 1, 5) * 0.5);
-        return batchSize + (nodeFactor * batchSize);
-    }
-
     public Optional<CrawlEntry> nextQueued() {
         var query = fromWhereStatusQuery(ProcessingStatus.QUEUED);
         var queuedEntries = currentLedger.queryIterator(query);
@@ -322,17 +283,60 @@ public final class CrawlEntryLedger {
         return claimQueuedEntry(reference);
     }
 
-    //--- Previous crawl entries ---
+    //--- Processing ---
 
-    public long getPreviousEntryCount() {
-        return previousLedger == null ? 0L : previousLedger.size();
+    public long getProcessingCount() {
+        return statusCounters.get(ProcessingStatus.PROCESSING).get();
     }
 
-    public Optional<CrawlEntry> getPreviousEntry(String id) {
-        return previousLedger == null
+    public boolean isProcessingEmpty() {
+        return statusCounters.get(ProcessingStatus.PROCESSING).get() == 0;
+    }
+
+    public void forEachProcessing(Consumer<CrawlEntry> c) {
+        forEachProcessingStatus(ProcessingStatus.PROCESSING, c);
+    }
+
+    private void forEachProcessingStatus(
+            ProcessingStatus status, Consumer<CrawlEntry> c) {
+        currentLedger.queryIterator(
+                fromWhereStatusQuery(status))
+                .forEachRemaining(c::accept);
+    }
+
+    //--- Processed ---
+
+    public long getProcessedCount() {
+        return statusCounters.get(ProcessingStatus.PROCESSED).get();
+    }
+
+    public boolean isProcessedEmpty() {
+        return statusCounters.get(ProcessingStatus.PROCESSED).get() == 0;
+    }
+
+    public void forEachProcessed(Consumer<CrawlEntry> c) {
+        forEachProcessingStatus(ProcessingStatus.PROCESSED, c);
+    }
+
+    //--- Previous baseline crawl entries ---
+
+    public long getBaselineCount() {
+        return baselineLedger == null ? 0L : baselineLedger.size();
+    }
+
+    public void forEachBaseline(Consumer<CrawlEntry> c) {
+        if (baselineLedger != null) {
+            baselineLedger.forEach((k, v) -> c.accept(v));
+        }
+    }
+
+    public Optional<CrawlEntry> getBaselineEntry(String id) {
+        return baselineLedger == null
                 ? Optional.empty()
-                : previousLedger.get(id);
+                : baselineLedger.get(id);
     }
+
+    //--- Misc. ---
 
     /**
      * Gets all entries matching the given processing status.
@@ -371,8 +375,8 @@ public final class CrawlEntryLedger {
      * to start fresh.
      */
     public synchronized void archiveCurrentLedger() {
-        if (previousLedger != null) {
-            previousLedger.clear();
+        if (baselineLedger != null) {
+            baselineLedger.clear();
         }
         var currentAlias = cacheManager.getCrawlSessionCache()
                 .get(CURRENT_LEDGER_ALIAS_KEY).orElse(null);
@@ -385,7 +389,7 @@ public final class CrawlEntryLedger {
                 ? LEDGER_B
                 : LEDGER_A;
         currentLedger = cacheManager.getCache(currentAlias, CrawlEntry.class);
-        previousLedger = cacheManager.cacheExists(previousAlias)
+        baselineLedger = cacheManager.cacheExists(previousAlias)
                 ? cacheManager.getCache(previousAlias, CrawlEntry.class)
                 : null;
     }
@@ -405,8 +409,11 @@ public final class CrawlEntryLedger {
         return isMax;
     }
 
+    //--- Private methods ------------------------------------------------------
+
     /**
-     * Atomically claims a QUEUED entry for processing, updating its status and timestamp.
+     * Atomically claims a QUEUED entry for processing, updating its status
+     * and timestamp.
      * Updates status counters if successful.
      * @param reference the reference to claim
      * @return the updated entry if successfully claimed, otherwise empty
@@ -447,5 +454,12 @@ public final class CrawlEntryLedger {
     //                            ProcessingStatus.QUEUED.name(),
     //                            CrawlEntry.Fields.queuedAt);
     //    }
+
+    // To stream in slightly larger batches for efficiency on multi-nodes
+    private int bonifiedBatchSize(int batchSize) {
+        var nodeCnt = session.getCluster().getNodeCount();
+        var nodeFactor = (int) Math.ceil(Math.min(nodeCnt - 1, 5) * 0.5);
+        return batchSize + (nodeFactor * batchSize);
+    }
 
 }

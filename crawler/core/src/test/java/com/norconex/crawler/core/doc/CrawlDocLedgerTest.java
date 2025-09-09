@@ -38,7 +38,7 @@ class CrawlDocLedgerTest {
     void testCleanCrawl(CrawlSession session) {
         var ledger = session.getCrawlContext().getCrawlEntryLedger();
         assertThatNoException().isThrownBy(() -> {
-            ledger.forEachPrevious(entry -> {});
+            ledger.forEachBaseline(entry -> {});
             ledger.forEachProcessed(entry -> {});
             ledger.forEachQueued(entry -> {});
         });

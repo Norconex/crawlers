@@ -36,6 +36,7 @@ import com.norconex.crawler.core.metrics.CrawlerMetrics;
 import com.norconex.crawler.core.metrics.CrawlerMetricsImpl;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -53,14 +54,13 @@ public class CrawlProgressLogger {
     private final CrawlerMetrics monitor;
 
     // Just so we can show the delta between each log entry
-    private long prevProcessedCount;
-    private long prevQueuedCount;
+    private Counts prevCounts = new Counts();
     private long prevElapsed;
 
     private ScheduledExecutorService execService;
     private volatile boolean stopTrackingRequested;
 
-    private volatile Runnable stopCheckCallback;
+    private Runnable stopCheckCallback;
 
     private final DurationFormatter durationFormatter = new DurationFormatter()
             .withOuterLastSeparator(" and ")
@@ -106,8 +106,7 @@ public class CrawlProgressLogger {
         }
         stopWatch.reset();
         stopWatch.start();
-        prevProcessedCount = monitor.getProcessedCount();
-        prevQueuedCount = monitor.getQueuedCount();
+        prevCounts.applyMetrics(monitor);
 
         while (!stopTrackingRequested) {
             if (stopCheckCallback != null) {
@@ -141,18 +140,20 @@ public class CrawlProgressLogger {
             try {
                 execService.shutdownNow();
                 if (!execService.awaitTermination(5, TimeUnit.SECONDS)) {
-                    LOG.warn(
-                            "Progress logger executor did not terminate within timeout.");
+                    LOG.warn("Progress logger executor did not terminate "
+                            + "within timeout.");
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                LOG.warn(
-                        "Interrupted while waiting for progress logger executor to terminate.");
+                LOG.warn("Interrupted while waiting for progress logger "
+                        + "executor to terminate.");
             } finally {
                 execService = null;
             }
         }
         monitor.flush();
+        // Force a final log to capture the latest state
+        logProgress();
         LOG.info("Execution Summary:{}", getExecutionSummary());
     }
 
@@ -188,43 +189,41 @@ public class CrawlProgressLogger {
         }
 
         // OK, log it
-        var processedCount = monitor.getProcessedCount();
-        var queuedCount = monitor.getQueuedCount();
+        var freshCounts = new Counts().applyMetrics(monitor);
 
-        var msg = infoMessage(elapsed, processedCount, queuedCount);
+        var msg = infoMessage(elapsed, freshCounts);
         if (LOG.isDebugEnabled()) {
             // if debugging, compute and show more stats
-            LOG.info(
-                    "{}{}", msg,
-                    debugMessage(elapsed, processedCount, queuedCount));
+            LOG.info("{}{}", msg, debugMessage(elapsed, freshCounts));
         } else {
             LOG.info(msg);
         }
-        prevProcessedCount = processedCount;
-        prevQueuedCount = queuedCount;
+        prevCounts.applyMetrics(monitor);
         prevElapsed = elapsed;
     }
 
-    private String infoMessage(
-            long elapsed, long processedCount, long queuedCount) {
-        var processedDelta = plusMinus(processedCount - prevProcessedCount);
-        var queuedDelta = plusMinus(queuedCount - prevQueuedCount);
+    private String infoMessage(long elapsed, Counts counts) {
+        var deltas = prevCounts.deltas(counts);
+
         var elapsedTime = durationFormatter.format(stopWatch.getTime());
         var throughput = divideDownStr(
-                (processedCount - prevProcessedCount) * 1000,
+                (counts.processed - prevCounts.processed) * 1000,
                 elapsed - prevElapsed,
                 1);
+        // Show current queue size and delta, e.g. '5 queued (+5)'
         var base = String.format(
-                "%s(%s) processed "
-                        + "| %s(%s) queued | %s processed/sec | %s elapsed",
-                processedCount,
-                processedDelta,
-                queuedCount,
-                queuedDelta,
+                "%s processed (%s) | %s queued (%s) | %s processing (%s) "
+                        + "| %s processed/sec | %s elapsed",
+                counts.processed,
+                plusMinus(deltas.processed),
+                counts.queued,
+                plusMinus(deltas.queued),
+                counts.processing,
+                plusMinus(deltas.processing),
                 throughput,
                 elapsedTime);
         var stepInfo = stepProgressMessage();
-        return stepInfo == null || stepInfo.isEmpty() ? base
+        return StringUtils.isBlank(stepInfo) ? base
                 : base + " | " + stepInfo;
     }
 
@@ -249,22 +248,22 @@ public class CrawlProgressLogger {
                             + pp.getStepCount() + " ")
                     : "";
             var msg = pp.getStepMessage();
-            var suffix = (msg != null && !msg.isBlank()) ? (" — " + msg) : "";
+            var suffix = StringUtils.isNotBlank(msg) ? (" — " + msg) : "";
             return (idxStr + label + " " + pct + "%").trim() + suffix;
         } catch (Exception e) {
-            // Be resilient in logger; never break logging due to supplier issues
+            // Be resilient in logger; never break logging due to
+            // supplier issues
             return null;
         }
     }
 
-    private String debugMessage(
-            long elapsed, long processedCount, long queuedCount) {
-        var totalSoFar = processedCount + queuedCount;
-        var progress = divideDownStr(processedCount * 100, totalSoFar, 2);
+    private String debugMessage(long elapsed, Counts counts) {
+        var totalSoFar = counts.processed + counts.queued;
+        var progress = divideDownStr(counts.processed * 100, totalSoFar, 2);
         var remaining = durationFormatter.format(
                 divideDown(
-                        elapsed * queuedCount,
-                        processedCount,
+                        elapsed * counts.queued,
+                        counts.processed,
                         0).longValueExact());
         return String.format(
                 " | ≈%s%% complete | ≈%s remaining",
@@ -286,5 +285,30 @@ public class CrawlProgressLogger {
 
     private String divideDownStr(long dividend, long divisor, int scale) {
         return divideDown(dividend, divisor, scale).toPlainString();
+    }
+
+    @Getter
+    private static class Counts {
+        private long queued;
+        private long processing;
+        private long processed;
+        private long baseline;
+
+        private Counts applyMetrics(CrawlerMetrics metrics) {
+            queued = metrics.getQueuedCount();
+            processing = metrics.getProcessingCount();
+            processed = metrics.getProcessedCount();
+            baseline = metrics.getBaselineCount();
+            return this;
+        }
+
+        private Counts deltas(Counts newCounts) {
+            var deltas = new Counts();
+            deltas.queued = newCounts.queued - queued;
+            deltas.processing = newCounts.processing - processing;
+            deltas.processed = newCounts.processed - processed;
+            deltas.baseline = newCounts.baseline - baseline;
+            return deltas;
+        }
     }
 }

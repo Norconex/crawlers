@@ -15,10 +15,11 @@
 package com.norconex.crawler.core.ledger;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -38,7 +39,7 @@ import lombok.EqualsAndHashCode;
 public class ProcessingOutcome implements Serializable {
 
     private static final Map<String, ProcessingOutcome> OUTCOMES =
-            new HashMap<>();
+            new ConcurrentHashMap<>();
 
     //TODO make default state UNKNOWN/UNPROCESSED, or equivalent that means
     // TBD/IN_PROGRESS????
@@ -150,8 +151,11 @@ public class ProcessingOutcome implements Serializable {
     }
 
     @JsonCreator
-    public static synchronized ProcessingOutcome valueOf(
+    public static ProcessingOutcome valueOf(
             @JsonProperty("state") String state) {
+        if (StringUtils.isBlank(state)) {
+            return null;
+        }
         var refState = OUTCOMES.get(state);
         if (refState == null) {
             refState = new ProcessingOutcome(state);

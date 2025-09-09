@@ -20,9 +20,11 @@ public interface CrawlerMetricsMXBean {
 
     Map<String, Long> getEventCounts();
 
+    long getProcessingCount();
+
     long getProcessedCount();
 
     long getQueuedCount();
 
-    long getCachedCount();
+    long getBaselineCount();
 }

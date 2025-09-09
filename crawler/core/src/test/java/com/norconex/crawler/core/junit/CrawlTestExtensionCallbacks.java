@@ -35,11 +35,11 @@ import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.cluster.ClusterConnector;
-import com.norconex.crawler.core.session.CrawlSessionFactory;
-import com.norconex.crawler.core.stubs.CrawlerConfigStubber;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
+import com.norconex.crawler.core.session.CrawlSessionFactory;
+import com.norconex.crawler.core.stubs.CrawlerConfigStubber;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -172,8 +172,6 @@ public class CrawlTestExtensionCallbacks implements
             params.getCrawlSession().fire(
                     CrawlerEvent.CRAWLER_CRAWL_END, this); // simulate
             params.getCrawlSession().close();
-            //            CrawlContextTestUtil.destroyCrawlerContext(
-            //                    params.getCrawlSession());
         }
         if (params.getMemoryCommitter() != null) {
             params.getMemoryCommitter().clean();
@@ -185,12 +183,10 @@ public class CrawlTestExtensionCallbacks implements
             if (tempDir != null) {
                 Files.walk(tempDir)
                         // Delete files before directories
-                        .sorted((path1, path2) -> path2
-                                .compareTo(path1))
+                        .sorted((path1, path2) -> path2.compareTo(path1))
                         .forEach(path -> {
                             try {
-                                FileUtil.delete(path
-                                        .toFile());
+                                FileUtil.delete(path.toFile());
                             } catch (IOException e) {
                                 throw new RuntimeException(
                                         "Failed to delete file: "

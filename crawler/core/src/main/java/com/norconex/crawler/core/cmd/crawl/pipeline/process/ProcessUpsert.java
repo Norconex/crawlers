@@ -91,7 +91,7 @@ final class ProcessUpsert {
                     .crawlSession()
                     .getCrawlContext()
                     .getCrawlEntryLedger()
-                    .getPreviousEntry(childResponse.getReference())
+                    .getBaselineEntry(childResponse.getReference())
                     .orElse(null);
 
             // Here we create a CrawlDoc since the document from the response

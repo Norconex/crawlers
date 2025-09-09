@@ -38,7 +38,7 @@ public class RequeueOrphansForProcessingStep extends BaseStep {
     public void execute(CrawlSession session) {
         var ctx = session.getCrawlContext();
 
-        var orphanCount = ctx.getCrawlEntryLedger().getPreviousEntryCount();
+        var orphanCount = ctx.getCrawlEntryLedger().getBaselineCount();
         if (orphanCount == 0) {
             LOG.info("There are no orphans to process.");
             return;
@@ -50,7 +50,7 @@ public class RequeueOrphansForProcessingStep extends BaseStep {
         }
         LOG.info("Queueing orphan references for processing...");
         var count = new MutableLong();
-        ctx.getCrawlEntryLedger().forEachPrevious(entry -> {
+        ctx.getCrawlEntryLedger().forEachBaseline(entry -> {
             entry.setOrphan(true);
             ctx.getDocPipelines()
                     .getQueuePipeline()

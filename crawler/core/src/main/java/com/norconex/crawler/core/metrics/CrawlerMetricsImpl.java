@@ -152,6 +152,14 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
     }
 
     @Override
+    public long getProcessingCount() {
+        if (!isClosed()) {
+            cache.processingCount.set(ledger.getProcessingCount());
+        }
+        return cache.processingCount.get();
+    }
+
+    @Override
     public long getProcessedCount() {
         if (!isClosed()) {
             cache.processedCount.set(ledger.getProcessedCount());
@@ -168,11 +176,11 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
     }
 
     @Override
-    public long getCachedCount() {
+    public long getBaselineCount() {
         if (!isClosed()) {
-            cache.cachedCount.set(ledger.getPreviousEntryCount());
+            cache.baselineCount.set(ledger.getBaselineCount());
         }
-        return cache.cachedCount.get();
+        return cache.baselineCount.get();
     }
 
     @Override
@@ -233,15 +241,17 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
     static class MetricsCache {
         private final ConcurrentHashMap<String, Long> eventCounts =
                 new ConcurrentHashMap<>();
-        private final AtomicLong processedCount = new AtomicLong();
         private final AtomicLong queuedCount = new AtomicLong();
-        private final AtomicLong cachedCount = new AtomicLong();
+        private final AtomicLong processingCount = new AtomicLong();
+        private final AtomicLong processedCount = new AtomicLong();
+        private final AtomicLong baselineCount = new AtomicLong();
 
         void clear() {
             eventCounts.clear();
+            processingCount.set(0);
             processedCount.set(0);
             queuedCount.set(0);
-            cachedCount.set(0);
+            baselineCount.set(0);
         }
     }
 }

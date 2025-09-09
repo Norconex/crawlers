@@ -27,12 +27,12 @@ import com.norconex.crawler.core.cluster.pipeline.BaseStep;
 import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
-import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core.util.ConcurrentUtil;
-import com.norconex.crawler.core.util.LogUtil;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.ledger.CrawlEntry;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.util.ConcurrentUtil;
+import com.norconex.crawler.core.util.LogUtil;
 import com.norconex.importer.doc.Doc;
 
 import lombok.EqualsAndHashCode;
@@ -178,7 +178,7 @@ public class CrawlProcessStep extends BaseStep {
             if (session.isIncremental()) {
                 previousEntry = crawlCtx
                         .getCrawlEntryLedger()
-                        .getPreviousEntry(currentEntry.getReference())
+                        .getBaselineEntry(currentEntry.getReference())
                         .orElse(null);
             }
 
