@@ -51,7 +51,7 @@ public class CrawlProgressLogger {
     private final StopWatch stopWatch = new StopWatch();
 
     private Duration minLoggingInterval;
-    private final CrawlerMetrics monitor;
+    private final CrawlerMetrics metrics;
 
     // Just so we can show the delta between each log entry
     private Counts prevCounts = new Counts();
@@ -79,7 +79,7 @@ public class CrawlProgressLogger {
 
     public CrawlProgressLogger(CrawlContext ctx,
             Supplier<PipelineProgress> pipelineProgressSupplier) {
-        monitor = ctx.getMetrics();
+        metrics = ctx.getMetrics();
         var minInterval = ctx.getCrawlConfig().getMinProgressLoggingInterval();
         if (minInterval == null || minInterval.getSeconds() < 1) {
             minLoggingInterval = null;
@@ -106,7 +106,7 @@ public class CrawlProgressLogger {
         }
         stopWatch.reset();
         stopWatch.start();
-        prevCounts.applyMetrics(monitor);
+        prevCounts.applyMetrics(metrics);
 
         while (!stopTrackingRequested) {
             if (stopCheckCallback != null) {
@@ -130,7 +130,7 @@ public class CrawlProgressLogger {
         LOG.info("Stopping crawl progress logger...");
         stopTrackingRequested = true;
         // Disconnect metrics from cluster
-        if (monitor instanceof CrawlerMetricsImpl metricsImpl) {
+        if (metrics instanceof CrawlerMetricsImpl metricsImpl) {
             metricsImpl.close();
         }
         if (!stopWatch.isStopped()) {
@@ -151,15 +151,16 @@ public class CrawlProgressLogger {
                 execService = null;
             }
         }
-        monitor.flush();
+        metrics.flush();
         // Force a final log to capture the latest state
         logProgress();
         LOG.info("Execution Summary:{}", getExecutionSummary());
     }
 
     public String getExecutionSummary() {
+        metrics.flush();
         var elapsed = stopWatch.getTime();
-        var processedCount = monitor.getProcessedCount();
+        var processedCount = metrics.getProcessedCount();
         var b = new StringBuilder()
                 .append("\nTotal processed:   ")
                 .append(processedCount)
@@ -170,7 +171,8 @@ public class CrawlProgressLogger {
                 .append(divideDownStr(processedCount * 1000, elapsed, 1))
                 .append(" processed/seconds")
                 .append("\n  Event counts (incl. resumed):");
-        monitor.getEventCounts()
+
+        metrics.getEventCounts()
                 .entrySet()
                 .stream()
                 .sorted(Comparator.comparing(Entry<String, Long>::getKey))
@@ -189,7 +191,7 @@ public class CrawlProgressLogger {
         }
 
         // OK, log it
-        var freshCounts = new Counts().applyMetrics(monitor);
+        var freshCounts = new Counts().applyMetrics(metrics);
 
         var msg = infoMessage(elapsed, freshCounts);
         if (LOG.isDebugEnabled()) {
@@ -198,7 +200,7 @@ public class CrawlProgressLogger {
         } else {
             LOG.info(msg);
         }
-        prevCounts.applyMetrics(monitor);
+        prevCounts.applyMetrics(metrics);
         prevElapsed = elapsed;
     }
 

@@ -54,7 +54,7 @@ public class ScopedThreadFactoryCreator {
                         scopeName, k -> new AtomicInteger())
                         .incrementAndGet();
                 var fullName = scopeName + "-" + threadName + "-" + scopedCount;
-                var t = new Thread(LOG.isDebugEnabled() ? () -> {
+                var t = new Thread(LOG.isTraceEnabled() ? () -> {
                     debug(false, fullName, scopedCount);
                     r.run();
                     debug(true, fullName, scopedCount);
@@ -67,7 +67,7 @@ public class ScopedThreadFactoryCreator {
                     boolean ended,
                     String threadName,
                     int scopedCount) {
-                if (!LOG.isDebugEnabled()) {
+                if (!LOG.isTraceEnabled()) {
                     return;
                 }
 
@@ -94,7 +94,7 @@ public class ScopedThreadFactoryCreator {
                         }).collect(Collectors.joining(
                                 "\n" + arrow + "     "));
 
-                LOG.debug(StringSubstitutor.replace("""
+                LOG.trace(StringSubstitutor.replace("""
 
 
                     ${ar} Thread #${scopeCnt} in scope "${scopeName}" ${when}

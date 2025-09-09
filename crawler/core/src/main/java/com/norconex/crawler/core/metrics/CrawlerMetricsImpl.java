@@ -24,7 +24,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.norconex.crawler.core.cluster.Cache;
-import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanCacheManager;
 import com.norconex.crawler.core.ledger.CrawlEntryLedger;
 import com.norconex.crawler.core.session.CrawlSession;
 
@@ -50,9 +49,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
 
     private final Lock flushLock = new ReentrantLock();
 
-    private final MetricsCache cache = new MetricsCache();
-
-    private CrawlSession crawlSession;
+    private final MetricsMemCache memCache = new MetricsMemCache();
 
     public CrawlerMetricsImpl() {
         LOG.info("[CrawlerMetricsImpl] Created instance: {}",
@@ -61,7 +58,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
 
     @Override
     public void init(CrawlSession crawlSession) {
-        cache.clear();
+        memCache.clear();
         var ctx = crawlSession.getCrawlContext();
         ledger = ctx.getCrawlEntryLedger();
         eventCountsStore = crawlSession.getCluster().getCacheManager().getCache(
@@ -71,7 +68,6 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
         scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(this::flushBatch,
                 BATCH_INTERVAL, BATCH_INTERVAL, TimeUnit.MILLISECONDS);
-        this.crawlSession = crawlSession;
     }
 
     public void batchIncrementCounter(String eventName, long incrementBy) {
@@ -123,20 +119,14 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
             LOG.debug("CrawlerMetrics already flushed and closed.");
             return;
         }
-        if (eventCountsStore != null) {
-            try {
-                ((InfinispanCacheManager) crawlSession.getCluster()
-                        .getCacheManager()).vendor();
-            } catch (Exception e) {
-                LOG.warn("Could not get cache manager: {}", e.getMessage());
-            }
-        }
         if (flushLock.tryLock()) {
             try {
                 eventCountsLocalBatch.forEach((eventName, increment) -> {
                     try {
                         atomicIncrement(eventCountsStore, eventName, increment);
                         eventCountsLocalBatch.put(eventName, 0L);
+                        memCache.eventCounts.merge(
+                                eventName, increment, Long::sum);
                     } catch (Exception e) {
                         LOG.error("Error updating event count cache for event: "
                                 + eventName, e);
@@ -154,40 +144,40 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
     @Override
     public long getProcessingCount() {
         if (!isClosed()) {
-            cache.processingCount.set(ledger.getProcessingCount());
+            memCache.processingCount.set(ledger.getProcessingCount());
         }
-        return cache.processingCount.get();
+        return memCache.processingCount.get();
     }
 
     @Override
     public long getProcessedCount() {
         if (!isClosed()) {
-            cache.processedCount.set(ledger.getProcessedCount());
+            memCache.processedCount.set(ledger.getProcessedCount());
         }
-        return cache.processedCount.get();
+        return memCache.processedCount.get();
     }
 
     @Override
     public long getQueuedCount() {
         if (!isClosed()) {
-            cache.queuedCount.set(ledger.getQueueCount());
+            memCache.queuedCount.set(ledger.getQueueCount());
         }
-        return cache.queuedCount.get();
+        return memCache.queuedCount.get();
     }
 
     @Override
     public long getBaselineCount() {
         if (!isClosed()) {
-            cache.baselineCount.set(ledger.getBaselineCount());
+            memCache.baselineCount.set(ledger.getBaselineCount());
         }
-        return cache.baselineCount.get();
+        return memCache.baselineCount.get();
     }
 
     @Override
     public Map<String, Long> getEventCounts() {
         if (!isClosed()) {
             try {
-                eventCountsStore.forEach(cache.eventCounts::put);
+                eventCountsStore.forEach(memCache.eventCounts::put);
             } catch (Exception e) {
                 LOG.warn("CrawlerMetrics: Could not sync event counts from "
                         + "cluster (cluster may be shutting down): {}",
@@ -197,7 +187,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
             LOG.info("CrawlerMetrics: Cluster is closed, returning last known "
                     + "event counts (not syncing).");
         }
-        return cache.eventCounts;
+        return memCache.eventCounts;
     }
 
     public boolean isClosed() {
@@ -238,7 +228,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
     /**
      * Caching of metrics so they can be referenced after close/shutdown.
      */
-    static class MetricsCache {
+    static class MetricsMemCache {
         private final ConcurrentHashMap<String, Long> eventCounts =
                 new ConcurrentHashMap<>();
         private final AtomicLong queuedCount = new AtomicLong();
