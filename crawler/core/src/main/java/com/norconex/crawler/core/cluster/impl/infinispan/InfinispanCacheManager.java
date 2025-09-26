@@ -51,8 +51,7 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
 
     @Override
     public CacheSet getCacheSet(String name) {
-        return new InfinispanCacheSetAdapter(
-                getInfiniCache(name).keySet());
+        return new InfinispanCacheSetAdapter(getInfiniCache(name));
     }
 
     @Override

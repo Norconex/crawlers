@@ -24,6 +24,8 @@ public class InfinispanCacheAdapter<T> implements Cache<T> {
 
     private final org.infinispan.Cache<String, T> delegate;
     private static final int DEFAULT_BATCH_SIZE = 100;
+    private static final java.util.Set<String> CLOSED_LOGGED =
+            java.util.concurrent.ConcurrentHashMap.newKeySet();
 
     public InfinispanCacheAdapter(org.infinispan.Cache<String, T> delegate) {
         this.delegate = delegate;
@@ -265,10 +267,15 @@ public class InfinispanCacheAdapter<T> implements Cache<T> {
         var status = delegate.getStatus();
         if (status == ComponentStatus.TERMINATED
                 || status == ComponentStatus.FAILED) {
-            LOG.warn("Attempted to use cache '{}' after it was closed.",
-                    delegate.getName());
-            // Optionally: throw new IllegalStateException("Cache is closed");
-            return true; // or skip operation
+            var name = delegate.getName();
+            if (CLOSED_LOGGED.add(name)) {
+                LOG.warn("Attempted to use cache '{}' after it was closed.",
+                        name);
+            } else if (LOG.isDebugEnabled()) {
+                LOG.debug("(suppressed) Attempted to use closed cache '{}'.",
+                        name);
+            }
+            return true; // skip operation
         }
         return false;
     }

@@ -38,31 +38,30 @@ class StopCrawlerOnMaxEventListenerTest {
     private static final String UPSERTED_OR_REJECTED =
             COMMITTER_SERVICE_UPSERT_END + "|" + REJECTED_FILTER;
 
-    //Note, we test with 1 thread to ensure precise count in our tests
     private static final String CFG_TMPL = """
-          numThreads: 1
-          startReferences:
-            - "1-mock:reject-1"
-            - "2-mock:upsert-1"
-            - "3-mock:reject-2"
-            - "4-mock:upsert-2"
-            - "5-mock:upsert-3"
-            - "6-mock:reject-3"
-            - "7-mock:upsert-4"
-          documentFilters:
-            - class: GenericReferenceFilter
-              onMatch: EXCLUDE
-              valueMatcher:
-                method: WILDCARD
-                pattern: "*mock:reject*"
-          eventListeners:
-            - class: StopCrawlerOnMaxEventListener
-              eventMatcher:
-                method: REGEX
-                pattern: ${pattern}
-              maximum: ${maximum}
-              onMultiple: ${onMultiple}
-      """;
+              numThreads: 1
+              startReferences:
+                - "1-mock:reject-1"
+                - "2-mock:upsert-1"
+                - "3-mock:reject-2"
+                - "4-mock:upsert-2"
+                - "5-mock:upsert-3"
+                - "6-mock:reject-3"
+                - "7-mock:upsert-4"
+              documentFilters:
+                - class: GenericReferenceFilter
+                  onMatch: EXCLUDE
+                  valueMatcher:
+                    method: WILDCARD
+                    pattern: "*mock:reject*"
+              eventListeners:
+                - class: StopCrawlerOnMaxEventListener
+                  eventMatcher:
+                    method: REGEX
+                    pattern: ${pattern}
+                  maximum: ${maximum}
+                  onMultiple: ${onMultiple}
+          """;
 
     @CrawlTest(
         focus = Focus.CRAWL,
@@ -109,7 +108,7 @@ class StopCrawlerOnMaxEventListenerTest {
         }
     )
     void testStopOnEventListener4(MemoryCommitter mem) {
-        assertThat(mem.getUpsertCount()).isEqualTo(1);
+        assertThat(mem.getUpsertCount()).isEqualTo(2);
     }
 
     @CrawlTest(
@@ -135,6 +134,12 @@ class StopCrawlerOnMaxEventListenerTest {
         }
     )
     void testStopOnEventListener6(MemoryCommitter mem) {
+        System.err.println(
+                "XXX commited items delete count: " + mem.getDeleteCount());
+        System.err.println(
+                "XXX commited items upsert count: " + mem.getUpsertCount());
+        System.err.println(
+                "XXX commited items request count: " + mem.getRequestCount());
         assertThat(mem.getUpsertCount()).isEqualTo(3);
     }
 

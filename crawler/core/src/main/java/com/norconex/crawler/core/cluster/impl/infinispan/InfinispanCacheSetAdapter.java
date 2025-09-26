@@ -3,6 +3,8 @@ package com.norconex.crawler.core.cluster.impl.infinispan;
 import java.util.Iterator;
 import java.util.function.Consumer;
 
+import org.infinispan.Cache;
+
 import com.norconex.crawler.core.cluster.CacheSet;
 
 import lombok.extern.slf4j.Slf4j;
@@ -10,10 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 class InfinispanCacheSetAdapter implements CacheSet {
 
-    private final org.infinispan.CacheSet<String> delegate;
+    private final Cache<String, Boolean> delegate;
 
-    public InfinispanCacheSetAdapter(
-            org.infinispan.CacheSet<String> delegate) {
+    public InfinispanCacheSetAdapter(Cache<String, Boolean> delegate) {
         this.delegate = delegate;
     }
 
@@ -34,7 +35,7 @@ class InfinispanCacheSetAdapter implements CacheSet {
 
     @Override
     public boolean contains(String key) {
-        return delegate.contains(key);
+        return delegate.containsKey(key);
     }
 
     @Override
@@ -44,16 +45,16 @@ class InfinispanCacheSetAdapter implements CacheSet {
 
     @Override
     public void forEach(Consumer<String> action) {
-        delegate.forEach(action::accept);
+        delegate.keySet().forEach(action::accept);
     }
 
     @Override
     public void add(String key) {
-        delegate.add(key);
+        delegate.put(key, Boolean.TRUE);
     }
 
     @Override
     public Iterator<String> iterator() {
-        return delegate.iterator();
+        return delegate.keySet().iterator();
     }
 }

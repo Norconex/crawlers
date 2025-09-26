@@ -63,6 +63,8 @@ public class PipelineWorker implements AutoCloseable {
 
         state = new PipelineWorkerState(cluster, pipeline,
                 this::executeStep);
+        // Register listener only after state is non-null to avoid race
+        state.registerStepListener();
 
         return new PipelineTerminationTracker(
                 cluster, pipeline, state).await(0L);
@@ -93,6 +95,13 @@ public class PipelineWorker implements AutoCloseable {
 
     //NOTE: only invoked when the current/new step is set to RUNNING
     private void executeStep(StepRecord stepRec) {
+        if (state == null) {
+            LOG.warn("Worker state not yet initialized for node {}. Ignoring"
+                    + " execution request for step {}.",
+                    cluster.getLocalNode().getNodeName(),
+                    stepRec != null ? stepRec.getStepId() : "<null>");
+            return;
+        }
         var step = pipeline.getStep(stepRec.getStepId());
         if (!InfinispanUtil.isClusterRunning(cluster)) {
             LOG.warn("Infinispan cluster node not RUNNING for {}. "

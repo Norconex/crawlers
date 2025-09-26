@@ -109,6 +109,13 @@ public class StopCrawlerOnMaxEventListener implements
 
     @Override
     public void accept(Event event) {
+
+        eventCounts.forEach((k, v) -> {
+            System.err.println(
+                    "XXX EVENT COUNT: " + k + " -> " + eventCounts.size());
+
+        });
+
         if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
             eventCounts.clear();
             crawlSession = ((CrawlerEvent) event).getCrawlSession();

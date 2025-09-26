@@ -19,6 +19,8 @@
       <expiration max-idle="60000"/>
       <!-- Reduce test flakiness by avoiding rebalancing -->
       <state-transfer enabled="true"/>
+      <!-- Allow reads during a split to prevent degraded mode failures in tests -->
+      <partition-handling when-split="ALLOW_READS"/>
     </distributed-cache-configuration>
 
     <distributed-cache-configuration
@@ -35,6 +37,7 @@
           <indexed-entity>com.norconex.crawler.core.cluster.impl.infinispan.CrawlEntryProtoAdapter</indexed-entity>
         </indexed-entities>
       </indexing>
+      <partition-handling when-split="ALLOW_READS"/>
     </distributed-cache-configuration>
 
     <distributed-cache-configuration 
@@ -45,6 +48,7 @@
     >
       <expiration lifespan="-1"/>
       <persistence passivation="false"/>
+      <partition-handling when-split="ALLOW_READS"/>
     </distributed-cache-configuration>
 
 

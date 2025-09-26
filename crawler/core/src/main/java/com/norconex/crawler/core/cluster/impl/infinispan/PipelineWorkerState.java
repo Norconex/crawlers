@@ -108,7 +108,9 @@ public class PipelineWorkerState implements AutoCloseable {
                 .setRunId(session.getCrawlRunId())
                 .setStatus(PipelineStatus.PENDING);
 
-        initStepListener();
+        // Listener registration moved out of constructor to avoid race with
+        // PipelineWorker.state assignment.
+        // initStepListener();
 
         //TODO make status update heartbeat configurable
         // 1 second may be taxing
@@ -141,6 +143,20 @@ public class PipelineWorkerState implements AutoCloseable {
             }
             //TODO make heartbeat configurable, keep 1 for testing
         }, 0, 1, TimeUnit.SECONDS); // short heartbeat to avoid false expiry
+    }
+
+    /**
+     * Registers the step listener. Must be invoked after the owning
+     * PipelineWorker "state" field is set to avoid early callbacks with a
+     * null worker state.
+     */
+    public void registerStepListener() {
+        if (closed.get()) {
+            return; // nothing to do
+        }
+        if (pipelineStepListener == null) {
+            initStepListener();
+        }
     }
 
     public Step getCurrentStep() {
@@ -246,12 +262,13 @@ public class PipelineWorkerState implements AutoCloseable {
         var newStatus = currentStepRecord.getStatus();
         var newStepId = currentStepRecord.getStepId();
 
-        //TODO is expiry something to check here?
-
         // if newly set to run, run it.
         // if already running, run it if step id has changed
-        if (newStatus.isRunning()
-                && (!oldStatus.isRunning() || !oldStepId.equals(newStepId))) {
+        boolean stepChanged = (oldStepId == null && newStepId != null)
+                || (oldStepId != null && !oldStepId.equals(newStepId));
+        if (newStatus != null && newStatus.isRunning()
+                && (! (oldStatus != null && oldStatus.isRunning())
+                        || stepChanged)) {
             LOG.info("{}:{} -> {}:{}",
                     oldStepId, oldStatus, newStepId, newStatus);
             onNewStepRun.accept(currentStepRecord);
