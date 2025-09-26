@@ -34,7 +34,7 @@
         indexing-mode="auto"
       >
         <indexed-entities>
-          <indexed-entity>com.norconex.crawler.core.cluster.impl.infinispan.CrawlEntryProtoAdapter</indexed-entity>
+          <indexed-entity>com.norconex.crawler.core.ledger.CrawlEntry</indexed-entity>
         </indexed-entities>
       </indexing>
       <partition-handling when-split="ALLOW_READS"/>

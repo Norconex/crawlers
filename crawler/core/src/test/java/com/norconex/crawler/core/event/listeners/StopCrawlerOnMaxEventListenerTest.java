@@ -134,12 +134,6 @@ class StopCrawlerOnMaxEventListenerTest {
         }
     )
     void testStopOnEventListener6(MemoryCommitter mem) {
-        System.err.println(
-                "XXX commited items delete count: " + mem.getDeleteCount());
-        System.err.println(
-                "XXX commited items upsert count: " + mem.getUpsertCount());
-        System.err.println(
-                "XXX commited items request count: " + mem.getRequestCount());
         assertThat(mem.getUpsertCount()).isEqualTo(3);
     }
 

@@ -447,13 +447,6 @@ public final class CrawlEntryLedger {
                 ProcessingStatus.QUEUED.name(),
                 CrawlEntry.Fields.queuedAt);
     }
-    //    private String fromOrderedQueuedQuery() {
-    //        return "FROM %s WHERE processingStatus = '%s' ORDER BY %s"
-    //                .formatted(
-    //                        CrawlEntry.class.getName(),
-    //                            ProcessingStatus.QUEUED.name(),
-    //                            CrawlEntry.Fields.queuedAt);
-    //    }
 
     // To stream in slightly larger batches for efficiency on multi-nodes
     private int bonifiedBatchSize(int batchSize) {
