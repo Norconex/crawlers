@@ -3,6 +3,11 @@
   <cache-container name="default" statistics="true" default-cache="default">
     <transport cluster="test-cluster" stack="tcp"/>
 
+    <!-- Persist container global state under the crawler workDir -->
+    <global-state enabled="true">
+      <persistent-location path="__DERIVED__/cache/infinispan"/>
+    </global-state>
+
     <!-- === Cache Templates === -->
 
     <distributed-cache-configuration
@@ -15,32 +20,29 @@
         <key media-type="application/x-protostream"/>
         <value media-type="application/x-protostream"/>
       </encoding>
-      <memory max-count="100"/>
-      <expiration max-idle="60000"/>
+      <transaction
+        mode="NON_XA"
+        locking="PESSIMISTIC"
+        transaction-manager-lookup="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
+      />
+      <persistence passivation="false">
+        <file-store />
+      </persistence>
+      <!-- Remove max-idle to avoid ISPN000651 with passivation=false -->
       <!-- Reduce test flakiness by avoiding rebalancing -->
       <state-transfer enabled="true"/>
       <!-- Allow reads during a split to prevent degraded mode failures in tests -->
       <partition-handling when-split="ALLOW_READS"/>
     </distributed-cache-configuration>
 
+    <!-- Make indexed-template identical to default but without enabling indexing
+         to avoid mass-index re-entrant cache opens during startup. -->
     <distributed-cache-configuration
-      name="indexed-template" 
+      name="indexed-template"
       configuration="default"
-    >
-      <indexing 
-        enabled="true" 
-        storage="local-heap"
-        startup-mode="auto"
-        indexing-mode="auto"
-      >
-        <indexed-entities>
-          <indexed-entity>com.norconex.crawler.core.cluster.impl.infinispan.CrawlEntryProtoAdapter</indexed-entity>
-        </indexed-entities>
-      </indexing>
-      <partition-handling when-split="ALLOW_READS"/>
-    </distributed-cache-configuration>
+    />
 
-    <distributed-cache-configuration 
+    <distributed-cache-configuration
       name="ephemeral-template"
       mode="SYNC"
       owners="2"
@@ -50,7 +52,6 @@
       <persistence passivation="false"/>
       <partition-handling when-split="ALLOW_READS"/>
     </distributed-cache-configuration>
-
 
     <!-- === Cache Mappings === -->
 
@@ -66,8 +67,8 @@
     <distributed-cache name="crawlEventCounts"   configuration="default"/>
     <distributed-cache name="pipeCurrentStep"    configuration="default"/>
     <distributed-cache name="pipeWorkerStatuses" configuration="default"/>
-    <distributed-cache name="ledger_a"           configuration="indexed-template"/>
-    <distributed-cache name="ledger_b"           configuration="indexed-template"/>
+    <!-- Ledger caches as ephemeral to avoid file-store lock contention -->
+    <distributed-cache name="ledger_a"           configuration="ephemeral-template"/>
+    <distributed-cache name="ledger_b"           configuration="ephemeral-template"/>
   </cache-container>
-
 </infinispan>

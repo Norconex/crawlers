@@ -69,7 +69,6 @@ class CrawlDocLedgerTest {
                 });
 
         // simulate resume
-
         new MockCrawlerBuilder(tempDir)
                 .build()
                 .withCrawlSession(session -> {

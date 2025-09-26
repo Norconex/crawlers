@@ -267,7 +267,7 @@ public class PipelineWorkerState implements AutoCloseable {
         boolean stepChanged = (oldStepId == null && newStepId != null)
                 || (oldStepId != null && !oldStepId.equals(newStepId));
         if (newStatus != null && newStatus.isRunning()
-                && (! (oldStatus != null && oldStatus.isRunning())
+                && (!(oldStatus != null && oldStatus.isRunning())
                         || stepChanged)) {
             LOG.info("{}:{} -> {}:{}",
                     oldStepId, oldStatus, newStepId, newStatus);

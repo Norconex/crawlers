@@ -65,39 +65,10 @@ public class MockCrawlerBuilder {
         return new Crawler(crawlDriver, resolvedConfig());
     }
 
-    //    /**
-    //     * Builds a non-initialized mock {@link CrawlContext}, except for the
-    //     * grid, which is initialized. Closes the context after the consumable
-    //     * has ran.
-    //     * @param <T> type of returned object
-    //     * @param f function taking consumer context and returning any value back
-    //     * @return any object
-    //     */
-    //    @SneakyThrows
-    //    public <T> T withCrawlContext(
-    //            FailableFunction<CrawlContext, T, Throwable> f) {
-    //        // FAULTY.... created but not always closed
-    //        var cfg = resolvedConfig();
-    //        var returnValue = new AtomicReference<T>();
-    //        new CrawlSessionManager_DELETE(crawlDriver, cfg)
-    //                .withCrawlContext(ctx -> {
-    //                    try {
-    //                        returnValue.set(f.apply(ctx));
-    //                    } catch (Throwable e) {
-    //                        fail("Test failed.", e);
-    //                    }
-    //                });
-    //        return returnValue.get();
-    //    }
-
     private CrawlConfig resolvedConfig() {
         var cfg = config != null
                 ? CrawlerConfigStubber.toMemoryCrawlerConfig(workDir, config)
                 : CrawlerConfigStubber.memoryCrawlerConfig(workDir);
-
-        //TODO test with other grids
-        //cfg.setGridConnector(new CoreGridConnector(new MockStorage()));
-
         if (configModifier != null) {
             configModifier.accept(cfg);
         }

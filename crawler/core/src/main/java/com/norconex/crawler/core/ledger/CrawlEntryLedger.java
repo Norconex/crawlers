@@ -115,7 +115,7 @@ public final class CrawlEntryLedger {
         }
 
         // If this is a fresh run, initialize counters based on current cache content
-        if (session.isResumed()) {
+        if (!session.isResumed()) {
             initializeStatusCounters();
         }
 
