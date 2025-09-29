@@ -85,7 +85,10 @@ public final class About {
 
     private static String releaseVersion(Class<?> cls) {
         var manifest = PackageManifest.of(cls);
-        return manifest.getTitle() + " " + manifest.getVersion();
+        if (!manifest.isEmpty()) {
+            return manifest.getTitle() + " " + manifest.getVersion();
+        }
+        return "Undefined";
     }
 
     private static Set<Class<?>> configuredCommitters(CrawlConfig config) {

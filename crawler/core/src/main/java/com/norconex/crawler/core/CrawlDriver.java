@@ -19,6 +19,8 @@ import java.util.List;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.event.EventManager;
+import com.norconex.crawler.core.cmd.crawl.pipeline.CrawlPipelineFactory;
+import com.norconex.crawler.core.cmd.crawl.pipeline.DefaultCrawlPipelineFactory;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapper;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.ledger.DocLedgerBootstrapper;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.QueueBootstrapper;
@@ -39,6 +41,10 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 @NonNull
 public class CrawlDriver {
+
+    @Default
+    private final CrawlPipelineFactory crawlPipelineFactory =
+            new DefaultCrawlPipelineFactory();
 
     @Default
     private final Class<? extends CrawlConfig> crawlerConfigClass =

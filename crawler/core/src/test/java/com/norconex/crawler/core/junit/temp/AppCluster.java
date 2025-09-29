@@ -12,21 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cmd.crawl.pipeline;
+package com.norconex.crawler.core.junit.temp;
 
-import com.norconex.crawler.core.cluster.pipeline.Pipeline;
-import com.norconex.crawler.core.session.CrawlSession;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * Creator of a crawl pipeline, the principal flow of a crawler.
- */
-@FunctionalInterface
-public interface CrawlPipelineFactory {
+import org.junit.jupiter.api.extension.ExtendWith;
 
-    /**
-     * Create a crawler pipeline
-     * @param session initialized crawl session
-     * @return crawl pipeline
-     */
-    Pipeline create(CrawlSession session);
+@Target({ ElementType.TYPE, ElementType.METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+@ExtendWith(AppClusterExtension.class)
+public @interface AppCluster {
+    int numInstances() default 1;
+
+    String mainClass();
 }

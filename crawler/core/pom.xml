@@ -28,7 +28,8 @@
   <properties>
     <sonar.skip>false</sonar.skip>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>      
-      
+
+    <classgraph.version>4.8.181</classgraph.version>
     <cxf.version>3.4.5</cxf.version>
     <infinispan.version>15.2.5.Final</infinispan.version>
     <jdom2.version>2.0.6.1</jdom2.version>
@@ -164,15 +165,12 @@
       <type>zip</type>
       <scope>provided</scope>
     </dependency>
-    <!--
+
     <dependency>
-      <groupId>com.norconex.crawler</groupId>
-      <artifactId>nx-grid-core</artifactId>
-      <version>${project.parent.version}</version>
-      <type>test-jar</type>
-      <scope>test</scope>
+      <groupId>io.github.classgraph</groupId>
+      <artifactId>classgraph</artifactId>
+      <version>${classgraph.version}</version>
     </dependency>
-    -->
     
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -205,6 +203,11 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>software.xdev</groupId>
+      <artifactId>testcontainers-junit4-mock</artifactId>
+      <scope>test</scope>
+    </dependency>        
     <dependency>
       <groupId>org.jeasy</groupId>
       <artifactId>easy-random-core</artifactId>

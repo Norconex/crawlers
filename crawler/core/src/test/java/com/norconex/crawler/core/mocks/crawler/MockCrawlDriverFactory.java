@@ -31,8 +31,7 @@ public class MockCrawlDriverFactory implements Supplier<CrawlDriver> {
         return new MockCrawlDriverFactory().get();
     }
 
-    @Override
-    public CrawlDriver get() {
+    public static CrawlDriver.Builder builder() {
         return CrawlDriver.builder()
                 .fetchDriver(new FetchDriver()
                         .responseAggregator((req, resps) -> resps.get(0))
@@ -42,10 +41,11 @@ public class MockCrawlDriverFactory implements Supplier<CrawlDriver> {
                                         .setReasonPhrase(msg)
                                         .setProcessingOutcome(outcome)))
                 .docPipelines(PipelineStubs.pipelines())
-                //                .callbacks(CrawlCallbacks.builder().beforeCommand(sess -> {
-                //                    Sleeper.sleepSeconds(3);//TODO come up with something faster, like a latch
-                //                }).build())
-                .crawlEntryType(CrawlEntry.class)
-                .build();
+                .crawlEntryType(CrawlEntry.class);
+    }
+
+    @Override
+    public CrawlDriver get() {
+        return builder().build();
     }
 }

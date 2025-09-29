@@ -12,21 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cmd.crawl.pipeline;
+package com.norconex.crawler.core.util;
 
-import com.norconex.crawler.core.cluster.pipeline.Pipeline;
-import com.norconex.crawler.core.session.CrawlSession;
+import java.lang.management.ManagementFactory;
 
-/**
- * Creator of a crawl pipeline, the principal flow of a crawler.
- */
-@FunctionalInterface
-public interface CrawlPipelineFactory {
+public final class ExecUtil {
 
-    /**
-     * Create a crawler pipeline
-     * @param session initialized crawl session
-     * @return crawl pipeline
-     */
-    Pipeline create(CrawlSession session);
+    private ExecUtil() {
+    }
+
+    public static boolean isDebugMode() {
+        return ManagementFactory.getRuntimeMXBean()
+                .getInputArguments().stream()
+                .anyMatch(arg -> arg.contains("-agentlib:jdwp")
+                        || arg.contains("-Xrunjdwp"));
+    }
 }

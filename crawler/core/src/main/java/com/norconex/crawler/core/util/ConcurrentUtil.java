@@ -15,6 +15,7 @@
 package com.norconex.crawler.core.util;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -264,6 +265,21 @@ public final class ConcurrentUtil {
         } catch (Exception e) {
             wrapAsCompletionException(e);
         }
+    }
+
+    /**
+     * Combine a list of CompletableFuture<T> into a single
+     * CompletableFuture<List<T>>.
+     * @param futures list of completable future
+     * @param <T> type of future return values
+     * @return single completable future
+     */
+    public static <T> CompletableFuture<List<T>>
+            allOf(List<CompletableFuture<T>> futures) {
+        CompletableFuture<?>[] arr = futures.toArray(new CompletableFuture[0]);
+        return CompletableFuture.allOf(arr)
+                .thenApply(v -> futures.stream().map(CompletableFuture::join)
+                        .toList());
     }
 
     /**

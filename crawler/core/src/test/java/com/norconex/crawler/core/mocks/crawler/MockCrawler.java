@@ -12,21 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cmd.crawl.pipeline;
+package com.norconex.crawler.core.mocks.crawler;
 
-import com.norconex.crawler.core.cluster.pipeline.Pipeline;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 
-/**
- * Creator of a crawl pipeline, the principal flow of a crawler.
- */
-@FunctionalInterface
-public interface CrawlPipelineFactory {
+import lombok.Generated;
 
-    /**
-     * Create a crawler pipeline
-     * @param session initialized crawl session
-     * @return crawl pipeline
-     */
-    Pipeline create(CrawlSession session);
+public class MockCrawler {
+    @Generated // excluded from coverage
+    public static void main(String[] args) {
+        try {
+            System.exit(new MockCrawler().launch(args));
+        } catch (Exception e) {
+            e.printStackTrace(System.err); //NOSONAR
+            System.exit(1);
+        }
+    }
+
+    public int launch(String... args) {
+        return CliCrawlerLauncher.launch(MockCrawlDriverFactory.create(), args);
+    }
 }

@@ -61,10 +61,11 @@ public class Crawler {
      * @param startClean
      */
     public void crawl(boolean startClean) {
+        var crawlCmd = new CrawlCommand(crawlDriver.crawlPipelineFactory());
         if (startClean) {
-            executeCommand(new CleanCommand(), new CrawlCommand());
+            executeCommand(new CleanCommand(), crawlCmd);
         } else {
-            executeCommand(new CrawlCommand());
+            executeCommand(crawlCmd);
         }
     }
 

@@ -37,13 +37,16 @@ import com.norconex.crawler.core.session.CrawlState;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@RequiredArgsConstructor
 public class CrawlCommand implements Command {
 
     public static final String SYS_PROP_ENABLE_JMX = "enableJMX";
     private final AtomicBoolean pendingLoggerStopped = new AtomicBoolean();
+    private final CrawlPipelineFactory pipelineFactory;
 
     @Override
     public void execute(CrawlSession session) {
@@ -62,7 +65,7 @@ public class CrawlCommand implements Command {
         session.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN, this);
 
         // Build pipeline once so we can pass its id to the logger supplier
-        var pipeline = CrawlPipelineFactory.create(session);
+        var pipeline = pipelineFactory.create(session);
 
         // Register PipelineProgress MXBean on every node when JMX is enabled
         var pipelineJmxRegistered = false;
