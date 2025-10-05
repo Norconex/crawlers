@@ -79,17 +79,7 @@ class PipelineTest2 {
                 .build()
                 .launch(2, new CrawlConfig().setNumThreads(2), "start");
 
-        //  System.err.println("XXX OUPUT: \n" + output);
-
         var pipeResult = output.getPipeResult();
-
-        // Debug: Print container outputs to help diagnose the issue
-        output.getNodes().forEach(res -> {
-            System.err.println(
-                    "XXX Exit code: %s\nSTDOUT:\n%sSTDERR:\n%s".formatted(
-                            res.getExitCode(), res.getStdout(),
-                            res.getStderr()));
-        });
 
         assertThat(pipeResult).isNotNull();
         assertThat(pipeResult.getStatus()).isSameAs(PipelineStatus.COMPLETED);

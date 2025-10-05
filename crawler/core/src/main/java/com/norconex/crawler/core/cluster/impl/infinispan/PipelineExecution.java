@@ -70,8 +70,6 @@ public class PipelineExecution implements AutoCloseable {
     }
 
     public CompletableFuture<PipelineResult> execute() {
-        LOG.info("XXX EXECUTE CALLED for pipeline {} on node {}",
-                pipeline.getId(), cluster.getLocalNode().getNodeName());
         if (executed) {
             throw new IllegalStateException(
                     "Pipeline %s already executed or is executing.");
@@ -79,10 +77,7 @@ public class PipelineExecution implements AutoCloseable {
         executed = true;
 
         // Check if we're the coordinator
-        // The coordinator fix in InfinispanClusterNode.isCoordinator() now
-        // compares addresses to ensure only ONE node returns true
         isCoordinator = cluster.getLocalNode().isCoordinator();
-        LOG.info("XXX isCoordinator={}", isCoordinator);
         logMode(isCoordinator ? "COORDINATOR" : "worker");
         if (isCoordinator) {
             startCoordinator();

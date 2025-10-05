@@ -205,7 +205,6 @@ public final class ClusteredCrawler {
 
                 //TODO check if workdir is created at crawler start up and if so, if the path is normalized for the OS (\ vs /)
 
-                System.err.println("XXX FOUND workdirs: " + res.getStdout());
                 node.setWorkdirFiles(PathListParser.buildTreeFromPathList(
                         new ArrayList<>(res.getStdout().lines().toList())));
 
