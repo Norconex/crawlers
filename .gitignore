@@ -33,3 +33,5 @@ crawler/core/src/main/resources/log4j2-local.xml
 /.vscode
 .vscode
 
+crawler/core/.factorypath
+crawler/core/.factorypath

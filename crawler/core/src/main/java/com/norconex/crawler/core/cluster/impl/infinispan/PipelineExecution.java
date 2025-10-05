@@ -70,22 +70,25 @@ public class PipelineExecution implements AutoCloseable {
     }
 
     public CompletableFuture<PipelineResult> execute() {
+        LOG.info("XXX EXECUTE CALLED for pipeline {} on node {}",
+                pipeline.getId(), cluster.getLocalNode().getNodeName());
         if (executed) {
             throw new IllegalStateException(
                     "Pipeline %s already executed or is executing.");
         }
         executed = true;
-        logMode("initial role");
 
+        // Check if we're the coordinator
+        // The coordinator fix in InfinispanClusterNode.isCoordinator() now
+        // compares addresses to ensure only ONE node returns true
         isCoordinator = cluster.getLocalNode().isCoordinator();
+        LOG.info("XXX isCoordinator={}", isCoordinator);
+        logMode(isCoordinator ? "COORDINATOR" : "worker");
         if (isCoordinator) {
             startCoordinator();
         }
 
-        // No matter which node is coordinator at any moment in time,
-        // the worker will always complete after the coordinator
-        // sends a cluster-wide terminal signal for the last step. So it is
-        // safe to only track the worker's future.
+        // Always start workers - they wait for coordinator to assign work
         return startWorker();
     }
 

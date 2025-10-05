@@ -19,6 +19,7 @@ import java.time.Duration;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.Step;
+import com.norconex.crawler.core.cluster.pipeline.StepRecord;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 import com.norconex.crawler.core.util.ExceptionSwallower;

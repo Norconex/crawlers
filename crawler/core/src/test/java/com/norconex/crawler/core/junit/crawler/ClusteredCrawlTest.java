@@ -30,4 +30,5 @@ public @interface ClusteredCrawlTest {
     int numInstances() default 1;
 
     String mainClass();
+
 }

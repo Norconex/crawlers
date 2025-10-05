@@ -20,6 +20,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.function.FailableConsumer;
@@ -30,6 +32,9 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
 
+import com.norconex.commons.lang.TimeIdGenerator;
+import com.norconex.crawler.core.util.ConcurrentUtil;
+import com.norconex.crawler.core.util.ExceptionSwallower;
 import com.norconex.crawler.core.util.ExecUtil;
 
 import io.github.classgraph.ClassGraph;
@@ -46,6 +51,7 @@ public final class SharedCluster {
 
     private static final String IMAGE_NAME = "eclipse-temurin:17-jre";
     public static final String NODE_LIB_DIR = "/app/lib";
+    public static final String NODE_BASE_WORKDIR = "/app/work";
 
     private static final List<GenericContainer<?>> NODES = new ArrayList<>();
     private static final Network SHARED_NETWORK = Network.newNetwork();
@@ -64,6 +70,74 @@ public final class SharedCluster {
     }
 
     private SharedCluster() {
+    }
+
+    /**
+     * Builds the classpath that must be used inside the container.
+     * It contains all staged directories and a wildcard for all jars.
+     * @return ready to use classpath
+     */
+    public static String buildNodeClasspath() {
+        try {
+            var entries = Files.list(HOST_LIB_DIR)
+                    .filter(Files::isDirectory)
+                    .map(p -> NODE_LIB_DIR + "/" + p.getFileName())
+                    .toList();
+            var cp = new StringBuilder(NODE_LIB_DIR + "/*");
+            for (var e : entries) {
+                cp.append(":").append(e);
+            }
+            return cp.toString();
+        } catch (IOException e) {
+            throw new IllegalStateException(
+                    "Failed building node classpath.", e);
+        }
+    }
+
+    public static synchronized void withNodes(
+            int numOfNodes,
+            @NonNull FailableConsumer<SharedClusterClient, Exception> c) {
+        withNodesAndGet(numOfNodes, client -> {
+            c.accept(client);
+            return null;
+        });
+    }
+
+    public static synchronized <T> T withNodesAndGet(
+            int numOfNodes,
+            @NonNull FailableFunction<SharedClusterClient, T, Exception> f) {
+
+        var workdir = Path.of(NODE_BASE_WORKDIR, "" + TimeIdGenerator.next());
+        var nodes = new ArrayList<GenericContainer<?>>(numOfNodes);
+        GenericContainer<?> dependency = null;
+        for (var i = 0; i < numOfNodes; i++) {
+            var node = getOrCreateContainer(i, dependency);
+            dependency = node;
+            // Clean any previous workdir remnants before creating new one
+            execInContainer(node, "rm", "-rf", workdir);
+            execInContainer(node, "mkdir", "-p", workdir);
+            nodes.add(node);
+        }
+        for (var n : nodes) {
+            LOG.info("SharedCluster node idx={} containerId={} name={} "
+                    + "createdWorkdir={}",
+                    nodes.indexOf(n), n.getContainerId(), n.getContainerName(),
+                    workdir.toString().replace('\\', '/'));
+        }
+        try {
+            LOG.info("Cluster ready ({} nodes).", numOfNodes);
+            var watch = StopWatch.createStarted();
+            var t = f.apply(
+                    new SharedClusterClient(SHARED_NETWORK, nodes, workdir));
+            LOG.info("Cluster execution ran for: {}", watch.formatTime());
+            return t;
+        } catch (Exception e) {
+            throw new AssertionError("Execution failed on shared cluster.", e);
+        } finally {
+            nodes.forEach(node -> ExceptionSwallower.swallow(
+                    () -> execInContainer(node, "rm", "-fr", workdir),
+                    "Could not delete node workdir:" + workdir));
+        }
     }
 
     private static Path prepareHostLibDir() {
@@ -107,55 +181,6 @@ public final class SharedCluster {
         }
     }
 
-    /**
-     * Builds the classpath that must be used inside the container.
-     * It contains all staged directories and a wildcard for all jars.
-     * @return ready to use classpath
-     */
-    public static String buildNodeClasspath() {
-        try {
-            var entries = Files.list(HOST_LIB_DIR)
-                    .filter(Files::isDirectory)
-                    .map(p -> NODE_LIB_DIR + "/" + p.getFileName())
-                    .toList();
-            var cp = new StringBuilder(NODE_LIB_DIR + "/*");
-            for (var e : entries) {
-                cp.append(":").append(e);
-            }
-            return cp.toString();
-        } catch (IOException e) {
-            throw new IllegalStateException(
-                    "Failed building node classpath.", e);
-        }
-    }
-
-    public static synchronized void withNodes(
-            int numOfNodes,
-            @NonNull FailableConsumer<SharedClusterClient, Exception> c) {
-        withNodesAndGet(numOfNodes, client -> {
-            c.accept(client);
-            return null;
-        });
-    }
-
-    public static synchronized <T> T withNodesAndGet(
-            int numOfNodes,
-            @NonNull FailableFunction<SharedClusterClient, T, Exception> f) {
-        var nodes = new ArrayList<GenericContainer<?>>(numOfNodes);
-        GenericContainer<?> dependency = null;
-        for (var i = 0; i < numOfNodes; i++) {
-            var node = getOrCreateContainer(i, dependency);
-            dependency = node;
-            nodes.add(dependency);
-        }
-        try {
-            LOG.info("Cluster ready ({} nodes).", numOfNodes);
-            return f.apply(new SharedClusterClient(nodes, SHARED_NETWORK));
-        } catch (Exception e) {
-            throw new AssertionError("Execution failed on shared cluster.", e);
-        }
-    }
-
     private static GenericContainer<?> getOrCreateContainer(
             int idx, GenericContainer<?> dependency) {
         if (NODES.size() > idx) {
@@ -192,22 +217,44 @@ public final class SharedCluster {
                         HOST_LIB_DIR.toAbsolutePath().toString(),
                         NODE_LIB_DIR,
                         BindMode.READ_ONLY)
+                .withEnv("INFINISPAN_NODE_NAME", "node" + (listIndex + 1))
                 .withCommand(
                         "sh", "-c",
-                        // Emit a log so we can use a log-based wait strategy
-                        // instead of waiting for a listening port.
                         "echo READY && tail -f /dev/null")
                 .withNetworkAliases("node" + (listIndex + 1))
-                // Avoid default HostPortWaitStrategy (which would wait for
-                // exposed ports to be listening). Instead, wait for our
-                // READY log line so the container can start immediately.
-                .waitingFor(Wait.forLogMessage(".*READY.*", 1));
+                .waitingFor(Wait.forLogMessage(".*READY.*", 1))
+                // Enable log following to see container output in real-time
+                .withLogConsumer(outputFrame -> {
+                    var nodeName = "node" + (listIndex + 1);
+                    var logLine = outputFrame.getUtf8String().trim();
+                    if (!logLine.isEmpty()) {
+                        // Prefix each log line with node name for identification
+                        System.out.println("[" + nodeName + "] " + logLine);
+                    }
+                });
         if (ExecUtil.isDebugMode()) {
+            // Map container port 5005 to host port 5005 + node index
+            var hostDebugPort = 5005 + listIndex;
             c.withExposedPorts(5005);
+            c.setPortBindings(List.of(hostDebugPort + ":5005"));
+            LOG.warn("Node {} debug port mapped to localhost:{}",
+                    listIndex + 1, hostDebugPort);
         }
         if (dependency != null) {
             c.dependsOn(dependency);
         }
         return c;
+    }
+
+    private static void execInContainer(
+            GenericContainer<?> node, Object... args) {
+        try {
+            node.execInContainer(
+                    Stream.of(args).map(arg -> Objects.toString(arg, null))
+                            .toArray(String[]::new));
+        } catch (UnsupportedOperationException | IOException
+                | InterruptedException e) {
+            throw ConcurrentUtil.wrapAsCompletionException(e);
+        }
     }
 }

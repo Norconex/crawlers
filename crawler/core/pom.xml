@@ -117,11 +117,14 @@
     <dependency>
       <groupId>org.infinispan.protostream</groupId>
       <artifactId>protostream-processor</artifactId>
-      <!-- Commented, for it to work in Eclipse:
+      <!-- Commented, for it to work in Eclipse and maybe other IDEs:
       <scope>provided</scope>
        -->
     </dependency>
-    
+    <dependency>
+      <groupId>org.infinispan</groupId>
+      <artifactId>infinispan-cachestore-rocksdb</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.infinispan</groupId>
       <artifactId>infinispan-clustered-lock</artifactId>
@@ -245,8 +248,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <compilerArgs>
-            <arg>-Aprotostream-debug=true</arg>
-            <arg>protostream.fullyqualifiedannotations=true</arg> 
+            <arg>-Aprotostream.fullyqualifiedannotations=true</arg>
           </compilerArgs>
           <annotationProcessorPaths>
             <path>

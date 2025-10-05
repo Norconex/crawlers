@@ -18,17 +18,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.core.CrawlConfig;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 class ClusteredCrawlerTest {
 
     @Test
-    void test() {
-        var results = ClusteredCrawler.launchSync(2, new CrawlConfig(), "-v");
-        results.forEach(
+    void testVersion() {
+        var results = ClusteredCrawler
+                .builder()
+                .build()
+                .launch(2, null, "-v");
+        results.getNodes().forEach(
                 res -> {
                     LOG.info("STDOUT:\n{}", res.getStdout());
                     LOG.info("STDERR:\n{}", res.getStderr());

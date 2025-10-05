@@ -33,6 +33,7 @@ import com.norconex.crawler.core.cluster.impl.infinispan.event.CacheEntryChangeL
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.Step;
+import com.norconex.crawler.core.cluster.pipeline.StepRecord;
 import com.norconex.crawler.core.session.CrawlSession;
 
 import lombok.Getter;
@@ -218,6 +219,13 @@ public class PipelineCoordinatorState implements AutoCloseable {
             if (rec == null || !Objects.equals(rec.getStepId(),
                     currentStepRecord.getStepId())) {
                 // stale status from a previous step: ignore and wait
+                LOG.info(
+                        "Node {} has no status for step {} (rec={}, recStepId={}, currentStepId={})",
+                        nodeName,
+                        currentStepRecord.getStepId(),
+                        rec != null ? "present" : "null",
+                        rec != null ? rec.getStepId() : "N/A",
+                        currentStepRecord.getStepId());
                 statuses.add(PipelineStatus.PENDING);
             } else {
                 statuses.add(rec.hasTimedOut(nodeExpiryTimeoutMs)
@@ -225,6 +233,8 @@ public class PipelineCoordinatorState implements AutoCloseable {
                         : rec.getStatus());
             }
         }
+        LOG.debug("Worker status map keys: {}, cluster node names: {}",
+                workerStatusesMap.keySet(), nodeNames);
         return statuses;
     }
 
@@ -232,8 +242,11 @@ public class PipelineCoordinatorState implements AutoCloseable {
         if (!pipeline.getId().equals(stepRec.getPipelineId())) {
             return; // ignore statuses for other pipelines
         }
-        workerStatusesMap.put(
-                StringUtils.substringAfterLast(key, ":"), stepRec);
+        String nodeName = StringUtils.substringAfterLast(key, ":");
+        LOG.debug(
+                "Updating worker status map: key={}, extracted nodeName={}, stepId={}, status={}",
+                key, nodeName, stepRec.getStepId(), stepRec.getStatus());
+        workerStatusesMap.put(nodeName, stepRec);
     }
 
     private void initWorkerStatusListener() {

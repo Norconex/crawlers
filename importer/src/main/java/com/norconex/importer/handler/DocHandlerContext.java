@@ -64,7 +64,7 @@ public class DocHandlerContext {
 
     //    @Getter(value = AccessLevel.NONE)
     //    @Setter(value = AccessLevel.NONE)
-    //    private final HandlerDoc handlerDoc; 
+    //    private final HandlerDoc handlerDoc;
 
     @NonNull
     @Default

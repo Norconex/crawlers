@@ -12,12 +12,12 @@
   More details about Infinispan cache configuration:  
   https://infinispan.org/docs/stable/titles/configuring/configuring.html
    -->
-            
+
   <cache-container name="default" default-cache="base-template">
 
     <!-- === GLOBAL SETTINGS =============================================== -->
   
-    <transport cluster="${infinispan.cluster.name:cluster}" stack="crawler-udp" />
+    <transport cluster="${infinispan.cluster.name:cluster}" stack="tcp" />
   
     <global-state enabled="true">
       <!-- 
@@ -68,6 +68,10 @@
           <indexed-entity>com.norconex.crawler.core.cluster.impl.infinispan.CrawlEntryProtoAdapter</indexed-entity>
         </indexed-entities>
       </indexing>
+      <!-- Use RocksDB instead of SIFS to avoid re-entrant lock issues with indexing -->
+      <persistence passivation="false">
+        <rocksdb-store xmlns="urn:infinispan:config:store:rocksdb:15.2"/>
+      </persistence>
     </distributed-cache-configuration>
 
 
@@ -110,22 +114,5 @@
     </distributed-cache>
 
   </cache-container>
-  
-  <jgroups>
-    <stack name="crawler-udp">
-      <UDP/>
-      <PING/>
-      <MERGE3/>
-      <VERIFY_SUSPECT/>
-      <NAKACK2/>
-      <UNICAST3/>
-      <STABLE/>
-      <GMS/>
-      <UFC/>
-      <MFC/>
-      <FRAG2/>
-    </stack>
-  </jgroups>  
-
   
 </infinispan>

@@ -16,19 +16,19 @@ package com.norconex.crawler.core.mocks.cluster;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.UUID;
 
 import com.norconex.crawler.core.cluster.CacheManager;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.ClusterNode;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
 
+import de.huxhorn.sulky.ulid.ULID;
 import lombok.Data;
 
 @Data
 public class MockFailingCluster implements Cluster {
 
-    private final String nodeId = UUID.randomUUID().toString();
+    private final String nodeId = new ULID().nextULID();
 
     @Override
     public ClusterNode getLocalNode() {

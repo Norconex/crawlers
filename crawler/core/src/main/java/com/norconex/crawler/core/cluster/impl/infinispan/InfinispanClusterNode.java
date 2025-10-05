@@ -72,8 +72,16 @@ public class InfinispanClusterNode implements ClusterNode, Closeable {
         if (isStandaloneNode()) {
             return true;
         }
-        return cacheManager.getStatus() == ComponentStatus.RUNNING
-                && cacheManager.isCoordinator();
+        // return cacheManager.getStatus() == ComponentStatus.RUNNING
+        //         && cacheManager.isCoordinator();
+        if (cacheManager.getStatus() != ComponentStatus.RUNNING) {
+            return false;
+        }
+
+        var coordinator = cacheManager.getCoordinator();
+        var myAddress = cacheManager.getAddress();
+
+        return coordinator != null && coordinator.equals(myAddress);
     }
 
     @Override

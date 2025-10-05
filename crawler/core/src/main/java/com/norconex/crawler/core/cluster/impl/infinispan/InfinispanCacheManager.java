@@ -21,6 +21,7 @@ import com.norconex.crawler.core.cluster.Counter;
 import com.norconex.crawler.core.cluster.impl.infinispan.event.CacheEntryChangeListener;
 import com.norconex.crawler.core.cluster.impl.infinispan.event.CacheEntryChangeListenerAdapter;
 import com.norconex.crawler.core.cluster.pipeline.PipelineException;
+import com.norconex.crawler.core.cluster.pipeline.StepRecord;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;

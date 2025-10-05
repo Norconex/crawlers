@@ -18,7 +18,6 @@ import static java.util.Optional.ofNullable;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.infinispan.commons.marshall.ProtoStreamMarshaller;
@@ -33,6 +32,7 @@ import com.norconex.crawler.core.cluster.impl.infinispan.event.CoordinatorChange
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 
+import de.huxhorn.sulky.ulid.ULID;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
@@ -89,7 +89,9 @@ public class InfinispanCluster implements Cluster {
         var builderHolder = configuration.getInfinispan();
         var globalBuilder = builderHolder.getGlobalConfigurationBuilder();
 
-        globalBuilder.transport().nodeName(UUID.randomUUID().toString());
+        // Generate unique node name
+        var uniqueNodeName = new ULID().nextULID();
+        globalBuilder.transport().nodeName(uniqueNodeName);
 
         var proto = new ProtoStreamMarshaller();
         var serCtx = proto.getSerializationContext();
@@ -104,6 +106,10 @@ public class InfinispanCluster implements Cluster {
             currentPath = Path.of(currentPath.replace(
                     BASEDIR_PLACEHOLDER, workDir.toString()))
                     .normalize().toString();
+            // Use the unique node name to ensure each node has its own storage directory
+            currentPath = Path.of(currentPath, uniqueNodeName)
+                    .normalize().toString();
+            LOG.info("Infinispan persistent location: {}", currentPath);
             globalBuilder.globalState()
                     .persistentLocation(currentPath);
         }
@@ -116,10 +122,6 @@ public class InfinispanCluster implements Cluster {
         // Listen for coordinator change events
         defCacheManager.addListener(new ClusterViewListener(this));
 
-        // Telling it to index our adapter class.
-        // SearchMapping searchMapping = Search.getSearchMapping(defCacheManager);
-        // searchMapping.setAnnotatedEntity(CrawlEntryProtoAdapter.class);
-
         stopController =
                 new StopController(cacheManager.getAdminCache(), ignored -> {
                     pipelineManager.stop();
@@ -129,7 +131,7 @@ public class InfinispanCluster implements Cluster {
     }
 
     /**
-     * Adds a listener that will be triggered the moment it is added and
+     * Fired initially when first registering a listener and,
      * subsequently, when <b>this node</b> gets promoted or demoted as
      * coordinator.
      * @param listener the listener to add
@@ -137,7 +139,9 @@ public class InfinispanCluster implements Cluster {
     public void addCoordinatorChangeListener(
             CoordinatorChangeListener listener) {
         coordinatorListeners.add(listener);
-        // we explicitly fire when registering a listener
+        // Explicitly fire when registering - but JGroups should have
+        // already elected a coordinator by this point since we wait for
+        // cluster formation in execute()
         listener.onCoordinatorChange(localNode.isCoordinator());
     }
 
@@ -162,12 +166,6 @@ public class InfinispanCluster implements Cluster {
     public void stop() {
         LOG.info("Stopping InfinispanCluster (entire cluster) ...");
         StopController.sendStop(getCacheManager().getAdminCache());
-        //TODO shall we close here? If so, we would have to make sendStop
-        // sync, or return a future.
-        // ANSWER: likely not... because the StopController will listen
-        // and we do it then.
-        //        close();
-        //        LOG.info("InfinispanCluster stopped.");
     }
 
     @Override

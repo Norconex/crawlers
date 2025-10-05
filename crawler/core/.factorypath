@@ -1,13 +1,7 @@
-<!-- 
-This .factorypath file is checked into version control because it's required for Eclipse
-annotation processing to work properly with ProtoStream. Despite Eclipse m2e 2.x claiming
-to have built-in annotation processing support, it doesn't work reliably with complex
-annotation processors like ProtoStream. This file ensures all Eclipse users can generate
-the required CrawlerProtoSchemaImpl class without manual configuration.
--->
 <factorypath>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/infinispan/protostream/protostream-processor/15.0.13.Final/protostream-processor-15.0.13.Final.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/jboss/logging/jboss-logging/3.6.1.Final/jboss-logging-3.6.1.Final.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/infinispan/protostream/protostream/15.0.13.Final/protostream-15.0.13.Final.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/org/jboss/logging/jboss-logging/3.4.3.Final/jboss-logging-3.4.3.Final.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/squareup/javapoet/1.13.0/javapoet-1.13.0.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/fasterxml/jackson/core/jackson-core/2.18.1/jackson-core-2.18.1.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/projectlombok/lombok/1.18.34/lombok-1.18.34.jar" enabled="true" runInBatchMode="false"/>
 </factorypath>

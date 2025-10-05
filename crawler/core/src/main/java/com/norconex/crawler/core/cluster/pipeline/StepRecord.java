@@ -12,12 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cluster.impl.infinispan;
+package com.norconex.crawler.core.cluster.pipeline;
 
 import org.infinispan.protostream.annotations.Proto;
 import org.infinispan.protostream.annotations.ProtoField;
-
-import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

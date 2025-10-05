@@ -22,6 +22,7 @@ import java.util.concurrent.ThreadFactory;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineResult;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
+import com.norconex.crawler.core.cluster.pipeline.StepRecord;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 
 import lombok.NonNull;

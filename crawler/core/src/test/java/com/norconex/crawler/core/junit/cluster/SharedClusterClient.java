@@ -15,18 +15,26 @@
 package com.norconex.crawler.core.junit.cluster;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import org.apache.commons.lang3.function.FailableConsumer;
 import org.testcontainers.containers.Container.ExecResult;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
+import org.testcontainers.utility.MountableFile;
 
+import com.healthmarketscience.jackcess.RuntimeIOException;
+import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.crawler.core.util.ConcurrentUtil;
+import com.norconex.crawler.core.util.ExceptionSwallower;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -36,17 +44,15 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Getter
+@RequiredArgsConstructor
 public final class SharedClusterClient {
 
+    @NonNull
     private final Network network;
+    @NonNull
     private final List<GenericContainer<?>> nodes;
-
-    public SharedClusterClient(
-            @NonNull List<GenericContainer<?>> nodes,
-            @NonNull Network network) {
-        this.network = network;
-        this.nodes = nodes;
-    }
+    @NonNull
+    private final Path nodeWorkdir;
 
     public GenericContainer<?> getNode1() {
         return nodes.size() > 0 ? nodes.get(0) : null;
@@ -81,4 +87,87 @@ public final class SharedClusterClient {
         return futures;
     }
 
+    /**
+     * Copy a file on each nodes of this cluster, in a sand box for isolation
+     * and return the target full path, which is the same on each node.
+     * @param file file to copy
+     * @return path to file on remote nodes
+     */
+    public Path copyFileToCluster(Path file) {
+        return copyFileToCluster(file, null);
+    }
+
+    /**
+     * Copy a file on each nodes of this cluster, in a sand box for isolation
+     * and return the target full path, which is the same on each node.
+     * @param file file to copy
+     * @param filename optional file name (otherwise random)
+     * @return path to file on remote nodes
+     */
+    public Path copyFileToCluster(Path file, String filename) {
+        var targetFile = nodeWorkdir.resolve(
+                filename != null ? filename : "" + TimeIdGenerator.next());
+        forEachNode(node -> {
+            node.copyFileToContainer(
+                    MountableFile.forHostPath(file),
+                    targetFile.toString().replace('\\', '/'));
+        });
+        return targetFile;
+    }
+
+    /**
+     * Copy a string into a file on each nodes of this cluster, in a sand box
+     * for isolation and return the target full path, which is the same on
+     * each node.
+     * @param content string to save in a remote file
+     * @return path to file on remote nodes
+     */
+    public Path copyStringToClusterFile(String content) {
+        return copyStringToClusterFile(content, null);
+    }
+
+    /**
+     * Copy a string into a file on each nodes of this cluster, in a sand box
+     * for isolation and return the target full path, which is the same on
+     * each node.
+     * @param content string to save in a remote file
+     * @param filename optional file name (otherwise random)
+     * @return path to file on remote nodes
+     */
+    public Path copyStringToClusterFile(String content, String filename) {
+        Path tmpFile = null;
+        try {
+            tmpFile = Files.writeString(
+                    Files.createTempFile(null, null), content);
+            return copyFileToCluster(tmpFile, filename);
+        } catch (IOException e) {
+            throw new RuntimeIOException(e);
+        } finally {
+            var f = tmpFile;
+            if (f != null) {
+                ExceptionSwallower.swallow(() -> Files.deleteIfExists(f));
+            }
+        }
+    }
+
+    private void forEachNode(
+            FailableConsumer<GenericContainer<?>, Exception> c) {
+
+        var futures = new ArrayList<CompletableFuture<Void>>();
+        for (var node : nodes) {
+            futures.add(CompletableFuture.runAsync(() -> {
+                try {
+                    c.accept(node);
+                } catch (Exception e) {
+                    throw ConcurrentUtil.wrapAsCompletionException(e);
+                }
+            }));
+        }
+        try {
+            ConcurrentUtil.allOf(futures).get();
+        } catch (Exception e) {
+            throw ConcurrentUtil.wrapAsCompletionException(e);
+        }
+
+    }
 }

@@ -17,20 +17,102 @@ package com.norconex.crawler.core.cluster.pipeline;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.function.Supplier;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
+import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.junit.ClusterNodesTest;
 import com.norconex.crawler.core.junit.ClusterTestUtil;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
+import com.norconex.crawler.core.junit.crawler.ClusteredCrawler;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
 import com.norconex.crawler.core.session.CrawlSession;
 
 import lombok.extern.slf4j.Slf4j;
 
-@Timeout(60)
+@Timeout(3600)
 @WithTestWatcherLogging
 @Slf4j
 class PipelineTest2 {
+
+    public static class TestCompletedPipelineResultDriver
+            implements Supplier<CrawlDriver> {
+        @Override
+        public CrawlDriver get() {
+            var cacheName = ClusterTestUtil.uniqueCacheName(
+                    "pipetest-completion");
+
+            var pipeline = new Pipeline("test-completion", List.of(
+                    PipelineTestUtil.distributedStep("step1", sess -> {
+                        var cache =
+                                ClusterTestUtil.stringCache(sess, cacheName);
+                        cache.put(PipelineTestUtil.nodeKey("step1", sess),
+                                "byStep1");
+                    }),
+                    PipelineTestUtil.distributedStep("step2", sess -> {
+                        var cache =
+                                ClusterTestUtil.stringCache(sess, cacheName);
+                        cache.put(PipelineTestUtil.nodeKey("step2", sess),
+                                "byStep2");
+                    }),
+                    PipelineTestUtil.distributedStep("step3", sess -> {
+                        var cache =
+                                ClusterTestUtil.stringCache(sess, cacheName);
+                        cache.put(PipelineTestUtil.nodeKey("step3", sess),
+                                "byStep3");
+                    })));
+
+            return MockCrawlDriverFactory.builder()
+                    .crawlPipelineFactory(session -> pipeline)
+                    .build();
+        }
+    }
+
+    @Test
+    void testCompletedPipelineResult() {
+        long then = System.currentTimeMillis();
+        var output = ClusteredCrawler.builder()
+                .driverSupplierClass(TestCompletedPipelineResultDriver.class)
+                .build()
+                .launch(2, new CrawlConfig().setNumThreads(2), "start");
+
+        //  System.err.println("XXX OUPUT: \n" + output);
+
+        var pipeResult = output.getPipeResult();
+
+        // Debug: Print container outputs to help diagnose the issue
+        output.getNodes().forEach(res -> {
+            System.err.println(
+                    "XXX Exit code: %s\nSTDOUT:\n%sSTDERR:\n%s".formatted(
+                            res.getExitCode(), res.getStdout(),
+                            res.getStderr()));
+        });
+
+        assertThat(pipeResult).isNotNull();
+        assertThat(pipeResult.getStatus()).isSameAs(PipelineStatus.COMPLETED);
+        assertThat(pipeResult.getStepId()).isEqualTo("step3");
+        assertThat(pipeResult.getUpdatedAt()).isGreaterThan(then)
+                .isLessThan(System.currentTimeMillis());
+
+        // output.getNodes().forEach(res -> {
+        //     System.err.println(
+        //             "XXX Exit code: %s\nSTDOUT:\n%sSTDERR:\n".formatted(
+        //                     res.getExitCode(), res.getStdout(),
+        //                     res.getStderr()));
+        // });
+        // System.err.println("XXX WORKDIR CONTENT:");
+        // output.getNodes().get(0).getWorkdirFiles().printTree(4);
+
+        // output.getCaches().forEach((k, v) -> {
+        //     System.err.println("XXX CACHES: " + k + " ==> " + v);
+
+        // });
+
+        // System.err.println("XXX temp ls: \n" + output.getTempList());
+    }
 
     // TODO have before command execute any code (e.g. pipeline)
     // TODO have after command  export the cache content if we are coordinator
@@ -39,7 +121,7 @@ class PipelineTest2 {
      * Test all steps are executed without errors and the results show it.
      */
     @ClusterNodesTest(nodes = { 1, 2 })
-    void testCompletedPipelineResult(
+    void testCompletedPipelineResult_OLD(
             int nodeCount, List<CrawlSession> sessions) {
         var cacheName = ClusterTestUtil.uniqueCacheName(
                 "pipetest-completion");

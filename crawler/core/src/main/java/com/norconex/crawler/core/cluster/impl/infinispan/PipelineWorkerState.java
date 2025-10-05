@@ -33,6 +33,7 @@ import com.norconex.crawler.core.cluster.impl.infinispan.event.CacheEntryChangeL
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.Step;
+import com.norconex.crawler.core.cluster.pipeline.StepRecord;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 
@@ -171,6 +172,8 @@ public class PipelineWorkerState implements AutoCloseable {
             return;
         }
 
+        // Note: stepId may be empty when status=PENDING (initial worker announcement)
+        // The coordinator will assign the stepId when it writes RUNNING status
         var rec = new StepRecord()
                 .setPipelineId(pipeline.getId())
                 .setStepId(currentStepRecord.getStepId())
@@ -256,25 +259,44 @@ public class PipelineWorkerState implements AutoCloseable {
     }
 
     private void updateCurrentStepRecord(Consumer<StepRecord> stepUpdater) {
-        var oldStatus = currentStepRecord.getStatus();
-        var oldStepId = currentStepRecord.getStepId();
-        stepUpdater.accept(currentStepRecord);
-        var newStatus = currentStepRecord.getStatus();
-        var newStepId = currentStepRecord.getStepId();
+        StepRecord recordSnapshot;
+        boolean shouldRun;
 
-        // if newly set to run, run it.
-        // if already running, run it if step id has changed
-        boolean stepChanged = (oldStepId == null && newStepId != null)
-                || (oldStepId != null && !oldStepId.equals(newStepId));
-        if (newStatus != null && newStatus.isRunning()
-                && (!(oldStatus != null && oldStatus.isRunning())
-                        || stepChanged)) {
-            LOG.info("{}:{} -> {}:{}",
-                    oldStepId, oldStatus, newStepId, newStatus);
-            onNewStepRun.accept(currentStepRecord);
-        } else {
-            LOG.debug("{}:{} -> {}:{}",
-                    oldStepId, oldStatus, newStepId, newStatus);
+        synchronized (currentStepRecord) {
+            var oldStatus = currentStepRecord.getStatus();
+            var oldStepId = currentStepRecord.getStepId();
+            stepUpdater.accept(currentStepRecord);
+            var newStatus = currentStepRecord.getStatus();
+            var newStepId = currentStepRecord.getStepId();
+
+            // if newly set to run, run it.
+            // if already running, run it if step id has changed
+            boolean stepChanged = (oldStepId == null && newStepId != null)
+                    || (oldStepId != null && !oldStepId.equals(newStepId));
+            shouldRun = newStatus != null && newStatus.isRunning()
+                    && (!(oldStatus != null && oldStatus.isRunning())
+                            || stepChanged);
+
+            if (shouldRun) {
+                LOG.info("{}:{} -> {}:{}",
+                        oldStepId, oldStatus, newStepId, newStatus);
+                // Create snapshot for callback outside synchronized block
+                recordSnapshot = new StepRecord()
+                        .setPipelineId(currentStepRecord.getPipelineId())
+                        .setRunId(currentStepRecord.getRunId())
+                        .setStepId(currentStepRecord.getStepId())
+                        .setStatus(currentStepRecord.getStatus())
+                        .setUpdatedAt(currentStepRecord.getUpdatedAt());
+            } else {
+                LOG.debug("{}:{} -> {}:{}",
+                        oldStepId, oldStatus, newStepId, newStatus);
+                recordSnapshot = null;
+            }
+        }
+
+        // Execute callback OUTSIDE synchronized block to avoid deadlocks
+        if (shouldRun && recordSnapshot != null) {
+            onNewStepRun.accept(recordSnapshot);
         }
     }
 

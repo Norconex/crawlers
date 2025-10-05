@@ -26,6 +26,7 @@ import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
 import com.norconex.crawler.core.cluster.pipeline.PipelineProgress;
 import com.norconex.crawler.core.cluster.pipeline.PipelineResult;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
+import com.norconex.crawler.core.cluster.pipeline.StepRecord;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;

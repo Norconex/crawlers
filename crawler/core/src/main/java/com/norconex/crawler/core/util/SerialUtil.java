@@ -36,6 +36,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonParser.Feature;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -153,7 +154,17 @@ public final class SerialUtil {
             return mapper.readValue(json, cls);
         } catch (IOException e) {
             throw new SerializationException(
-                    "Could not deserialize JSON reader to object." + json, e);
+                    "Could not deserialize JSON parser to object." + json, e);
+        }
+    }
+
+    public static <T> T fromJson(
+            @NonNull JsonNode json, @NonNull Class<T> cls) {
+        try {
+            return mapper.treeToValue(json, cls);
+        } catch (IOException e) {
+            throw new SerializationException(
+                    "Could not deserialize JSON node to object." + json, e);
         }
     }
 }
