@@ -101,7 +101,7 @@ class PipelineTest {
      * wait until step2 (non-distributed) is observed, then close the current
      * coordinator. Remaining nodes must complete step3/step4.
      */
-    @ClusterNodesTest(nodes = 3, infinispanNodeExpiryTimeout = 5000)
+    @ClusterNodesTest(nodes = 3, infinispanNodeExpiryTimeout = 3000)
     void testCoordinatorSwitch(int nodeCount, List<CrawlSession> sessions) {
         var cacheName = ClusterTestUtil
                 .uniqueCacheName("pipetest-coord-switch");

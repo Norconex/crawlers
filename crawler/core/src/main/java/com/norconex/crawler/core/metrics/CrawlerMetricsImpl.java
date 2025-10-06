@@ -214,7 +214,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
         if (scheduler != null) {
             scheduler.shutdown();
             try {
-                if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+                if (!scheduler.awaitTermination(2, TimeUnit.SECONDS)) {
                     scheduler.shutdownNow();
                 }
             } catch (InterruptedException e) {

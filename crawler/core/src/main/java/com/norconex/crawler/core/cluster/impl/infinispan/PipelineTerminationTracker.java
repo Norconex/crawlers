@@ -128,7 +128,7 @@ public class PipelineTerminationTracker {
     // returns false if we could not sleep (thread was aborted)
     private boolean sleep() {
         try {
-            Sleeper.sleepMillis(250);
+            Sleeper.sleepMillis(100);
             return true;
         } catch (RuntimeException e) {
             // SleeperException wraps InterruptedException

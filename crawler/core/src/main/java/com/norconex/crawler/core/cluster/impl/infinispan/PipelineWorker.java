@@ -91,7 +91,7 @@ public class PipelineWorker implements AutoCloseable {
         }
 
         // shut down step executor
-        ConcurrentUtil.shutdownAndAwait(stepExecutor, Duration.ofSeconds(5));
+        ConcurrentUtil.shutdownAndAwait(stepExecutor, Duration.ofSeconds(2));
     }
 
     //NOTE: only invoked when the current/new step is set to RUNNING
