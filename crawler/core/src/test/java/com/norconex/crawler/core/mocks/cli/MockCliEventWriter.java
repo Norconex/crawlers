@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.fail;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 
@@ -32,23 +33,46 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 public final class MockCliEventWriter implements EventListener<Event> {
 
-    private Path eventFile;
+    // Use String instead of Path for reliable serialization across containers
+    private String eventFilePath;
 
-    //    public static final List<String> EVENTS = new ArrayList<>();
+    public void setEventFile(Path path) {
+        if (path != null) {
+            // Convert to forward slashes for cross-platform compatibility
+            this.eventFilePath = path.toString().replace('\\', '/');
+        }
+    }
+
+    public Path getEventFile() {
+        return eventFilePath != null ? Paths.get(eventFilePath) : null;
+    }
 
     @Override
     public void accept(Event event) {
+        if (eventFilePath == null) {
+            LOG.warn("Event file path is null, skipping event: {}",
+                    event.getName());
+            return;
+        }
+
         try {
+            Path eventFile = Paths.get(eventFilePath);
+            System.err.println("XXX WRITING event %s to file: %s"
+                    .formatted(event.getName(), eventFile));
+            // Ensure parent directory exists
+            if (eventFile.getParent() != null) {
+                Files.createDirectories(eventFile.getParent());
+            }
             Files.writeString(
                     eventFile, event.getName() + "\n",
-                    StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                    StandardOpenOption.CREATE, StandardOpenOption.APPEND,
+                    StandardOpenOption.SYNC);
         } catch (IOException e) {
             fail("accept --> Oups!", e);
         }
-        //        EVENTS.add(event.getName());
     }
 
-    static List<String> parseEvents(Path eventFile) {
+    public static List<String> parseEvents(Path eventFile) {
         if (!Files.exists(eventFile)) {
             LOG.info("Temporary test events file not found: {}", eventFile);
             return List.of();

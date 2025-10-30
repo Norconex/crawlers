@@ -38,9 +38,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Starts a crawler cluster for the duration of the JVM and reuse instances
- * across tests. A new network is created for each test, but instances
- * remain the same (e.g., node 1 remains node 1).
+ * A client providing interactiosn with a cluster under test. The network
+ * name will change between tests, but the node numbers remain the same.
  */
 @Slf4j
 @Getter
@@ -88,7 +87,7 @@ public final class SharedClusterClient {
     }
 
     /**
-     * Copy a file on each nodes of this cluster, in a sand box for isolation
+     * Copy a file on each nodes of this cluster, in a sandbox for isolation
      * and return the target full path, which is the same on each node.
      * @param file file to copy
      * @return path to file on remote nodes
@@ -98,7 +97,7 @@ public final class SharedClusterClient {
     }
 
     /**
-     * Copy a file on each nodes of this cluster, in a sand box for isolation
+     * Copy a file on each nodes of this cluster, in a sandbox for isolation
      * and return the target full path, which is the same on each node.
      * @param file file to copy
      * @param filename optional file name (otherwise random)

@@ -16,6 +16,7 @@ package com.norconex.crawler.core.junit;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -24,9 +25,11 @@ import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
+import com.norconex.crawler.core.junit.WithLogLevel.WithLogLevels;
+
 //TODO move to Nx Commons?
 
-public class LogLevelExtension
+public class WithLogLevelExtension
         implements BeforeEachCallback, AfterEachCallback {
     private final Map<String, Level> originalLevels = new HashMap<>();
     private static final boolean LOG4J_AVAILABLE = isLog4jPresent();
@@ -38,28 +41,19 @@ public class LogLevelExtension
             return;
         }
 
-        var annotation = context.getRequiredTestMethod()
-                .getAnnotation(WithLogLevel.class);
-        if (annotation == null) {
-            annotation = context.getRequiredTestClass()
-                    .getAnnotation(WithLogLevel.class);
-        }
+        // Handle multiple @WithLogLevel annotations
+        var method = context.getRequiredTestMethod();
+        var testClass = context.getRequiredTestClass();
 
-        if (annotation != null) {
-            var newLevel = annotation.value();
-            var loggerContext = LoggerContext.getContext(false);
+        // class first
+        resolveAnnotations(
+                () -> testClass.getAnnotation(WithLogLevel.WithLogLevels.class),
+                () -> testClass.getAnnotation(WithLogLevel.class));
 
-            for (Class<?> clazz : annotation.classes()) {
-                var loggerName = clazz.getName();
-                var loggerConfig = loggerContext.getConfiguration()
-                        .getLoggerConfig(loggerName);
-
-                // Save original level
-                originalLevels.put(loggerName, loggerConfig.getLevel());
-                // Change log level
-                Configurator.setLevel(loggerName, newLevel);
-            }
-        }
+        // then method
+        resolveAnnotations(
+                () -> method.getAnnotation(WithLogLevel.WithLogLevels.class),
+                () -> method.getAnnotation(WithLogLevel.class));
     }
 
     @Override
@@ -71,6 +65,37 @@ public class LogLevelExtension
 
         // Restore original log levels after the test
         originalLevels.forEach(Configurator::setLevel);
+    }
+
+    private void resolveAnnotations(
+            Supplier<WithLogLevels> multiAnnotSupplier,
+            Supplier<WithLogLevel> singleAnnotSupplier) {
+        var container = multiAnnotSupplier.get();
+        if (container != null) {
+            for (WithLogLevel annotation : container.value()) {
+                applyLogLevel(annotation);
+            }
+        } else {
+            var annotation = singleAnnotSupplier.get();
+            if (annotation != null) {
+                applyLogLevel(annotation);
+            }
+        }
+    }
+
+    private void applyLogLevel(WithLogLevel annotation) {
+        var newLevel = annotation.value();
+        var loggerContext = LoggerContext.getContext(false);
+
+        for (Class<?> clazz : annotation.classes()) {
+            var loggerName = clazz.getName();
+            var loggerConfig = loggerContext.getConfiguration()
+                    .getLoggerConfig(loggerName);
+            // Save original level
+            originalLevels.put(loggerName, loggerConfig.getLevel());
+            // Change log level
+            Configurator.setLevel(loggerName, newLevel);
+        }
     }
 
     private static boolean isLog4jPresent() {

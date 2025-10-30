@@ -21,7 +21,7 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 
-class SharedClusterTest {
+class SharedClusterImplTest {
 
     @Test
     void test() {

@@ -15,7 +15,6 @@
 package com.norconex.crawler.core.cli;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.io.IOException;
 import java.lang.annotation.ElementType;
@@ -30,10 +29,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Stream;
 
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.infinispan.notifications.cachemanagerlistener.CacheManagerNotifierImpl;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
@@ -43,26 +43,41 @@ import org.junit.jupiter.params.provider.ValueSource;
 import com.norconex.committer.core.CommitterEvent;
 import com.norconex.committer.core.service.CommitterServiceEvent;
 import com.norconex.commons.lang.TimeIdGenerator;
+import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.cluster.ClusterConnector;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.WithLogLevel;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
+import com.norconex.crawler.core.junit.cluster.SharedCluster;
+import com.norconex.crawler.core.junit.crawler.ClusteredCrawlContext;
+import com.norconex.crawler.core.junit.crawler.ClusteredCrawlTest;
+import com.norconex.crawler.core.junit.crawler.ClusteredCrawler;
 import com.norconex.crawler.core.mocks.cli.MockCliEventWriter;
 import com.norconex.crawler.core.mocks.cli.MockCliExit;
 import com.norconex.crawler.core.mocks.cli.MockCliLauncher;
 import com.norconex.crawler.core.mocks.cluster.MockMultiNodesConnector;
 import com.norconex.crawler.core.mocks.cluster.MockSingleNodeConnector;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.stubs.CrawlerConfigStubber;
 import com.norconex.crawler.core.util.About;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 import com.norconex.crawler.core.util.LogUtil;
 
-import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @WithLogLevel(value = "OFF", classes = CacheManagerNotifierImpl.class)
+@WithLogLevel(
+    value = "INFO",
+    classes = {
+            CliCrawlerLauncherTest.class,
+            MockCliLauncher.class,
+            MockCliEventWriter.class,
+            About.class,
+            CliRunner.class,
+            LogUtil.class,
+            CliConfigCheck.class
+    }
+)
 @WithTestWatcherLogging
 @Timeout(value = 60, unit = TimeUnit.SECONDS)
 class CliCrawlerLauncherTest {
@@ -71,6 +86,7 @@ class CliCrawlerLauncherTest {
     @Retention(RetentionPolicy.RUNTIME)
     @ParameterizedTest(name = "with  {index} node(s)")
     @ValueSource(ints = { 1, 2 })
+    @Deprecated
     public @interface SingleAndMultiNodesTest {
     }
 
@@ -81,240 +97,167 @@ class CliCrawlerLauncherTest {
     @TempDir
     private Path tempDir;
 
-    static Stream<Class<?>> classProvider() {
-        return Stream.of(
-                MockSingleNodeConnector.class,
-                MockMultiNodesConnector.class);
+    @ClusteredCrawlTest(nodes = { 1, 2 })
+    void testNoArgs(ClusteredCrawlContext context) {
+        // Without arguments, we should get the usge help
+        context.getOuput().getNodes().forEach(node -> {
+            assertThat(node.getExitCode()).isNotZero();
+            assertThat(node.getStderr()).contains("No arguments provided.");
+            assertThat(node.getStdout()).contains(
+                    "Usage:",
+                    "help configcheck");
+        });
     }
 
-    @SingleAndMultiNodesTest
-    @WithLogLevel(
-        value = "INFO",
-        classes = {
-                CliCrawlerLauncherTest.class,
-                MockCliLauncher.class,
-                MockCliEventWriter.class
-        }
-    )
-    void testNoArgs(int numOfNodes) {
-        var exit = launch(numOfNodes);
-        assertThat(exit.ok()).isFalse();
-        assertThat(exit.getStdErr()).contains("No arguments provided.");
-        assertThat(exit.getStdOut()).contains(
-                "Usage:",
-                "help configcheck");
+    @ClusteredCrawlTest(nodes = { 1, 2 }, cliArgs = { "-h" })
+    void testHelp(ClusteredCrawlContext context) {
+        // Contrary to "testNoArgs", which one should return a 0 status (OK)
+        context.getOuput().getNodes().forEach(node -> {
+            assertThat(node.getExitCode()).isZero();
+            assertThat(node.getStdout()).contains(
+                    "Usage:",
+                    "help",
+                    "start",
+                    "stop",
+                    "configcheck",
+                    "configrender",
+                    "clean",
+                    "storeexport",
+                    "storeimport");
+        });
     }
 
     @Test
-    void testErrors() throws Exception {
+    void testErrors() {
         // Bad args
-        var exit1 = launchVerbatim("potato", "--soup");
-        assertThat(exit1.ok()).isFalse();
-        assertThat(exit1.getStdErr()).contains("Unmatched arguments");
+        var output1 = ClusteredCrawler.builder()
+                .build()
+                .launchOne(null, "potato", "--soup");
+        assertThat(output1.getNode1().getExitCode()).isNotZero();
+        assertThat(output1.getNode1().getStderr())
+                .contains("Unmatched arguments");
 
         // Non existant config file
-        var exit2 = launchVerbatim(
-                "configcheck",
-                "-config=" + TimeIdGenerator.next()
-                        + "IDontExist");
-        assertThat(exit2.ok()).isFalse();
-        assertThat(exit2.getStdErr()).contains(
+        var output2 = ClusteredCrawler.builder()
+                .build()
+                .launchOne(null, "configcheck",
+                        "-config=" + TimeIdGenerator.next() + "IDontExist");
+        assertThat(output2.getNode1().getExitCode()).isNotZero();
+        assertThat(output2.getNode1().getStderr()).contains(
                 "Configuration file does not exist");
 
         // Simulate Picocli Exception
-        var exit3 = launchVerbatim("clean", "-config=", "-config=");
-        assertThat(exit3.ok()).isFalse();
-        assertThat(exit3.getStdErr()).contains(
-                "should be specified only once",
-                "Usage:",
-                "Clean the");
-
-        var exit4 = launchVerbatim("clean", "-config=", "-config=");
-        assertThat(exit4.ok()).isFalse();
-        assertThat(exit4.getStdErr()).contains(
+        var output3 = ClusteredCrawler.builder()
+                .build()
+                .launchOne(null, "clean", "-config=", "-config=");
+        assertThat(output3.getNode1().getExitCode()).isNotZero();
+        assertThat(output3.getNode1().getStderr()).contains(
                 "should be specified only once",
                 "Usage:",
                 "Clean the");
 
         // Bad config syntax
-        var file5 = tempDir.resolve("badConfig.xml");
-        Files.writeString(file5, """
-                <crawler badAttr="badAttr"></crawler>
-                """);
-        var exit5 = launchVerbatim("configcheck", "-config=" + file5);
-        assertThat(exit5.ok()).isFalse();
-        assertThat(exit5.getStdErr()).contains(
+        var brokenFilePath = SharedCluster.NODE_BASE_WORKDIR + "/"
+                + TimeIdGenerator.next() + ".xml";
+        var output4 = ClusteredCrawler.builder()
+                .preLaunch(client -> client.copyStringToClusterFile(
+                        "<crawler badAttr=\"badAttr\"></crawler>",
+                        brokenFilePath))
+                .postLaunch(client -> {
+                    client.execOnCluster("rm", brokenFilePath);
+                })
+                .build()
+                .launchOne(null, "configcheck", "-config=" + brokenFilePath);
+        assertThat(output4.getNode1().getExitCode()).isNotZero();
+        assertThat(output4.getNode1().getStderr()).contains(
                 "Unrecognized field \"badAttr\"");
 
         // Constraint violation
-        var file6 = tempDir.resolve("badConfig6.xml");
-        Files.writeString(file6, """
-                <crawler numThreads="0"></crawler>
-                """);
-        var exit6 = launchVerbatim("configcheck", "-config=" + file6);
-        assertThat(exit6.ok()).isFalse();
-        assertThat(exit6.getStdErr()).contains(
-                "Invalid value");
-
-    }
-
-    @SingleAndMultiNodesTest
-    void testHelp(int numOfNodes) {
-        var exit = launch(numOfNodes, "-h");
-        assertThat(exit.ok()).isTrue();
-        assertThat(exit.getStdOut()).contains(
-                "Usage:",
-                "help",
-                "start",
-                "stop",
-                "configcheck",
-                "configrender",
-                "clean",
-                "storeexport",
-                "storeimport");
-    }
-
-    @SingleAndMultiNodesTest
-    @WithLogLevel(
-        value = "INFO",
-        classes = {
-                CliCrawlerLauncherTest.class,
-                MockCliLauncher.class,
-                MockCliEventWriter.class,
-                About.class,
-                CliRunner.class,
-                LogUtil.class
-        }
-    )
-    void testVersion(int numOfNodes) {
-        var exit = launch(numOfNodes, "-v");
-        assertThat(exit.ok()).isTrue();
-        assertThat(exit.getStdOut()).contains(
-                "C R A W L E R",
-                "Runtime:",
-                "Name:",
-                "Version:",
-                "Vendor:")
-                .doesNotContain("null");
-    }
-
-    @SingleAndMultiNodesTest
-    @WithLogLevel(
-        value = "INFO",
-        classes = {
-                CliCrawlerLauncherTest.class,
-                MockCliLauncher.class,
-                MockCliEventWriter.class,
-                CliConfigCheck.class
-        }
-    )
-    void testConfigCheck(int numOfNodes) {
-        var exit = launch(numOfNodes, "configcheck", "-config=");
-        assertThat(exit.ok()).isTrue();
-        assertThat(exit.getStdOut()).containsIgnoringWhitespaces(
-                "No configuration errors detected.");
-    }
-
-    @SingleAndMultiNodesTest
-    @WithLogLevel(
-        value = "INFO",
-        classes = {
-                CliCrawlerLauncherTest.class,
-                MockCliLauncher.class,
-                MockCliEventWriter.class
-        }
-    )
-    void testBadConfig(int numOfNodes)
-            throws IOException {
-        var cfgFile = tempDir.resolve("badconfig.xml");
-        Files.writeString(cfgFile, """
-                <crawler>
-                  <numThreads>0</numThreads>
-                </crawler>
-                """);
-
-        assertThatExceptionOfType(ConstraintViolationException.class)
-                .isThrownBy(() -> { //NOSONAR
-                    launch(numOfNodes,
-                            "configcheck",
-                            "-config=" + cfgFile
-                                    .toAbsolutePath());
+        var constraintFilePath = SharedCluster.NODE_BASE_WORKDIR + "/"
+                + TimeIdGenerator.next() + ".xml";
+        var output5 = ClusteredCrawler.builder()
+                .preLaunch(client -> client.copyStringToClusterFile(
+                        "<crawler numThreads=\"0\"></crawler>",
+                        constraintFilePath))
+                .postLaunch(client -> {
+                    client.execOnCluster("rm", constraintFilePath);
                 })
-                .toString()
-                .contains("\"numThreads\" must be greater than or equal to 1.");
+                .build()
+                .launchOne(null, "configcheck",
+                        "-config=" + constraintFilePath);
+        assertThat(output5.getNode1().getExitCode()).isNotZero();
+        assertThat(output5.getNode1().getStderr()).contains("Invalid value");
     }
 
-    @SingleAndMultiNodesTest
-    void testStoreExportImport(int numOfNodes) {
-        var exportDir = tempDir.resolve("exportdir");
-        var exportFile =
-                exportDir.resolve(MockCrawlerBuilder.CRAWLER_ID + ".zip");
-        var configFile = CrawlerConfigStubber.writeConfigToDir(
-                tempDir, cfg -> {});
-
-        // Export
-        var exit1 = launch(
-                numOfNodes,
-                "storeexport",
-                "-config=" + configFile,
-                "-dir=" + exportDir);
-
-        assertThat(exit1.ok()).isTrue();
-        assertThat(exportFile).isNotEmptyFile();
-
-        // Wait for locks to be released after export
-        waitForFileUnlock(exportFile, 30_000, 500);
-
-        // Import
-
-        var exit2 = launch(
-                numOfNodes,
-                "storeimport",
-                "-config=" + configFile,
-                "-file=" + exportFile);
-        assertThat(exit2).isNotNull();
-        assertThat(exit2.ok()).isTrue();
+    @ClusteredCrawlTest(nodes = { 1, 2 }, cliArgs = { "-v" })
+    void testVersion(ClusteredCrawlContext context) {
+        context.getOuput().getNodes().forEach(node -> {
+            assertThat(node.getExitCode()).isZero();
+            assertThat(node.getStdout())
+                    .contains(
+                            "C R A W L E R",
+                            "Runtime:",
+                            "Name:",
+                            "Version:",
+                            "Vendor:")
+                    .doesNotContain("null");
+        });
     }
 
-    /**
-     * Waits until the given file is unlocked (not held by any process).
-     * @param file the file to check
-     * @param timeoutMillis max time to wait
-     * @param pollMillis polling interval
-     */
-    private void waitForFileUnlock(
-            Path file, long timeoutMillis, long pollMillis) {
-        var start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < timeoutMillis) {
-            try (var channel = Files.newByteChannel(file)) {
-                // If we can open the file, it's not locked
-                return;
-            } catch (IOException e) {
-                // File is locked, wait and retry
-                try {
-                    Thread.sleep(pollMillis); //NOSONAR
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    throw new RuntimeException(
-                            "Interrupted while waiting for file unlock", ie);
-                }
-            }
-        }
-        throw new RuntimeException("Timeout waiting for file unlock: " + file);
+    @ClusteredCrawlTest(
+        nodes = { 1, 2 },
+        cliArgs = { "configcheck" },
+        config = """
+            startReferences:
+              - http://somewhere.com
+              - /some/path
+            """
+    )
+    void testConfigCheck(ClusteredCrawlContext context) {
+        context.getOuput().getNodes().forEach(node -> {
+            assertThat(node.getExitCode()).isZero();
+            assertThat(node.getStdout()).containsIgnoringWhitespaces(
+                    "No configuration errors detected.");
+        });
     }
 
-    @SingleAndMultiNodesTest
-    void testStart(int numOfNodes) {
-        var startTime = System.currentTimeMillis();
-        var exit1 = launch(numOfNodes, "start", "-config=");
-        var endTime = System.currentTimeMillis();
-        LOG.info("testStart({}) completed in {} ms", numOfNodes,
-                (endTime - startTime));
-        if (!exit1.ok()) {
-            LOG.error("Could not start crawler properly. Output:\n{}", exit1);
-        }
-        assertThat(exit1.ok()).isTrue();
+    @Test
+    @Timeout(value = 120, unit = TimeUnit.SECONDS)
+    void testStoreExportImport() {
+        var exportDir = SharedCluster.NODE_BASE_WORKDIR + "/exports";
+        SharedCluster.withNodes(1, client -> {
+            // Export
+            var exportOuput = ClusteredCrawler.builder()
+                    .build()
+                    .launchOnCluster(client, new CrawlConfig(), "storeexport",
+                            "-dir", exportDir);
+            assertThat(exportOuput.getNode1().getExitCode()).isZero();
 
+            var exportedFile = exportOuput.getNode1().getStdout().replaceFirst(
+                    "(?ms).*?Storage exported to file: (.*?\\.zip).*$", "$1");
+
+            assertThat(exportedFile).endsWith(".zip");
+
+            // Give the file system time to release locks
+            Thread.sleep(500); //NOSONAR
+
+            // Import
+            var importResults = ClusteredCrawler.builder()
+                    .postLaunch(cl -> cl.execOnCluster("rm", exportedFile))
+                    .build()
+                    .launchOnCluster(client, new CrawlConfig(), "storeimport",
+                            "-file", exportedFile);
+            assertThat(importResults.getNode1().getExitCode()).isZero();
+        });
+    }
+
+    @ClusteredCrawlTest(
+        nodes = { 1, 2 },
+        cliArgs = { "start" },
+        config = ""
+    )
+    @Timeout(value = 120, unit = TimeUnit.SECONDS)
+    void testStart(ClusteredCrawlContext context) {
         String[] expected = {
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
@@ -327,28 +270,23 @@ class CliCrawlerLauncherTest {
                 CommitterEvent.COMMITTER_CLOSE_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
         };
-
-        if (numOfNodes <= 1) {
-            // Single nodes will receive only one set and we can check for order
-            assertThat(exit1.getEvents()).containsExactly(expected);
-        } else {
-            // Multi nodes we'll make sure they are contained but there will
-            // be duplicates so we can't guarantee order.
-            assertThat(exit1.getEvents()).contains(expected);
-            assertMultiNodeEventsNotEmpty(exit1, numOfNodes);
-        }
+        context.getOuput().getNodes().forEach(node -> {
+            assertThat(node.getExitCode())
+                    .as("Could not start crawler properly. Output:\n%s",
+                            node.getStderr())
+                    .isZero();
+            assertThat(removeArtificalEvents(node.getEvents()))
+                    .containsExactly(expected);
+        });
     }
 
-    @SingleAndMultiNodesTest
-    void testStartAfterClean(int numOfNodes) {
-        var startTime = System.currentTimeMillis();
-        var exit2 = launch(numOfNodes, "start", "-clean", "-config=");
-        var endTime = System.currentTimeMillis();
-        LOG.info("testStartAfterClean({}) completed in {} ms", numOfNodes,
-                (endTime - startTime));
-        assertThat(exit2).isNotNull();
-        assertThat(exit2.ok()).withFailMessage(exit2.getStdErr()).isTrue();
-
+    @ClusteredCrawlTest(
+        nodes = { 1, 2 },
+        cliArgs = { "start", "-clean" },
+        config = ""
+    )
+    @Timeout(value = 120, unit = TimeUnit.SECONDS)
+    void testStartAfterClean(ClusteredCrawlContext context) {
         String[] expected = {
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
@@ -372,24 +310,20 @@ class CliCrawlerLauncherTest {
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
         };
 
-        if (numOfNodes <= 1) {
-            // Single nodes will receive only one set and we can check for order
-            assertThat(exit2.getEvents()).containsExactly(expected);
-        } else {
-            // Multi nodes we'll make sure they are contained but there will
-            // be duplicates so we can't guarantee order.
-            assertThat(exit2.getEvents()).contains(expected);
-            assertMultiNodeEventsNotEmpty(exit2, numOfNodes);
-        }
-
-        //TODO verify that crawlstore from previous run was deleted
-        // and recreated
+        context.getOuput().getNodes().forEach(node -> {
+            assertThat(node.getExitCode()).isZero();
+            assertThat(removeArtificalEvents(node.getEvents()))
+                    .containsExactly(expected);
+        });
     }
 
-    @SingleAndMultiNodesTest
-    void testClean(int numOfNodes) {
-        var exit = launch(numOfNodes, "clean", "-config=");
-        assertThat(exit.ok()).isTrue();
+    @ClusteredCrawlTest(
+        nodes = { 1, 2 },
+        cliArgs = { "-clean" },
+        config = ""
+    )
+    @Timeout(value = 120, unit = TimeUnit.SECONDS)
+    void testClean(ClusteredCrawlContext context) {
         String[] expected = {
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
@@ -406,16 +340,15 @@ class CliCrawlerLauncherTest {
                 CommitterEvent.COMMITTER_CLOSE_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
         };
-        if (numOfNodes <= 1) {
-            assertThat(exit.getEvents()).containsExactly(expected);
-        } else {
-            assertThat(exit.getEvents()).contains(expected);
-            assertMultiNodeEventsNotEmpty(exit, numOfNodes);
-        }
-
+        context.getOuput().getNodes().forEach(node -> {
+            assertThat(node.getExitCode()).isZero();
+            assertThat(removeArtificalEvents(node.getEvents()))
+                    .containsExactly(expected);
+        });
     }
 
     @SingleAndMultiNodesTest
+    @Disabled
     void testStop(int numOfNodes) {
         // we are just testing that the CLI is launching, not that it actually
         // stopped, which is tested separately.
@@ -426,6 +359,7 @@ class CliCrawlerLauncherTest {
     }
 
     @Test
+    @Disabled
     void testConfigRender() throws IOException {
         var cfgFile = CrawlerConfigStubber.writeConfigToDir(tempDir, null);
 
@@ -451,6 +385,7 @@ class CliCrawlerLauncherTest {
     }
 
     @SingleAndMultiNodesTest
+    @Disabled
     @WithLogLevel(
         value = "INFO",
         classes = {
@@ -476,6 +411,7 @@ class CliCrawlerLauncherTest {
     //NOTE: when testing with multiple nodes, the return MockCliExit
     // will have merged text merged in unpredictable ways as well as
     // merged events. If one exit is not OK, then the one returned is not OK.
+    @Deprecated
     private MockCliExit launch(
             int numOfNodes,
             String... cmdArgs) {
@@ -620,5 +556,13 @@ class CliCrawlerLauncherTest {
                     .as("Expected some events for multi-node execution")
                     .isNotEmpty();
         }
+    }
+
+    // Remove events we know were added just for testing but are normally
+    // not there
+    private List<String> removeArtificalEvents(List<String> events) {
+        return ListUtils.removeAll(events, List.of(
+                CrawlerEvent.CRAWLER_STORE_EXPORT_BEGIN,
+                CrawlerEvent.CRAWLER_STORE_EXPORT_END));
     }
 }

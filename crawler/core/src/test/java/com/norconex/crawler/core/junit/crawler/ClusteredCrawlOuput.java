@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.core.junit.crawler;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,7 @@ public class ClusteredCrawlOuput {
         private String stderr;
         private int exitCode;
         private FsEntry workdirFiles;
+        private final List<String> events = new ArrayList<>();
     }
 
     private final List<CrawlNode> nodes;
@@ -60,19 +62,17 @@ public class ClusteredCrawlOuput {
                 StepRecord.class);
     }
 
-    // output.getNodes().forEach(res -> {
-    //     System.err.println(
-    //             "XXX Exit code: %s\nSTDOUT:\n%sSTDERR:\n".formatted(
-    //                     res.getExitCode(), res.getStdout(),
-    //                     res.getStderr()));
-    // });
-    // System.err.println("XXX WORKDIR CONTENT:");
-    // output.getNodes().get(0).getWorkdirFiles().printTree(4);
+    // convenience methods
 
-    // output.getCaches().forEach((k, v) -> {
-    //     System.err.println("XXX CACHES: " + k + " ==> " + v);
+    public CrawlNode getNode1() {
+        return nodes.get(0);
+    }
 
-    // });
+    public CrawlNode getNode2() {
+        return nodes.get(0);
+    }
 
-    //XXX CACHES: pipeCurrentStep ==> [{"id":"cs-01K6S8CDAQNTTKR8M30PH44QBE:test-completion","object":{"pipelineId":"test-completion","stepId":"step3","updatedAt":1759636770217,"status":"COMPLETED","runId":"cr-01K6S8CD8HFKSQ2ST7RHPCQW0B"}}]
+    public CrawlNode getNode3() {
+        return nodes.get(0);
+    }
 }

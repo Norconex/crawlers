@@ -24,10 +24,10 @@ import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
-import com.norconex.crawler.core.junit.ClusterNodesTest;
 import com.norconex.crawler.core.junit.ClusterTestUtil;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.junit.crawler.ClusteredCrawler;
+import com.norconex.crawler.core.junit.tomerge_or_delete.ClusterNodesTest;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
 import com.norconex.crawler.core.session.CrawlSession;
 

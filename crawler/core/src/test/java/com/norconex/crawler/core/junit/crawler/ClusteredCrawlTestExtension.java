@@ -14,140 +14,321 @@
  */
 package com.norconex.crawler.core.junit.crawler;
 
-import java.io.File;
+import java.io.StringReader;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
-import org.junit.jupiter.api.extension.AfterAllCallback;
-import org.junit.jupiter.api.extension.AfterEachCallback;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringSubstitutor;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.InvocationInterceptor;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
-import org.testcontainers.containers.GenericContainer;
+import org.junit.jupiter.api.extension.ReflectiveInvocationContext;
+import org.junit.jupiter.api.extension.TestTemplateInvocationContext;
+import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider;
 
+import com.norconex.committer.core.impl.MemoryCommitter;
+import com.norconex.commons.lang.ClassUtil;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
+import com.norconex.commons.lang.map.MapUtil;
+import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlDriver;
+import com.norconex.crawler.core.junit.WithLogLevel;
+import com.norconex.crawler.core.junit.cluster.SharedCluster;
+import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
+
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * Extension that enables parameterized cluster testing with different node
+ * counts. Automatically wraps test execution with {@link SharedCluster}
+ * for container reuse and performance optimization.
+ *
+ * <p>Test methods can inject a {@link ClusteredCrawlContext} parameter
+ * which provides access to the cluster client, crawl output, and node count.
+ * The cluster is automatically created and managed.
+ *
+ * <p>Example usage:
+ * <pre>
+ * &#64;ClusteredCrawlTest(nodes = {2, 3, 5})
+ * void testCluster(ClusteredCrawlContext context) {
+ *     // SharedCluster.withNodes() is called automatically!
+ *     assertThat(context.getClient().getNodes()).hasSize(
+ *             context.getNodeCount());
+ *     assertThat(context.getOuput()).isNotNull();
+ * }
+ * </pre>
+ */
+@Slf4j
 public class ClusteredCrawlTestExtension
-        implements BeforeAllCallback, AfterAllCallback,
-        BeforeEachCallback, AfterEachCallback, ParameterResolver {
+        implements ParameterResolver, TestTemplateInvocationContextProvider,
+        InvocationInterceptor {
+
     private static final ExtensionContext.Namespace NAMESPACE =
             ExtensionContext.Namespace
                     .create(ClusteredCrawlTestExtension.class);
 
-    // Helper to find annotation on method or class
-    private Optional<ClusteredCrawlTest> findAnnotation(ExtensionContext ctx) {
-        // Check method first
-        if (ctx.getElement().isPresent()) {
-            var ann = ctx.getElement().get()
-                    .getAnnotation(ClusteredCrawlTest.class);
-            if (ann != null) {
-                return Optional.of(ann);
+    private static final String NODE_COUNT_KEY = "nodeCount";
+    private static final String CRAWL_CONTEXT_KEY = "crawlContext";
+
+    @Override
+    public void interceptTestTemplateMethod(
+            Invocation<Void> invocation,
+            ReflectiveInvocationContext<Method> invocationContext,
+            ExtensionContext extensionContext) throws Throwable {
+
+        // Get the node count for this iteration
+        Integer nodeCount = extensionContext.getStore(NAMESPACE)
+                .getOrDefault(NODE_COUNT_KEY, Integer.class, 1);
+
+        // Check for @WithLogLevel annotation
+        var logLevelAnnotations = findLogLevelAnnotations(extensionContext);
+
+        // Wrap the test execution in SharedCluster.withNodes()
+        SharedCluster.withNodes(nodeCount, client -> {
+            // Get the EXISTING context that was created during parameter resolution
+            var context = extensionContext.getStore(NAMESPACE)
+                    .get(CRAWL_CONTEXT_KEY, ClusteredCrawlContext.class);
+
+            if (context == null) {
+                throw new IllegalStateException(
+                        "ClusteredCrawlContext not found in extension store. "
+                                + "This should have been created during "
+                                + "parameter resolution.");
             }
-        }
-        // Then check class
-        if (ctx.getTestClass().isPresent()) {
-            var ann = ctx.getTestClass().get()
-                    .getAnnotation(ClusteredCrawlTest.class);
-            if (ann != null) {
-                return Optional.of(ann);
+
+            // Populate the existing context with client, output, and node count
+            context.setClient(client);
+            context.setNodeCount(nodeCount);
+
+            try {
+                // Apply log levels before test execution
+                applyLogLevels(logLevelAnnotations);
+
+                // Launch the crawler and store output in context BEFORE test
+                // execution
+                var output = launchCrawler(
+                        extensionContext, nodeCount, logLevelAnnotations);
+                if (output != null) {
+                    context.setOuput(output);
+                }
+
+                // Execute the actual test method (which already has reference
+                // to context)
+                invocation.proceed();
+            } catch (Throwable e) {
+                // Re-throw as runtime exception to propagate through lambda
+                if (e instanceof RuntimeException) {
+                    throw (RuntimeException) e;
+                }
+                if (e instanceof Error) {
+                    throw (Error) e;
+                }
+                throw new RuntimeException(e);
+            } finally {
+                // Restore log levels after test execution
+                restoreLogLevels(logLevelAnnotations);
+                // Clean up
+                extensionContext.getStore(NAMESPACE)
+                        .remove(CRAWL_CONTEXT_KEY);
             }
-        }
-        return Optional.empty();
-    }
-
-    // Helper to create containers
-    private List<GenericContainer<?>>
-            startContainers(ClusteredCrawlTest config) {
-        var classesPath = new File("target/classes").getAbsolutePath();
-        var testClassesPath =
-                new File("target/test-classes").getAbsolutePath();
-        var dependencyPath = new File("target/dependency").getAbsolutePath();
-        List<GenericContainer<?>> containers = new ArrayList<>();
-        for (var i = 0; i < config.numInstances(); i++) {
-            GenericContainer<?> container =
-                    new GenericContainer<>("eclipse-temurin:17-jre")
-                            .withFileSystemBind(classesPath, "/app/classes")
-                            .withFileSystemBind(testClassesPath,
-                                    "/app/test-classes")
-                            .withFileSystemBind(dependencyPath,
-                                    "/app/dependency")
-                            .withCommand("java", "-cp",
-                                    "/app/classes:/app/test-classes:/app/dependency/*",
-                                    config.mainClass());
-            container.start();
-            containers.add(container);
-        }
-        return containers;
-    }
-
-    //    ClassGraph().scan().getURLS()   Performs a scan and returns a list of URL objects for all classpath elements (JARs and directories).
-    //    ClassGraph().scan().getUniqueClasspathElements()    Returns a list of File objects representing the unique directories and JARs on the classpath.
-    //
-    // Store key: class or method unique id
-    private String storeKey(ExtensionContext ctx) {
-        return ctx.getUniqueId();
+        });
     }
 
     @Override
-    public void beforeAll(ExtensionContext context) {
-        // Only start containers if annotation is on class
-        var ann = context.getTestClass()
-                .map(c -> c.getAnnotation(ClusteredCrawlTest.class))
-                .orElse(null);
-        if (ann != null) {
-            var containers = startContainers(ann);
-            context.getStore(NAMESPACE).put(storeKey(context), containers);
-        }
+    public boolean supportsTestTemplate(ExtensionContext context) {
+        return context.getTestMethod()
+                .map(m -> m.isAnnotationPresent(ClusteredCrawlTest.class))
+                .orElse(false);
     }
 
     @Override
-    public void afterAll(ExtensionContext context) {
-        var containers = (List<GenericContainer<?>>) context.getStore(NAMESPACE)
-                .remove(storeKey(context));
-        if (containers != null) {
-            containers.forEach(GenericContainer::close);
-        }
-    }
+    public Stream<TestTemplateInvocationContext>
+            provideTestTemplateInvocationContexts(
+                    ExtensionContext context) {
+        ClusteredCrawlTest annotation = context.getTestMethod()
+                .map(m -> m.getAnnotation(ClusteredCrawlTest.class))
+                .orElseThrow();
 
-    @Override
-    public void beforeEach(ExtensionContext context) {
-        // If annotation is on method (and not class), start containers
-        var ann = context.getElement()
-                .map(e -> e.getAnnotation(ClusteredCrawlTest.class))
-                .orElse(null);
-        if (ann != null &&
-                context.getTestClass()
-                        .map(c -> c.getAnnotation(ClusteredCrawlTest.class))
-                        .isEmpty()) {
-            var containers = startContainers(ann);
-            context.getStore(NAMESPACE).put(storeKey(context), containers);
-        }
-    }
+        int[] nodeCounts = annotation.nodes();
 
-    @Override
-    public void afterEach(ExtensionContext context) {
-        var containers = (List<GenericContainer<?>>) context.getStore(NAMESPACE)
-                .remove(storeKey(context));
-        if (containers != null) {
-            containers.forEach(GenericContainer::close);
-        }
+        return Arrays.stream(nodeCounts)
+                .mapToObj(nodeCount -> new TestTemplateInvocationContext() {
+                    @Override
+                    public String getDisplayName(int invocationIndex) {
+                        return String.format("[%d nodes]", nodeCount);
+                    }
+
+                    @Override
+                    public List<Extension> getAdditionalExtensions() {
+                        // Only BeforeEachCallback - ParameterResolver
+                        // handled by top-level extension
+                        return List.of(
+                                (BeforeEachCallback) ctx -> {
+                                    // Store node count for interceptor to use
+                                    ctx.getStore(NAMESPACE).put(NODE_COUNT_KEY,
+                                            nodeCount);
+                                });
+                    }
+                });
     }
 
     @Override
     public boolean supportsParameter(ParameterContext pc, ExtensionContext ec) {
-        return pc.getParameter().getType().equals(List.class);
+        return pc.getParameter().getType().equals(ClusteredCrawlContext.class);
     }
 
     @Override
     public Object resolveParameter(ParameterContext pc, ExtensionContext ec) {
-        var containers = (List<GenericContainer<?>>) ec.getStore(NAMESPACE)
-                .get(storeKey(ec));
-        if (containers == null) {
-            throw new IllegalStateException(
-                    "No containers found for injection. " +
-                            "Did you forget to annotate the test class or method with @ClusteredCrawlTest?");
+        // Resolve ClusteredCrawlContext - create instance now, will be
+        // populated later
+        if (pc.getParameter().getType().equals(ClusteredCrawlContext.class)) {
+            var context = ec.getStore(NAMESPACE)
+                    .get(CRAWL_CONTEXT_KEY, ClusteredCrawlContext.class);
+            if (context == null) {
+                // Create new context - will be populated by interceptor
+                context = new ClusteredCrawlContext();
+                ec.getStore(NAMESPACE).put(CRAWL_CONTEXT_KEY, context);
+            }
+            return context;
         }
-        return containers;
+
+        throw new IllegalStateException(
+                "Unsupported parameter type: " + pc.getParameter().getType());
+    }
+
+    private ClusteredCrawlOuput launchCrawler(
+            ExtensionContext extensionContext,
+            int nodeCount,
+            List<WithLogLevel> logLevelAnnotations) {
+
+        var testMethod = extensionContext.getRequiredTestMethod();
+        var annotation = testMethod.getAnnotation(ClusteredCrawlTest.class);
+
+        // Get the driver supplier class
+        Class<? extends Supplier<CrawlDriver>> driverSupplierClass =
+                annotation.driverSupplierClass();
+        if (driverSupplierClass == null) {
+            driverSupplierClass = MockCrawlDriverFactory.class;
+        }
+
+        // Launch the crawler with log levels passed separately
+        return ClusteredCrawler.builder()
+                .driverSupplierClass(driverSupplierClass)
+                .logLevels(logLevelAnnotations)
+                .build()
+                .launch(nodeCount,
+                        resolveCrawlConfig(annotation, driverSupplierClass),
+                        annotation.cliArgs());
+    }
+
+    private CrawlConfig resolveCrawlConfig(
+            ClusteredCrawlTest annotation,
+            Class<? extends Supplier<CrawlDriver>> driverSupplierClass) {
+        if (ClusteredCrawlTest.NO_CONFIG.equals(annotation.config())) {
+            return null;
+        }
+        var driver = ClassUtil.newInstance(driverSupplierClass).get();
+        var config = ClassUtil.newInstance(driver.crawlerConfigClass());
+
+        // apply custom config from text
+        if (StringUtils.isNotBlank(annotation.config())) {
+            var cfgStr = StringSubstitutor.replace(
+                    annotation.config(),
+                    MapUtil.<String, String>toMap(
+                            (Object[]) annotation.vars()));
+            driver.beanMapper().read(
+                    config,
+                    new StringReader(cfgStr),
+                    Format.fromContent(cfgStr, Format.XML));
+        }
+
+        // apply config modifier
+        if (annotation.configModifier() != null) {
+            @SuppressWarnings("unchecked")
+            var c = (Consumer<CrawlConfig>) ClassUtil
+                    .newInstance(annotation.configModifier());
+            c.accept(config);
+        }
+
+        //TODO always add a memory committer, or never add it, using
+        // FS committer instead so values can be returned in cluster
+        // response?
+        if (config.getCommitters().isEmpty()) {
+            config.setCommitters(List.of(new MemoryCommitter()));
+        }
+        return config;
+    }
+
+    private List<WithLogLevel>
+            findLogLevelAnnotations(ExtensionContext context) {
+        var annotations = new ArrayList<WithLogLevel>();
+
+        // Check method
+        var method = context.getTestMethod().orElse(null);
+        if (method != null) {
+            // Check for container annotation (repeatable)
+            var container =
+                    method.getAnnotation(WithLogLevel.WithLogLevels.class);
+            if (container != null) {
+                annotations.addAll(Arrays.asList(container.value()));
+            } else {
+                var single = method.getAnnotation(WithLogLevel.class);
+                if (single != null) {
+                    annotations.add(single);
+                }
+            }
+        }
+
+        // Check class
+        var testClass = context.getTestClass().orElse(null);
+        if (testClass != null) {
+            var container =
+                    testClass.getAnnotation(WithLogLevel.WithLogLevels.class);
+            if (container != null) {
+                annotations.addAll(Arrays.asList(container.value()));
+            } else {
+                var single = testClass.getAnnotation(WithLogLevel.class);
+                if (single != null) {
+                    annotations.add(single);
+                }
+            }
+        }
+
+        return annotations;
+    }
+
+    private void applyLogLevels(List<WithLogLevel> annotations) {
+        // Convert log level annotations to system properties
+        // that can be passed to containers
+        for (WithLogLevel annotation : annotations) {
+            String level = annotation.value();
+            for (Class<?> clazz : annotation.classes()) {
+                // Set log level via system property
+                String propertyKey = "log4j.logger." + clazz.getName();
+                String propertyValue = level;
+
+                // Store for passing to containers or use directly
+                System.setProperty(propertyKey, propertyValue);
+            }
+        }
+    }
+
+    private void restoreLogLevels(List<WithLogLevel> annotations) {
+        // Clean up system properties
+        for (WithLogLevel annotation : annotations) {
+            for (Class<?> clazz : annotation.classes()) {
+                String propertyKey = "log4j.logger." + clazz.getName();
+                System.clearProperty(propertyKey);
+            }
+        }
     }
 }

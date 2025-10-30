@@ -46,6 +46,7 @@ public class Crawler {
     public Crawler(CrawlDriver crawlDriver, CrawlConfig crawlConfig) {
         this.crawlDriver = crawlDriver;
         this.crawlConfig = crawlConfig;
+        System.err.println("XXX CRAWLER CONFIG:  " + crawlConfig);
     }
 
     /**

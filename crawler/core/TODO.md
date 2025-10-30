@@ -1,6 +1,10 @@
 crawlRunId resolution logic:
 ==============================
 
+Convert all configuration File/Path instances to String so we don't have
+to concern ourselves with OS path differences? (like, setting /blah on windows
+being converted to \blah or even c:\blah)
+
 Upon being created, an infinispan cluster will store in an ephemeral cache
 (crawlerRunCache) a computeOrGet id.  Then the coordinator will compare 
 that one with the one in crawl-session cache and if different will know

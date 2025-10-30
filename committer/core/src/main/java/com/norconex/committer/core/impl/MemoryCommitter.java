@@ -164,13 +164,11 @@ public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
             } else {
                 memMetadata.loadFromMap(
                         reqMetadata.entrySet().stream()
-                                .filter(
-                                        en -> configuration.getFieldMatcher()
-                                                .matches(en.getKey()))
-                                .collect(
-                                        Collectors.toMap(
-                                                Entry::getKey,
-                                                Entry::getValue)));
+                                .filter(en -> configuration.getFieldMatcher()
+                                        .matches(en.getKey()))
+                                .collect(Collectors.toMap(
+                                        Entry::getKey,
+                                        Entry::getValue)));
             }
         }
         return memMetadata;

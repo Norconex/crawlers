@@ -43,8 +43,10 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Starts one or several Docker containers on the same network for the
- * duration of the JVM. This allows the reuse instances across tests.
+ * duration of the JVM. This allows the reuse of a cluster across tests.
  * This boosts test execution speed at the expense of pure test isolation.
+ * Isolation is attempted by ensuring unique crawler id and working directories
+ * between tests.
  */
 @Slf4j
 public final class SharedCluster {
@@ -56,7 +58,8 @@ public final class SharedCluster {
     private static final List<GenericContainer<?>> NODES = new ArrayList<>();
     private static final Network SHARED_NETWORK = Network.newNetwork();
 
-    public static final Path HOST_LIB_DIR = prepareHostLibDir();
+    private static volatile Path cachedHostLibDir;
+    public static final Path HOST_LIB_DIR = getOrPrepareHostLibDir();
 
     static {
         // Register a shutdown hook
@@ -65,7 +68,9 @@ public final class SharedCluster {
             NODES.forEach(GenericContainer::close);
             // consider not deleting and keeping files to avoid copying
             // on each test session (JVM invocation).
-            FileUtils.deleteQuietly(HOST_LIB_DIR.toFile());
+            if (cachedHostLibDir != null) {
+                FileUtils.deleteQuietly(cachedHostLibDir.toFile());
+            }
         }));
     }
 
@@ -140,44 +145,60 @@ public final class SharedCluster {
         }
     }
 
-    private static Path prepareHostLibDir() {
-        try {
-            // Stage all classpath entries into a single folder once.
-            var hostLibDir = Files.createTempDirectory("cluster-libs-");
-            Files.createDirectories(hostLibDir);
+    private static Path getOrPrepareHostLibDir() {
+        // Return cached directory if already prepared
+        if (cachedHostLibDir != null && Files.exists(cachedHostLibDir)) {
+            LOG.info("Reusing existing classpath directory: {}",
+                    cachedHostLibDir);
+            return cachedHostLibDir;
+        }
 
-            var watch = StopWatch.createStarted();
-            LOG.info("Copying classpath files to {} for containers to use...",
-                    hostLibDir);
-            var scan = new ClassGraph().scan();
-            var files = scan.getClasspathFiles();
-            var idx = 0;
-            for (var f : files) {
-                var src = f.toPath();
-                var baseName = src.getFileName().toString();
-                var uniqueName = Files.isDirectory(src)
-                        ? ("cp-" + (idx++) + "-" + baseName)
-                        : baseName;
-                var dest = hostLibDir.resolve(uniqueName);
-                if (Files.isDirectory(src)) {
-                    // Recursively copy directories (e.g., classes, test-classes)
-                    if (Files.exists(dest)) {
-                        FileUtils.deleteQuietly(dest.toFile());
-                    }
-                    FileUtils.copyDirectory(src.toFile(), dest.toFile());
-                } else // Only copy if missing or changed in size (quick heuristic)
-                if (!Files.exists(dest) ||
-                        Files.size(dest) != Files.size(src)) {
-                    Files.copy(src, dest,
-                            StandardCopyOption.REPLACE_EXISTING);
-                }
+        synchronized (SharedCluster.class) {
+            // Double-check after acquiring lock
+            if (cachedHostLibDir != null && Files.exists(cachedHostLibDir)) {
+                return cachedHostLibDir;
             }
 
-            LOG.info("Copied classpath files in {}", watch.formatTime());
-            return hostLibDir;
-        } catch (IOException e) {
-            throw new IllegalStateException(
-                    "Failed staging classpath for SharedCluster", e);
+            try {
+                // Stage all classpath entries into a single folder once.
+                var hostLibDir = Files.createTempDirectory("cluster-libs-");
+                Files.createDirectories(hostLibDir);
+
+                var watch = StopWatch.createStarted();
+                LOG.info(
+                        "Copying classpath files to {} for containers to use...",
+                        hostLibDir);
+                var scan = new ClassGraph().scan();
+                var files = scan.getClasspathFiles();
+                var idx = 0;
+                for (var f : files) {
+                    var src = f.toPath();
+                    var baseName = src.getFileName().toString();
+                    var uniqueName = Files.isDirectory(src)
+                            ? ("cp-" + (idx++) + "-" + baseName)
+                            : baseName;
+                    var dest = hostLibDir.resolve(uniqueName);
+                    if (Files.isDirectory(src)) {
+                        // Recursively copy directories (e.g., classes, test-classes)
+                        if (Files.exists(dest)) {
+                            FileUtils.deleteQuietly(dest.toFile());
+                        }
+                        FileUtils.copyDirectory(src.toFile(), dest.toFile());
+                    } else // Only copy if missing or changed in size (quick heuristic)
+                    if (!Files.exists(dest) ||
+                            Files.size(dest) != Files.size(src)) {
+                        Files.copy(src, dest,
+                                StandardCopyOption.REPLACE_EXISTING);
+                    }
+                }
+
+                LOG.info("Copied classpath files in {}", watch.formatTime());
+                cachedHostLibDir = hostLibDir;
+                return hostLibDir;
+            } catch (IOException e) {
+                throw new IllegalStateException(
+                        "Failed staging classpath for SharedCluster", e);
+            }
         }
     }
 

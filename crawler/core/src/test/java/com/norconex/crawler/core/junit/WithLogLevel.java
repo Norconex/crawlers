@@ -15,6 +15,7 @@
 package com.norconex.crawler.core.junit;
 
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -25,10 +26,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-@ExtendWith(LogLevelExtension.class)
+@Repeatable(WithLogLevel.WithLogLevels.class)
+@ExtendWith(WithLogLevelExtension.class)
 public @interface WithLogLevel {
 
     String value() default "INFO";
 
     Class<?>[] classes();
+
+    // Container annotation for multiple @WithLogLevel
+    @Target({ ElementType.TYPE, ElementType.METHOD })
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface WithLogLevels {
+        WithLogLevel[] value();
+    }
 }

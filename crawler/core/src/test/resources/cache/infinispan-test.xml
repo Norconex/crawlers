@@ -1,0 +1,115 @@
+<infinispan xmlns="urn:infinispan:config:15.2"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="urn:infinispan:config:15.2 https://infinispan.org/schemas/infinispan-config-15.2.xsd">
+            
+  <!--
+  ABOUT THIS FILE:
+  Test Infinispan configuration optimized for LOCAL TESTING.
+  Uses default TCP stack (more reliable than custom JGroups config).
+  Keeps persistence enabled for testing persistence features.
+  -->
+
+  <cache-container name="default" default-cache="base-template">
+
+    <!-- === GLOBAL SETTINGS =============================================== -->
+  
+    <!-- Use standard tcp stack -->
+    <transport cluster="${infinispan.cluster.name:cluster}" stack="tcp" />
+  
+    <global-state enabled="true">
+      <!-- 
+        By default the persistent location is derived from the crawler working 
+        directory.
+        -->
+      <persistent-location path="__DERIVED__/cache/infinispan"/>
+    </global-state>
+
+
+    <!-- === CACHE TEMPLATES =============================================== -->
+  
+    <!-- 
+      Cache configuration used as default if the crawler tries to load a 
+      cache configuration not otherwise defined here.
+      -->
+    <distributed-cache-configuration 
+      name="base-template" 
+      mode="SYNC" 
+      owners="2" 
+      statistics="true"
+    >
+      <encoding>
+        <key media-type="application/x-protostream"/>
+        <value media-type="application/x-protostream"/>
+      </encoding>
+      <transaction
+        mode="NON_XA"
+        locking="PESSIMISTIC"
+        transaction-manager-lookup="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
+      />
+      <persistence passivation="false">
+        <file-store />
+      </persistence>
+    </distributed-cache-configuration>
+
+    <distributed-cache-configuration 
+      name="indexed-template" 
+      configuration="base-template"
+    >
+      <indexing 
+        enabled="true" 
+        storage="local-heap"
+        startup-mode="auto"
+        indexing-mode="auto"
+      >
+        <indexed-entities>
+          <indexed-entity>com.norconex.crawler.core.cluster.impl.infinispan.CrawlEntryProtoAdapter</indexed-entity>
+        </indexed-entities>
+      </indexing>
+      <!-- Use RocksDB instead of SIFS to avoid re-entrant lock issues with indexing -->
+      <persistence passivation="false">
+        <rocksdb-store xmlns="urn:infinispan:config:store:rocksdb:15.2"/>
+      </persistence>
+    </distributed-cache-configuration>
+
+
+
+    <!-- For caches that don't survive a cluster run. -->
+    <distributed-cache-configuration 
+      name="ephemeral-template" 
+      owners="2"
+      mode="SYNC"
+      statistics="true"
+    >
+      <expiration lifespan="-1"/>
+      <persistence passivation="false"/>
+    </distributed-cache-configuration>
+
+    <!-- === CACHE MAPPINGS ================================================ -->
+
+    <distributed-cache-configuration name="*_indexed"   configuration="indexed-template"/>
+    <distributed-cache-configuration name="*_ephemeral" configuration="ephemeral-template"/>
+
+    <!-- Explicitly create caches we know are used by crawler-core. -->
+    <distributed-cache name="crawler"            configuration="base-template"/>
+    <distributed-cache name="crawlSession"       configuration="base-template"/>
+    <distributed-cache name="crawlRun"           configuration="ephemeral-template"/>
+    <distributed-cache name="crawlEventCounts"   configuration="base-template"/>
+    <distributed-cache name="pipeCurrentStep"    configuration="base-template"/>
+    <distributed-cache name="pipeWorkerStatuses" configuration="base-template"/>
+    <distributed-cache name="ledger_a"           configuration="indexed-template"/>
+    <distributed-cache name="ledger_b"           configuration="indexed-template"/>
+    <!-- Cache used for sharing and also persisting arbitrary counters.  -->
+    <distributed-cache 
+      name="counters"
+      mode="SYNC"
+      owners="2"
+      statistics="true"
+    >
+      <persistence passivation="false">
+        <file-store />
+      </persistence>
+    </distributed-cache>
+
+  </cache-container>
+  
+</infinispan>
