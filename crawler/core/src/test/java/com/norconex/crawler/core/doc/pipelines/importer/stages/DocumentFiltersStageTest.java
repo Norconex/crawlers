@@ -18,13 +18,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
+import com.norconex.crawler.core._DELETE.CrawlTest;
+import com.norconex.crawler.core._DELETE.CrawlTest.Focus;
 import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core.doc.operations.filter.OnMatchFilter;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.stubs.CrawlDocContextStubber;
 import com.norconex.importer.doc.Doc;

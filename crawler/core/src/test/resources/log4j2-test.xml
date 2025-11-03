@@ -27,6 +27,12 @@
     <Logger name="com.norconex.crawler.core" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
+    <Logger name="com.norconex.crawler.core.cli" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="com.norconex.crawler.core.junit" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
     <Logger name="com.norconex.importer" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
@@ -34,9 +40,6 @@
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="com.norconex.commons.lang.config" level="INFO" additivity="false">
-      <AppenderRef ref="Console"/>
-    </Logger>
-    <Logger name="com.norconex.crawler.core.cli" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="org.infinispan" level="INFO" additivity="false">

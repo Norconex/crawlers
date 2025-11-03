@@ -18,9 +18,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.function.Consumer;
 
+import com.norconex.crawler.core._DELETE.CrawlTest;
+import com.norconex.crawler.core._DELETE.CrawlTest.Focus;
 import com.norconex.crawler.core.cli.CliException;
-import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.ledger.CrawlEntry;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.session.CrawlSession;

@@ -16,9 +16,9 @@ package com.norconex.crawler.core.doc.pipelines.queue.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.norconex.crawler.core._DELETE.CrawlTest;
+import com.norconex.crawler.core._DELETE.CrawlTest.Focus;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
-import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.stubs.CrawlDocContextStubber;
 

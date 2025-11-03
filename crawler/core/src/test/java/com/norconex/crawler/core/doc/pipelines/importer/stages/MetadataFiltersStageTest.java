@@ -20,14 +20,14 @@ import java.util.List;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.crawler.core._DELETE.CrawlTest;
+import com.norconex.crawler.core._DELETE.CrawlTest.Focus;
 import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core.doc.operations.filter.impl.GenericMetadataFilter;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
-import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.stubs.CrawlDocContextStubber;

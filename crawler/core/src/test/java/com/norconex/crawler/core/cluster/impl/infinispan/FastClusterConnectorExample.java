@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.junit.CrawlTest;
+import com.norconex.crawler.core._DELETE.CrawlTest;
 
 /**
  * Example test demonstrating how to use FastLocalInfinispanClusterConnector

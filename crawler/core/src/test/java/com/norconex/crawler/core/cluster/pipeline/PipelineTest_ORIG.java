@@ -32,10 +32,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.crawler.core._DELETE.ClusterTestUtil;
+import com.norconex.crawler.core._DELETE.tomerge_or_delete.ClusterNodesTest;
 import com.norconex.crawler.core.cluster.Cache;
-import com.norconex.crawler.core.junit.ClusterTestUtil;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
-import com.norconex.crawler.core.junit.tomerge_or_delete.ClusterNodesTest;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.stubs.CrawlSessionStubber;
 import com.norconex.crawler.core.util.ExceptionSwallower;

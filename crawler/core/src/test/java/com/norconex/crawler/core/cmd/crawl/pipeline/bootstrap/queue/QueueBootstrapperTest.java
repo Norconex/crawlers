@@ -29,8 +29,8 @@ import org.junit.jupiter.api.Timeout.ThreadMode;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core._DELETE.CrawlTest;
+import com.norconex.crawler.core._DELETE.CrawlTest.Focus;
 
 @Timeout(
     value = 30, unit = TimeUnit.SECONDS, threadMode = ThreadMode.SAME_THREAD

@@ -23,9 +23,9 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 
+import com.norconex.crawler.core._DELETE.CrawlTest;
+import com.norconex.crawler.core._DELETE.CrawlTest.Focus;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.stubs.CrawlDocContextStubber;
 

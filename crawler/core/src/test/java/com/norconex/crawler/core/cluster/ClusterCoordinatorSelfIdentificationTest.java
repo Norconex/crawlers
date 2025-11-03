@@ -9,8 +9,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.junit.ClusterTestUtil;
-import com.norconex.crawler.core.junit.tomerge_or_delete.ClusterNodesTest;
+import com.norconex.crawler.core._DELETE.ClusterTestUtil;
+import com.norconex.crawler.core._DELETE.tomerge_or_delete.ClusterNodesTest;
 import com.norconex.crawler.core.session.CrawlSession;
 
 /**

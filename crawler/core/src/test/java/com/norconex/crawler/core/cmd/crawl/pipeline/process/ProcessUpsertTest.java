@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core._DELETE.CrawlTest;
+import com.norconex.crawler.core._DELETE.CrawlTest.Focus;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.stubs.CrawlDocContextStubber;
 import com.norconex.crawler.core.stubs.DocStubber;

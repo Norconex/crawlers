@@ -26,9 +26,9 @@ import org.junit.jupiter.api.Timeout;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.crawler.core._DELETE.CrawlTest;
+import com.norconex.crawler.core._DELETE.CrawlTest.Focus;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListenerConfig.OnMultiple;
-import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
 
 @Timeout(30)
 class StopCrawlerOnMaxEventListenerTest {
