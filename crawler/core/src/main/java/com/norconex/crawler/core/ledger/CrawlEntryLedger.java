@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.crawler.core.cluster.Cache;
 import com.norconex.crawler.core.cluster.CacheManager;
 import com.norconex.crawler.core.cluster.Counter;
@@ -90,8 +91,14 @@ public final class CrawlEntryLedger {
         cacheManager = session.getCluster().getCacheManager();
 
         // Caches:
-        var currentAlias = cacheManager.getCrawlSessionCache()
-                .computeIfAbsent(CURRENT_LEDGER_ALIAS_KEY, k -> LEDGER_A);
+        // Avoid lambda in computeIfAbsent to prevent serialization issues
+        // in distributed cache replication
+        var sessionCache = cacheManager.getCrawlSessionCache();
+        var currentAlias = sessionCache.get(CURRENT_LEDGER_ALIAS_KEY)
+                .orElseGet(() -> {
+                    sessionCache.put(CURRENT_LEDGER_ALIAS_KEY, LEDGER_A);
+                    return LEDGER_A;
+                });
         var previousAlias = LEDGER_A.equals(currentAlias)
                 ? LEDGER_B
                 : LEDGER_A;
@@ -376,7 +383,12 @@ public final class CrawlEntryLedger {
      */
     public synchronized void archiveCurrentLedger() {
         if (baselineLedger != null) {
-            baselineLedger.clear();
+            // Remove all entries individually without clearing persistent
+            // storage. Using clear() tries to delete files that may still
+            // be locked on Windows. Using forEach to remove each entry
+            // avoids the file deletion issue while still emptying the cache.
+            // The persistent storage will be reused when entries are added.
+            baselineLedger.forEach((key, value) -> baselineLedger.remove(key));
         }
         var currentAlias = cacheManager.getCrawlSessionCache()
                 .get(CURRENT_LEDGER_ALIAS_KEY).orElse(null);
@@ -415,23 +427,42 @@ public final class CrawlEntryLedger {
      * Atomically claims a QUEUED entry for processing, updating its status
      * and timestamp.
      * Updates status counters if successful.
+     * Uses atomic replace() to avoid serialization issues with BiFunction.
      * @param reference the reference to claim
      * @return the updated entry if successfully claimed, otherwise empty
      */
     private Optional<CrawlEntry> claimQueuedEntry(String reference) {
-        var updated = currentLedger.computeIfPresent(reference, (k, v) -> {
-            if (v.getProcessingStatus() == ProcessingStatus.QUEUED) {
-                v.setProcessingStatus(ProcessingStatus.PROCESSING);
-                v.setProcessingAt(Instant.now().atZone(ZoneOffset.UTC));
-            }
-            return v;
-        });
-        if (updated.isPresent() && updated.get()
-                .getProcessingStatus() == ProcessingStatus.PROCESSING) {
+        // Use atomic replace() instead of computeIfPresent() to avoid
+        // serializing functions with ProtoStream marshalling.
+        // This is thread-safe and works across distributed nodes.
+
+        var current = currentLedger.get(reference);
+        if (current.isEmpty()) {
+            return Optional.empty();
+        }
+
+        var entry = current.get();
+        if (entry.getProcessingStatus() != ProcessingStatus.QUEUED) {
+            return Optional.empty();
+        }
+
+        // Create updated entry with new status
+        var updatedEntry = BeanUtil.clone(entry);
+        updatedEntry.setProcessingStatus(ProcessingStatus.PROCESSING);
+        updatedEntry.setProcessingAt(Instant.now().atZone(ZoneOffset.UTC));
+
+        // Atomically replace only if the current value hasn't changed
+        // This ensures thread-safety without requiring function serialization
+        boolean replaced = currentLedger.replace(
+                reference, entry, updatedEntry);
+
+        if (replaced) {
             statusCounters.get(ProcessingStatus.QUEUED).decrementAndGet();
             statusCounters.get(ProcessingStatus.PROCESSING).incrementAndGet();
-            return updated;
+            return Optional.of(updatedEntry);
         }
+
+        // Entry was modified by another thread/node, retry would be needed
         return Optional.empty();
     }
 

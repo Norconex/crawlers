@@ -46,7 +46,6 @@ public class Crawler {
     public Crawler(CrawlDriver crawlDriver, CrawlConfig crawlConfig) {
         this.crawlDriver = crawlDriver;
         this.crawlConfig = crawlConfig;
-        System.err.println("XXX CRAWLER CONFIG:  " + crawlConfig);
     }
 
     /**
@@ -96,6 +95,8 @@ public class Crawler {
     private void executeCommand(Command... commands) {
         validateConfig(crawlConfig);
         LogUtil.logCommandIntro(LOG, crawlConfig);
+        ofNullable(crawlDriver.callbacks().getBeforeSession()).ifPresent(
+                c -> c.accept(crawlConfig));
         withCrawlSession(sess -> {
             for (Command cmd : commands) {
                 try {
@@ -107,19 +108,21 @@ public class Crawler {
                     ExceptionSwallower
                             .runWithInterruptClear(() -> cmd.execute(sess));
                 } finally {
-                    ofNullable(sess.getCrawlContext().getCallbacks()
-                            .getAfterCommand())
-                                    .ifPresent(c -> c.accept(sess,
-                                            cmd.getClass()));
+                    ofNullable(sess
+                            .getCrawlContext()
+                            .getCallbacks()
+                            .getAfterCommand()).ifPresent(
+                                    c -> c.accept(sess, cmd.getClass()));
                 }
             }
         });
+        ofNullable(crawlDriver.callbacks().getAfterSession()).ifPresent(
+                c -> c.accept(crawlConfig));
     }
 
     public void withCrawlSession(Consumer<CrawlSession> c) {
-        try (var session =
-                CrawlSessionFactory.create(crawlDriver, crawlConfig)) {
-            c.accept(session);
+        try (var sess = CrawlSessionFactory.create(crawlDriver, crawlConfig)) {
+            c.accept(sess);
         }
     }
 }

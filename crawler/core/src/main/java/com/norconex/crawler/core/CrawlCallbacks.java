@@ -15,6 +15,7 @@
 package com.norconex.crawler.core;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
@@ -24,6 +25,33 @@ import com.norconex.importer.doc.Doc;
 import lombok.Builder;
 import lombok.Getter;
 
+/**
+ * <p>
+ * Optional callbacks invoked at specific times in the crawler life-cycle.
+ * The flow of execution for a crawl is as follow (callbacks are bold):
+ * </p>
+ * <ul>
+ *   <li>Launch crawler.</li>
+ *   <li>Invoke <b>beforeSession</b>.</li>
+ *   <li>Initialize crawl session.</li>
+ *   <li>For each command:</li>
+ *   <ul>
+ *     <li>Invoke <b>beforeCommand</b>.</li>
+ *     <li>Execute command.</li>
+ *     <li> For each document:</li>
+ *     <ul>
+ *       <li>Invoke <b>beforeDocumentProcessing</b>.</li>
+ *       <li>Process document (fetch, parse, transform, etc.)</li>
+ *       <li>Invoke <b>afterDocumentProcessing</b>.</li>
+ *       <li>Invoke <b>beforeDocumentFinalizing</b>.</li>
+ *       <li>Finalize document (upsert/delete, close resources, etc.)</li>
+ *       <li>Invoke <b>afterDocumentFinalizing</b>.</li>
+ *     </ul>
+ *     <li>Invoke <b>afterCommand</b></li>
+ *   </ul>
+ *   <li>Invoke <b>afterSession</b></li>
+ * </ul>
+ */
 @Builder
 @Getter
 public class CrawlCallbacks {
@@ -47,7 +75,19 @@ public class CrawlCallbacks {
     }
 
     /**
-     * Invoked after a command is initialized, but before it gets executed.
+     * Invoked before the crawl session gets initialized (which is also
+     * before any command gets executed). Modifying the
+     * CrawlConfig is generally safe here.
+     */
+    Consumer<CrawlConfig> beforeSession;
+    /**
+     * Invoked after a crawl session has been destroyed and resources closed.
+     */
+    Consumer<CrawlConfig> afterSession;
+
+    /**
+     * Invoked before a command is executed, after the session and crawl context
+     * have been initialized.
      * Rely on the supplied command class to know which command.
      * @see CrawlCommandCallback
      */

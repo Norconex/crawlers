@@ -223,27 +223,6 @@ public class CrawlSession implements Closeable {
         closed = true;
 
         LOG.info("Closing CrawlSession...");
-
-        //        LOG.info("Closing heartbeat scheduler...");
-        //        if (heartbeatFuture != null) {
-        //            heartbeatFuture.cancel(true);
-        //        }
-        //        heartbeatScheduler.shutdown();
-        //        try {
-        //            if (!heartbeatScheduler.awaitTermination(5, TimeUnit.SECONDS)) {
-        //                heartbeatScheduler.shutdownNow();
-        //            } else {
-        //                LOG.info("Heartbeat scheduler closed.");
-        //            }
-        //        } catch (InterruptedException e) {
-        //            Thread.currentThread().interrupt();
-        //            heartbeatScheduler.shutdownNow();
-        //            LOG.warn(
-        //                    "Interrupted while waiting for heartbeat scheduler to terminate.",
-        //                    e);
-        //        }
-        //        heartbeatScheduler = null;
-        //        heartbeatFuture = null;
         ExceptionSwallower.runWithInterruptClear(() -> {
             ExceptionSwallower.close(crawlContext, cluster);
         });
@@ -254,33 +233,6 @@ public class CrawlSession implements Closeable {
         LOG.info("CrawlSession closed.");
 
     }
-
-    //    private void scheduleHeartbeat() {
-    //        heartbeatFuture = heartbeatScheduler.scheduleAtFixedRate(
-    //                this::beatHeart,
-    //                SESSION_HEARTBEAT_INTERVAL,
-    //                SESSION_HEARTBEAT_INTERVAL,
-    //                TimeUnit.MILLISECONDS);
-    //    }
-
-    //    private void beatHeart() {
-    //        if (closed || cluster == null) {
-    //        }
-    //        // Heartbeat must execute every interval. Using runOnOneOnce would
-    //        // prevent subsequent executions on the same session. We only want
-    //        // exactly one node to perform each heart beat invocation, but the
-    //        // task itself must be repeatable across the life of the session.
-    //
-    //        //TODO need to migrate this? I think it is done by cluster now
-    //        //        state = cluster.getTaskManager().runOnOneSync( //NOSONAR
-    //        //                "session.heartbeat", sess -> {
-    //        //                    var currentState = sess.loadState();
-    //        //                    var st = new State().setCrawlState(currentState.crawlState)
-    //        //                            .setLastUpdated(System.currentTimeMillis());
-    //        //                    sess.saveCrawlState(st);
-    //        //                    return st;
-    //        //                }).get();
-    //    }
 
     /**
      * Sets a session attribute as a string.

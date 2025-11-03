@@ -34,7 +34,6 @@ public final class CliCrawlerLauncher {
     public static int launch(
             @NonNull CrawlDriver crawlDriver, String... args) {
         System.setProperty("org.jboss.logging.provider", "slf4j");
-
         var cmdLine = new CommandLine(new CliRunner(crawlDriver));
 
         cmdLine.setExecutionExceptionHandler(
@@ -54,7 +53,13 @@ public final class CliCrawlerLauncher {
             cmdLine.usage(cmdLine.getOut());
             return -1;
         }
-        return cmdLine.execute(args);
+
+        try {
+            return cmdLine.execute(args);
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
+            return -1;
+        }
     }
 
 }

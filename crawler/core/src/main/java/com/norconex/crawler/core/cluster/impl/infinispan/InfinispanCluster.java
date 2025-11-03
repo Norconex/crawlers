@@ -43,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 @Getter
 @Slf4j
+//TODO rename *Client?
 public class InfinispanCluster implements Cluster {
 
     private static final String BASEDIR_PLACEHOLDER = "__DERIVED__";

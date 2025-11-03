@@ -28,6 +28,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ParentCommand;
@@ -36,6 +37,7 @@ import picocli.CommandLine.Spec;
 /**
  * Base class for sub-commands.
  */
+@Slf4j
 @EqualsAndHashCode
 @ToString
 public abstract class CliBase implements Runnable {
@@ -113,6 +115,16 @@ public abstract class CliBase implements Runnable {
                 throw new CliException(b.toString());
             }
             throw e;
+        } catch (Exception e) {
+            // Catch all other exceptions during config loading and
+            // provide detailed error information
+            var msg = String.format(
+                    "Failed to load configuration from: %s%nError: %s",
+                    getConfigFile().toFile().getAbsolutePath(),
+                    e.getMessage());
+            // Log full stack trace for debugging
+            LOG.error(msg, e);
+            throw new CliException(msg, e);
         }
     }
 }

@@ -12,14 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.mocks.cli;
+package com.norconex.crawler.core.junit.clusternew.node;
 
 import static org.assertj.core.api.Assertions.fail;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 
@@ -27,41 +26,32 @@ import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+//NOTE: Not serializable (only for testing)
 @Slf4j
 @Data
-@Deprecated
-public final class MockCliEventWriter implements EventListener<Event> {
+final class NodeEventsExporter implements EventListener<Event> {
 
-    // Use String instead of Path for reliable serialization across containers
-    private String eventFilePath;
+    static final String EVENTS_FILE_NAME = "events.txt";
 
-    public void setEventFile(Path path) {
-        if (path != null) {
-            // Convert to forward slashes for cross-platform compatibility
-            eventFilePath = path.toString().replace('\\', '/');
-        }
-    }
+    @Getter
+    private final Path eventFile;
 
-    public Path getEventFile() {
-        return eventFilePath != null ? Paths.get(eventFilePath) : null;
+    public NodeEventsExporter(Path nodeWorkDir) {
+        eventFile = nodeWorkDir.resolve(EVENTS_FILE_NAME);
     }
 
     @Override
     public void accept(Event event) {
-        if (eventFilePath == null) {
+        if (eventFile == null) {
             LOG.warn("Event file path is null, skipping event: {}",
                     event.getName());
             return;
         }
 
         try {
-            var eventFile = Paths.get(eventFilePath);
-            // Ensure parent directory exists
-            if (eventFile.getParent() != null) {
-                Files.createDirectories(eventFile.getParent());
-            }
             Files.writeString(
                     eventFile, event.getName() + "\n",
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND,
@@ -71,7 +61,8 @@ public final class MockCliEventWriter implements EventListener<Event> {
         }
     }
 
-    public static List<String> parseEvents(Path eventFile) {
+    public static List<String> parseEvents(Path nodeWorkDir) {
+        var eventFile = nodeWorkDir.resolve(EVENTS_FILE_NAME);
         if (!Files.exists(eventFile)) {
             LOG.info("Test events file not found: {}", eventFile);
             return List.of();
@@ -83,4 +74,5 @@ public final class MockCliEventWriter implements EventListener<Event> {
             return List.of();
         }
     }
+
 }

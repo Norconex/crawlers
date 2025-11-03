@@ -184,6 +184,8 @@ public final class ClusteredCrawler {
 
         cmdArgs.add("-Dfile.encoding=UTF8");
         cmdArgs.add("-Djava.net.preferIPv4Stack=true");
+        cmdArgs.add("-Djava.net.preferIPv6Addresses=false");
+        cmdArgs.add("-Djava.net.disableIPv6=true");
         cmdArgs.add("-cp");
         cmdArgs.add(cp);
 
