@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<infinispan xmlns="urn:infinispan:config:13.0">
+  <cache-container>
+    <local-cache name="testCache">
+      <persistence passivation="false">
+        <file-store shared="false" preload="true">
+          <fetch-state>false</fetch-state>
+          <purge-on-startup>true</purge-on-startup>
+          <location>target/infinispan-store</location>
+        </file-store>
+      </persistence>
+    </local-cache>
+  </cache-container>
+</infinispan>

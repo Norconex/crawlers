@@ -26,7 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
+import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 
 /**
  * <p>
@@ -44,6 +44,7 @@ import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
 @Retention(RetentionPolicy.RUNTIME)
 @TestTemplate
 @ExtendWith(ClusteredCrawlTestExtension.class)
+@Deprecated
 public @interface ClusteredCrawlTest {
 
     public static final String NO_CONFIG = "null";
@@ -98,7 +99,7 @@ public @interface ClusteredCrawlTest {
      * The driver supplier class to use for the crawler.
      */
     Class<? extends Supplier<
-            CrawlDriver>> driverSupplierClass() default MockCrawlDriverFactory.class;
+            CrawlDriver>> driverSupplierClass() default TestCrawlDriverFactory.class;
 
     /**
      * Number of cluster nodes to create for each test iteration.

@@ -21,7 +21,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import com.norconex.crawler.core.cluster.pipeline.PipelineProgress;
@@ -85,7 +84,7 @@ public class CrawlCommand implements Command {
         // Start coordinator-only progress logger with pipeline progress
         // supplier
         // TODO this likely does not survive a change of coordinator???
-        final var loggerRef = new AtomicReference<CrawlProgressLogger>();
+        CrawlProgressLogger logger = null;
         if (session.getCluster().getLocalNode().isCoordinator()) {
             Supplier<PipelineProgress> supplier = () -> {
                 try {
@@ -95,8 +94,7 @@ public class CrawlCommand implements Command {
                     return null; // logger is resilient to nulls
                 }
             };
-            var logger = new CrawlProgressLogger(ctx, supplier);
-            loggerRef.set(logger);
+            logger = new CrawlProgressLogger(ctx, supplier);
             CompletableFuture.runAsync(logger::start);
         }
 
@@ -109,18 +107,14 @@ public class CrawlCommand implements Command {
             // have it again just as a safeguard, but we pad to give time to
             // CrawlProcessStep to finish normally after timeout.
             var maxDuration = ctx.getCrawlConfig().getMaxCrawlDuration();
-            var result =
-                    (maxDuration != null && maxDuration.toMillis() > 0)
-                            ? ConcurrentUtil.get(pipeFuture, 5,
-                                    TimeUnit.MINUTES)
-                            : ConcurrentUtil.get(pipeFuture);
+            var result = (maxDuration != null && maxDuration.toMillis() > 0)
+                    ? ConcurrentUtil.get(pipeFuture, 5, TimeUnit.MINUTES)
+                    : ConcurrentUtil.get(pipeFuture);
 
-            // Stop logger now that pipeline finished
-            closeLogger(loggerRef.get());
             finalState = session.oncePerSessionAndGet("final-status-task",
                     () -> storeFinalCrawlState(session, result));
         } catch (Exception e) {
-            finalState = handleException(e, session, loggerRef.get());
+            finalState = handleException(e, session, logger);
         }
 
         session.fire(CrawlerEvent.CRAWLER_CRAWL_END, this);
@@ -133,6 +127,7 @@ public class CrawlCommand implements Command {
                 swallow(() -> PipelineProgressJMX.unregister(ctx));
             }
         }
+        closeLogger(logger);
     }
 
     private CrawlState handleException(

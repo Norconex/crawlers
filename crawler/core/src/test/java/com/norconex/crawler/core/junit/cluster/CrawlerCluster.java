@@ -15,7 +15,6 @@
 package com.norconex.crawler.core.junit.cluster;
 
 import java.io.IOException;
-import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -27,16 +26,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.healthmarketscience.jackcess.RuntimeIOException;
 import com.norconex.commons.lang.Sleeper;
-import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core._DELETE.crawler.ClusteredCrawlOuput;
 import com.norconex.crawler.core.junit.cluster.node.CrawlerNode;
 import com.norconex.crawler.core.junit.cluster.node.CrawlerNodeLauncher;
 import com.norconex.crawler.core.junit.cluster.node.NodeState;
+import com.norconex.crawler.core.util.CoreTestUtil;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -46,7 +43,8 @@ import lombok.extern.slf4j.Slf4j;
 public class CrawlerCluster implements AutoCloseable {
 
     public static final String CLUSTER_NODE_COUNT = "clusterNodeCount";
-    public static final int NODE_COUNT_SYNC_MS = 200;
+    // Reduced from 200ms to 50ms for faster test execution
+    public static final int NODE_COUNT_SYNC_MS = 50;
     public static final String CRAWLER_ID_PREFIX = "test-crawl-";
 
     private static final AtomicInteger clusterCounter = new AtomicInteger();
@@ -81,8 +79,7 @@ public class CrawlerCluster implements AutoCloseable {
         configFile = clusterRootDir.resolve("config.yaml");
 
         initCrawlerId();
-        writeConfigToDisk();
-
+        CoreTestUtil.writeConfigToDir(crawlConfig, configFile);
     }
 
     /**
@@ -179,23 +176,6 @@ public class CrawlerCluster implements AutoCloseable {
         }
     }
 
-    private void writeConfigToDisk() {
-        // make sure directory exists
-        try {
-            Files.createDirectories(configFile.getParent());
-        } catch (IOException e) {
-            throw new RuntimeIOException(e);
-        }
-        try (Writer w = Files.newBufferedWriter(
-                configFile,
-                StandardOpenOption.CREATE,
-                StandardOpenOption.TRUNCATE_EXISTING)) {
-            BeanMapper.DEFAULT.write(crawlConfig, w, Format.YAML);
-        } catch (IOException e) {
-            throw new RuntimeIOException(e);
-        }
-    }
-
     /**
      * Stops all crawler nodes and releases resources.
      * This should be called when done with the cluster to ensure
@@ -205,6 +185,11 @@ public class CrawlerCluster implements AutoCloseable {
     @Override
     public void close() {
         LOG.info("Shutting down cluster with {} nodes", nodes.size());
+
+        // Brief delay to allow any in-flight JGroups messages to be processed
+        // This reduces the likelihood of TpHeader NPE during shutdown
+        Sleeper.sleepMillis(500);
+
         for (CrawlerNode node : nodes) {
             try {
                 node.close();

@@ -43,7 +43,7 @@ import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core._DELETE.clusterold.SharedCluster;
 import com.norconex.crawler.core.junit.WithLogLevel;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
+import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -217,7 +217,7 @@ public class ClusteredCrawlTestExtension
         Class<? extends Supplier<CrawlDriver>> driverSupplierClass =
                 annotation.driverSupplierClass();
         if (driverSupplierClass == null) {
-            driverSupplierClass = MockCrawlDriverFactory.class;
+            driverSupplierClass = TestCrawlDriverFactory.class;
         }
 
         // Launch the crawler with log levels passed separately

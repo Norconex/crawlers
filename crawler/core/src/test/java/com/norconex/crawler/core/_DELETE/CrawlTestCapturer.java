@@ -22,7 +22,7 @@ import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
+import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 import com.norconex.crawler.core.mocks.crawler.MockCrawlerBuilder;
 import com.norconex.crawler.core.session.CrawlSession;
 
@@ -46,7 +46,7 @@ public class CrawlTestCapturer extends CrawlerLifeCycleListener {
     private static final CrawlCaptures captures = new CrawlCaptures();
 
     public static CrawlCaptures crawlAndCapture(CrawlConfig config) {
-        return crawlAndCapture(config, MockCrawlDriverFactory.create());
+        return crawlAndCapture(config, TestCrawlDriverFactory.create());
     }
 
     public static CrawlCaptures crawlAndCapture(

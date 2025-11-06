@@ -43,11 +43,14 @@ public final class DocLedgerBootstrapper implements CrawlBootstrapper {
 
     @Override
     public void bootstrap(CrawlSession session) {
-        if (session.getBoolean(BOOTSTRAP_KEY)) {
-            throw new IllegalStateException(
-                    "Already initialized or initializing.");
+        // Use atomic operation to prevent race condition in clustered
+        // environments where coordinator election may not be complete
+        // during initial startup
+        if (!session.setBooleanIfAbsent(BOOTSTRAP_KEY, true)) {
+            LOG.info("Bootstrap already in progress or completed by "
+                    + "coordinator, skipping.");
+            return;
         }
-        session.setBoolean(BOOTSTRAP_KEY, true);
         try {
             prepareForCrawl(session);
         } finally {

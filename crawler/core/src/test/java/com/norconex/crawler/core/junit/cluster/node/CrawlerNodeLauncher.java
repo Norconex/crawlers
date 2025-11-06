@@ -21,7 +21,7 @@ import java.util.function.Supplier;
 
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.junit.WithLogLevel;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
+import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 import com.norconex.crawler.core.util.ExecUtil;
 
 import lombok.Builder;
@@ -76,7 +76,7 @@ public class CrawlerNodeLauncher {
         cmd.jvmArg(dArg(CrawlerNode.PROP_DRIVER_SUPPL,
                 Optional.<Class<? extends Supplier<CrawlDriver>>>ofNullable(
                         driverSupplierClass)
-                        .orElse(MockCrawlDriverFactory.class).getName()));
+                        .orElse(TestCrawlDriverFactory.class).getName()));
         cmd.jvmArg(dArg(CrawlerNode.PROP_EXPORT_EVENTS, exportEvents));
         cmd.jvmArg(dArg(CrawlerNode.PROP_EXPORT_CACHES, exportCaches));
         cmd.jvmArg(dArg(CrawlerNode.PROP_NODE_WORKDIR, nodeWorkDir));

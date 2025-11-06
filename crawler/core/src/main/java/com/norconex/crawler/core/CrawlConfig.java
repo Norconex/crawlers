@@ -544,6 +544,19 @@ public class CrawlConfig {
     }
 
     /**
+     * Adds a Committer responsible for persisting information
+     * to a target location/repository.
+     * @param committer a Committer
+     * @return this
+     */
+    public CrawlConfig addCommitter(Committer committer) {
+        if (committer != null) {
+            committers.add(committer);
+        }
+        return this;
+    }
+
+    /**
      * Gets event listeners.
      * Those are considered additions to automatically
      * detected configuration objects implementing {@link EventListener}.

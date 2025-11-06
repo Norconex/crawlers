@@ -41,7 +41,6 @@ import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.ClassUtil;
-import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.Properties;
@@ -64,9 +63,8 @@ import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.mocks.cluster.MockFailingCluster;
 import com.norconex.crawler.core.mocks.cluster.MockSingleNodeConnector;
+import com.norconex.crawler.core.util.CoreTestUtil;
 import com.norconex.importer.ImporterConfig;
-
-import lombok.NonNull;
 
 public final class CrawlerConfigStubber {
 
@@ -183,17 +181,17 @@ public final class CrawlerConfigStubber {
                 .setCommitters(List.of(new MemoryCommitter()));
     }
 
-    public static Path writeConfigToDir(@NonNull CrawlConfig config) {
-        var file = config
-                .getWorkDir()
-                .resolve(TimeIdGenerator.next() + ".yaml");
-        try (Writer w = Files.newBufferedWriter(file)) {
-            BeanMapper.DEFAULT.write(config, w, Format.YAML);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        return file;
-    }
+    //    public static Path writeConfigToDir(@NonNull CrawlConfig config) {
+    //        var file = config
+    //                .getWorkDir()
+    //                .resolve(TimeIdGenerator.next() + ".yaml");
+    //        try (Writer w = Files.newBufferedWriter(file)) {
+    //            BeanMapper.DEFAULT.write(config, w, Format.YAML);
+    //        } catch (IOException e) {
+    //            throw new UncheckedIOException(e);
+    //        }
+    //        return file;
+    //    }
 
     public static Path writeConfigToDir(
             Path workDir, Consumer<CrawlConfig> c) {
@@ -201,7 +199,7 @@ public final class CrawlerConfigStubber {
         if (c != null) {
             c.accept(config);
         }
-        return writeConfigToDir(config);
+        return CoreTestUtil.writeConfigToDir(config, workDir);
     }
 
     public static void writeOrUpdateConfigToFile(

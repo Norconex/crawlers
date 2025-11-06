@@ -25,10 +25,10 @@ import com.norconex.crawler.core.stubs.PipelineStubs;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class MockCrawlDriverFactory implements Supplier<CrawlDriver> {
+public class TestCrawlDriverFactory implements Supplier<CrawlDriver> {
 
     public static CrawlDriver create() {
-        return new MockCrawlDriverFactory().get();
+        return new TestCrawlDriverFactory().get();
     }
 
     public static CrawlDriver.Builder builder() {

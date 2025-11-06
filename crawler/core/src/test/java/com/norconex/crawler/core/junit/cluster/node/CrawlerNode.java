@@ -15,6 +15,7 @@
 package com.norconex.crawler.core.junit.cluster.node;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -23,11 +24,10 @@ import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.healthmarketscience.jackcess.RuntimeIOException;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
+import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 
 import lombok.AccessLevel;
@@ -103,24 +103,33 @@ public class CrawlerNode {
         var stderr = getStderr();
         var combinedOutput = stdout + stderr;
 
-        // Filter out known harmless warnings that contain "Exception"
-        // but are not actual errors
-        var harmlessPatterns = List.of(
-                // JGroups IPv6 binding warning (harmless when using loopback)
-                " on net6: java.lang.NullPointerException",
-                // Infinispan warnings during cluster merge (expected)
-                "ISPN000517: Ignoring cache topology",
-                // meant to silence exceptions
-                "ExceptionSwallower");
+        // Filter out entire log lines containing known harmless errors
+        // Split by newlines, filter out harmless patterns, rejoin
+        var lines = combinedOutput.lines().toList();
+        var filteredLines = new StringBuilder();
 
-        var filteredOutput = combinedOutput;
-        for (var pattern : harmlessPatterns) {
-            filteredOutput = filteredOutput.replace(pattern, "");
+        for (var line : lines) {
+            // Skip lines containing harmless JGroups errors
+            if (line.contains("JGRP000027: failed passing message up")
+                    || line.contains("Cannot invoke \"org.jgroups.protocols"
+                            + ".TpHeader.clusterName()\"")
+                    || line.contains(" on net6: java.lang.NullPointerException")
+                    || line.contains("ISPN000517: Ignoring cache topology")) {
+                continue; // Skip Infinispan merge warnings
+            }
+            if (line.contains("ExceptionSwallower")
+                    || line.contains("org.jgroups.util.SubmitToThreadPool"
+                            + "$SingleMessageHandler.getClusterName")
+                    || line.contains("org.jgroups.util.SubmitToThreadPool"
+                            + "$SingleMessageHandler.run")) {
+                continue; // Skip JGroups stack trace lines
+            }
+            filteredLines.append(line).append('\n');
         }
 
         // Look for actual errors, not just any exception logging
         // Be careful not to match INFO-level status messages
-        return filteredOutput.contains(" ERROR ");
+        return filteredLines.toString().contains(" ERROR ");
         //                || filteredOutput.contains("Exception:")
         //                || (filteredOutput.contains("Pipeline step")
         //                        && filteredOutput.contains("failed"))
@@ -163,7 +172,7 @@ public class CrawlerNode {
         try {
             return Files.list(getWorkDir()).toList();
         } catch (IOException e) {
-            throw new RuntimeIOException(e);
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -258,7 +267,7 @@ public class CrawlerNode {
     private static CrawlDriver createDriver() {
         var driverSuppl = System.getProperty(PROP_DRIVER_SUPPL);
         try {
-            Class<?> driverSupplClass = MockCrawlDriverFactory.class;
+            Class<?> driverSupplClass = TestCrawlDriverFactory.class;
             if (StringUtils.isNotBlank(driverSuppl)) {
                 driverSupplClass = Class.forName(driverSuppl);
             }

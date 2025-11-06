@@ -24,7 +24,7 @@ import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.cluster.impl.infinispan.CacheNames;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.storeexport.StoreExportCommand;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
+import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 import com.norconex.crawler.core.session.CrawlSession;
 
 import lombok.AccessLevel;
@@ -37,12 +37,13 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
+@Deprecated
 public final class CachesExporterCrawlDriverWrapper {
 
     public static final String EXPORT_REL_DIR = "caches";
 
     public static CrawlDriver wrap(CrawlDriver delegate) {
-        return MockCrawlDriverFactory.builder()
+        return TestCrawlDriverFactory.builder()
                 .beanMapper(delegate.beanMapper())
                 .bootstrappers(delegate.bootstrappers())
                 .callbacks(wrapCallbacks(delegate.callbacks()))

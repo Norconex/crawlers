@@ -33,7 +33,6 @@ import com.norconex.commons.lang.time.DurationUnit;
 import com.norconex.crawler.core.cluster.pipeline.PipelineProgress;
 import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.metrics.CrawlerMetrics;
-import com.norconex.crawler.core.metrics.CrawlerMetricsImpl;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -93,7 +92,7 @@ public class CrawlProgressLogger {
         stopCheckCallback = callback;
     }
 
-    public Void start() {
+    public void start() {
         stopTrackingRequested = false;
         if (minLoggingInterval != null && LOG.isInfoEnabled()) {
             execService = Executors.newSingleThreadScheduledExecutor();
@@ -119,8 +118,6 @@ public class CrawlProgressLogger {
                 break;
             }
         }
-
-        return null;
     }
 
     public /*synchronized*/ void stop() {
@@ -130,16 +127,17 @@ public class CrawlProgressLogger {
         LOG.info("Stopping crawl progress logger...");
         stopTrackingRequested = true;
         // Disconnect metrics from cluster
-        if (metrics instanceof CrawlerMetricsImpl metricsImpl) {
-            metricsImpl.close();
-        }
+        //        if (metrics instanceof CrawlerMetricsImpl metricsImpl) {
+        //            metricsImpl.close();
+        //        }
         if (!stopWatch.isStopped()) {
             stopWatch.stop();
         }
         if (execService != null) {
             try {
                 execService.shutdownNow();
-                if (!execService.awaitTermination(5, TimeUnit.SECONDS)) {
+                // Reduced from 5s to 2s for faster shutdown
+                if (!execService.awaitTermination(2, TimeUnit.SECONDS)) {
                     LOG.warn("Progress logger executor did not terminate "
                             + "within timeout.");
                 }

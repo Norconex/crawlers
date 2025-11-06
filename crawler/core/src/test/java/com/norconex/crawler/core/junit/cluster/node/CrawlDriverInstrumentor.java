@@ -32,7 +32,7 @@ import com.norconex.crawler.core.cluster.impl.infinispan.FastLocalInfinispanClus
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
 import com.norconex.crawler.core.cmd.storeexport.StoreExportCommand;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
+import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 import com.norconex.crawler.core.session.CrawlSession;
 
 import lombok.AccessLevel;
@@ -49,7 +49,7 @@ final class CrawlDriverInstrumentor {
     private static final String CACHES_DIR = "caches";
 
     public static CrawlDriver instrument(CrawlDriver delegate) {
-        return MockCrawlDriverFactory.builder()
+        return TestCrawlDriverFactory.builder()
                 .beanMapper(delegate.beanMapper())
                 .bootstrappers(delegate.bootstrappers())
                 .callbacks(callbacks(delegate.callbacks()))
@@ -128,7 +128,7 @@ final class CrawlDriverInstrumentor {
                     lastNodeCount.set(nodeCount);
                     NodeState.props().set(NodeState.NODE_COUNT, nodeCount);
                 }
-            }, 0, 100, TimeUnit.MILLISECONDS);
+            }, 0, 200, TimeUnit.MILLISECONDS);
 
             //            NodeState.props().set(NodeState.NODE_COUNT_AT_JOIN,
             //                    session.getCluster().getNodeCount());

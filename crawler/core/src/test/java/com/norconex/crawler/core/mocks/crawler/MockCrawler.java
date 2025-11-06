@@ -18,6 +18,7 @@ import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 
 import lombok.Generated;
 
+@Deprecated
 public class MockCrawler {
     @Generated // excluded from coverage
     public static void main(String[] args) {
@@ -30,6 +31,6 @@ public class MockCrawler {
     }
 
     public int launch(String... args) {
-        return CliCrawlerLauncher.launch(MockCrawlDriverFactory.create(), args);
+        return CliCrawlerLauncher.launch(TestCrawlDriverFactory.create(), args);
     }
 }

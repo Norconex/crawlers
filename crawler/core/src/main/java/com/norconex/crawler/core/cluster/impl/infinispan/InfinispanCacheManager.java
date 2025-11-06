@@ -269,4 +269,13 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
                     e);
         }
     }
+
+    /**
+     * Get the underlying DefaultCacheManager. Package-private for internal
+     * use by cluster coordination logic.
+     * @return the DefaultCacheManager
+     */
+    DefaultCacheManager getDefaultCacheManager() {
+        return dcm;
+    }
 }

@@ -30,7 +30,7 @@ import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.cluster.ClusterConnector;
 import com.norconex.crawler.core.mocks.cluster.MockMultiNodesConnector;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
+import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 import com.norconex.crawler.core.stubs.CrawlerConfigStubber;
 
 /**
@@ -110,7 +110,7 @@ public @interface CrawlTest {
      * @return crawler specs
      */
     Class<? extends Supplier<
-            CrawlDriver>> driverFactory() default MockCrawlDriverFactory.class;
+            CrawlDriver>> driverFactory() default TestCrawlDriverFactory.class;
 
     Class<? extends ClusterConnector>[] clusters() default {
             MockMultiNodesConnector.class

@@ -18,6 +18,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
@@ -121,9 +122,13 @@ public abstract class CliBase implements Runnable {
             var msg = String.format(
                     "Failed to load configuration from: %s%nError: %s",
                     getConfigFile().toFile().getAbsolutePath(),
-                    e.getMessage());
+                    ExceptionUtil.getFormattedMessages(e));
             // Log full stack trace for debugging
-            LOG.error(msg, e);
+            if (LOG.isDebugEnabled()) {
+                LOG.error(msg, e);
+            } else {
+                LOG.error(msg);
+            }
             throw new CliException(msg, e);
         }
     }

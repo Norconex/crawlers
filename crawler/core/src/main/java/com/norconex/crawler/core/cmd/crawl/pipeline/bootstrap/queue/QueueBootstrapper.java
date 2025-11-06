@@ -133,7 +133,8 @@ public class QueueBootstrapper implements CrawlBootstrapper {
         } finally {
             try {
                 executor.shutdown();
-                executor.awaitTermination(5, TimeUnit.SECONDS);
+                // Reduced from 5s to 2s for faster shutdown
+                executor.awaitTermination(2, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 LOG.error("Reading of start references interrupted.", e);
                 Thread.currentThread().interrupt();

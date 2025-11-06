@@ -38,10 +38,10 @@ public class MockCrawlerBuilder {
 
     /**
      * Crawler specification provider. Defaults to
-     * {@link MockCrawlDriverFactory}.
+     * {@link TestCrawlDriverFactory}.
      */
     @NonNull
-    private CrawlDriver crawlDriver = MockCrawlDriverFactory.create();
+    private CrawlDriver crawlDriver = TestCrawlDriverFactory.create();
 
     /**
      * Crawler configuration. Creates a default one if not provided.

@@ -18,8 +18,9 @@ import com.norconex.commons.lang.bean.spi.BasePolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core._DELETE.CrawlTestCapturer;
 import com.norconex.crawler.core.cluster.ClusterConnector;
+import com.norconex.crawler.core.cluster.impl.infinispan.TestClusterConnectorBuilder;
 import com.norconex.crawler.core.cmd.crawl.pipeline.process.ProcessUpsertTest;
-import com.norconex.crawler.core.mocks.cli.MockCliEventWriter;
+import com.norconex.crawler.core.event.listeners.TestEventMemoryListener;
 import com.norconex.crawler.core.mocks.cluster.MockFailingClusterConnector;
 import com.norconex.crawler.core.mocks.cluster.MockMultiNodesConnector;
 import com.norconex.crawler.core.mocks.cluster.MockSingleNodeConnector;
@@ -30,11 +31,16 @@ public class CoreTestPtProvider extends BasePolymorphicTypeProvider {
     @Override
     protected void register(Registry registry) {
         registry
-                .add(EventListener.class, MockCliEventWriter.class,
+                .add(EventListener.class,
+                        TestEventMemoryListener.class,
                         CrawlTestCapturer.class)
                 .add(ImporterResponseProcessor.class,
                         ProcessUpsertTest.TestResponseProcessor.class)
                 .add(ClusterConnector.class,
+                        TestClusterConnectorBuilder.ClusterNoPersistence.class,
+                        TestClusterConnectorBuilder.ClusterWithPersistence.class,
+                        TestClusterConnectorBuilder.LocalNoPersistence.class,
+                        TestClusterConnectorBuilder.LocalWithPersistence.class,
                         MockFailingClusterConnector.class,
                         MockSingleNodeConnector.class,
                         MockMultiNodesConnector.class);

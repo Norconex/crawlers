@@ -41,7 +41,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PipelineExecution implements AutoCloseable {
 
-    private static final long SHUTDOWN_AWAIT_SECONDS = 5;
+    // Reduced from 5s to 2s - sufficient for graceful shutdown of
+    // pipeline threads while significantly improving test performance
+    private static final long SHUTDOWN_AWAIT_SECONDS = 2;
 
     private final InfinispanCluster cluster;
     @Getter(value = AccessLevel.PACKAGE)

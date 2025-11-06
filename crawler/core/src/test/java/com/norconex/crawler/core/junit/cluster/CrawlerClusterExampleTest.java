@@ -18,7 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
@@ -28,10 +27,12 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.junit.cluster.node.CrawlerNodeLauncher;
 import com.norconex.crawler.core.junit.cluster.node.NodeState;
+import com.norconex.crawler.core.junit.todo.usethis.annotations.ClusterTest;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@ClusterTest
 class CrawlerClusterExampleTest {
 
     @Test
@@ -46,8 +47,8 @@ class CrawlerClusterExampleTest {
         //    Will be modified by nodes to be unique when launched.
         crawlConfig.setWorkDir(tempDir);
 
-        // 3. Apply other crawler configuration as per your test
-        crawlConfig.setStartReferences(List.of("http://example.com/test"));
+        // 3. Apply other crawler configuration as per your test. E.g.:
+        //    crawlConfig.setStartReferences(List.of("http://example.com/test"));
 
         // 4. Prepare crawler launcher. The "-config" argument is automatically
         //    added if the crawl config is not null and there is at least

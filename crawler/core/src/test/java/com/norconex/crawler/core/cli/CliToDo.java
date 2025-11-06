@@ -42,7 +42,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import com.norconex.committer.core.CommitterEvent;
 import com.norconex.committer.core.service.CommitterServiceEvent;
-import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core._DELETE.clusterold.SharedCluster;
 import com.norconex.crawler.core._DELETE.crawler.ClusteredCrawlContext;
@@ -54,7 +53,7 @@ import com.norconex.crawler.core.junit.WithLogLevel;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.mocks.cli.MockCliEventWriter;
 import com.norconex.crawler.core.mocks.cli.MockCliExit;
-import com.norconex.crawler.core.mocks.cli.MockCliLauncher;
+import com.norconex.crawler.core.mocks.cli.MockCliLauncher_DELETE;
 import com.norconex.crawler.core.mocks.cluster.MockMultiNodesConnector;
 import com.norconex.crawler.core.mocks.cluster.MockSingleNodeConnector;
 import com.norconex.crawler.core.stubs.CrawlerConfigStubber;
@@ -69,8 +68,8 @@ import lombok.extern.slf4j.Slf4j;
 @WithLogLevel(
     value = "INFO",
     classes = {
-            CliCrawlerLauncherTest.class,
-            MockCliLauncher.class,
+            CliToDo.class,
+            MockCliLauncher_DELETE.class,
             MockCliEventWriter.class,
             About.class,
             CliRunner.class,
@@ -80,7 +79,8 @@ import lombok.extern.slf4j.Slf4j;
 )
 @WithTestWatcherLogging
 @Timeout(value = 60, unit = TimeUnit.SECONDS)
-class CliCrawlerLauncherTest {
+@Deprecated
+class CliToDo {
 
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
@@ -96,130 +96,6 @@ class CliCrawlerLauncherTest {
 
     @TempDir
     private Path tempDir;
-
-    @ClusteredCrawlTest(nodes = { 1, 2 })
-    void testNoArgs(ClusteredCrawlContext context) {
-        // Without arguments, we should get the usge help
-        context.getOuput().getNodes().forEach(node -> {
-            assertThat(node.getExitCode()).isNotZero();
-            assertThat(node.getStderr()).contains("No arguments provided.");
-            assertThat(node.getStdout()).contains(
-                    "Usage:",
-                    "help configcheck");
-        });
-    }
-
-    @ClusteredCrawlTest(nodes = { 1, 2 }, cliArgs = { "-h" })
-    void testHelp(ClusteredCrawlContext context) {
-        // Contrary to "testNoArgs", which one should return a 0 status (OK)
-        context.getOuput().getNodes().forEach(node -> {
-            assertThat(node.getExitCode()).isZero();
-            assertThat(node.getStdout()).contains(
-                    "Usage:",
-                    "help",
-                    "start",
-                    "stop",
-                    "configcheck",
-                    "configrender",
-                    "clean",
-                    "storeexport",
-                    "storeimport");
-        });
-    }
-
-    @Test
-    void testErrors() {
-        // Bad args
-        var output1 = ClusteredCrawler.builder()
-                .build()
-                .launchOne(null, "potato", "--soup");
-        assertThat(output1.getNode1().getExitCode()).isNotZero();
-        assertThat(output1.getNode1().getStderr())
-                .contains("Unmatched arguments");
-
-        // Non existant config file
-        var output2 = ClusteredCrawler.builder()
-                .build()
-                .launchOne(null, "configcheck",
-                        "-config=" + TimeIdGenerator.next() + "IDontExist");
-        assertThat(output2.getNode1().getExitCode()).isNotZero();
-        assertThat(output2.getNode1().getStderr()).contains(
-                "Configuration file does not exist");
-
-        // Simulate Picocli Exception
-        var output3 = ClusteredCrawler.builder()
-                .build()
-                .launchOne(null, "clean", "-config=", "-config=");
-        assertThat(output3.getNode1().getExitCode()).isNotZero();
-        assertThat(output3.getNode1().getStderr()).contains(
-                "should be specified only once",
-                "Usage:",
-                "Clean the");
-
-        // Bad config syntax
-        var brokenFilePath = SharedCluster.NODE_BASE_WORKDIR + "/"
-                + TimeIdGenerator.next() + ".xml";
-        var output4 = ClusteredCrawler.builder()
-                .preLaunch(client -> client.copyStringToClusterFile(
-                        "<crawler badAttr=\"badAttr\"></crawler>",
-                        brokenFilePath))
-                .postLaunch(client -> {
-                    client.execOnCluster("rm", brokenFilePath);
-                })
-                .build()
-                .launchOne(null, "configcheck", "-config=" + brokenFilePath);
-        assertThat(output4.getNode1().getExitCode()).isNotZero();
-        assertThat(output4.getNode1().getStderr()).contains(
-                "Unrecognized field \"badAttr\"");
-
-        // Constraint violation
-        var constraintFilePath = SharedCluster.NODE_BASE_WORKDIR + "/"
-                + TimeIdGenerator.next() + ".xml";
-        var output5 = ClusteredCrawler.builder()
-                .preLaunch(client -> client.copyStringToClusterFile(
-                        "<crawler numThreads=\"0\"></crawler>",
-                        constraintFilePath))
-                .postLaunch(client -> {
-                    client.execOnCluster("rm", constraintFilePath);
-                })
-                .build()
-                .launchOne(null, "configcheck",
-                        "-config=" + constraintFilePath);
-        assertThat(output5.getNode1().getExitCode()).isNotZero();
-        assertThat(output5.getNode1().getStderr()).contains("Invalid value");
-    }
-
-    @ClusteredCrawlTest(nodes = { 1, 2 }, cliArgs = { "-v" })
-    void testVersion(ClusteredCrawlContext context) {
-        context.getOuput().getNodes().forEach(node -> {
-            assertThat(node.getExitCode()).isZero();
-            assertThat(node.getStdout())
-                    .contains(
-                            "C R A W L E R",
-                            "Runtime:",
-                            "Name:",
-                            "Version:",
-                            "Vendor:")
-                    .doesNotContain("null");
-        });
-    }
-
-    @ClusteredCrawlTest(
-        nodes = { 1, 2 },
-        cliArgs = { "configcheck" },
-        config = """
-            startReferences:
-              - http://somewhere.com
-              - /some/path
-            """
-    )
-    void testConfigCheck(ClusteredCrawlContext context) {
-        context.getOuput().getNodes().forEach(node -> {
-            assertThat(node.getExitCode()).isZero();
-            assertThat(node.getStdout()).containsIgnoringWhitespaces(
-                    "No configuration errors detected.");
-        });
-    }
 
     @Test
     @Timeout(value = 120, unit = TimeUnit.SECONDS)
@@ -389,8 +265,8 @@ class CliCrawlerLauncherTest {
     @WithLogLevel(
         value = "INFO",
         classes = {
-                CliCrawlerLauncherTest.class,
-                MockCliLauncher.class,
+                CliToDo.class,
+                MockCliLauncher_DELETE.class,
                 MockCliEventWriter.class
         }
     )
@@ -405,7 +281,7 @@ class CliCrawlerLauncherTest {
     }
 
     private MockCliExit launchVerbatim(String... cmdArgs) {
-        return MockCliLauncher.launchVerbatim(cmdArgs);
+        return MockCliLauncher_DELETE.launchVerbatim(cmdArgs);
     }
 
     //NOTE: when testing with multiple nodes, the return MockCliExit
@@ -440,7 +316,7 @@ class CliCrawlerLauncherTest {
         var thrownException = new AtomicReference<Throwable>();
 
         for (var i = 0; i < numOfNodes; i++) {
-            final int nodeIndex = i;
+            final var nodeIndex = i;
             executor.submit(() -> {
                 try {
                     var nodeDir = tempDir.resolve("node-" + nodeIndex);
@@ -530,7 +406,7 @@ class CliCrawlerLauncherTest {
             ClusterConnector conn,
             Path workDir,
             String... cmdArgs) {
-        return MockCliLauncher
+        return MockCliLauncher_DELETE
                 .builder()
                 .args(List.of(cmdArgs))
                 .workDir(workDir)

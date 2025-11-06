@@ -18,7 +18,7 @@ import java.nio.file.Path;
 import java.util.function.Consumer;
 
 import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
+import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionFactory;
 
@@ -39,7 +39,7 @@ public final class CrawlSessionStubber {
             configModifier.accept(config);
         }
         return CrawlSessionFactory.create(
-                MockCrawlDriverFactory.create(),
+                TestCrawlDriverFactory.create(),
                 config);
     }
 
@@ -50,7 +50,7 @@ public final class CrawlSessionStubber {
         config.setClusterConnector(
                 ClusterStubber.singleMemoryNodeClusterConnector());
         return CrawlSessionFactory.create(
-                MockCrawlDriverFactory.create(),
+                TestCrawlDriverFactory.create(),
                 config);
     }
 }

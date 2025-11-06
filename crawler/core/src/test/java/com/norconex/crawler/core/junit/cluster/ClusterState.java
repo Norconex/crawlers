@@ -66,7 +66,7 @@ public class ClusterState {
     //        //                }
     //        //            });
     //        //        } catch (IOException e) {
-    //        //            throw new RuntimeIOException(e);
+    //        //            throw new UncheckedIOException(e);
     //        //        }
     //        return new HashMap<>();
     //    }

@@ -109,6 +109,8 @@ public final class InfinispanUtil {
         var deadline = System.currentTimeMillis() + 5_000;
         var lastNames = cluster.getNodeNames();
         var stableTicks = 0;
+        var coordinatorElected = false;
+
         while (System.currentTimeMillis() < deadline) {
             if (!InfinispanUtil.isClusterRunning(cluster)) {
                 Sleeper.sleepMillis(50);
@@ -121,11 +123,48 @@ public final class InfinispanUtil {
                 stableTicks = 0;
             }
             lastNames = names;
-            if (stableTicks >= 5) { // ~500ms of stability
+
+            // Also verify coordinator election has completed
+            if (!coordinatorElected && hasStableCoordinator(cluster)) {
+                coordinatorElected = true;
+                LOG.debug("Coordinator election completed: {}",
+                        cluster.getCacheManager()
+                                .getDefaultCacheManager()
+                                .getCoordinator());
+            }
+
+            // Reduced from 5 ticks (500ms) to 2 ticks (200ms) for faster
+            // test execution while still ensuring stability
+            if (stableTicks >= 2 && coordinatorElected) {
                 return;
             }
             Sleeper.sleepMillis(100);
         }
-        LOG.debug("Cluster warm-up timed out; proceeding.");
+        LOG.warn("Cluster warm-up timed out (stable={}, "
+                + "coordinator={}); proceeding anyway.",
+                stableTicks >= 2, coordinatorElected);
+    }
+
+    /**
+     * Check if the cluster has a stable coordinator elected.
+     * @param cluster the cluster to check
+     * @return true if a coordinator is elected and consistent
+     */
+    private static boolean hasStableCoordinator(InfinispanCluster cluster) {
+        try {
+            var cacheManager = cluster.getCacheManager()
+                    .getDefaultCacheManager();
+            if (cacheManager == null
+                    || cacheManager.getStatus() != ComponentStatus.RUNNING) {
+                return false;
+            }
+            var coordinator = cacheManager.getCoordinator();
+            // Coordinator should be non-null in a clustered setup
+            return coordinator != null;
+        } catch (Exception e) {
+            LOG.debug("Error checking coordinator status: {}",
+                    e.toString());
+            return false;
+        }
     }
 }

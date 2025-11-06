@@ -27,7 +27,7 @@ import com.norconex.crawler.core._DELETE.ClusterTestUtil;
 import com.norconex.crawler.core._DELETE.crawler.ClusteredCrawlContext;
 import com.norconex.crawler.core._DELETE.tomerge_or_delete.SharedClusteredCrawl;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
+import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -76,7 +76,7 @@ class PipelineTest {
                                 "byStep3");
                     })));
 
-            return MockCrawlDriverFactory.builder()
+            return TestCrawlDriverFactory.builder()
                     .crawlPipelineFactory(session -> pipeline)
                     .build();
         }

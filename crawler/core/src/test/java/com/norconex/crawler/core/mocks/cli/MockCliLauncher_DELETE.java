@@ -28,9 +28,8 @@ import com.norconex.commons.lang.SystemUtil.Captured;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
+import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 import com.norconex.crawler.core.stubs.CrawlerConfigStubber;
-import com.norconex.crawler.core.util.ConfigUtil;
 
 import lombok.Builder;
 import lombok.NonNull;
@@ -39,7 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Builder
-public class MockCliLauncher {
+@Deprecated
+public class MockCliLauncher_DELETE {
 
     @NonNull
     private final Path workDir;
@@ -50,9 +50,9 @@ public class MockCliLauncher {
 
     public MockCliExit launch() {
         var eventFile = workDir.resolve(TimeIdGenerator.next() + ".txt");
-        var workDirRef = new MutableObject<Path>();
+        new MutableObject<Path>();
         Consumer<CrawlConfig> modifierWrapper = cfg -> {
-            workDirRef.setValue(ConfigUtil.resolveWorkDir(cfg));
+            // workDirRef.setValue(ConfigUtil.resolveWorkDir(cfg));
             if (configModifier != null) {
                 configModifier.accept(cfg);
             }
@@ -123,7 +123,7 @@ public class MockCliLauncher {
     public static MockCliExit launchVerbatim(String... cmdArgs) {
         Captured<Integer> captured = SystemUtil.withOutputCapture(
                 () -> CliCrawlerLauncher.launch(
-                        MockCrawlDriverFactory.create(),
+                        TestCrawlDriverFactory.create(),
                         cmdArgs));
         var exit = new MockCliExit();
         exit.setCode(captured.getReturnValue());

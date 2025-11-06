@@ -48,6 +48,9 @@
     <Logger name="org.jgroups" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
+    <Logger name="org.hibernate.validator.internal.util.Version" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
     <Logger name="org.hibernate.search" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>

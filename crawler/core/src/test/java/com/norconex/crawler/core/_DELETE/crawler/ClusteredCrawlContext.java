@@ -8,6 +8,7 @@ import lombok.Setter;
 
 @Data
 @Setter(AccessLevel.PACKAGE)
+@Deprecated
 public class ClusteredCrawlContext {
     private ClusteredCrawlOuput ouput;
     private SharedClusterClient client;

@@ -1,12 +1,13 @@
 package com.norconex.crawler.core.junit.cluster.node;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.healthmarketscience.jackcess.RuntimeIOException;
 import com.norconex.crawler.core.junit.WithLogLevel;
 
 import lombok.Builder;
@@ -58,7 +59,7 @@ public class JvmProcess {
             pb.redirectError(workDir.resolve(STDERR_FILE_NAME).toFile());
             return pb.start();
         } catch (IOException e) {
-            throw new RuntimeIOException(e);
+            throw new UncheckedIOException(e);
         }
     }
 

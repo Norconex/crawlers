@@ -271,6 +271,22 @@ public class CrawlSession implements Closeable {
                 .orElse(false);
     }
 
+    /**
+     * Atomically sets a session attribute as a boolean if it is not
+     * already set. This is a cluster-safe operation that prevents race
+     * conditions in distributed environments.
+     * @param key attribute key
+     * @param value attribute value to set if key is absent
+     * @return true if the value was set (key was absent), false if the
+     *         key already existed
+     */
+    public boolean setBooleanIfAbsent(String key, boolean value) {
+        var previousValue =
+                crawlSessionCache.putIfAbsent(
+                        key, Boolean.toString(value));
+        return previousValue == null;
+    }
+
     public boolean isStartRefsQueueingComplete() {
         return getBoolean(START_REFS_QUEUED_KEY);
     }

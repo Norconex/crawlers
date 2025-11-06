@@ -15,6 +15,7 @@
 package com.norconex.crawler.core._DELETE.clusterold;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -27,7 +28,6 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.utility.MountableFile;
 
-import com.healthmarketscience.jackcess.RuntimeIOException;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 import com.norconex.crawler.core.util.ExceptionSwallower;
@@ -140,7 +140,7 @@ public final class SharedClusterClient {
                     Files.createTempFile(null, null), content);
             return copyFileToCluster(tmpFile, filename);
         } catch (IOException e) {
-            throw new RuntimeIOException(e);
+            throw new UncheckedIOException(e);
         } finally {
             var f = tmpFile;
             if (f != null) {

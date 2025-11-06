@@ -38,7 +38,7 @@ import com.norconex.crawler.core._DELETE.clusterold.SharedClusterClient;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 import com.norconex.crawler.core.junit.WithLogLevel;
 import com.norconex.crawler.core.mocks.cli.MockCliEventWriter;
-import com.norconex.crawler.core.mocks.crawler.MockCrawlDriverFactory;
+import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 import com.norconex.crawler.core.util.ExecUtil;
 
@@ -52,11 +52,12 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Builder
+@Deprecated
 public final class ClusteredCrawler {
 
     @Default
     private final Class<? extends Supplier<CrawlDriver>> driverSupplierClass =
-            MockCrawlDriverFactory.class;
+            TestCrawlDriverFactory.class;
 
     @Default
     private final List<WithLogLevel> logLevels = new ArrayList<>();
@@ -108,9 +109,8 @@ public final class ClusteredCrawler {
     public ClusteredCrawlOuput launch(
             int numOfNodes, CrawlConfig config, String... cliArgs) {
         // We are on host
-        return SharedCluster.withNodesAndGet(numOfNodes, client -> {
-            return launchOnCluster(client, config, cliArgs);
-        });
+        return SharedCluster.withNodesAndGet(numOfNodes,
+                client -> launchOnCluster(client, config, cliArgs));
     }
 
     /**
@@ -158,7 +158,7 @@ public final class ClusteredCrawler {
 
         // Set defaults
         var driverSupplCls = driverSupplierClass == null
-                ? MockCrawlDriverFactory.class
+                ? TestCrawlDriverFactory.class
                 : driverSupplierClass;
 
         var cp = SharedCluster.buildNodeClasspath();
@@ -176,7 +176,7 @@ public final class ClusteredCrawler {
 
         // Add log level system properties as JVM arguments
         for (WithLogLevel logLevel : logLevels) {
-            String level = logLevel.value();
+            var level = logLevel.value();
             for (Class<?> clazz : logLevel.classes()) {
                 cmdArgs.add("-Dlog4j.logger." + clazz.getName() + "=" + level);
             }
@@ -233,9 +233,10 @@ public final class ClusteredCrawler {
                     execWatch.formatTime());
             throw ConcurrentUtil.wrapAsCompletionException(e);
         } catch (java.util.concurrent.TimeoutException e) {
-            LOG.warn("⏰ Crawler execution timed out after 90 seconds "
-                    + "(total time: {}), will kill processes and gather "
-                    + "partial results", totalWatch.formatTime());
+            LOG.warn("""
+                ⏰ Crawler execution timed out after 90 seconds \
+                (total time: {}), will kill processes and gather \
+                partial results""", totalWatch.formatTime());
             // Return empty list, cleanup will happen in finally block
             return new ArrayList<>();
         }

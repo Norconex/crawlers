@@ -16,6 +16,7 @@ package com.norconex.crawler.core.junit.cluster.node;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,7 +26,6 @@ import java.time.LocalDateTime;
 
 import org.apache.commons.io.FileUtils;
 
-import com.healthmarketscience.jackcess.RuntimeIOException;
 import com.norconex.commons.lang.map.Properties;
 
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +57,7 @@ public class NodeState {
         try {
             FileUtils.touch(file.toFile());
         } catch (IOException e) {
-            throw new RuntimeIOException(e);
+            throw new UncheckedIOException(e);
         }
         props.addMapChangeListener(event -> write());
         props.set(NODE_STARTED_AT, LocalDateTime.now().toString());
@@ -103,7 +103,7 @@ public class NodeState {
             try (Reader r = Files.newBufferedReader(stateFile)) {
                 loadedProps.loadFromProperties(r);
             } catch (IOException e) {
-                throw new RuntimeIOException(e);
+                throw new UncheckedIOException(e);
             }
         }
         return loadedProps;
@@ -138,7 +138,7 @@ public class NodeState {
                 } catch (IOException ignored) {
                     //NOOP
                 }
-                throw new RuntimeIOException(e);
+                throw new UncheckedIOException(e);
             }
         }
     }
