@@ -44,11 +44,11 @@ class ClusterResilienceTest extends AbstractClusterTest {
     @Disabled("TODO: Implement mechanism to identify and kill coordinator")
     void testCoordinatorFailoverAndReelection(@TempDir Path tempDir)
             throws InterruptedException {
-        
+
         var crawlConfig = createMinimalClusterConfig(tempDir);
         // Set longer crawl so we have time to kill coordinator
         // crawlConfig.setMaxDocuments(1000);
-        
+
         var nodeLauncher = createNodeLauncher();
 
         try (var cluster = new CrawlerCluster(nodeLauncher, crawlConfig)) {
@@ -67,7 +67,7 @@ class ClusterResilienceTest extends AbstractClusterTest {
                     .orElseThrow(() -> new AssertionError(
                             "No coordinator found"));
 
-            LOG.info("Killing coordinator node: {}", 
+            LOG.info("Killing coordinator node: {}",
                     coordinatorNode.getWorkDir().getFileName());
 
             // Kill the coordinator process
@@ -84,7 +84,7 @@ class ClusterResilienceTest extends AbstractClusterTest {
 
             // Verify remaining nodes completed successfully
             var successfulNodes = cluster.getNodes().stream()
-                    .filter(node -> !node.getProcess().isAlive() 
+                    .filter(node -> !node.getProcess().isAlive()
                             && node.getProcess().exitValue() == 0)
                     .count();
 
@@ -102,11 +102,11 @@ class ClusterResilienceTest extends AbstractClusterTest {
     @Disabled("TODO: Implement delayed node launch mechanism")
     void testDynamicNodeJoining(@TempDir Path tempDir)
             throws InterruptedException {
-        
+
         var crawlConfig = createMinimalClusterConfig(tempDir);
         // Set longer crawl so node can join mid-crawl
         // crawlConfig.setMaxDocuments(500);
-        
+
         var nodeLauncher = createNodeLauncher();
 
         try (var cluster = new CrawlerCluster(nodeLauncher, crawlConfig)) {
@@ -119,7 +119,7 @@ class ClusterResilienceTest extends AbstractClusterTest {
             Sleeper.sleepSeconds(5);
 
             LOG.info("Launching additional node mid-crawl...");
-            
+
             // Add a 3rd node while crawling
             cluster.launch(1);
 
@@ -151,7 +151,7 @@ class ClusterResilienceTest extends AbstractClusterTest {
     @Disabled("TODO: Implement mechanism to identify and kill worker")
     void testWorkerNodeFailure(@TempDir Path tempDir)
             throws InterruptedException {
-        
+
         var crawlConfig = createMinimalClusterConfig(tempDir);
         var nodeLauncher = createNodeLauncher();
 
@@ -172,7 +172,7 @@ class ClusterResilienceTest extends AbstractClusterTest {
                     .orElseThrow(() -> new AssertionError(
                             "No worker node found"));
 
-            LOG.info("Killing worker node: {}", 
+            LOG.info("Killing worker node: {}",
                     workerNode.getWorkDir().getFileName());
 
             workerNode.getProcess().destroyForcibly();
@@ -183,7 +183,7 @@ class ClusterResilienceTest extends AbstractClusterTest {
 
             // At least 2 nodes should complete successfully
             var successfulNodes = cluster.getNodes().stream()
-                    .filter(node -> !node.getProcess().isAlive() 
+                    .filter(node -> !node.getProcess().isAlive()
                             && node.getProcess().exitValue() == 0)
                     .count();
 
@@ -201,7 +201,7 @@ class ClusterResilienceTest extends AbstractClusterTest {
     @Disabled("TODO: Implement partition simulation")
     void testNetworkPartitionRecovery(@TempDir Path tempDir)
             throws InterruptedException {
-        
+
         var crawlConfig = createMinimalClusterConfig(tempDir);
         var nodeLauncher = createNodeLauncher();
 
@@ -224,7 +224,7 @@ class ClusterResilienceTest extends AbstractClusterTest {
 
             // Verify at least majority completed
             var successfulNodes = cluster.getNodes().stream()
-                    .filter(node -> !node.getProcess().isAlive() 
+                    .filter(node -> !node.getProcess().isAlive()
                             && node.getProcess().exitValue() == 0)
                     .count();
 

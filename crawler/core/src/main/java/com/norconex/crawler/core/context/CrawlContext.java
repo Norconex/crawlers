@@ -130,6 +130,9 @@ public class CrawlContext implements Closeable {
 
     public void init(CrawlSession session) {
         getEventManager().addListenersFromScan(getCrawlConfig());
+        //TEST START
+        getMetrics().init(session);
+        //TEST END
         getCommitterService().init(CommitterContext
                 .builder()
                 .setEventManager(getEventManager())
@@ -138,7 +141,7 @@ public class CrawlContext implements Closeable {
                 .build());
         getCrawlEntryLedger().init(session);
         getDedupService().init(session);
-        getMetrics().init(session);
+        //        getMetrics().init(session);
         getImporter().init();
     }
 
@@ -162,6 +165,7 @@ public class CrawlContext implements Closeable {
 
         swallow(getImporter()::close);
         ExceptionSwallower.close(getCommitterService());
+
         swallow(MDC::clear);
         swallow(getEventManager()::clearListeners);
         ExceptionSwallower.close(getMetrics()::close);

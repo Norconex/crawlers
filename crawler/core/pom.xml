@@ -34,6 +34,7 @@
     <infinispan.version>15.2.5.Final</infinispan.version>
     <jdom2.version>2.0.6.1</jdom2.version>
     <jgroups.version>5.4.8.Final</jgroups.version>
+    <!-- Align Protostream with Infinispan BOM to get ProtoDoc indexing support -->
     <infinispan-protostream.version>15.0.13.Final</infinispan-protostream.version>
     <sulky-ulid.version>8.2.0</sulky-ulid.version>
   </properties>

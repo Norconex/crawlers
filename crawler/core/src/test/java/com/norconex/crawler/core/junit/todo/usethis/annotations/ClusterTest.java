@@ -22,7 +22,7 @@ import java.lang.annotation.Target;
 import org.junit.jupiter.api.Tag;
 
 /**
- * Marks a test as requiring a cluster setup - typically executes in 
+ * Marks a test as requiring a cluster setup - typically executes in
  * 10-60 seconds.
  * Cluster tests include:
  * <ul>
@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Tag;
  *   <li>Distributed cache synchronization</li>
  * </ul>
  * <p>
- * Cluster tests run on every PR and before merges, but may be 
+ * Cluster tests run on every PR and before merges, but may be
  * skipped for individual commits during development.
  * </p>
  */

@@ -60,7 +60,10 @@ public class PipelineWorker implements AutoCloseable {
     PipelineResult start() {
         Thread.currentThread().setName("WORKER");
         // Warm-up: wait briefly for stable cluster view and caches
-        InfinispanUtil.waitForClusterWarmUp(cluster);
+
+        if (!cluster.isStandalone()) {
+            InfinispanUtil.waitForClusterWarmUp(cluster);
+        }
 
         state = new PipelineWorkerState(cluster, pipeline,
                 this::executeStep);

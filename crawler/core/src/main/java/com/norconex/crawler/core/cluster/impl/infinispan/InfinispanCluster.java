@@ -214,4 +214,27 @@ public class InfinispanCluster implements Cluster {
                 .toList();
     }
 
+    /**
+     * Checks if the cluster is configured in standalone (non-clustered) mode
+     * based on the Infinispan configuration. This checks whether transport
+     * (JGroups) is configured, not the runtime cluster state.
+     * <p>
+     * Use this when you need to know the intended clustering mode from
+     * configuration, not the current runtime state. For example, to avoid
+     * waiting for cluster stabilization in standalone mode.
+     * </p>
+     * @return true if configured for standalone mode (no transport/JGroups)
+     */
+    public boolean isStandalone() {
+        if (cacheManager == null) {
+            return false;
+        }
+        var globalConfig = cacheManager.vendor()
+                .getCacheManagerConfiguration()
+                .transport();
+
+        // If transport is null or not defined, it's standalone mode
+        return globalConfig == null || globalConfig.transport() == null;
+    }
+
 }

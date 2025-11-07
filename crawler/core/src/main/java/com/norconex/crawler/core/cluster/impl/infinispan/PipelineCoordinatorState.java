@@ -228,7 +228,18 @@ public class PipelineCoordinatorState implements AutoCloseable {
                         currentStepRecord.getStepId());
                 statuses.add(PipelineStatus.PENDING);
             } else {
-                statuses.add(rec.hasTimedOut(nodeExpiryTimeoutMs)
+                var isExpired = rec.hasTimedOut(nodeExpiryTimeoutMs);
+                if (isExpired) {
+                    LOG.warn(
+                            "Node {} status EXPIRED for step {} - last update "
+                                    + "was {} ms ago (timeout: {} ms, status: {})",
+                            nodeName,
+                            currentStepRecord.getStepId(),
+                            System.currentTimeMillis() - rec.getUpdatedAt(),
+                            nodeExpiryTimeoutMs,
+                            rec.getStatus());
+                }
+                statuses.add(isExpired
                         ? PipelineStatus.EXPIRED
                         : rec.getStatus());
             }

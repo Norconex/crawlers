@@ -467,16 +467,20 @@ public final class CrawlEntryLedger {
     }
 
     private String fromWhereStatusQuery(ProcessingStatus status) {
-        return "FROM %s WHERE processingStatus = '%s'".formatted(
-                CrawlEntry.class.getName(),
-                status.name());
+        // Use Java class name for queries - Infinispan automatically
+        // handles ProtoStream marshalling/unmarshalling
+        return "FROM %s WHERE processingStatus = '%s'"
+                .formatted(CrawlEntry.class.getName(), status.name());
     }
 
     private String fromOrderedQueuedQuery() {
-        return "FROM %s WHERE processingStatus = '%s' ORDER BY %s".formatted(
-                CrawlEntry.class.getName(),
-                ProcessingStatus.QUEUED.name(),
-                CrawlEntry.Fields.queuedAt);
+        // Use Java class name for queries - Infinispan automatically
+        // handles ProtoStream marshalling/unmarshalling
+        return "FROM %s WHERE processingStatus = '%s' ORDER BY %s"
+                .formatted(
+                        CrawlEntry.class.getName(),
+                        ProcessingStatus.QUEUED.name(),
+                        CrawlEntry.Fields.queuedAt);
     }
 
     // To stream in slightly larger batches for efficiency on multi-nodes

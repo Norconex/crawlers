@@ -36,7 +36,7 @@ class ClusterCoordinatorElectionTest extends AbstractClusterTest {
     @Test
     void testCoordinatorElectedAndBootstrapRuns(@TempDir Path tempDir)
             throws InterruptedException {
-        
+
         var crawlConfig = createMinimalClusterConfig(tempDir);
         var nodeLauncher = createNodeLauncher();
 
@@ -60,7 +60,7 @@ class ClusterCoordinatorElectionTest extends AbstractClusterTest {
                     .filter(node -> node.getStdout().contains(
                             "Bootstrap already in progress"))
                     .count();
-            
+
             // If we have the log message, exactly one node should have
             // skipped bootstrap (meaning the other ran it)
             if (bootstrapLogs > 0) {
@@ -74,7 +74,7 @@ class ClusterCoordinatorElectionTest extends AbstractClusterTest {
     @Test
     void testThreeNodeClusterCoordination(@TempDir Path tempDir)
             throws InterruptedException {
-        
+
         var crawlConfig = createMinimalClusterConfig(tempDir);
         var nodeLauncher = createNodeLauncher();
 

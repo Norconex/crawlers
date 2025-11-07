@@ -78,7 +78,7 @@ public class JvmProcess {
         // Only add if not already in classpath
         if (!classpath.contains(testClassLocation)) {
             classpath = testClassLocation + System.getProperty(
-            "path.separator") + classpath;
+                    "path.separator") + classpath;
         }
 
         return classpath;

@@ -26,14 +26,14 @@ import com.norconex.committer.core.CommitterEvent;
 import com.norconex.committer.core.service.CommitterServiceEvent;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.junit.todo.usethis.annotations.SlowTest;
+import com.norconex.importer.ImporterEvent;
 
 /**
  * CLI commands that execute full lifecycle except for actual crawling.
  * These verify that commands properly initialize, execute, and clean up
  * the crawler infrastructure.
  */
-@SlowTest
+//@SlowTest
 class CliLifecycleCommandsTest {
 
     @TempDir
@@ -53,24 +53,29 @@ class CliLifecycleCommandsTest {
                 .isZero();
 
         // Verify lifecycle events occur in correct order
+        // Since we're crawling one document, we expect document processing
+        // events
         String[] expectedEvents = {
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
                 CrawlerEvent.CRAWLER_CRAWL_BEGIN,
+                CrawlerEvent.DOCUMENT_QUEUED,
+                ImporterEvent.IMPORTER_HANDLER_BEGIN,
+                ImporterEvent.IMPORTER_HANDLER_END,
+                CrawlerEvent.DOCUMENT_IMPORTED,
+                CommitterServiceEvent.COMMITTER_SERVICE_UPSERT_BEGIN,
+                CommitterEvent.COMMITTER_ACCEPT_YES,
+                CommitterEvent.COMMITTER_UPSERT_BEGIN,
+                CommitterEvent.COMMITTER_UPSERT_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_UPSERT_END,
                 CrawlerEvent.CRAWLER_CRAWL_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
         };
-
-        //TODO modify config so we do crawl a document (fake) so we get
-        // more lifecycle events.
-
-        //TODO mock the cluster or use faster infinispan config when we
-        // know we are single node?
 
         assertThat(exit.getEventNames()).containsExactly(expectedEvents);
     }
@@ -125,7 +130,7 @@ class CliLifecycleCommandsTest {
     private CrawlConfig oneDocConfig() {
         var config = new CrawlConfig();
         config.setStartReferences(List.of("http://example.com/test"));
-        config.setMaxDocuments(0); // Don't crawl anything
+        config.setMaxDocuments(1); // Don't crawl anything
         return config;
     }
 }

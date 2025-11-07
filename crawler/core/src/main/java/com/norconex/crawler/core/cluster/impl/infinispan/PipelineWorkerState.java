@@ -261,6 +261,7 @@ public class PipelineWorkerState implements AutoCloseable {
     private void updateCurrentStepRecord(Consumer<StepRecord> stepUpdater) {
         StepRecord recordSnapshot;
         boolean shouldRun;
+        boolean shouldPushStatus;
 
         synchronized (currentStepRecord) {
             var oldStatus = currentStepRecord.getStatus();
@@ -277,6 +278,10 @@ public class PipelineWorkerState implements AutoCloseable {
                     && (!(oldStatus != null && oldStatus.isRunning())
                             || stepChanged);
 
+            // Push status immediately when stepId changes or status changes
+            shouldPushStatus = stepChanged
+                    || (oldStatus != newStatus);
+
             if (shouldRun) {
                 LOG.info("{}:{} -> {}:{}",
                         oldStepId, oldStatus, newStepId, newStatus);
@@ -292,6 +297,11 @@ public class PipelineWorkerState implements AutoCloseable {
                         oldStepId, oldStatus, newStepId, newStatus);
                 recordSnapshot = null;
             }
+        }
+
+        // Push status immediately to ensure coordinator sees it
+        if (shouldPushStatus) {
+            pushWorkerStatus(currentStepRecord.getStatus());
         }
 
         // Execute callback OUTSIDE synchronized block to avoid deadlocks

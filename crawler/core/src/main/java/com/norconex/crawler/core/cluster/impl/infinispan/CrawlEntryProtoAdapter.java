@@ -27,8 +27,6 @@ import java.util.stream.Stream;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 import org.infinispan.protostream.annotations.ProtoAdapter;
 import org.infinispan.protostream.annotations.ProtoFactory;
 import org.infinispan.protostream.annotations.ProtoField;
@@ -40,7 +38,6 @@ import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.core.ledger.ProcessingStatus;
 
 @ProtoAdapter(CrawlEntry.class)
-@Indexed
 public class CrawlEntryProtoAdapter {
 
     private static final String NULL = "__NULL__";
@@ -88,7 +85,7 @@ public class CrawlEntryProtoAdapter {
         }
     }
 
-    // Field extractors with indexing
+    // Field extractors (indexing handled by POJO annotations on CrawlEntry)
     @ProtoField(1)
     public String getType(CrawlEntry entry) {
         return nullSafe(entry.getClass().getName());
@@ -100,7 +97,6 @@ public class CrawlEntryProtoAdapter {
     }
 
     @ProtoField(value = 3)
-    @GenericField(name = "processingStatus")
     public String getProcessingStatus(CrawlEntry entry) {
         return ofNullable(entry.getProcessingStatus())
                 .map(ProcessingStatus::name)
@@ -118,13 +114,11 @@ public class CrawlEntryProtoAdapter {
     }
 
     @ProtoField(value = 6)
-    @GenericField(name = "queuedAt")
     public long getQueuedAt(CrawlEntry entry) {
         return toEpoch(entry.getQueuedAt());
     }
 
     @ProtoField(7)
-    @GenericField
     public long getProcessingAt(CrawlEntry entry) {
         return toEpoch(entry.getProcessingAt());
     }

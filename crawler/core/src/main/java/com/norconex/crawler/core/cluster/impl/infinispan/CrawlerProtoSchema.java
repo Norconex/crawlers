@@ -31,10 +31,7 @@ import com.norconex.crawler.core.ledger.ProcessingStatus;
             PipelineStatus.class,
             ProcessingStatus.class
     },
-    //    schemaPackageName = "ledger",
-    //    ,
-    //    schemaPackageName = "ledger"
-    //,
+    schemaPackageName = "crawler",
     schemaFileName = "crawler.proto",
     schemaFilePath = "proto/"
 )

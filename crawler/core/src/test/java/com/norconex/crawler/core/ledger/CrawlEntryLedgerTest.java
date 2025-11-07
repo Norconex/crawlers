@@ -6,11 +6,15 @@ import java.util.List;
 
 import com.norconex.crawler.core._DELETE.CrawlTest;
 import com.norconex.crawler.core._DELETE.CrawlTest.Focus;
+import com.norconex.crawler.core.mocks.cluster.MockSingleNodeConnector;
 import com.norconex.crawler.core.session.CrawlSession;
 
 class CrawlEntryLedgerTest {
 
-    @CrawlTest(focus = Focus.SESSION)
+    @CrawlTest(
+        focus = Focus.SESSION,
+        clusters = { MockSingleNodeConnector.class }
+    )
     void testStatusCountersReflectActualEntries(CrawlSession session) {
         var ledger = session.getCrawlContext().getCrawlEntryLedger();
         var refs = List.of("ref1", "ref2", "ref3");

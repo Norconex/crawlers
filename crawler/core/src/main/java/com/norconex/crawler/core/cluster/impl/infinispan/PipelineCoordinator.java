@@ -43,8 +43,13 @@ public class PipelineCoordinator implements AutoCloseable {
 
     void start() {
         Thread.currentThread().setName("COORDINATOR");
-        // Warm-up: wait briefly for stable cluster view and caches
-        InfinispanUtil.waitForClusterWarmUp(cluster);
+
+        if (cluster.isStandalone()) {
+            LOG.info("Standalone mode - no cluster wait needed");
+        } else {
+            LOG.info("Clustered mode - waiting for cluster...");
+            InfinispanUtil.waitForClusterWarmUp(cluster);
+        }
 
         // Touch coordination caches to ensure they are created locally
         try {

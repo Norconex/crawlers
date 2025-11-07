@@ -1,3 +1,9 @@
+To document
+--------------
+- by default crawler looks for other nodes.
+- pass -standalone for a local run (faster startup, predefined config)
+
+
 crawlRunId resolution logic:
 ==============================
 

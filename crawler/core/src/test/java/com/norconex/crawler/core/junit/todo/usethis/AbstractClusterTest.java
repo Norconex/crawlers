@@ -47,18 +47,18 @@ public abstract class AbstractClusterTest {
     protected CrawlConfig createMinimalClusterConfig(Path tempDir) {
         var crawlConfig = new CrawlConfig();
         crawlConfig.setWorkDir(tempDir);
-        
+
         // Use minimal references for fast cluster testing.
         // These will bootstrap the queue but won't do heavy crawling.
         crawlConfig.setStartReferences(List.of(
                 "http://example.com/test"));
-        
+
         // Keep thread count low for cluster coordination tests
         crawlConfig.setNumThreads(1);
-        
+
         // Optionally: set max documents low to finish quickly
         // crawlConfig.setMaxDocuments(10);
-        
+
         return crawlConfig;
     }
 
@@ -101,16 +101,16 @@ public abstract class AbstractClusterTest {
                     (node.getProcess().isAlive() ? "still running"
                             : node.getProcess().exitValue()),
                     hasErrors);
-            
+
             if (hasErrors) {
-                LOG.error("Node error details:\n{}", 
+                LOG.error("Node error details:\n{}",
                         node.getErrorSummary());
-                Assertions.fail("Node \"" 
+                Assertions.fail("Node \""
                         + node.getWorkDir().getFileName()
-                        + "\" reported errors:\n" 
+                        + "\" reported errors:\n"
                         + node.getErrorSummary());
             }
-            
+
             var topFileNames = node.listFiles().stream()
                     .map(f -> f.getFileName().toString())
                     .toList();
@@ -118,7 +118,7 @@ public abstract class AbstractClusterTest {
                     "state.properties",
                     "stderr.log",
                     "stdout.log");
-            
+
             var props = node.loadStateProps();
             assertThat(props.getStrings(NodeState.NODE_STARTED_AT))
                     .isNotEmpty();
@@ -136,7 +136,7 @@ public abstract class AbstractClusterTest {
         var hadCoordinator = cluster.getNodes().stream()
                 .anyMatch(node -> node.getStdout()
                         .contains("COORDINATOR"));
-        
+
         assertThat(hadCoordinator)
                 .as("At least one node should have been coordinator")
                 .isTrue();

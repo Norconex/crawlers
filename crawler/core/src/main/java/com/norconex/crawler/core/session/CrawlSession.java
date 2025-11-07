@@ -97,6 +97,7 @@ public class CrawlSession implements Closeable {
     //            });
     //    private java.util.concurrent.ScheduledFuture<?> heartbeatFuture;
     private boolean closed;
+    private Runnable postCloseCleanup;
 
     /**
      * Gets the crawl session associated with the given cluster node.
@@ -232,6 +233,22 @@ public class CrawlSession implements Closeable {
 
         LOG.info("CrawlSession closed.");
 
+        // Run post-close cleanup (e.g., logger stop) AFTER all
+        // AutoCloseable resources have been closed and all cleanup
+        // events have been fired
+        if (postCloseCleanup != null) {
+            ExceptionSwallower.swallowQuietly(postCloseCleanup::run);
+        }
+    }
+
+    /**
+     * Registers a cleanup action to run AFTER the session has closed
+     * all its resources. This is useful for components like loggers
+     * that need to capture all session cleanup events before shutting down.
+     * @param cleanup the cleanup action to run after session close
+     */
+    public void setPostCloseCleanup(Runnable cleanup) {
+        this.postCloseCleanup = cleanup;
     }
 
     /**

@@ -84,7 +84,7 @@ public class CrawlCommand implements Command {
         // Start coordinator-only progress logger with pipeline progress
         // supplier
         // TODO this likely does not survive a change of coordinator???
-        CrawlProgressLogger logger = null;
+        final CrawlProgressLogger logger;
         if (session.getCluster().getLocalNode().isCoordinator()) {
             Supplier<PipelineProgress> supplier = () -> {
                 try {
@@ -96,6 +96,8 @@ public class CrawlCommand implements Command {
             };
             logger = new CrawlProgressLogger(ctx, supplier);
             CompletableFuture.runAsync(logger::start);
+        } else {
+            logger = null;
         }
 
         CrawlState finalState = null;
@@ -127,7 +129,13 @@ public class CrawlCommand implements Command {
                 swallow(() -> PipelineProgressJMX.unregister(ctx));
             }
         }
-        closeLogger(logger);
+
+        // Schedule logger to be closed AFTER session cleanup (which fires
+        // committer close events). This ensures the logger captures all
+        // events before stopping.
+        if (logger != null) {
+            session.setPostCloseCleanup(() -> closeLogger(logger));
+        }
     }
 
     private CrawlState handleException(
@@ -162,6 +170,21 @@ public class CrawlCommand implements Command {
         var pipeStatus = ofNullable(result).map(PipelineResult::getStatus)
                 .orElse(PipelineStatus.FAILED);
         LOG.info("Crawl pipeline status: {}", pipeStatus);
+
+        // Log diagnostic information for non-success statuses
+        if (pipeStatus != PipelineStatus.COMPLETED) {
+            LOG.warn(
+                    "Pipeline did not complete successfully. Status: {}, "
+                            + "Result: {}",
+                    pipeStatus, result);
+            if (pipeStatus == PipelineStatus.EXPIRED) {
+                LOG.error(
+                        "Pipeline EXPIRED - workers failed to report status "
+                                + "within timeout. Check for worker thread issues, "
+                                + "cluster connectivity problems, or deadlocks.");
+            }
+        }
+
         var state = switch (pipeStatus) {
             case FAILED, EXPIRED, STOPPING, PENDING, RUNNING ->
                     CrawlState.FAILED;

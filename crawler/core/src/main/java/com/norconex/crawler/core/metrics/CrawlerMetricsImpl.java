@@ -119,6 +119,23 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
             LOG.debug("CrawlerMetrics already flushed and closed.");
             return;
         }
+        //        flushLock.lock();
+        //        try {
+        //            eventCountsLocalBatch.forEach((eventName, increment) -> {
+        //                try {
+        //                    atomicIncrement(eventCountsStore, eventName, increment);
+        //                    eventCountsLocalBatch.put(eventName, 0L);
+        //                    memCache.eventCounts.merge(
+        //                            eventName, increment, Long::sum);
+        //                } catch (Exception e) {
+        //                    LOG.error("Error updating event count cache for event: "
+        //                            + eventName, e);
+        //                }
+        //            });
+        //        } finally {
+        //            flushLock.unlock();
+        //        }
+
         if (flushLock.tryLock()) {
             try {
                 eventCountsLocalBatch.forEach((eventName, increment) -> {
@@ -139,6 +156,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
             LOG.warn("Could not acquire lock to flush batch, "
                     + "skipping this interval.");
         }
+
     }
 
     @Override

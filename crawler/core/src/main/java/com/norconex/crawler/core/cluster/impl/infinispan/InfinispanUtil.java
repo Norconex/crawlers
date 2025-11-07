@@ -133,8 +133,6 @@ public final class InfinispanUtil {
                                 .getCoordinator());
             }
 
-            // Reduced from 5 ticks (500ms) to 2 ticks (200ms) for faster
-            // test execution while still ensuring stability
             if (stableTicks >= 2 && coordinatorElected) {
                 return;
             }

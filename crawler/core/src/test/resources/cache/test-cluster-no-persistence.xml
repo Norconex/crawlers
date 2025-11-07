@@ -55,16 +55,9 @@
       name="indexed-template" 
       configuration="base-template"
     >
-      <indexing 
-        enabled="true" 
-        storage="local-heap"
-        startup-mode="auto"
-        indexing-mode="auto"
-      >
-        <indexed-entities>
-          <indexed-entity>com.norconex.crawler.core.cluster.impl.infinispan.CrawlEntryProtoAdapter</indexed-entity>
-        </indexed-entities>
-      </indexing>
+      <!-- Indexing disabled: Infinispan 15.2 doesn't support declarative 
+           indexing with ProtoStream marshalling. Queries will work but use 
+           full cache scans instead of indexes. -->
     </distributed-cache-configuration>
     <distributed-cache-configuration 
       name="ephemeral-template" 

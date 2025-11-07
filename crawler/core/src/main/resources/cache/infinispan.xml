@@ -58,17 +58,20 @@
       name="indexed-template" 
       configuration="base-template"
     >
-      <indexing 
-        enabled="true" 
-        storage="local-heap"
-        startup-mode="auto"
-        indexing-mode="auto"
-      >
+      <!-- Enable indexing for CrawlEntry using POJO annotations -->
+      <indexing enabled="true" storage="local-heap">
         <indexed-entities>
-          <indexed-entity>com.norconex.crawler.core.cluster.impl.infinispan.CrawlEntryProtoAdapter</indexed-entity>
+          <indexed-entity>
+            com.norconex.crawler.core.ledger.CrawlEntry
+          </indexed-entity>
         </indexed-entities>
       </indexing>
-      <!-- Use RocksDB instead of SIFS to avoid re-entrant lock issues with indexing -->
+      <!-- Encode values as Java objects so Hibernate Search POJO annotations apply -->
+      <encoding>
+        <key media-type="application/x-protostream"/>
+        <value media-type="application/x-java-object"/>
+      </encoding>
+      <!-- Use RocksDB instead of SIFS to avoid re-entrant lock issues -->
       <persistence passivation="false">
         <rocksdb-store xmlns="urn:infinispan:config:store:rocksdb:15.2"/>
       </persistence>
