@@ -180,7 +180,7 @@ public class CrawlSession implements Closeable {
     public CrawlState getCrawlState() {
         // always get it fresh when requesting it explicitly
         state = loadState();
-        return state.crawlState;
+        return state != null ? state.crawlState : null;
     }
 
     @ToString.Include
@@ -248,7 +248,7 @@ public class CrawlSession implements Closeable {
      * @param cleanup the cleanup action to run after session close
      */
     public void setPostCloseCleanup(Runnable cleanup) {
-        this.postCloseCleanup = cleanup;
+        postCloseCleanup = cleanup;
     }
 
     /**

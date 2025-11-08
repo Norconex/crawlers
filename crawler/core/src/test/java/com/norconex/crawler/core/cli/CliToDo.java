@@ -40,12 +40,8 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.norconex.committer.core.CommitterEvent;
-import com.norconex.committer.core.service.CommitterServiceEvent;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core._DELETE.clusterold.SharedCluster;
-import com.norconex.crawler.core._DELETE.crawler.ClusteredCrawlContext;
-import com.norconex.crawler.core._DELETE.crawler.ClusteredCrawlTest;
 import com.norconex.crawler.core._DELETE.crawler.ClusteredCrawler;
 import com.norconex.crawler.core.cluster.ClusterConnector;
 import com.norconex.crawler.core.event.CrawlerEvent;
@@ -124,102 +120,6 @@ class CliToDo {
                     .launchOnCluster(client, new CrawlConfig(), "storeimport",
                             "-file", exportedFile);
             assertThat(importResults.getNode1().getExitCode()).isZero();
-        });
-    }
-
-    @ClusteredCrawlTest(
-        nodes = { 1, 2 },
-        cliArgs = { "start" },
-        config = ""
-    )
-    @Timeout(value = 120, unit = TimeUnit.SECONDS)
-    void testStart(ClusteredCrawlContext context) {
-        String[] expected = {
-                CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
-                CommitterEvent.COMMITTER_INIT_BEGIN,
-                CommitterEvent.COMMITTER_INIT_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
-                CrawlerEvent.CRAWLER_CRAWL_BEGIN,
-                CrawlerEvent.CRAWLER_CRAWL_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
-                CommitterEvent.COMMITTER_CLOSE_BEGIN,
-                CommitterEvent.COMMITTER_CLOSE_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
-        };
-        context.getOuput().getNodes().forEach(node -> {
-            assertThat(node.getExitCode())
-                    .as("Could not start crawler properly. Output:\n%s",
-                            node.getStderr())
-                    .isZero();
-            assertThat(removeArtificalEvents(node.getEvents()))
-                    .containsExactly(expected);
-        });
-    }
-
-    @ClusteredCrawlTest(
-        nodes = { 1, 2 },
-        cliArgs = { "start", "-clean" },
-        config = ""
-    )
-    @Timeout(value = 120, unit = TimeUnit.SECONDS)
-    void testStartAfterClean(ClusteredCrawlContext context) {
-        String[] expected = {
-                CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
-                CommitterEvent.COMMITTER_INIT_BEGIN,
-                CommitterEvent.COMMITTER_INIT_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
-
-                // Perform cleaning
-                CrawlerEvent.CRAWLER_CLEAN_BEGIN,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_BEGIN,
-                CommitterEvent.COMMITTER_CLEAN_BEGIN,
-                CommitterEvent.COMMITTER_CLEAN_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_END,
-                CrawlerEvent.CRAWLER_CLEAN_END,
-
-                // Regular crawl flow
-                CrawlerEvent.CRAWLER_CRAWL_BEGIN,
-                CrawlerEvent.CRAWLER_CRAWL_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
-                CommitterEvent.COMMITTER_CLOSE_BEGIN,
-                CommitterEvent.COMMITTER_CLOSE_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
-        };
-
-        context.getOuput().getNodes().forEach(node -> {
-            assertThat(node.getExitCode()).isZero();
-            assertThat(removeArtificalEvents(node.getEvents()))
-                    .containsExactly(expected);
-        });
-    }
-
-    @ClusteredCrawlTest(
-        nodes = { 1, 2 },
-        cliArgs = { "-clean" },
-        config = ""
-    )
-    @Timeout(value = 120, unit = TimeUnit.SECONDS)
-    void testClean(ClusteredCrawlContext context) {
-        String[] expected = {
-                CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
-                CommitterEvent.COMMITTER_INIT_BEGIN,
-                CommitterEvent.COMMITTER_INIT_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
-                CrawlerEvent.CRAWLER_CLEAN_BEGIN,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_BEGIN,
-                CommitterEvent.COMMITTER_CLEAN_BEGIN,
-                CommitterEvent.COMMITTER_CLEAN_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_END,
-                CrawlerEvent.CRAWLER_CLEAN_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
-                CommitterEvent.COMMITTER_CLOSE_BEGIN,
-                CommitterEvent.COMMITTER_CLOSE_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
-        };
-        context.getOuput().getNodes().forEach(node -> {
-            assertThat(node.getExitCode()).isZero();
-            assertThat(removeArtificalEvents(node.getEvents()))
-                    .containsExactly(expected);
         });
     }
 

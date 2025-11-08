@@ -79,4 +79,9 @@ public class MockFailingCluster implements Cluster {
     public List<String> getNodeNames() {
         throw new UnsupportedOperationException("IN_TEST");
     }
+
+    @Override
+    public boolean isStandalone() {
+        return false;
+    }
 }

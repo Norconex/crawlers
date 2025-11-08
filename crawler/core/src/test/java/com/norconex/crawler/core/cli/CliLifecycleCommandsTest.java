@@ -18,8 +18,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.committer.core.CommitterEvent;
@@ -33,20 +35,20 @@ import com.norconex.importer.ImporterEvent;
  * These verify that commands properly initialize, execute, and clean up
  * the crawler infrastructure.
  */
-//@SlowTest
+@Timeout(value = 120, unit = TimeUnit.SECONDS)
 class CliLifecycleCommandsTest {
 
     @TempDir
     private Path tempDir;
 
     @Test
-    void testStartCommandLifecycleEvents() {
+    void testStartCommandEventSequence() {
         var exit = TestCliCrawlerLauncher
                 .builder()
                 .args(List.of("start"))
                 .workDir(tempDir)
                 .build()
-                .launch(oneDocConfig());
+                .launch(twoDocsConfig());
 
         assertThat(exit.getCode())
                 .as("Crawler should start successfully")
@@ -62,6 +64,15 @@ class CliLifecycleCommandsTest {
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
                 CrawlerEvent.CRAWLER_CRAWL_BEGIN,
                 CrawlerEvent.DOCUMENT_QUEUED,
+                CrawlerEvent.DOCUMENT_QUEUED,
+                ImporterEvent.IMPORTER_HANDLER_BEGIN,
+                ImporterEvent.IMPORTER_HANDLER_END,
+                CrawlerEvent.DOCUMENT_IMPORTED,
+                CommitterServiceEvent.COMMITTER_SERVICE_UPSERT_BEGIN,
+                CommitterEvent.COMMITTER_ACCEPT_YES,
+                CommitterEvent.COMMITTER_UPSERT_BEGIN,
+                CommitterEvent.COMMITTER_UPSERT_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_UPSERT_END,
                 ImporterEvent.IMPORTER_HANDLER_BEGIN,
                 ImporterEvent.IMPORTER_HANDLER_END,
                 CrawlerEvent.DOCUMENT_IMPORTED,
@@ -78,59 +89,104 @@ class CliLifecycleCommandsTest {
         };
 
         assertThat(exit.getEventNames()).containsExactly(expectedEvents);
+
     }
 
-    //
-    //    @Test
-    //    void testCleanCommand_ProducesCorrectEventSequence() throws IOException {
-    //        var config = createMinimalConfig();
-    //        var configFile = tempDir.resolve("config.yaml");
-    //        BeanMapper.DEFAULT.write(config, configFile);
-    //
-    //        var exit = MockCliLauncher_DELETE
-    //                .builder()
-    //                .args("clean", "-config=" + configFile)
-    //                .workDir(tempDir)
-    //                .configModifier(cfg -> cfg.setClusterConnector(
-    //                        new MockSingleNodeConnector()))
-    //                .build()
-    //                .launch();
-    //
-    //        assertThat(exit.getCode()).isZero();
-    //
-    //        String[] expectedEvents = {
-    //                CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
-    //                CommitterEvent.COMMITTER_INIT_BEGIN,
-    //                CommitterEvent.COMMITTER_INIT_END,
-    //                CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
-    //                CrawlerEvent.CRAWLER_CLEAN_BEGIN,
-    //                CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_BEGIN,
-    //                CommitterEvent.COMMITTER_CLEAN_BEGIN,
-    //                CommitterEvent.COMMITTER_CLEAN_END,
-    //                CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_END,
-    //                CrawlerEvent.CRAWLER_CLEAN_END,
-    //                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
-    //                CommitterEvent.COMMITTER_CLOSE_BEGIN,
-    //                CommitterEvent.COMMITTER_CLOSE_END,
-    //                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
-    //        };
-    //
-    //        assertThat(exit.getEvents())
-    //                .extracting("name")
-    //                .containsExactly(expectedEvents);
-    //    }
-    //
-    private CrawlConfig noDocConfig() {
+    @Test
+    void testCleanCommandEventSequence() {
+        var exit = TestCliCrawlerLauncher
+                .builder()
+                .args(List.of("clean"))
+                .workDir(tempDir)
+                .build()
+                .launch(twoDocsConfig());
+
+        assertThat(exit.getCode()).isZero();
+
+        String[] expectedEvents = {
+                CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
+                CommitterEvent.COMMITTER_INIT_BEGIN,
+                CommitterEvent.COMMITTER_INIT_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
+                CrawlerEvent.CRAWLER_CLEAN_BEGIN,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_BEGIN,
+                CommitterEvent.COMMITTER_CLEAN_BEGIN,
+                CommitterEvent.COMMITTER_CLEAN_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_END,
+                CrawlerEvent.CRAWLER_CLEAN_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
+                CommitterEvent.COMMITTER_CLOSE_BEGIN,
+                CommitterEvent.COMMITTER_CLOSE_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
+        };
+
+        assertThat(exit.getEventNames()).containsExactly(expectedEvents);
+    }
+
+    @Test
+    void testStartCleanCommandEventSequence() {
+        var exit = TestCliCrawlerLauncher
+                .builder()
+                .args(List.of("start", "-clean"))
+                .workDir(tempDir)
+                .build()
+                .launch(oneDocConfig());
+
+        assertThat(exit.getCode()).isZero();
+
+        String[] expectedEvents = {
+                // Init
+                CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
+                CommitterEvent.COMMITTER_INIT_BEGIN,
+                CommitterEvent.COMMITTER_INIT_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
+
+                // Perform cleaning
+                CrawlerEvent.CRAWLER_CLEAN_BEGIN,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_BEGIN,
+                CommitterEvent.COMMITTER_CLEAN_BEGIN,
+                CommitterEvent.COMMITTER_CLEAN_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLEAN_END,
+                CrawlerEvent.CRAWLER_CLEAN_END,
+
+                // Regular crawl flow
+                CrawlerEvent.CRAWLER_CRAWL_BEGIN,
+                CrawlerEvent.DOCUMENT_QUEUED,
+                ImporterEvent.IMPORTER_HANDLER_BEGIN,
+                ImporterEvent.IMPORTER_HANDLER_END,
+                CrawlerEvent.DOCUMENT_IMPORTED,
+                CommitterServiceEvent.COMMITTER_SERVICE_UPSERT_BEGIN,
+                CommitterEvent.COMMITTER_ACCEPT_YES,
+                CommitterEvent.COMMITTER_UPSERT_BEGIN,
+                CommitterEvent.COMMITTER_UPSERT_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_UPSERT_END,
+                CrawlerEvent.CRAWLER_CRAWL_END,
+
+                // Close
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
+                CommitterEvent.COMMITTER_CLOSE_BEGIN,
+                CommitterEvent.COMMITTER_CLOSE_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
+        };
+
+        assertThat(exit.getEventNames()).containsExactly(expectedEvents);
+    }
+
+    private CrawlConfig twoDocsConfig() {
         var config = new CrawlConfig();
-        config.setStartReferences(List.of("http://example.com/test"));
-        config.setMaxDocuments(0); // Don't crawl anything
+        config.setStartReferences(List.of(
+                "http://example.com/test1",
+                "http://example.com/test2"));
+        config.setMaxDocuments(2);
         return config;
     }
 
     private CrawlConfig oneDocConfig() {
         var config = new CrawlConfig();
-        config.setStartReferences(List.of("http://example.com/test"));
-        config.setMaxDocuments(1); // Don't crawl anything
+        config.setNumThreads(1);
+        config.setStartReferences(List.of(
+                "http://example.com/test1"));
+        config.setMaxDocuments(1);
         return config;
     }
 }

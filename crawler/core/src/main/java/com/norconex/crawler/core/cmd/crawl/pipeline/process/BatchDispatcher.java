@@ -25,11 +25,30 @@ import lombok.Builder;
 
 @Builder
 public class BatchDispatcher {
+    /**
+     * Maximum number of references for a node to poll at once from the
+     * queue for processing.
+     */
     private final int maxBatchSize;
+    /**
+     * Threshold below which a new reference batch is poll from the queue,
+     * so the local node queue never gets dry.
+     */
     private final int lowWatermark;
+    /**
+     * When the reference queue is empty, the amount of time to wait
+     * before trying again to get references to crawl (in case new entries
+     * get added to the queue).
+     */
     private final int pollIntervalMillis;
+    /**
+     * When the queue is empty, the maximum number of times to try get
+     * references from the queue (in case new entries
+     * get added to the queue).
+     */
     private final int maxEmptyPolls;
     private final CrawlSession session;
+
     private final BlockingQueue<CrawlEntry> localQueue =
             new LinkedBlockingQueue<>();
     private final Object refillLock = new Object();

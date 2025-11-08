@@ -87,8 +87,8 @@ class CrawlActivityChecker {
 
         var can = doCanContinue();
         if (!can) {
-            LOG.info("Pausing crawler. Will resume on next start.");
-            //TODO should it be PAUSED? Should we call stop on cluster instead?
+            LOG.info("Stopping crawl execution (i.e., pause). Will resume "
+                    + "on next start.");
             session.updateCrawlState(CrawlState.STOPPED);
         }
 
@@ -121,7 +121,6 @@ class CrawlActivityChecker {
     }
 
     private boolean isQueueInitializedAndEmpty() {
-        //        var sessionStore = ctx.getSessionProperties();
         var queueEmpty = isQueueEmpty();
         if (queueEmpty) {
             var queueInitialized = session.isStartRefsQueueingComplete();
@@ -131,6 +130,7 @@ class CrawlActivityChecker {
                     Waiting for new references or initial queuing \
                     to be over...""");
                 do {
+                    System.err.println("XXX sleep B");
                     Sleeper.sleepSeconds(1);
                     queueEmpty = isQueueEmpty();
                     queueInitialized = session.isStartRefsQueueingComplete();
@@ -155,6 +155,7 @@ class CrawlActivityChecker {
         var timeout = duration.toMillis();
         var then = System.currentTimeMillis();
         while (System.currentTimeMillis() - then < timeout) {
+            System.err.println("XXX sleep A");
             Sleeper.sleepSeconds(1);
             if (!isQueueEmpty()) {
                 return false;

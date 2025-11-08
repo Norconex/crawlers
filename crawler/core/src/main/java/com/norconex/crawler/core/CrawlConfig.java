@@ -232,10 +232,10 @@ public class CrawlConfig {
      * A crawler is considered idle when its queue is empty and there are
      * no reference being actively processed.
      * Differs from {@link #deferredShutdownDuration} in that additions to
-     * the crawler queue will restart the processing.
+     * the crawler queue will resume the normal processing.
      * A non-zero value can be useful if the crawler queue can be populated
      * by an external process. Default is zero (does not wait).
-     * {@value #DEFAULT_IDLE_PROCESSING_TIMEOUT}. A {@code null}
+     * {@value #DEFAULT_IDLE_TIMEOUT}. A {@code null}
      * value is equivalent to zero.
      * The smallest considered unit is seconds (milliseconds are rounded up).
      */

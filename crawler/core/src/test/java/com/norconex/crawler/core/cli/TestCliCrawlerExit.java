@@ -17,6 +17,9 @@ package com.norconex.crawler.core.cli;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.collections4.Bag;
+import org.apache.commons.collections4.bag.HashBag;
+
 import com.norconex.commons.lang.event.Event;
 
 import lombok.Data;
@@ -34,5 +37,11 @@ public class TestCliCrawlerExit {
 
     public List<String> getEventNames() {
         return events.stream().map(Event::getName).toList();
+    }
+
+    public Bag<String> getEventCounts() {
+        var bag = new HashBag<String>();
+        events.stream().map(Event::getName).forEach(bag::add);
+        return bag;
     }
 }

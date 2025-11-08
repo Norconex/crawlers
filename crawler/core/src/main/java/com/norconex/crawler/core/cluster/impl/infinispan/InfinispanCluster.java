@@ -225,6 +225,7 @@ public class InfinispanCluster implements Cluster {
      * </p>
      * @return true if configured for standalone mode (no transport/JGroups)
      */
+    @Override
     public boolean isStandalone() {
         if (cacheManager == null) {
             return false;
