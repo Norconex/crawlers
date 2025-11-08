@@ -80,8 +80,6 @@ public class CrawlProcessStep extends BaseStep {
         batchDispatcher = BatchDispatcher.builder()
                 .maxBatchSize(cfg.getMaxQueueBatchSize())
                 .lowWatermark(Math.max(1, cfg.getMaxQueueBatchSize() / 5))
-                .maxEmptyPolls(10)
-                .pollIntervalMillis(1000)
                 .session(session)
                 .build();
 
@@ -162,9 +160,7 @@ public class CrawlProcessStep extends BaseStep {
         var crawlCtx = session.getCrawlContext();
         var docProcessCtx = new ProcessContext().crawlSession(session);
         try {
-            LOG.error("XXX TAKE 1");
             var currentEntry = batchDispatcher.take();
-            LOG.error("XXX TAKE 2");
 
             LOG.trace("Pulled next reference from Queue: {}", currentEntry);
 

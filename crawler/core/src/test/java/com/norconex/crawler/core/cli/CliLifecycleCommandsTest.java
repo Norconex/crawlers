@@ -16,7 +16,9 @@ package com.norconex.crawler.core.cli;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -163,6 +165,68 @@ class CliLifecycleCommandsTest {
                 CrawlerEvent.CRAWLER_CRAWL_END,
 
                 // Close
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
+                CommitterEvent.COMMITTER_CLOSE_BEGIN,
+                CommitterEvent.COMMITTER_CLOSE_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
+        };
+
+        assertThat(exit.getEventNames()).containsExactly(expectedEvents);
+    }
+
+    @Test
+    void testStoreExportCommandEventSequence() {
+        var exit = TestCliCrawlerLauncher
+                .builder()
+                .args(List.of(
+                        "storeexport",
+                        "-dir",
+                        tempDir.resolve("exportdir").toString()))
+                .workDir(tempDir)
+                .build()
+                .launch(twoDocsConfig());
+
+        assertThat(exit.getCode()).isZero();
+
+        String[] expectedEvents = {
+                CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
+                CommitterEvent.COMMITTER_INIT_BEGIN,
+                CommitterEvent.COMMITTER_INIT_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
+                CrawlerEvent.CRAWLER_STORE_EXPORT_BEGIN,
+                CrawlerEvent.CRAWLER_STORE_EXPORT_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
+                CommitterEvent.COMMITTER_CLOSE_BEGIN,
+                CommitterEvent.COMMITTER_CLOSE_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
+        };
+
+        assertThat(exit.getEventNames()).containsExactly(expectedEvents);
+    }
+
+    @Test
+    void testStoreImportCommandEventSequence() throws URISyntaxException {
+        var file = Paths.get(getClass()
+                .getResource("/cache/exported/test-store.zip")
+                .toURI());
+
+        var exit = TestCliCrawlerLauncher
+                .builder()
+                .args(List.of("storeimport", "-file", file.toString()))
+                .workDir(tempDir)
+                .printErrors(true)
+                .build()
+                .launch(twoDocsConfig());
+
+        assertThat(exit.getCode()).isZero();
+
+        String[] expectedEvents = {
+                CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
+                CommitterEvent.COMMITTER_INIT_BEGIN,
+                CommitterEvent.COMMITTER_INIT_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
+                CrawlerEvent.CRAWLER_STORE_IMPORT_BEGIN,
+                CrawlerEvent.CRAWLER_STORE_IMPORT_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,

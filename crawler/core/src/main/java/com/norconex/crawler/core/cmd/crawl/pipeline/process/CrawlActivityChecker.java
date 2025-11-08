@@ -130,7 +130,6 @@ class CrawlActivityChecker {
                     Waiting for new references or initial queuing \
                     to be over...""");
                 do {
-                    System.err.println("XXX sleep B");
                     Sleeper.sleepSeconds(1);
                     queueEmpty = isQueueEmpty();
                     queueInitialized = session.isStartRefsQueueingComplete();
@@ -155,7 +154,6 @@ class CrawlActivityChecker {
         var timeout = duration.toMillis();
         var then = System.currentTimeMillis();
         while (System.currentTimeMillis() - then < timeout) {
-            System.err.println("XXX sleep A");
             Sleeper.sleepSeconds(1);
             if (!isQueueEmpty()) {
                 return false;

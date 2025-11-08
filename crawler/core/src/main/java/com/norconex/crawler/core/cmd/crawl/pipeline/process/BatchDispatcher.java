@@ -16,7 +16,6 @@ package com.norconex.crawler.core.cmd.crawl.pipeline.process;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import com.norconex.crawler.core.ledger.CrawlEntry;
 import com.norconex.crawler.core.session.CrawlSession;
@@ -35,27 +34,14 @@ public class BatchDispatcher {
      * so the local node queue never gets dry.
      */
     private final int lowWatermark;
-    /**
-     * When the reference queue is empty, the amount of time to wait
-     * before trying again to get references to crawl (in case new entries
-     * get added to the queue).
-     */
-    private final int pollIntervalMillis;
-    /**
-     * When the queue is empty, the maximum number of times to try get
-     * references from the queue (in case new entries
-     * get added to the queue).
-     */
-    private final int maxEmptyPolls;
     private final CrawlSession session;
 
     private final BlockingQueue<CrawlEntry> localQueue =
             new LinkedBlockingQueue<>();
     private final Object refillLock = new Object();
 
-    public CrawlEntry take() throws InterruptedException {
+    public CrawlEntry take() {
         var ledger = session.getCrawlContext().getCrawlEntryLedger();
-        var emptyPolls = 0;
         while (true) {
             var entry = localQueue.poll();
             if (entry != null) {
@@ -72,11 +58,9 @@ public class BatchDispatcher {
                     }
                 }
             }
-            // Wait and retry, up to maxEmptyPolls
-            if (++emptyPolls >= maxEmptyPolls) {
-                return null; // Give up after N tries
-            }
-            TimeUnit.MILLISECONDS.sleep(pollIntervalMillis);
+            // Return null immediately if queue is empty
+            // Let CrawlActivityChecker handle idle timeout logic
+            return null;
         }
     }
 

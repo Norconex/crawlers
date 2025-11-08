@@ -115,4 +115,21 @@ class CliConfigCommandsTest {
         var renderedContent = Files.readString(outputFile);
         assertThat(renderedContent).contains("startReferences");
     }
+
+    @Test
+    void testConfigRenderBadOutputTarget() throws IOException {
+        var config = new CrawlConfig();
+        config.setStartReferences(List.of("http://example.com"));
+
+        // use a directory instead of file to make it fail
+        var badOutputFile = tempDir.toAbsolutePath();
+        var exit = TestCliCrawlerLauncher
+                .builder()
+                .args(List.of("configrender", "-output=" + badOutputFile))
+                .workDir(tempDir)
+                .build()
+                .launch(config);
+        assertThat(exit.getCode()).isNotZero();
+        assertThat(exit.getStdErr()).contains("FileNotFoundException");
+    }
 }
