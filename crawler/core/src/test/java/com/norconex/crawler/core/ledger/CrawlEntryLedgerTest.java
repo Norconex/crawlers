@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 
 import com.norconex.crawler.core._DELETE.CrawlTest;
+import com.norconex.crawler.core._DELETE.MockSingleNodeConnector;
 import com.norconex.crawler.core._DELETE.CrawlTest.Focus;
-import com.norconex.crawler.core.mocks.cluster.MockSingleNodeConnector;
 import com.norconex.crawler.core.session.CrawlSession;
 
 class CrawlEntryLedgerTest {

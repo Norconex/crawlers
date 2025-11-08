@@ -53,7 +53,7 @@
     <transport cluster="${infinispan.cluster.name:cluster}" stack="fast-test-loopback" />
   
     <global-state enabled="true">
-      <persistent-location path="__DERIVED__/cache/infinispan"/>
+      <persistent-location path="__WORKDIR__/cache/infinispan"/>
     </global-state>
 
     <!-- Cache templates (same as production for compatibility) -->
@@ -81,9 +81,20 @@
       name="indexed-template" 
       configuration="base-template"
     >
-      <!-- Indexing disabled: Infinispan 15.2 doesn't support declarative 
-           indexing with ProtoStream marshalling. Queries will work but use 
-           full cache scans instead of indexes. -->
+      <!-- Enable indexing for CrawlEntry using POJO annotations -->
+      <indexing enabled="true" storage="local-heap">
+        <indexed-entities>
+          <indexed-entity>
+            com.norconex.crawler.core.ledger.CrawlEntry
+          </indexed-entity>
+        </indexed-entities>
+      </indexing>
+      <!-- Encode values as Java objects so Hibernate Search POJO annotations apply -->
+      <encoding>
+        <key media-type="application/x-protostream"/>
+        <value media-type="application/x-java-object"/>
+      </encoding>
+      <!-- Use RocksDB instead of SIFS to avoid re-entrant lock issues -->
       <persistence passivation="false">
         <rocksdb-store xmlns="urn:infinispan:config:store:rocksdb:15.2"/>
       </persistence>

@@ -16,43 +16,62 @@ package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import java.time.Duration;
 
-import org.infinispan.configuration.parsing.ConfigurationBuilderHolder;
-
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import lombok.Data;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
 public class InfinispanClusterConfig {
-    @JsonDeserialize(using = InfinispanConfigDeserializer.class)
-    @JsonSerialize(using = InfinispanConfigSerializer.class)
-    private ConfigurationBuilderHolder infinispan =
-            InfinispanUtil.defaultConfigBuilderHolder();
+
+    @RequiredArgsConstructor
+    public enum Preset {
+        CLUSTER("cache/infinispan-cluster.xml"),
+        STANDALONE("cache/infinispan-standalone.xml"),
+        CUSTOM(null);
+
+        @Getter
+        private final String configFile;
+    }
+
+    /**
+     * Pre-defined configuration settings. The "CLUSTER" preset is used by
+     * default and will also work if you have just one node. Extra nodes
+     * can be added during an executing crawl. If you are not running
+     * the crawler on a clustered environment, choosing the "STANDALONE"
+     * preset is recommended for better single-node performance.
+     * Choosing "CUSTOM" allows you to specify your own Infinispan
+     * configuration and is for advanced use only.
+     */
+    @NonNull
+    private Preset preset = Preset.CLUSTER;
+
+    /**
+     * An Infinispan configuration file. Can either be a local file-system
+     * file, or a file found in this application classpath tried in that order).
+     * Ignored unless preset is {@link Preset#CUSTOM}.
+     * <p>
+     * To have the crawler working directory used as the Infinispan storage
+     * location, you can use the placeholder {@code __WORKDIR__} in your
+     * configuration, where paths are defined.
+     * </p>
+     */
+    private String configFile;
+
+    //    @JsonDeserialize(using = InfinispanConfigDeserializer.class)
+    //    @JsonSerialize(using = InfinispanConfigSerializer.class)
+    //    private ConfigurationBuilderHolder infinispan =
+    //            InfinispanUtil.defaultConfigBuilderHolder();
+
+    //preset: cluster|standalone|custom
 
     /**
      * Maximum amount of time to wait before declaring a node as
      * "expired" when running a crawler task across multiple nodes.
      * The minimum value is 10 seconds. Defaults to 30 seconds.
+     * Not applicable when running in standalone mode.
      */
     private Duration nodeExpiryTimeout = Duration.ofSeconds(30);
-
-    //
-    //
-    //TODO DELETE BELOW: vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-    private TaskRetentionConfig retention = new TaskRetentionConfig();
-
-    @Data
-    @Accessors(chain = true)
-    public class TaskRetentionConfig {
-        // null or negative = retain until session end
-        private Duration onceTaskRetention = null; // keep until session end
-        private Duration continuousFinalStatsRetention = Duration.ofMinutes(5);
-        private int maxHistoricalExecutionsPerTask = 1; // keep latest only for runOnOne
-        private boolean purgeOnSessionClose = true;
-        // New tuning: stale timeout for continuous task heartbeats
-        private Duration continuousStaleTimeout = Duration.ofSeconds(15);
-    }
 }

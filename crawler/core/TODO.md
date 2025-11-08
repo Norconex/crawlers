@@ -3,6 +3,10 @@ To document
 - by default crawler looks for other nodes.
 - pass -standalone for a local run (faster startup, predefined config)
 
+# Infinispan configs:
+
+Use velocity to make them mainly the same?
+
 
 crawlRunId resolution logic:
 ==============================

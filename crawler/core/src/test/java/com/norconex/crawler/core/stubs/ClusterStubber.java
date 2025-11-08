@@ -27,10 +27,10 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.function.FailableBiConsumer;
 import org.apache.commons.lang3.function.FailableConsumer;
 
+import com.norconex.crawler.core._DELETE.MockMultiNodesConnector;
+import com.norconex.crawler.core._DELETE.MockSingleNodeConnector;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.ClusterConnector;
-import com.norconex.crawler.core.mocks.cluster.MockMultiNodesConnector;
-import com.norconex.crawler.core.mocks.cluster.MockSingleNodeConnector;
 
 public final class ClusterStubber {
     private ClusterStubber() {

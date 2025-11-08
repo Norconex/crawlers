@@ -17,13 +17,13 @@ package com.norconex.crawler.core.spi;
 import com.norconex.commons.lang.bean.spi.BasePolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core._DELETE.CrawlTestCapturer;
+import com.norconex.crawler.core._DELETE.MockMultiNodesConnector;
+import com.norconex.crawler.core._DELETE.MockSingleNodeConnector;
 import com.norconex.crawler.core.cluster.ClusterConnector;
 import com.norconex.crawler.core.cluster.impl.infinispan.TestClusterConnectorBuilder;
 import com.norconex.crawler.core.cmd.crawl.pipeline.process.ProcessUpsertTest;
 import com.norconex.crawler.core.event.listeners.TestEventMemoryListener;
 import com.norconex.crawler.core.mocks.cluster.MockFailingClusterConnector;
-import com.norconex.crawler.core.mocks.cluster.MockMultiNodesConnector;
-import com.norconex.crawler.core.mocks.cluster.MockSingleNodeConnector;
 import com.norconex.importer.response.ImporterResponseProcessor;
 
 public class CoreTestPtProvider extends BasePolymorphicTypeProvider {

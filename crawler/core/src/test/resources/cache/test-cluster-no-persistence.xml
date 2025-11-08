@@ -32,7 +32,7 @@
   <cache-container name="default" default-cache="base-template">
     <transport cluster="${infinispan.cluster.name:cluster}" stack="fast-test-loopback" />
     <global-state enabled="true">
-      <persistent-location path="__DERIVED__/cache/infinispan"/>
+      <persistent-location path="__WORKDIR__/cache/infinispan"/>
     </global-state>
     <!-- Cache templates (same as production for compatibility) -->
     <distributed-cache-configuration 

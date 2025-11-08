@@ -183,6 +183,7 @@ class CliLifecycleCommandsTest {
                         "-dir",
                         tempDir.resolve("exportdir").toString()))
                 .workDir(tempDir)
+                .printErrors(true)
                 .build()
                 .launch(twoDocsConfig());
 

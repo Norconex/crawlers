@@ -45,6 +45,7 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core._DELETE.MockSingleNodeConnector;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.doc.operations.DocumentConsumer;
 import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
@@ -62,7 +63,6 @@ import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferen
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.mocks.cluster.MockFailingCluster;
-import com.norconex.crawler.core.mocks.cluster.MockSingleNodeConnector;
 import com.norconex.crawler.core.util.CoreTestUtil;
 import com.norconex.importer.ImporterConfig;
 

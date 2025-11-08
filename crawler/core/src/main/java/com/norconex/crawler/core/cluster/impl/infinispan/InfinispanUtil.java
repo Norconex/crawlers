@@ -14,16 +14,10 @@
  */
 package com.norconex.crawler.core.cluster.impl.infinispan;
 
-import java.io.IOException;
-
-import org.infinispan.commons.dataconversion.MediaType;
-import org.infinispan.configuration.parsing.ConfigurationBuilderHolder;
-import org.infinispan.configuration.parsing.ParserRegistry;
 import org.infinispan.lifecycle.ComponentStatus;
 
 import com.google.common.base.Objects;
 import com.norconex.commons.lang.Sleeper;
-import com.norconex.crawler.core.cluster.CacheException;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
@@ -86,23 +80,23 @@ public final class InfinispanUtil {
                 .getStatus() == ComponentStatus.RUNNING;
     }
 
-    public static ConfigurationBuilderHolder configBuilderHolder(
-            String path) {
-        try (var is = InfinispanUtil.class.getResourceAsStream(path)) {
-            return new ParserRegistry(
-                    Thread.currentThread().getContextClassLoader()).parse(
-                            is, MediaType.APPLICATION_XML);
-        } catch (IOException e) {
-            throw new CacheException(
-                    "Could not load Infinispan configuration from classpath "
-                            + "location '%s'".formatted(path),
-                    e);
-        }
-    }
-
-    public static ConfigurationBuilderHolder defaultConfigBuilderHolder() {
-        return configBuilderHolder("/cache/infinispan.xml");
-    }
+    //    public static ConfigurationBuilderHolder configBuilderHolder(
+    //            String path) {
+    //        try (var is = InfinispanUtil.class.getResourceAsStream(path)) {
+    //            return new ParserRegistry(
+    //                    Thread.currentThread().getContextClassLoader()).parse(
+    //                            is, MediaType.APPLICATION_XML);
+    //        } catch (IOException e) {
+    //                throw new CacheException(
+    //                        "Could not load Infinispan configuration from classpath "
+    //                                + "location '%s'".formatted(path),
+    //                        e);
+    //        }
+    //    }
+    //
+    //    public static ConfigurationBuilderHolder defaultConfigBuilderHolder() {
+    //        return configBuilderHolder("/cache/infinispan.xml");
+    //    }
 
     public static void waitForClusterWarmUp(InfinispanCluster cluster) {
         // Allow up to ~5 seconds for same-JVM multi-node tests to stabilize

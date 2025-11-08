@@ -13,6 +13,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 
+@Deprecated
 class InfinispanConfigDeserializer
         extends StdDeserializer<ConfigurationBuilderHolder> {
     private static final long serialVersionUID = 1L;

@@ -16,6 +16,7 @@ package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.ClusterConnector;
+import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanClusterConfig.Preset;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +49,8 @@ public final class TestClusterConnectorBuilder {
         @Override
         public Cluster connect() {
             var config = new InfinispanClusterConfig();
-            config.setInfinispan(InfinispanUtil.configBuilderHolder(resource));
+            config.setPreset(Preset.CUSTOM);
+            config.setConfigFile(resource);
             LOG.info("Using Infinispan configuration from: " + resource);
             return new InfinispanCluster(config);
         }
@@ -56,25 +58,25 @@ public final class TestClusterConnectorBuilder {
 
     public static class LocalNoPersistence extends TestClusterConnector {
         public LocalNoPersistence() {
-            super("/cache/test-local-no-persistence.xml");
+            super("cache/test-local-no-persistence.xml");
         }
     }
 
     public static class LocalWithPersistence extends TestClusterConnector {
         public LocalWithPersistence() {
-            super("/cache/test-local-with-persistence.xml");
+            super("cache/test-local-with-persistence.xml");
         }
     }
 
     public static class ClusterNoPersistence extends TestClusterConnector {
         public ClusterNoPersistence() {
-            super("/cache/test-cluster-no-persistence.xml");
+            super("cache/test-cluster-no-persistence.xml");
         }
     }
 
     public static class ClusterWithPersistence extends TestClusterConnector {
         public ClusterWithPersistence() {
-            super("/cache/test-cluster-with-persistence.xml");
+            super("cache/test-cluster-with-persistence.xml");
         }
     }
 }

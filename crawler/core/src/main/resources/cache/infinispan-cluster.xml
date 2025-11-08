@@ -24,7 +24,7 @@
         By default the persistent location is derived from the crawler working 
         directory.
         -->
-      <persistent-location path="__DERIVED__/cache/infinispan"/>
+      <persistent-location path="__WORKDIR__/cache/infinispan"/>
     </global-state>
 
 

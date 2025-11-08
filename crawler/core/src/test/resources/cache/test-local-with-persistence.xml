@@ -1,13 +1,101 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<infinispan xmlns="urn:infinispan:config:13.0">
-  <cache-container>
-    <local-cache name="testCache">
+<infinispan xmlns="urn:infinispan:config:15.2"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="urn:infinispan:config:15.2 https://infinispan.org/schemas/infinispan-config-15.2.xsd">
+            
+  <!--
+  LOCAL TEST CONFIGURATION WITH PERSISTENCE
+  Single-node configuration equivalent to cluster config but using 
+  local caches.
+  Includes all templates and cache instances for full compatibility.
+  -->
+
+  <cache-container name="default" default-cache="base-template">
+    <global-state enabled="true">
+      <persistent-location path="__WORKDIR__/cache/infinispan"/>
+    </global-state>
+
+    <!-- Cache templates (local equivalents of cluster templates) -->
+    <local-cache-configuration 
+      name="base-template" 
+      statistics="true"
+    >
+      <encoding>
+        <key media-type="application/x-protostream"/>
+        <value media-type="application/x-protostream"/>
+      </encoding>
+      <transaction
+        mode="NON_XA"
+        locking="PESSIMISTIC"
+        transaction-manager-lookup="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
+      />
       <persistence passivation="false">
-        <file-store shared="false" preload="true">
-          <fetch-state>false</fetch-state>
-          <purge-on-startup>true</purge-on-startup>
-          <location>target/infinispan-store</location>
-        </file-store>
+        <file-store />
+      </persistence>
+    </local-cache-configuration>
+
+    <local-cache-configuration 
+      name="indexed-template" 
+      configuration="base-template"
+    >
+      <!-- Enable indexing for CrawlEntry using POJO annotations -->
+      <indexing enabled="true" storage="local-heap">
+        <indexed-entities>
+          <indexed-entity>
+            com.norconex.crawler.core.ledger.CrawlEntry
+          </indexed-entity>
+        </indexed-entities>
+      </indexing>
+      <!-- Encode values as Java objects so Hibernate Search 
+           POJO annotations apply -->
+      <encoding>
+        <key media-type="application/x-protostream"/>
+        <value media-type="application/x-java-object"/>
+      </encoding>
+      <!-- Use RocksDB instead of SIFS to avoid re-entrant 
+           lock issues -->
+      <persistence passivation="false">
+        <rocksdb-store xmlns="urn:infinispan:config:store:rocksdb:15.2"/>
+      </persistence>
+    </local-cache-configuration>
+
+    <local-cache-configuration 
+      name="ephemeral-template" 
+      statistics="true"
+    >
+      <expiration lifespan="-1"/>
+      <persistence passivation="false"/>
+    </local-cache-configuration>
+
+    <!-- Cache mappings -->
+    <local-cache-configuration name="*_indexed"   
+                               configuration="indexed-template"/>
+    <local-cache-configuration name="*_ephemeral" 
+                               configuration="ephemeral-template"/>
+
+    <!-- Explicit cache instances -->
+    <local-cache name="crawler"            
+                 configuration="base-template"/>
+    <local-cache name="crawlSession"       
+                 configuration="base-template"/>
+    <local-cache name="crawlRun"           
+                 configuration="ephemeral-template"/>
+    <local-cache name="crawlEventCounts"   
+                 configuration="base-template"/>
+    <local-cache name="pipeCurrentStep"    
+                 configuration="base-template"/>
+    <local-cache name="pipeWorkerStatuses" 
+                 configuration="base-template"/>
+    <local-cache name="ledger_a"           
+                 configuration="indexed-template"/>
+    <local-cache name="ledger_b"           
+                 configuration="indexed-template"/>
+    <local-cache 
+      name="counters"
+      statistics="true"
+    >
+      <persistence passivation="false">
+        <file-store />
       </persistence>
     </local-cache>
   </cache-container>

@@ -16,17 +16,22 @@ package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import static java.util.Optional.ofNullable;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.apache.commons.lang3.StringUtils;
 import org.infinispan.commons.marshall.ProtoStreamMarshaller;
+import org.infinispan.configuration.parsing.ConfigurationBuilderHolder;
+import org.infinispan.configuration.parsing.ParserRegistry;
 import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.notifications.Listener;
 import org.infinispan.notifications.cachemanagerlistener.annotation.ViewChanged;
 import org.infinispan.notifications.cachemanagerlistener.event.ViewChangedEvent;
 import org.infinispan.remoting.transport.Address;
 
+import com.norconex.crawler.core.cluster.CacheException;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.impl.infinispan.event.CoordinatorChangeListener;
 import com.norconex.crawler.core.session.CrawlSession;
@@ -46,7 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 //TODO rename *Client?
 public class InfinispanCluster implements Cluster {
 
-    private static final String BASEDIR_PLACEHOLDER = "__DERIVED__";
+    private static final String BASEDIR_PLACEHOLDER = "__WORKDIR__";
 
     private InfinispanClusterNode localNode;
     private InfinispanCacheManager cacheManager;
@@ -85,11 +90,10 @@ public class InfinispanCluster implements Cluster {
         return CrawlSession.get(localNode);
     }
 
-    //TODO why synchronized?
     @Override
-    public synchronized void init(Path workDir) {
+    public void init(Path workDir) {
         this.workDir = workDir;
-        var builderHolder = configuration.getInfinispan();
+        var builderHolder = parseConfig();
         var globalBuilder = builderHolder.getGlobalConfigurationBuilder();
 
         // Generate unique node name
@@ -259,6 +263,23 @@ public class InfinispanCluster implements Cluster {
 
         // If transport is null or not defined, it's standalone mode
         return globalConfig == null || globalConfig.transport() == null;
+    }
+
+    private ConfigurationBuilderHolder parseConfig() {
+        var file = ofNullable(configuration.getPreset().getConfigFile())
+                .orElse(configuration.getConfigFile());
+        if (StringUtils.isBlank(file)) {
+            throw new IllegalArgumentException(
+                    "An Infinispan configuration or preset must be specified.");
+        }
+        try {
+            return new ParserRegistry().parseFile(file);
+        } catch (IOException e) {
+            throw new CacheException(
+                    "Could not load Infinispan configuration from filesystem "
+                            + "or classpath location '%s'".formatted(file),
+                    e);
+        }
     }
 
 }

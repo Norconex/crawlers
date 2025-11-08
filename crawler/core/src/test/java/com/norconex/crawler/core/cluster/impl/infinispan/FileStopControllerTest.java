@@ -24,6 +24,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.commons.lang.Sleeper;
+
 class FileStopControllerTest {
 
     @TempDir
@@ -33,13 +35,12 @@ class FileStopControllerTest {
     void testStopFileDetectedOnStartup() throws Exception {
         // Given: Controller is created first
         var stopTriggered = new AtomicBoolean(false);
-        var controller =
-                new FileStopController(tempDir, ignored -> {
-                    stopTriggered.set(true);
-                });
+        var controller = new FileStopController(tempDir, ignored -> {
+            stopTriggered.set(true);
+        });
 
         // When: A stop file is written (simulating external stop command)
-        Thread.sleep(10); // Ensure timestamp is after controller start
+        Sleeper.sleepMillis(10); // Ensure timestamp is after controller start
         FileStopController.writeStopFile(tempDir);
         var stopFile = tempDir.resolve(".stop");
         assertThat(stopFile).exists();
@@ -58,14 +59,13 @@ class FileStopControllerTest {
     void testStopFileDetectedDuringPolling() throws Exception {
         // Given: Controller is started without stop file
         var stopTriggered = new AtomicBoolean(false);
-        var controller =
-                new FileStopController(tempDir, ignored -> {
-                    stopTriggered.set(true);
-                });
+        var controller = new FileStopController(tempDir, ignored -> {
+            stopTriggered.set(true);
+        });
         controller.start();
 
         // When: Stop file is created after startup
-        Thread.sleep(500);
+        Sleeper.sleepMillis(500);
         FileStopController.writeStopFile(tempDir);
         assertThat(tempDir.resolve(".stop")).exists();
 
@@ -77,16 +77,14 @@ class FileStopControllerTest {
     }
 
     @Test
-    void testStopFileCleanedUpOnStop() throws Exception {
+    void testStopFileCleanedUpOnStop() {
         // Given: Stop file exists
         FileStopController.writeStopFile(tempDir);
         var stopFile = tempDir.resolve(".stop");
         assertThat(stopFile).exists();
 
         // When: Controller stops
-        var controller =
-                new FileStopController(
-                        tempDir, ignored -> {});
+        var controller = new FileStopController(tempDir, ignored -> {});
         controller.start();
         controller.stop();
 
@@ -115,13 +113,12 @@ class FileStopControllerTest {
     void testStopOnlyTriggeredOnce() throws Exception {
         // Given: Controller is created first
         var stopCount = new AtomicInteger(0);
-        var controller =
-                new FileStopController(tempDir, ignored -> {
-                    stopCount.incrementAndGet();
-                });
+        var controller = new FileStopController(tempDir, ignored -> {
+            stopCount.incrementAndGet();
+        });
 
         // When: Stop file is written after controller creation
-        Thread.sleep(10); // Ensure timestamp is after controller start
+        Sleeper.sleepMillis(10); // Ensure timestamp is after controller start
         FileStopController.writeStopFile(tempDir);
         controller.start();
 
@@ -130,7 +127,7 @@ class FileStopControllerTest {
         assertThat(stopCount.get()).isEqualTo(1);
 
         // Wait a bit more to ensure it's not called again
-        Thread.sleep(1000);
+        Sleeper.sleepMillis(1000);
         assertThat(stopCount.get()).isEqualTo(1);
 
         controller.stop();
@@ -140,10 +137,8 @@ class FileStopControllerTest {
     void testStaleStopFileIsIgnored() throws Exception {
         // Given: A stop file with old timestamp (10 minutes ago)
         var stopFile = tempDir.resolve(".stop");
-        var oldTimestamp =
-                System.currentTimeMillis()
-                        - java.util.concurrent.TimeUnit.MINUTES
-                                .toMillis(10);
+        var oldTimestamp = System.currentTimeMillis()
+                - java.util.concurrent.TimeUnit.MINUTES.toMillis(10);
         Files.createDirectories(tempDir);
         Files.writeString(
                 stopFile,
@@ -153,10 +148,9 @@ class FileStopControllerTest {
 
         // When: Controller starts with stale stop file
         var stopTriggered = new AtomicBoolean(false);
-        var controller =
-                new FileStopController(tempDir, ignored -> {
-                    stopTriggered.set(true);
-                });
+        var controller = new FileStopController(tempDir, ignored -> {
+            stopTriggered.set(true);
+        });
         controller.start();
 
         // Then: Stop should NOT be triggered
@@ -174,10 +168,8 @@ class FileStopControllerTest {
         // Given: A stop file created before controller initialization
         var stopFile = tempDir.resolve(".stop");
         Files.createDirectories(tempDir);
-        var oldTimestamp =
-                System.currentTimeMillis()
-                        - java.util.concurrent.TimeUnit.SECONDS
-                                .toMillis(30);
+        var oldTimestamp = System.currentTimeMillis()
+                - java.util.concurrent.TimeUnit.SECONDS.toMillis(30);
         Files.writeString(
                 stopFile,
                 String.valueOf(oldTimestamp),
@@ -186,10 +178,9 @@ class FileStopControllerTest {
 
         // When: Controller starts
         var stopTriggered = new AtomicBoolean(false);
-        var controller =
-                new FileStopController(tempDir, ignored -> {
-                    stopTriggered.set(true);
-                });
+        var controller = new FileStopController(tempDir, ignored -> {
+            stopTriggered.set(true);
+        });
         controller.start();
 
         // Then: Stop should NOT be triggered
@@ -211,10 +202,9 @@ class FileStopControllerTest {
 
         // When: Controller starts
         var stopTriggered = new AtomicBoolean(false);
-        var controller =
-                new FileStopController(tempDir, ignored -> {
-                    stopTriggered.set(true);
-                });
+        var controller = new FileStopController(tempDir, ignored -> {
+            stopTriggered.set(true);
+        });
         controller.start();
 
         // Then: Stop should NOT be triggered
@@ -223,25 +213,21 @@ class FileStopControllerTest {
         controller.stop();
     }
 
-    private void waitUntil(
-            AtomicBoolean condition, long timeoutMs)
-            throws InterruptedException {
+    private void waitUntil(AtomicBoolean condition, long timeoutMs) {
         var startTime = System.currentTimeMillis();
         while (!condition.get()
-                && (System.currentTimeMillis()
-                        - startTime) < timeoutMs) {
-            Thread.sleep(100);
+                && (System.currentTimeMillis() - startTime) < timeoutMs) {
+            Sleeper.sleepMillis(100);
         }
     }
 
     private void waitUntil(
             java.util.function.BooleanSupplier condition,
-            long timeoutMs) throws InterruptedException {
+            long timeoutMs) {
         var startTime = System.currentTimeMillis();
         while (!condition.getAsBoolean()
-                && (System.currentTimeMillis()
-                        - startTime) < timeoutMs) {
-            Thread.sleep(100);
+                && (System.currentTimeMillis() - startTime) < timeoutMs) {
+            Sleeper.sleepMillis(100);
         }
     }
 }
