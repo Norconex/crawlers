@@ -28,8 +28,12 @@ import com.norconex.crawler.core.cluster.Cache;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Cache-based stop controller for clustered crawler mode.
+ * Monitors an Infinispan cache for stop signals.
+ */
 @Slf4j
-public class StopController {
+public class CacheStopController implements CrawlerStopController {
 
     private final org.infinispan.Cache<String, String> controlCache;
     //TODO replace void by String to log or store a reason for stopping
@@ -41,7 +45,7 @@ public class StopController {
 
     private ControlListener controlListener;
 
-    public StopController(
+    public CacheStopController(
             Cache<String> controlCache, Consumer<Void> stopAction) {
         this.controlCache =
                 ((InfinispanCacheAdapter<String>) controlCache).vendor();

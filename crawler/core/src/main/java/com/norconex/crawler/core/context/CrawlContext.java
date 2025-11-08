@@ -130,18 +130,17 @@ public class CrawlContext implements Closeable {
 
     public void init(CrawlSession session) {
         getEventManager().addListenersFromScan(getCrawlConfig());
-        //TEST START
+        getCrawlEntryLedger().init(session);
+        //TODO consider skipping below initialization if not crawl command
         getMetrics().init(session);
-        //TEST END
         getCommitterService().init(CommitterContext
                 .builder()
                 .setEventManager(getEventManager())
                 .setWorkDir(getWorkDir().resolve("committer"))
                 .setStreamFactory(getStreamFactory())
                 .build());
-        getCrawlEntryLedger().init(session);
+        //        getCrawlEntryLedger().init(session);
         getDedupService().init(session);
-        //        getMetrics().init(session);
         getImporter().init();
     }
 

@@ -236,6 +236,36 @@ class CliLifecycleCommandsTest {
         assertThat(exit.getEventNames()).containsExactly(expectedEvents);
     }
 
+    @Test
+    void testStopCommandEventSequence() {
+        // we are just testing that the CLI is launching, not that it actually
+        // stopped, which is tested separately.
+        var exit = TestCliCrawlerLauncher
+                .builder()
+                .args(List.of("stop"))
+                .workDir(tempDir)
+                .printErrors(true)
+                .build()
+                .launch(twoDocsConfig());
+
+        assertThat(exit.getCode()).isZero();
+
+        String[] expectedEvents = {
+                CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
+                CommitterEvent.COMMITTER_INIT_BEGIN,
+                CommitterEvent.COMMITTER_INIT_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
+                CrawlerEvent.CRAWLER_STOP_REQUEST_BEGIN,
+                CrawlerEvent.CRAWLER_STOP_REQUEST_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
+                CommitterEvent.COMMITTER_CLOSE_BEGIN,
+                CommitterEvent.COMMITTER_CLOSE_END,
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
+        };
+
+        assertThat(exit.getEventNames()).containsExactly(expectedEvents);
+    }
+
     private CrawlConfig twoDocsConfig() {
         var config = new CrawlConfig();
         config.setStartReferences(List.of(

@@ -35,3 +35,4 @@ crawler/core/src/main/resources/log4j2-local.xml
 
 crawler/core/.factorypath
 crawler/core/.factorypath
+/.mvn/
