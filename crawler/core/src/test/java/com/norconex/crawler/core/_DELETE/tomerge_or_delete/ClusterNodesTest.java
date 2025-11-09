@@ -11,8 +11,8 @@ import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.norconex.crawler.core.CrawlDriver;
+import com.norconex.crawler.core._DELETE.MockMultiNodesConnector;
 import com.norconex.crawler.core.cluster.ClusterConnector;
-import com.norconex.crawler.core.mocks.cluster.MockMultiNodesConnector;
 import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 
 /**
@@ -38,6 +38,7 @@ import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 @Target({ ElementType.METHOD })
 @TestTemplate
 @ExtendWith(ClusterNodesTestExtension.class)
+@Deprecated
 public @interface ClusterNodesTest {
 
     /** Node counts (cluster sizes) to execute the test with. */

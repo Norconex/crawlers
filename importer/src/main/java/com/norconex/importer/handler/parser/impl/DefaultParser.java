@@ -123,7 +123,7 @@ public class DefaultParser
                     input,
                     new BodyContentHandler(output), tikaMetadata, context);
         } catch (ZeroByteFileException e) {
-            LOG.warn("Document has no content: {}", ctx.reference());
+            LOG.info("Document has no content: {}", ctx.reference());
         } catch (IOException e) {
             throw e;
         } catch (Exception e) {

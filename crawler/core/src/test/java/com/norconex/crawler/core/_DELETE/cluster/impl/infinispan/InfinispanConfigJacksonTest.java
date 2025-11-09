@@ -1,4 +1,4 @@
-package com.norconex.crawler.core.cluster.impl.infinispan;
+package com.norconex.crawler.core._DELETE.cluster.impl.infinispan;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -33,13 +33,7 @@ class InfinispanConfigJacksonTest {
     void testDeserializeAndSerialize() throws Exception {
         var mapper = new ObjectMapper();
 
-        // Register custom serializer & deserializer
-        var module = new SimpleModule();
-        module.addDeserializer(ConfigurationBuilderHolder.class,
-                new InfinispanConfigDeserializer());
-        module.addSerializer(ConfigurationBuilderHolder.class,
-                new InfinispanConfigSerializer());
-        mapper.registerModule(module);
+        new SimpleModule();
 
         // Deserialize XML string wrapped in JSON string
         // (simulate embedding XML in JSON)
@@ -68,12 +62,7 @@ class InfinispanConfigJacksonTest {
     void testDeserializeSerializeRoundTripIsEqual() throws Exception {
         var mapper = new ObjectMapper();
 
-        var module = new SimpleModule();
-        module.addDeserializer(ConfigurationBuilderHolder.class,
-                new InfinispanConfigDeserializer());
-        module.addSerializer(ConfigurationBuilderHolder.class,
-                new InfinispanConfigSerializer());
-        mapper.registerModule(module);
+        new SimpleModule();
 
         var jsonWithXml = "\""
                 + SAMPLE_XML.replace("\"", "\\\"").replace("\n", "\\n") + "\"";

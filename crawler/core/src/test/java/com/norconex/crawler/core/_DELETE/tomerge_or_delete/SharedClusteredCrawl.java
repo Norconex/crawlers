@@ -54,6 +54,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @ExtendWith(SharedClusteredCrawlExtension.class)
+@Deprecated
 public @interface SharedClusteredCrawl {
     /**
      * The driver supplier class to use for the crawler.

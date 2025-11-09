@@ -22,8 +22,6 @@ import com.norconex.crawler.core._DELETE.ClusterTestUtil;
 import com.norconex.crawler.core.cluster.CacheManager;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.ClusterConnector;
-import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanClusterConnector;
-import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanUtil;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionFactory;
@@ -104,14 +102,14 @@ class ClusterNodesInvocationContext implements TestTemplateInvocationContext {
             cfg.setWorkDir(workDir);
             ClusterConnector connector =
                     ann.connector().getDeclaredConstructor().newInstance();
-            if (connector instanceof InfinispanClusterConnector ic) {
-                var builderHolder = InfinispanUtil.configBuilderHolder(
-                        ann.infinispanConfig());
-                ic.getConfiguration()
-                        .setInfinispan(builderHolder)
-                        .setNodeExpiryTimeout(Duration
-                                .ofMillis(ann.infinispanNodeExpiryTimeout()));
-            }
+            //            if (connector instanceof InfinispanClusterConnector ic) {
+            //                var builderHolder = InfinispanUtil.configBuilderHolder(
+            //                        ann.infinispanConfig());
+            //                ic.getConfiguration()
+            //                        .setInfinispan(builderHolder)
+            //                        .setNodeExpiryTimeout(Duration
+            //                                .ofMillis(ann.infinispanNodeExpiryTimeout()));
+            //            }
             cfg.setClusterConnector(connector);
             return CrawlSessionFactory.create(driverFactory.get(), cfg);
         } catch (Exception e) {

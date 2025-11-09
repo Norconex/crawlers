@@ -39,8 +39,8 @@ public class CoreTestPtProvider extends BasePolymorphicTypeProvider {
                 .add(ClusterConnector.class,
                         TestClusterConnectorBuilder.ClusterNoPersistence.class,
                         TestClusterConnectorBuilder.ClusterWithPersistence.class,
-                        TestClusterConnectorBuilder.LocalNoPersistence.class,
-                        TestClusterConnectorBuilder.LocalWithPersistence.class,
+                        TestClusterConnectorBuilder.StandaloneNoPersistence.class,
+                        TestClusterConnectorBuilder.StandaloneWithPersistence.class,
                         MockFailingClusterConnector.class,
                         MockSingleNodeConnector.class,
                         MockMultiNodesConnector.class);

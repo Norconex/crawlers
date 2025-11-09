@@ -2,6 +2,8 @@ package com.norconex.crawler.core.cluster.pipeline;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.junit.jupiter.api.Test;
 
 class PipelineProgressBeanTest {
@@ -14,13 +16,13 @@ class PipelineProgressBeanTest {
         }
 
         @Override
-        public java.util.concurrent.CompletableFuture<PipelineResult>
+        public CompletableFuture<PipelineResult>
                 executePipeline(Pipeline pipeline) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public java.util.concurrent.CompletableFuture<Void>
+        public CompletableFuture<Void>
                 stopPipeline(String pipelineId) {
             throw new UnsupportedOperationException();
         }

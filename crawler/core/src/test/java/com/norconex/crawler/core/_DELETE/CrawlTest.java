@@ -29,7 +29,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.cluster.ClusterConnector;
-import com.norconex.crawler.core.mocks.cluster.MockMultiNodesConnector;
 import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 import com.norconex.crawler.core.stubs.CrawlerConfigStubber;
 
@@ -50,6 +49,7 @@ import com.norconex.crawler.core.stubs.CrawlerConfigStubber;
 @Target({ ElementType.METHOD, ElementType.TYPE, ElementType.ANNOTATION_TYPE })
 @ExtendWith(CrawlTestExtension.class)
 @TestTemplate
+@Deprecated
 public @interface CrawlTest {
 
     // Execution order:

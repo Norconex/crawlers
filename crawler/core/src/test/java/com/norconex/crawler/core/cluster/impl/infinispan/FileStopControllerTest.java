@@ -32,7 +32,7 @@ class FileStopControllerTest {
     Path tempDir;
 
     @Test
-    void testStopFileDetectedOnStartup() throws Exception {
+    void testStopFileDetectedOnStartup() {
         // Given: Controller is created first
         var stopTriggered = new AtomicBoolean(false);
         var controller = new FileStopController(tempDir, ignored -> {
@@ -56,7 +56,7 @@ class FileStopControllerTest {
     }
 
     @Test
-    void testStopFileDetectedDuringPolling() throws Exception {
+    void testStopFileDetectedDuringPolling() {
         // Given: Controller is started without stop file
         var stopTriggered = new AtomicBoolean(false);
         var controller = new FileStopController(tempDir, ignored -> {
@@ -110,7 +110,7 @@ class FileStopControllerTest {
     }
 
     @Test
-    void testStopOnlyTriggeredOnce() throws Exception {
+    void testStopOnlyTriggeredOnce() {
         // Given: Controller is created first
         var stopCount = new AtomicInteger(0);
         var controller = new FileStopController(tempDir, ignored -> {

@@ -27,8 +27,8 @@ import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.CrawlCallbacks;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
-import com.norconex.crawler.core._DELETE.cluster.impl.infinispan.FastLocalInfinispanClusterConnector;
 import com.norconex.crawler.core.cluster.impl.infinispan.CacheNames;
+import com.norconex.crawler.core.cluster.impl.infinispan.TestClusterConnectorBuilder;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
 import com.norconex.crawler.core.cmd.storeexport.StoreExportCommand;
@@ -83,13 +83,11 @@ final class CrawlDriverInstrumentor {
             var nodeWorkDir = Path.of(
                     System.getProperty(CrawlerNode.PROP_NODE_WORKDIR));
             cfg.setWorkDir(nodeWorkDir);
-
-            // Set FastLocalInfinispanClusterConnector if not already set
-            // This avoids serialization issues and ensures all test nodes
-            // use the optimized local cluster connector
+            // defaults to cluster with persistence if no connector
+            // specified
             if (cfg.getClusterConnector() == null) {
                 cfg.setClusterConnector(
-                        new FastLocalInfinispanClusterConnector());
+                        new TestClusterConnectorBuilder.ClusterWithPersistence());
             }
 
             // call original if present

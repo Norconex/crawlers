@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cluster.impl.infinispan;
+package com.norconex.crawler.core._DELETE.cluster.impl.infinispan;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

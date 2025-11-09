@@ -15,6 +15,7 @@ import com.norconex.crawler.core.session.CrawlSession;
 import de.huxhorn.sulky.ulid.ULID;
 
 /** Utility helpers for cluster-related tests. */
+@Deprecated
 public final class ClusterTestUtil {
     private ClusterTestUtil() {
     }

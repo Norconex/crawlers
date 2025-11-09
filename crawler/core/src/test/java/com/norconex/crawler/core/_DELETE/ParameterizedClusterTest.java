@@ -30,8 +30,6 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import com.norconex.crawler.core._DELETE.ParameterizedClusterTest.ClusterConnectorProvider;
-import com.norconex.crawler.core.mocks.cluster.MockMultiNodesConnector;
-import com.norconex.crawler.core.mocks.cluster.MockSingleNodeConnector;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

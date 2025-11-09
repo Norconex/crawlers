@@ -79,7 +79,7 @@ public class CrawlerCluster implements AutoCloseable {
         configFile = clusterRootDir.resolve("config.yaml");
 
         initCrawlerId();
-        CoreTestUtil.writeConfigToDir(crawlConfig, configFile);
+        CoreTestUtil.writeConfigToFile(crawlConfig, configFile);
     }
 
     /**
@@ -114,6 +114,43 @@ public class CrawlerCluster implements AutoCloseable {
                 DurationFormatter.FULL.format(timeout), expectedNodeCount);
         var elapsed = 0L;
         while (elapsed < totalWaitMs) {
+            // Check if any nodes have crashed early
+            var deadNodes = nodes.stream()
+                    .filter(n -> !n.getProcess().isAlive())
+                    .toList();
+            
+            if (!deadNodes.isEmpty()) {
+                LOG.error(
+                        "{} node(s) crashed during initialization:",
+                        deadNodes.size());
+                for (CrawlerNode node : deadNodes) {
+                    LOG.error("Node {} exited with code: {}",
+                            node.getWorkDir().getFileName(),
+                            node.getProcess().exitValue());
+                    
+                    // Log stderr to help diagnose the issue
+                    var stderr = node.getStderr();
+                    if (!stderr.isEmpty()) {
+                        LOG.error("Node {} stderr:\n{}",
+                                node.getWorkDir().getFileName(),
+                                stderr);
+                    }
+                    
+                    // Log stdout as well
+                    var stdout = node.getStdout();
+                    if (!stdout.isEmpty()) {
+                        LOG.error("Node {} stdout:\n{}",
+                                node.getWorkDir().getFileName(),
+                                stdout);
+                    }
+                }
+                
+                throw new IllegalStateException(
+                        deadNodes.size() + " node(s) crashed during "
+                                + "initialization. Check logs above for "
+                                + "details.");
+            }
+            
             var nodeCount = state.highestNodeIntOrZero(NodeState.NODE_COUNT);
             if (nodeCount >= expectedNodeCount) {
                 LOG.info("Expected number of nodes ({}) reached after {}.",
@@ -122,7 +159,6 @@ public class CrawlerCluster implements AutoCloseable {
                 return; // Exit early when nodes have joined
             }
 
-            // Check if any nodes have crashed or reported errors
             Sleeper.sleepMillis(NODE_COUNT_SYNC_MS);
             elapsed += NODE_COUNT_SYNC_MS;
         }
@@ -133,6 +169,17 @@ public class CrawlerCluster implements AutoCloseable {
                 DurationFormatter.FULL.format(timeout),
                 expectedNodeCount,
                 state.highestNodeIntOrZero(NodeState.NODE_COUNT));
+        
+        // Log status of all nodes for debugging
+        for (CrawlerNode node : nodes) {
+            LOG.error(
+                    "Node {} status - alive: {}, exit value: {}",
+                    node.getWorkDir().getFileName(),
+                    node.getProcess().isAlive(),
+                    node.getProcess().isAlive() 
+                            ? "N/A" 
+                            : node.getProcess().exitValue());
+        }
     }
 
     public ClusteredCrawlOuput

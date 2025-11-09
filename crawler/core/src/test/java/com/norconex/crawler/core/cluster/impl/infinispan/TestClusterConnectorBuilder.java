@@ -38,8 +38,8 @@ public final class TestClusterConnectorBuilder {
                     : new ClusterNoPersistence();
         }
         return persistent
-                ? new LocalWithPersistence()
-                : new LocalNoPersistence();
+                ? new StandaloneWithPersistence()
+                : new StandaloneNoPersistence();
     }
 
     @RequiredArgsConstructor
@@ -56,14 +56,14 @@ public final class TestClusterConnectorBuilder {
         }
     }
 
-    public static class LocalNoPersistence extends TestClusterConnector {
-        public LocalNoPersistence() {
+    public static class StandaloneNoPersistence extends TestClusterConnector {
+        public StandaloneNoPersistence() {
             super("cache/test-local-no-persistence.xml");
         }
     }
 
-    public static class LocalWithPersistence extends TestClusterConnector {
-        public LocalWithPersistence() {
+    public static class StandaloneWithPersistence extends TestClusterConnector {
+        public StandaloneWithPersistence() {
             super("cache/test-local-with-persistence.xml");
         }
     }

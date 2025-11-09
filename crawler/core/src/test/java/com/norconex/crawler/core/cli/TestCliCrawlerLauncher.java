@@ -110,10 +110,6 @@ public class TestCliCrawlerLauncher {
                 config.addEventListener(new TestEventMemoryListener());
             }
 
-            //            if (config.getClusterConnector() == null) {
-            //                config.setClusterConnector(
-            //                        new FastLocalInfinispanClusterConnector());
-            //            }
             config.setClusterConnector(new TestClusterConnectorBuilder()
                     .cluster(cluster)
                     .persistent(persistent)
