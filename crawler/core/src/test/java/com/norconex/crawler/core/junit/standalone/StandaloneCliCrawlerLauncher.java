@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cli;
+package com.norconex.crawler.core.junit.standalone;
 
 import static java.util.Optional.ofNullable;
 
@@ -30,9 +30,11 @@ import com.norconex.commons.lang.SystemUtil;
 import com.norconex.commons.lang.SystemUtil.Captured;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
-import com.norconex.crawler.core.cluster.impl.infinispan.TestClusterConnectorBuilder;
+import com.norconex.crawler.core.cli.CliCrawlerLauncher;
+import com.norconex.crawler.core.cluster.impl.infinispan.TestClusterConnector;
 import com.norconex.crawler.core.event.listeners.TestEventMemory;
 import com.norconex.crawler.core.event.listeners.TestEventMemoryListener;
+import com.norconex.crawler.core.junit.CrawlerExecutionResult;
 import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 import com.norconex.crawler.core.util.CoreTestUtil;
 
@@ -64,7 +66,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Builder
-public class TestCliCrawlerLauncher {
+public class StandaloneCliCrawlerLauncher {
 
     public static final String DEFAULT_CRAWLER_ID = "test-crawler";
 
@@ -82,11 +84,11 @@ public class TestCliCrawlerLauncher {
     private final boolean cluster;
     private final boolean persistent;
 
-    public TestCliCrawlerExit launch() {
+    public StandaloneExecutionResult launch() {
         return launch(null);
     }
 
-    public TestCliCrawlerExit launch(CrawlConfig crawlConfig) {
+    public StandaloneExecutionResult launch(CrawlConfig crawlConfig) {
         var driver = ofNullable(crawlDriver).orElseGet(
                 TestCrawlDriverFactory::create);
         var allArgs = new ArrayList<>(args);
@@ -110,7 +112,7 @@ public class TestCliCrawlerLauncher {
                 config.addEventListener(new TestEventMemoryListener());
             }
 
-            config.setClusterConnector(new TestClusterConnectorBuilder()
+            config.setClusterConnector(TestClusterConnector.builder()
                     .cluster(cluster)
                     .persistent(persistent)
                     .build());
@@ -126,7 +128,7 @@ public class TestCliCrawlerLauncher {
         }
 
         // Launch
-        var exit = new TestCliCrawlerExit();
+        var exit = new StandaloneExecutionResult();
         LOG.info("CLI arguments: {}", String.join(" ", allArgs));
         try (var memEvents = TestEventMemory.create()) {
             Captured<Integer> captured =
@@ -134,7 +136,7 @@ public class TestCliCrawlerLauncher {
                             () -> CliCrawlerLauncher.launch(
                                     driver, allArgs.toArray(
                                             ArrayUtils.EMPTY_STRING_ARRAY))));
-            exit.setCode(captured.getReturnValue());
+            exit.setExitCode(captured.getReturnValue());
             exit.setStdOut(captured.getStdOut());
             exit.setStdErr(captured.getStdErr());
             exit.getEvents().addAll(TestEventMemory.getEvents());
@@ -148,6 +150,27 @@ public class TestCliCrawlerLauncher {
             LOG.error(exit.getStdErr());
         }
         return exit;
+    }
+
+    /**
+     * Launches the crawler and returns the result as a unified
+     * {@link CrawlerExecutionResult} interface (instead of
+     * {@link StandaloneExecutionResult}).
+     * This allows using the same result type for both CLI and cluster tests.
+     * @return unified crawler execution result
+     */
+    public CrawlerExecutionResult launchAndGetResult() {
+        return launchAndGetResult(null);
+    }
+
+    /**
+     * Launches the crawler with the given config and returns the result
+     * as a unified {@link CrawlerExecutionResult} interface.
+     * @param crawlConfig the crawler configuration
+     * @return unified crawler execution result
+     */
+    public CrawlerExecutionResult launchAndGetResult(CrawlConfig crawlConfig) {
+        return launch(crawlConfig);
     }
 
     /**

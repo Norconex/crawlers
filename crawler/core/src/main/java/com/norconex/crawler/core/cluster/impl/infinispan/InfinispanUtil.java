@@ -32,7 +32,8 @@ public final class InfinispanUtil {
     /**
      * Whether a pipeline should be considered "terminated", either by
      * completing all steps (success), or having a non-COMPLETED terminal
-     * status on any of the steps (aborting the pipeline).
+     * status on any of the steps (aborting the pipeline), or, having
+     * a completed step when stopping was requested.
      * A {@code null} step record suggests no steps have yet run so
      * we consider it non-terminated.
      * @param pipeline the pipeline
@@ -40,14 +41,34 @@ public final class InfinispanUtil {
      * @return true if terminated
      */
     public static boolean isPipelineTerminated(
-            Pipeline pipeline, StepRecord stepRecord) {
+            Pipeline pipeline,
+            StepRecord stepRecord,
+            boolean stopRequested) {
+
         if (stepRecord == null || stepRecord.getStatus() == null) {
             return false;
         }
-        return stepRecord.getStatus().isTerminal()
-                && ((stepRecord.getStatus() != PipelineStatus.COMPLETED)
-                        || Objects.equal(stepRecord.getStepId(),
-                                pipeline.getLastStep().getId()));
+
+        var terminal = stepRecord.getStatus().isTerminal();
+
+        // stop was requested and the current step has completed
+        if (terminal && stopRequested) {
+            return true;
+        }
+
+        // current step is the same as last step
+        var isLastStep = Objects.equal(stepRecord.getStepId(),
+                pipeline.getLastStep().getId());
+
+        // all steps have terminated
+        if (terminal && isLastStep) {
+            return true;
+        }
+
+        // the step is a terminal, but non-COMPLETED, which means
+        // the pipeline fail and we consider terminated even if not last
+        var isCompleted = stepRecord.getStatus() == PipelineStatus.COMPLETED;
+        return terminal && !isCompleted;
     }
 
     // either the first pipeline step or an existing one (joining mid-pipe).
@@ -79,24 +100,6 @@ public final class InfinispanUtil {
         return cluster.getCacheManager().vendor()
                 .getStatus() == ComponentStatus.RUNNING;
     }
-
-    //    public static ConfigurationBuilderHolder configBuilderHolder(
-    //            String path) {
-    //        try (var is = InfinispanUtil.class.getResourceAsStream(path)) {
-    //            return new ParserRegistry(
-    //                    Thread.currentThread().getContextClassLoader()).parse(
-    //                            is, MediaType.APPLICATION_XML);
-    //        } catch (IOException e) {
-    //                throw new CacheException(
-    //                        "Could not load Infinispan configuration from classpath "
-    //                                + "location '%s'".formatted(path),
-    //                        e);
-    //        }
-    //    }
-    //
-    //    public static ConfigurationBuilderHolder defaultConfigBuilderHolder() {
-    //        return configBuilderHolder("/cache/infinispan.xml");
-    //    }
 
     public static void waitForClusterWarmUp(InfinispanCluster cluster) {
         // Allow up to ~5 seconds for same-JVM multi-node tests to stabilize

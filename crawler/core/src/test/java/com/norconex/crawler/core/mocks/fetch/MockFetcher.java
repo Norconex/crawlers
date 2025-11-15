@@ -16,9 +16,9 @@ package com.norconex.crawler.core.mocks.fetch;
 
 import java.io.ByteArrayInputStream;
 
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
-import com.norconex.crawler.core.fetch.BaseFetcherConfig;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
@@ -29,23 +29,25 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-public class MockFetcher extends AbstractFetcher<BaseFetcherConfig> {
+public class MockFetcher extends AbstractFetcher<MockFetcherConfig> {
 
-    private BaseFetcherConfig configuration = new BaseFetcherConfig();
-
-    private Boolean denyRequest;
-    private boolean returnBadStatus;
-    private boolean randomDocContent;
+    private MockFetcherConfig configuration = new MockFetcherConfig();
 
     @Override
     public MockFetchResponse fetch(FetchRequest fetchRequest)
             throws FetchException {
+
+        if (configuration.getDelay() != null) {
+            Sleeper.sleepMillis(configuration.getDelay().toMillis());
+        }
+
         var req = (MockFetchRequest) fetchRequest;
         var resp = new MockFetchResponseImpl();
         resp.setProcessingOutcome(
-                returnBadStatus ? ProcessingOutcome.BAD_STATUS
+                configuration.isReturnBadStatus()
+                        ? ProcessingOutcome.BAD_STATUS
                         : ProcessingOutcome.NEW);
-        var content = randomDocContent
+        var content = configuration.isRandomDocContent()
                 ? "Fake content for: " + req.getRef()
                         + "\nRandomness: " + TimeIdGenerator.next()
                 : "Fake content for: " + req.getRef();
@@ -56,9 +58,9 @@ public class MockFetcher extends AbstractFetcher<BaseFetcherConfig> {
 
     @Override
     public boolean acceptRequest(@NonNull FetchRequest fetchRequest) {
-        if (denyRequest == null) {
+        if (configuration.getDenyRequest() == null) {
             return super.acceptRequest(fetchRequest);
         }
-        return !denyRequest;
+        return !configuration.getDenyRequest();
     }
 }

@@ -24,6 +24,12 @@
     </Console>
   </Appenders>
   <Loggers>
+    <Logger name="ImporterEvent" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="CommitterServiceEvent" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
     <Logger name="com.norconex.crawler.core" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
@@ -36,13 +42,16 @@
     <Logger name="com.norconex.importer" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
+    <Logger name="com.norconex.commons.lang.event" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
     <Logger name="com.norconex.commons.lang.bean" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="com.norconex.commons.lang.config" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="org.infinispan" level="INFO" additivity="false">
+    <Logger name="org.infinispan" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="org.jgroups" level="INFO" additivity="false">

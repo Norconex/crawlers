@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,14 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cmd;
+package com.norconex.crawler.core.cluster.admin;
 
-import com.norconex.crawler.core.session.CrawlSession;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-/**
- * A crawler command launched within an active crawl session.
- */
-@FunctionalInterface
-public interface Command {
-    void execute(CrawlSession session);
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+enum Endpoint {
+    CLUSTER_SIZE("/cluster/size"),
+    CLUSTER_NODES("/cluster/nodes"),
+    CLUSTER_STOP("/cluster/stop");
+
+    @Getter
+    private final String path;
+
+    @Override
+    public String toString() {
+        return path;
+    }
+
 }

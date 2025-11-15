@@ -92,24 +92,35 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
 
     @Override
     public void close() {
-        try {
-            var counter = REF_COUNTS.get(dcm);
-            if (counter == null) {
-                // Unknown state; be conservative and attempt close
+        var counter = REF_COUNTS.get(dcm);
+        if (counter == null) {
+            // Unknown state; be conservative and attempt stop
+            LOG.debug("Stopping Infinispan CacheManager (unknown ref count)");
+            dcm.stop();
+            // Also call close to ensure complete shutdown
+            try {
                 dcm.close();
-                return;
+            } catch (IOException e) {
+                LOG.warn("Error closing CacheManager after stop", e);
             }
-            var remaining = counter.decrementAndGet();
-            if (remaining <= 0) {
-                REF_COUNTS.remove(dcm);
+            return;
+        }
+        var remaining = counter.decrementAndGet();
+        if (remaining <= 0) {
+            REF_COUNTS.remove(dcm);
+            LOG.debug("Stopping Infinispan CacheManager (last reference)");
+            // Call stop() first to halt operations, then close()
+            // to release all resources and terminate threads
+            dcm.stop();
+            try {
                 dcm.close();
-            } else {
-                LOG.debug("InfinispanCacheManager underlying container still "
-                        + "in use by {} manager(s); skipping close.",
-                        remaining);
+            } catch (IOException e) {
+                throw new CacheException("Could not close cache manager.", e);
             }
-        } catch (IOException e) {
-            throw new CacheException("Could not close cache manager.", e);
+        } else {
+            LOG.debug("InfinispanCacheManager underlying container still "
+                    + "in use by {} manager(s); skipping close.",
+                    remaining);
         }
     }
 
@@ -159,6 +170,7 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
 
     // Use the default cache in the default cache container:
     //   <cache-container name="default" default-cache="base-template">
+    //TODO extract a few methods to make it cleaner:
     private <T> org.infinispan.Cache<String, T> getInfiniCache(
             String cacheName) {
 
@@ -181,7 +193,8 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
                     return dcm.getCache(cacheName);
                 }
 
-                // 1) Prefer container mappings (named configs, wildcards, default)
+                // 1) Prefer container mappings (named configs, wildcards,
+                //    default)
                 try {
                     LOG.info("Starting cache '{}' using container mappings.",
                             cacheName);
@@ -192,7 +205,8 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
                             cacheName, startErr.toString());
                 }
 
-                // 2) Define from the cache-container default cache name, if present
+                // 2) Define from the cache-container default cache name, if
+                //    present
                 try {
                     String defaultCacheName = null;
                     try {
@@ -205,8 +219,8 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
                         var templateCfg =
                                 dcm.getCacheConfiguration(defaultCacheName);
                         if (templateCfg != null) {
-                            LOG.info(
-                                    "Defining cache '{}' from container default cache '{}'.",
+                            LOG.info("Defining cache '{}' from container "
+                                    + "default cache '{}'.",
                                     cacheName, defaultCacheName);
                             var concrete = new ConfigurationBuilder()
                                     .read(templateCfg)
@@ -224,11 +238,13 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
                     return dcm.getCache(cacheName);
                 }
 
-                // 3) Fallback to container's default cache configuration, if any
+                // 3) Fallback to container's default cache configuration,
+                //    if any
                 var defaultCfg = dcm.getDefaultCacheConfiguration();
                 if (defaultCfg != null) {
                     LOG.info(
-                            "Defining cache '{}' from DefaultCacheManager default configuration.",
+                            "Defining cache '{}' from DefaultCacheManager "
+                                    + "default configuration.",
                             cacheName);
                     var concrete = new ConfigurationBuilder()
                             .read(defaultCfg)
@@ -246,8 +262,8 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
                 }
 
                 // 4) Last-resort: programmatically define a distributed cache
-                LOG.warn(
-                        "No container/default template found. Defining '{}' as DIST_SYNC on the fly.",
+                LOG.warn("No container/default template found. "
+                        + "Defining '{}' as DIST_SYNC on the fly.",
                         cacheName);
                 var distCfg = new ConfigurationBuilder()
                         .clustering().cacheMode(CacheMode.DIST_SYNC)
@@ -264,8 +280,9 @@ public class InfinispanCacheManager implements CacheManager, Closeable {
             }
         } catch (RuntimeException e) {
             throw new PipelineException(
-                    ("Could not create Infinispan cache %s from available configuration.")
-                            .formatted(cacheName),
+                    ("Could not create Infinispan cache %s from "
+                            + "available configuration.")
+                                    .formatted(cacheName),
                     e);
         }
     }

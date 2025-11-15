@@ -14,35 +14,29 @@
  */
 package com.norconex.crawler.core.junit.cluster.node;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
+import com.norconex.crawler.core.junit.JvmProcess;
+import com.norconex.crawler.core.junit.WithLogLevel;
 import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
-import com.norconex.crawler.core.util.ExceptionSwallower;
+import com.norconex.crawler.core.util.ExecUtil;
+import com.norconex.crawler.core.util.ThreadTracker;
 
-import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Generated;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * A crawler node on a crawler cluster, for testing. Each node runs
- * on its own JVM but this class is to be used on the test JVM as a client
- * to the corresponding running node.
- */
 @Slf4j
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+@Builder
 public class CrawlerNode {
 
     static final String PROP_DRIVER_SUPPL = "node.driverSupplier";
@@ -50,200 +44,99 @@ public class CrawlerNode {
     static final String PROP_EXPORT_CACHES = "node.exportCaches";
     static final String PROP_NODE_WORKDIR = "node.workdir";
 
-    private enum StdType {
-        STDOUT, STDERR
+    // to make triple-certain that the debug port is not reused on nodes
+    private static final AtomicInteger launchCount = new AtomicInteger();
+
+    @Singular
+    private final List<String> appArgs;
+    @Singular
+    private final List<String> jvmArgs;
+    @Singular
+    private final List<WithLogLevel> logLevels;
+    private Class<? extends Supplier<CrawlDriver>> driverSupplierClass;
+    private boolean exportEvents;
+    private boolean exportCaches;
+
+    public NodeExecutionResult launch(Path nodeWorkDir, Path configFile) {
+        // Extract cluster root from nodeWorkDir (parent directory)
+        var clusterRootDir = nodeWorkDir.getParent();
+
+        var cmd = JvmProcess.builder()
+                .mainClass(CrawlerNode.class)
+                .workDir(nodeWorkDir)
+                .appArgs(appArgs);
+        applyDebugMode(cmd);
+        applyLogLevels(cmd);
+        applyJvmArgs(cmd, nodeWorkDir, configFile, clusterRootDir);
+        return new NodeExecutionResult(cmd.build().start(), nodeWorkDir);
     }
 
-    @Getter
-    private final Process process;
-    @Getter
-    private final Path workDir;
+    private void applyJvmArgs(
+            JvmProcess.JvmProcessBuilder cmd,
+            Path nodeWorkDir,
+            Path configFile,
+            Path clusterRootDir) {
+        cmd.jvmArgs(jvmArgs);
 
-    public List<String> getEvents() {
-        return NodeEventsExporter.parseEvents(workDir);
+        // Force IPv4 and disable IPv6 to prevent JGroups IPv6 binding warnings
+        cmd.jvmArg("-Djava.net.preferIPv4Stack=true");
+        cmd.jvmArg("-Djava.net.preferIPv6Addresses=false");
+        // Disable IPv6 completely to suppress JGroups interface enumeration warnings
+        cmd.jvmArg("-Djava.net.disableIPv6=true");
+
+        // only set config path if one is set, with at least one argument
+        if (!appArgs.isEmpty() && configFile != null) {
+            cmd.appArg("-config")
+                    .appArg(configFile.toAbsolutePath().toString());
+        }
+        cmd.jvmArg(dArg(PROP_DRIVER_SUPPL,
+                Optional.<Class<? extends Supplier<CrawlDriver>>>ofNullable(
+                        driverSupplierClass)
+                        .orElse(TestCrawlDriverFactory.class).getName()));
+        cmd.jvmArg(dArg(PROP_EXPORT_EVENTS, exportEvents));
+        cmd.jvmArg(dArg(PROP_EXPORT_CACHES, exportCaches));
+        cmd.jvmArg(dArg(PROP_NODE_WORKDIR, nodeWorkDir));
+
+        // Set JGroups FILE_PING location to cluster root for node discovery
+        if (clusterRootDir != null) {
+            var pingLocation =
+                    clusterRootDir.resolve("jgroups-ping").toAbsolutePath();
+            cmd.jvmArg(dArg("jgroups.ping.location", pingLocation));
+        }
     }
 
-    public Properties loadStateProps() {
-        return NodeState.load(workDir);
+    private void applyDebugMode(JvmProcess.JvmProcessBuilder cmd) {
+        if (ExecUtil.isDebugMode()) {
+            cmd.jvmArg("-agentlib:jdwp=transport=dt_socket,"
+                    + "server=y,suspend=n,address=*:"
+                    + findAvailableDebugPort(
+                            5005 + launchCount.getAndIncrement()));
+        }
     }
 
-    /**
-     * Returns the content of stdout.log as a string.
-     * @return the stdout content, or empty string if file doesn't exist
-     */
-    public String getStdout() {
-        return readLogFile(JvmProcess.STDOUT_FILE_NAME);
-    }
-
-    /**
-     * Returns the content of stderr.log as a string.
-     * @return the stderr content, or empty string if file doesn't exist
-     */
-    public String getStderr() {
-        return readLogFile(JvmProcess.STDERR_FILE_NAME);
-    }
-
-    /**
-     * Checks if the node encountered any errors during execution by examining
-     * both stdout and stderr logs for ERROR or Exception patterns. Also checks
-     * if the process exited with a non-zero exit code.
-     * @return true if errors were detected
-     */
-    public boolean hasErrors() {
-        // Check if process died with error
-        if (!process.isAlive()) {
-            var exitCode = process.exitValue();
-            if (exitCode != 0) {
-                return true;
+    private int findAvailableDebugPort(int startPort) {
+        for (var port = startPort; port < startPort + 100; port++) {
+            try (var socket = new java.net.ServerSocket(port)) {
+                return port;
+            } catch (java.io.IOException e) {
+                // Port is taken, try next
             }
         }
-
-        // Check both stdout and stderr since errors may be logged to either
-        var stdout = getStdout();
-        var stderr = getStderr();
-        var combinedOutput = stdout + stderr;
-
-        // Filter out entire log lines containing known harmless errors
-        // Split by newlines, filter out harmless patterns, rejoin
-        var lines = combinedOutput.lines().toList();
-        var filteredLines = new StringBuilder();
-
-        for (var line : lines) {
-            // Skip lines containing harmless JGroups errors
-            if (line.contains("JGRP000027: failed passing message up")
-                    || line.contains("Cannot invoke \"org.jgroups.protocols"
-                            + ".TpHeader.clusterName()\"")
-                    || line.contains(" on net6: java.lang.NullPointerException")
-                    || line.contains("ISPN000517: Ignoring cache topology")) {
-                continue; // Skip Infinispan merge warnings
-            }
-            if (line.contains("ExceptionSwallower")
-                    || line.contains("org.jgroups.util.SubmitToThreadPool"
-                            + "$SingleMessageHandler.getClusterName")
-                    || line.contains("org.jgroups.util.SubmitToThreadPool"
-                            + "$SingleMessageHandler.run")) {
-                continue; // Skip JGroups stack trace lines
-            }
-            filteredLines.append(line).append('\n');
-        }
-
-        // Look for actual errors, not just any exception logging
-        // Be careful not to match INFO-level status messages
-        return filteredLines.toString().contains(" ERROR ");
-        //                || filteredOutput.contains("Exception:")
-        //                || (filteredOutput.contains("Pipeline step")
-        //                        && filteredOutput.contains("failed"))
-        //                || filteredOutput.contains("PersistenceException")
-        //                || filteredOutput
-        //                        .contains("Crawler terminated with state: FAILED");
+        throw new RuntimeException("No available debug port found");
     }
 
-    /**
-     * Gets a summary of errors found in the stdout and stderr logs.
-     * @return error summary, or empty string if no errors found
-     */
-    public String getErrorSummary() {
-        if (!hasErrors()) {
-            return "";
-        }
-
-        var summary = new StringBuilder();
-
-        // Check for process exit
-        if (!process.isAlive()) {
-            var exitCode = process.exitValue();
-            if (exitCode != 0) {
-                summary.append("Process exited with code: ")
-                        .append(exitCode).append("\n\n");
+    // Add log level system properties as JVM arguments
+    private void applyLogLevels(JvmProcess.JvmProcessBuilder cmd) {
+        for (WithLogLevel logLevel : logLevels) {
+            var level = logLevel.value();
+            for (Class<?> clazz : logLevel.classes()) {
+                cmd.jvmArg("-Dlog4j.logger." + clazz.getName() + "=" + level);
             }
-        }
-
-        appendStdErrorSummary(summary, StdType.STDOUT);
-        appendStdErrorSummary(summary, StdType.STDERR);
-        return summary.toString();
-    }
-
-    /**
-     * Gets the top level files and directories generated during execution for
-     * this node.
-     * @return files and directories
-     */
-    public List<Path> listFiles() {
-        try {
-            return Files.list(getWorkDir()).toList();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
         }
     }
 
-    /**
-     * Stops the crawler node process and closes all streams.
-     * This must be called to release file handles before the
-     * work directory can be deleted.
-     */
-    public void close() {
-        if (process != null && process.isAlive()) {
-            LOG.debug("Stopping crawler node at: {}", workDir);
-            process.destroy();
-            try {
-                // Wait up to 10 seconds for graceful shutdown
-                if (!process.waitFor(10, TimeUnit.SECONDS)) {
-                    LOG.warn("Node did not stop gracefully, "
-                            + "forcing termination");
-                    process.destroyForcibly();
-                    // Wait for forcible termination to complete
-                    process.waitFor(5, TimeUnit.SECONDS);
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                LOG.warn("Interrupted while waiting for node to stop", e);
-                process.destroyForcibly();
-            }
-        }
-
-        // Close all streams to release file handles
-        // (important on Windows for file deletion)
-        if (process != null) {
-            ExceptionSwallower.closeQuietly(
-                    process.getOutputStream(),
-                    process.getInputStream(),
-                    process.getErrorStream());
-        }
-    }
-
-    private void appendStdErrorSummary(
-            StringBuilder summary, StdType stdType) {
-        var stdx = stdType == StdType.STDOUT ? getStdout() : getStderr();
-        // Extract error lines
-        var stdxErrors = stdx.lines()
-                .filter(line -> line.contains(" ERROR ")
-                        || line.contains("Exception")
-                        || line.contains("Failed to")
-                        || line.contains("FAILED")
-                        || line.contains("Caused by")
-                        || line.contains("at org.")
-                        || line.contains("at com.")
-                        || line.contains("at java."))
-                .limit(100) // Capture full stack traces
-                .toList();
-
-        if (!stdxErrors.isEmpty()) {
-            summary.append(stdType + " errors:\n")
-                    .append(String.join("\n", stdxErrors))
-                    .append("\n\n");
-        }
-    }
-
-    private String readLogFile(String filename) {
-        var logFile = workDir.resolve(filename);
-        try {
-            if (Files.exists(logFile)) {
-                return Files.readString(logFile);
-            }
-        } catch (IOException e) {
-            LOG.warn("Failed to read log file: {}", logFile, e);
-        }
-        return "";
+    private String dArg(String key, Object value) {
+        return "-D" + key + "=" + value.toString();
     }
 
     //--- New JVM --------------------------------------------------------------
@@ -254,12 +147,47 @@ public class CrawlerNode {
 
         try {
             LOG.info("Received launch arguments: " + String.join(" ", args));
-            // Explicitly exit to terminate the JVM
-            System.exit(CliCrawlerLauncher.launch(driver, args));
+            var exitCode = CliCrawlerLauncher.launch(driver, args);
+
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("CLI Crawler Launcher returned with exit code: {}",
+                        exitCode);
+                // Log active threads to diagnose what's preventing JVM exit
+                logActiveThreads();
+            }
+
+            // Use Runtime.halt() to force immediate JVM termination.
+            // This is necessary because Infinispan creates non-daemon
+            // threads (JGroups transport, cache management) that prevent
+            // the JVM from exiting naturally, even after all resources
+            // are properly closed. System.exit() waits for non-daemon
+            // threads, but Runtime.halt() terminates immediately.
+            Runtime.getRuntime().halt(exitCode);
         } catch (Exception e) {
             LOG.error("Fatal error during crawler node startup", e);
             // Exit with error code on failure
-            System.exit(1);
+            Runtime.getRuntime().halt(1);
+        }
+    }
+
+    private static void logActiveThreads() {
+        var liveCount = ThreadTracker.getLiveThreadCount();
+        var daemonCount = ThreadTracker.getDaemonThreadCount();
+        var nonDaemonCount = liveCount - daemonCount;
+
+        LOG.debug("Active threads: total={}, daemon={}, non-daemon={}",
+                liveCount, daemonCount, nonDaemonCount);
+
+        // Also log all threads for complete picture
+        var allThreads =
+                ThreadTracker.allThreadInfos();
+        LOG.debug("All threads ({}): ", allThreads.size());
+        for (var thread : allThreads) {
+            LOG.debug("  - Thread[{}]: name='{}', state={}, isDaemon={}",
+                    thread.getThreadId(),
+                    thread.getThreadName(),
+                    thread.getThreadState(),
+                    thread.isDaemon());
         }
     }
 

@@ -2,16 +2,24 @@
 <infinispan xmlns="urn:infinispan:config:15.2"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="urn:infinispan:config:15.2 https://infinispan.org/schemas/infinispan-config-15.2.xsd">
+            
   <!--
-  FAST LOCAL TEST CONFIGURATION
-  Ultra-optimized for single-node local testing.
-  No clustering, no persistence.
+  LOCAL TEST CONFIGURATION WITH PERSISTENCE
+  Single-node configuration equivalent to cluster config but using 
+  local caches.
+  Includes all templates and cache instances for full compatibility.
   -->
+
   <cache-container name="default" default-cache="base-template">
     <global-state enabled="true">
+      <!-- 
+        By default the persistent location is derived from the crawler working 
+        directory.
+        -->
       <persistent-location path="__WORKDIR__/cache/infinispan"/>
     </global-state>
-    <!-- Cache templates (same as cluster config for compatibility) -->
+
+    <!-- Cache templates (local equivalents of cluster templates) -->
     <local-cache-configuration 
       name="base-template" 
       statistics="true"
@@ -25,12 +33,16 @@
         locking="PESSIMISTIC"
         transaction-manager-lookup="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
       />
+      <persistence passivation="false">
+        <file-store />
+      </persistence>
     </local-cache-configuration>
+
     <local-cache-configuration 
       name="indexed-template" 
       configuration="base-template"
     >
-      <!-- Enable indexing for ProtoStream entities used in queries -->
+      <!-- Enable indexing for CrawlEntry using POJO annotations -->
       <indexing enabled="true" storage="local-heap">
         <indexed-entities>
           <indexed-entity>
@@ -38,21 +50,31 @@
           </indexed-entity>
         </indexed-entities>
       </indexing>
-      <!-- Override value encoding to Java object to leverage POJO indexing -->
+      <!-- Encode values as Java objects so Hibernate Search 
+           POJO annotations apply -->
       <encoding>
         <key media-type="application/x-protostream"/>
         <value media-type="application/x-java-object"/>
       </encoding>
+      <!-- Use RocksDB instead of SIFS to avoid re-entrant 
+           lock issues -->
+      <persistence passivation="false">
+        <rocksdb-store xmlns="urn:infinispan:config:store:rocksdb:15.2"/>
+      </persistence>
     </local-cache-configuration>
+
     <local-cache-configuration 
       name="ephemeral-template" 
       statistics="true"
     >
       <expiration lifespan="-1"/>
+      <persistence passivation="false"/>
     </local-cache-configuration>
+
     <!-- Cache mappings -->
     <local-cache-configuration name="*_indexed"   configuration="indexed-template"/>
     <local-cache-configuration name="*_ephemeral" configuration="ephemeral-template"/>
+
     <!-- Explicit cache instances -->
     <local-cache name="admin"              configuration="ephemeral-template"/>    
     <local-cache name="crawler"            configuration="base-template"/>
@@ -66,7 +88,10 @@
     <local-cache 
       name="counters"
       statistics="true"
-    />
-    <local-cache name="admin" configuration="base-template"/>
+    >
+      <persistence passivation="false">
+        <file-store />
+      </persistence>
+    </local-cache>
   </cache-container>
 </infinispan>

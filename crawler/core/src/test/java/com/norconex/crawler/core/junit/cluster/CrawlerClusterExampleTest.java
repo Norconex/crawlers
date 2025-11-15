@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.junit.cluster.node.CrawlerNodeLauncher;
+import com.norconex.crawler.core.junit.cluster.node.CrawlerNode;
 import com.norconex.crawler.core.junit.cluster.node.NodeState;
 import com.norconex.crawler.core.junit.todo.usethis.annotations.ClusterTest;
 
@@ -53,7 +53,7 @@ class CrawlerClusterExampleTest {
         // 4. Prepare crawler launcher. The "-config" argument is automatically
         //    added if the crawl config is not null and there is at least
         //    one application argument provided
-        var nodeLauncher = CrawlerNodeLauncher.builder()
+        var nodeLauncher = CrawlerNode.builder()
                 .exportCaches(true)
                 .exportEvents(true)
                 .appArg("start") // CLI argument
@@ -61,11 +61,11 @@ class CrawlerClusterExampleTest {
 
         // 5. Create and launch the cluster with two nodes, making sure
         //    to close it when done.
-        try (var cluster = new CrawlerCluster(nodeLauncher, crawlConfig)) {
-            cluster.launch(2);
+        try (var cluster = new CrawlerCluster(crawlConfig)) {
+            cluster.launch(nodeLauncher, 2);
 
             // 6. Wait for cluster formation before beginning runtime tests
-            cluster.waitForClusterFormation(Duration.ofSeconds(30));
+            cluster.waitForClusterFormation(2, Duration.ofSeconds(30));
 
             // 7. Wait for cluster termination before running terminal tests
             cluster.waitForClusterTermination(Duration.ofSeconds(30));
@@ -80,15 +80,16 @@ class CrawlerClusterExampleTest {
                         hasErrors);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("\n=== STDOUT " + StringUtils.repeat('=', 69)
-                            + "\n" + node.getStdout());
+                            + "\n" + node.getStdOut());
                     LOG.debug("\n=== STDERR " + StringUtils.repeat('=', 69)
-                            + "\n" + node.getStderr());
+                            + "\n" + node.getStdErr());
                     LOG.debug("\n=== STATE PROPS " + StringUtils.repeat('=', 64)
                             + "\n" + node.loadStateProps());
                 }
                 if (hasErrors) {
                     Assertions.fail("Node \"" + node.getWorkDir().getFileName()
-                            + "\" reported errors:\n" + node.getErrorSummary());
+                            + "\" reported errors:\n"
+                            + node.getFailureSummary());
                 }
                 var topFileNames = node.listFiles().stream()
                         .map(f -> f.getFileName().toString())

@@ -26,24 +26,35 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Data
 @Accessors(fluent = true)
-public final class TestClusterConnectorBuilder {
+public final class TestClusterConnector {
 
-    private boolean cluster;
-    private boolean persistent;
+    @Data
+    @Accessors(fluent = true)
+    public static class Builder {
+        private boolean cluster;
+        private boolean persistent;
 
-    public TestClusterConnector build() {
-        if (cluster) {
+        public ClusterConnector build() {
+            if (cluster) {
+                return persistent
+                        ? new ClusterWithPersistence()
+                        : new ClusterNoPersistence();
+            }
             return persistent
-                    ? new ClusterWithPersistence()
-                    : new ClusterNoPersistence();
+                    ? new StandaloneWithPersistence()
+                    : new StandaloneNoPersistence();
         }
-        return persistent
-                ? new StandaloneWithPersistence()
-                : new StandaloneNoPersistence();
+    }
+
+    private TestClusterConnector() {
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     @RequiredArgsConstructor
-    abstract static class TestClusterConnector implements ClusterConnector {
+    abstract static class BaseTestClusterConnector implements ClusterConnector {
         private final String resource;
 
         @Override
@@ -56,25 +67,28 @@ public final class TestClusterConnectorBuilder {
         }
     }
 
-    public static class StandaloneNoPersistence extends TestClusterConnector {
+    public static class StandaloneNoPersistence
+            extends BaseTestClusterConnector {
         public StandaloneNoPersistence() {
             super("cache/test-local-no-persistence.xml");
         }
     }
 
-    public static class StandaloneWithPersistence extends TestClusterConnector {
+    public static class StandaloneWithPersistence
+            extends BaseTestClusterConnector {
         public StandaloneWithPersistence() {
             super("cache/test-local-with-persistence.xml");
         }
     }
 
-    public static class ClusterNoPersistence extends TestClusterConnector {
+    public static class ClusterNoPersistence extends BaseTestClusterConnector {
         public ClusterNoPersistence() {
             super("cache/test-cluster-no-persistence.xml");
         }
     }
 
-    public static class ClusterWithPersistence extends TestClusterConnector {
+    public static class ClusterWithPersistence
+            extends BaseTestClusterConnector {
         public ClusterWithPersistence() {
             super("cache/test-cluster-with-persistence.xml");
         }

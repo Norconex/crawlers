@@ -12,8 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.junit.cluster;
+package com.norconex.crawler.core.cluster.admin;
 
-public class TerminationOutput {
+import com.norconex.crawler.core.CrawlerException;
 
+import lombok.experimental.StandardException;
+
+@StandardException
+public class ClusterAdminException extends CrawlerException {
+    private static final long serialVersionUID = 1L;
 }

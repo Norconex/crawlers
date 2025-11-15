@@ -58,10 +58,6 @@ import lombok.experimental.FieldNameConstants;
  * starting up. While not always enforced, once execution has started, it
  * should be considered immutable to avoid unexpected behaviors.
  * </p>
- * <p>
- * Concrete implementations inherit the following XML configuration
- * options (typically within a <code>&lt;crawler&gt;</code> tag):
- * </p>
  */
 @Data
 @Accessors(chain = true)
@@ -93,6 +89,11 @@ public class CrawlConfig {
             Duration.ofSeconds(0);
     public static final Duration DEFAULT_MIN_PROGRESS_LOGGING_INTERVAL =
             Duration.ofSeconds(30);
+    /**
+     * Default port used to communicate via a node for some administrative 
+     * crawler cluster tasks. 
+     */
+    public static final int DEFAULT_CLUSTER_PORT = 27295;
 
     //--- Properties -----------------------------------------------------------
 
@@ -160,6 +161,17 @@ public class CrawlConfig {
      */
     private ClusterConnector clusterConnector =
             new InfinispanClusterConnector();
+    /**
+     * Disable launching the crawler administrative server endpoints.
+     */
+    private boolean clusterAdminDisabled;
+    /**
+     * Port the crawler cluster listens to for administrative commands,
+     * on each nodes. Incremented
+     * to the next available port in case of conflicts.
+     * Default is 27295 (mnemonic: ‘CRAWL’ on a phone keypad).
+     */
+    private int clusterAdminPort = DEFAULT_CLUSTER_PORT;
 
     /**
      * Whether the start references should be loaded asynchronously. When

@@ -1,4 +1,4 @@
-package com.norconex.crawler.core.junit.cluster.node;
+package com.norconex.crawler.core.junit;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -13,8 +13,6 @@ import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
 import org.apache.commons.lang3.SystemUtils;
-
-import com.norconex.crawler.core.junit.WithLogLevel;
 
 import lombok.Builder;
 import lombok.NonNull;
@@ -46,7 +44,7 @@ public class JvmProcess {
 
     public Process start() {
         var classpath = buildClasspath();
-        
+
         List<String> command = new ArrayList<>();
         command.add(SystemUtils.JAVA_HOME + "/bin/java");
         jvmArgs.forEach(command::add);
@@ -62,7 +60,7 @@ public class JvmProcess {
         // Calculate total command length
         var fullCommand = String.join(" ", command);
         var commandLength = fullCommand.length();
-        
+
         LOG.info("JVM launch command length: {} characters", commandLength);
         if (commandLength > 8191) {
             LOG.warn(
@@ -72,7 +70,7 @@ public class JvmProcess {
                     commandLength);
         }
         LOG.debug("JVM launch command: {}", fullCommand);
-        LOG.debug("Classpath has {} entries", 
+        LOG.debug("Classpath has {} entries",
                 classpath.split(File.pathSeparator).length);
 
         var pb = new ProcessBuilder(command);
@@ -83,9 +81,9 @@ public class JvmProcess {
             Files.createDirectories(workDir);
             pb.redirectOutput(workDir.resolve(STDOUT_FILE_NAME).toFile());
             pb.redirectError(workDir.resolve(STDERR_FILE_NAME).toFile());
-            
+
             var process = pb.start();
-            
+
             // Give the process a moment to fail if there's an immediate error
             try {
                 Thread.sleep(100); //NOSONAR
@@ -97,7 +95,7 @@ public class JvmProcess {
                             exitValue,
                             STDOUT_FILE_NAME,
                             STDERR_FILE_NAME);
-                    
+
                     // Try to read error output
                     var stderrFile = workDir.resolve(STDERR_FILE_NAME);
                     if (Files.exists(stderrFile)) {
@@ -111,7 +109,7 @@ public class JvmProcess {
                 Thread.currentThread().interrupt();
                 LOG.warn("Interrupted while checking process status");
             }
-            
+
             return process;
         } catch (IOException e) {
             LOG.error(
@@ -148,7 +146,7 @@ public class JvmProcess {
 
         // On Windows, if classpath is too long, create a manifest JAR
         // to work around command line length limits
-        if (SystemUtils.IS_OS_WINDOWS && 
+        if (SystemUtils.IS_OS_WINDOWS &&
                 estimateCommandLength(classpath) > 8000) {
             try {
                 LOG.info(
@@ -171,13 +169,13 @@ public class JvmProcess {
      * JVM args, classpath, main class, and app args.
      */
     private int estimateCommandLength(String classpath) {
-        var baseLength = 
+        var baseLength =
                 (SystemUtils.JAVA_HOME + "/bin/java").length()
-                + jvmArgs.stream().mapToInt(String::length).sum()
-                + appArgs.stream().mapToInt(String::length).sum()
-                + mainClass.getName().length()
-                + classpath.length()
-                + 100; // extra space for separators and fixed args
+                        + jvmArgs.stream().mapToInt(String::length).sum()
+                        + appArgs.stream().mapToInt(String::length).sum()
+                        + mainClass.getName().length()
+                        + classpath.length()
+                        + 100; // extra space for separators and fixed args
         return baseLength;
     }
 
@@ -187,13 +185,13 @@ public class JvmProcess {
      * command line length limitations.
      */
     private Path createManifestJar(String classpath) throws IOException {
-        var manifestJar = 
+        var manifestJar =
                 workDir.resolve("classpath-manifest.jar").toAbsolutePath();
-        
+
         // Convert classpath entries to file:/// URLs for manifest
         var entries = classpath.split(File.pathSeparator);
         var manifestClasspath = new StringBuilder();
-        
+
         for (var i = 0; i < entries.length; i++) {
             var entry = new File(entries[i]).toURI().toURL().toString();
             manifestClasspath.append(entry);
@@ -201,7 +199,7 @@ public class JvmProcess {
                 manifestClasspath.append(" ");
             }
         }
-        
+
         // Create manifest with Class-Path attribute
         var manifest = new Manifest();
         var attributes = manifest.getMainAttributes();
@@ -209,14 +207,14 @@ public class JvmProcess {
         attributes.put(
                 Attributes.Name.CLASS_PATH,
                 manifestClasspath.toString());
-        
+
         // Write manifest JAR
         Files.createDirectories(workDir);
         try (var jos = new JarOutputStream(
                 new FileOutputStream(manifestJar.toFile()), manifest)) {
             // No entries needed, just the manifest
         }
-        
+
         LOG.debug("Created manifest JAR: {}", manifestJar);
         return manifestJar;
     }

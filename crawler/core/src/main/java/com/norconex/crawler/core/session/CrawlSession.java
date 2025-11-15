@@ -30,6 +30,7 @@ import com.norconex.crawler.core.cluster.Cache;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.ClusterNode;
 import com.norconex.crawler.core.cluster.SerializedEnvelope;
+import com.norconex.crawler.core.cluster.admin.ClusterAdminServer;
 import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.util.ExceptionSwallower;
@@ -83,6 +84,7 @@ public class CrawlSession implements Closeable {
 
     @Getter
     private final Cluster cluster;
+    private ClusterAdminServer adminServer;
     @Getter
     private final CrawlContext crawlContext;
     private Cache<String> crawlSessionCache;
@@ -202,13 +204,24 @@ public class CrawlSession implements Closeable {
             //NOTE: this resolver will also clear the session cache if needed.
             // The crawlRunCache does not need clearing as it is ephemeral
             crawlRunInfo = CrawlRunInfoResolver.resolve(this);
-
+            //START TEST
+            //            crawlContext.init(this);
+            //END TEST
             //TODO will always setting it have an impact for non crawl commands?
             if (cluster.getLocalNode().isCoordinator()) {
                 updateCrawlState(CrawlState.RUNNING);
             }
             //            scheduleHeartbeat();
+
             crawlContext.init(this);
+
+            // Start the cluster admin server
+            if (!crawlContext.getCrawlConfig().isClusterAdminDisabled()) {
+                adminServer = new ClusterAdminServer(this);
+                adminServer.start();
+            } else {
+                LOG.info("Cluster admin server is disabled.");
+            }
         } catch (RuntimeException e) {
             SESSIONS.remove(cluster.getLocalNode().getNodeName());
             throw e;
@@ -224,11 +237,17 @@ public class CrawlSession implements Closeable {
         closed = true;
 
         LOG.info("Closing CrawlSession...");
+
         ExceptionSwallower.runWithInterruptClear(() -> {
             ExceptionSwallower.close(crawlContext, cluster);
         });
+
         if (cluster.getLocalNode() != null) {
             SESSIONS.remove(cluster.getLocalNode().getNodeName());
+        }
+
+        if (adminServer != null) {
+            adminServer.close();
         }
 
         LOG.info("CrawlSession closed.");
@@ -238,6 +257,7 @@ public class CrawlSession implements Closeable {
         // events have been fired
         if (postCloseCleanup != null) {
             ExceptionSwallower.swallowQuietly(postCloseCleanup::run);
+        } else {
         }
     }
 

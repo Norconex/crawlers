@@ -20,6 +20,7 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import com.norconex.commons.lang.SystemUtil.UncheckedCallableException;
@@ -84,5 +85,33 @@ public final class CoreTestUtil {
                 System.setProperty(SYS_PROP_PREFER_IPV6, preferIpv6);
             }
         }
+    }
+
+    public static List<String> listFiles(Path dir) {
+        try {
+            return Files.list(dir).map(Path::toString).toList();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static String extractErrorLines(String ouput) {
+        // Extract error lines
+        var errors = ouput.lines()
+                .filter(line -> line.contains(" ERROR ")
+                        || line.contains("Exception")
+                        || line.contains("Failed to")
+                        || line.contains("FAILED")
+                        || line.contains("Caused by")
+                        || line.contains("at org.")
+                        || line.contains("at com.")
+                        || line.contains("at java."))
+                .limit(100) // Capture full stack traces
+                .toList();
+
+        if (!errors.isEmpty()) {
+            return String.join("\n", errors);
+        }
+        return "";
     }
 }

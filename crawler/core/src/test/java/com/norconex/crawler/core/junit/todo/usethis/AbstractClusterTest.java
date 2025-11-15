@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Assertions;
 
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.junit.cluster.CrawlerCluster;
-import com.norconex.crawler.core.junit.cluster.node.CrawlerNodeLauncher;
+import com.norconex.crawler.core.junit.cluster.node.CrawlerNode;
 import com.norconex.crawler.core.junit.cluster.node.NodeState;
 
 import lombok.extern.slf4j.Slf4j;
@@ -66,8 +66,8 @@ public abstract class AbstractClusterTest {
      * Create a node launcher with standard test settings.
      * @return configured launcher
      */
-    protected CrawlerNodeLauncher createNodeLauncher() {
-        return CrawlerNodeLauncher.builder()
+    protected CrawlerNode createNodeLauncher() {
+        return CrawlerNode.builder()
                 .exportCaches(true)
                 .exportEvents(true)
                 .appArg("start")
@@ -104,11 +104,11 @@ public abstract class AbstractClusterTest {
 
             if (hasErrors) {
                 LOG.error("Node error details:\n{}",
-                        node.getErrorSummary());
+                        node.getFailureSummary());
                 Assertions.fail("Node \""
                         + node.getWorkDir().getFileName()
                         + "\" reported errors:\n"
-                        + node.getErrorSummary());
+                        + node.getFailureSummary());
             }
 
             var topFileNames = node.listFiles().stream()
@@ -134,7 +134,7 @@ public abstract class AbstractClusterTest {
     protected void verifyCoordinatorElection(CrawlerCluster cluster) {
         // Verify that at least one node has coordinator logs/state
         var hadCoordinator = cluster.getNodes().stream()
-                .anyMatch(node -> node.getStdout()
+                .anyMatch(node -> node.getStdOut()
                         .contains("COORDINATOR"));
 
         assertThat(hadCoordinator)

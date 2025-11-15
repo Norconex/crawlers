@@ -71,6 +71,7 @@ public class PipelineWorkerState implements AutoCloseable {
             Executors.newSingleThreadScheduledExecutor(
                     new BasicThreadFactory.Builder()
                             .namingPattern("WORKER-STATUS-UPDATER")
+                            .daemon(true)
                             .build());
     private ScheduledFuture<?> workerStatusFuture;
 
@@ -181,7 +182,21 @@ public class PipelineWorkerState implements AutoCloseable {
                 .setUpdatedAt(System.currentTimeMillis())
                 .setRunId(session.getCrawlRunId());
         try {
-            workerStatusCache.put(workerKey, rec);
+            // Use putSync for terminal statuses to ensure replication
+            // completes before the worker exits. This guarantees the
+            // coordinator will see the final status even if the worker
+            // node leaves the cluster immediately after.
+            if (status.isTerminal()) {
+                LOG.info(
+                        "Pushing terminal status {} with replication guarantee for {}",
+                        status, pipeline.getId());
+                workerStatusCache.put(workerKey, rec);
+                LOG.info(
+                        "Terminal status {} successfully replicated for {}",
+                        status, pipeline.getId());
+            } else {
+                workerStatusCache.put(workerKey, rec);
+            }
         } catch (org.infinispan.commons.TimeoutException te) {
             LOG.warn("Skipping worker status update for {} due to cache "
                     + "lock timeout on key {}.",
@@ -272,10 +287,10 @@ public class PipelineWorkerState implements AutoCloseable {
 
             // if newly set to run, run it.
             // if already running, run it if step id has changed
-            boolean stepChanged = (oldStepId == null && newStepId != null)
+            var stepChanged = (oldStepId == null && newStepId != null)
                     || (oldStepId != null && !oldStepId.equals(newStepId));
             shouldRun = newStatus != null && newStatus.isRunning()
-                    && (!(oldStatus != null && oldStatus.isRunning())
+                    && (((oldStatus == null) || !oldStatus.isRunning())
                             || stepChanged);
 
             // Push status immediately when stepId changes or status changes

@@ -40,12 +40,12 @@ class ClusterCoordinatorElectionTest extends AbstractClusterTest {
         var crawlConfig = createMinimalClusterConfig(tempDir);
         var nodeLauncher = createNodeLauncher();
 
-        try (var cluster = new CrawlerCluster(nodeLauncher, crawlConfig)) {
+        try (var cluster = new CrawlerCluster(crawlConfig)) {
             // Launch 2 nodes
-            cluster.launch(2);
+            cluster.launch(nodeLauncher, 2);
 
             // Wait for cluster formation
-            cluster.waitForClusterFormation(getClusterFormationTimeout());
+            cluster.waitForClusterFormation(2, getClusterFormationTimeout());
 
             // Wait for termination
             cluster.waitForClusterTermination(
@@ -57,7 +57,7 @@ class ClusterCoordinatorElectionTest extends AbstractClusterTest {
 
             // Verify only one coordinator ran bootstrap
             var bootstrapLogs = cluster.getNodes().stream()
-                    .filter(node -> node.getStdout().contains(
+                    .filter(node -> node.getStdOut().contains(
                             "Bootstrap already in progress"))
                     .count();
 
@@ -78,11 +78,11 @@ class ClusterCoordinatorElectionTest extends AbstractClusterTest {
         var crawlConfig = createMinimalClusterConfig(tempDir);
         var nodeLauncher = createNodeLauncher();
 
-        try (var cluster = new CrawlerCluster(nodeLauncher, crawlConfig)) {
+        try (var cluster = new CrawlerCluster(crawlConfig)) {
             // Launch 3 nodes to test more complex coordination
-            cluster.launch(3);
+            cluster.launch(nodeLauncher, 3);
 
-            cluster.waitForClusterFormation(getClusterFormationTimeout());
+            cluster.waitForClusterFormation(3, getClusterFormationTimeout());
             cluster.waitForClusterTermination(
                     getClusterTerminationTimeout());
 
@@ -91,7 +91,7 @@ class ClusterCoordinatorElectionTest extends AbstractClusterTest {
 
             // Verify all nodes saw the full cluster
             cluster.getNodes().forEach(node -> {
-                var nodeCountLogs = node.getStdout();
+                var nodeCountLogs = node.getStdOut();
                 // At some point, each node should have seen 3 members
                 assertThat(nodeCountLogs)
                         .as("Node should have observed 3-node cluster")

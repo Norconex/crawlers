@@ -242,15 +242,11 @@ public final class ClusteredCrawler {
         }
     }
 
-    //             exit.getEvents().addAll(MockCliEventWriter.parseEvents(eventFile));
-    // return exit;
-
     private Path writeConfigOnCluster(
             SharedClusterClient client, CrawlConfig config) {
         var w = new StringWriter();
         BeanMapper.DEFAULT.write(config, w, Format.YAML);
         var yaml = w.toString();
-        System.err.println("XXX writeConfigOnCluster: " + yaml);
 
         // Force POSIX workDir in YAML (avoid Windows backslashes)
         var nodeWorkDir = client.getNodeWorkdir().toString()
@@ -306,8 +302,6 @@ public final class ClusteredCrawler {
     private void addEventWriter(CrawlConfig cfg) {
         var eventFile = cfg.getWorkDir().resolve(
                 TimeIdGenerator.next() + "-events.txt");
-        System.err.println(
-                "XXX Adding event writer with event file: " + eventFile);
         if (cfg.getEventListeners().stream()
                 .noneMatch(MockCliEventWriter.class::isInstance)) {
             var eventWriter = new MockCliEventWriter();

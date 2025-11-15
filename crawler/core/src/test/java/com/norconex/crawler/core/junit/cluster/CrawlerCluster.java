@@ -29,9 +29,8 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core._DELETE.crawler.ClusteredCrawlOuput;
 import com.norconex.crawler.core.junit.cluster.node.CrawlerNode;
-import com.norconex.crawler.core.junit.cluster.node.CrawlerNodeLauncher;
+import com.norconex.crawler.core.junit.cluster.node.NodeExecutionResult;
 import com.norconex.crawler.core.junit.cluster.node.NodeState;
 import com.norconex.crawler.core.util.CoreTestUtil;
 
@@ -43,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 public class CrawlerCluster implements AutoCloseable {
 
     public static final String CLUSTER_NODE_COUNT = "clusterNodeCount";
-    // Reduced from 200ms to 50ms for faster test execution
     public static final int NODE_COUNT_SYNC_MS = 50;
     public static final String CRAWLER_ID_PREFIX = "test-crawl-";
 
@@ -52,24 +50,21 @@ public class CrawlerCluster implements AutoCloseable {
     @Getter
     private final ClusterState state;
     @Getter
-    private final List<CrawlerNode> nodes = new ArrayList<>();
+    private final List<NodeExecutionResult> nodes = new ArrayList<>();
     // Nodes may be added/removed so we use a separate counter to avoid
     // overlaps. Used in creating unique workDirs
     private final AtomicInteger nodeCounter = new AtomicInteger();
     // Number of clusters created within this JVM, to avoid collision
     // Used in creating unique crawler id
     private String crawlerId;
-    private int expectedNodeCount = 0;
 
-    private final CrawlerNodeLauncher nodeLauncher;
     private final CrawlConfig crawlConfig;
     private final Path clusterRootDir;
+    @Getter
     private final Path configFile;
 
-    public CrawlerCluster(
-            CrawlerNodeLauncher nodeLauncher, CrawlConfig crawlConfig) {
+    public CrawlerCluster(CrawlConfig crawlConfig) {
         state = new ClusterState(this);
-        this.nodeLauncher = nodeLauncher;
         this.crawlConfig = crawlConfig;
 
         // at this point the crawl work dir is considered the cluster root.
@@ -83,34 +78,48 @@ public class CrawlerCluster implements AutoCloseable {
     }
 
     /**
+     * Launches a single new crawler node. The first
+     * time this method is called for this instance will create a new cluster.
+     * Subsequent times, it adds to the existing cluster.
+     * @param nodeLauncher instructions for launching the node
+     * @return the added nodes
+     */
+    public List<NodeExecutionResult> launch(CrawlerNode nodeLauncher) {
+        return launch(nodeLauncher, 1);
+    }
+
+    /**
      * Launches the specified amount of new crawler nodes. The first
      * time this method is called for this instance will create a new cluster.
      * Subsequent times, it adds to the existing cluster.
+     * @param nodeLauncher instructions for launching each nodes
      * @param numOfNodes number of nodes to launch/add
      * @return the added nodes
      */
-    public List<CrawlerNode> launch(int numOfNodes) {
-        List<CrawlerNode> launchedNodes = new ArrayList<>();
+    public List<NodeExecutionResult> launch(
+            CrawlerNode nodeLauncher, int numOfNodes) {
+        List<NodeExecutionResult> launchedNodes = new ArrayList<>();
         for (var i = 0; i < numOfNodes; i++) {
             var nodeIndex = nodeCounter.incrementAndGet();
             launchedNodes.add(nodeLauncher.launch(
                     clusterRootDir.resolve("node-" + nodeIndex),
                     configFile));
         }
-        expectedNodeCount += numOfNodes;
         nodes.addAll(launchedNodes);
         return launchedNodes;
     }
 
     /**
      * Wait for nodes to initialize. Currently uses a fixed delay.
+     * @param expectedNodeCount number of nodes we expect to have joined
      * @param timeout maximum time to wait
      * @throws InterruptedException if interrupted while waiting
      */
-    public void waitForClusterFormation(@NonNull Duration timeout)
+    public void waitForClusterFormation(
+            int expectedNodeCount, @NonNull Duration timeout)
             throws InterruptedException {
         var totalWaitMs = timeout.toMillis();
-        LOG.info("Waiting {} max for {} nodes to initialize...",
+        LOG.info("Wait up to {} for {} nodes to initialize...",
                 DurationFormatter.FULL.format(timeout), expectedNodeCount);
         var elapsed = 0L;
         while (elapsed < totalWaitMs) {
@@ -118,39 +127,37 @@ public class CrawlerCluster implements AutoCloseable {
             var deadNodes = nodes.stream()
                     .filter(n -> !n.getProcess().isAlive())
                     .toList();
-            
+
             if (!deadNodes.isEmpty()) {
-                LOG.error(
-                        "{} node(s) crashed during initialization:",
+                LOG.error("{} node(s) crashed during initialization:",
                         deadNodes.size());
-                for (CrawlerNode node : deadNodes) {
+                for (NodeExecutionResult node : deadNodes) {
                     LOG.error("Node {} exited with code: {}",
                             node.getWorkDir().getFileName(),
                             node.getProcess().exitValue());
-                    
+
                     // Log stderr to help diagnose the issue
-                    var stderr = node.getStderr();
+                    var stderr = node.getStdErr();
                     if (!stderr.isEmpty()) {
                         LOG.error("Node {} stderr:\n{}",
                                 node.getWorkDir().getFileName(),
                                 stderr);
                     }
-                    
+
                     // Log stdout as well
-                    var stdout = node.getStdout();
+                    var stdout = node.getStdOut();
                     if (!stdout.isEmpty()) {
                         LOG.error("Node {} stdout:\n{}",
                                 node.getWorkDir().getFileName(),
                                 stdout);
                     }
                 }
-                
+
                 throw new IllegalStateException(
                         deadNodes.size() + " node(s) crashed during "
                                 + "initialization. Check logs above for "
                                 + "details.");
             }
-            
             var nodeCount = state.highestNodeIntOrZero(NodeState.NODE_COUNT);
             if (nodeCount >= expectedNodeCount) {
                 LOG.info("Expected number of nodes ({}) reached after {}.",
@@ -169,45 +176,53 @@ public class CrawlerCluster implements AutoCloseable {
                 DurationFormatter.FULL.format(timeout),
                 expectedNodeCount,
                 state.highestNodeIntOrZero(NodeState.NODE_COUNT));
-        
+
         // Log status of all nodes for debugging
-        for (CrawlerNode node : nodes) {
+        for (NodeExecutionResult node : nodes) {
             LOG.error(
                     "Node {} status - alive: {}, exit value: {}",
                     node.getWorkDir().getFileName(),
                     node.getProcess().isAlive(),
-                    node.getProcess().isAlive() 
-                            ? "N/A" 
+                    node.getProcess().isAlive()
+                            ? "N/A"
                             : node.getProcess().exitValue());
         }
     }
 
-    public ClusteredCrawlOuput
+    public ClusterExecutionResult
             waitForClusterTermination(@NonNull Duration timeout) {
         // wait for all processes to be done and return compiled output
         var totalWaitMs = timeout.toMillis();
-        LOG.info("Waiting {} max for all nodes to terminate...",
+        LOG.info("Wait up to {} for all nodes to terminate...",
                 DurationFormatter.FULL.format(timeout));
         var elapsed = 0L;
-        List<CrawlerNode> remainingNodes = new ArrayList<>(nodes);
+        List<NodeExecutionResult> remainingNodes = new ArrayList<>(nodes);
         while (elapsed < totalWaitMs) {
+            if (LOG.isTraceEnabled() && elapsed % 1000 == 0) {
+                remainingNodes.forEach(n -> LOG.info(
+                        "CrawlerCluster wait termination {} -> {}",
+                        n.getNodeName(),
+                        n.getProcess().isAlive() ? "ALIVE" : "TERMINATED"));
+            }
+
             remainingNodes.removeIf(n -> !n.getProcess().isAlive());
             if (remainingNodes.isEmpty()) {
                 LOG.info("All nodes terminated after {}.",
                         DurationFormatter.FULL.format(elapsed));
-                return null; //TODO
+                return new ClusterExecutionResult(nodes);
             }
 
             // Check if any nodes have crashed or reported errors
             Sleeper.sleepMillis(NODE_COUNT_SYNC_MS);
             elapsed += NODE_COUNT_SYNC_MS;
         }
+
         // Only log timeout if we actually timed out
         LOG.error("Timed out after {} waiting for {} remaining nodes to "
                 + "terminate.",
                 DurationFormatter.FULL.format(timeout),
                 state.lowestNodeIntOrZero(NodeState.NODE_COUNT));
-        return null; //TODO
+        return new ClusterExecutionResult(nodes);
     }
 
     private void initCrawlerId() {
@@ -237,7 +252,7 @@ public class CrawlerCluster implements AutoCloseable {
         // This reduces the likelihood of TpHeader NPE during shutdown
         Sleeper.sleepMillis(500);
 
-        for (CrawlerNode node : nodes) {
+        for (NodeExecutionResult node : nodes) {
             try {
                 node.close();
             } catch (Exception e) {
@@ -268,17 +283,14 @@ public class CrawlerCluster implements AutoCloseable {
             return; // No problematic files found
         }
 
-        LOG.debug(
-                "Waiting for {} potentially locked files to be released",
+        LOG.debug("Waiting for {} potentially locked files to be released",
                 lockedFiles.size());
 
         while (elapsed < maxWaitMs) {
             var stillLocked = checkForLockedFiles(lockedFiles);
 
             if (stillLocked.isEmpty()) {
-                LOG.debug(
-                        "All file locks released after {}ms",
-                        elapsed);
+                LOG.debug("All file locks released after {}ms", elapsed);
                 return;
             }
 

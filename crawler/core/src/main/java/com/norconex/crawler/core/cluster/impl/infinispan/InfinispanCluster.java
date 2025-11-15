@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.infinispan.commons.marshall.ProtoStreamMarshaller;
@@ -31,6 +32,7 @@ import org.infinispan.notifications.cachemanagerlistener.annotation.ViewChanged;
 import org.infinispan.notifications.cachemanagerlistener.event.ViewChangedEvent;
 import org.infinispan.remoting.transport.Address;
 
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.cluster.CacheException;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.impl.infinispan.event.CoordinatorChangeListener;
@@ -62,7 +64,8 @@ public class InfinispanCluster implements Cluster {
     // so that if both previous coordinator and the new one are not this node
     // we do not trigger the event for no reason.
     private volatile boolean lastCoordinatorState = false;
-    private CrawlerStopController stopController;
+    //    private CrawlerStopController stopController;
+    private CacheStopController stopController;
     private Path workDir;
 
     private final InfinispanClusterConfig configuration;
@@ -109,6 +112,7 @@ public class InfinispanCluster implements Cluster {
 
         var globalConfig = globalBuilder.build();
         var currentPath = globalConfig.globalState().persistentLocation();
+        Sleeper.sleepSeconds(2);
         if (currentPath.contains(BASEDIR_PLACEHOLDER)) {
             currentPath = Path.of(currentPath.replace(
                     BASEDIR_PLACEHOLDER, workDir.toString()))
@@ -120,7 +124,8 @@ public class InfinispanCluster implements Cluster {
             globalBuilder.globalState()
                     .persistentLocation(currentPath);
         }
-        var defCacheManager = new DefaultCacheManager(builderHolder, true);
+        var defCacheManager =
+                new DefaultCacheManager(builderHolder, true);
         defCacheManager.start();
         cacheManager = new InfinispanCacheManager(defCacheManager);
         localNode = new InfinispanClusterNode(defCacheManager);
@@ -129,26 +134,24 @@ public class InfinispanCluster implements Cluster {
         // Listen for coordinator change events
         defCacheManager.addListener(new ClusterViewListener(this));
 
-        // Initialize appropriate stop controller based on mode
-        if (isStandalone()) {
-            LOG.info("Standalone mode detected - using file-based stop "
-                    + "controller");
-            stopController =
-                    new FileStopController(workDir, ignored -> {
-                        pipelineManager.stop();
-                        //closing should be done by framework later
-                    });
-        } else {
-            LOG.info("Cluster mode detected - using cache-based stop "
-                    + "controller");
-            stopController =
-                    new CacheStopController(
-                            cacheManager.getAdminCache(), ignored -> {
-                                pipelineManager.stop();
-                                //closing should be done by framework later
-                            });
+        // Note: stopController.start() is NOT called here automatically.
+        // Commands that need to monitor for stop signals must explicitly
+        // call startStopMonitoring().
+        stopController = new CacheStopController(this);
+
+    }
+
+    // Note: stopController.start() is NOT initialized automatically.
+    /**
+     * Commands that need to monitor for stop signals must explicitly
+     * call this method.
+     */
+    @Override
+    public void startStopMonitoring() {
+        if (stopController != null) {
+            LOG.info("Starting stop signal monitoring for this node...");
+            stopController.init();
         }
-        stopController.start();
     }
 
     /**
@@ -185,27 +188,43 @@ public class InfinispanCluster implements Cluster {
     // Store/send stop request
     @Override
     public void stop() {
-        if (isStandalone()) {
-            LOG.info("Stopping standalone crawler via stop file...");
-            FileStopController.writeStopFile(workDir);
-        } else {
-            LOG.info("Stopping InfinispanCluster (entire cluster) ...");
-            CacheStopController.sendStop(getCacheManager().getAdminCache());
+        if (stopController != null) {
+            stopController.sendClusterStopSignal();
+            LOG.info("Stopping cluster...");
         }
     }
 
     @Override
     public void close() {
         LOG.info("Disconnecting InfinispanCluster node ...");
-        // Only disconnect this node, do not stop the cluster
-        ExceptionSwallower.close(
-                pipelineManager,
-                localNode,
-                cacheManager);
-        if (stopController != null) {
-            stopController.stop();
+
+        try {
+            // Stop the controller FIRST before closing cache resources
+            if (stopController != null) {
+                LOG.info("Closing stop controller...");
+                stopController.close();
+                LOG.info("Stop controller closed.");
+            }
+
+            // Close pipeline manager BEFORE starting force-halt timer
+            // This gives workers a chance to update their STOPPED status
+            // in the cache so coordinator can see they're terminated
+            LOG.info("Closing pipeline manager...");
+            ExceptionSwallower.close(pipelineManager);
+            LOG.info("Pipeline manager closed.");
+
+            // Give a brief moment for status updates to propagate to cache
+            // before we start the aggressive shutdown timer
+            Thread.sleep(100);
+
+        } catch (Exception e) {
+            LOG.warn("Error during initial cleanup", e);
         }
-        // Do NOT close cacheManager here (leave cluster running)
+
+        LOG.info("Closing local node...");
+        ExceptionSwallower.close(localNode);
+        LOG.info("Closing cache manager...");
+        ExceptionSwallower.close(cacheManager);
         LOG.info("InfinispanCluster node disconnected.");
     }
 
@@ -238,7 +257,7 @@ public class InfinispanCluster implements Cluster {
 
         return members.stream()
                 .map(Address::toString)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     /**
@@ -281,5 +300,4 @@ public class InfinispanCluster implements Cluster {
                     e);
         }
     }
-
 }

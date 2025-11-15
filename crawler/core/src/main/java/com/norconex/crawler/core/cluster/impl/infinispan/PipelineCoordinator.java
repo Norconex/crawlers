@@ -16,6 +16,7 @@ package com.norconex.crawler.core.cluster.impl.infinispan;
 
 import java.time.Duration;
 
+import com.norconex.commons.lang.SleeperException;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.Step;
@@ -63,6 +64,10 @@ public class PipelineCoordinator implements AutoCloseable {
         try {
             doCoordinatePipelineExecution();
             LOG.info("Pipeline {}  terminated.", pipeline.getId());
+
+            // Log active threads to diagnose any blocking issues
+            logActiveThreads();
+
         } catch (RuntimeException e) {
             if (!ConcurrentUtil.isInterruption(e)) {
                 throw e;
@@ -72,6 +77,35 @@ public class PipelineCoordinator implements AutoCloseable {
                     pipeline.getId());
         }
         close();
+    }
+
+    private void logActiveThreads() {
+        var liveCount =
+                com.norconex.crawler.core.util.ThreadTracker
+                        .getLiveThreadCount();
+        var daemonCount =
+                com.norconex.crawler.core.util.ThreadTracker
+                        .getDaemonThreadCount();
+        var nonDaemonCount = liveCount - daemonCount;
+
+        LOG.info("COORDINATOR FINISHED - Active threads: total={}, "
+                + "daemon={}, non-daemon={}",
+                liveCount, daemonCount, nonDaemonCount);
+
+        // Get non-daemon threads (these prevent JVM exit)
+        var nonDaemonThreads =
+                com.norconex.crawler.core.util.ThreadTracker.allThreadInfos(
+                        t -> !t.isDaemon());
+
+        if (!nonDaemonThreads.isEmpty()) {
+            LOG.info("Non-daemon threads ({}): ", nonDaemonThreads.size());
+            for (var thread : nonDaemonThreads) {
+                LOG.info("  - Thread[{}]: name='{}', state={}",
+                        thread.getThreadId(),
+                        thread.getThreadName(),
+                        thread.getThreadState());
+            }
+        }
     }
 
     void stop() {
@@ -99,13 +133,26 @@ public class PipelineCoordinator implements AutoCloseable {
 
             if (locallyExecutedStep != null) {
                 locallyExecutedStep.stop(cluster.getCrawlSession());
-            } else if (ConcurrentUtil.waitUntil(
-                    () -> state.isStatusOfAllWorkers(PipelineStatus.STOPPED),
-                    Duration.ofMinutes(1),
-                    Duration.ofSeconds(1))) {
-                LOG.info("App pipeline workers stopped.");
             } else {
-                LOG.warn("Not all pipeline workers stopped within a minute.");
+                try {
+                    if (ConcurrentUtil.waitUntil(
+                            () -> state.isStatusOfAllWorkers(
+                                    PipelineStatus.STOPPED),
+                            Duration.ofMinutes(1),
+                            Duration.ofSeconds(1))) {
+                        LOG.info("App pipeline workers stopped.");
+                    } else {
+                        LOG.warn("Not all pipeline workers stopped "
+                                + "within a minute.");
+                    }
+                } catch (SleeperException e) {
+                    if (!(e.getCause() instanceof InterruptedException)) {
+                        throw e;
+                    }
+                    Thread.currentThread().interrupt();
+                    LOG.debug("Stop interrupted while waiting for workers "
+                            + "(normal during shutdown).");
+                }
             }
             state.pushPipelineStatus(PipelineStatus.STOPPED);
         } finally {
@@ -116,7 +163,8 @@ public class PipelineCoordinator implements AutoCloseable {
     private void doCoordinatePipelineExecution() {
 
         final var currentStepRecord = state.getCurrentStepRecord();
-        if (InfinispanUtil.isPipelineTerminated(pipeline, currentStepRecord)) {
+        if (InfinispanUtil.isPipelineTerminated(
+                pipeline, currentStepRecord, state.getStopRequested().get())) {
             LOG.debug("Coordinator detected terminal pipeline {} at step {} "
                     + "with status {}. Exiting.",
                     pipeline.getId(),

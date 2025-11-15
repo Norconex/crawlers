@@ -5,6 +5,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -24,8 +26,8 @@ public class InfinispanCacheAdapter<T> implements Cache<T> {
 
     private final org.infinispan.Cache<String, T> delegate;
     private static final int DEFAULT_BATCH_SIZE = 100;
-    private static final java.util.Set<String> CLOSED_LOGGED =
-            java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private static final Set<String> CLOSED_LOGGED =
+            ConcurrentHashMap.newKeySet();
 
     public InfinispanCacheAdapter(org.infinispan.Cache<String, T> delegate) {
         this.delegate = delegate;
@@ -62,8 +64,8 @@ public class InfinispanCacheAdapter<T> implements Cache<T> {
             Function<String, ? extends T> mappingFunction) {
         return supplyIfCache(() -> {
             // Avoid serializing non-serializable lambdas across the cluster.
-            // Use a safe get/putIfAbsent pattern which remains atomic for insertion
-            // and returns the winning value.
+            // Use a safe get/putIfAbsent pattern which remains atomic for 
+            // insertion and returns the winning value.
             var existing = delegate.get(key);
             if (existing != null) {
                 return existing;

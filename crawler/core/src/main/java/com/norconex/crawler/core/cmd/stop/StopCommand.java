@@ -14,26 +14,48 @@
  */
 package com.norconex.crawler.core.cmd.stop;
 
-import com.norconex.crawler.core.cmd.Command;
-import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core.event.CrawlerEvent;
+import java.util.List;
 
+import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.cluster.admin.ClusterAdminClient;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Command to stop a running crawler session.
+ */
 @Slf4j
-public class StopCommand implements Command {
+@RequiredArgsConstructor
+public class StopCommand implements Runnable {
+
+    private final CrawlConfig crawlConfig;
+    private final String[] nodeUrls;
 
     @Override
-    public void execute(CrawlSession session) {
-        var ctx = session.getCrawlContext();
-        Thread.currentThread().setName(ctx.getId() + "/STOP");
-        session.fire(CrawlerEvent.CRAWLER_STOP_REQUEST_BEGIN, this);
-
-        session.getCluster().stop();
-        // we don't close, it will close on its own when fully stopped
-
-        LOG.info("Stop command executed.");
-
-        session.fire(CrawlerEvent.CRAWLER_STOP_REQUEST_END, this);
+    public void run() {
+        var resp = ClusterAdminClient.builder()
+                .nodeUrls(List.of(nodeUrls))
+                .crawlerId(crawlConfig.getId())
+                .build()
+                .clusterStop();
+        if (resp) {
+            LOG.info("Stop request successfully sent.");
+        }
     }
+
+    //    @Override
+    //    public void execute(CrawlSession session) {
+    //        LOG.info("StopCommand.execute() ENTRY - sending stop signal");
+    //        var ctx = session.getCrawlContext();
+    //        Thread.currentThread().setName(ctx.getId() + "/STOP");
+    //        session.fire(CrawlerEvent.CRAWLER_STOP_REQUEST_BEGIN, this);
+    //
+    //        LOG.info("StopCommand: calling session.getCluster().stop()...");
+    //        session.getCluster().stop();
+    //
+    //        LOG.info("Stop command executed - signal sent to cluster.");
+    //
+    //        session.fire(CrawlerEvent.CRAWLER_STOP_REQUEST_END, this);
+    //    }
 }

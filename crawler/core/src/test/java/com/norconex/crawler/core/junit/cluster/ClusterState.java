@@ -17,10 +17,12 @@ package com.norconex.crawler.core.junit.cluster;
 import java.util.List;
 import java.util.Objects;
 
-import com.norconex.crawler.core.junit.cluster.node.CrawlerNode;
+import com.norconex.crawler.core.junit.cluster.node.NodeExecutionResult;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 public class ClusterState {
 
@@ -30,7 +32,7 @@ public class ClusterState {
         return cluster
                 .getNodes()
                 .stream()
-                .map(CrawlerNode::loadStateProps)
+                .map(NodeExecutionResult::loadStateProps)
                 .map(props -> props.getString(key))
                 .filter(Objects::nonNull)
                 .toList();
@@ -40,7 +42,7 @@ public class ClusterState {
         return cluster
                 .getNodes()
                 .stream()
-                .map(CrawlerNode::loadStateProps)
+                .map(NodeExecutionResult::loadStateProps)
                 .map(props -> props.getInteger(key))
                 .filter(Objects::nonNull)
                 .toList();
@@ -51,30 +53,7 @@ public class ClusterState {
     }
 
     public int lowestNodeIntOrZero(String key) {
+
         return nodeInts(key).stream().min(Integer::compareTo).orElse(0);
     }
-
-    //    public Map<Integer, Properties> loadNodeStates() {
-    //
-    //        //        try {
-    //        //            Files.list(workDir).forEach(file -> {
-    //        //                var name = file.getFileName().toString();
-    //        //                if (name.endsWith(CrawlerNodeState.FILE_SUFFIX)) {
-    //        //                    var nodeIndex = Integer
-    //        //                            .parseInt(name.replaceFirst("^(\\d+).*", "$1"));
-    //        //                    nodeStates.put(nodeIndex, CrawlerNodeState.load(file));
-    //        //                }
-    //        //            });
-    //        //        } catch (IOException e) {
-    //        //            throw new UncheckedIOException(e);
-    //        //        }
-    //        return new HashMap<>();
-    //    }
-    //
-    //    public Properties loadNodeState(int nodeIndex) {
-    //        return NodeState.load(workDir);
-    //    }
-
-    // wait for all values to be...
-    // wait for one value to be...
 }

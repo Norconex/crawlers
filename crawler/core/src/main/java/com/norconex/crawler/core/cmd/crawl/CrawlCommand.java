@@ -61,7 +61,10 @@ public class CrawlCommand implements Command {
         }
 
         Thread.currentThread().setName(ctx.getId() + "/CRAWL");
-        session.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN, this);
+        session.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN, session);
+
+        // Start monitoring for stop signals (crawl nodes only)
+        session.getCluster().startStopMonitoring();
 
         // Build pipeline once so we can pass its id to the logger supplier
         var pipeline = pipelineFactory.create(session);
@@ -119,7 +122,7 @@ public class CrawlCommand implements Command {
             finalState = handleException(e, session, logger);
         }
 
-        session.fire(CrawlerEvent.CRAWLER_CRAWL_END, this);
+        session.fire(CrawlerEvent.CRAWLER_CRAWL_END, session);
         LOG.info("Crawler terminated with state: {}", finalState);
 
         if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {
@@ -144,6 +147,21 @@ public class CrawlCommand implements Command {
                 && ce.getCause() instanceof InterruptedException) {
             LOG.warn("Crawler interrupted, terminating gracefully.");
             Thread.currentThread().interrupt(); // restore flag
+            session.updateCrawlState(CrawlState.STOPPED);
+            closeLogger(logger);
+            return CrawlState.STOPPED;
+        }
+        if (e instanceof java.util.concurrent.CancellationException) {
+            LOG.info("Crawler cancelled due to stop signal, "
+                    + "terminating gracefully.");
+            session.updateCrawlState(CrawlState.STOPPED);
+            closeLogger(logger);
+            return CrawlState.STOPPED;
+        }
+        if (e instanceof CompletionException ce
+                && ce.getCause() instanceof java.util.concurrent.CancellationException) {
+            LOG.info("Crawler cancelled due to stop signal (wrapped), "
+                    + "terminating gracefully.");
             session.updateCrawlState(CrawlState.STOPPED);
             closeLogger(logger);
             return CrawlState.STOPPED;
@@ -179,9 +197,10 @@ public class CrawlCommand implements Command {
                     pipeStatus, result);
             if (pipeStatus == PipelineStatus.EXPIRED) {
                 LOG.error(
-                        "Pipeline EXPIRED - workers failed to report status "
-                                + "within timeout. Check for worker thread issues, "
-                                + "cluster connectivity problems, or deadlocks.");
+                        """
+                            Pipeline EXPIRED - workers failed to report status \
+                            within timeout. Check for worker thread issues, \
+                            cluster connectivity problems, or deadlocks.""");
             }
         }
 

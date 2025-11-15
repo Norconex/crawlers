@@ -68,28 +68,19 @@
     </local-cache-configuration>
 
     <!-- Cache mappings -->
-    <local-cache-configuration name="*_indexed"   
-                               configuration="indexed-template"/>
-    <local-cache-configuration name="*_ephemeral" 
-                               configuration="ephemeral-template"/>
+    <local-cache-configuration name="*_indexed" configuration="indexed-template"/>
+    <local-cache-configuration name="*_ephemeral" configuration="ephemeral-template"/>
 
     <!-- Explicit cache instances -->
-    <local-cache name="crawler"            
-                 configuration="base-template"/>
-    <local-cache name="crawlSession"       
-                 configuration="base-template"/>
-    <local-cache name="crawlRun"           
-                 configuration="ephemeral-template"/>
-    <local-cache name="crawlEventCounts"   
-                 configuration="base-template"/>
-    <local-cache name="pipeCurrentStep"    
-                 configuration="base-template"/>
-    <local-cache name="pipeWorkerStatuses" 
-                 configuration="base-template"/>
-    <local-cache name="ledger_a"           
-                 configuration="indexed-template"/>
-    <local-cache name="ledger_b"           
-                 configuration="indexed-template"/>
+    <local-cache name="admin"              configuration="ephemeral-template"/>
+    <local-cache name="crawler"            configuration="base-template"/>
+    <local-cache name="crawlSession"       configuration="base-template"/>
+    <local-cache name="crawlRun"           configuration="ephemeral-template"/>
+    <local-cache name="crawlEventCounts"   configuration="base-template"/>
+    <local-cache name="pipeCurrentStep"    configuration="base-template"/>
+    <local-cache name="pipeWorkerStatuses" configuration="base-template"/>
+    <local-cache name="ledger_a"           configuration="indexed-template"/>
+    <local-cache name="ledger_b"           configuration="indexed-template"/>
     <local-cache 
       name="counters"
       statistics="true"

@@ -42,6 +42,12 @@ public interface Cluster extends Closeable {
 
     void init(Path crawlerWorkDir);
 
+    /**
+     * Starts monitoring for stop signals. Should only be called by commands
+     * that need to respond to stop requests (e.g., CrawlCommand).
+     */
+    void startStopMonitoring();
+
     //TODO consider adding a "reason" argument that we would store.
     /**
      * Requests to stop the cluster. Does not wait.

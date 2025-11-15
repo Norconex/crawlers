@@ -49,6 +49,8 @@
         locking="PESSIMISTIC"
         transaction-manager-lookup="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
       />
+      <!-- Configure state transfer to be non-blocking to allow quick cluster joins -->
+      <state-transfer enabled="true" timeout="30000" await-initial-transfer="false"/>
       <persistence passivation="false">
         <file-store />
       </persistence>
@@ -71,6 +73,8 @@
         <key media-type="application/x-protostream"/>
         <value media-type="application/x-java-object"/>
       </encoding>
+      <!-- Configure state transfer to be non-blocking -->
+      <state-transfer enabled="true" timeout="30000" await-initial-transfer="false"/>
       <!-- Use RocksDB instead of SIFS to avoid re-entrant lock issues -->
       <persistence passivation="false">
         <rocksdb-store xmlns="urn:infinispan:config:store:rocksdb:15.2"/>
@@ -87,8 +91,43 @@
       statistics="true"
     >
       <expiration lifespan="-1"/>
+      <!-- Configure state transfer to be non-blocking -->
+      <state-transfer enabled="true" timeout="30000" await-initial-transfer="false"/>
       <persistence passivation="false"/>
     </distributed-cache-configuration>
+
+    <!-- 
+      REPLICATED template for shutdown-critical data.
+      Fully replicates to ALL nodes to ensure coordinator can always read data 
+      even during coordinated shutdown when multiple workers exit simultaneously.
+      
+      Use cases:
+      - Worker pipeline status (pipeWorkerStatuses)
+      - Coordinator state (pipeCurrentStep)
+      - Stop signals (admin)
+      
+      Trade-off: Higher storage and network overhead during writes,
+      but guarantees data availability during cluster-wide shutdown.
+    -->
+    <replicated-cache-configuration 
+      name="shutdown-safe-template" 
+      mode="SYNC"
+      statistics="true"
+    >
+      <encoding>
+        <key media-type="application/x-protostream"/>
+        <value media-type="application/x-protostream"/>
+      </encoding>
+      <transaction
+        mode="NON_XA"
+        locking="PESSIMISTIC"
+        transaction-manager-lookup="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
+      />
+      <state-transfer enabled="true" timeout="30000" await-initial-transfer="false"/>
+      <persistence passivation="false">
+        <file-store />
+      </persistence>
+    </replicated-cache-configuration>
 
     <!-- === CACHE MAPPINGS ================================================ -->
 
@@ -96,12 +135,18 @@
     <distributed-cache-configuration name="*_ephemeral" configuration="ephemeral-template"/>
 
     <!-- Explicitly create caches we know are used by crawler-core. -->
+    
+    <!-- CRITICAL: Shutdown-safe caches (fully replicated to ALL nodes) -->
+    <!-- These must be available on coordinator even after workers exit -->
+    <replicated-cache name="admin"              configuration="shutdown-safe-template"/>
+    <replicated-cache name="pipeCurrentStep"    configuration="shutdown-safe-template"/>
+    <replicated-cache name="pipeWorkerStatuses" configuration="shutdown-safe-template"/>
+    
+    <!-- Regular caches (distributed with owners=2 for storage efficiency) -->
     <distributed-cache name="crawler"            configuration="base-template"/>
     <distributed-cache name="crawlSession"       configuration="base-template"/>
     <distributed-cache name="crawlRun"           configuration="ephemeral-template"/>
     <distributed-cache name="crawlEventCounts"   configuration="base-template"/>
-    <distributed-cache name="pipeCurrentStep"    configuration="base-template"/>
-    <distributed-cache name="pipeWorkerStatuses" configuration="base-template"/>
     <distributed-cache name="ledger_a"           configuration="indexed-template"/>
     <distributed-cache name="ledger_b"           configuration="indexed-template"/>
     <!-- Cache used for sharing and also persisting arbitrary counters.  -->

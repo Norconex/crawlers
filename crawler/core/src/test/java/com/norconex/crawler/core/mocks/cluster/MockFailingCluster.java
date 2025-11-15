@@ -56,6 +56,11 @@ public class MockFailingCluster implements Cluster {
     }
 
     @Override
+    public void startStopMonitoring() {
+        throw new UnsupportedOperationException("IN_TEST");
+    }
+
+    @Override
     public void stop() {
         throw new UnsupportedOperationException("IN_TEST");
     }

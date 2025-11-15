@@ -78,6 +78,7 @@ public class PipelineWorker implements AutoCloseable {
      * End this worker by stopping any active task first then closing.
      */
     public void stop() {
+        LOG.debug("PipelineWorker stop() called. State is: {}", state);
         if (state != null
                 && state.getStopRequested().compareAndSet(false, true)) {
             state.pushWorkerStatus(PipelineStatus.STOPPING);
@@ -89,6 +90,7 @@ public class PipelineWorker implements AutoCloseable {
 
     @Override
     public void close() {
+        LOG.info("PipelineWorker close() called. State is: {}", state);
         if (state != null) {
             state.close();
         }

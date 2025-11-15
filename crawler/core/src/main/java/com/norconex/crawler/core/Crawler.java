@@ -73,8 +73,8 @@ public class Crawler {
         executeCommand(new CleanCommand());
     }
 
-    public void stop() {
-        executeCommand(new StopCommand());
+    public void stop(String... nodeUrls) {
+        executeDetachedCommand(new StopCommand(crawlConfig, nodeUrls));
     }
 
     public void storageExport(Path dir, boolean pretty) {
@@ -92,11 +92,23 @@ public class Crawler {
         }
     }
 
+    // Launched without an active crawl session and not directly attached
+    // to a cluster. Does not participate in normal command launch flow.
+    private void executeDetachedCommand(Runnable... commands) {
+        for (Runnable cmd : commands) {
+            LOG.info("Executing command: {}",
+                    cmd.getClass().getSimpleName());
+            ExceptionSwallower.runWithInterruptClear(() -> cmd.run());
+        }
+    }
+
+    // Launched within active crawl session.
     private void executeCommand(Command... commands) {
         validateConfig(crawlConfig);
         LogUtil.logCommandIntro(LOG, crawlConfig);
         ofNullable(crawlDriver.callbacks().getBeforeSession()).ifPresent(
                 c -> c.accept(crawlConfig));
+
         withCrawlSession(sess -> {
             for (Command cmd : commands) {
                 try {
@@ -116,8 +128,10 @@ public class Crawler {
                 }
             }
         });
-        ofNullable(crawlDriver.callbacks().getAfterSession()).ifPresent(
-                c -> c.accept(crawlConfig));
+        ofNullable(crawlDriver
+                .callbacks()
+                .getAfterSession())
+                        .ifPresent(c -> c.accept(crawlConfig));
     }
 
     public void withCrawlSession(Consumer<CrawlSession> c) {

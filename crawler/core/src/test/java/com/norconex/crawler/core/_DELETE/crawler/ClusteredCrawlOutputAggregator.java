@@ -58,7 +58,7 @@ final class ClusteredCrawlOutputAggregator {
         var cachesDirStr = workDirStr + "/"
                 + CachesExporterCrawlDriverWrapper.EXPORT_REL_DIR;
 
-        for (int i = 0; i < client.getNodes().size(); i++) {
+        for (var i = 0; i < client.getNodes().size(); i++) {
             var container = client.getNodes().get(i);
             var node = output.getNodes().get(i);
             node.setName(container.getNetworkAliases().get(0));
@@ -75,7 +75,7 @@ final class ClusteredCrawlOutputAggregator {
 
                 // Only try to load caches if a config was provided
                 if (cfg != null && output.getCaches().isEmpty()) {
-                    Path localZip = Files.createTempFile("cache", ".zip");
+                    var localZip = Files.createTempFile("cache", ".zip");
                     container.copyFileFromContainer(
                             cachesDirStr + "/" + cfg.getId() + ".zip",
                             localZip.toString());
@@ -98,11 +98,11 @@ final class ClusteredCrawlOutputAggregator {
             GenericContainer<?> container,
             SharedClusterClient client,
             CrawlConfig cfg) {
-        Path eventFile = cfg.getEventListeners().stream()
+        var eventFile = cfg.getEventListeners().stream()
                 .filter(MockCliEventWriter.class::isInstance)
                 .findFirst()
                 .map(MockCliEventWriter.class::cast)
-                .map(ew -> ew.getEventFile())
+                .map(MockCliEventWriter::getEventFile)
                 .orElse(null);
 
         if (eventFile == null) {
@@ -110,23 +110,18 @@ final class ClusteredCrawlOutputAggregator {
         }
 
         try {
-            System.err.println("XXX REMOTE EVENTS FILE PATH: " + eventFile);
-            Path localEventsFile = Files.createTempFile(null, null);
-            System.err
-                    .println("XXX LOCAL EVENTS FILE PATH: " + localEventsFile);
+            var localEventsFile = Files.createTempFile(null, null);
 
             // Retry logic to handle filesystem sync delays in containers
-            int maxRetries = 5;
-            long retryDelayMs = 100;
+            var maxRetries = 5;
+            var retryDelayMs = 100L;
             NotFoundException lastException = null;
 
-            for (int attempt = 0; attempt < maxRetries; attempt++) {
+            for (var attempt = 0; attempt < maxRetries; attempt++) {
                 try {
                     container.copyFileFromContainer(
                             eventFile.toString().replace('\\', '/'),
                             localEventsFile.toString());
-                    System.err.println("XXX LOCAL EVENTS FILE CONTENT: "
-                            + Files.readString(localEventsFile));
                     return MockCliEventWriter.parseEvents(localEventsFile);
                 } catch (NotFoundException e) {
                     lastException = e;
@@ -143,14 +138,10 @@ final class ClusteredCrawlOutputAggregator {
             // If we exhausted retries, throw the last exception
             throw lastException;
         } catch (NotFoundException e) {
-            System.err.println(
-                    "XXX EVENTS FAILURE (file not found after retries):");
             e.printStackTrace(System.err);
             throw new RuntimeException("Could not read events file after "
                     + "retries: " + eventFile, e);
         } catch (Throwable e) {
-            System.err.println("XXX EVENTS FAILURE:");
-            e.printStackTrace(System.err);
             throw new RuntimeException("Could not read events file.", e);
         }
     }
@@ -160,24 +151,24 @@ final class ClusteredCrawlOutputAggregator {
         if (!Files.exists(zipFile)) {
             return null;
         }
-        ObjectMapper mapper = new ObjectMapper();
+        var mapper = new ObjectMapper();
         Map<String, List<JsonNode>> jsonContents = new HashMap<>();
-        try (ZipInputStream zis =
+        try (var zis =
                 new ZipInputStream(new FileInputStream(zipFile.toFile()))) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                byte[] buffer = new byte[1024];
+                var baos = new ByteArrayOutputStream();
+                var buffer = new byte[1024];
                 int len;
                 while ((len = zis.read(buffer)) > 0) {
                     baos.write(buffer, 0, len);
                 }
 
-                String jsonString = baos.toString(StandardCharsets.UTF_8);
+                var jsonString = baos.toString(StandardCharsets.UTF_8);
                 try {
-                    JsonNode node = mapper.readTree(jsonString);
-                    String storeKey = node.get("store").asText();
-                    JsonNode recordsNode = node.get("records");
+                    var node = mapper.readTree(jsonString);
+                    var storeKey = node.get("store").asText();
+                    var recordsNode = node.get("records");
                     List<JsonNode> recordsList = new ArrayList<>();
                     if (recordsNode != null && recordsNode.isArray()) {
                         for (JsonNode item : recordsNode) {

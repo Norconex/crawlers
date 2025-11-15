@@ -22,6 +22,9 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.crawler.core.junit.standalone.StandaloneCliCrawlerLauncher;
+import com.norconex.crawler.core.junit.standalone.StandaloneExecutionResult;
+
 /**
  * Fast tests for CLI argument parsing and help text generation.
  * These tests verify the CLI interface without requiring actual
@@ -36,7 +39,7 @@ class CliArgumentParsingTest {
     void testNoArgsShowsUsageHelp() {
         var exit = quickLaunch();
 
-        assertThat(exit.getCode()).isNotZero();
+        assertThat(exit.isOK()).isFalse();
         assertThat(exit.getStdErr()).contains("No arguments provided.");
         assertThat(exit.getStdOut()).contains(
                 "Usage:",
@@ -47,7 +50,7 @@ class CliArgumentParsingTest {
     void testHelpFlagShowsAllCommands() {
         var exit = quickLaunch("-h");
 
-        assertThat(exit.getCode()).isZero();
+        assertThat(exit.isOK()).isTrue();
         assertThat(exit.getStdOut()).contains(
                 "Usage:",
                 "help",
@@ -64,7 +67,7 @@ class CliArgumentParsingTest {
     void testVersionFlagShowsVersionInfo() {
         var exit = quickLaunch("-v");
 
-        assertThat(exit.getCode()).isZero();
+        assertThat(exit.isOK()).isTrue();
         assertThat(exit.getStdOut())
                 .contains(
                         "C R A W L E R",
@@ -79,7 +82,7 @@ class CliArgumentParsingTest {
     void testInvalidCommandShowsError() {
         var exit = quickLaunch("potato", "--soup");
 
-        assertThat(exit.getCode()).isNotZero();
+        assertThat(exit.isOK()).isFalse();
         assertThat(exit.getStdErr()).contains("Unmatched arguments");
     }
 
@@ -87,7 +90,7 @@ class CliArgumentParsingTest {
     void testDuplicateOptionShowsError() {
         var exit = quickLaunch("start", "-config=");
 
-        assertThat(exit.getCode()).isNotZero();
+        assertThat(exit.isOK()).isFalse();
         assertThat(exit.getStdErr()).contains(
                 "should be specified only once",
                 "Usage:");
@@ -95,7 +98,7 @@ class CliArgumentParsingTest {
 
     @Test
     void testNonExistentConfigFileShowsError() {
-        var captured = TestCliCrawlerLauncher.capture(
+        var captured = StandaloneCliCrawlerLauncher.capture(
                 "configcheck", "-config=/path/that/does/not/exist.xml");
 
         assertThat(captured.getReturnValue()).isNotZero();
@@ -103,8 +106,8 @@ class CliArgumentParsingTest {
                 "Configuration file does not exist");
     }
 
-    private TestCliCrawlerExit quickLaunch(String... args) {
-        return TestCliCrawlerLauncher
+    private StandaloneExecutionResult quickLaunch(String... args) {
+        return StandaloneCliCrawlerLauncher
                 .builder()
                 .args(List.of(args))
                 .workDir(tempDir)

@@ -30,6 +30,8 @@ import com.norconex.committer.core.CommitterEvent;
 import com.norconex.committer.core.service.CommitterServiceEvent;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.junit.CrawlerExecutionAssertions;
+import com.norconex.crawler.core.junit.standalone.StandaloneCliCrawlerLauncher;
 import com.norconex.importer.ImporterEvent;
 
 /**
@@ -45,21 +47,19 @@ class CliLifecycleCommandsTest {
 
     @Test
     void testStartCommandEventSequence() {
-        var exit = TestCliCrawlerLauncher
+        var exit = StandaloneCliCrawlerLauncher
                 .builder()
                 .args(List.of("start"))
                 .workDir(tempDir)
                 .build()
                 .launch(twoDocsConfig());
 
-        assertThat(exit.getCode())
+        assertThat(exit.isOK())
                 .as("Crawler should start successfully")
-                .isZero();
+                .isTrue();
 
-        // Verify lifecycle events occur in correct order
-        // Since we're crawling one document, we expect document processing
-        // events
-        String[] expectedEvents = {
+        CrawlerExecutionAssertions.assertEventSequence(
+                exit.getEventNames(),
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
@@ -87,25 +87,22 @@ class CliLifecycleCommandsTest {
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
-        };
-
-        assertThat(exit.getEventNames()).containsExactly(expectedEvents);
-
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END);
     }
 
     @Test
     void testCleanCommandEventSequence() {
-        var exit = TestCliCrawlerLauncher
+        var exit = StandaloneCliCrawlerLauncher
                 .builder()
                 .args(List.of("clean"))
                 .workDir(tempDir)
                 .build()
                 .launch(twoDocsConfig());
 
-        assertThat(exit.getCode()).isZero();
+        assertThat(exit.isOK()).isTrue();
 
-        String[] expectedEvents = {
+        CrawlerExecutionAssertions.assertEventSequence(
+                exit.getEventNames(),
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
@@ -119,24 +116,22 @@ class CliLifecycleCommandsTest {
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
-        };
-
-        assertThat(exit.getEventNames()).containsExactly(expectedEvents);
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END);
     }
 
     @Test
     void testStartCleanCommandEventSequence() {
-        var exit = TestCliCrawlerLauncher
+        var exit = StandaloneCliCrawlerLauncher
                 .builder()
                 .args(List.of("start", "-clean"))
                 .workDir(tempDir)
                 .build()
                 .launch(oneDocConfig());
 
-        assertThat(exit.getCode()).isZero();
+        assertThat(exit.isOK()).isTrue();
 
-        String[] expectedEvents = {
+        CrawlerExecutionAssertions.assertEventSequence(
+                exit.getEventNames(),
                 // Init
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
@@ -168,15 +163,12 @@ class CliLifecycleCommandsTest {
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
-        };
-
-        assertThat(exit.getEventNames()).containsExactly(expectedEvents);
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END);
     }
 
     @Test
     void testStoreExportCommandEventSequence() {
-        var exit = TestCliCrawlerLauncher
+        var exit = StandaloneCliCrawlerLauncher
                 .builder()
                 .args(List.of(
                         "storeexport",
@@ -187,9 +179,10 @@ class CliLifecycleCommandsTest {
                 .build()
                 .launch(twoDocsConfig());
 
-        assertThat(exit.getCode()).isZero();
+        assertThat(exit.isOK()).isTrue();
 
-        String[] expectedEvents = {
+        CrawlerExecutionAssertions.assertEventSequence(
+                exit.getEventNames(),
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
@@ -199,10 +192,7 @@ class CliLifecycleCommandsTest {
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
-        };
-
-        assertThat(exit.getEventNames()).containsExactly(expectedEvents);
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END);
     }
 
     @Test
@@ -211,7 +201,7 @@ class CliLifecycleCommandsTest {
                 .getResource("/cache/exported/test-store.zip")
                 .toURI());
 
-        var exit = TestCliCrawlerLauncher
+        var exit = StandaloneCliCrawlerLauncher
                 .builder()
                 .args(List.of("storeimport", "-file", file.toString()))
                 .workDir(tempDir)
@@ -219,9 +209,10 @@ class CliLifecycleCommandsTest {
                 .build()
                 .launch(twoDocsConfig());
 
-        assertThat(exit.getCode()).isZero();
+        assertThat(exit.isOK()).isTrue();
 
-        String[] expectedEvents = {
+        CrawlerExecutionAssertions.assertEventSequence(
+                exit.getEventNames(),
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
@@ -231,17 +222,14 @@ class CliLifecycleCommandsTest {
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
-        };
-
-        assertThat(exit.getEventNames()).containsExactly(expectedEvents);
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END);
     }
 
     @Test
     void testStopCommandEventSequence() {
         // we are just testing that the CLI is launching, not that it actually
         // stopped, which is tested separately.
-        var exit = TestCliCrawlerLauncher
+        var exit = StandaloneCliCrawlerLauncher
                 .builder()
                 .args(List.of("stop"))
                 .workDir(tempDir)
@@ -249,9 +237,10 @@ class CliLifecycleCommandsTest {
                 .build()
                 .launch(twoDocsConfig());
 
-        assertThat(exit.getCode()).isZero();
+        assertThat(exit.isOK()).isTrue();
 
-        String[] expectedEvents = {
+        CrawlerExecutionAssertions.assertEventSequence(
+                exit.getEventNames(),
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
@@ -261,10 +250,7 @@ class CliLifecycleCommandsTest {
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END
-        };
-
-        assertThat(exit.getEventNames()).containsExactly(expectedEvents);
+                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END);
     }
 
     private CrawlConfig twoDocsConfig() {

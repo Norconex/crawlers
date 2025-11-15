@@ -53,12 +53,14 @@ public class CrawlerEvent extends Event {
     /**
      * Issued when a request to stop the crawler has been received.
      */
+    @Deprecated //TODO do we keep it but move to receving request
     public static final String CRAWLER_STOP_REQUEST_BEGIN =
             "CRAWLER_STOP_REQUEST_BEGIN";
     /**
      * Issued when a request to stop the crawler has been fully executed
      * (crawler stopped).
      */
+    @Deprecated //TODO do we keep it but move to receving request
     public static final String CRAWLER_STOP_REQUEST_END =
             "CRAWLER_STOP_REQUEST_END";
 

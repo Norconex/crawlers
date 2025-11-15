@@ -23,6 +23,9 @@ import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.context.CrawlContextFactory;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public final class CrawlSessionFactory {
 
     private CrawlSessionFactory() {

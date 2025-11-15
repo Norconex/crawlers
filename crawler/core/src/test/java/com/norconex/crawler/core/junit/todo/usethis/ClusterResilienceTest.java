@@ -51,18 +51,18 @@ class ClusterResilienceTest extends AbstractClusterTest {
 
         var nodeLauncher = createNodeLauncher();
 
-        try (var cluster = new CrawlerCluster(nodeLauncher, crawlConfig)) {
+        try (var cluster = new CrawlerCluster(crawlConfig)) {
             // Launch 3 nodes so we can kill one and still have quorum
-            cluster.launch(3);
+            cluster.launch(nodeLauncher, 3);
 
-            cluster.waitForClusterFormation(getClusterFormationTimeout());
+            cluster.waitForClusterFormation(3, getClusterFormationTimeout());
 
             // TODO: Give cluster time to start crawling
             Sleeper.sleepSeconds(5);
 
             // TODO: Identify coordinator node from logs/state
             var coordinatorNode = cluster.getNodes().stream()
-                    .filter(node -> node.getStdout().contains("COORDINATOR"))
+                    .filter(node -> node.getStdOut().contains("COORDINATOR"))
                     .findFirst()
                     .orElseThrow(() -> new AssertionError(
                             "No coordinator found"));
@@ -109,11 +109,11 @@ class ClusterResilienceTest extends AbstractClusterTest {
 
         var nodeLauncher = createNodeLauncher();
 
-        try (var cluster = new CrawlerCluster(nodeLauncher, crawlConfig)) {
+        try (var cluster = new CrawlerCluster(crawlConfig)) {
             // Start with 2 nodes
-            cluster.launch(2);
+            cluster.launch(nodeLauncher, 2);
 
-            cluster.waitForClusterFormation(getClusterFormationTimeout());
+            cluster.waitForClusterFormation(3, getClusterFormationTimeout());
 
             // Let crawl start
             Sleeper.sleepSeconds(5);
@@ -121,7 +121,7 @@ class ClusterResilienceTest extends AbstractClusterTest {
             LOG.info("Launching additional node mid-crawl...");
 
             // Add a 3rd node while crawling
-            cluster.launch(1);
+            cluster.launch(nodeLauncher, 1);
 
             // Give new node time to join and sync
             Sleeper.sleepSeconds(5);
@@ -136,7 +136,7 @@ class ClusterResilienceTest extends AbstractClusterTest {
 
             // All 3 nodes should show they saw the 3-node cluster
             cluster.getNodes().forEach(node -> {
-                assertThat(node.getStdout())
+                assertThat(node.getStdOut())
                         .as("Node should have observed 3-node cluster")
                         .contains("Node count: 3");
             });
@@ -155,18 +155,18 @@ class ClusterResilienceTest extends AbstractClusterTest {
         var crawlConfig = createMinimalClusterConfig(tempDir);
         var nodeLauncher = createNodeLauncher();
 
-        try (var cluster = new CrawlerCluster(nodeLauncher, crawlConfig)) {
+        try (var cluster = new CrawlerCluster(crawlConfig)) {
             // Launch 3 nodes
-            cluster.launch(3);
+            cluster.launch(nodeLauncher, 3);
 
-            cluster.waitForClusterFormation(getClusterFormationTimeout());
+            cluster.waitForClusterFormation(3, getClusterFormationTimeout());
 
             // Let crawl start
             Sleeper.sleepSeconds(5);
 
             // TODO: Kill a non-coordinator node
             var workerNode = cluster.getNodes().stream()
-                    .filter(node -> !node.getStdout()
+                    .filter(node -> !node.getStdOut()
                             .contains("Starting pipeline coordinator"))
                     .findFirst()
                     .orElseThrow(() -> new AssertionError(
@@ -205,10 +205,10 @@ class ClusterResilienceTest extends AbstractClusterTest {
         var crawlConfig = createMinimalClusterConfig(tempDir);
         var nodeLauncher = createNodeLauncher();
 
-        try (var cluster = new CrawlerCluster(nodeLauncher, crawlConfig)) {
-            cluster.launch(3);
+        try (var cluster = new CrawlerCluster(crawlConfig)) {
+            cluster.launch(nodeLauncher, 3);
 
-            cluster.waitForClusterFormation(getClusterFormationTimeout());
+            cluster.waitForClusterFormation(3, getClusterFormationTimeout());
 
             // Simulate partition by killing 1 node
             var isolatedNode = cluster.getNodes().get(2);

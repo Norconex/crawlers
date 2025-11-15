@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.junit.standalone.StandaloneCliCrawlerLauncher;
 
 /**
  * Fast tests for config validation and rendering commands.
@@ -43,14 +44,14 @@ class CliConfigCommandsTest {
         var config = new CrawlConfig();
         config.setStartReferences(List.of("http://example.com"));
 
-        var exit = TestCliCrawlerLauncher
+        var exit = StandaloneCliCrawlerLauncher
                 .builder()
                 .args(List.of("configcheck"))
                 .workDir(tempDir)
                 .build()
                 .launch(config);
 
-        assertThat(exit.getCode()).isZero();
+        assertThat(exit.isOK()).isTrue();
         assertThat(exit.getStdOut()).containsIgnoringWhitespaces(
                 "No configuration errors detected.");
     }
@@ -60,7 +61,7 @@ class CliConfigCommandsTest {
         var brokenConfigFile = tempDir.resolve("broken.xml");
         Files.writeString(brokenConfigFile,
                 "<crawler badAttr=\"badAttr\"></crawler>");
-        var captured = TestCliCrawlerLauncher.capture(
+        var captured = StandaloneCliCrawlerLauncher.capture(
                 "configcheck", "-config=" + brokenConfigFile);
 
         assertThat(captured.getReturnValue()).isNotZero();
@@ -73,7 +74,7 @@ class CliConfigCommandsTest {
         var invalidConfigFile = tempDir.resolve("invalid.xml");
         Files.writeString(invalidConfigFile,
                 "<crawler numThreads=\"0\"></crawler>");
-        var captured = TestCliCrawlerLauncher.capture(
+        var captured = StandaloneCliCrawlerLauncher.capture(
                 "configcheck", "-config=" + invalidConfigFile);
 
         assertThat(captured.getReturnValue()).isNotZero();
@@ -84,14 +85,14 @@ class CliConfigCommandsTest {
     void testConfigRenderNoDefaultValues() throws IOException {
         var config = new CrawlConfig();
         config.setStartReferences(List.of("http://example.com"));
-        var exit = TestCliCrawlerLauncher
+        var exit = StandaloneCliCrawlerLauncher
                 .builder()
                 .args(List.of("configrender"))
                 .workDir(tempDir)
                 .build()
                 .launch(config);
 
-        assertThat(exit.getCode()).isZero();
+        assertThat(exit.isOK()).isTrue();
         // Should NOT contain default values (V4 behavior)
         assertThat(exit.getStdOut()).doesNotContain("<importer");
     }
@@ -102,14 +103,14 @@ class CliConfigCommandsTest {
         config.setStartReferences(List.of("http://example.com"));
 
         var outputFile = tempDir.resolve("rendered.xml");
-        var exit = TestCliCrawlerLauncher
+        var exit = StandaloneCliCrawlerLauncher
                 .builder()
                 .args(List.of("configrender", "-output=" + outputFile))
                 .workDir(tempDir)
                 .build()
                 .launch(config);
 
-        assertThat(exit.getCode()).isZero();
+        assertThat(exit.isOK()).isTrue();
         assertThat(outputFile).exists();
 
         var renderedContent = Files.readString(outputFile);
@@ -123,13 +124,13 @@ class CliConfigCommandsTest {
 
         // use a directory instead of file to make it fail
         var badOutputFile = tempDir.toAbsolutePath();
-        var exit = TestCliCrawlerLauncher
+        var exit = StandaloneCliCrawlerLauncher
                 .builder()
                 .args(List.of("configrender", "-output=" + badOutputFile))
                 .workDir(tempDir)
                 .build()
                 .launch(config);
-        assertThat(exit.getCode()).isNotZero();
+        assertThat(exit.isOK()).isFalse();
         assertThat(exit.getStdErr()).contains("FileNotFoundException");
     }
 }

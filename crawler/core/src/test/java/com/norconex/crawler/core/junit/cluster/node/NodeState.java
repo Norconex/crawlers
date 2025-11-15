@@ -79,17 +79,6 @@ public class NodeState {
         return nodeIndex;
     }
 
-    //    /**
-    //     * Clears all state and resets for a new test. Does not delete the
-    //     * file, but clears the in-memory state.
-    //     */
-    //    public static void reset() {
-    //        synchronized (lock) {
-    //            props.clear();
-    //            file = null;
-    //        }
-    //    }
-
     /**
      * Loads state from disk (test-side operation). This allows the test
      * method to read state written by nodes in other JVMs.
@@ -110,7 +99,7 @@ public class NodeState {
     }
 
     private static void write() {
-        LOG.debug("Persist node state props: " + props);
+        LOG.info("Persist node state props: " + props);
         synchronized (lock) {
             // Use a temp file and atomic move to reduce corruption risk
             // when multiple JVMs write concurrently (which should not happen)

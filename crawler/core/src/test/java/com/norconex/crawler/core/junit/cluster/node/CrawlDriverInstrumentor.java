@@ -28,7 +28,7 @@ import com.norconex.crawler.core.CrawlCallbacks;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.cluster.impl.infinispan.CacheNames;
-import com.norconex.crawler.core.cluster.impl.infinispan.TestClusterConnectorBuilder;
+import com.norconex.crawler.core.cluster.impl.infinispan.TestClusterConnector;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
 import com.norconex.crawler.core.cmd.storeexport.StoreExportCommand;
@@ -49,6 +49,7 @@ final class CrawlDriverInstrumentor {
     private static final String CACHES_DIR = "caches";
 
     public static CrawlDriver instrument(CrawlDriver delegate) {
+
         return TestCrawlDriverFactory.builder()
                 .beanMapper(delegate.beanMapper())
                 .bootstrappers(delegate.bootstrappers())
@@ -87,7 +88,7 @@ final class CrawlDriverInstrumentor {
             // specified
             if (cfg.getClusterConnector() == null) {
                 cfg.setClusterConnector(
-                        new TestClusterConnectorBuilder.ClusterWithPersistence());
+                        new TestClusterConnector.ClusterWithPersistence());
             }
 
             // call original if present
@@ -96,7 +97,7 @@ final class CrawlDriverInstrumentor {
             }
 
             if (Boolean.getBoolean(CrawlerNode.PROP_EXPORT_EVENTS)) {
-                cfg.addEventListener(new NodeEventsExporter(nodeWorkDir));
+                cfg.addEventListener(new NodeEventNamesExporter(nodeWorkDir));
             }
 
             NodeState.init(nodeWorkDir);
@@ -130,6 +131,21 @@ final class CrawlDriverInstrumentor {
 
             //            NodeState.props().set(NodeState.NODE_COUNT_AT_JOIN,
             //                    session.getCluster().getNodeCount());
+
+            // Register shutdown hook for the executor to ensure it's
+            // stopped when the command completes
+            session.setPostCloseCleanup(() -> {
+                LOG.info("Shutting down node count monitor executor...");
+                executor.shutdown();
+                try {
+                    if (!executor.awaitTermination(2, TimeUnit.SECONDS)) {
+                        executor.shutdownNow();
+                    }
+                } catch (InterruptedException e) {
+                    executor.shutdownNow();
+                    Thread.currentThread().interrupt();
+                }
+            });
 
             // call original callback if present
             if (bc != null) {

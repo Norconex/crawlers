@@ -67,7 +67,7 @@ public class PipelineCoordinatorState implements AutoCloseable {
     // Misc.
     private final Map<String, StepRecord> workerStatusesMap = new HashMap<>();
     private CacheEntryChangeListener<StepRecord> workerStatusChangeListener;
-    private long nodeExpiryTimeoutMs = 30_000;
+    private long nodeExpiryTimeoutMs = 5_000; // 5 seconds
 
     public PipelineCoordinatorState(InfinispanCluster cluster,
             Pipeline pipeline) {
@@ -137,6 +137,11 @@ public class PipelineCoordinatorState implements AutoCloseable {
                 }
                 Sleeper.sleepMillis(250);
                 continue;
+            }
+
+            // If no nodes left after filtering, we're done
+            if (nodeNames.isEmpty()) {
+                break;
             }
 
             var statuses = workerStatusesAsBag(nodeNames);
@@ -213,37 +218,102 @@ public class PipelineCoordinatorState implements AutoCloseable {
 
     private Bag<PipelineStatus> workerStatusesAsBag(List<String> nodeNames) {
         Bag<PipelineStatus> statuses = new HashBag<>();
+
+        // Process nodes currently in the cluster
         for (String nodeName : nodeNames) {
             // Use the latest worker status if and only if it is for this step
             var rec = workerStatusesMap.get(nodeName);
             if (rec == null || !Objects.equals(rec.getStepId(),
                     currentStepRecord.getStepId())) {
-                // stale status from a previous step: ignore and wait
-                LOG.info(
-                        "Node {} has no status for step {} (rec={}, recStepId={}, currentStepId={})",
-                        nodeName,
-                        currentStepRecord.getStepId(),
-                        rec != null ? "present" : "null",
-                        rec != null ? rec.getStepId() : "N/A",
-                        currentStepRecord.getStepId());
-                statuses.add(PipelineStatus.PENDING);
+                // Node has no status for this step yet
+                // During shutdown, if we're stopping and node stays PENDING,
+                // treat it as STOPPED after a brief timeout
+                if (currentStepRecord.getStatus() == PipelineStatus.STOPPING) {
+                    // If we're in STOPPING state and this node never reported,
+                    // it's likely a stopper node or already departed - mark as STOPPED
+                    LOG.info(
+                            "Node {} has no status for step {} during shutdown - marking as STOPPED",
+                            nodeName,
+                            currentStepRecord.getStepId());
+                    statuses.add(PipelineStatus.STOPPED);
+                } else {
+                    // Normal operation - node hasn't started this step yet
+                    LOG.info(
+                            "Node {} has no status for step {} (rec={}, recStepId={}, currentStepId={})",
+                            nodeName,
+                            currentStepRecord.getStepId(),
+                            rec != null ? "present" : "null",
+                            rec != null ? rec.getStepId() : "N/A",
+                            currentStepRecord.getStepId());
+                    statuses.add(PipelineStatus.PENDING);
+                }
             } else {
                 var isExpired = rec.hasTimedOut(nodeExpiryTimeoutMs);
                 if (isExpired) {
-                    LOG.warn(
-                            "Node {} status EXPIRED for step {} - last update "
-                                    + "was {} ms ago (timeout: {} ms, status: {})",
-                            nodeName,
-                            currentStepRecord.getStepId(),
-                            System.currentTimeMillis() - rec.getUpdatedAt(),
-                            nodeExpiryTimeoutMs,
-                            rec.getStatus());
+                    // During shutdown, treat expired nodes as STOPPED rather than EXPIRED
+                    // since they likely departed gracefully
+                    if (currentStepRecord
+                            .getStatus() == PipelineStatus.STOPPING) {
+                        LOG.info(
+                                "Node {} status expired during shutdown (last update "
+                                        + "{} ms ago, was {}) - marking as STOPPED",
+                                nodeName,
+                                System.currentTimeMillis() - rec.getUpdatedAt(),
+                                rec.getStatus());
+                        statuses.add(PipelineStatus.STOPPED);
+                    } else {
+                        LOG.warn(
+                                "Node {} status EXPIRED for step {} - last update "
+                                        + "was {} ms ago (timeout: {} ms, status: {})",
+                                nodeName,
+                                currentStepRecord.getStepId(),
+                                System.currentTimeMillis() - rec.getUpdatedAt(),
+                                nodeExpiryTimeoutMs,
+                                rec.getStatus());
+                        statuses.add(PipelineStatus.EXPIRED);
+                    }
+                } else {
+                    statuses.add(rec.getStatus());
                 }
-                statuses.add(isExpired
-                        ? PipelineStatus.EXPIRED
-                        : rec.getStatus());
             }
         }
+
+        // Also process nodes that reported a status for this step but have
+        // since left the cluster (e.g., after completing work and exiting).
+        // Treat them as having their last reported status if terminal,
+        // or EXPIRED if non-terminal (they didn't complete gracefully).
+        for (var entry : workerStatusesMap.entrySet()) {
+            var nodeName = entry.getKey();
+            var rec = entry.getValue();
+
+            // Skip if node is still in cluster (already processed above)
+            // Skip if the status is for a different step
+            if (nodeNames.contains(nodeName) || !Objects.equals(rec.getStepId(),
+                    currentStepRecord.getStepId())) {
+                continue;
+            }
+
+            // Node has left the cluster but had reported a status for this step
+            var lastStatus = rec.getStatus();
+            if (lastStatus.isTerminal()) {
+                // Node completed its work and exited - honor its final status
+                LOG.info(
+                        "Node {} has left the cluster with terminal status {} for step {}",
+                        nodeName,
+                        lastStatus,
+                        currentStepRecord.getStepId());
+                statuses.add(lastStatus);
+            } else {
+                // Node left without completing - treat as EXPIRED
+                LOG.info(
+                        "Node {} has left the cluster with non-terminal status {} for step {} - marking as EXPIRED",
+                        nodeName,
+                        lastStatus,
+                        currentStepRecord.getStepId());
+                statuses.add(PipelineStatus.EXPIRED);
+            }
+        }
+
         LOG.debug("Worker status map keys: {}, cluster node names: {}",
                 workerStatusesMap.keySet(), nodeNames);
         return statuses;
@@ -253,7 +323,7 @@ public class PipelineCoordinatorState implements AutoCloseable {
         if (!pipeline.getId().equals(stepRec.getPipelineId())) {
             return; // ignore statuses for other pipelines
         }
-        String nodeName = StringUtils.substringAfterLast(key, ":");
+        var nodeName = StringUtils.substringAfterLast(key, ":");
         LOG.debug(
                 "Updating worker status map: key={}, extracted nodeName={}, stepId={}, status={}",
                 key, nodeName, stepRec.getStepId(), stepRec.getStatus());

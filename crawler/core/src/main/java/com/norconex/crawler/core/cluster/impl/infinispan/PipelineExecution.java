@@ -27,6 +27,7 @@ import com.norconex.crawler.core.cluster.impl.infinispan.event.CoordinatorChange
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineException;
 import com.norconex.crawler.core.cluster.pipeline.PipelineResult;
+import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 
 import lombok.AccessLevel;
@@ -41,9 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PipelineExecution implements AutoCloseable {
 
-    // Reduced from 5s to 2s - sufficient for graceful shutdown of
-    // pipeline threads while significantly improving test performance
-    private static final long SHUTDOWN_AWAIT_SECONDS = 2;
+    private static final long SHUTDOWN_AWAIT_SECONDS = 5;
 
     private final InfinispanCluster cluster;
     @Getter(value = AccessLevel.PACKAGE)
@@ -51,6 +50,8 @@ public class PipelineExecution implements AutoCloseable {
 
     private PipelineCoordinator coordinator;
     private PipelineWorker worker;
+    private CompletableFuture<PipelineResult> workerFuture;
+    private CompletableFuture<Void> coordinatorFuture;
 
     private boolean executed;
 
@@ -93,7 +94,7 @@ public class PipelineExecution implements AutoCloseable {
         LOG.info("Starting pipeline worker for {} on node {}",
                 pipeline.getId(), cluster.getLocalNode().getNodeName());
         worker = new PipelineWorker(cluster, pipeline);
-        return CompletableFuture.supplyAsync(worker::start, executor)
+        workerFuture = CompletableFuture.supplyAsync(worker::start, executor)
                 .exceptionally(ex -> {
                     ExceptionSwallower.close(worker);
                     // Should not happen(?) given the worker should mark
@@ -103,14 +104,30 @@ public class PipelineExecution implements AutoCloseable {
                                     + "not able to handle for node %s.",
                             ex);
                 });
+        return workerFuture;
     }
 
     //TODO make distinction between stopping a process on a node vs stopping
     // on the cluster, vs shutting down.
     public CompletableFuture<Void> stopPipeline() {
-        //Stop corresponding worker and then possible coordinator
+        LOG.info(
+                "PipelineExecution: Stop signal detected, beginning graceful shutdown.");
         ofNullable(worker).ifPresent(PipelineWorker::stop);
         ofNullable(coordinator).ifPresent(PipelineCoordinator::stop);
+
+        // Cancel both worker and coordinator futures to unblock any code
+        // waiting on them. This is critical to allow commands to complete
+        // and the JVM to exit properly.
+        if (workerFuture != null && !workerFuture.isDone()) {
+            LOG.info("Cancelling worker future to allow graceful shutdown.");
+            workerFuture.cancel(true);
+        }
+        if (coordinatorFuture != null && !coordinatorFuture.isDone()) {
+            LOG.info(
+                    "Cancelling coordinator future to allow graceful shutdown.");
+            coordinatorFuture.cancel(true);
+        }
+
         close();
         return CompletableFuture.completedFuture(null);
     }
@@ -171,20 +188,37 @@ public class PipelineExecution implements AutoCloseable {
         LOG.debug("Starting pipeline coordinator for {} on node {}",
                 pipeline.getId(), cluster.getLocalNode().getNodeName());
         coordinator = new PipelineCoordinator(cluster, pipeline);
-        CompletableFuture.runAsync(coordinator::start, executor)
-                .whenComplete((result, ex) -> {
-                    // This code will always run, on success or failure.
-                    if (ex != null) {
-                        // An exception occurred in the pipeline start.
-                        LOG.error("Pipeline coordinator failed", ex);
-                        try {
-                            resultFuture.completeExceptionally(ex);
-                        } finally {
-                            ExceptionSwallower.close(coordinator);
-                        }
-                    }
+        coordinatorFuture =
+                CompletableFuture.runAsync(coordinator::start, executor)
+                        .whenComplete((result, ex) -> {
+                            // This code will always run, on success or failure.
+                            if (ex != null) {
+                                // An exception occurred in the pipeline start.
+                                LOG.error("Pipeline coordinator failed", ex);
+                                try {
+                                    resultFuture.completeExceptionally(ex);
+                                } finally {
+                                    ExceptionSwallower.close(coordinator);
+                                }
+                            } else {
+                                // Pipeline coordinator completed successfully
+                                LOG.info("Pipeline coordinator completed "
+                                        + "successfully for {}",
+                                        pipeline.getId());
+                                try {
+                                    // Create a success result
+                                    var pipelineResult = PipelineResult
+                                            .builder()
+                                            .pipelineId(pipeline.getId())
+                                            .status(PipelineStatus.COMPLETED)
+                                            .build();
+                                    resultFuture.complete(pipelineResult);
+                                } finally {
+                                    ExceptionSwallower.close(coordinator);
+                                }
+                            }
 
-                });
+                        });
     }
 
     private ThreadFactory createThreadFactory() {

@@ -115,8 +115,10 @@ public class PipelineTerminationTracker {
     // it is terminated if the step is terminal and non COMPLETED, or
     // if the step is the last one and COMPLETED
     private boolean isPipelineTerminated(Pipeline pipeline) {
-        return InfinispanUtil.isPipelineTerminated(pipeline,
-                state.getCurrentStepRecord());
+        return InfinispanUtil.isPipelineTerminated(
+                pipeline,
+                state.getCurrentStepRecord(),
+                state.getStopRequested().get());
     }
 
     // Given the coordinator does not update the steps cache unless there

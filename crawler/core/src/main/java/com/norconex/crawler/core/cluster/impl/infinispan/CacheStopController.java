@@ -18,38 +18,29 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
-
-import org.infinispan.notifications.Listener;
-import org.infinispan.notifications.cachelistener.annotation.CacheEntryCreated;
-import org.infinispan.notifications.cachelistener.event.CacheEntryCreatedEvent;
 
 import com.norconex.crawler.core.cluster.Cache;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Cache-based stop controller for clustered crawler mode.
+ * Cache-based stop controller.
  * Monitors an Infinispan cache for stop signals.
  */
 @Slf4j
-public class CacheStopController implements CrawlerStopController {
+class CacheStopController implements AutoCloseable {
 
-    private final org.infinispan.Cache<String, String> controlCache;
-    //TODO replace void by String to log or store a reason for stopping
-    private final Consumer<Void> stopAction;
+    private final InfinispanCluster cluster;
+    private final Cache<String> adminCache;
     private final ScheduledExecutorService scheduler;
     private final AtomicBoolean stopping = new AtomicBoolean(false);
 
     private static final String STOP_KEY = "STOP";
+    private static final long POLL_INTERVAL_MS = 1000;
 
-    private ControlListener controlListener;
-
-    public CacheStopController(
-            Cache<String> controlCache, Consumer<Void> stopAction) {
-        this.controlCache =
-                ((InfinispanCacheAdapter<String>) controlCache).vendor();
-        this.stopAction = stopAction;
+    public CacheStopController(InfinispanCluster cluster) {
+        this.cluster = cluster;
+        adminCache = cluster.getCacheManager().getAdminCache();
         scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             var t = new Thread(r, "stop-poller");
             t.setDaemon(true);
@@ -58,59 +49,36 @@ public class CacheStopController implements CrawlerStopController {
     }
 
     /** Call during startup */
-    public void start() {
-        // 1. Immediate startup check
-        if (controlCache.containsKey(STOP_KEY)) {
-            triggerStop("Startup check");
+    public void init() {
+        if (adminCache.containsKey(STOP_KEY)) {
+            triggerLocalStop("Startup check");
             return;
         }
-
-        // 2. Register listener for fast shutdown
-        controlListener = new ControlListener();
-        controlCache.addListener(controlListener);
-
-        // 3. Polling safety net (every 3 minutes, tune as needed)
         scheduler.scheduleWithFixedDelay(() -> {
             try {
-                if (controlCache.containsKey(STOP_KEY)) {
-                    triggerStop("Polling check");
+                if (adminCache.containsKey(STOP_KEY)) {
+                    triggerLocalStop("Polling check");
                 }
             } catch (Exception e) {
                 LOG.error("Stop poller failed.", e);
             }
-        }, 1, 180, TimeUnit.SECONDS);
+        }, 1, POLL_INTERVAL_MS, TimeUnit.MILLISECONDS);
     }
 
     /** Call to clean up (optional if JVM exits anyway) */
-    public void stop() {
+    @Override
+    public void close() {
         scheduler.shutdownNow();
-        if (controlListener != null) {
-            controlCache.removeListener(controlListener);
-        }
     }
 
-    private void triggerStop(String source) {
+    private void triggerLocalStop(String source) {
         if (stopping.compareAndSet(false, true)) {
-            LOG.info("STOP triggered via {}", source);
-            stopAction.accept(null);
+            LOG.info("STOP triggered via {}.", source);
+            cluster.getPipelineManager().stop();
         }
     }
 
-    @Listener
-    public class ControlListener {
-        @CacheEntryCreated
-        public void onControl(CacheEntryCreatedEvent<String, String> event) {
-            if (!event.isPre() && STOP_KEY.equals(event.getKey())) {
-                triggerStop("Cache event");
-            }
-        }
-    }
-
-    /**
-     * Utility: sends STOP into the cache.
-     * @param controlCache the cache to send the signal to
-     */
-    public static void sendStop(Cache<String> controlCache) {
-        controlCache.putIfAbsent(STOP_KEY, "1");
+    public void sendClusterStopSignal() {
+        adminCache.putIfAbsent(STOP_KEY, "1");
     }
 }

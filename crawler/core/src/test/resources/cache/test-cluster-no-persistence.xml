@@ -34,11 +34,13 @@
     <global-state enabled="true">
       <persistent-location path="__WORKDIR__/cache/infinispan"/>
     </global-state>
-    <!-- Cache templates (same as production for compatibility) -->
+    <!-- Cache templates -->
+    
+    <!-- DISTRIBUTED templates (owners=2) for regular data - storage efficient -->
     <distributed-cache-configuration 
       name="base-template" 
-      mode="SYNC" 
-      owners="2" 
+      mode="SYNC"
+      owners="2"
       statistics="true"
     >
       <encoding>
@@ -61,22 +63,41 @@
     </distributed-cache-configuration>
     <distributed-cache-configuration 
       name="ephemeral-template" 
-      owners="2"
       mode="SYNC"
+      owners="2"
       statistics="true"
     >
       <expiration lifespan="-1"/>
     </distributed-cache-configuration>
+    
+    <!-- REPLICATED template for shutdown-critical caches - full replication -->
+    <!-- Used by: admin, pipeCurrentStep, pipeWorkerStatuses -->
+    <!-- Guarantees coordinator can read worker status even after workers exit -->
+    <replicated-cache-configuration 
+      name="shutdown-safe-template" 
+      mode="SYNC"
+      statistics="true"
+    >
+      <encoding>
+        <key media-type="application/x-protostream"/>
+        <value media-type="application/x-protostream"/>
+      </encoding>
+    </replicated-cache-configuration>
     <!-- Cache mappings -->
     <distributed-cache-configuration name="*_indexed"   configuration="indexed-template"/>
     <distributed-cache-configuration name="*_ephemeral" configuration="ephemeral-template"/>
-    <!-- Explicit cache instances -->
+    
+    <!-- CRITICAL: Shutdown-safe caches (fully replicated) -->
+    <!-- These must be available on coordinator even after workers exit -->
+    <replicated-cache name="admin"              configuration="shutdown-safe-template"/>
+    <replicated-cache name="pipeCurrentStep"    configuration="shutdown-safe-template"/>
+    <replicated-cache name="pipeWorkerStatuses" configuration="shutdown-safe-template"/>
+    
+    <!-- Regular caches (distributed with owners=2) -->
     <distributed-cache name="crawler"            configuration="base-template"/>
     <distributed-cache name="crawlSession"       configuration="base-template"/>
     <distributed-cache name="crawlRun"           configuration="ephemeral-template"/>
     <distributed-cache name="crawlEventCounts"   configuration="base-template"/>
-    <distributed-cache name="pipeCurrentStep"    configuration="base-template"/>
-    <distributed-cache name="pipeWorkerStatuses" configuration="base-template"/>
     <distributed-cache name="ledger_a"           configuration="indexed-template"/>
     <distributed-cache name="ledger_b"           configuration="indexed-template"/>
     <distributed-cache 
