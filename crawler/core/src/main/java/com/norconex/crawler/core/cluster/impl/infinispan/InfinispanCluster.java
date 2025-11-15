@@ -36,6 +36,7 @@ import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.cluster.CacheException;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.impl.infinispan.event.CoordinatorChangeListener;
+import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 
@@ -189,7 +190,10 @@ public class InfinispanCluster implements Cluster {
     @Override
     public void stop() {
         if (stopController != null) {
+            var session = getCrawlSession();
+            session.fire(CrawlerEvent.CRAWLER_STOP_REQUEST_BEGIN, session);
             stopController.sendClusterStopSignal();
+            session.fire(CrawlerEvent.CRAWLER_STOP_REQUEST_END, session);
             LOG.info("Stopping cluster...");
         }
     }

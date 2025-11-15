@@ -55,7 +55,7 @@ class CliLifecycleCommandsTest {
                 .launch(twoDocsConfig());
 
         assertThat(exit.isOK())
-                .as("Crawler should start successfully")
+                .as("Crawler start command failed: " + exit.getStdErr())
                 .isTrue();
 
         CrawlerExecutionAssertions.assertEventSequence(
@@ -175,7 +175,7 @@ class CliLifecycleCommandsTest {
                         "-dir",
                         tempDir.resolve("exportdir").toString()))
                 .workDir(tempDir)
-                .printErrors(true)
+                .printErrors(false)
                 .build()
                 .launch(twoDocsConfig());
 
@@ -205,7 +205,7 @@ class CliLifecycleCommandsTest {
                 .builder()
                 .args(List.of("storeimport", "-file", file.toString()))
                 .workDir(tempDir)
-                .printErrors(true)
+                .printErrors(false)
                 .build()
                 .launch(twoDocsConfig());
 
@@ -228,29 +228,20 @@ class CliLifecycleCommandsTest {
     @Test
     void testStopCommandEventSequence() {
         // we are just testing that the CLI is launching, not that it actually
-        // stopped, which is tested separately.
+        // stopped, which is tested somewhere else.
         var exit = StandaloneCliCrawlerLauncher
                 .builder()
                 .args(List.of("stop"))
                 .workDir(tempDir)
-                .printErrors(true)
+                .printErrors(false)
                 .build()
                 .launch(twoDocsConfig());
 
-        assertThat(exit.isOK()).isTrue();
+        // must fall has we have not started a crawler yet (nothing to stop)
+        assertThat(exit.isOK()).isFalse();
 
-        CrawlerExecutionAssertions.assertEventSequence(
-                exit.getEventNames(),
-                CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
-                CommitterEvent.COMMITTER_INIT_BEGIN,
-                CommitterEvent.COMMITTER_INIT_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
-                CrawlerEvent.CRAWLER_STOP_REQUEST_BEGIN,
-                CrawlerEvent.CRAWLER_STOP_REQUEST_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
-                CommitterEvent.COMMITTER_CLOSE_BEGIN,
-                CommitterEvent.COMMITTER_CLOSE_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END);
+        assertThat(exit.getStdErr())
+                .contains("Could not connect to crawler endpoint");
     }
 
     private CrawlConfig twoDocsConfig() {

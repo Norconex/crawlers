@@ -67,6 +67,5 @@
       name="counters"
       statistics="true"
     />
-    <local-cache name="admin" configuration="base-template"/>
   </cache-container>
 </infinispan>

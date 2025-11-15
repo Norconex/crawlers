@@ -15,6 +15,7 @@
 package com.norconex.crawler.core.cluster.admin;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -78,11 +79,20 @@ public class ClusterAdminClient {
                 ? nodeUrls
                 : List.of(DEFAULT_NODE_URL);
         HttpResponse<String> lastResponse = null;
+        RuntimeException exception = null;
         for (String url : urls) {
-            lastResponse = f.apply(url);
-            if (lastResponse.statusCode() == 200) {
-                return lastResponse;
+            try {
+                lastResponse = f.apply(url);
+                exception = null;
+                if (lastResponse.statusCode() == 200) {
+                    return lastResponse;
+                }
+            } catch (RuntimeException e) {
+                exception = e;
             }
+        }
+        if (exception != null) {
+            throw exception;
         }
         return lastResponse;
     }
@@ -91,9 +101,17 @@ public class ClusterAdminClient {
         try {
             return HttpClient.newHttpClient()
                     .send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (ConnectException e) {
+            throw new ClusterAdminException("""
+                    Could not connect to crawler endpoint: %s. \
+                    The crawler is likely not running or is \
+                    running on a different host or port."""
+                    .formatted(request.uri()),
+                    e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new ClusterAdminException(e);
+            throw new ClusterAdminException(
+                    "Cluster request was interrupted.", e);
         } catch (IOException e) {
             throw new ClusterAdminException(e);
         }

@@ -187,16 +187,10 @@ public class PipelineWorkerState implements AutoCloseable {
             // coordinator will see the final status even if the worker
             // node leaves the cluster immediately after.
             if (status.isTerminal()) {
-                LOG.info(
-                        "Pushing terminal status {} with replication guarantee for {}",
+                LOG.debug("Pushing terminal status {} for {}",
                         status, pipeline.getId());
-                workerStatusCache.put(workerKey, rec);
-                LOG.info(
-                        "Terminal status {} successfully replicated for {}",
-                        status, pipeline.getId());
-            } else {
-                workerStatusCache.put(workerKey, rec);
             }
+            workerStatusCache.put(workerKey, rec);
         } catch (org.infinispan.commons.TimeoutException te) {
             LOG.warn("Skipping worker status update for {} due to cache "
                     + "lock timeout on key {}.",
