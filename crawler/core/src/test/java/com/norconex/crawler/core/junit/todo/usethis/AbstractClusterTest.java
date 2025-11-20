@@ -23,9 +23,9 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 
 import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.junit.cluster.CrawlerCluster;
-import com.norconex.crawler.core.junit.cluster.node.CrawlerNode;
-import com.norconex.crawler.core.junit.cluster.node.NodeState;
+import com.norconex.crawler.core._DELETE.junit.cluster_old.CrawlerCluster;
+import com.norconex.crawler.core._DELETE.junit.cluster_old.node.CrawlerNode;
+import com.norconex.crawler.core._DELETE.junit.cluster_old.node.NodeState;
 
 import lombok.extern.slf4j.Slf4j;
 

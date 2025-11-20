@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.junit.cluster.node;
+package com.norconex.crawler.core._DELETE.junit.cluster_old.node;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+@Deprecated
 public class NodeExecutionResult implements CrawlerExecutionResult {
 
     private enum StdType {

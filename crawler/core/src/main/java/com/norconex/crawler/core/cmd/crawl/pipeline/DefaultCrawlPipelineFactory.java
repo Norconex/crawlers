@@ -30,11 +30,16 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DefaultCrawlPipelineFactory implements CrawlPipelineFactory {
 
+    public static final String STEP_BOOTSTRAP = "bootstrap";
+    public static final String STEP_CRAWL_DOCUMENTS = "crawlDocuments";
+    public static final String STEP_DELETE_ORPHANS = "deleteOrphans";
+    public static final String STEP_CRAWL_ORPHANS = "crawlOrphans";
+
     @Override
     public Pipeline create(CrawlSession session) {
         var steps = new ArrayList<Step>();
-        steps.add(new CrawlBootstrapStep("bootstrap"));
-        steps.add(new CrawlProcessStep("crawlDocuments",
+        steps.add(new CrawlBootstrapStep(STEP_BOOTSTRAP));
+        steps.add(new CrawlProcessStep(STEP_CRAWL_DOCUMENTS,
                 ProcessQueueAction.CRAWL_ALL)
                         .setDistributed(true));
 
@@ -45,13 +50,13 @@ public class DefaultCrawlPipelineFactory implements CrawlPipelineFactory {
         } else if (orphStrategy == OrphansStrategy.DELETE) {
             steps.add(new RequeueOrphansForDeletionStep(
                     "queueOrphansForDeletion"));
-            steps.add(new CrawlProcessStep("deleteOrphans",
+            steps.add(new CrawlProcessStep(STEP_DELETE_ORPHANS,
                     ProcessQueueAction.DELETE_ALL)
                             .setDistributed(true));
         } else if (orphStrategy == OrphansStrategy.PROCESS) {
             steps.add(new RequeueOrphansForDeletionStep(
                     "queueOrphansForProcessing"));
-            steps.add(new CrawlProcessStep("crawlOrphans",
+            steps.add(new CrawlProcessStep(STEP_CRAWL_ORPHANS,
                     ProcessQueueAction.CRAWL_ALL)
                             .setDistributed(true));
         }

@@ -21,23 +21,9 @@ import java.lang.annotation.Target;
 
 import org.junit.jupiter.api.Tag;
 
-/**
- * Marks a test as requiring a cluster setup - typically executes in
- * 10-60 seconds.
- * Cluster tests include:
- * <ul>
- *   <li>Multi-JVM coordination tests</li>
- *   <li>Infinispan/JGroups cluster formation</li>
- *   <li>Coordinator election and failover</li>
- *   <li>Distributed cache synchronization</li>
- * </ul>
- * <p>
- * Cluster tests run on every PR and before merges, but may be
- * skipped for individual commits during development.
- * </p>
- */
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
-@Tag("cluster")
-public @interface SlowTest {
+@Tag("slowest")
+public @interface SlowestTest {
+    //TODO used at all? 5+ minutes
 }

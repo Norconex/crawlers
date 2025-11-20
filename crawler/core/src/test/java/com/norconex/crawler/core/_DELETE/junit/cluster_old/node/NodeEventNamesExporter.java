@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.junit.cluster.node;
+package com.norconex.crawler.core._DELETE.junit.cluster_old.node;
 
 import static org.assertj.core.api.Assertions.fail;
 
@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 //NOTE: Not serializable (only for testing)
 @Slf4j
 @Data
+@Deprecated
 public class NodeEventNamesExporter implements EventListener<Event> {
 
     static final String EVENTS_FILE_NAME = "events.txt";

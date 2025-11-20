@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.junit.cluster;
+package com.norconex.crawler.core._DELETE.junit.cluster_old;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,9 +30,10 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.junit.cluster.node.CrawlerNode;
-import com.norconex.crawler.core.junit.cluster.node.NodeExecutionResult;
-import com.norconex.crawler.core.junit.cluster.node.NodeState;
+import com.norconex.crawler.core._DELETE.junit.cluster_old.node.CrawlerNode;
+import com.norconex.crawler.core._DELETE.junit.cluster_old.node.NodeExecutionResult;
+import com.norconex.crawler.core._DELETE.junit.cluster_old.node.NodeState;
+import com.norconex.crawler.core.util.ConcurrentUtil;
 import com.norconex.crawler.core.util.CoreTestUtil;
 
 import lombok.Getter;
@@ -39,21 +41,21 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Deprecated
 public class CrawlerCluster implements AutoCloseable {
 
     public static final String CLUSTER_NODE_COUNT = "clusterNodeCount";
     public static final int NODE_COUNT_SYNC_MS = 50;
     public static final String CRAWLER_ID_PREFIX = "test-crawl-";
 
+    // To ensure cluster uniqueness
     private static final AtomicInteger clusterCounter = new AtomicInteger();
-
+    // To ensure node uniqueness
+    private final AtomicInteger nodeCounter = new AtomicInteger();
     @Getter
     private final ClusterState state;
     @Getter
     private final List<NodeExecutionResult> nodes = new ArrayList<>();
-    // Nodes may be added/removed so we use a separate counter to avoid
-    // overlaps. Used in creating unique workDirs
-    private final AtomicInteger nodeCounter = new AtomicInteger();
     // Number of clusters created within this JVM, to avoid collision
     // Used in creating unique crawler id
     private String crawlerId;
@@ -110,6 +112,46 @@ public class CrawlerCluster implements AutoCloseable {
     }
 
     /**
+     * Wait for nodes to initialize, including crawl-specific command
+     * initialization up to and including the crawl pipeline creation.
+     * Currently uses a fixed delay.
+     * @param expectedNodeCount number of nodes we expect to have
+     *     pipeline created
+     * @param timeout maximum time to wait
+     * @throws InterruptedException if interrupted while waiting
+     * @throws TimeoutException
+     */
+    public void waitForCrawlPipelineCreated(
+            int expectedNodeCount, @NonNull Duration timeout)
+            throws InterruptedException, TimeoutException {
+        LOG.info("Wait up to {} for {} crawl pipeline creations...",
+                DurationFormatter.FULL.format(timeout), expectedNodeCount);
+
+        var then = System.currentTimeMillis();
+        ConcurrentUtil.waitUntilOrThrow(() -> {
+            var pipeCreatedCount =
+                    state.propCount(NodeState.CRAWL_PIPELINE_CREATED);
+            LOG.info(
+                    "Pipeline creation check: expectedNodeCount={} pipeCreatedCount={}",
+                    expectedNodeCount, pipeCreatedCount);
+            // Log each node's state props for debugging
+            var nodeStates = nodes.stream()
+                    .map(NodeExecutionResult::loadStateProps)
+                    .toList();
+            for (var i = 0; i < nodeStates.size(); i++) {
+                LOG.info("Node {} state props: {}", i, nodeStates.get(i));
+            }
+            return expectedNodeCount <= pipeCreatedCount;
+
+        }, timeout, Duration.ofMillis(NODE_COUNT_SYNC_MS));
+        LOG.info("Expected number of nodes ({}) reached after {}.",
+                expectedNodeCount,
+                DurationFormatter.FULL
+                        .format(System.currentTimeMillis() - then));
+
+    }
+
+    /**
      * Wait for nodes to initialize. Currently uses a fixed delay.
      * @param expectedNodeCount number of nodes we expect to have joined
      * @param timeout maximum time to wait
@@ -158,7 +200,7 @@ public class CrawlerCluster implements AutoCloseable {
                                 + "initialization. Check logs above for "
                                 + "details.");
             }
-            var nodeCount = state.highestNodeIntOrZero(NodeState.NODE_COUNT);
+            var nodeCount = state.highestPropIntOrZero(NodeState.NODE_COUNT);
             if (nodeCount >= expectedNodeCount) {
                 LOG.info("Expected number of nodes ({}) reached after {}.",
                         expectedNodeCount,
@@ -175,7 +217,7 @@ public class CrawlerCluster implements AutoCloseable {
                 + "Current node count: {}",
                 DurationFormatter.FULL.format(timeout),
                 expectedNodeCount,
-                state.highestNodeIntOrZero(NodeState.NODE_COUNT));
+                state.highestPropIntOrZero(NodeState.NODE_COUNT));
 
         // Log status of all nodes for debugging
         for (NodeExecutionResult node : nodes) {
@@ -221,7 +263,7 @@ public class CrawlerCluster implements AutoCloseable {
         LOG.error("Timed out after {} waiting for {} remaining nodes to "
                 + "terminate.",
                 DurationFormatter.FULL.format(timeout),
-                state.lowestNodeIntOrZero(NodeState.NODE_COUNT));
+                state.lowestPropIntOrZero(NodeState.NODE_COUNT));
         return new ClusterExecutionResult(nodes);
     }
 

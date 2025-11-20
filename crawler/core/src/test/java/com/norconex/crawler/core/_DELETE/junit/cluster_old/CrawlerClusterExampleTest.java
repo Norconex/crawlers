@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.junit.cluster;
+package com.norconex.crawler.core._DELETE.junit.cluster_old;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,14 +25,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.junit.cluster.node.CrawlerNode;
-import com.norconex.crawler.core.junit.cluster.node.NodeState;
-import com.norconex.crawler.core.junit.todo.usethis.annotations.ClusterTest;
+import com.norconex.crawler.core._DELETE.junit.cluster_old.node.CrawlerNode;
+import com.norconex.crawler.core._DELETE.junit.cluster_old.node.NodeState;
+import com.norconex.crawler.core.junit.todo.usethis.annotations.SlowTest;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@ClusterTest
+@SlowTest
+@Deprecated
 class CrawlerClusterExampleTest {
 
     @Test

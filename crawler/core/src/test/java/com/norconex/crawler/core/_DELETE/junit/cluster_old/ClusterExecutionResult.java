@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.junit.cluster;
+package com.norconex.crawler.core._DELETE.junit.cluster_old;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,10 +22,10 @@ import org.apache.commons.collections4.Bag;
 import org.apache.commons.collections4.bag.HashBag;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.norconex.crawler.core._DELETE.junit.cluster_old.node.NodeExecutionResult;
 import com.norconex.crawler.core.cluster.impl.infinispan.CacheNames;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
 import com.norconex.crawler.core.junit.CrawlerExecutionResult;
-import com.norconex.crawler.core.junit.cluster.node.NodeExecutionResult;
 import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.Data;
@@ -36,6 +36,7 @@ import lombok.Data;
  * aggregated cluster-wide data (caches, combined events).
  */
 @Data
+@Deprecated
 public class ClusterExecutionResult implements CrawlerExecutionResult {
 
     private final List<NodeExecutionResult> nodeResults;
@@ -51,7 +52,7 @@ public class ClusterExecutionResult implements CrawlerExecutionResult {
     }
 
     /**
-     * Returns all event names from all nodes combined (interface method).
+     * Returns all event names from all nodes combined.
      */
     @Override
     public List<String> getEventNames() {
@@ -62,10 +63,10 @@ public class ClusterExecutionResult implements CrawlerExecutionResult {
     }
 
     /**
-     * Returns event counts across all nodes (interface method).
+     * Returns the occurrences of each event name, from all nodes.
      */
     @Override
-    public Bag<String> getEventCounts() {
+    public Bag<String> getEventNameBag() {
         var bag = new HashBag<String>();
         nodeResults.stream()
                 .flatMap(n -> n.getEventNames().stream())
@@ -79,8 +80,8 @@ public class ClusterExecutionResult implements CrawlerExecutionResult {
     @Override
     public String getStdOut() {
         return nodeResults.stream()
-                .map(n -> "=== Node: " + n.getNodeName()
-                        + " ===\n" + n.getStdOut())
+                .map(n -> "\n--- Node: " + n.getNodeName()
+                        + " ---\n\n" + n.getStdOut())
                 .reduce("", (a, b) -> a.isEmpty() ? b : a + "\n\n" + b);
     }
 
@@ -90,8 +91,8 @@ public class ClusterExecutionResult implements CrawlerExecutionResult {
     @Override
     public String getStdErr() {
         return nodeResults.stream()
-                .map(n -> "=== Node: " + n.getNodeName()
-                        + " ===\n" + n.getStdErr())
+                .map(n -> "\n--- Node: " + n.getNodeName()
+                        + " ---\n\n" + n.getStdErr())
                 .reduce("", (a, b) -> a.isEmpty() ? b : a + "\n\n" + b);
     }
 

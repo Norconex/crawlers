@@ -31,6 +31,7 @@
 
     <classgraph.version>4.8.181</classgraph.version>
     <cxf.version>3.4.5</cxf.version>
+    <h2.version>2.4.240</h2.version>
     <infinispan.version>15.2.5.Final</infinispan.version>
     <jdom2.version>2.0.6.1</jdom2.version>
     <jgroups.version>5.4.8.Final</jgroups.version>
@@ -238,6 +239,12 @@
       <scope>test</scope>
     </dependency>
     
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>${h2.version}</version>
+      <scope>test</scope>
+    </dependency>    
   </dependencies>
 
   <build>

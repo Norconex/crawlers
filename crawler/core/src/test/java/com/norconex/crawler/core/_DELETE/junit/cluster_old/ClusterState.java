@@ -12,23 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.junit.cluster;
+package com.norconex.crawler.core._DELETE.junit.cluster_old;
 
 import java.util.List;
 import java.util.Objects;
 
-import com.norconex.crawler.core.junit.cluster.node.NodeExecutionResult;
+import com.norconex.crawler.core._DELETE.junit.cluster_old.node.NodeExecutionResult;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
+@Deprecated
 public class ClusterState {
 
     private final CrawlerCluster cluster;
 
-    public List<String> nodeStrings(String key) {
+    public List<String> propStrings(String key) {
         return cluster
                 .getNodes()
                 .stream()
@@ -38,7 +39,7 @@ public class ClusterState {
                 .toList();
     }
 
-    public List<Integer> nodeInts(String key) {
+    public List<Integer> propInts(String key) {
         return cluster
                 .getNodes()
                 .stream()
@@ -48,12 +49,20 @@ public class ClusterState {
                 .toList();
     }
 
-    public int highestNodeIntOrZero(String key) {
-        return nodeInts(key).stream().max(Integer::compareTo).orElse(0);
+    public int propCount(String key) {
+        return (int) cluster
+                .getNodes()
+                .stream()
+                .map(NodeExecutionResult::loadStateProps)
+                .filter(props -> props.containsKey(key))
+                .count();
     }
 
-    public int lowestNodeIntOrZero(String key) {
+    public int highestPropIntOrZero(String key) {
+        return propInts(key).stream().max(Integer::compareTo).orElse(0);
+    }
 
-        return nodeInts(key).stream().min(Integer::compareTo).orElse(0);
+    public int lowestPropIntOrZero(String key) {
+        return propInts(key).stream().min(Integer::compareTo).orElse(0);
     }
 }

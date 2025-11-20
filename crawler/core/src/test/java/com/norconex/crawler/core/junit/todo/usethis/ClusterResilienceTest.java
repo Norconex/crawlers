@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.Sleeper;
-import com.norconex.crawler.core.junit.cluster.CrawlerCluster;
+import com.norconex.crawler.core._DELETE.junit.cluster_old.CrawlerCluster;
 
 import lombok.extern.slf4j.Slf4j;
 

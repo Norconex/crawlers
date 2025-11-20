@@ -8,10 +8,10 @@ import org.junit.jupiter.api.Test;
 
 class PipelineProgressBeanTest {
 
-    static class StubManager implements PipelineManager {
+    static class PipeManagerStub implements PipelineManager {
         private final PipelineProgress progress;
 
-        StubManager(PipelineProgress progress) {
+        PipeManagerStub(PipelineProgress progress) {
             this.progress = progress;
         }
 
@@ -43,7 +43,7 @@ class PipelineProgressBeanTest {
                 .stepProgress(0.42f)
                 .stepMessage("processed=420, queued=580")
                 .build();
-        var bean = new PipelineProgressBean(new StubManager(p), "any");
+        var bean = new PipelineProgressBean(new PipeManagerStub(p), "any");
 
         assertThat(bean.getStatus()).isEqualTo("RUNNING");
         assertThat(bean.getCurrentStepId()).isEqualTo("crawlDocuments");

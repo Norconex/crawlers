@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.junit.cluster.node;
+package com.norconex.crawler.core._DELETE.junit.cluster_old.node;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -24,25 +24,25 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
+import com.norconex.crawler.core.junit.JvmProcess;
 import com.norconex.crawler.core.junit.WithLogLevel;
-import com.norconex.crawler.core.junit.cluster.state.StateDbClient;
 import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 import com.norconex.crawler.core.util.ExecUtil;
 import com.norconex.crawler.core.util.ThreadTracker;
 
 import lombok.Builder;
-import lombok.Builder.Default;
 import lombok.Generated;
-import lombok.NonNull;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Builder
+@Deprecated
 public class CrawlerNode {
 
     static final String PROP_DRIVER_SUPPL = "node.driverSupplier";
-    static final String PROP_CAPTURES = "node.captures";
+    static final String PROP_EXPORT_EVENTS = "node.exportEvents";
+    static final String PROP_EXPORT_CACHES = "node.exportCaches";
     static final String PROP_NODE_WORKDIR = "node.workdir";
 
     // to make triple-certain that the debug port is not reused on nodes
@@ -55,77 +55,54 @@ public class CrawlerNode {
     @Singular
     private final List<WithLogLevel> logLevels;
     private Class<? extends Supplier<CrawlDriver>> driverSupplierClass;
+    private boolean exportEvents;
+    private boolean exportCaches;
 
-    @NonNull
-    @Default
-    private final CaptureFlags captures = new CaptureFlags();
-
-    public Process launch(String nodeName, Path nodeWorkDir, Path configFile) {
-        var jvm = JvmProcess.builder()
-                .mainClass(CrawlerNode.class)
-                .workDir(nodeWorkDir)
-                .appArgs(appArgs);
-        applyDebugMode(jvm);
-        applyLogLevels(jvm);
-        applyJvmArgs(jvm, nodeName, nodeWorkDir, configFile);
-        if (captures.isStdout()) {
-            jvm.outputStreamHandler(is -> {
-                var t = new Thread(new StreamCapturer(is, "stdout"));
-                t.setDaemon(true);
-                t.start();
-            });
-        }
-        if (captures.isStderr()) {
-            jvm.errorStreamHandler(is -> {
-                var t = new Thread(new StreamCapturer(is, "stderr"));
-                t.setDaemon(true);
-                t.start();
-            });
-        }
-        return jvm.build().start();
-    }
-
-    private void applyJvmArgs(
-            JvmProcess.JvmProcessBuilder jvm,
-            String nodeName,
-            Path nodeWorkDir,
-            Path configFile) {
-
+    public NodeExecutionResult launch(Path nodeWorkDir, Path configFile) {
         // Extract cluster root from nodeWorkDir (parent directory)
         var clusterRootDir = nodeWorkDir.getParent();
 
-        jvm.jvmArgs(jvmArgs);
+        var cmd = JvmProcess.builder()
+                .mainClass(CrawlerNode.class)
+                .workDir(nodeWorkDir)
+                .appArgs(appArgs);
+        applyDebugMode(cmd);
+        applyLogLevels(cmd);
+        applyJvmArgs(cmd, nodeWorkDir, configFile, clusterRootDir);
+        return new NodeExecutionResult(cmd.build().start(), nodeWorkDir);
+    }
+
+    private void applyJvmArgs(
+            JvmProcess.JvmProcessBuilder cmd,
+            Path nodeWorkDir,
+            Path configFile,
+            Path clusterRootDir) {
+        cmd.jvmArgs(jvmArgs);
+
         // Force IPv4 and disable IPv6 to prevent JGroups IPv6 binding warnings
-        jvm.jvmArg("-Djava.net.preferIPv4Stack=true");
-        jvm.jvmArg("-Djava.net.preferIPv6Addresses=false");
+        cmd.jvmArg("-Djava.net.preferIPv4Stack=true");
+        cmd.jvmArg("-Djava.net.preferIPv6Addresses=false");
         // Disable IPv6 completely to suppress JGroups interface enumeration warnings
-        jvm.jvmArg("-Djava.net.disableIPv6=true");
+        cmd.jvmArg("-Djava.net.disableIPv6=true");
 
         // only set config path if one is set, with at least one argument
         if (!appArgs.isEmpty() && configFile != null) {
-            jvm.appArg("-config")
+            cmd.appArg("-config")
                     .appArg(configFile.toAbsolutePath().toString());
         }
-        jvm.jvmArg(dArg(PROP_DRIVER_SUPPL,
+        cmd.jvmArg(dArg(PROP_DRIVER_SUPPL,
                 Optional.<Class<? extends Supplier<CrawlDriver>>>ofNullable(
                         driverSupplierClass)
                         .orElse(TestCrawlDriverFactory.class).getName()));
-        jvm.jvmArg(dArg(PROP_NODE_WORKDIR, nodeWorkDir));
-        jvm.jvmArg(captures.asJvmSysProp());
-
-        if (StateDbClient.isInitialized()) {
-            jvm.jvmArg(dArg(StateDbClient.PROP_NODE_NAME, nodeName));
-            jvm.jvmArg(dArg(StateDbClient.PROP_JDBC_URL,
-                    StateDbClient.get().getJdbcUrl()));
-        } else {
-            LOG.info("StateDbClient is not initialized.");
-        }
+        cmd.jvmArg(dArg(PROP_EXPORT_EVENTS, exportEvents));
+        cmd.jvmArg(dArg(PROP_EXPORT_CACHES, exportCaches));
+        cmd.jvmArg(dArg(PROP_NODE_WORKDIR, nodeWorkDir));
 
         // Set JGroups FILE_PING location to cluster root for node discovery
         if (clusterRootDir != null) {
             var pingLocation =
                     clusterRootDir.resolve("jgroups-ping").toAbsolutePath();
-            jvm.jvmArg(dArg("jgroups.ping.location", pingLocation));
+            cmd.jvmArg(dArg("jgroups.ping.location", pingLocation));
         }
     }
 
@@ -167,6 +144,7 @@ public class CrawlerNode {
 
     @Generated // excluded from coverage
     public static void main(String[] args) {
+        LOG.info("XXX in main()");
         var driver = createDriver();
 
         try {
@@ -232,5 +210,4 @@ public class CrawlerNode {
                     "Invalid crawl driver supplier class: " + driverSuppl, e);
         }
     }
-
 }

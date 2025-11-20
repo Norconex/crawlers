@@ -24,9 +24,9 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core._DELETE.junit.cluster_old.CrawlerCluster;
+import com.norconex.crawler.core._DELETE.junit.cluster_old.node.CrawlerNode;
 import com.norconex.crawler.core.cluster.admin.ClusterAdminClient;
-import com.norconex.crawler.core.junit.cluster.CrawlerCluster;
-import com.norconex.crawler.core.junit.cluster.node.CrawlerNode;
 
 public class ClusterTest {
 

@@ -1,18 +1,22 @@
-package com.norconex.crawler.core.junit;
+package com.norconex.crawler.core.junit.cluster.node;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.jar.Attributes;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
 import org.apache.commons.lang3.SystemUtils;
+
+import com.norconex.crawler.core.junit.WithLogLevel;
 
 import lombok.Builder;
 import lombok.NonNull;
@@ -24,13 +28,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Builder
 @Slf4j
-@Deprecated
 public class JvmProcess {
 
-    //TODO merge with CrawlerNodeLaucher?
-
-    public static final String STDOUT_FILE_NAME = "stdout.log";
-    public static final String STDERR_FILE_NAME = "stderr.log";
+    public static final String DEFAULT_STDOUT_FILE_NAME = "stdout.log";
+    public static final String DEFAULT_STDERR_FILE_NAME = "stderr.log";
 
     @Singular
     private final List<String> appArgs;
@@ -42,6 +43,8 @@ public class JvmProcess {
     private final Class<?> mainClass;
     @NonNull
     private final Path workDir;
+    private final Consumer<Reader> errorStreamHandler;
+    private final Consumer<Reader> outputStreamHandler;
 
     public Process start() {
         var classpath = buildClasspath();
@@ -64,11 +67,10 @@ public class JvmProcess {
 
         LOG.info("JVM launch command length: {} characters", commandLength);
         if (commandLength > 8191) {
-            LOG.warn(
-                    """
-                        Command line length ({}) exceeds Windows cmd.exe \
-                        limit (8191). This may cause process startup \
-                        to fail.""",
+            LOG.warn("""
+                    Command line length ({}) exceeds Windows cmd.exe \
+                    limit (8191). This may cause process startup \
+                    to fail.""",
                     commandLength);
         }
         LOG.info("JVM launch command: {}", fullCommand);
@@ -81,31 +83,30 @@ public class JvmProcess {
         // Redirect STDOUT and STDERR to separate log files
         try {
             Files.createDirectories(workDir);
-            pb.redirectOutput(workDir.resolve(STDOUT_FILE_NAME).toFile());
-            pb.redirectError(workDir.resolve(STDERR_FILE_NAME).toFile());
+            if (outputStreamHandler == null) {
+                pb.redirectOutput(
+                        workDir.resolve(DEFAULT_STDOUT_FILE_NAME).toFile());
 
+            }
+            if (errorStreamHandler == null) {
+                pb.redirectError(
+                        workDir.resolve(DEFAULT_STDERR_FILE_NAME).toFile());
+            }
             var process = pb.start();
+            if (outputStreamHandler != null) {
+                outputStreamHandler.accept(process.inputReader());
+            }
+            if (errorStreamHandler != null) {
+                errorStreamHandler.accept(process.errorReader());
+            }
 
             // Give the process a moment to fail if there's an immediate error
             try {
                 Thread.sleep(100); //NOSONAR
                 if (!process.isAlive()) {
                     var exitValue = process.exitValue();
-                    LOG.error(
-                            "Child JVM process exited immediately with "
-                                    + "code {}. Check {} and {} for details.",
-                            exitValue,
-                            STDOUT_FILE_NAME,
-                            STDERR_FILE_NAME);
-
-                    // Try to read error output
-                    var stderrFile = workDir.resolve(STDERR_FILE_NAME);
-                    if (Files.exists(stderrFile)) {
-                        var stderr = Files.readString(stderrFile);
-                        if (!stderr.isEmpty()) {
-                            LOG.error("Child JVM stderr output:\n{}", stderr);
-                        }
-                    }
+                    LOG.error("JVM process exited immediately with code {}.",
+                            exitValue);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -114,10 +115,8 @@ public class JvmProcess {
 
             return process;
         } catch (IOException e) {
-            LOG.error(
-                    "Failed to start child JVM process. Command length: {}",
-                    commandLength,
-                    e);
+            LOG.error("Failed to start child JVM process. Command length: {}",
+                    commandLength, e);
             throw new UncheckedIOException(e);
         }
     }
@@ -140,10 +139,8 @@ public class JvmProcess {
                         testClassLocation + File.pathSeparator + classpath;
             }
         } catch (Exception e) {
-            LOG.warn(
-                    "Failed to add test-classes to classpath, "
-                            + "using current classpath only",
-                    e);
+            LOG.warn("Failed to add test-classes to classpath, "
+                    + "using current classpath only", e);
         }
 
         // On Windows, if classpath is too long, create a manifest JAR
@@ -151,15 +148,12 @@ public class JvmProcess {
         if (SystemUtils.IS_OS_WINDOWS &&
                 estimateCommandLength(classpath) > 8000) {
             try {
-                LOG.info(
-                        "Classpath too long for Windows command line, "
-                                + "creating manifest JAR");
+                LOG.info("Classpath too long for Windows command line, "
+                        + "creating manifest JAR");
                 return createManifestJar(classpath).toString();
             } catch (IOException e) {
-                LOG.warn(
-                        "Failed to create manifest JAR, "
-                                + "using original classpath",
-                        e);
+                LOG.warn("Failed to create manifest JAR, "
+                        + "using original classpath", e);
             }
         }
 

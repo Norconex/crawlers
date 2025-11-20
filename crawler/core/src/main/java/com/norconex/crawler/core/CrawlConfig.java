@@ -90,8 +90,8 @@ public class CrawlConfig {
     public static final Duration DEFAULT_MIN_PROGRESS_LOGGING_INTERVAL =
             Duration.ofSeconds(30);
     /**
-     * Default port used to communicate via a node for some administrative 
-     * crawler cluster tasks. 
+     * Default port used to communicate via a node for some administrative
+     * crawler cluster tasks.
      */
     public static final int DEFAULT_CLUSTER_PORT = 27295;
 

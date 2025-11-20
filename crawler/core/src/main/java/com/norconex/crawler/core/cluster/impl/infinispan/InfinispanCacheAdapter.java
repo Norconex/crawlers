@@ -64,7 +64,7 @@ public class InfinispanCacheAdapter<T> implements Cache<T> {
             Function<String, ? extends T> mappingFunction) {
         return supplyIfCache(() -> {
             // Avoid serializing non-serializable lambdas across the cluster.
-            // Use a safe get/putIfAbsent pattern which remains atomic for 
+            // Use a safe get/putIfAbsent pattern which remains atomic for
             // insertion and returns the winning value.
             var existing = delegate.get(key);
             if (existing != null) {

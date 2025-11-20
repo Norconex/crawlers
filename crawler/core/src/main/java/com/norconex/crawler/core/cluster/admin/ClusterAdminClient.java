@@ -57,6 +57,8 @@ public class ClusterAdminClient {
         return Integer.parseInt(resp.body());
     }
 
+    // add methods to get executing pipelines and their statuses
+
     private HttpRequest httpGet(String nodeUrl, Endpoint endpoint) {
         return HttpRequest.newBuilder()
                 .uri(URI.create(nodeUrl + endpoint))

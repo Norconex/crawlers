@@ -108,7 +108,7 @@ public interface CrawlerExecutionResult {
      *
      * @return bag of event counts
      */
-    default Bag<String> getEventCounts() {
+    default Bag<String> getEventNameBag() {
         var bag = new HashBag<String>();
         getEventNames().stream().forEach(bag::add);
         return bag;

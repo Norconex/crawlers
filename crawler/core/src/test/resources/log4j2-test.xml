@@ -30,13 +30,16 @@
     <Logger name="CommitterServiceEvent" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="com.norconex.crawler.core" level="INFO" additivity="false">
+    <Logger name="com.norconex.crawler.core" level="DEBUG" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="com.norconex.crawler.core.cli" level="INFO" additivity="false">
+    <Logger name="com.norconex.crawler.core.cli" level="DEBUG" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="com.norconex.crawler.core.junit" level="INFO" additivity="false">
+    <Logger name="com.norconex.crawler.core.junit" level="DEBUG" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="com.norconex.crawler.core.cluster.pipeline.PipelineTest" level="DEBUG" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="com.norconex.importer" level="INFO" additivity="false">

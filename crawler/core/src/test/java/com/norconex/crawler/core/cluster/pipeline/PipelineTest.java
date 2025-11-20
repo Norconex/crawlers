@@ -24,11 +24,13 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
 
 import org.apache.commons.collections4.bag.HashBag;
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
@@ -38,13 +40,16 @@ import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core._DELETE.ClusterTestUtil;
+import com.norconex.crawler.core._DELETE.junit.cluster_old.CrawlerCluster;
+import com.norconex.crawler.core._DELETE.junit.cluster_old.node.CrawlerNode;
+import com.norconex.crawler.core._DELETE.junit.cluster_old.node.NodeExecutionResult;
 import com.norconex.crawler.core._DELETE.tomerge_or_delete.ClusterNodesTest;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 import com.norconex.crawler.core.cluster.Cache;
+import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
-import com.norconex.crawler.core.junit.cluster.CrawlerCluster;
-import com.norconex.crawler.core.junit.cluster.node.CrawlerNode;
-import com.norconex.crawler.core.junit.cluster.node.NodeExecutionResult;
+import com.norconex.crawler.core.junit.cluster.ClusterClient;
+import com.norconex.crawler.core.junit.cluster.node.CaptureFlags;
 import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 import com.norconex.crawler.core.session.CrawlSession;
@@ -60,6 +65,15 @@ class PipelineTest {
     @TempDir
     private Path tempDir;
 
+    // Clean cluster work directory before each test
+    static void cleanClusterDir(Path dir) {
+        try {
+            FileUtils.cleanDirectory(dir.toFile());
+        } catch (Exception e) {
+            LOG.warn("Could not clean cluster work directory: {}", dir, e);
+        }
+    }
+
     /*
      * Tests that a pipeline receiving a stop request will indicate to all
      * nodes they must stop and respond accordingly.
@@ -72,41 +86,140 @@ class PipelineTest {
     @Test
     @Timeout(120)
     void testStop() {
+        var starter = com.norconex.crawler.core.junit.cluster.node.CrawlerNode
+                .builder()
+                .appArg("start")
+                .captures(new CaptureFlags().setEvents(true))
+                .build();
+
+        try (var cluster = new ClusterClient(longRunningCrawler())) {
+            cluster.launch(2, starter);
+
+            cluster.waitFor(Duration.ofSeconds(20))
+                    .allNodesToHaveFired(CrawlerEvent.DOCUMENT_FETCHED);
+
+        }
+
+        //        longRunningCrawler();
+
+        //        try {
+        // Launch 2 crawler nodes
+
+        //            // Wait for cluster crawl pipelines to form
+        //            //            cluster.waitForCrawlPipelineCreated(2, Duration.ofSeconds(20));
+        //
+        //            LOG.info("Waiting for crawlers to process a few docs...");
+        //            Sleeper.sleepSeconds(2);
+        //
+        //            // Launch stop command in separate JVM (tests real CLI scenario)
+        //            LOG.info("Launching stopper JVM/command...");
+        //            CliCrawlerLauncher.launch(
+        //                    TestCrawlDriverFactory.create(),
+        //                    "stop",
+        //                    "-config", cluster.getConfigFile().toString());
+        //
+        //            // Wait for stop command to execute and nodes to terminate
+        //            // The stopper node exits quickly, but crawler nodes need
+        //            // time to detect stop signal and shutdown gracefully
+        //            var result =
+        //                    cluster.waitForClusterTermination(Duration.ofSeconds(15));
+        //
+        //            if (LOG.isDebugEnabled()) {
+        //                var stdEnd = "\n=========================\n";
+        //                LOG.debug("\n\n=== Stop test STDOUT: ===\n\n{}{}",
+        //                        result.getStdOut(), stdEnd);
+        //                LOG.debug("\n\n=== Stop test STDERR: ===\n\n{}{}",
+        //                        result.getStdErr(), stdEnd);
+        //                LOG.debug("Stop test completed with {} events",
+        //                        result.getEventNames().size());
+        //                LOG.debug("All exit codes: {}", cluster.getNodes().stream()
+        //                        .map(n -> n.getProcess().exitValue())
+        //                        .toList());
+        //            }
+        //
+        //            assertThat(result.getEventNames()).isNotEmpty();
+        //
+        //            // Test success: All nodes stopped in reasonable time instead of
+        //            // running until timeout. This proves the stop command worked.
+        //            assertThat(result.isOK())
+        //                    .as("All nodes should have exited cleanly, but got: "
+        //                            + result.getFailureSummary())
+        //                    .isTrue();
+        //
+        //            assertThat(cluster.getNodes())
+        //                    .noneMatch(NodeExecutionResult::hasErrors);
+        //
+        //            var eventBag = result.getEventNameBag();
+        //
+        //            // even if we have two nodes, only one should have received the
+        //            // stop events.
+        //            assertThat(eventBag.getCount(
+        //                    CrawlerEvent.CRAWLER_STOP_REQUEST_BEGIN)).isOne();
+        //            assertThat(eventBag.getCount(
+        //                    CrawlerEvent.CRAWLER_STOP_REQUEST_END)).isOne();
+        //
+        //            // Test there are 100 queued, but only a subset processed
+        //            assertThat(eventBag.getCount(
+        //                    CrawlerEvent.DOCUMENT_QUEUED)).isEqualTo(100);
+        //            assertThat(eventBag.getCount(
+        //                    CrawlerEvent.DOCUMENT_PROCESSED)).isBetween(1, 99);
+        //        } catch (InterruptedException e) {
+        //            Thread.currentThread().interrupt();
+        //            throw new RuntimeException("Test interrupted", e);
+        //        } catch (TimeoutException e) {
+        //            // Print logs for all nodes on timeout
+        //            if (cluster != null)
+        //                printNodeLogsOnFailure(cluster);
+        //            throw new RuntimeException("Crawl pipelines not created on time.",
+        //                    e);
+        //        } catch (Exception e) {
+        //            // Print logs for all nodes on any other error
+        //            if (cluster != null)
+        //                printNodeLogsOnFailure(cluster);
+        //            throw e;
+        //        } finally {
+        //            if (cluster != null)
+        //                cluster.close();
+        //        }
+
+    }
+
+    /*
+     * Tests that a pipeline receiving a stop request will indicate to all
+     * nodes they must stop and respond accordingly.
+     *
+     * This test launches a separate JVM with the "stop" command to verify
+     * the real CLI scenario. The Crawler.stop() method now uses the
+     * lightweight stopper internally, so this completes fast (~2 seconds)
+     * instead of hanging for 30+ seconds.
+     */
+    @Test
+    @Timeout(120)
+    void testStop_BEFORE_STATE_DB() {
+        cleanClusterDir(tempDir);
         var starter = CrawlerNode.builder()
                 .appArg("start")
                 .exportEvents(true)
                 .build();
-        CrawlerNode.builder()
-                .appArg("stop")
-                .exportEvents(false) // stop node doesn't crawl
-                .build();
         var config = longRunningCrawler();
-        try (var cluster = new CrawlerCluster(config)) {
+        CrawlerCluster cluster = null;
+        try {
+            cluster = new CrawlerCluster(config);
             // Launch 2 crawler nodes
             cluster.launch(starter, 2);
 
-            // Wait for cluster to form
-            cluster.waitForClusterFormation(2, Duration.ofSeconds(15));
+            // Wait for cluster crawl pipelines to form
+            cluster.waitForCrawlPipelineCreated(2, Duration.ofSeconds(20));
 
-            // CRITICAL: Give crawlers time to fully initialize their
-            // stop controllers and start actively polling for stop signals.
-            // Without this, the stop signal may be sent before the nodes
-            // are ready to detect it.
-            LOG.info("Waiting for crawlers to initialize stop detection...");
+            LOG.info("Waiting for crawlers to process a few docs...");
             Sleeper.sleepSeconds(2);
 
             // Launch stop command in separate JVM (tests real CLI scenario)
             LOG.info("Launching stopper JVM/command...");
-
             CliCrawlerLauncher.launch(
                     TestCrawlDriverFactory.create(),
                     "stop",
                     "-config", cluster.getConfigFile().toString());
-
-            //            cluster.launch(stopper);
-
-            // Wait for stopper to join cluster
-            //REMOVE?????      cluster.waitForClusterFormation(3, Duration.ofSeconds(15));
 
             // Wait for stop command to execute and nodes to terminate
             // The stopper node exits quickly, but crawler nodes need
@@ -114,18 +227,18 @@ class PipelineTest {
             var result =
                     cluster.waitForClusterTermination(Duration.ofSeconds(15));
 
-            LOG.info(
-                    "\n\n--- Stop test STDOUT: ---------------------------\n\n{}\n--------------------------------------------\n",
-                    result.getStdOut());
-            LOG.info(
-                    "\n\n--- Stop test STDERR: ---------------------------\n\n{}\n--------------------------------------------\n",
-                    result.getStdErr());
-
-            LOG.info("Stop test completed with {} events",
-                    result.getEventNames().size());
-            LOG.info("All exit codes: {}", cluster.getNodes().stream()
-                    .map(n -> n.getProcess().exitValue())
-                    .toList());
+            if (LOG.isDebugEnabled()) {
+                var stdEnd = "\n=========================\n";
+                LOG.debug("\n\n=== Stop test STDOUT: ===\n\n{}{}",
+                        result.getStdOut(), stdEnd);
+                LOG.debug("\n\n=== Stop test STDERR: ===\n\n{}{}",
+                        result.getStdErr(), stdEnd);
+                LOG.debug("Stop test completed with {} events",
+                        result.getEventNames().size());
+                LOG.debug("All exit codes: {}", cluster.getNodes().stream()
+                        .map(n -> n.getProcess().exitValue())
+                        .toList());
+            }
 
             assertThat(result.getEventNames()).isNotEmpty();
 
@@ -139,26 +252,37 @@ class PipelineTest {
             assertThat(cluster.getNodes())
                     .noneMatch(NodeExecutionResult::hasErrors);
 
-            // Wait for cluster view to stabilize after shutdown
-            // This avoids SearchException from Hibernate Search
-            var stabilizationTimeout = Duration.ofSeconds(10);
-            var start = System.currentTimeMillis();
-            while (true) {
-                var allExited = cluster.getNodes().stream()
-                        .allMatch(n -> !n.getProcess().isAlive());
-                if (allExited)
-                    break;
-                if (System.currentTimeMillis() - start > stabilizationTimeout
-                        .toMillis()) {
-                    throw new RuntimeException(
-                            "Cluster did not stabilize in time after shutdown");
-                }
-                Sleeper.sleepMillis(100);
-            }
-            // Optionally, add a check for cluster view here
+            var eventBag = result.getEventNameBag();
+
+            // even if we have two nodes, only one should have received the
+            // stop events.
+            assertThat(eventBag.getCount(
+                    CrawlerEvent.CRAWLER_STOP_REQUEST_BEGIN)).isOne();
+            assertThat(eventBag.getCount(
+                    CrawlerEvent.CRAWLER_STOP_REQUEST_END)).isOne();
+
+            // Test there are 100 queued, but only a subset processed
+            assertThat(eventBag.getCount(
+                    CrawlerEvent.DOCUMENT_QUEUED)).isEqualTo(100);
+            assertThat(eventBag.getCount(
+                    CrawlerEvent.DOCUMENT_PROCESSED)).isBetween(1, 99);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Test interrupted", e);
+        } catch (TimeoutException e) {
+            // Print logs for all nodes on timeout
+            if (cluster != null)
+                printNodeLogsOnFailure(cluster);
+            throw new RuntimeException("Crawl pipelines not created on time.",
+                    e);
+        } catch (Exception e) {
+            // Print logs for all nodes on any other error
+            if (cluster != null)
+                printNodeLogsOnFailure(cluster);
+            throw e;
+        } finally {
+            if (cluster != null)
+                cluster.close();
         }
 
     }
@@ -670,6 +794,28 @@ class PipelineTest {
             }
         });
         return cnt.get();
+    }
+
+    private void printNodeLogsOnFailure(CrawlerCluster cluster) {
+        for (var node : cluster.getNodes()) {
+            var workDir = node.getWorkDir();
+            var stdout = workDir.resolve("stdout.log");
+            var stderr = workDir.resolve("stderr.log");
+            System.err.println("\n==== Node logs for: " + workDir + " ====");
+            try {
+                if (java.nio.file.Files.exists(stdout)) {
+                    var out = java.nio.file.Files.readString(stdout);
+                    System.err.println("-- stdout.log --\n" + out);
+                }
+                if (java.nio.file.Files.exists(stderr)) {
+                    var err = java.nio.file.Files.readString(stderr);
+                    System.err.println("-- stderr.log --\n" + err);
+                }
+            } catch (Exception e) {
+                System.err.println("Could not read logs for node: " + workDir);
+                e.printStackTrace();
+            }
+        }
     }
 
 }

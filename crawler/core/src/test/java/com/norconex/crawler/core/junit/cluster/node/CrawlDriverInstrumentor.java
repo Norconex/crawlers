@@ -14,24 +14,16 @@
  */
 package com.norconex.crawler.core.junit.cluster.node;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.CrawlCallbacks;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
-import com.norconex.crawler.core.cluster.impl.infinispan.CacheNames;
 import com.norconex.crawler.core.cluster.impl.infinispan.TestClusterConnector;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
-import com.norconex.crawler.core.cmd.storeexport.StoreExportCommand;
 import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 import com.norconex.crawler.core.session.CrawlSession;
 
@@ -46,7 +38,10 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class CrawlDriverInstrumentor {
 
-    private static final String CACHES_DIR = "caches";
+    private static CaptureFlags captures = CaptureFlags.fromSysProp();
+    static {
+        System.err.println("XXX CAPTURES : " + captures);
+    }
 
     public static CrawlDriver instrument(CrawlDriver delegate) {
 
@@ -77,30 +72,30 @@ final class CrawlDriverInstrumentor {
                 .build();
     }
 
-    // Export events
     private static Consumer<CrawlConfig> beforeSession(
             Consumer<CrawlConfig> bs) {
         return cfg -> {
+            // Node working directory
             var nodeWorkDir = Path.of(
                     System.getProperty(CrawlerNode.PROP_NODE_WORKDIR));
             cfg.setWorkDir(nodeWorkDir);
-            // defaults to cluster with persistence if no connector
-            // specified
+
+            // Cluster connector.
+            // Defaults to cluster with persistence if no connector specified.
             if (cfg.getClusterConnector() == null) {
                 cfg.setClusterConnector(
                         new TestClusterConnector.ClusterWithPersistence());
             }
 
-            // call original if present
+            // Call original if present
             if (bs != null) {
                 bs.accept(cfg);
             }
 
-            if (Boolean.getBoolean(CrawlerNode.PROP_EXPORT_EVENTS)) {
-                cfg.addEventListener(new NodeEventNamesExporter(nodeWorkDir));
+            // Capture events
+            if (captures.isEvents()) {
+                cfg.addEventListener(new EventsCapturer());
             }
-
-            NodeState.init(nodeWorkDir);
         };
     }
 
@@ -108,50 +103,51 @@ final class CrawlDriverInstrumentor {
     private static BiConsumer<CrawlSession, Class<? extends Command>>
             beforeCommand(
                     BiConsumer<CrawlSession, Class<? extends Command>> bc) {
-
-        final var executor =
-                Executors.newSingleThreadScheduledExecutor(r -> {
-                    var t = new Thread(r, "Node count monitor");
-                    t.setDaemon(true); // dies with the JVM
-                    return t;
-                });
-
-        var lastNodeCount = new AtomicInteger();
-        return (session, cmdCls) -> {
-
-            executor.scheduleAtFixedRate(() -> {
-                var nodeCount = session.getCluster().getNodeCount();
-                if (lastNodeCount.intValue() != nodeCount) {
-                    LOG.info("Node count changed: {} -> {}",
-                            lastNodeCount.intValue(), nodeCount);
-                    lastNodeCount.set(nodeCount);
-                    NodeState.props().set(NodeState.NODE_COUNT, nodeCount);
-                }
-            }, 0, 200, TimeUnit.MILLISECONDS);
-
-            //            NodeState.props().set(NodeState.NODE_COUNT_AT_JOIN,
-            //                    session.getCluster().getNodeCount());
-
-            // Register shutdown hook for the executor to ensure it's
-            // stopped when the command completes
-            session.setPostCloseCleanup(() -> {
-                LOG.info("Shutting down node count monitor executor...");
-                executor.shutdown();
-                try {
-                    if (!executor.awaitTermination(2, TimeUnit.SECONDS)) {
-                        executor.shutdownNow();
-                    }
-                } catch (InterruptedException e) {
-                    executor.shutdownNow();
-                    Thread.currentThread().interrupt();
-                }
-            });
-
-            // call original callback if present
-            if (bc != null) {
-                bc.accept(session, cmdCls);
-            }
-        };
+        return bc;
+        //
+        //        final var executor =
+        //                Executors.newSingleThreadScheduledExecutor(r -> {
+        //                    var t = new Thread(r, "Node count monitor");
+        //                    t.setDaemon(true); // dies with the JVM
+        //                    return t;
+        //                });
+        //
+        //        new AtomicInteger();
+        //        return (session, cmdCls) -> {
+        //
+        //            //            executor.scheduleAtFixedRate(() -> {
+        //            //                var nodeCount = session.getCluster().getNodeCount();
+        //            //                if (lastNodeCount.intValue() != nodeCount) {
+        //            //                    LOG.info("Node count changed: {} -> {}",
+        //            //                            lastNodeCount.intValue(), nodeCount);
+        //            //                    lastNodeCount.set(nodeCount);
+        //            //                    NodeState.props().set(NodeState.NODE_COUNT, nodeCount);
+        //            //                }
+        //            //            }, 0, 200, TimeUnit.MILLISECONDS);
+        //            //
+        //            //            //            NodeState.props().set(NodeState.NODE_COUNT_AT_JOIN,
+        //            //            //                    session.getCluster().getNodeCount());
+        //
+        //            // Register shutdown hook for the executor to ensure it's
+        //            // stopped when the command completes
+        //            session.setPostCloseCleanup(() -> {
+        //                LOG.info("Shutting down node count monitor executor...");
+        //                executor.shutdown();
+        //                try {
+        //                    if (!executor.awaitTermination(2, TimeUnit.SECONDS)) {
+        //                        executor.shutdownNow();
+        //                    }
+        //                } catch (InterruptedException e) {
+        //                    executor.shutdownNow();
+        //                    Thread.currentThread().interrupt();
+        //                }
+        //            });
+        //
+        //            // call original callback if present
+        //            if (bc != null) {
+        //                bc.accept(session, cmdCls);
+        //            }
+        //        };
 
     }
 
@@ -159,7 +155,7 @@ final class CrawlDriverInstrumentor {
     private static BiConsumer<CrawlSession, Class<? extends Command>>
             afterCommand(
                     BiConsumer<CrawlSession, Class<? extends Command>> ac) {
-        if (!Boolean.getBoolean(CrawlerNode.PROP_EXPORT_CACHES)) {
+        if (!captures.isCaches()) {
             return ac;
         }
 
@@ -176,72 +172,72 @@ final class CrawlDriverInstrumentor {
                 return;
             }
 
-            // Wait for cache synchronization to complete before exporting.
-            // Infinispan cache writes are asynchronous and may not be
-            // immediately visible for export. We actively poll for the
-            // pipeline result to be present in the cache.
-            waitForPipelineResultInCache(session);
+            // Capture cache entries to state DB
+            new CacheCapturer().accept(session);
 
-            LOG.info("Coordinator is exporting cache...");
+            //            // Wait for cache synchronization to complete before exporting.
+            //            // Infinispan cache writes are asynchronous and may not be
+            //            // immediately visible for export. We actively poll for the
+            //            // pipeline result to be present in the cache.
+            //            waitForPipelineResultInCache(session);
 
-            // Determine export directory under the configured work dir
-            var workDir = session
-                    .getCrawlContext()
-                    .getCrawlConfig()
-                    .getWorkDir();
-            var cachesDir = workDir.resolve(CACHES_DIR);
-
-            try {
-                // Ensure directories exist (some commands may not create them)
-                Files.createDirectories(cachesDir);
-            } catch (IOException e) {
-                throw new IllegalStateException(
-                        "Failed creating caches export directory: "
-                                + cachesDir,
-                        e);
-            }
-
-            // Export all crawler stores for this session
-            LOG.info("Exporting crawler caches to {}:{}",
-                    session.getCluster().getLocalNode().getNodeName(),
-                    cachesDir);
-            new StoreExportCommand(cachesDir, false).execute(session);
+            //            // Determine export directory under the configured work dir
+            //            var workDir = session
+            //                    .getCrawlContext()
+            //                    .getCrawlConfig()
+            //                    .getWorkDir();
+            //            var cachesDir = workDir.resolve(CACHES_DIR);
+            //
+            //            try {
+            //                // Ensure directories exist (some commands may not create them)
+            //                Files.createDirectories(cachesDir);
+            //            } catch (IOException e) {
+            //                throw new IllegalStateException(
+            //                        "Failed creating caches export directory: "
+            //                                + cachesDir,
+            //                        e);
+            //            }
+            //
+            //            // Export all crawler stores for this session
+            //            LOG.info("Exporting crawler caches to {}:{}",
+            //                    session.getCluster().getLocalNode().getNodeName(),
+            //                    cachesDir);
+            //            new StoreExportCommand(cachesDir, false).execute(session);
         };
     }
 
-    /**
-     * Actively waits for the pipeline result to appear in the cache.
-     * This ensures cache writes have completed before we try to export.
-     * Polls up to 2000ms with 50ms intervals.
-     */
-    private static void waitForPipelineResultInCache(CrawlSession session) {
-        var cache = session.getCluster()
-                .getCacheManager()
-                .getCache(CacheNames.PIPE_CURRENT_STEP,
-                        com.norconex.crawler.core.cluster.pipeline.StepRecord.class);
-
-        var maxWaitMs = 2000;
-        var pollIntervalMs = 50;
-        var startTime = System.currentTimeMillis();
-
-        LOG.info("Waiting for pipeline result in cache (isEmpty={})",
-                cache.isEmpty());
-
-        while (System.currentTimeMillis() - startTime < maxWaitMs) {
-            // Check if there's any entry in the cache
-            if (!cache.isEmpty()) {
-                LOG.info("Pipeline result found in cache after {}ms (size={})",
-                        System.currentTimeMillis() - startTime,
-                        cache.size());
-                return; // Cache is synchronized
-            }
-            Sleeper.sleepMillis(pollIntervalMs);
-        }
-
-        // If we timeout, log a warning
-        LOG.warn("No pipeline result found in cache after {}ms timeout! "
-                + "Cache isEmpty={}, size={}. Proceeding with export anyway.",
-                maxWaitMs, cache.isEmpty(), cache.size());
-    }
+    //    /**
+    //     * Actively waits for the pipeline result to appear in the cache.
+    //     * This ensures cache writes have completed before we try to export.
+    //     * Polls up to 2000ms with 50ms intervals.
+    //     */
+    //    private static void waitForPipelineResultInCache(CrawlSession session) {
+    //        var cache = session.getCluster()
+    //                .getCacheManager()
+    //                .getCache(CacheNames.PIPE_CURRENT_STEP, StepRecord.class);
+    //
+    //        var maxWaitMs = 2000;
+    //        var pollIntervalMs = 50;
+    //        var startTime = System.currentTimeMillis();
+    //
+    //        LOG.info("Waiting for pipeline result in cache (isEmpty={})",
+    //                cache.isEmpty());
+    //
+    //        while (System.currentTimeMillis() - startTime < maxWaitMs) {
+    //            // Check if there's any entry in the cache
+    //            if (!cache.isEmpty()) {
+    //                LOG.info("Pipeline result found in cache after {}ms (size={})",
+    //                        System.currentTimeMillis() - startTime,
+    //                        cache.size());
+    //                return; // Cache is synchronized
+    //            }
+    //            Sleeper.sleepMillis(pollIntervalMs);
+    //        }
+    //
+    //        // If we timeout, log a warning
+    //        LOG.warn("No pipeline result found in cache after {}ms timeout! "
+    //                + "Cache isEmpty={}, size={}. Proceeding with export anyway.",
+    //                maxWaitMs, cache.isEmpty(), cache.size());
+    //    }
 
 }
