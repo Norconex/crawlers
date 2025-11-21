@@ -69,7 +69,7 @@ public class WaitFor {
             // we don't care about actual counts, just that all nodes
             // are present
             return cluster.getNodes().size() == cluster.getStateDb()
-                    .getCountsByNodesForTopicAndValue(
+                    .getCountsByNodesForTopicAndKey(
                             StateDbClient.TOPIC_EVENT, eventName)
                     .size();
         }, timeout, INTERVAL);

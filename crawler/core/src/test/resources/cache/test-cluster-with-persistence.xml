@@ -7,7 +7,21 @@
   FAST TEST CONFIGURATION
   Ultra-optimized for local testing with minimal cluster formation time.
   Uses SHARED_LOOPBACK for in-memory clustering (no network overhead).
-  
+
+  NOTE ABOUT PERSISTENCE TEMPLATES
+  --------------------------------
+  For tests we mirror the production strategy: generic templates
+  (base-template, indexed-template, ephemeral-template) do not declare
+  RocksDB stores directly. With global-state enabled and RocksDB on
+  Windows, putting a store on a widely-used default template can lead
+  to the same RocksDB directory being opened twice for caches like
+  ledger_a, causing lock exceptions.
+
+  Instead, tests rely on explicit RocksDB configuration on the
+  concrete caches that need persistence (ledger_a, ledger_b, counters,
+  and shutdown-safe caches), while the templates focus on topology,
+  encoding, and indexing.
+
   WARNING: DO NOT USE IN PRODUCTION
   - No network resilience
   - Optimized only for single-machine, multi-JVM testing
@@ -63,8 +77,7 @@
       name="base-template" 
       mode="SYNC"
       owners="2"
-      statistics="true"
-    >
+      statistics="true">
       <encoding>
         <key media-type="application/x-protostream"/>
         <value media-type="application/x-protostream"/>
@@ -72,18 +85,21 @@
       <transaction
         mode="NON_XA"
         locking="PESSIMISTIC"
-        transaction-manager-lookup="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
-      />
-      <state-transfer enabled="true" timeout="30000" await-initial-transfer="false"/>
-      <persistence passivation="false">
-        <file-store />
-      </persistence>
+        transaction-manager-lookup=
+          "org.infinispan.transaction.lookup.GenericTransactionManagerLookup"/>
+      <state-transfer enabled="true" timeout="30000"
+                      await-initial-transfer="false"/>
+      <!-- IMPORTANT: Do not configure RocksDB here. Template-level
+           persistence, when combined with global state, can cause
+           Infinispan to attempt a second RocksDB open for caches
+           like ledger_a within the same JVM on Windows. Concrete
+           caches opt into RocksDB explicitly below. -->
+      <persistence passivation="false"/>
     </distributed-cache-configuration>
 
     <distributed-cache-configuration 
       name="indexed-template" 
-      configuration="base-template"
-    >
+      configuration="base-template">
       <!-- Enable indexing for CrawlEntry using POJO annotations -->
       <indexing enabled="true" storage="local-heap">
         <indexed-entities>
@@ -92,72 +108,108 @@
           </indexed-entity>
         </indexed-entities>
       </indexing>
-      <!-- Encode values as Java objects so Hibernate Search POJO annotations apply -->
+      <!-- Encode values as Java objects so Hibernate Search POJO
+           annotations apply -->
       <encoding>
         <key media-type="application/x-protostream"/>
         <value media-type="application/x-java-object"/>
       </encoding>
-      <state-transfer enabled="true" timeout="30000" await-initial-transfer="false"/>
-      <!-- Use RocksDB instead of SIFS to avoid re-entrant lock issues -->
-      <persistence passivation="false">
-        <rocksdb-store xmlns="urn:infinispan:config:store:rocksdb:15.2"/>
-      </persistence>
+      <state-transfer enabled="true" timeout="30000"
+                      await-initial-transfer="false"/>
+      <!-- IMPORTANT: As with base-template, avoid RocksDB here.
+           Indexed caches that require persistence define RocksDB
+           at the concrete cache level (ledger_a, ledger_b). -->
+      <persistence passivation="false"/>
     </distributed-cache-configuration>
 
     <distributed-cache-configuration 
       name="ephemeral-template" 
       mode="SYNC"
       owners="2"
-      statistics="true"
-    >
+      statistics="true">
       <expiration lifespan="-1"/>
-      <state-transfer enabled="true" timeout="30000" await-initial-transfer="false"/>
+      <state-transfer enabled="true" timeout="30000"
+                      await-initial-transfer="false"/>
       <persistence passivation="false"/>
     </distributed-cache-configuration>
     
     <!-- REPLICATED template for shutdown-critical caches - full replication -->
-    <!-- Used by: admin, pipeCurrentStep, pipeWorkerStatuses -->
+    <!-- Used by: pipeCurrentStep, pipeWorkerStatuses -->
     <!-- Guarantees coordinator can read worker status even after workers exit -->
     <replicated-cache-configuration 
       name="shutdown-safe-template" 
       mode="SYNC"
-      statistics="true"
-    >
+      statistics="true">
       <encoding>
         <key media-type="application/x-protostream"/>
         <value media-type="application/x-protostream"/>
       </encoding>
-      <state-transfer enabled="true" timeout="30000" await-initial-transfer="false"/>
+      <state-transfer enabled="true" timeout="30000"
+                      await-initial-transfer="false"/>
       <persistence passivation="false">
-        <file-store />
+        <rocksdb-store xmlns=
+          "urn:infinispan:config:store:rocksdb:15.2"/>
       </persistence>
     </replicated-cache-configuration>
 
-    <!-- Cache mappings -->
-    <distributed-cache-configuration name="*_indexed"   configuration="indexed-template"/>
-    <distributed-cache-configuration name="*_ephemeral" configuration="ephemeral-template"/>
+    <!-- New: replicated, non-persistent template for admin (ephemeral control-plane) -->
+    <replicated-cache-configuration
+      name="ephemeral-replicated-template"
+      mode="SYNC"
+      statistics="true">
+      <encoding>
+        <key media-type="application/x-protostream"/>
+        <value media-type="application/x-protostream"/>
+      </encoding>
+      <state-transfer enabled="true" timeout="30000"
+                      await-initial-transfer="false"/>
+      <persistence passivation="false"/>
+    </replicated-cache-configuration>
 
-    <!-- CRITICAL: Shutdown-safe caches (fully replicated) -->
-    <!-- These must be available on coordinator even after workers exit -->
-    <replicated-cache name="admin"              configuration="shutdown-safe-template"/>
-    <replicated-cache name="pipeCurrentStep"    configuration="shutdown-safe-template"/>
-    <replicated-cache name="pipeWorkerStatuses" configuration="shutdown-safe-template"/>
+    <!-- Cache mappings -->
+    <distributed-cache-configuration name="*_indexed"
+                                     configuration="indexed-template"/>
+    <distributed-cache-configuration name="*_ephemeral"
+                                     configuration="ephemeral-template"/>
+
+    <!-- CRITICAL: Shutdown-safe caches -->
+    <replicated-cache name="admin"
+                      configuration="ephemeral-replicated-template"/>
+    <replicated-cache name="pipeCurrentStep"
+                      configuration="shutdown-safe-template"/>
+    <replicated-cache name="pipeWorkerStatuses"
+                      configuration="shutdown-safe-template"/>
 
     <!-- Regular caches (distributed with owners=2) -->
-    <distributed-cache name="crawler"            configuration="base-template"/>
-    <distributed-cache name="crawlSession"       configuration="base-template"/>
-    <distributed-cache name="crawlRun"           configuration="ephemeral-template"/>
-    <distributed-cache name="crawlEventCounts"   configuration="base-template"/>
-    <distributed-cache name="ledger_a"           configuration="indexed-template"/>
-    <distributed-cache name="ledger_b"           configuration="indexed-template"/>
-    <distributed-cache 
-      name="counters"
-      mode="SYNC"
-      owners="2"
-      statistics="true"
-    >
+    <distributed-cache name="crawler"          configuration="base-template"/>
+    <distributed-cache name="crawlSession"     configuration="base-template"/>
+    <distributed-cache name="crawlRun"         configuration="ephemeral-template"/>
+    <distributed-cache name="crawlEventCounts" configuration="base-template"/>
+
+    <!-- Explicitly persistent caches with RocksDB -->
+    <distributed-cache name="ledger_a"
+                      configuration="indexed-template">
       <persistence passivation="false">
-        <file-store />
+        <rocksdb-store xmlns=
+          "urn:infinispan:config:store:rocksdb:15.2"/>
+      </persistence>
+    </distributed-cache>
+
+    <distributed-cache name="ledger_b"
+                      configuration="indexed-template">
+      <persistence passivation="false">
+        <rocksdb-store xmlns=
+          "urn:infinispan:config:store:rocksdb:15.2"/>
+      </persistence>
+    </distributed-cache>
+
+    <distributed-cache name="counters"
+                      mode="SYNC"
+                      owners="2"
+                      statistics="true">
+      <persistence passivation="false">
+        <rocksdb-store xmlns=
+          "urn:infinispan:config:store:rocksdb:15.2"/>
       </persistence>
     </distributed-cache>
   </cache-container>

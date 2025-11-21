@@ -20,6 +20,8 @@ import lombok.SneakyThrows;
 
 public class StateDbClient {
 
+    public static final int MAX_VALUE_LENGTH = 1_024_000;
+
     public static final String PROP_NODE_NAME = "node.name";
     public static final String PROP_JDBC_URL = "jdbc.url";
 
@@ -71,36 +73,65 @@ public class StateDbClient {
         put(TOPIC_EVENT, event.getName(), event.getMessage());
     }
 
-    @SneakyThrows
     public List<StateRecord> getEvents() {
         return getRecordsForTopic(TOPIC_EVENT);
     }
 
-    @SneakyThrows
-    public List<StateRecord> getStdoutForAllNodes() {
-        return getRecordsForTopic(TOPIC_STDOUT);
+    public void printStreamsOrderedByDateTime() {
+        doPrintStreamsOrderedBy("dt ASC");
+    }
+
+    public void printStreamsOrderedByNode() {
+        doPrintStreamsOrderedBy("node ASC, dt ASC");
     }
 
     @SneakyThrows
-    public List<StateRecord> getStdoutForNode(int nodeNumber) {
-        return getRecordsForTopicAndNode(TOPIC_STDOUT, nodeNumber);
+    private void doPrintStreamsOrderedBy(String orderBy) {
+        try (var ps = newConnection().prepareStatement("""
+                SELECT node, topic, k, v
+                FROM cluster_state
+                WHERE topic IN (?, ?)
+                ORDER BY %s
+                """.formatted(orderBy))) {
+            ps.setString(1, TOPIC_STDOUT);
+            ps.setString(2, TOPIC_STDERR);
+            try (var rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    String msg = "[%s:%s]%n%s".formatted(
+                            rs.getString("node"),
+                            rs.getString("k"),
+                            rs.getString("v"));
+                    if (TOPIC_STDERR.equals(rs.getString("topic"))) {
+                        System.err.println("✖️ " + msg);
+                    } else {
+                        System.out.println("✔️ " + msg);
+                    }
+                }
+            }
+        }
     }
 
-    @SneakyThrows
-    public List<StateRecord> getStderrForAllNodes() {
-        return getRecordsForTopic(TOPIC_STDERR);
-    }
-
-    @SneakyThrows
-    public List<StateRecord> getStderrForNode(int nodeNumber) {
-        return getRecordsForTopicAndNode(TOPIC_STDERR, nodeNumber);
-    }
+    //    public List<StateRecord> getStdoutForAllNodes() {
+    //        return getRecordsForTopic(TOPIC_STDOUT);
+    //    }
+    //
+    //    public List<StateRecord> getStdoutForNode(int nodeNumber) {
+    //        return getRecordsForTopicAndNode(TOPIC_STDOUT, nodeNumber);
+    //    }
+    //
+    //    public List<StateRecord> getStderrForAllNodes() {
+    //        return getRecordsForTopic(TOPIC_STDERR);
+    //    }
+    //
+    //    public List<StateRecord> getStderrForNode(int nodeNumber) {
+    //        return getRecordsForTopicAndNode(TOPIC_STDERR, nodeNumber);
+    //    }
 
     @SneakyThrows
     public List<StateRecord> getRecordsForTopic(String topic) {
         var events = new ArrayList<StateRecord>();
         try (var ps = newConnection().prepareStatement(sqlSelectAllFrom()
-                + "WHERE topic = ?")) {
+                + "WHERE topic = ? ORDER BY dt")) {
             ps.setString(1, topic);
             try (var rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -116,7 +147,7 @@ public class StateDbClient {
             String topic, int nodeNumber) {
         var events = new ArrayList<StateRecord>();
         try (var ps = newConnection().prepareStatement(sqlSelectAllFrom()
-                + "WHERE topic = ? and node = ?")) {
+                + "WHERE topic = ? and node = ? ORDER BY dt")) {
             ps.setString(1, topic);
             ps.setString(2, "node-" + nodeNumber);
             try (var rs = ps.executeQuery()) {
@@ -129,13 +160,34 @@ public class StateDbClient {
     }
 
     @SneakyThrows
+    public Map<String, Integer> getCountsByNodesForTopicAndKey(
+            String topic, String key) {
+        var counts = new HashMap<String, Integer>();
+        try (var ps = newConnection().prepareStatement("""
+                SELECT node, count(*)
+                WHERE topic = ?
+                AND k = ?
+                GROUP BY node
+                """)) {
+            ps.setString(1, topic);
+            ps.setString(2, key);
+            try (var rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    counts.put(rs.getString(1), rs.getInt(2));
+                }
+            }
+        }
+        return counts;
+    }
+
+    @SneakyThrows
     public Map<String, Integer> getCountsByNodesForTopicAndValue(
             String topic, String value) {
         var counts = new HashMap<String, Integer>();
         try (var ps = newConnection().prepareStatement("""
                 SELECT node, count(*)
                 WHERE topic = ?
-                AND value = ?
+                AND v = ?
                 GROUP BY node
                 """)) {
             ps.setString(1, topic);
@@ -158,7 +210,8 @@ public class StateDbClient {
             ps.setString(1, nodeName);
             ps.setString(2, topic);
             ps.setString(3, key);
-            ps.setString(4, StringUtils.truncate(value, 1024));
+            ps.setString(4, StringUtils.truncate(
+                    value, StateDbClient.MAX_VALUE_LENGTH));
             ps.executeUpdate();
         }
     }

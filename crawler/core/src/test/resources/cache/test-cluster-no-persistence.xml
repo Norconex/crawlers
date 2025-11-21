@@ -71,7 +71,7 @@
     </distributed-cache-configuration>
     
     <!-- REPLICATED template for shutdown-critical caches - full replication -->
-    <!-- Used by: admin, pipeCurrentStep, pipeWorkerStatuses -->
+    <!-- Used by: pipeCurrentStep, pipeWorkerStatuses -->
     <!-- Guarantees coordinator can read worker status even after workers exit -->
     <replicated-cache-configuration 
       name="shutdown-safe-template" 
@@ -83,13 +83,25 @@
         <value media-type="application/x-protostream"/>
       </encoding>
     </replicated-cache-configuration>
+
+    <!-- New: replicated, non-persistent template for admin (ephemeral control-plane) -->
+    <replicated-cache-configuration
+      name="ephemeral-replicated-template"
+      mode="SYNC"
+      statistics="true">
+      <encoding>
+        <key media-type="application/x-protostream"/>
+        <value media-type="application/x-protostream"/>
+      </encoding>
+    </replicated-cache-configuration>
+
     <!-- Cache mappings -->
     <distributed-cache-configuration name="*_indexed"   configuration="indexed-template"/>
     <distributed-cache-configuration name="*_ephemeral" configuration="ephemeral-template"/>
     
     <!-- CRITICAL: Shutdown-safe caches (fully replicated) -->
-    <!-- These must be available on coordinator even after workers exit -->
-    <replicated-cache name="admin"              configuration="shutdown-safe-template"/>
+    <!-- admin: replicated, in-memory only (no persistence) -->
+    <replicated-cache name="admin"              configuration="ephemeral-replicated-template"/>
     <replicated-cache name="pipeCurrentStep"    configuration="shutdown-safe-template"/>
     <replicated-cache name="pipeWorkerStatuses" configuration="shutdown-safe-template"/>
     

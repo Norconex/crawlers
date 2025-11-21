@@ -5,6 +5,44 @@ Crawler-related code shared between different crawler implementations
 
 Website: https://opensource.norconex.com/crawlers/core/
 
+## Infinispan presets (cluster profiles)
+
+The core crawler uses Infinispan for clustering and cache storage.
+Most users will only need to choose a high-level preset in
+`InfinispanClusterConfig`:
+
+- `CLUSTER` (default)
+  - Cluster-capable profile, suitable for one or more nodes.
+  - Uses the `cache/infinispan-cluster.xml` configuration.
+  - Global state enabled, RocksDB persistence for ledgers and
+    counters.
+  - Recommended for production and durable, restartable crawls.
+
+- `STANDALONE`
+  - Single-node profile with similar persistence semantics as the
+    cluster profile, but without multi-node clustering.
+  - Uses the `cache/infinispan-standalone.xml` configuration.
+  - Good when you run the crawler on a single machine but still
+    want persistent state.
+
+- `STANDALONE_MEMORY`
+  - Lightweight, single-node, memory-centric profile.
+  - Uses the `cache/infinispan-standalone-memory.xml` configuration.
+  - Caches are local and cluster-wide global state is not persisted.
+  - Useful for quick experiments and short-lived runs where you
+    do not need to resume a crawl, but be mindful of heap usage.
+
+Example (Java):
+
+```java
+var clusterConfig = new InfinispanClusterConfig()
+        .setPreset(InfinispanClusterConfig.Preset.STANDALONE_MEMORY);
+```
+
+For most real crawls, prefer `CLUSTER` or `STANDALONE`. Use
+`STANDALONE_MEMORY` when you explicitly want a fast, ephemeral
+single-node setup.
+
 ## Development Setup
 
 ### Eclipse IDE Setup for ProtoStream

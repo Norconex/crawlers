@@ -97,11 +97,14 @@ public class InfinispanCluster implements Cluster {
     @Override
     public void init(Path workDir) {
         this.workDir = workDir;
+        LOG.info("InfinispanCluster.init(workDir={})", workDir);
+
         var builderHolder = parseConfig();
         var globalBuilder = builderHolder.getGlobalConfigurationBuilder();
 
         // Generate unique node name
         var uniqueNodeName = new ULID().nextULID();
+        LOG.info("InfinispanCluster node ULID: {}", uniqueNodeName);
         globalBuilder.transport().nodeName(uniqueNodeName);
 
         var proto = new ProtoStreamMarshaller();
@@ -112,33 +115,59 @@ public class InfinispanCluster implements Cluster {
         globalBuilder.serialization().marshaller(proto);
 
         var globalConfig = globalBuilder.build();
-        var currentPath = globalConfig.globalState().persistentLocation();
+        var originalPersistentLocation =
+                globalConfig.globalState().persistentLocation();
+        LOG.info("Original Infinispan persistent location template: {}",
+                originalPersistentLocation);
+
+        var currentPath = originalPersistentLocation;
         Sleeper.sleepSeconds(2);
         if (currentPath.contains(BASEDIR_PLACEHOLDER)) {
             currentPath = Path.of(currentPath.replace(
                     BASEDIR_PLACEHOLDER, workDir.toString()))
                     .normalize().toString();
-            // Use the unique node name to ensure each node has its own storage directory
+            // Use the unique node name to ensure each node has its own
+            // storage directory.
             currentPath = Path.of(currentPath, uniqueNodeName)
                     .normalize().toString();
-            LOG.info("Infinispan persistent location: {}", currentPath);
-            globalBuilder.globalState()
-                    .persistentLocation(currentPath);
+            LOG.info("Resolved Infinispan persistent location: {}",
+                    currentPath);
+            globalBuilder.globalState().persistentLocation(currentPath);
+        } else {
+            LOG.info("Infinispan persistent location does not contain "
+                    + "placeholder '{}': {}",
+                    BASEDIR_PLACEHOLDER, currentPath);
         }
-        var defCacheManager =
-                new DefaultCacheManager(builderHolder, true);
-        defCacheManager.start();
-        cacheManager = new InfinispanCacheManager(defCacheManager);
-        localNode = new InfinispanClusterNode(defCacheManager);
-        pipelineManager = new InfinispanPipelineManager(this);
 
-        // Listen for coordinator change events
-        defCacheManager.addListener(new ClusterViewListener(this));
+        try {
+            LOG.info("Creating DefaultCacheManager with global state root: {}",
+                    currentPath);
+        } catch (Exception e) {
+            LOG.warn("Unable to log global state persistent location", e);
+        }
 
-        // Note: stopController.start() is NOT called here automatically.
-        // Commands that need to monitor for stop signals must explicitly
-        // call startStopMonitoring().
-        stopController = new CacheStopController(this);
+        try {
+            var defCacheManager =
+                    new DefaultCacheManager(builderHolder, true);
+            defCacheManager.start();
+            cacheManager = new InfinispanCacheManager(defCacheManager);
+            localNode = new InfinispanClusterNode(defCacheManager);
+            pipelineManager = new InfinispanPipelineManager(this);
+
+            // Listen for coordinator change events
+            defCacheManager.addListener(new ClusterViewListener(this));
+
+            // Note: stopController.start() is NOT called here automatically.
+            // Commands that need to monitor for stop signals must explicitly
+            // call startStopMonitoring().
+            stopController = new CacheStopController(this);
+
+        } catch (Exception e) {
+            LOG.error("Failed to initialize Infinispan DefaultCacheManager "
+                    + "for workDir='{}' and persistentLocation='{}'",
+                    workDir, currentPath, e);
+            throw e;
+        }
 
     }
 

@@ -10,7 +10,6 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
 import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.junit.cluster.state.StateDbServer;
 
 public class ClusteredExtension
         implements BeforeEachCallback, AfterEachCallback, ParameterResolver {
@@ -28,18 +27,19 @@ public class ClusteredExtension
                 .put(KEY_TEMP_DIR, tempDir);
 
         clusterClient = new ClusterClient(
-                new CrawlConfig().setWorkDir(tempDir));
+                new CrawlConfig()
+                        .setWorkDir(tempDir));
         context.getStore(ExtensionContext.Namespace.GLOBAL).put(
                 KEY_CLUSTER_CLIENT, clusterClient);
     }
 
     @Override
     public void afterEach(ExtensionContext context) throws Exception {
-        var state = (StateDbServer) context
+        var state = (ClusterClient) context
                 .getStore(ExtensionContext.Namespace.GLOBAL)
-                .remove("clusterState");
+                .remove(KEY_CLUSTER_CLIENT);
         if (state != null) {
-            state.stop();
+            state.close();
         }
 
         // Delete temp dir

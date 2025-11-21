@@ -1,0 +1,92 @@
+<infinispan xmlns="urn:infinispan:config:15.2"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="urn:infinispan:config:15.2 https://infinispan.org/schemas/infinispan-config-15.2.xsd">
+            
+  <!--
+  STANDALONE, EPHEMERAL CONFIGURATION (NO GLOBAL STATE)
+  Lightweight, single-node Infinispan configuration intended for
+  quick local runs where cluster formation and global-state persistence
+  are not required. All caches are local; RocksDB persistence is still
+  available for specific caches but the global registry itself is not
+  persisted.
+
+  This preset is useful for:
+  - Fast, local development cycles.
+  - Situations where full cluster metadata persistence is unnecessary.
+
+  NOT recommended for distributed production deployments where
+  coordinated global state is important.
+  -->
+
+  <cache-container name="default" default-cache="base-template">
+
+    <!-- No transport: local-only cache container -->
+
+    <!-- No <global-state> element: container metadata is not persisted.
+         Individual caches may still use persistent stores like RocksDB
+         if configured explicitly. -->
+
+    <!-- Templates -->
+    <local-cache-configuration 
+      name="base-template" 
+      statistics="true">
+      <encoding>
+        <key media-type="application/x-protostream"/>
+        <value media-type="application/x-protostream"/>
+      </encoding>
+      <transaction
+        mode="NON_XA"
+        locking="PESSIMISTIC"
+        transaction-manager-lookup=
+          "org.infinispan.transaction.lookup.GenericTransactionManagerLookup"/>
+      <persistence passivation="false"/>
+    </local-cache-configuration>
+
+    <local-cache-configuration 
+      name="indexed-template" 
+      configuration="base-template">
+      <indexing enabled="true" storage="local-heap">
+        <indexed-entities>
+          <indexed-entity>
+            com.norconex.crawler.core.ledger.CrawlEntry
+          </indexed-entity>
+        </indexed-entities>
+      </indexing>
+      <encoding>
+        <key media-type="application/x-protostream"/>
+        <value media-type="application/x-java-object"/>
+      </encoding>
+      <persistence passivation="false"/>
+    </local-cache-configuration>
+
+    <local-cache-configuration 
+      name="ephemeral-template" 
+      statistics="true">
+      <expiration lifespan="-1"/>
+      <persistence passivation="false"/>
+    </local-cache-configuration>
+
+    <!-- Cache mappings -->
+    <local-cache-configuration name="*_indexed"
+                               configuration="indexed-template"/>
+    <local-cache-configuration name="*_ephemeral"
+                               configuration="ephemeral-template"/>
+
+    <!-- Explicit caches (local) -->
+    <local-cache name="crawler"          configuration="base-template"/>
+    <local-cache name="crawlSession"     configuration="base-template"/>
+    <local-cache name="crawlRun"         configuration="ephemeral-template"/>
+    <local-cache name="crawlEventCounts" configuration="base-template"/>
+
+    <!-- Ledgers: enable RocksDB persistence explicitly if desired.
+         Here we keep them ephemeral to avoid disk writes in this
+         lightweight profile. -->
+    <local-cache name="ledger_a" configuration="indexed-template"/>
+    <local-cache name="ledger_b" configuration="indexed-template"/>
+
+    <local-cache name="counters" statistics="true">
+      <persistence passivation="false"/>
+    </local-cache>
+  </cache-container>
+
+</infinispan>

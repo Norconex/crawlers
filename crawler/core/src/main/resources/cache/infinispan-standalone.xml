@@ -34,7 +34,7 @@
         transaction-manager-lookup="org.infinispan.transaction.lookup.GenericTransactionManagerLookup"
       />
       <persistence passivation="false">
-        <file-store />
+        <rocksdb-store xmlns="urn:infinispan:config:store:rocksdb:15.2"/>
       </persistence>
     </local-cache-configuration>
 
@@ -76,6 +76,7 @@
     <local-cache-configuration name="*_ephemeral" configuration="ephemeral-template"/>
 
     <!-- Explicit cache instances -->
+    <!-- admin: local, in-memory-only control cache (ephemeral-template) -->
     <local-cache name="admin"              configuration="ephemeral-template"/>    
     <local-cache name="crawler"            configuration="base-template"/>
     <local-cache name="crawlSession"       configuration="base-template"/>
@@ -90,7 +91,7 @@
       statistics="true"
     >
       <persistence passivation="false">
-        <file-store />
+        <rocksdb-store xmlns="urn:infinispan:config:store:rocksdb:15.2"/>
       </persistence>
     </local-cache>
   </cache-container>

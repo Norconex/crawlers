@@ -15,22 +15,28 @@ import lombok.extern.slf4j.Slf4j;
 class ClusteredExampleTest {
     @Test
     void testStateDbWithNodes(ClusterClient clusterClient) {
-        clusterClient.launch(2, CrawlerNode.builder()
+        clusterClient.launch(CrawlerNode.builder()
                 .captures(new CaptureFlags()
                         .setCaches(true)
                         .setEvents(true)
                         .setStderr(true)
                         .setStdout(true))
                 .appArg("start")
-                .build());
+                .build(), 2);
         clusterClient.waitFor().termination();
 
-        StateDbClient.get().getStdoutForAllNodes().forEach(rec -> {
-            LOG.info("XXX MSG ENTRY: {}", rec);
-        });
-        StateDbClient.get().getStderrForAllNodes().forEach(rec -> {
-            LOG.error("XXX MSG ENTRY: {}", rec);
-        });
+        //        StateDbClient.get().getStdoutForAllNodes().forEach(rec -> {
+        //            LOG.info("XXX MSG ENTRY: {}", rec);
+        //        });
+
+        StateDbClient.get().printStreamsOrderedByNode();
+
+        //        StateDbClient.get().getStdoutForAllNodes().forEach(rec -> {
+        //            LOG.info("XXX MSG ENTRY: {}", rec);
+        //        });
+        //        StateDbClient.get().getStderrForAllNodes().forEach(rec -> {
+        //            LOG.error("XXX MSG ENTRY: {}", rec);
+        //        });
 
     }
 

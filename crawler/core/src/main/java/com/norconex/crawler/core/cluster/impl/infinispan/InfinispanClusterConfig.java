@@ -30,6 +30,7 @@ public class InfinispanClusterConfig {
     public enum Preset {
         CLUSTER("cache/infinispan-cluster.xml"),
         STANDALONE("cache/infinispan-standalone.xml"),
+        STANDALONE_MEMORY("cache/infinispan-standalone-memory.xml"),
         CUSTOM(null);
 
         @Getter
@@ -42,6 +43,13 @@ public class InfinispanClusterConfig {
      * can be added during an executing crawl. If you are not running
      * the crawler on a clustered environment, choosing the "STANDALONE"
      * preset is recommended for better single-node performance.
+     * <p>
+     * The "STANDALONE_MEMORY" preset is a lightweight, single-node
+     * configuration that keeps caches local and avoids persisting
+     * cluster-wide global state. It is useful for quick experiments
+     * and short-lived crawls, but may consume more heap and is not
+     * intended for durable, restartable crawls.
+     * </p>
      * Choosing "CUSTOM" allows you to specify your own Infinispan
      * configuration and is for advanced use only.
      */

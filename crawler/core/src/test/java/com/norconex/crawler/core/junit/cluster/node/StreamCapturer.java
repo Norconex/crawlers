@@ -28,7 +28,7 @@ import com.norconex.crawler.core.junit.cluster.state.StateDbClient;
  * Used in CrawlerNode on started process.
  */
 public class StreamCapturer implements Runnable {
-    private static final int CHUNK_SIZE = 4048;
+    private static final int CHUNK_SIZE = 100 * 1024;
     private final Reader reader;
     private final String topic;
     private final AtomicLong rowCounter = new AtomicLong();
@@ -52,9 +52,15 @@ public class StreamCapturer implements Runnable {
             }
             if (!buffer.isEmpty()) {
                 saveToDatabase(topic, buffer.toString());
+                buffer.setLength(0);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        } finally {
+            if (!buffer.isEmpty()) {
+                saveToDatabase(topic, buffer.toString());
+                buffer.setLength(0);
+            }
         }
     }
 
