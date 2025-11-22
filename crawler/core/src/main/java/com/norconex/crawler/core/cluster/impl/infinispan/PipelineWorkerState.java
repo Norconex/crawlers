@@ -173,8 +173,9 @@ public class PipelineWorkerState implements AutoCloseable {
             return;
         }
 
-        // Note: stepId may be empty when status=PENDING (initial worker announcement)
-        // The coordinator will assign the stepId when it writes RUNNING status
+        // Note: stepId may be empty when status=PENDING (initial worker
+        // announcement). The coordinator will assign the stepId when it
+        // writes RUNNING status.
         var rec = new StepRecord()
                 .setPipelineId(pipeline.getId())
                 .setStepId(currentStepRecord.getStepId())
@@ -182,19 +183,15 @@ public class PipelineWorkerState implements AutoCloseable {
                 .setUpdatedAt(System.currentTimeMillis())
                 .setRunId(session.getCrawlRunId());
         try {
-            // Use putSync for terminal statuses to ensure replication
-            // completes before the worker exits. This guarantees the
-            // coordinator will see the final status even if the worker
-            // node leaves the cluster immediately after.
-            if (status.isTerminal()) {
-                LOG.debug("Pushing terminal status {} for {}",
-                        status, pipeline.getId());
+            if (workerStatusCache instanceof InfinispanCacheAdapter) {
+                var adapter =
+                        (InfinispanCacheAdapter<StepRecord>) workerStatusCache;
+                // Best-effort, skip-locking write to avoid ISPN000299
+                // timeouts when multiple nodes touch the same key.
+                adapter.putBestEffort(workerKey, rec);
+            } else {
+                workerStatusCache.put(workerKey, rec);
             }
-            workerStatusCache.put(workerKey, rec);
-        } catch (org.infinispan.commons.TimeoutException te) {
-            LOG.warn("Skipping worker status update for {} due to cache "
-                    + "lock timeout on key {}.",
-                    pipeline.getId(), workerKey);
         } catch (RuntimeException e) {
             LOG.debug("Worker status update failed for {}: {}",
                     pipeline.getId(), e.toString());

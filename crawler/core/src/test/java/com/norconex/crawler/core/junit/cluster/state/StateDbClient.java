@@ -165,6 +165,7 @@ public class StateDbClient {
         var counts = new HashMap<String, Integer>();
         try (var ps = newConnection().prepareStatement("""
                 SELECT node, count(*)
+                FROM cluster_state
                 WHERE topic = ?
                 AND k = ?
                 GROUP BY node
@@ -186,6 +187,7 @@ public class StateDbClient {
         var counts = new HashMap<String, Integer>();
         try (var ps = newConnection().prepareStatement("""
                 SELECT node, count(*)
+                FROM cluster_state
                 WHERE topic = ?
                 AND v = ?
                 GROUP BY node

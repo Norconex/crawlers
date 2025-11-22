@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -67,17 +68,19 @@ class PipelineTest {
         try (var cluster = new ClusterClient(longRunningCrawler())) {
             cluster.launch(starter, 2);
 
-            cluster.waitFor().termination();
+            //            cluster.waitFor(Duration.ofSeconds(30))
+            //                    .allNodesToHaveFired(CrawlerEvent.DOCUMENT_IMPORTED);
 
-            cluster.getStateDb().printStreamsOrderedByNode();
+            LOG.info("FIRED!");
 
-            var exitValues = cluster.getNodeExitValues(
-                    Duration.ofSeconds(10));
-            LOG.info("Node exit values: {}", exitValues);
-            assertThat(exitValues)
+            var exitCodes =
+                    cluster.waitFor(Duration.ofSeconds(25)).termination();
+            assertThat(exitCodes)
                     .as("all cluster nodes should exit successfully")
                     .isNotEmpty()
                     .allMatch(code -> code == 0);
+
+            cluster.getStateDb().printStreamsOrderedByNode();
         }
     }
 
@@ -86,8 +89,8 @@ class PipelineTest {
                 .setId("" + TimeIdGenerator.next())
                 .setWorkDir(tempDir)
                 .setMaxQueueBatchSize(1)
-                .setStartReferences(List.of("ref-1",
-                        "ref-2", "ref-3"))
+                .setStartReferences(IntStream.range(0, 3)
+                        .mapToObj(i -> "ref-" + i).toList())
                 .setFetchers(List.of(Configurable.configure(
                         new MockFetcher(),
                         cfg -> cfg.setDelay(Duration.ofSeconds(1)))))

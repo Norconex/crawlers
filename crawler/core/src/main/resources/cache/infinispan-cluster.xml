@@ -10,7 +10,7 @@
   (e.g., JDBC) so storage persists beyond the crawler nodes life span.
 
   NOTE ABOUT PERSISTENCE TEMPLATES
-  --------------------------------
+  ================================
   We intentionally avoid declaring RocksDB stores on the generic
   distributed templates (base-template, indexed-template).
   

@@ -14,6 +14,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.infinispan.commons.api.query.Query;
+import org.infinispan.context.Flag;
 import org.infinispan.lifecycle.ComponentStatus;
 import org.infinispan.util.function.SerializableFunction;
 
@@ -157,7 +158,7 @@ public class InfinispanCacheAdapter<T> implements Cache<T> {
             var totalCount = count(queryExpression);
             var offset = 0;
 
-            LOG.debug("Starting streaming query with {} total results "
+            LOG.trace("Starting streaming query with {} total results "
                     + "using batch size {}", totalCount, bsize);
 
             while (offset < totalCount) {
@@ -179,7 +180,7 @@ public class InfinispanCacheAdapter<T> implements Cache<T> {
                 }
             }
 
-            LOG.debug("Finished streaming query, processed {} results", offset);
+            LOG.trace("Finished streaming query, processed {} results", offset);
         });
     }
 
@@ -249,6 +250,31 @@ public class InfinispanCacheAdapter<T> implements Cache<T> {
     @Override
     public void forEach(BiConsumer<String, ? super T> action) {
         runIfCache(() -> delegate.forEach(action::accept));
+    }
+
+    /**
+     * Best-effort, non-transactional write suitable for ephemeral updates
+     * such as worker heartbeats. Uses SKIP_LOCKING and FORCE_ASYNCHRONOUS
+     * flags to avoid contributing to lock contention.
+     * @param key key
+     * @param value value
+     */
+    public void putBestEffort(String key, T value) {
+        runIfCache(() -> {
+            try {
+                delegate.getAdvancedCache()
+                        .withFlags(Flag.SKIP_LOCKING, Flag.FORCE_ASYNCHRONOUS)
+                        .put(key, value);
+            } catch (org.infinispan.commons.TimeoutException e) {
+                // Ignore: a later heartbeat or explicit update will refresh
+                // the value. We explicitly do not want to fail callers on
+                // transient lock timeouts for best-effort updates.
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Best-effort put timed out for key {}: {}",
+                            key, e.toString());
+                }
+            }
+        });
     }
 
     public org.infinispan.Cache<String, T> vendor() {

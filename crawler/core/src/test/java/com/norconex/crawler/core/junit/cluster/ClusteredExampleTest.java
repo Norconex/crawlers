@@ -23,7 +23,11 @@ class ClusteredExampleTest {
                         .setStdout(true))
                 .appArg("start")
                 .build(), 2);
-        clusterClient.waitFor().termination();
+        var exitCodes = clusterClient.waitFor().termination();
+        assertThat(exitCodes)
+                .as("all cluster nodes should exit successfully")
+                .isNotEmpty()
+                .allMatch(code -> code == 0);
 
         //        StateDbClient.get().getStdoutForAllNodes().forEach(rec -> {
         //            LOG.info("XXX MSG ENTRY: {}", rec);

@@ -9,7 +9,7 @@
   Uses SHARED_LOOPBACK for in-memory clustering (no network overhead).
 
   NOTE ABOUT PERSISTENCE TEMPLATES
-  --------------------------------
+  ================================
   For tests we mirror the production strategy: generic templates
   (base-template, indexed-template, ephemeral-template) do not declare
   RocksDB stores directly. With global-state enabled and RocksDB on

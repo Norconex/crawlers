@@ -42,11 +42,9 @@ public class ClusterClient implements AutoCloseable {
     private final Path configFile;
     @Getter
     private final List<Process> nodes = new ArrayList<>();
-    //    private final List<NodeExecutionResult> nodes = new ArrayList<>();
-    private final StateDbServer stateDbServer;
+    private StateDbServer stateDbServer;
 
     public ClusterClient(CrawlConfig crawlConfig) {
-        //        state = new ClusterState(this);
         this.crawlConfig = crawlConfig;
 
         // at this point the crawl work dir is considered the cluster root.
@@ -54,14 +52,6 @@ public class ClusterClient implements AutoCloseable {
         clusterRootDir = Objects.requireNonNull(
                 crawlConfig.getWorkDir(), "Working directory is missing.");
         configFile = clusterRootDir.resolve("config.yaml");
-
-        initCrawlerId();
-
-        CoreTestUtil.writeConfigToFile(crawlConfig, configFile);
-
-        var dbName = "testdb_" + TimeIdGenerator.next();
-        stateDbServer = new StateDbServer(clusterRootDir, dbName);
-        stateDbServer.start();
     }
 
     public StateDbClient getStateDb() {
@@ -96,14 +86,11 @@ public class ClusterClient implements AutoCloseable {
      * @return the added nodes
      */
     public List<Process> launch(CrawlerNode node, int numOfNodes) {
-        List<Process> launchedNodes = new ArrayList<>();
+        var nodeNames = new String[numOfNodes];
         for (var i = 0; i < numOfNodes; i++) {
-            var nodeIndex = nodeCounter.incrementAndGet();
-            var nodeName = "node-" + nodeIndex;
-            launchedNodes.addAll(launch(node, nodeName));
+            nodeNames[i] = "node-" + nodeCounter.incrementAndGet();
         }
-        nodes.addAll(launchedNodes);
-        return launchedNodes;
+        return launch(node, nodeNames);
     }
 
     /**
@@ -116,6 +103,8 @@ public class ClusterClient implements AutoCloseable {
      */
     public List<Process> launch(
             @NonNull CrawlerNode node, @NonNull String... nodeNames) {
+
+        ensureServerInit();
 
         if (Arrays.stream(nodeNames).anyMatch(StringUtils::isBlank)) {
             throw new IllegalArgumentException("Node name must not be null.");
@@ -130,6 +119,7 @@ public class ClusterClient implements AutoCloseable {
                     nodeName,
                     clusterRootDir.resolve(nodeName),
                     configFile));
+            LOG.debug("Launched \"{}\".", nodeName);
         }
         nodes.addAll(launchedNodes);
         return launchedNodes;
@@ -141,41 +131,8 @@ public class ClusterClient implements AutoCloseable {
 
     public WaitFor waitFor(Duration timeout) {
         return new WaitFor(
-                ofNullable(timeout).orElseGet(() -> Duration.ofMinutes(10)),
+                ofNullable(timeout).orElseGet(() -> Duration.ofSeconds(30)),
                 this);
-    }
-
-    /**
-     * Returns the exit values of all launched nodes. If a process is still
-     * alive, it will first wait up to the given timeout for it to exit.
-     * <p>
-     * This is intended for tests to assert that all nodes terminated
-     * successfully (exit code 0) once the cluster run is complete.
-     * </p>
-     * @param timeout how long to wait for each alive process
-     * @return list of exit values in the same order as {@link #getNodes()}
-     */
-    public List<Integer> getNodeExitValues(Duration timeout) {
-        var wait = ofNullable(timeout)
-                .orElseGet(() -> Duration.ofSeconds(5));
-        var values = new ArrayList<Integer>(nodes.size());
-        for (var process : nodes) {
-            if (process == null) {
-                values.add(-1);
-                continue;
-            }
-            if (process.isAlive()) {
-                try {
-                    process.waitFor(wait.toMillis(), TimeUnit.MILLISECONDS);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    LOG.warn("Interrupted while waiting for node to exit.",
-                            e);
-                }
-            }
-            values.add(process.exitValue());
-        }
-        return values;
     }
 
     /**
@@ -190,19 +147,11 @@ public class ClusterClient implements AutoCloseable {
 
         // Brief delay to allow any in-flight JGroups messages to be processed
         // This reduces the likelihood of TpHeader NPE during shutdown
-        Sleeper.sleepMillis(500);
+        Sleeper.sleepMillis(250);
 
-        //        for (NodeExecutionResult node : nodes) {
-        //            try {
-        //                node.close();
-        //            } catch (Exception e) {
-        //                LOG.warn("Error closing node at: {}", node.getWorkDir(), e);
-        //            }
-        //        }
         for (Process process : nodes) {
             try {
                 if (process != null && process.isAlive()) {
-                    // LOG.debug("Stopping crawler node at: {}", workDir);
                     process.destroy();
                     try {
                         // Wait up to 10 seconds for graceful shutdown
@@ -238,23 +187,30 @@ public class ClusterClient implements AutoCloseable {
         nodes.clear();
 
         stateDbServer.stop();
-
-        // Wait for file locks to be released by checking if we can
-        // access critical files. This is more reliable than arbitrary
-        // delays.
-        //        waitForFileLocksToBeReleased();
     }
 
-    private void initCrawlerId() {
-        // Set one if none was passed
-        if (crawlConfig != null) {
-            if (StringUtils.isBlank(crawlConfig.getId())) {
-                crawlerId =
-                        CRAWLER_ID_PREFIX + clusterCounter.incrementAndGet();
-                crawlConfig.setId(crawlerId);
-            } else {
-                crawlerId = crawlConfig.getId();
+    private void ensureServerInit() {
+        if (stateDbServer == null) {
+
+            // Set a crawler ID one if none was passed
+            if (crawlConfig != null) {
+                if (StringUtils.isBlank(crawlConfig.getId())) {
+                    crawlerId =
+                            CRAWLER_ID_PREFIX
+                                    + clusterCounter.incrementAndGet();
+                    crawlConfig.setId(crawlerId);
+                } else {
+                    crawlerId = crawlConfig.getId();
+                }
             }
+
+            // Write configuration
+            CoreTestUtil.writeConfigToFile(crawlConfig, configFile);
+
+            // Start state server
+            var dbName = "testdb_" + TimeIdGenerator.next();
+            stateDbServer = new StateDbServer(clusterRootDir, dbName);
+            stateDbServer.start();
         }
     }
 }

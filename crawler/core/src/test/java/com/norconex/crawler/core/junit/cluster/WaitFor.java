@@ -15,6 +15,8 @@
 package com.norconex.crawler.core.junit.cluster;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -43,8 +45,18 @@ public class WaitFor {
     @NonNull
     private final ClusterClient cluster;
 
+    /**
+     * Waits for all cluster node processes to terminate and returns their
+     * exit codes.
+     * @return exit codes for all nodes
+     */
     @SneakyThrows
-    public void termination() {
+    public List<Integer> termination() {
+        LOG.info("Waiting up to {} for termination of {} node(s)...",
+                DurationFormatter.FULL.format(timeout),
+                cluster.getNodes().size());
+        long then = System.currentTimeMillis();
+        List<Integer> exitCodes = new ArrayList<>();
         for (Process p : cluster.getNodes()) {
             try {
                 if (!p.waitFor(timeout.toMillis(), TimeUnit.MILLISECONDS)) {
@@ -53,14 +65,19 @@ public class WaitFor {
                                     + DurationFormatter.FULL.format(timeout));
                 }
                 var exitCode = p.exitValue();
+                exitCodes.add(exitCode);
                 if (exitCode != 0) {
                     LOG.warn("Node exit code: {}", exitCode);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 LOG.warn("Node was interrupted.");
+                exitCodes.add(-1); // Indicate interruption
             }
         }
+        LOG.info("Node(s) terminated in {}", DurationFormatter.FULL
+                .format(System.currentTimeMillis() - then));
+        return exitCodes;
     }
 
     @SneakyThrows
