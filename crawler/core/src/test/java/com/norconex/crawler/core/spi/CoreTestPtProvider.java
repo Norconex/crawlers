@@ -22,8 +22,10 @@ import com.norconex.crawler.core._DELETE.MockSingleNodeConnector;
 import com.norconex.crawler.core.cluster.ClusterConnector;
 import com.norconex.crawler.core.cluster.impl.infinispan.TestClusterConnector;
 import com.norconex.crawler.core.cmd.crawl.pipeline.process.ProcessUpsertTest;
+import com.norconex.crawler.core.doc.operations.DocumentConsumer;
 import com.norconex.crawler.core.event.listeners.TestEventMemoryListener;
 import com.norconex.crawler.core.fetch.Fetcher;
+import com.norconex.crawler.core.junit.cluster.node.ConfigInstrumentor.PostImportWaitForEventOnNodes;
 import com.norconex.crawler.core.mocks.cluster.MockFailingClusterConnector;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 import com.norconex.importer.response.ImporterResponseProcessor;
@@ -33,6 +35,8 @@ public class CoreTestPtProvider extends BasePolymorphicTypeProvider {
     @Override
     protected void register(Registry registry) {
         registry
+                .add(DocumentConsumer.class,
+                        PostImportWaitForEventOnNodes.class)
                 .add(Fetcher.class,
                         MockFetcher.class)
                 .add(EventListener.class,

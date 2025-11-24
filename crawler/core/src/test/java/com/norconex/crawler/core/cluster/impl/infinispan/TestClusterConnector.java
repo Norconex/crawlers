@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Data
 @Accessors(fluent = true)
+@Deprecated //TODO delete files under resources
 public final class TestClusterConnector {
 
     @Data
@@ -91,6 +92,7 @@ public final class TestClusterConnector {
             extends BaseTestClusterConnector {
         public ClusterWithPersistence() {
             super("cache/test-cluster-with-persistence.xml");
+            LOG.info("XXX heeeeeeeeeeeeeeeeeeere!");
         }
     }
 }

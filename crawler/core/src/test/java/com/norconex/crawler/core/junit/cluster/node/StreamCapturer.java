@@ -32,40 +32,64 @@ public class StreamCapturer implements Runnable {
     private final Reader reader;
     private final String topic;
     private final AtomicLong rowCounter = new AtomicLong();
+    private final StateDbClient stateDb;
 
-    public StreamCapturer(Reader reader, String topic) {
+    public StreamCapturer(Reader reader, String nodeName, String topic) {
         this.reader = reader;
         this.topic = topic;
+        // Only initialize state DB client for non-log topics.
+        // stdout/stderr are now written to per-node log files directly
+        // by JvmProcess, to avoid H2 growing large.
+        this.stateDb = ("stdout".equals(topic) || "stderr".equals(topic))
+                ? null
+                : StateDbClient.get().asNode(nodeName);
     }
 
     @Override
     public void run() {
+        if (stateDb == null) {
+            // Nothing to persist for stdout/stderr; just drain the stream
+            // to avoid blocking the child process.
+            drainQuietly();
+            return;
+        }
         var buffer = new StringBuilder();
         try {
             int ch;
             while ((ch = reader.read()) != -1) {
                 buffer.append((char) ch);
                 if (buffer.length() >= CHUNK_SIZE) {
-                    saveToDatabase(topic, buffer.substring(0, CHUNK_SIZE));
+                    saveToDatabase(buffer.substring(0, CHUNK_SIZE));
                     buffer.delete(0, CHUNK_SIZE);
                 }
             }
             if (!buffer.isEmpty()) {
-                saveToDatabase(topic, buffer.toString());
+                saveToDatabase(buffer.toString());
                 buffer.setLength(0);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } finally {
             if (!buffer.isEmpty()) {
-                saveToDatabase(topic, buffer.toString());
+                saveToDatabase(buffer.toString());
                 buffer.setLength(0);
             }
         }
     }
 
-    private void saveToDatabase(String topic, String logChunk) {
-        StateDbClient.get().put(
-                topic, "" + rowCounter.incrementAndGet(), logChunk);
+    private void drainQuietly() {
+        try {
+            while (reader.read() != -1) {
+                // discard
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private void saveToDatabase(String logChunk) {
+        if (stateDb != null) {
+            stateDb.put(topic, "" + rowCounter.incrementAndGet(), logChunk);
+        }
     }
 }

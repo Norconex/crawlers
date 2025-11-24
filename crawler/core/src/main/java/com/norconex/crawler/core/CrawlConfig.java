@@ -652,8 +652,8 @@ public class CrawlConfig {
      */
     public CrawlConfig setPreImportConsumers(
             List<DocumentConsumer> preImportConsumers) {
-        CollectionUtil.setAll(preImportConsumers, preImportConsumers);
-        CollectionUtil.removeNulls(preImportConsumers);
+        CollectionUtil.setAll(this.preImportConsumers, preImportConsumers);
+        CollectionUtil.removeNulls(this.preImportConsumers);
         return this;
     }
 
@@ -672,8 +672,8 @@ public class CrawlConfig {
      */
     public CrawlConfig setPostImportConsumers(
             List<DocumentConsumer> postImportConsumers) {
-        CollectionUtil.setAll(postImportConsumers, postImportConsumers);
-        CollectionUtil.removeNulls(postImportConsumers);
+        CollectionUtil.setAll(this.postImportConsumers, postImportConsumers);
+        CollectionUtil.removeNulls(this.postImportConsumers);
         return this;
     }
 

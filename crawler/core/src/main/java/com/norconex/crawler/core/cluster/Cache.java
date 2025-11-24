@@ -136,6 +136,13 @@ public interface Cache<T> {
 
     void forEach(BiConsumer<String, ? super T> action);
 
+    /**
+     * Returns all keys in this cache. For distributed caches, this includes
+     * keys from all nodes in the cluster, not just locally-owned keys.
+     * @return a list of all keys in the cache
+     */
+    List<String> keys();
+
     //    void queryForEach(
     //            String queryExpression, BiConsumer<String, ? super T> action);
 

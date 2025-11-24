@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core.cluster.impl.infinispan;
 
+import static java.util.Optional.ofNullable;
+
 import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -114,37 +116,66 @@ public class PipelineWorkerState implements AutoCloseable {
         // PipelineWorker.state assignment.
         // initStepListener();
 
+        // Determine effective heartbeat interval based on configuration
+        var config = cluster.getConfiguration();
+        long expiryMs = ofNullable(config.getNodeExpiryTimeout())
+                .map(Duration::toMillis)
+                .orElse(30_000L);
+        long rawHeartbeatMs = ofNullable(config.getWorkerHeartbeatInterval())
+                .map(Duration::toMillis)
+                .orElse(1_000L);
+        long minHeartbeatMs = 500L;
+        long maxByExpiry = Math.max(minHeartbeatMs, expiryMs / 3);
+        long heartbeatMs = Math.max(minHeartbeatMs,
+                Math.min(rawHeartbeatMs, maxByExpiry));
+
+        if (heartbeatMs != rawHeartbeatMs) {
+            LOG.info("Adjusting worker heartbeat interval from {} ms to {} ms "
+                    + "based on node expiry timeout {} ms.",
+                    rawHeartbeatMs, heartbeatMs, expiryMs);
+        }
+
         //TODO make status update heartbeat configurable
-        // 1 second may be taxing
         final var iterCount = new AtomicInteger();
         workerStatusFuture = statusUpdater.scheduleAtFixedRate(() -> {
-            if (!closed.get()) {
-                pushWorkerStatus(workerStatus);
-
-                // every 15 iteration (15 sec.s) update pipeline status
-                // in case we missed the latest
-                if (iterCount.getAndIncrement() % 15 == 0) {
-                    iterCount.set(1);
-                    // in case we are joining after a RUNNING event, grab from cache
-                    // for the first time
-                    updateCurrentStepRecord(currentRec -> {
-                        var rec = pipelineStepCache
-                                .get(pipelineKey).orElse(null);
-                        logStepRecordReceived(rec, "explicit check");
-                        if (rec == null) {
-                            currentRec.setStatus(PipelineStatus.PENDING)
-                                    .setStepId(null)
-                                    .setUpdatedAt(0);
-                        } else {
-                            currentRec.setStatus(rec.getStatus())
-                                    .setStepId(rec.getStepId())
-                                    .setUpdatedAt(rec.getUpdatedAt());
-                        }
-                    });
-                }
+            if (closed.get()) {
+                return;
             }
-            //TODO make heartbeat configurable, keep 1 for testing
-        }, 0, 1, TimeUnit.SECONDS); // short heartbeat to avoid false expiry
+            // Avoid doing work once the cluster is no longer running.
+            // At that point, further cache updates are unnecessary and
+            // can slow shutdown.
+            if (!InfinispanUtil.isClusterRunning(cluster)) {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(
+                            "Skipping worker status heartbeat for pipeline {} "
+                                    + "because cluster is not running.",
+                            pipeline.getId());
+                }
+                return;
+            }
+            pushWorkerStatus(workerStatus);
+
+            // every ~15 seconds update pipeline status in case we missed it
+            if (iterCount.addAndGet((int) heartbeatMs) >= 15_000L) {
+                iterCount.set(0);
+                updateCurrentStepRecord(currentRec -> {
+                    var rec = pipelineStepCache
+                            .get(pipelineKey).orElse(null);
+                    logStepRecordReceived(rec, "explicit check");
+                    if (rec == null) {
+                        currentRec.setStatus(PipelineStatus.PENDING)
+                                .setStepId(null)
+                                .setUpdatedAt(0);
+                    } else {
+                        currentRec.setStatus(rec.getStatus())
+                                .setStepId(rec.getStepId())
+                                .setUpdatedAt(rec.getUpdatedAt());
+                    }
+                });
+            }
+        }, 0, heartbeatMs, TimeUnit.MILLISECONDS);
+
+        // short heartbeat to avoid false expiry
     }
 
     /**
@@ -226,6 +257,18 @@ public class PipelineWorkerState implements AutoCloseable {
                     pipeline.getId());
             completion.complete(null);
         }
+    }
+
+    /**
+     * Returns a future that completes when this worker state has fully
+     * closed, including listener deregistration and scheduler shutdown.
+     * Intended for use by tests or higher level coordination that wants
+     * to await a clean shutdown without relying on arbitrary sleeps.
+     *
+     * @return completion future
+     */
+    public CompletableFuture<Void> completion() {
+        return completion;
     }
 
     //--- Private methods ------------------------------------------------------

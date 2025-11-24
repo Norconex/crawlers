@@ -22,7 +22,6 @@ import java.util.concurrent.TimeoutException;
 
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.crawler.core.junit.cluster.state.StateDbClient;
-import com.norconex.crawler.core.util.ConcurrentUtil;
 
 import lombok.AccessLevel;
 import lombok.NonNull;
@@ -35,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-public class WaitFor {
+public class ClusterWaitFor {
 
     @NonNull
     private static final Duration INTERVAL = Duration.ofMillis(100);
@@ -52,17 +51,17 @@ public class WaitFor {
      */
     @SneakyThrows
     public List<Integer> termination() {
-        LOG.info("Waiting up to {} for termination of {} node(s)...",
-                DurationFormatter.FULL.format(timeout),
+        LOG.info("Waiting up to {} for termination of {} nodes...",
+                fmt(timeout),
                 cluster.getNodes().size());
         long then = System.currentTimeMillis();
         List<Integer> exitCodes = new ArrayList<>();
         for (Process p : cluster.getNodes()) {
             try {
                 if (!p.waitFor(timeout.toMillis(), TimeUnit.MILLISECONDS)) {
+                    printStreams();
                     throw new TimeoutException(
-                            "Process did not terminate within "
-                                    + DurationFormatter.FULL.format(timeout));
+                            "Nodes did not terminate within " + fmt(timeout));
                 }
                 var exitCode = p.exitValue();
                 exitCodes.add(exitCode);
@@ -75,21 +74,54 @@ public class WaitFor {
                 exitCodes.add(-1); // Indicate interruption
             }
         }
-        LOG.info("Node(s) terminated in {}", DurationFormatter.FULL
-                .format(System.currentTimeMillis() - then));
+        LOG.info("Nodes terminated in {}",
+                fmt(System.currentTimeMillis() - then));
         return exitCodes;
     }
 
     @SneakyThrows
     public void allNodesToHaveFired(String eventName) {
-        ConcurrentUtil.waitUntilOrThrow(() -> {
-            // we don't care about actual counts, just that all nodes
-            // are present
-            return cluster.getNodes().size() == cluster.getStateDb()
-                    .getCountsByNodesForTopicAndKey(
-                            StateDbClient.TOPIC_EVENT, eventName)
-                    .size();
-        }, timeout, INTERVAL);
+        StateDbClient.get()
+                .waitFor()
+                .numNodes(cluster.getNodes().size())
+                .toHaveFired(eventName);
+
+        //        LOG.info("Waiting up to {} for {} nodes to have fired \"{}\" at "
+        //                + "least once...",
+        //                fmt(timeout),
+        //                cluster.getNodes().size(),
+        //                eventName);
+        //        long then = System.currentTimeMillis();
+        //        if (!ConcurrentUtil.waitUntil(() -> {
+        //            // we don't care about actual counts, just that all nodes
+        //            // are present
+        //            return cluster.getNodes().size() == cluster.getStateDb()
+        //                    .getCountsByNodesForTopicAndKey(
+        //                            StateDbClient.TOPIC_EVENT, eventName)
+        //                    .size();
+        //        }, timeout, INTERVAL)) {
+        //            printStreams();
+        //            throw new TimeoutException("Not all nodes fired \"%s\" within %s."
+        //                    .formatted(eventName, fmt(timeout)));
+        //        }
+        //        LOG.info("{} nodes have fired \"{}\" in {}",
+        //                cluster.getNodes().size(),
+        //                eventName,
+        //                fmt(System.currentTimeMillis() - then));
     }
 
+    private void printStreams() {
+        // Prefer file-based logs to avoid loading potentially huge
+        // cluster_state tables into memory (H2 OOM). This streams
+        // each node's stdout/stderr files line-by-line instead.
+        cluster.printNodeLogsOrderedByNode();
+    }
+
+    private static String fmt(long d) {
+        return DurationFormatter.FULL.format(d);
+    }
+
+    private static String fmt(Duration d) {
+        return DurationFormatter.FULL.format(d);
+    }
 }

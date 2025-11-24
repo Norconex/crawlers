@@ -21,7 +21,9 @@ import com.norconex.crawler.core.ledger.CrawlEntry;
 import com.norconex.crawler.core.session.CrawlSession;
 
 import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Builder
 public class BatchDispatcher {
     /**
@@ -42,22 +44,37 @@ public class BatchDispatcher {
 
     public CrawlEntry take() {
         var ledger = session.getCrawlContext().getCrawlEntryLedger();
+        var nodeName = session.getCluster().getLocalNode().getNodeName();
         while (true) {
             var entry = localQueue.poll();
             if (entry != null) {
+                LOG.trace("[{}] BatchDispatcher.take() returning local "
+                        + "entry {}. localQueueSize={}.",
+                        nodeName, entry.getReference(), localQueue.size());
                 maybeRefill();
                 return entry;
             }
             // Only one thread should try to refill when empty
             synchronized (refillLock) {
                 if (localQueue.isEmpty()) {
-                    var batch = ledger.nextQueuedBatch(computeBatchSize());
+                    var batchSize = computeBatchSize();
+                    var queueCount = ledger.getQueueCount();
+                    LOG.trace("[{}] BatchDispatcher.take() refilling from "
+                            + "global queue (batchSize={}, queueCount={}).",
+                            nodeName, batchSize, queueCount);
+                    var batch = ledger.nextQueuedBatch(batchSize);
+                    LOG.trace("[{}] BatchDispatcher.take() got batch of {} "
+                            + "entries from global queue.",
+                            nodeName, batch.size());
                     if (!batch.isEmpty()) {
                         localQueue.addAll(batch);
                         continue;
                     }
                 }
             }
+            LOG.trace("[{}] BatchDispatcher.take() found no entries in local "
+                    + "or global queue.",
+                    nodeName);
             // Return null immediately if queue is empty
             // Let CrawlActivityChecker handle idle timeout logic
             return null;
@@ -66,11 +83,25 @@ public class BatchDispatcher {
 
     private void maybeRefill() {
         var ledger = session.getCrawlContext().getCrawlEntryLedger();
+        var nodeName = session.getCluster().getLocalNode().getNodeName();
         if (localQueue.size() <= lowWatermark) {
             synchronized (refillLock) {
                 if (localQueue.size() <= lowWatermark) {
-                    var batch = ledger.nextQueuedBatch(computeBatchSize());
+                    var batchSize = computeBatchSize();
+                    var queueCount = ledger.getQueueCount();
+                    LOG.trace("""
+                        [{}] BatchDispatcher.maybeRefill() refilling \
+                        (batchSize={}, queueCount={}, \
+                        localQueueSize(before)={}).""",
+                            nodeName, batchSize, queueCount, localQueue.size());
+                    var batch = ledger.nextQueuedBatch(batchSize);
+                    LOG.trace("[{}] BatchDispatcher.maybeRefill() got batch of "
+                            + "{} entries.",
+                            nodeName, batch.size());
                     localQueue.addAll(batch);
+                    LOG.trace("[{}] BatchDispatcher.maybeRefill() "
+                            + "localQueueSize(after)={}",
+                            nodeName, localQueue.size());
                 }
             }
         }
@@ -85,7 +116,14 @@ public class BatchDispatcher {
         var queueCount = ledger.getQueueCount();
         var nodeCount = session.getCluster().getNodeCount();
         var fairShare = (int) Math.ceil((double) queueCount / nodeCount);
-        return Math.max(1, Math.min(maxBatchSize, fairShare));
+        var batchSize = Math.max(1, Math.min(maxBatchSize, fairShare));
+        LOG.trace("""
+            [{}] BatchDispatcher.computeBatchSize() queueCount={}, \
+            nodeCount={}, fairShare={}, maxBatchSize={} => \
+            batchSize= {}.""",
+                session.getCluster().getLocalNode().getNodeName(),
+                queueCount, nodeCount, fairShare, maxBatchSize, batchSize);
+        return batchSize;
     }
 
 }

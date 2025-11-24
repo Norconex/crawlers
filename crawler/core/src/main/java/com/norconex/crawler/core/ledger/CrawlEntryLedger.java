@@ -265,17 +265,80 @@ public final class CrawlEntryLedger {
     }
 
     public List<CrawlEntry> nextQueuedBatch(int batchSize) {
+        var nodeName = session.getCluster().getLocalNode().getNodeName();
+        LOG.trace("[{}] CrawlEntryLedger.nextQueuedBatch(batchSize={}) "
+                + "called. queuedCount={}.",
+                nodeName, batchSize,
+                statusCounters.get(ProcessingStatus.QUEUED).get());
+
+        if (LOG.isTraceEnabled()) {
+            var queuedByQuery = currentLedger.count(
+                    "FROM %s WHERE processingStatus = '%s'".formatted(
+                            CrawlEntry.class.getName(),
+                            ProcessingStatus.QUEUED.name()));
+            LOG.trace("[{}] CrawlEntryLedger status: "
+                    + "queued(counter)={}, queued(query)={}",
+                    nodeName,
+                    statusCounters.get(ProcessingStatus.QUEUED).get(),
+                    queuedByQuery);
+        }
+
         List<CrawlEntry> batch = new ArrayList<>(batchSize);
-        currentLedger.queryStream(
-                fromOrderedQueuedQuery(),
-                entry -> {
-                    if (batch.size() >= batchSize)
-                        return;
-                    var ref = entry.getReference();
-                    var claimed = claimQueuedEntry(ref);
-                    claimed.ifPresent(batch::add);
-                },
-                bonifiedBatchSize(batchSize));
+        var targetBatchSize = bonifiedBatchSize(batchSize);
+
+        // CRITICAL: In a distributed Infinispan cache, iteration methods
+        // (forEach, entrySet, keySet) only return entries owned by this node.
+        // To see ALL entries in the cluster for fair work distribution,
+        // we must retrieve all keys first, then fetch values.
+        // This is inefficient but necessary for distributed queues.
+        // Alternative: Use a replicated cache or dedicated queue service.
+        var scannedCount = new java.util.concurrent.atomic.AtomicInteger(0);
+        
+        // Get ALL keys from the distributed cache (this triggers remote calls)
+        var allKeys = new java.util.ArrayList<>(currentLedger.keys());
+        
+        for (var ref : allKeys) {
+            // Stop if we've found enough entries
+            if (batch.size() >= batchSize) {
+                break;
+            }
+            // Limit scanning to avoid excessive iteration
+            if (scannedCount.incrementAndGet() > targetBatchSize * 10) {
+                break;
+            }
+
+            // Fetch entry (may be remote)
+            var entryOpt = currentLedger.get(ref);
+            if (entryOpt.isEmpty()) {
+                continue;
+            }
+            
+            var entry = entryOpt.get();
+            
+            // Only process queued entries
+            if (entry.getProcessingStatus() != ProcessingStatus.QUEUED) {
+                continue;
+            }
+
+            // Try to claim this entry
+            var claimed = claimQueuedEntry(ref);
+            if (claimed.isPresent()) {
+                LOG.trace("[{}] CrawlEntryLedger.nextQueuedBatch "
+                        + "claimed ref={}.",
+                        nodeName, ref);
+                batch.add(claimed.get());
+            } else {
+                LOG.trace("""
+                    [{}] CrawlEntryLedger.nextQueuedBatch \
+                    FAILED to claim ref={} \
+                    (already claimed).""",
+                        nodeName, ref);
+            }
+        }
+
+        LOG.trace("[{}] CrawlEntryLedger.nextQueuedBatch returning {} "
+                + "entries (scanned {} entries).",
+                nodeName, batch.size(), scannedCount.get());
         return batch;
     }
 
@@ -432,37 +495,42 @@ public final class CrawlEntryLedger {
      * @return the updated entry if successfully claimed, otherwise empty
      */
     private Optional<CrawlEntry> claimQueuedEntry(String reference) {
-        // Use atomic replace() instead of computeIfPresent() to avoid
-        // serializing functions with ProtoStream marshalling.
-        // This is thread-safe and works across distributed nodes.
-
+        var nodeName = session.getCluster().getLocalNode().getNodeName();
         var current = currentLedger.get(reference);
         if (current.isEmpty()) {
+            LOG.trace("[{}] claimQueuedEntry({}) current empty.",
+                    nodeName, reference);
             return Optional.empty();
         }
 
         var entry = current.get();
         if (entry.getProcessingStatus() != ProcessingStatus.QUEUED) {
+            LOG.trace("[{}] claimQueuedEntry({}) status is {} (not QUEUED).",
+                    nodeName, reference, entry.getProcessingStatus());
             return Optional.empty();
         }
 
-        // Create updated entry with new status
         var updatedEntry = BeanUtil.clone(entry);
         updatedEntry.setProcessingStatus(ProcessingStatus.PROCESSING);
         updatedEntry.setProcessingAt(Instant.now().atZone(ZoneOffset.UTC));
 
-        // Atomically replace only if the current value hasn't changed
-        // This ensures thread-safety without requiring function serialization
-        boolean replaced = currentLedger.replace(
+        var replaced = currentLedger.replace(
                 reference, entry, updatedEntry);
 
         if (replaced) {
             statusCounters.get(ProcessingStatus.QUEUED).decrementAndGet();
             statusCounters.get(ProcessingStatus.PROCESSING).incrementAndGet();
+            LOG.trace(
+                    "[{}] claimQueuedEntry({}) SUCCESS. queuedCount={} processingCount={}.",
+                    nodeName, reference,
+                    statusCounters.get(ProcessingStatus.QUEUED).get(),
+                    statusCounters.get(ProcessingStatus.PROCESSING).get());
             return Optional.of(updatedEntry);
         }
 
-        // Entry was modified by another thread/node, retry would be needed
+        LOG.trace(
+                "[{}] claimQueuedEntry({}) FAILED replace (concurrent update).",
+                nodeName, reference);
         return Optional.empty();
     }
 
@@ -486,8 +554,26 @@ public final class CrawlEntryLedger {
     // To stream in slightly larger batches for efficiency on multi-nodes
     private int bonifiedBatchSize(int batchSize) {
         var nodeCnt = session.getCluster().getNodeCount();
-        var nodeFactor = (int) Math.ceil(Math.min(nodeCnt - 1, 5) * 0.5);
-        return batchSize + (nodeFactor * batchSize);
+        // When multiple nodes are present, scan deeper than the local
+        // batch size so slower nodes can still discover unclaimed
+        // entries further down the global queue. Keep it modest to
+        // avoid scanning the entire cache on every poll, but also
+        // not so aggressive that the first node claims everything.
+        int overscanFactor;
+        if (nodeCnt <= 1) {
+            overscanFactor = 1;
+        } else if ((nodeCnt == 2) || (nodeCnt > 4)) {
+            // Reduced from 8 to 3 to give both nodes fairer access
+            overscanFactor = 3;
+        } else {
+            overscanFactor = 4;
+        }
+        var bonified = Math.max(batchSize, batchSize * overscanFactor);
+        LOG.trace(
+                "[{}] bonifiedBatchSize({}) -> {} (nodeCnt={}, overscanFactor={}).",
+                session.getCluster().getLocalNode().getNodeName(),
+                batchSize, bonified, nodeCnt, overscanFactor);
+        return bonified;
     }
 
 }

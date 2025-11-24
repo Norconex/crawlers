@@ -1,5 +1,6 @@
 package com.norconex.crawler.core.cluster.impl.infinispan;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -124,7 +125,9 @@ public class InfinispanCacheAdapter<T> implements Cache<T> {
     @Override
     public List<T> query(String queryExpression) {
         return (List<T>) supplyIfCache(
-                () -> delegate.query(queryExpression).execute().list(),
+                () -> delegate.getAdvancedCache()
+                        .withFlags(Flag.SKIP_INDEX_CLEANUP)
+                        .query(queryExpression).execute().list(),
                 Collections.emptyList());
     }
 
@@ -132,7 +135,9 @@ public class InfinispanCacheAdapter<T> implements Cache<T> {
     @Override
     public Iterator<T> queryIterator(String queryExpression) {
         return (Iterator<T>) supplyIfCache(
-                () -> delegate.query(queryExpression).execute().list()
+                () -> delegate.getAdvancedCache()
+                        .withFlags(Flag.SKIP_INDEX_CLEANUP)
+                        .query(queryExpression).execute().list()
                         .stream()
                         .iterator(),
                 Collections.emptyIterator());
@@ -141,7 +146,12 @@ public class InfinispanCacheAdapter<T> implements Cache<T> {
     @Override
     public List<T> queryPaged(String queryExpression, int startOffset,
             int maxResults) {
-        Query<T> query = delegate.query(queryExpression);
+        // Use SKIP_INDEX_CLEANUP to get fresher data in distributed
+        // environments. This ensures queries see recent updates from other
+        // nodes, which is critical for queue claiming scenarios.
+        Query<T> query = delegate.getAdvancedCache()
+                .withFlags(Flag.SKIP_INDEX_CLEANUP)
+                .query(queryExpression);
         query.startOffset(startOffset);
         query.maxResults(maxResults);
         return query.execute().list();
@@ -158,8 +168,8 @@ public class InfinispanCacheAdapter<T> implements Cache<T> {
             var totalCount = count(queryExpression);
             var offset = 0;
 
-            LOG.trace("Starting streaming query with {} total results "
-                    + "using batch size {}", totalCount, bsize);
+            LOG.trace("Starting streaming query from a total of {} matching "
+                    + "entries using batch size {}", totalCount, bsize);
 
             while (offset < totalCount) {
                 // Process one batch at a time
@@ -174,13 +184,14 @@ public class InfinispanCacheAdapter<T> implements Cache<T> {
                 offset += batch.size();
 
                 // Log progress
-                if (offset % (bsize * 10) == 0 || offset >= totalCount) {
-                    LOG.debug("Processed {} entries out of {}", offset,
-                            totalCount);
+                if (LOG.isTraceEnabled() && (offset % (bsize * 10) == 0
+                        || offset >= totalCount)) {
+                    LOG.trace("Query-streamed {} entries out of {}",
+                            offset, totalCount);
                 }
             }
 
-            LOG.trace("Finished streaming query, processed {} results", offset);
+            LOG.trace("Finished streaming query, streamed {} entries", offset);
         });
     }
 
@@ -188,7 +199,11 @@ public class InfinispanCacheAdapter<T> implements Cache<T> {
     public long count(String queryExpression) {
         return supplyIfCache(
                 () -> {
-                    Query<Object> query = delegate.query(queryExpression);
+                    // Use SKIP_INDEX_CLEANUP to get fresher data in
+                    // distributed environments
+                    Query<Object> query = delegate.getAdvancedCache()
+                            .withFlags(Flag.SKIP_INDEX_CLEANUP)
+                            .query(queryExpression);
                     return (long) query.execute().count().value();
                 }, -1L);
     }
@@ -249,7 +264,30 @@ public class InfinispanCacheAdapter<T> implements Cache<T> {
 
     @Override
     public void forEach(BiConsumer<String, ? super T> action) {
-        runIfCache(() -> delegate.forEach(action::accept));
+        runIfCache(() -> {
+            // CRITICAL: In a distributed cache with consistent hashing, the
+            // default iteration (entrySet(), keySet(), forEach()) only
+            // includes entries where THIS NODE is a primary or backup owner.
+            //
+            // To iterate over ALL entries in the ENTIRE CLUSTER, we must use
+            // CacheStream with sequentialDistribution(), which forces remote
+            // iteration to include entries from all segments, not just local.
+            delegate.entrySet()
+                    .stream()
+                    .sequentialDistribution()
+                    .forEach(entry -> action.accept(
+                            entry.getKey(), entry.getValue()));
+        });
+    }
+
+    @Override
+    public List<String> keys() {
+        return supplyIfCache(() -> {
+            // Return ALL keys from the distributed cache.
+            // keySet() on a distributed cache returns all keys including
+            // remote ones, but we convert to list for easier use.
+            return new ArrayList<>(delegate.keySet());
+        }, new ArrayList<>());
     }
 
     /**

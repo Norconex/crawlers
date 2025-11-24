@@ -39,8 +39,8 @@ public class DefaultCrawlPipelineFactory implements CrawlPipelineFactory {
     public Pipeline create(CrawlSession session) {
         var steps = new ArrayList<Step>();
         steps.add(new CrawlBootstrapStep(STEP_BOOTSTRAP));
-        steps.add(new CrawlProcessStep(STEP_CRAWL_DOCUMENTS,
-                ProcessQueueAction.CRAWL_ALL)
+        steps.add(new CrawlProcessStep(
+                STEP_CRAWL_DOCUMENTS, ProcessQueueAction.CRAWL_ALL)
                         .setDistributed(true));
 
         var orphStrategy =

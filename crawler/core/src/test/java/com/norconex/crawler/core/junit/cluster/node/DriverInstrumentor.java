@@ -21,7 +21,6 @@ import java.util.function.Consumer;
 import com.norconex.crawler.core.CrawlCallbacks;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
-import com.norconex.crawler.core.cluster.impl.infinispan.TestClusterConnector;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
 import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
@@ -36,12 +35,9 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-final class CrawlDriverInstrumentor {
+final class DriverInstrumentor {
 
     private static CaptureFlags captures = CaptureFlags.fromSysProp();
-    static {
-        System.err.println("XXX CAPTURES : " + captures);
-    }
 
     public static CrawlDriver instrument(CrawlDriver delegate) {
 
@@ -82,10 +78,10 @@ final class CrawlDriverInstrumentor {
 
             // Cluster connector.
             // Defaults to cluster with persistence if no connector specified.
-            if (cfg.getClusterConnector() == null) {
-                cfg.setClusterConnector(
-                        new TestClusterConnector.ClusterWithPersistence());
-            }
+            //YYY     if (cfg.getClusterConnector() == null) {
+            //            cfg.setClusterConnector(
+            //                    new TestClusterConnector.ClusterWithPersistence());
+            //YYY            }
 
             // Call original if present
             if (bs != null) {

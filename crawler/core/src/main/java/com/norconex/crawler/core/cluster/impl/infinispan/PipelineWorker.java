@@ -60,15 +60,18 @@ public class PipelineWorker implements AutoCloseable {
     PipelineResult start() {
         Thread.currentThread().setName("WORKER");
         // Warm-up: wait briefly for stable cluster view and caches
-
         if (!cluster.isStandalone()) {
+            LOG.info("XXX ---> PipelineWorker - 1");
             InfinispanUtil.waitForClusterWarmUp(cluster);
         }
+        LOG.info("XXX ---> PipelineWorker - 2");
 
         state = new PipelineWorkerState(cluster, pipeline,
                 this::executeStep);
+        LOG.info("XXX ---> PipelineWorker - 3");
         // Register listener only after state is non-null to avoid race
         state.registerStepListener();
+        LOG.info("XXX ---> PipelineWorker - 4");
 
         return new PipelineTerminationTracker(
                 cluster, pipeline, state).await(0L);
@@ -99,6 +102,10 @@ public class PipelineWorker implements AutoCloseable {
         ConcurrentUtil.shutdownAndAwait(stepExecutor, Duration.ofSeconds(2));
     }
 
+    PipelineWorkerState getState() {
+        return state;
+    }
+
     //NOTE: only invoked when the current/new step is set to RUNNING
     private void executeStep(StepRecord stepRec) {
         if (state == null) {
@@ -119,16 +126,18 @@ public class PipelineWorker implements AutoCloseable {
 
         if (!step.isDistributed()) {
             // Coordinator runs non-distributed steps; worker stays silent,
-            LOG.debug("Worker node {} got a request to execute non-distributed "
-                    + "step {}. Letting coordinator do it. Ignoring.",
+            LOG.debug("""
+                Worker node "{}" got a request to execute \
+                non-distributed step "{}". Letting coordinator do it. \
+                Ignoring.""",
                     cluster.getLocalNode().getNodeName(),
                     stepRec.getStepId());
             return;
         }
 
         if (!state.getEncounteredSteps().add(stepRec.getStepId())) {
-            LOG.debug("Worker node {} already got request to execute step {}. "
-                    + "Ignoring.",
+            LOG.debug("Worker node \"{}\" already got request to execute "
+                    + "step \"{}\". Ignoring.",
                     cluster.getLocalNode().getNodeName(),
                     stepRec.getStepId());
             return;
@@ -136,7 +145,8 @@ public class PipelineWorker implements AutoCloseable {
 
         // Offload step execution to avoid blocking Infinispan listener
         stepExecutor.submit(() -> {
-            LOG.info("Worker node {} executing pipeline {} step {}.",
+            LOG.info("Worker node \"{}\" executing pipeline \"{}\" "
+                    + "step \"{}\".",
                     cluster.getLocalNode().getNodeName(),
                     stepRec.getPipelineId(),
                     stepRec.getStepId());

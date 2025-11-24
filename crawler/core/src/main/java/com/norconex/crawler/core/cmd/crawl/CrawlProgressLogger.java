@@ -120,23 +120,18 @@ public class CrawlProgressLogger {
         }
     }
 
-    public /*synchronized*/ void stop() {
+    public void stop() {
         if (stopTrackingRequested) {
             return;
         }
         LOG.info("Stopping crawl progress logger...");
         stopTrackingRequested = true;
-        // Disconnect metrics from cluster
-        //        if (metrics instanceof CrawlerMetricsImpl metricsImpl) {
-        //            metricsImpl.close();
-        //        }
         if (!stopWatch.isStopped()) {
             stopWatch.stop();
         }
         if (execService != null) {
             try {
                 execService.shutdownNow();
-                // Reduced from 5s to 2s for faster shutdown
                 if (!execService.awaitTermination(2, TimeUnit.SECONDS)) {
                     LOG.warn("Progress logger executor did not terminate "
                             + "within timeout.");
@@ -150,7 +145,6 @@ public class CrawlProgressLogger {
             }
         }
         metrics.flush();
-        // Force a final log to capture the latest state
         logProgress();
         LOG.info("Execution Summary:{}", getExecutionSummary());
     }

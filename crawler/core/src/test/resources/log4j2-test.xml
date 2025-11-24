@@ -24,6 +24,16 @@
     </Console>
   </Appenders>
   <Loggers>
+  
+    <Logger name="com.norconex.crawler.core.cmd.crawl.pipeline.process.BatchDispatcher" level="TRACE" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="com.norconex.crawler.core.ledger.CrawlEntryLedger" level="TRACE" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    
+    
+  
     <Logger name="ImporterEvent" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>

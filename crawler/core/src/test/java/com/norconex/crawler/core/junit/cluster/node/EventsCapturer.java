@@ -20,7 +20,7 @@ import com.norconex.crawler.core.junit.cluster.state.StateDbClient;
 
 /**
  * Store node events in state database. Registered by
- * {@link CrawlDriverInstrumentor}.
+ * {@link DriverInstrumentor}.
  */
 public class EventsCapturer implements EventListener<Event> {
 

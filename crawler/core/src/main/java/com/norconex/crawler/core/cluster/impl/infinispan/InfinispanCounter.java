@@ -25,14 +25,15 @@ class InfinispanCounter implements Counter {
 
     @Override
     public long addAndGet(long delta) {
-        return cache.compute(key, (k, v) -> ((v == null ? 0L : v) + delta));
+        return cache.compute(key,
+                (k, v) -> (v == null ? 0L : v) + delta);
     }
 
     @Override
     public long getAndAdd(long delta) {
-        final var previous = new long[1]; // workaround for single-element mutable state
+        var previous = new long[1];
         cache.compute(key, (k, v) -> {
-            var current = (v == null ? 0L : v);
+            var current = v == null ? 0L : v;
             previous[0] = current;
             return current + delta;
         });
@@ -51,7 +52,7 @@ class InfinispanCounter implements Counter {
 
     @Override
     public void set(long value) {
-        cache.put(key, value);
+        cache.compute(key, (k, v) -> value);
     }
 
     @Override
@@ -61,6 +62,6 @@ class InfinispanCounter implements Counter {
 
     @Override
     public void reset() {
-        cache.put(key, 0L);
+        cache.compute(key, (k, v) -> 0L);
     }
 }

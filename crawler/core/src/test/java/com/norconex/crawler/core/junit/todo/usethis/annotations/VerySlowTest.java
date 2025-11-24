@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Tag;
 
 /**
  * Marks a test as "slow" - typically executes in 1-5+ minutes.
- * Slow tests include:
+ * Slow tests include (examples):
  * <ul>
  *   <li>Full end-to-end integration tests</li>
  *   <li>Tests requiring external services (databases, web servers)</li>
@@ -36,6 +36,6 @@ import org.junit.jupiter.api.Tag;
  */
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
-@Tag("slow")
-public @interface SlowerTest {
+@Tag("veryslow")
+public @interface VerySlowTest {
 }

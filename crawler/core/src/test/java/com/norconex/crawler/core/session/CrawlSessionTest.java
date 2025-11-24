@@ -236,6 +236,11 @@ class CrawlSessionTest {
                 java.util.function.BiConsumer<String, ? super V> action) {
             map.forEach(action);
         }
+
+        @Override
+        public java.util.List<String> keys() {
+            return new java.util.ArrayList<>(map.keySet());
+        }
     }
 
     // Non-serializable POJO but JSON-friendly for wrapper tests

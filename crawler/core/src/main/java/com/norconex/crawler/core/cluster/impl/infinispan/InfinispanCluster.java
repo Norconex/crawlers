@@ -325,6 +325,7 @@ public class InfinispanCluster implements Cluster {
                     "An Infinispan configuration or preset must be specified.");
         }
         try {
+            LOG.info("Using Infinispan configuration file: {}", file);
             return new ParserRegistry().parseFile(file);
         } catch (IOException e) {
             throw new CacheException(

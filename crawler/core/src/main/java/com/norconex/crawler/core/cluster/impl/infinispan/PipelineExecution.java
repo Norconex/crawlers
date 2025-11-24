@@ -52,6 +52,7 @@ public class PipelineExecution implements AutoCloseable {
     private PipelineWorker worker;
     private CompletableFuture<PipelineResult> workerFuture;
     private CompletableFuture<Void> coordinatorFuture;
+    private CompletableFuture<Void> workerShutdownFuture;
 
     private boolean executed;
 
@@ -104,6 +105,16 @@ public class PipelineExecution implements AutoCloseable {
                                     + "not able to handle for node %s.",
                             ex);
                 });
+
+        // Track worker shutdown so callers can optionally await a clean
+        // teardown (heartbeats, listeners, executors) without arbitrary
+        // sleeps.
+        if (worker != null) {
+            workerShutdownFuture = worker.getState() != null
+                    ? worker.getState().completion()
+                    : null;
+        }
+
         return workerFuture;
     }
 
@@ -126,6 +137,19 @@ public class PipelineExecution implements AutoCloseable {
             LOG.info(
                     "Cancelling coordinator future to allow graceful shutdown.");
             coordinatorFuture.cancel(true);
+        }
+
+        // Optionally wait briefly for worker shutdown completion so we
+        // don't prolong termination unnecessarily. We ignore timeouts or
+        // interruptions here to avoid blocking shutdown.
+        if (workerShutdownFuture != null && !workerShutdownFuture.isDone()) {
+            try {
+                workerShutdownFuture.get(SHUTDOWN_AWAIT_SECONDS,
+                        TimeUnit.SECONDS);
+            } catch (Exception e) {
+                LOG.debug("Timed out or interrupted while waiting for worker "
+                        + "shutdown: {}", e.toString());
+            }
         }
 
         close();

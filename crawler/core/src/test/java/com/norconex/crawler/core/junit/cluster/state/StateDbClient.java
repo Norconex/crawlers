@@ -1,9 +1,12 @@
 package com.norconex.crawler.core.junit.cluster.state;
 
+import static java.util.Optional.ofNullable;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.event.Event;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.SneakyThrows;
 
 public class StateDbClient {
@@ -30,8 +34,6 @@ public class StateDbClient {
     public static final String TOPIC_STDOUT = "stdout";
     public static final String TOPIC_STDERR = "stderr";
 
-    //    private static volatile boolean initialized = false;
-    //    private static StateDbServer clusterState;
     private String nodeName;
     @Getter
     private String jdbcUrl;
@@ -62,6 +64,27 @@ public class StateDbClient {
         return (System.getProperty(PROP_NODE_NAME) != null
                 && System.getProperty(PROP_JDBC_URL) != null)
                 || StateDbServer.getJdbcUrl() != null;
+    }
+
+    /**
+     * Impersonates another node. Returns a new instance with the node name
+     * updated to the supplied one. Useful when the parent JVM wants to
+     * log entries as a node (e.g., when capturing STDERR or STDOUT).
+     * @param nodeName node name
+     * @return new state DB client
+     */
+    public StateDbClient asNode(@NonNull String nodeName) {
+        return new StateDbClient(nodeName, jdbcUrl);
+    }
+
+    public StateWaitFor waitFor() {
+        return waitFor(null);
+    }
+
+    public StateWaitFor waitFor(Duration timeout) {
+        return new StateWaitFor(
+                ofNullable(timeout).orElseGet(() -> Duration.ofSeconds(30)),
+                this);
     }
 
     @SneakyThrows

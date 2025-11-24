@@ -23,6 +23,7 @@ import java.util.stream.IntStream;
 
 import org.apache.commons.collections4.CollectionUtils;
 
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.cluster.pipeline.BaseStep;
 import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core.doc.CrawlDocContext;
@@ -127,49 +128,88 @@ public class CrawlProcessStep extends BaseStep {
 
     // just invoked in its own thread
     void processQueue(CrawlSession session, int threadIndex) {
+        var nodeName = session.getCluster().getLocalNode().getNodeName();
+        LOG.debug("[{}] processQueue(threadIndex={}) starting.",
+                nodeName, threadIndex);
+        LOG.debug("[{}] initial queueCount={} processingCount={} "
+                + "processedCount= {}.",
+                nodeName,
+                session.getCrawlContext().getCrawlEntryLedger()
+                        .getQueueCount(),
+                session.getCrawlContext().getCrawlEntryLedger()
+                        .getProcessingCount(),
+                session.getCrawlContext().getCrawlEntryLedger()
+                        .getProcessedCount());
         LOG.debug("Crawler thread #{} starting...", threadIndex);
         Thread.currentThread()
                 .setName(session.getCrawlerId() + "#" + threadIndex);
         LogUtil.setMdcCrawlerId(session.getCrawlerId());
 
         try {
-            //TODO make this a member variable?
             var activityChecker = new CrawlActivityChecker(
                     session, queueAction == ProcessQueueAction.DELETE_ALL);
-            // TODO shall we check for "stopped" and other states?
-            // abort now if we've reach configured max documents or
-            // other ending conditions
-            // At this point all threads/nodes shall reach the same
-            // conclusion and break, effectively ending crawling.
-            while (!isStopRequested()
-                    && activityChecker.canContinue()
-                    && processNextInQueue(session, activityChecker))
-                ;
+            LOG.info("XXX ---> CrawlProcessStep - 1");
+            while (!isStopRequested()) {
+                if (!activityChecker.canContinue()) {
+                    LOG.trace("[{}] processQueue(threadIndex={}) "
+                            + "stopping: canContinue() is false.",
+                            nodeName, threadIndex);
+                    break;
+                }
+                if (!processNextInQueue(session, activityChecker)) {
+                    LOG.trace("[{}] processQueue(threadIndex={}) "
+                            + "stopping: processNextInQueue returned false.",
+                            nodeName, threadIndex);
+                    break;
+                }
+                Sleeper.sleepMillis(250); //XXX TEMP testing ................................................
+            }
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("[{}] processQueue(threadIndex={}) exiting. "
+                        + "queueCount={} processingCount={} processedCount={}.",
+                        nodeName, threadIndex,
+                        session.getCrawlContext().getCrawlEntryLedger()
+                                .getQueueCount(),
+                        session.getCrawlContext().getCrawlEntryLedger()
+                                .getProcessingCount(),
+                        session.getCrawlContext().getCrawlEntryLedger()
+                                .getProcessedCount());
+            }
+            LOG.info("XXX ---> CrawlProcessStep - 2");
         } catch (Exception e) {
-            //TODO also check here for configured exceptions that should
-            // end the crawl?
             LOG.error("Problem in thread execution.", e);
         }
     }
 
-    // true to continue and false to abort/break
     private boolean processNextInQueue(
             CrawlSession session,
             CrawlActivityChecker activityChecker) {
 
         var crawlCtx = session.getCrawlContext();
         var docProcessCtx = new ProcessContext().crawlSession(session);
+        var nodeName = session.getCluster().getLocalNode().getNodeName();
         try {
             var currentEntry = batchDispatcher.take();
 
-            LOG.trace("Pulled next reference from Queue: {}", currentEntry);
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("[{}] processNextInQueue pulled entry {}.",
+                        nodeName,
+                        currentEntry == null
+                                ? "<null>"
+                                : currentEntry.getReference());
+            }
 
             if (currentEntry == null) {
-                //TODO ensure this can't create infinite loop if for weird
-                // reasons the crawler is always reported active.
-                // or make sure it does not happen
-                return activityChecker.isActive();
+                LOG.trace("[{}] processNextInQueue got null entry from "
+                        + "dispatcher. Checking isActive()...", nodeName);
+                var active = activityChecker.isActive();
+                LOG.trace("[{}] activityChecker.isActive() returned {}.",
+                        nodeName, active);
+                return active;
             }
+
+            LOG.trace("[{}] processNextInQueue processing ref={}.", nodeName,
+                    currentEntry.getReference());
 
             var doc = new Doc(currentEntry.getReference()); //NOSONAR
             CrawlEntry previousEntry = null;

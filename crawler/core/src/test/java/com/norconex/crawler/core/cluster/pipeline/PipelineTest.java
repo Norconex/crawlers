@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 @WithTestWatcherLogging
 @Slf4j
 class PipelineTest {
+
     @TempDir
     private Path tempDir;
 
@@ -68,32 +69,44 @@ class PipelineTest {
         try (var cluster = new ClusterClient(longRunningCrawler())) {
             cluster.launch(starter, 2);
 
-            //            cluster.waitFor(Duration.ofSeconds(30))
-            //                    .allNodesToHaveFired(CrawlerEvent.DOCUMENT_IMPORTED);
-
-            LOG.info("FIRED!");
-
             var exitCodes =
-                    cluster.waitFor(Duration.ofSeconds(25)).termination();
+                    cluster.waitFor(Duration.ofSeconds(40)).termination();
+
+            cluster.printNodeLogsOrderedByNode();
+
             assertThat(exitCodes)
                     .as("all cluster nodes should exit successfully")
                     .isNotEmpty()
                     .allMatch(code -> code == 0);
 
-            cluster.getStateDb().printStreamsOrderedByNode();
+            // NOTE: Avoid dumping all stdout/stderr from StateDbClient here
+            // to prevent H2 OutOfMemory errors when the cluster_state table
+            // grows large during diagnostics. Per-node logs are already
+            // captured under each node workdir for analysis.
+            // cluster.getStateDb().printStreamsOrderedByNode();
         }
     }
 
     private CrawlConfig longRunningCrawler() {
+
+        // Use test-specific Infinispan config that waits for state transfer
+        //        var infinispanConnector =
+        //                (InfinispanClusterConnector) config
+        //                        .getClusterConnector();
+        //        infinispanConnector.getConfiguration()
+        //                .setPreset(
+        //                        InfinispanClusterConfig.Preset.CUSTOM)
+        //                .setConfigFile("cache/infinispan-cluster-test.xml");
+
         return new CrawlConfig()
                 .setId("" + TimeIdGenerator.next())
                 .setWorkDir(tempDir)
                 .setMaxQueueBatchSize(1)
-                .setStartReferences(IntStream.range(0, 3)
+                .setStartReferences(IntStream.range(0, 100)
                         .mapToObj(i -> "ref-" + i).toList())
                 .setFetchers(List.of(Configurable.configure(
                         new MockFetcher(),
-                        cfg -> cfg.setDelay(Duration.ofSeconds(1)))))
+                        cfg -> cfg.setDelay(Duration.ofMillis(100)))))
                 .setNumThreads(1);
     }
 }

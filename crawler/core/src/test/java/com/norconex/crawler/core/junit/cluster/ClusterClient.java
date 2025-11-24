@@ -2,6 +2,10 @@ package com.norconex.crawler.core.junit.cluster;
 
 import static java.util.Optional.ofNullable;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -125,12 +129,12 @@ public class ClusterClient implements AutoCloseable {
         return launchedNodes;
     }
 
-    public WaitFor waitFor() {
+    public ClusterWaitFor waitFor() {
         return waitFor(null);
     }
 
-    public WaitFor waitFor(Duration timeout) {
-        return new WaitFor(
+    public ClusterWaitFor waitFor(Duration timeout) {
+        return new ClusterWaitFor(
                 ofNullable(timeout).orElseGet(() -> Duration.ofSeconds(30)),
                 this);
     }
@@ -211,6 +215,56 @@ public class ClusterClient implements AutoCloseable {
             var dbName = "testdb_" + TimeIdGenerator.next();
             stateDbServer = new StateDbServer(clusterRootDir, dbName);
             stateDbServer.start();
+        }
+    }
+
+    public void printNodeLogsOrderedByNode() {
+        printNodeLogsOrderedByNode(null);
+    }
+
+    public void printNodeLogsOrderedByNode(Path clusterRootOverride) {
+        Path root = ofNullable(clusterRootOverride)
+                .orElse(clusterRootDir);
+        if (root == null) {
+            LOG.warn("Cluster root directory is not set; "
+                    + "cannot print node logs.");
+            return;
+        }
+        try {
+            Files.list(root)
+                    .filter(Files::isDirectory)
+                    .sorted()
+                    .forEach(nodeDir -> {
+                        var nodeName = nodeDir.getFileName().toString();
+                        printSingleNodeLogs(nodeName, nodeDir);
+                    });
+        } catch (IOException e) {
+            LOG.warn("Could not list node directories under {}", root, e);
+        }
+    }
+
+    private void printSingleNodeLogs(String nodeName, Path nodeDir) {
+        printLogFile(nodeName, nodeDir.resolve("stdout.log"), false);
+        printLogFile(nodeName, nodeDir.resolve("stderr.log"), true);
+    }
+
+    private void printLogFile(
+            String nodeName, Path file, boolean isErrorStream) {
+        if (!Files.isRegularFile(file)) {
+            return;
+        }
+        var stream = isErrorStream ? System.err : System.out;
+        var prefix = isErrorStream ? "[" + nodeName + ":stderr] "
+                : "[" + nodeName + ":stdout] ";
+        try (BufferedReader reader = Files.newBufferedReader(
+                file, StandardCharsets.UTF_8)) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                stream.println(prefix + line);
+            }
+        } catch (IOException e) {
+            LOG.warn("Could not read log file {} for node {}",
+                    file, nodeName, e);
         }
     }
 }

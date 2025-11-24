@@ -56,14 +56,20 @@ class CrawlActivityChecker {
     //TODO can we do without synchronize?
     synchronized boolean isActive() {
         if (!isPresumedActive) {
+            LOG.trace("isActive(): presumed inactive; returning false.");
             return false;
         }
         if (isResolving) {
+            LOG.trace("isActive(): another thread is already resolving; "
+                    + "returning presumed active (true).");
             return true;
         }
         isResolving = true;
         try {
-            isPresumedActive = doIsActive();
+            var active = doIsActive();
+            LOG.trace("isActive(): resolved active={} (prevPresumed={}).",
+                    active, isPresumedActive);
+            isPresumedActive = active;
         } finally {
             isResolving = false;
         }
@@ -71,24 +77,49 @@ class CrawlActivityChecker {
     }
 
     private boolean doIsActive() {
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("""
+                doIsActive(): canContinue={} queueInitialized={} \
+                queueEmpty={} deleting={} expireAt={} \
+                nowMs={}.""",
+                    canContinue.get(),
+                    session.isStartRefsQueueingComplete(),
+                    isQueueEmpty(),
+                    deleting,
+                    expireAt,
+                    System.currentTimeMillis());
+        }
         if (!canContinue()) {
+            LOG.info("doIsActive(): canContinue is false; crawler "
+                    + "considered inactive.");
             return false;
         }
         if (isQueueInitializedAndEmpty()) {
-            return !isQueueStillEmptyAfterIdleTimeout();
+            var stillEmpty = isQueueStillEmptyAfterIdleTimeout();
+            LOG.trace("doIsActive(): queue initialized and empty; "
+                    + "stillEmptyAfterIdleTimeout={}.", stillEmpty);
+            return !stillEmpty;
         }
+        LOG.trace("doIsActive(): queue is not both initialized and "
+                + "empty; treating crawler as active.");
         return true;
     }
 
     boolean canContinue() {
         if (!canContinue.get()) {
+            LOG.trace("canContinue(): global flag already false; "
+                    + "returning false.");
             return false;
         }
 
         var can = doCanContinue();
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("canContinue(): evaluated can={} (was={}).", can,
+                    canContinue.get());
+        }
         if (!can) {
-            LOG.info("Stopping crawl execution (i.e., pause). Will resume "
-                    + "on next start.");
+            LOG.info("Stopping crawl execution (i.e., pause). Will "
+                    + "resume on next start.");
             session.updateCrawlState(CrawlState.STOPPED);
         }
 
@@ -100,6 +131,8 @@ class CrawlActivityChecker {
         // If deleting we don't care about checking if max is reached,
         // we proceed.
         if (deleting) {
+            LOG.trace("doCanContinue(): deleting=true; bypassing "
+                    + "max-docs/duration checks.");
             return true;
         }
 
@@ -117,11 +150,22 @@ class CrawlActivityChecker {
     }
 
     private boolean isCrawlExpired() {
-        return expireAt > 0 && System.currentTimeMillis() > expireAt;
+        var expired = expireAt > 0 && System.currentTimeMillis() > expireAt;
+        if (expired && LOG.isDebugEnabled()) {
+            LOG.debug("isCrawlExpired(): expireAt={} nowMs={} -> true.",
+                    expireAt, System.currentTimeMillis());
+        }
+        return expired;
     }
 
     private boolean isQueueInitializedAndEmpty() {
         var queueEmpty = isQueueEmpty();
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("isQueueInitializedAndEmpty(): start queueEmpty={} "
+                    + "startRefsQueuedComplete={}",
+                    queueEmpty,
+                    session.isStartRefsQueueingComplete());
+        }
         if (queueEmpty) {
             var queueInitialized = session.isStartRefsQueueingComplete();
             if (!queueInitialized) {
@@ -132,12 +176,23 @@ class CrawlActivityChecker {
                 do {
                     Sleeper.sleepSeconds(1);
                     queueEmpty = isQueueEmpty();
-                    queueInitialized = session.isStartRefsQueueingComplete();
+                    queueInitialized =
+                            session.isStartRefsQueueingComplete();
+                    if (LOG.isTraceEnabled()) {
+                        LOG.trace("""
+                            isQueueInitializedAndEmpty(): \
+                            poll loop queueEmpty={} \
+                            queueInitialized={}.""",
+                                queueEmpty, queueInitialized);
+                    }
                 } while (queueEmpty && !queueInitialized);
             }
         }
         if (queueEmpty) {
-            LOG.info("Reference queue is empty.");
+            LOG.debug("Reference queue is empty.");
+        } else if (LOG.isTraceEnabled()) {
+            LOG.trace("isQueueInitializedAndEmpty(): queue not empty; "
+                    + "returning false.");
         }
         return queueEmpty;
     }
@@ -146,6 +201,10 @@ class CrawlActivityChecker {
         var duration =
                 session.getCrawlContext().getCrawlConfig().getIdleTimeout();
         if (duration == null || duration.isZero()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("isQueueStillEmptyAfterIdleTimeout(): no "
+                        + "idleTimeout configured; returning true.");
+            }
             return true;
         }
 
@@ -155,7 +214,15 @@ class CrawlActivityChecker {
         var then = System.currentTimeMillis();
         while (System.currentTimeMillis() - then < timeout) {
             Sleeper.sleepSeconds(1);
-            if (!isQueueEmpty()) {
+            var empty = isQueueEmpty();
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("isQueueStillEmptyAfterIdleTimeout(): polled "
+                        + "queueEmpty={} after {} ms (timeout={} ms).",
+                        empty,
+                        System.currentTimeMillis() - then,
+                        timeout);
+            }
+            if (!empty) {
                 return false;
             }
         }
@@ -165,7 +232,13 @@ class CrawlActivityChecker {
     }
 
     private boolean isQueueEmpty() {
-        return session.getCrawlContext().getCrawlEntryLedger().isQueueEmpty();
+        var queueEmpty = session.getCrawlContext()
+                .getCrawlEntryLedger()
+                .isQueueEmpty();
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("isQueueEmpty(): {}", queueEmpty);
+        }
+        return queueEmpty;
     }
 
     private String idleTimeoutAsText() {

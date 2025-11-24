@@ -74,89 +74,46 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
         eventCountsLocalBatch.merge(eventName, incrementBy, Long::sum);
     }
 
-    private static void atomicIncrement(Cache<Long> store, String key,
-            long increment) {
-        try {
-            // Use a simple get-then-put pattern with retries for atomicity
-            var updated = false;
-            var attempts = 0;
-            while (!updated && attempts < 3) {
-                var currentValue = store.get(key);
-                Long currentLongValue = 0L;
-                if (!currentValue.isEmpty()) {
-                    Object val = currentValue.get();
-                    if (val instanceof Long longVal) {
-                        currentLongValue = longVal;
-                    } else if (val instanceof Integer intVal) {
-                        currentLongValue = intVal.longValue();
-                    } else {
-                        throw new ClassCastException(
-                                "Unsupported type in eventCountsStore: "
-                                        + val.getClass());
-                    }
-                }
-                Long newValue = currentLongValue + increment;
-
-                if (currentValue.isEmpty()) {
-                    // For new entries, putIfAbsent is atomic
-                    var result = store.putIfAbsent(key, newValue);
-                    updated = (result == null);
-                } else {
-                    // For existing entries, replace is atomic
-                    updated = store.replace(key, currentLongValue, newValue);
-                }
-
-                attempts++;
-            }
-        } catch (Exception e) {
-            LOG.error("Error updating event count cache for key: " + key, e);
-            throw e;
-        }
-    }
-
-    private void flushBatch() {
+    private void doFlushBatch(boolean blocking) {
         if (closedAndFlushed) {
             LOG.debug("CrawlerMetrics already flushed and closed.");
             return;
         }
-        //        flushLock.lock();
-        //        try {
-        //            eventCountsLocalBatch.forEach((eventName, increment) -> {
-        //                try {
-        //                    atomicIncrement(eventCountsStore, eventName, increment);
-        //                    eventCountsLocalBatch.put(eventName, 0L);
-        //                    memCache.eventCounts.merge(
-        //                            eventName, increment, Long::sum);
-        //                } catch (Exception e) {
-        //                    LOG.error("Error updating event count cache for event: "
-        //                            + eventName, e);
-        //                }
-        //            });
-        //        } finally {
-        //            flushLock.unlock();
-        //        }
-
-        if (flushLock.tryLock()) {
-            try {
-                eventCountsLocalBatch.forEach((eventName, increment) -> {
-                    try {
-                        atomicIncrement(eventCountsStore, eventName, increment);
-                        eventCountsLocalBatch.put(eventName, 0L);
-                        memCache.eventCounts.merge(
-                                eventName, increment, Long::sum);
-                    } catch (Exception e) {
-                        LOG.error("Error updating event count cache for event: "
-                                + eventName, e);
-                    }
-                });
-            } finally {
-                flushLock.unlock();
-            }
-        } else {
-            LOG.warn("Could not acquire lock to flush batch, "
-                    + "skipping this interval.");
+        if (blocking) {
+            flushLock.lock();
+        } else if (!flushLock.tryLock()) {
+            LOG.warn("Could not acquire lock to flush batch, skipping this "
+                    + "interval.");
+            return;
         }
+        try {
+            eventCountsLocalBatch.forEach((eventName, increment) -> {
+                if (increment == null || increment == 0L) {
+                    return;
+                }
+                try {
+                    // atomicIncrement is a private static helper defined
+                    // below in this class; call it directly.
+                    atomicIncrement(eventCountsStore, eventName, increment);
+                    eventCountsLocalBatch.put(eventName, 0L);
+                    memCache.eventCounts.merge(
+                            eventName, increment, Long::sum);
+                } catch (Exception e) {
+                    LOG.error("Error updating event count cache for event: "
+                            + eventName, e);
+                }
+            });
+        } finally {
+            flushLock.unlock();
+        }
+    }
 
+    private void flushBatch() {
+        doFlushBatch(false);
+    }
+
+    public void flushBlocking() {
+        doFlushBatch(true);
     }
 
     @Override
@@ -212,9 +169,50 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
         return closed;
     }
 
+    private static void atomicIncrement(
+            Cache<Long> store, String key, long increment) {
+        try {
+            var updated = false;
+            var attempts = 0;
+            while (!updated && attempts < 3) {
+                var currentValue = store.get(key);
+                Long currentLongValue = 0L;
+                if (!currentValue.isEmpty()) {
+                    Object val = currentValue.get();
+                    if (val instanceof Long longVal) {
+                        currentLongValue = longVal;
+                    } else if (val instanceof Integer intVal) {
+                        currentLongValue = intVal.longValue();
+                    } else {
+                        throw new ClassCastException(
+                                "Unsupported type in eventCountsStore: "
+                                        + val.getClass());
+                    }
+                }
+                Long newValue = currentLongValue + increment;
+
+                if (currentValue.isEmpty()) {
+                    var result = store.putIfAbsent(key, newValue);
+                    updated = (result == null);
+                } else {
+                    updated = store.replace(key, currentLongValue, newValue);
+                }
+
+                attempts++;
+            }
+        } catch (Exception e) {
+            LOG.error("Error updating event count cache for key: " + key, e);
+            throw e;
+        }
+    }
+
     @Override
     public void flush() {
-        flushBatch();
+        if (this instanceof CrawlerMetricsImpl) {
+            flushBlocking();
+        } else {
+            flushBatch();
+        }
     }
 
     @Override
@@ -226,7 +224,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
         }
         closed = true;
         LOG.info("Flusing CrawlerMetrics data...");
-        flushBatch();
+        flushBlocking();
         closedAndFlushed = true;
         LOG.info("Shutting down CrawlerMetrics scheduler...");
         if (scheduler != null) {

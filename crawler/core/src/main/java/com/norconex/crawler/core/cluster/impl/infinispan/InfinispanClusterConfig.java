@@ -78,8 +78,26 @@ public class InfinispanClusterConfig {
     /**
      * Maximum amount of time to wait before declaring a node as
      * "expired" when running a crawler task across multiple nodes.
-     * The minimum value is 10 seconds. Defaults to 30 seconds.
-     * Not applicable when running in standalone mode.
+     * <p>
+     * The absolute minimum value is 5 seconds; any configured value
+     * below this threshold will be clamped to 5 seconds at runtime.
+     * Defaults to 30 seconds. Not applicable when running in
+     * standalone mode.
+     * </p>
      */
     private Duration nodeExpiryTimeout = Duration.ofSeconds(30);
+
+    /**
+     * Interval at which worker nodes send heartbeat updates for their
+     * current pipeline status to the coordinator via Infinispan.
+     * <p>
+     * The default is 1 second. At runtime, the effective heartbeat
+     * interval is validated against the configured node expiry
+     * timeout to ensure it does not exceed one third of the expiry
+     * interval. If it does, it will be reduced to that maximum
+     * allowed value. The absolute minimum heartbeat interval is
+     * 500 milliseconds.
+     * </p>
+     */
+    private Duration workerHeartbeatInterval = Duration.ofSeconds(1);
 }

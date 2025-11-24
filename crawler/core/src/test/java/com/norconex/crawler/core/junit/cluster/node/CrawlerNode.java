@@ -61,6 +61,7 @@ public class CrawlerNode {
     private final CaptureFlags captures = new CaptureFlags();
 
     public Process launch(String nodeName, Path nodeWorkDir, Path configFile) {
+        var captures = this.captures;
         var jvm = JvmProcess.builder()
                 .mainClass(CrawlerNode.class)
                 .workDir(nodeWorkDir)
@@ -68,20 +69,12 @@ public class CrawlerNode {
         applyDebugMode(jvm);
         applyLogLevels(jvm);
         applyJvmArgs(jvm, nodeName, nodeWorkDir, configFile);
-        if (captures.isStdout()) {
-            jvm.outputStreamHandler(is -> {
-                var t = new Thread(new StreamCapturer(is, "stdout"));
-                t.setDaemon(true);
-                t.start();
-            });
+        if (captures.isEvents() || captures.isCaches()) {
+            jvm.jvmArg(captures.asJvmSysProp());
         }
-        if (captures.isStderr()) {
-            jvm.errorStreamHandler(is -> {
-                var t = new Thread(new StreamCapturer(is, "stderr"));
-                t.setDaemon(true);
-                t.start();
-            });
-        }
+        // Let JvmProcess redirect stdout/stderr to log files. Do not attach
+        // StreamCapturer to stdout/stderr anymore to avoid storing logs in H2
+        // and to ensure logs end up in per-node files only.
         return jvm.build().start();
     }
 
@@ -98,7 +91,8 @@ public class CrawlerNode {
         // Force IPv4 and disable IPv6 to prevent JGroups IPv6 binding warnings
         jvm.jvmArg("-Djava.net.preferIPv4Stack=true");
         jvm.jvmArg("-Djava.net.preferIPv6Addresses=false");
-        // Disable IPv6 completely to suppress JGroups interface enumeration warnings
+        // Disable IPv6 completely to suppress JGroups interface enumeration
+        // warnings
         jvm.jvmArg("-Djava.net.disableIPv6=true");
 
         // only set config path if one is set, with at least one argument
@@ -111,7 +105,8 @@ public class CrawlerNode {
                         driverSupplierClass)
                         .orElse(TestCrawlDriverFactory.class).getName()));
         jvm.jvmArg(dArg(PROP_NODE_WORKDIR, nodeWorkDir));
-        jvm.jvmArg(captures.asJvmSysProp());
+        // Capture flags (events/caches) are passed from launch() when
+        // requested; avoid duplicating here.
 
         if (StateDbClient.isInitialized()) {
             jvm.jvmArg(dArg(StateDbClient.PROP_NODE_NAME, nodeName));
@@ -223,7 +218,7 @@ public class CrawlerNode {
             if (StringUtils.isNotBlank(driverSuppl)) {
                 driverSupplClass = Class.forName(driverSuppl);
             }
-            return CrawlDriverInstrumentor.instrument(
+            return DriverInstrumentor.instrument(
                     ((Supplier<CrawlDriver>) driverSupplClass
                             .getDeclaredConstructor()
                             .newInstance()).get());

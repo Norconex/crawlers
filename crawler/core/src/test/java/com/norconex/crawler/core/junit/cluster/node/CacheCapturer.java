@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Store node events in state database. Registered by
- * {@link CrawlDriverInstrumentor}.
+ * {@link DriverInstrumentor}.
  */
 @Slf4j
 public class CacheCapturer implements Consumer<CrawlSession> {

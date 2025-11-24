@@ -67,7 +67,7 @@ public class PipelineCoordinatorState implements AutoCloseable {
     // Misc.
     private final Map<String, StepRecord> workerStatusesMap = new HashMap<>();
     private CacheEntryChangeListener<StepRecord> workerStatusChangeListener;
-    private long nodeExpiryTimeoutMs = 5_000; // 5 seconds
+    private long nodeExpiryTimeoutMs = 5_000; // 5 seconds default, min
 
     public PipelineCoordinatorState(InfinispanCluster cluster,
             Pipeline pipeline) {
@@ -182,7 +182,7 @@ public class PipelineCoordinatorState implements AutoCloseable {
                     nodeNames.stream()
                             .filter(el -> !allWorkerNames.contains(el))
                             .count());
-        } else if (LOG.isDebugEnabled()) {
+        } else if (LOG.isDebugEnabled() && LOG.isTraceEnabled()) {
             LOG.debug("""
                 Step "{}" reduced to {} from worker statuses: {} PENDING, \
                 {} RUNNING, {} COMPLETED, {} FAILED, {} STOPPING, {} STOPPED,\
@@ -314,8 +314,10 @@ public class PipelineCoordinatorState implements AutoCloseable {
             }
         }
 
-        LOG.debug("Worker status map keys: {}, cluster node names: {}",
-                workerStatusesMap.keySet(), nodeNames);
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("Worker status map keys: {}, cluster node names: {}",
+                    workerStatusesMap.keySet(), nodeNames);
+        }
         return statuses;
     }
 
@@ -324,9 +326,11 @@ public class PipelineCoordinatorState implements AutoCloseable {
             return; // ignore statuses for other pipelines
         }
         var nodeName = StringUtils.substringAfterLast(key, ":");
-        LOG.debug(
-                "Updating worker status map: key={}, extracted nodeName={}, stepId={}, status={}",
-                key, nodeName, stepRec.getStepId(), stepRec.getStatus());
+        if (LOG.isTraceEnabled()) {
+            LOG.debug("Updating worker status map: key={}, extracted "
+                    + "nodeName={}, stepId={}, status={}",
+                    key, nodeName, stepRec.getStepId(), stepRec.getStatus());
+        }
         workerStatusesMap.put(nodeName, stepRec);
     }
 
@@ -347,10 +351,12 @@ public class PipelineCoordinatorState implements AutoCloseable {
         var connector = session.getCrawlContext().getCrawlConfig()
                 .getClusterConnector();
         if (connector instanceof InfinispanClusterConnector conn) {
-            nodeExpiryTimeoutMs = ofNullable(
+            var configured = ofNullable(
                     conn.getConfiguration().getNodeExpiryTimeout())
                             .map(Duration::toMillis)
                             .orElse(nodeExpiryTimeoutMs);
+            // Enforce an absolute minimum of 5 seconds (5000 ms)
+            nodeExpiryTimeoutMs = Math.max(configured, 5_000L);
         }
     }
 }
