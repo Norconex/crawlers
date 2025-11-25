@@ -14,28 +14,19 @@
  */
 package com.norconex.crawler.core.cluster.pipeline;
 
-import org.infinispan.protostream.annotations.Proto;
-import org.infinispan.protostream.annotations.ProtoEnumValue;
+import java.io.Serializable;
 
-@Proto
-public enum PipelineStatus {
-    @ProtoEnumValue(0)
+public enum PipelineStatus implements Serializable {
     PENDING,
-    @ProtoEnumValue(1)
     RUNNING,
-    @ProtoEnumValue(2)
     COMPLETED,
-    @ProtoEnumValue(3)
     FAILED,
-    @ProtoEnumValue(4)
     STOPPING,
-    @ProtoEnumValue(5)
     STOPPED,
     /**
      * Typically set by the coordinator on when a worker fails to give signs
      * of life.
      */
-    @ProtoEnumValue(6)
     EXPIRED;
 
     public boolean isTerminal() {

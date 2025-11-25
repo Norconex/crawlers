@@ -14,14 +14,11 @@
  */
 package com.norconex.crawler.core.ledger;
 
+import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import org.hibernate.search.engine.backend.types.Sortable;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.commons.lang.collection.CollectionUtil;
@@ -38,14 +35,14 @@ import lombok.experimental.FieldNameConstants;
  */
 @Data
 @FieldNameConstants
-@Indexed
-public class CrawlEntry {
+public class CrawlEntry implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /** Typically, the number of "hops" or directories to get to a file. */
     private int depth;
 
     @NonNull
-    @GenericField
     private ProcessingStatus processingStatus = ProcessingStatus.UNTRACKED;
     private ProcessingOutcome processingOutcome;
 
@@ -57,10 +54,6 @@ public class CrawlEntry {
     @ToString.Exclude
     private String contentChecksum;
     @ToString.Exclude
-    @GenericField(
-        sortable = Sortable.YES
-        //        sortable = org.hibernate.search.mapper.pojo.mapping.definition.annotation.Sortable.YES
-    )
     private ZonedDateTime queuedAt;
     @ToString.Exclude
     private ZonedDateTime processingAt;
