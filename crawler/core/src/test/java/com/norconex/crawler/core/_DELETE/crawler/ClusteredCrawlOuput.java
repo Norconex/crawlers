@@ -21,9 +21,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.norconex.crawler.core._DELETE.crawler.PathListParser.FsEntry;
-import com.norconex.crawler.core.cluster.impl.infinispan.CacheNames;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
-import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -54,13 +52,15 @@ public class ClusteredCrawlOuput {
     private final StringBuilder msg = new StringBuilder();
 
     public StepRecord getPipeResult() {
-        var jsonObjs = caches.get(CacheNames.PIPE_CURRENT_STEP);
-        if (jsonObjs == null || jsonObjs.isEmpty()) {
-            return null;
-        }
-        // when testing there should only be one entry so grab first.
-        return SerialUtil.fromJson(jsonObjs.get(0).get("object"),
-                StepRecord.class);
+        throw new UnsupportedOperationException(
+                "ClusteredCrawlOuput.getPipeResult");
+        //        var jsonObjs = caches.get(CacheNames.PIPE_CURRENT_STEP);
+        //        if (jsonObjs == null || jsonObjs.isEmpty()) {
+        //            return null;
+        //        }
+        //        // when testing there should only be one entry so grab first.
+        //        return SerialUtil.fromJson(jsonObjs.get(0).get("object"),
+        //                StepRecord.class);
     }
 
     // convenience methods

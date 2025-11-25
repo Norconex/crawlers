@@ -23,10 +23,8 @@ import org.apache.commons.collections4.bag.HashBag;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.norconex.crawler.core._DELETE.junit.cluster_old.node.NodeExecutionResult;
-import com.norconex.crawler.core.cluster.impl.infinispan.CacheNames;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
 import com.norconex.crawler.core.junit.CrawlerExecutionResult;
-import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.Data;
 
@@ -138,14 +136,15 @@ public class ClusterExecutionResult implements CrawlerExecutionResult {
      * @return step record
      */
     public StepRecord getPipeResult() {
-        var jsonObjs = caches.get(CacheNames.PIPE_CURRENT_STEP);
-        if (jsonObjs == null || jsonObjs.isEmpty()) {
-            return null;
-        }
-        // When testing there should only be one entry so grab first.
-        return SerialUtil.fromJson(
-                jsonObjs.get(0).get("object"),
-                StepRecord.class);
+        return null;
+        //        var jsonObjs = caches.get(CacheNames.PIPE_CURRENT_STEP);
+        //        if (jsonObjs == null || jsonObjs.isEmpty()) {
+        //            return null;
+        //        }
+        //        // When testing there should only be one entry so grab first.
+        //        return SerialUtil.fromJson(
+        //                jsonObjs.get(0).get("object"),
+        //                StepRecord.class);
     }
 
     @Override

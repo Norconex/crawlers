@@ -15,10 +15,10 @@
 package com.norconex.crawler.core._DELETE;
 
 import com.norconex.crawler.core.cluster.Cluster;
-import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanClusterConnector;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
 
 @Deprecated
-public class MockSingleNodeConnector extends InfinispanClusterConnector {
+public class MockSingleNodeConnector extends HazelcastClusterConnector {// extends InfinispanClusterConnector {
     @Override
     public Cluster connect() {
         //        return Configurable.configure(

@@ -27,8 +27,7 @@ import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.CrawlCallbacks;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
-import com.norconex.crawler.core.cluster.impl.infinispan.CacheNames;
-import com.norconex.crawler.core.cluster.impl.infinispan.TestClusterConnector;
+import com.norconex.crawler.core.cluster.impl.hazelcast.CacheNames;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
@@ -89,8 +88,8 @@ final class CrawlDriverInstrumentor {
             // defaults to cluster with persistence if no connector
             // specified
             if (cfg.getClusterConnector() == null) {
-                cfg.setClusterConnector(
-                        new TestClusterConnector.ClusterWithPersistence());
+                //                cfg.setClusterConnector(
+                //                        new TestClusterConnector.ClusterWithPersistence());
             }
 
             // call original if present

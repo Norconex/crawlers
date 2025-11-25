@@ -292,10 +292,10 @@ public final class CrawlEntryLedger {
         // This is inefficient but necessary for distributed queues.
         // Alternative: Use a replicated cache or dedicated queue service.
         var scannedCount = new java.util.concurrent.atomic.AtomicInteger(0);
-        
+
         // Get ALL keys from the distributed cache (this triggers remote calls)
         var allKeys = new java.util.ArrayList<>(currentLedger.keys());
-        
+
         for (var ref : allKeys) {
             // Stop if we've found enough entries
             if (batch.size() >= batchSize) {
@@ -311,9 +311,9 @@ public final class CrawlEntryLedger {
             if (entryOpt.isEmpty()) {
                 continue;
             }
-            
+
             var entry = entryOpt.get();
-            
+
             // Only process queued entries
             if (entry.getProcessingStatus() != ProcessingStatus.QUEUED) {
                 continue;

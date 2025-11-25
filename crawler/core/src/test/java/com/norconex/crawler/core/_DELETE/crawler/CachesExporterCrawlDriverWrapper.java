@@ -18,10 +18,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.function.BiConsumer;
 
-import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.CrawlCallbacks;
 import com.norconex.crawler.core.CrawlDriver;
-import com.norconex.crawler.core.cluster.impl.infinispan.CacheNames;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.storeexport.StoreExportCommand;
 import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
@@ -122,33 +120,35 @@ public final class CachesExporterCrawlDriverWrapper {
      * Polls up to 2000ms with 50ms intervals.
      */
     private static void waitForPipelineResultInCache(CrawlSession session) {
-        var cache = session.getCluster()
-                .getCacheManager()
-                .getCache(CacheNames.PIPE_CURRENT_STEP,
-                        com.norconex.crawler.core.cluster.pipeline.StepRecord.class);
-
-        var maxWaitMs = 2000;
-        var pollIntervalMs = 50;
-        var startTime = System.currentTimeMillis();
-
-        LOG.info("Waiting for pipeline result in cache (isEmpty={})",
-                cache.isEmpty());
-
-        while (System.currentTimeMillis() - startTime < maxWaitMs) {
-            // Check if there's any entry in the cache
-            if (!cache.isEmpty()) {
-                LOG.info("Pipeline result found in cache after {}ms (size={})",
-                        System.currentTimeMillis() - startTime,
-                        cache.size());
-                return; // Cache is synchronized
-            }
-            Sleeper.sleepMillis(pollIntervalMs);
-        }
-
-        // If we timeout, log a warning
-        LOG.warn("No pipeline result found in cache after {}ms timeout! "
-                + "Cache isEmpty={}, size={}. Proceeding with export anyway.",
-                maxWaitMs, cache.isEmpty(), cache.size());
+        throw new UnsupportedOperationException(
+                "CachesExporterCrawlDriverWrapper.waitForPipelineResultInCache");
+        //        var cache = session.getCluster()
+        //                .getCacheManager()
+        //                .getCache(CacheNames.PIPE_CURRENT_STEP,
+        //                        com.norconex.crawler.core.cluster.pipeline.StepRecord.class);
+        //
+        //        var maxWaitMs = 2000;
+        //        var pollIntervalMs = 50;
+        //        var startTime = System.currentTimeMillis();
+        //
+        //        LOG.info("Waiting for pipeline result in cache (isEmpty={})",
+        //                cache.isEmpty());
+        //
+        //        while (System.currentTimeMillis() - startTime < maxWaitMs) {
+        //            // Check if there's any entry in the cache
+        //            if (!cache.isEmpty()) {
+        //                LOG.info("Pipeline result found in cache after {}ms (size={})",
+        //                        System.currentTimeMillis() - startTime,
+        //                        cache.size());
+        //                return; // Cache is synchronized
+        //            }
+        //            Sleeper.sleepMillis(pollIntervalMs);
+        //        }
+        //
+        //        // If we timeout, log a warning
+        //        LOG.warn("No pipeline result found in cache after {}ms timeout! "
+        //                + "Cache isEmpty={}, size={}. Proceeding with export anyway.",
+        //                maxWaitMs, cache.isEmpty(), cache.size());
     }
 
 }

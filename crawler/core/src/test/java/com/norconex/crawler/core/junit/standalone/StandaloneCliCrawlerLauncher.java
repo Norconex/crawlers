@@ -31,7 +31,6 @@ import com.norconex.commons.lang.SystemUtil.Captured;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
-import com.norconex.crawler.core.cluster.impl.infinispan.TestClusterConnector;
 import com.norconex.crawler.core.event.listeners.TestEventMemory;
 import com.norconex.crawler.core.event.listeners.TestEventMemoryListener;
 import com.norconex.crawler.core.junit.CrawlerExecutionResult;
@@ -112,10 +111,10 @@ public class StandaloneCliCrawlerLauncher {
                 config.addEventListener(new TestEventMemoryListener());
             }
 
-            config.setClusterConnector(TestClusterConnector.builder()
-                    .cluster(cluster)
-                    .persistent(persistent)
-                    .build());
+            //            config.setClusterConnector(TestClusterConnector.builder()
+            //                    .cluster(cluster)
+            //                    .persistent(persistent)
+            //                    .build());
 
             if (config.getCommitters().stream()
                     .noneMatch(MemoryCommitter.class::isInstance)) {

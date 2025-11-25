@@ -320,7 +320,8 @@ public class HazelcastCacheAdapter<T> implements Cache<T> {
             String fieldName = matcher.group(1);
             String fieldValue = matcher.group(2);
 
-            LOG.trace("Parsed query: field={}, value={}", fieldName, fieldValue);
+            LOG.trace("Parsed query: field={}, value={}", fieldName,
+                    fieldValue);
 
             return Predicates.equal(fieldName, fieldValue);
         }

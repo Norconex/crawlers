@@ -86,11 +86,11 @@
       <version>${hazelcast.version}</version>
     </dependency>
     
-    <!-- H2 MVStore for local persistence in standalone mode -->
+    <!-- RocksDB for Hazelcast persistence -->
     <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2-mvstore</artifactId>
-      <version>${mvstore.version}</version>
+      <groupId>org.rocksdb</groupId>
+      <artifactId>rocksdbjni</artifactId>
+      <version>9.8.4</version>
     </dependency>
     
     <dependency>

@@ -27,8 +27,6 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 
 import org.apache.commons.collections4.map.LRUMap;
-import org.h2.mvstore.MVMap;
-import org.h2.mvstore.MVStore;
 
 import com.norconex.crawler.core.CrawlerException;
 
@@ -41,16 +39,16 @@ import lombok.extern.slf4j.Slf4j;
  * for the same path. It is best to share the instance.
  * @since 2.8.0
  */
-//TODO consider using DataStorageEngine instead (give it as an option?).
+//TODO consider using DataStorageEngine or RocksDB for persistence.
 @Slf4j
 public class ImageCache {
 
-    //TODO use Grid cache instead?
-    @Getter(value = AccessLevel.PACKAGE)
-    private final MVStore store;
+    //TODO use Grid cache or RocksDB instead?
     private final Map<String, String> lru;
     private final Path cacheDir;
-    MVMap<String, MVImage> imgCache;
+    // Removed MVStore and MVMap references
+    // private final MVStore store;
+    // MVMap<String, MVImage> imgCache;
 
     public ImageCache(int maxSize, Path dir) {
         cacheDir = dir;
@@ -63,12 +61,7 @@ public class ImageCache {
                             + dir.toAbsolutePath(),
                     e);
         }
-
-        store = MVStore.open(
-                dir.resolve("images").toAbsolutePath().toString());
-        imgCache = store.openMap("imgCache");
-        imgCache.clear();
-
+        // TODO: Implement RocksDB or other persistence here if needed
         lru = Collections.synchronizedMap(
                 new LRUMap<String, String>(maxSize) {
                     private static final long serialVersionUID = 1L;
@@ -81,11 +74,10 @@ public class ImageCache {
                                     "Cache full, removing: {}",
                                     entry.getKey());
                         }
-                        imgCache.remove(entry.getKey());
+                        // TODO: Remove from persistent cache if implemented
                         return super.removeLRU(entry);
                     }
                 });
-        store.commit();
     }
 
     public Path getCacheDirectory() {
@@ -93,14 +85,8 @@ public class ImageCache {
     }
 
     public FeaturedImage getImage(String ref) throws IOException {
-        var img = imgCache.get(ref);
-        if (img == null) {
-            return null;
-        }
-        lru.put(ref, null);
-        return new FeaturedImage(
-                ref, img.getOriginalDimension(),
-                ImageIO.read(new ByteArrayInputStream(img.getImage())));
+        // TODO: Retrieve from persistent cache if implemented
+        return null;
     }
 
     public void setImage(FeaturedImage scaledImage)
@@ -108,10 +94,7 @@ public class ImageCache {
         lru.put(scaledImage.getUrl(), null);
         var baos = new ByteArrayOutputStream();
         ImageIO.write(scaledImage.getImage(), "png", baos);
-        imgCache.put(
-                scaledImage.getUrl(), new MVImage(
-                        scaledImage.getOriginalSize(), baos.toByteArray()));
-        store.commit();
+        // TODO: Store in persistent cache if implemented
     }
 
     private static class MVImage implements Serializable {

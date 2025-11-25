@@ -16,8 +16,8 @@ package com.norconex.crawler.core._DELETE.cluster.impl.infinispan;
 
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.ClusterConnector;
-import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanCluster;
-import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanClusterConfig;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastCluster;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConfig;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,8 +37,8 @@ import lombok.extern.slf4j.Slf4j;
 
 public class FastLocalInfinispanClusterConnector implements ClusterConnector {
 
-    private final InfinispanClusterConfig configuration =
-            new InfinispanClusterConfig();
+    private final HazelcastClusterConfig configuration =
+            new HazelcastClusterConfig();
 
     public FastLocalInfinispanClusterConnector() {
         // Use test-specific configuration
@@ -52,6 +52,6 @@ public class FastLocalInfinispanClusterConnector implements ClusterConnector {
 
     @Override
     public Cluster connect() {
-        return new InfinispanCluster(configuration);
+        return new HazelcastCluster(configuration);
     }
 }

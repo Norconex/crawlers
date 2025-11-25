@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core._DELETE.CrawlTest;
-import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanClusterConnector;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
 
 /**
  * Example test demonstrating how to use FastLocalInfinispanClusterConnector
@@ -54,7 +54,9 @@ class FastClusterConnectorExample {
     @Test
     @CrawlTest(
         // Uses default clusters (standard InfinispanClusterConnector)
-        clusters = InfinispanClusterConnector.class
+
+        clusters = HazelcastClusterConnector.class
+
     )
     void testWithStandardConnector() {
         // Default behavior - uses InfinispanClusterConnector
@@ -81,7 +83,7 @@ class FastClusterConnectorExample {
      */
     @Test
     @CrawlTest(
-        clusters = InfinispanClusterConnector.class,
+        clusters = HazelcastClusterConnector.class,
         configModifier = FastConnectorModifier.class
     )
     void testWithConditionalFastConnector() {

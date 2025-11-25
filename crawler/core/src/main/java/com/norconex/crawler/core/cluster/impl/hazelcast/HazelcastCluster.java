@@ -30,6 +30,7 @@ import com.hazelcast.config.Config;
 import com.hazelcast.config.IndexConfig;
 import com.hazelcast.config.IndexType;
 import com.hazelcast.config.MapConfig;
+import com.hazelcast.config.MapStoreConfig;
 import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
@@ -89,13 +90,22 @@ public class HazelcastCluster implements Cluster {
 
         // Configure persistence directory if enabled
         if (configuration.isPersistenceEnabled()
-                && configuration.getPreset()
-                        != HazelcastClusterConfig.Preset.STANDALONE_MEMORY) {
+                && configuration
+                        .getPreset() != HazelcastClusterConfig.Preset.STANDALONE_MEMORY) {
             var persistenceDir =
-                    workDir.resolve("cache/hazelcast/" + uniqueNodeName)
+                    workDir.resolve("cache/rocksdb/" + uniqueNodeName)
                             .normalize();
             LOG.info("Hazelcast persistence directory: {}", persistenceDir);
-            // MVStore-based persistence is handled via MapStore in map configs
+            // Use RocksDBMapStore for persistent maps
+            MapConfig ledgerConfig = new MapConfig("ledger_*")
+                    .setBackupCount(configuration.getBackupCount());
+            MapStoreConfig mapStoreConfig = new MapStoreConfig()
+                    .setEnabled(true)
+                    .setClassName(
+                            "com.hazelcast.mapstore.rocksdb.RocksDBMapStore")
+                    .setProperty("database.dir", persistenceDir.toString());
+            ledgerConfig.setMapStoreConfig(mapStoreConfig);
+            hazelcastConfig.addMapConfig(ledgerConfig);
         }
 
         try {
@@ -224,61 +234,7 @@ public class HazelcastCluster implements Cluster {
     //--- Private methods ------------------------------------------------------
 
     private Config buildConfig(Path workDir, String nodeName) {
-        Config config;
-
-        // Check if a custom config file is specified
-        if (StringUtils.isNotBlank(configuration.getConfigFile())) {
-            try {
-                config = new XmlConfigBuilder(configuration.getConfigFile())
-                        .build();
-                LOG.info("Using custom Hazelcast configuration file: {}",
-                        configuration.getConfigFile());
-            } catch (FileNotFoundException e) {
-                throw new CacheException(
-                        "Could not load Hazelcast configuration from '%s'"
-                                .formatted(configuration.getConfigFile()),
-                        e);
-            }
-        } else {
-            config = new Config();
-
-            // Configure based on preset
-            switch (configuration.getPreset()) {
-            case STANDALONE:
-            case STANDALONE_MEMORY:
-                // Disable network for standalone mode
-                config.getNetworkConfig().getJoin().getMulticastConfig()
-                        .setEnabled(false);
-                config.getNetworkConfig().getJoin().getTcpIpConfig()
-                        .setEnabled(false);
-                config.getNetworkConfig().getJoin().getAutoDetectionConfig()
-                        .setEnabled(false);
-                break;
-            case CLUSTER:
-                // Enable TCP/IP discovery for cluster mode
-                config.getNetworkConfig().getJoin().getMulticastConfig()
-                        .setEnabled(false);
-                config.getNetworkConfig().getJoin().getAutoDetectionConfig()
-                        .setEnabled(false);
-                var tcpConfig =
-                        config.getNetworkConfig().getJoin().getTcpIpConfig();
-                tcpConfig.setEnabled(true);
-                if (StringUtils.isNotBlank(configuration.getTcpMembers())) {
-                    for (var member : configuration.getTcpMembers()
-                            .split(",")) {
-                        tcpConfig.addMember(member.trim());
-                    }
-                } else {
-                    // Default to localhost for single-node cluster testing
-                    tcpConfig.addMember("127.0.0.1");
-                }
-                break;
-            default:
-                break;
-            }
-        }
-
-        // Set cluster name
+        Config config = new Config();
         config.setClusterName(configuration.getClusterName());
 
         // Set instance name

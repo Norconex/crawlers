@@ -32,7 +32,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.infinispan.notifications.cachemanagerlistener.CacheManagerNotifierImpl;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -66,7 +65,7 @@ import com.norconex.crawler.core.util.LogUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@WithLogLevel(value = "OFF", classes = CacheManagerNotifierImpl.class)
+//@WithLogLevel(value = "OFF", classes = CacheManagerNotifierImpl.class)
 @WithLogLevel(
     value = "INFO",
     classes = {

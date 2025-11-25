@@ -36,7 +36,7 @@ public class HazelcastClusterConfig {
         CLUSTER(false),
         /**
          * Standalone mode for single-node deployments. Optimized for
-         * single-node performance with local persistence via MVStore.
+         * single-node performance with local persistence.
          */
         STANDALONE(true),
         /**
@@ -106,7 +106,7 @@ public class HazelcastClusterConfig {
 
     /**
      * Whether to enable persistence for caches. When enabled, cache
-     * data is persisted to local storage using MVStore. This allows
+     * data is persisted to local storage. This allows
      * crawls to be resumed after a restart.
      */
     private boolean persistenceEnabled = true;
