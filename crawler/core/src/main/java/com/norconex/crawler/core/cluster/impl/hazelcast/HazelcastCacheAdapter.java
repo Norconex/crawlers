@@ -39,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Hazelcast IMap-based implementation of the Cache interface.
- * Supports SQL-like queries by converting Infinispan query syntax to
+ * Supports SQL-like queries by converting query syntax to
  * Hazelcast predicates.
  *
  * @param <T> the type of values stored in the cache

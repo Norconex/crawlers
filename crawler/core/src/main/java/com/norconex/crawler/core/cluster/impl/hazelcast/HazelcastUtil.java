@@ -14,7 +14,8 @@
  */
 package com.norconex.crawler.core.cluster.impl.hazelcast;
 
-import com.google.common.base.Objects;
+import java.util.Objects;
+
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
@@ -56,7 +57,7 @@ public final class HazelcastUtil {
         }
 
         // current step is the same as last step
-        var isLastStep = Objects.equal(stepRecord.getStepId(),
+        var isLastStep = Objects.equals(stepRecord.getStepId(),
                 pipeline.getLastStep().getId());
 
         // all steps have terminated
