@@ -14,8 +14,7 @@
  */
 package com.norconex.crawler.core.cluster.pipeline;
 
-import org.infinispan.protostream.annotations.Proto;
-import org.infinispan.protostream.annotations.ProtoField;
+import java.io.Serializable;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -25,17 +24,14 @@ import lombok.experimental.Accessors;
  */
 @Data
 @Accessors(chain = true)
-@Proto
-public class StepRecord {
-    @ProtoField(number = 1)
+public class StepRecord implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     public String pipelineId;
-    @ProtoField(number = 2)
     public String stepId;
-    @ProtoField(number = 3)
     public long updatedAt;
-    @ProtoField(number = 4)
     public PipelineStatus status;
-    @ProtoField(number = 5)
     public String runId;
 
     public boolean hasTimedOut(long timeoutMs) {

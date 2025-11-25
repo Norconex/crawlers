@@ -14,32 +14,28 @@
  */
 package com.norconex.crawler.core.ledger;
 
+import java.io.Serializable;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
-import org.infinispan.protostream.annotations.Proto;
-import org.infinispan.protostream.annotations.ProtoEnumValue;
 
 /**
  * The different stages of a crawl entry processing life-cycle:
  * <code>UNTRACKED -&gt; QUEUED -&gt; PROCESSING -&gt; PROCESSED</code>
  */
-@Proto
-public enum ProcessingStatus {
+public enum ProcessingStatus implements Serializable {
     /**
      * Nothing was done with this entry yet. Could be rejected
      * before being queued, which would leave no trace in the ledger.
      * This is the default stage when discovering new references not yet queued
      * or otherwise asking for a status of a reference not in the ledger.
      */
-    @ProtoEnumValue(0)
     UNTRACKED,
 
     /**
      * Queued in ledger for processing. Queuing a reference
      * automatically set the state to queued.
      */
-    @ProtoEnumValue(1)
     QUEUED,
 
     /**
@@ -48,13 +44,11 @@ public enum ProcessingStatus {
      * are considered to be the result of an unrecoverable error and
      * should be dealt with on next run..
      */
-    @ProtoEnumValue(2)
     PROCESSING,
 
     /**
      * Processing completed a crawl entry.
      */
-    @ProtoEnumValue(3)
     PROCESSED;
 
     public boolean is(ProcessingStatus processingStage) {

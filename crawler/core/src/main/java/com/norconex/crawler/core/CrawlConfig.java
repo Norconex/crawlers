@@ -30,7 +30,7 @@ import com.norconex.commons.lang.bean.jackson.JsonXmlCollection;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.cluster.ClusterConnector;
-import com.norconex.crawler.core.cluster.impl.infinispan.InfinispanClusterConnector;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
 import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
 import com.norconex.crawler.core.doc.operations.DocumentConsumer;
 import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
@@ -156,11 +156,11 @@ public class CrawlConfig {
     private Duration maxCrawlDuration = Duration.ZERO;
 
     /**
-     * The cluster used to run the crawler. Default (Infinispan) handles
+     * The cluster used to run the crawler. Default (Hazelcast) handles
      * both running the crawler on single and multiple nodes.
      */
     private ClusterConnector clusterConnector =
-            new InfinispanClusterConnector();
+            new HazelcastClusterConnector();
     /**
      * Disable launching the crawler administrative server endpoints.
      */

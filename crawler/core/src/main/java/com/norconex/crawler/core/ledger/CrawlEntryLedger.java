@@ -67,8 +67,7 @@ public final class CrawlEntryLedger {
 
     // we use aliases for previous and current ledgers as we can't assume
     // we can physically rename them and copying data over could be
-    // too inefficient. The "indexed" suffix is picked up in Infinispan
-    // default config.
+    // too inefficient. The "indexed" suffix is used by cache configuration.
     private static final String LEDGER_A = "ledger_a";
     private static final String LEDGER_B = "ledger_b";
 
@@ -286,8 +285,8 @@ public final class CrawlEntryLedger {
         List<CrawlEntry> batch = new ArrayList<>(batchSize);
         var targetBatchSize = bonifiedBatchSize(batchSize);
 
-        // CRITICAL: In a distributed Infinispan cache, iteration methods
-        // (forEach, entrySet, keySet) only return entries owned by this node.
+        // CRITICAL: In a distributed cache, iteration methods
+        // (forEach, entrySet, keySet) may only return entries owned by this node.
         // To see ALL entries in the cluster for fair work distribution,
         // we must retrieve all keys first, then fetch values.
         // This is inefficient but necessary for distributed queues.
@@ -535,15 +534,15 @@ public final class CrawlEntryLedger {
     }
 
     private String fromWhereStatusQuery(ProcessingStatus status) {
-        // Use Java class name for queries - Infinispan automatically
-        // handles ProtoStream marshalling/unmarshalling
+        // Use Java class name for queries - the cache implementation
+        // handles serialization/deserialization
         return "FROM %s WHERE processingStatus = '%s'"
                 .formatted(CrawlEntry.class.getName(), status.name());
     }
 
     private String fromOrderedQueuedQuery() {
-        // Use Java class name for queries - Infinispan automatically
-        // handles ProtoStream marshalling/unmarshalling
+        // Use Java class name for queries - the cache implementation
+        // handles serialization/deserialization
         return "FROM %s WHERE processingStatus = '%s' ORDER BY %s"
                 .formatted(
                         CrawlEntry.class.getName(),
