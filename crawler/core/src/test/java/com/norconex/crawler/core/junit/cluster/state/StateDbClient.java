@@ -14,9 +14,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.commons.collections4.Bag;
+import org.apache.commons.collections4.bag.TreeBag;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.event.Event;
+import com.norconex.commons.lang.map.Properties;
+import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -87,6 +91,27 @@ public class StateDbClient {
                 this);
     }
 
+    public List<StateRecord> getCacheRecords() {
+        return getRecordsForTopic(TOPIC_CACHE);
+    }
+
+    public Map<String, Properties> getCachesAsMap() {
+        var cachesMap = new HashMap<String, Properties>();
+        getCacheRecords().forEach(rec -> {
+            var cacheNkey = StringUtils.split(rec.getKey(), "__");
+            var cacheName = cacheNkey[0];
+            var key = cacheNkey[1];
+            var props = cachesMap.computeIfAbsent(
+                    cacheName, nm -> new Properties());
+            props.set(key, rec.getValue());
+        });
+        return cachesMap;
+    }
+
+    public void saveCacheEntry(String cacheName, String key, Object val) {
+        put(TOPIC_CACHE, cacheName + "__" + key, SerialUtil.toJsonString(val));
+    }
+
     @SneakyThrows
     public Connection newConnection() {
         return DriverManager.getConnection(jdbcUrl, "sa", "");
@@ -98,6 +123,16 @@ public class StateDbClient {
 
     public List<StateRecord> getEvents() {
         return getRecordsForTopic(TOPIC_EVENT);
+    }
+
+    public List<String> getEventNames() {
+        return getEvents().stream().map(StateRecord::getKey).toList();
+    }
+
+    public Bag<String> getEventNameBag() {
+        var bag = new TreeBag<String>();
+        getEventNames().forEach(bag::add);
+        return bag;
     }
 
     public void printStreamsOrderedByDateTime() {

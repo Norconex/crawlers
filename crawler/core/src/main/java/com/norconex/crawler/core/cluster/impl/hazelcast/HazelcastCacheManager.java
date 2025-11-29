@@ -16,17 +16,17 @@ package com.norconex.crawler.core.cluster.impl.hazelcast;
 
 import java.io.Closeable;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
+import com.hazelcast.collection.IQueue;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.LifecycleService;
 import com.hazelcast.map.IMap;
 import com.norconex.crawler.core.cluster.Cache;
 import com.norconex.crawler.core.cluster.CacheException;
 import com.norconex.crawler.core.cluster.CacheManager;
+import com.norconex.crawler.core.cluster.CacheQueue;
 import com.norconex.crawler.core.cluster.CacheSet;
 import com.norconex.crawler.core.cluster.Counter;
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListener;
@@ -48,7 +48,7 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
                     new ConcurrentHashMap<>();
 
     public HazelcastCacheManager(HazelcastInstance hazelcastInstance) {
-        this.hazelcast = hazelcastInstance;
+        hazelcast = hazelcastInstance;
         REF_COUNTS.computeIfAbsent(hazelcast, k -> new AtomicInteger(0))
                 .incrementAndGet();
     }
@@ -87,14 +87,8 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
         // the map has any entries or has been accessed
         var distributedObjects = hazelcast.getDistributedObjects();
         return distributedObjects.stream()
-                .filter(obj -> obj instanceof IMap)
+                .filter(IMap.class::isInstance)
                 .anyMatch(obj -> obj.getName().equals(name));
-    }
-
-    @Override
-    public Counter getCounter(String name) {
-        IMap<String, Long> counterMap = getHazelcastMap(CacheNames.COUNTERS);
-        return new HazelcastCounter(counterMap, name);
     }
 
     @Override
@@ -123,7 +117,7 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
     @Override
     public void forEach(BiConsumer<String, Cache<?>> c) {
         hazelcast.getDistributedObjects().stream()
-                .filter(obj -> obj instanceof IMap)
+                .filter(IMap.class::isInstance)
                 .map(obj -> (IMap<String, ?>) obj)
                 .forEach(map -> c.accept(
                         map.getName(),
@@ -149,7 +143,7 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
             @NonNull CacheEntryChangeListener<T> listener, String cacheName) {
         var adapter = new CacheEntryChangeListenerAdapter<>(listener);
         IMap<String, T> map = getHazelcastMap(cacheName);
-        UUID registrationId = map.addEntryListener(adapter, true);
+        var registrationId = map.addEntryListener(adapter, true);
         adapter.setRegistrationId(registrationId);
         adapterMappings.put(listener, adapter);
     }
@@ -169,10 +163,28 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
         }
     }
 
+    //--- Hazelcast queue support ------------------------------------------------
+
+    public <T> IQueue<T> getHazelcastQueue(String queueName) {
+        var lifecycle = hazelcast.getLifecycleService();
+        if (!lifecycle.isRunning()) {
+            throw new CacheException(
+                    "Hazelcast instance is not running; cannot access queue '%s'."
+                            .formatted(queueName));
+        }
+        return hazelcast.getQueue(queueName);
+    }
+
+    // Adapter for queue operations (to be used in CrawlEntryLedger)
+    @Override
+    public <T> CacheQueue<T> getQueue(String name, Class<T> valueType) {
+        return new HazelcastQueueAdapter<>(getHazelcastQueue(name));
+    }
+
     //--- Private methods ------------------------------------------------------
 
     private <K, V> IMap<K, V> getHazelcastMap(String mapName) {
-        LifecycleService lifecycle = hazelcast.getLifecycleService();
+        var lifecycle = hazelcast.getLifecycleService();
         if (!lifecycle.isRunning()) {
             throw new CacheException(
                     "Hazelcast instance is not running; cannot access map '%s'."

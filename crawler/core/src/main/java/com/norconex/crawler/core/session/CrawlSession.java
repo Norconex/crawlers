@@ -16,7 +16,6 @@ package com.norconex.crawler.core.session;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -65,7 +64,7 @@ public class CrawlSession implements Closeable {
     // - #B64#: Java-Serializable value, Base64 encoded
     // - #SSO#: JSON-wrapped {className, serializedJson}
     private static final String MARKER_NULL = "#NULL#";
-    private static final String MARKER_B64 = "#B64#";
+    //    private static final String MARKER_B64 = "#B64#";
     private static final String MARKER_WRAPPED_JSON = "#SSO#";
 
     //    private static final long SESSION_HEARTBEAT_INTERVAL =
@@ -243,7 +242,10 @@ public class CrawlSession implements Closeable {
         });
 
         if (cluster.getLocalNode() != null) {
-            SESSIONS.remove(cluster.getLocalNode().getNodeName());
+            String nodeName = cluster.getLocalNode().getNodeName();
+            if (nodeName != null) {
+                SESSIONS.remove(nodeName);
+            }
         }
 
         if (adminServer != null) {
@@ -402,9 +404,9 @@ public class CrawlSession implements Closeable {
             if (value == null) {
                 return MARKER_NULL; // explicit null marker
             }
-            if (value instanceof Serializable serializable) {
-                return MARKER_B64 + SerialUtil.toBase64String(serializable);
-            }
+            //            if (value instanceof Serializable serializable) {
+            //                return MARKER_B64 + SerialUtil.toBase64String(serializable);
+            //            }
             // Fallback: use neutral envelope for JSON payload + class name
             var env = SerializedEnvelope.wrap(value);
             return MARKER_WRAPPED_JSON + SerialUtil.toJsonString(env);
@@ -412,10 +414,10 @@ public class CrawlSession implements Closeable {
         if (stored == null || MARKER_NULL.equals(stored)) {
             return null;
         }
-        if (stored.startsWith(MARKER_B64)) {
-            return (T) SerialUtil.fromBase64String(
-                    stored.substring(MARKER_B64.length()));
-        }
+        //        if (stored.startsWith(MARKER_B64)) {
+        //            return (T) SerialUtil.fromBase64String(
+        //                    stored.substring(MARKER_B64.length()));
+        //        }
         if (stored.startsWith(MARKER_WRAPPED_JSON)) {
             var json = stored.substring(MARKER_WRAPPED_JSON.length());
             var env = SerialUtil.fromJson(json, SerializedEnvelope.class);

@@ -58,35 +58,55 @@ public class ClusterAdminServer {
      */
     public int start() {
         var config = session.getCrawlContext().getCrawlConfig();
-        try {
-            var port = findAvailablePort(config.getClusterAdminPort());
-
-            httpServer = HttpServer.create(new InetSocketAddress(port), 0);
-
-            endpoint(GET, Endpoint.CLUSTER_SIZE, TEXT_PLAIN, exchange -> {
-                sendResponse(exchange, 200,
-                        String.valueOf(cluster.getNodeCount()));
-            });
-
-            endpoint(GET, Endpoint.CLUSTER_NODES, TEXT_PLAIN, exchange -> {
-                sendResponse(exchange, 200,
-                        String.join(",", cluster.getNodeNames()));
-            });
-
-            endpoint(POST, Endpoint.CLUSTER_STOP, TEXT_PLAIN, exchange -> {
-                sendResponse(exchange, 200, "Stopping cluster");
-                // Stop the cluster after sending response
-                cluster.stop();
-            });
-
-            httpServer.setExecutor(null); // Use default executor
-            httpServer.start();
-            LOG.info("Cluster admin HTTP server started on port {}", port);
-            return port;
-        } catch (IOException e) {
-            throw new CrawlerException(
-                    "Failed to start cluster admin HTTP server", e);
+        var basePort = config.getClusterAdminPort();
+        if (basePort == 0) {
+            try {
+                return startHttpServer(0);
+            } catch (IOException e) {
+                throw new CrawlerException(
+                        "Failed to start cluster admin HTTP server", e);
+            }
         }
+        var maxAttempts = 100;
+        var port = basePort;
+        for (var attempt = 0; attempt < maxAttempts; attempt++) {
+            port = findAvailablePort(port);
+            try {
+                return startHttpServer(port);
+            } catch (IOException e) {
+                if (e instanceof java.net.BindException) {
+                    LOG.warn("Port {} is taken after findAvailablePort, "
+                            + "trying next...", port);
+                    port++;
+                    continue;
+                }
+                throw new CrawlerException(
+                        "Failed to start cluster admin HTTP server", e);
+            }
+        }
+        throw new CrawlerException(
+                "No available port found starting from " + basePort);
+    }
+
+    private int startHttpServer(int port) throws IOException {
+        httpServer = HttpServer.create(new InetSocketAddress(port), 0);
+        var actualPort = httpServer.getAddress().getPort();
+        endpoint(GET, Endpoint.CLUSTER_SIZE, TEXT_PLAIN, exchange -> {
+            sendResponse(exchange, 200,
+                    String.valueOf(cluster.getNodeCount()));
+        });
+        endpoint(GET, Endpoint.CLUSTER_NODES, TEXT_PLAIN, exchange -> {
+            sendResponse(exchange, 200,
+                    String.join(",", cluster.getNodeNames()));
+        });
+        endpoint(POST, Endpoint.CLUSTER_STOP, TEXT_PLAIN, exchange -> {
+            sendResponse(exchange, 200, "Stopping cluster");
+            cluster.stop();
+        });
+        httpServer.setExecutor(null); // Use default executor
+        httpServer.start();
+        LOG.info("Cluster admin HTTP server started on port {}", actualPort);
+        return actualPort;
     }
 
     /**

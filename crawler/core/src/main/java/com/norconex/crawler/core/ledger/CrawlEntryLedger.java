@@ -27,7 +27,7 @@ import java.util.function.Consumer;
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.crawler.core.cluster.Cache;
 import com.norconex.crawler.core.cluster.CacheManager;
-import com.norconex.crawler.core.cluster.Counter;
+import com.norconex.crawler.core.cluster.CacheQueue;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
 
@@ -71,16 +71,11 @@ public final class CrawlEntryLedger {
     private static final String LEDGER_A = "ledger_a";
     private static final String LEDGER_B = "ledger_b";
 
-    // Status counter prefix for efficiently tracking entry counts by status
-    private static final String STATUS_COUNTER_PREFIX = "status-counter-";
-
     private Cache<CrawlEntry> currentLedger;
     private Cache<CrawlEntry> baselineLedger;
+    private CacheQueue<CrawlEntry> queue;
     private long totalMaxDocsThisRun;
 
-    // Map to hold references to status-specific counters
-    private final Map<ProcessingStatus, Counter> statusCounters =
-            new EnumMap<>(ProcessingStatus.class);
     private CacheManager cacheManager;
     private CrawlSession session;
 
@@ -112,13 +107,7 @@ public final class CrawlEntryLedger {
         baselineLedger = cacheManager.cacheExists(previousAlias)
                 ? cacheManager.getCache(previousAlias, CrawlEntry.class)
                 : null;
-
-        // Initialize status counters for each ProcessingStatus value
-        for (ProcessingStatus status : ProcessingStatus.values()) {
-            statusCounters.put(status,
-                    cacheManager
-                            .getCounter(STATUS_COUNTER_PREFIX + status.name()));
-        }
+        queue = cacheManager.getQueue("crawlQueue", CrawlEntry.class);
 
         // If this is a fresh run, initialize counters based on current cache content
         if (!session.isResumed()) {
@@ -132,7 +121,11 @@ public final class CrawlEntryLedger {
         var resumed = session.isResumed();
         if (resumed && runMaxDocs > -1) {
             totalMaxDocsThisRun +=
-                    statusCounters.get(ProcessingStatus.PROCESSED).get();
+                    currentLedger.count(
+                            "FROM %s WHERE processingStatus = '%s'"
+                                    .formatted(
+                                            CrawlEntry.class.getName(),
+                                            ProcessingStatus.PROCESSED.name()));
             LOG.info("""
                     An additional maximum of {} processed documents is
                     added to this resumed session, for a maximum total of {}.
@@ -155,9 +148,6 @@ public final class CrawlEntryLedger {
                             .formatted(
                                     CrawlEntry.class.getName(),
                                     status.name()));
-            var counter = statusCounters.get(status);
-            counter.reset();
-            counter.set(count);
             LOG.debug("Status counter for {} initialized to {}", status, count);
         }
         LOG.info("Status counters initialized.");
@@ -175,23 +165,6 @@ public final class CrawlEntryLedger {
         var previous = currentLedger.get(reference);
         currentLedger.put(reference, entry);
 
-        // Update status counters if needed
-        if (previous.isPresent()) {
-            ProcessingStatus oldStatus = previous.get().getProcessingStatus();
-
-            if (oldStatus != newStatus) {
-                statusCounters.get(oldStatus).decrementAndGet();
-                statusCounters.get(newStatus).incrementAndGet();
-                LOG.trace("Status changed for {}: {} -> {}", reference,
-                        oldStatus, newStatus);
-            }
-        } else {
-            // New entry
-            statusCounters.get(newStatus).incrementAndGet();
-            LOG.trace("New entry added with status {}: {}", newStatus,
-                    reference);
-        }
-
         return previous;
     }
 
@@ -205,8 +178,6 @@ public final class CrawlEntryLedger {
         if (entry.isPresent()) {
             ProcessingStatus status = entry.get().getProcessingStatus();
             currentLedger.remove(reference);
-            statusCounters.get(status).decrementAndGet();
-            LOG.trace("Entry removed with status {}: {}", status, reference);
         }
         return entry;
     }
@@ -235,16 +206,18 @@ public final class CrawlEntryLedger {
     //--- Queue ---
 
     public boolean isQueueEmpty() {
-        return statusCounters.get(ProcessingStatus.QUEUED).get() == 0;
+        return getQueueCount() == 0;
     }
 
     public long getQueueCount() {
-        return statusCounters.get(ProcessingStatus.QUEUED).get();
+        return currentLedger.count(
+                "FROM %s WHERE processingStatus = '%s'"
+                        .formatted(CrawlEntry.class.getName(),
+                                ProcessingStatus.QUEUED.name()));
     }
 
     public void clearQueue() {
         currentLedger.delete(fromWhereStatusQuery(ProcessingStatus.QUEUED));
-        statusCounters.get(ProcessingStatus.QUEUED).reset();
     }
 
     public void forEachQueued(Consumer<CrawlEntry> c) {
@@ -253,8 +226,7 @@ public final class CrawlEntryLedger {
 
     public void queue(@NonNull CrawlEntry crawlEntry) {
         crawlEntry.setProcessingStatus(ProcessingStatus.QUEUED);
-        currentLedger.put(crawlEntry.getReference(), crawlEntry);
-        statusCounters.get(ProcessingStatus.QUEUED).incrementAndGet();
+        queue.add(crawlEntry);
         LOG.debug("Saved queued: {}", crawlEntry.getReference());
         session.fire(CrawlerEvent.builder()
                 .name(CrawlerEvent.DOCUMENT_QUEUED)
@@ -265,79 +237,19 @@ public final class CrawlEntryLedger {
 
     public List<CrawlEntry> nextQueuedBatch(int batchSize) {
         var nodeName = session.getCluster().getLocalNode().getNodeName();
-        LOG.trace("[{}] CrawlEntryLedger.nextQueuedBatch(batchSize={}) "
-                + "called. queuedCount={}.",
+        LOG.trace(
+                "[{}] CrawlEntryLedger.nextQueuedBatch(batchSize={}) called. queuedCount={}.",
                 nodeName, batchSize,
-                statusCounters.get(ProcessingStatus.QUEUED).get());
-
-        if (LOG.isTraceEnabled()) {
-            var queuedByQuery = currentLedger.count(
-                    "FROM %s WHERE processingStatus = '%s'".formatted(
-                            CrawlEntry.class.getName(),
-                            ProcessingStatus.QUEUED.name()));
-            LOG.trace("[{}] CrawlEntryLedger status: "
-                    + "queued(counter)={}, queued(query)={}",
-                    nodeName,
-                    statusCounters.get(ProcessingStatus.QUEUED).get(),
-                    queuedByQuery);
+                currentLedger.count(
+                        "FROM %s WHERE processingStatus = '%s'"
+                                .formatted(CrawlEntry.class.getName(),
+                                        ProcessingStatus.QUEUED.name())));
+        List<CrawlEntry> batch = queue.pollBatch(batchSize);
+        for (CrawlEntry entry : batch) {
+            entry.setProcessingStatus(ProcessingStatus.PROCESSING);
         }
-
-        List<CrawlEntry> batch = new ArrayList<>(batchSize);
-        var targetBatchSize = bonifiedBatchSize(batchSize);
-
-        // CRITICAL: In a distributed cache, iteration methods
-        // (forEach, entrySet, keySet) may only return entries owned by this node.
-        // To see ALL entries in the cluster for fair work distribution,
-        // we must retrieve all keys first, then fetch values.
-        // This is inefficient but necessary for distributed queues.
-        // Alternative: Use a replicated cache or dedicated queue service.
-        var scannedCount = new java.util.concurrent.atomic.AtomicInteger(0);
-
-        // Get ALL keys from the distributed cache (this triggers remote calls)
-        var allKeys = new java.util.ArrayList<>(currentLedger.keys());
-
-        for (var ref : allKeys) {
-            // Stop if we've found enough entries
-            if (batch.size() >= batchSize) {
-                break;
-            }
-            // Limit scanning to avoid excessive iteration
-            if (scannedCount.incrementAndGet() > targetBatchSize * 10) {
-                break;
-            }
-
-            // Fetch entry (may be remote)
-            var entryOpt = currentLedger.get(ref);
-            if (entryOpt.isEmpty()) {
-                continue;
-            }
-
-            var entry = entryOpt.get();
-
-            // Only process queued entries
-            if (entry.getProcessingStatus() != ProcessingStatus.QUEUED) {
-                continue;
-            }
-
-            // Try to claim this entry
-            var claimed = claimQueuedEntry(ref);
-            if (claimed.isPresent()) {
-                LOG.trace("[{}] CrawlEntryLedger.nextQueuedBatch "
-                        + "claimed ref={}.",
-                        nodeName, ref);
-                batch.add(claimed.get());
-            } else {
-                LOG.trace("""
-                    [{}] CrawlEntryLedger.nextQueuedBatch \
-                    FAILED to claim ref={} \
-                    (already claimed).""",
-                        nodeName, ref);
-            }
-        }
-
-        LOG.trace("[{}] CrawlEntryLedger.nextQueuedBatch returning {} "
-                + "entries (scanned {} entries).",
-                nodeName, batch.size(), scannedCount.get());
+        LOG.trace("[{}] CrawlEntryLedger.nextQueuedBatch returning {} entries.",
+                nodeName, batch.size());
         return batch;
     }
 
@@ -355,11 +267,14 @@ public final class CrawlEntryLedger {
     //--- Processing ---
 
     public long getProcessingCount() {
-        return statusCounters.get(ProcessingStatus.PROCESSING).get();
+        return currentLedger.count(
+                "FROM %s WHERE processingStatus = '%s'"
+                        .formatted(CrawlEntry.class.getName(),
+                                ProcessingStatus.PROCESSING.name()));
     }
 
     public boolean isProcessingEmpty() {
-        return statusCounters.get(ProcessingStatus.PROCESSING).get() == 0;
+        return getProcessingCount() == 0;
     }
 
     public void forEachProcessing(Consumer<CrawlEntry> c) {
@@ -376,11 +291,14 @@ public final class CrawlEntryLedger {
     //--- Processed ---
 
     public long getProcessedCount() {
-        return statusCounters.get(ProcessingStatus.PROCESSED).get();
+        return currentLedger.count(
+                "FROM %s WHERE processingStatus = '%s'"
+                        .formatted(CrawlEntry.class.getName(),
+                                ProcessingStatus.PROCESSED.name()));
     }
 
     public boolean isProcessedEmpty() {
-        return statusCounters.get(ProcessingStatus.PROCESSED).get() == 0;
+        return getProcessedCount() == 0;
     }
 
     public void forEachProcessed(Consumer<CrawlEntry> c) {
@@ -423,7 +341,9 @@ public final class CrawlEntryLedger {
      * @return count of entries with the given status
      */
     public long countByStatus(ProcessingStatus status) {
-        return statusCounters.get(status).get();
+        return currentLedger.count(
+                "FROM %s WHERE processingStatus = '%s'"
+                        .formatted(CrawlEntry.class.getName(), status.name()));
     }
 
     /**
@@ -433,10 +353,7 @@ public final class CrawlEntryLedger {
      * @return number of entries deleted
      */
     public long deleteByStatus(ProcessingStatus status) {
-        var count = currentLedger.delete(fromWhereStatusQuery(status));
-        // Reset the counter to 0 since we deleted all entries with this status
-        statusCounters.get(status).reset();
-        return count;
+        return currentLedger.delete(fromWhereStatusQuery(status));
     }
 
     /**
@@ -517,13 +434,18 @@ public final class CrawlEntryLedger {
                 reference, entry, updatedEntry);
 
         if (replaced) {
-            statusCounters.get(ProcessingStatus.QUEUED).decrementAndGet();
-            statusCounters.get(ProcessingStatus.PROCESSING).incrementAndGet();
             LOG.trace(
                     "[{}] claimQueuedEntry({}) SUCCESS. queuedCount={} processingCount={}.",
                     nodeName, reference,
-                    statusCounters.get(ProcessingStatus.QUEUED).get(),
-                    statusCounters.get(ProcessingStatus.PROCESSING).get());
+                    currentLedger.count(
+                            "FROM %s WHERE processingStatus = '%s'"
+                                    .formatted(CrawlEntry.class.getName(),
+                                            ProcessingStatus.QUEUED.name())),
+                    currentLedger.count(
+                            "FROM %s WHERE processingStatus = '%s'"
+                                    .formatted(CrawlEntry.class.getName(),
+                                            ProcessingStatus.PROCESSING
+                                                    .name())));
             return Optional.of(updatedEntry);
         }
 

@@ -77,7 +77,7 @@ public class StateDbServer {
                     id IDENTITY,
                     node VARCHAR(128),
                     topic VARCHAR(128),
-                    k VARCHAR(128),
+                    k VARCHAR(256),
                     v VARCHAR(%s),
                     dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )""".formatted(StateDbClient.MAX_VALUE_LENGTH));

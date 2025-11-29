@@ -2,6 +2,8 @@ package com.norconex.crawler.core.cluster;
 
 import java.util.function.BiConsumer;
 
+import com.norconex.crawler.core.cluster.CacheQueue;
+
 public interface CacheManager {
 
     /**
@@ -50,7 +52,7 @@ public interface CacheManager {
     Cache<String> getCrawlRunCache();
     //
 
-    Counter getCounter(String name);
+    <T> CacheQueue<T> getQueue(String name, Class<T> valueType);
 
     //    /**
     //     * Initializes the cache manager.

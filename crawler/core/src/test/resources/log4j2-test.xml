@@ -19,12 +19,12 @@
 <Configuration status="WARN" name="Norconex Collector Core">
   <Appenders>
     <Console name="Console" target="SYSTEM_OUT">
-    <PatternLayout pattern="%d{HH:mm:ss} [%t] %-5level %c{2} - %msg%n"/>
-<!--       <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>  -->
+      <PatternLayout pattern="%d{HH:mm:ss} [%t] %-5level %c{2} - %msg%n"/>
     </Console>
   </Appenders>
   <Loggers>
-  
+    <!-- Suppress Hazelcast logo -->
+    <Logger name="com.hazelcast.system.logo" level="OFF" additivity="false"/>
     <Logger name="com.norconex.crawler.core.cmd.crawl.pipeline.process.BatchDispatcher" level="TRACE" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>

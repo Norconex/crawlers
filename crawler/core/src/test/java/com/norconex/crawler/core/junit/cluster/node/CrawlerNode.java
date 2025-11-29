@@ -95,6 +95,16 @@ public class CrawlerNode {
         // warnings
         jvm.jvmArg("-Djava.net.disableIPv6=true");
 
+        // Hazelcast Java modules
+        jvm.jvmArgs(List.of(
+                "--add-modules", "java.se",
+                "--add-exports", "java.base/jdk.internal.ref=ALL-UNNAMED",
+                "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+                "--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED",
+                "--add-opens", "java.management/sun.management=ALL-UNNAMED",
+                "--add-opens",
+                "jdk.management/com.sun.management.internal=ALL-UNNAMED"));
+
         // only set config path if one is set, with at least one argument
         if (!appArgs.isEmpty() && configFile != null) {
             jvm.appArg("-config")

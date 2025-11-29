@@ -32,6 +32,10 @@ public class HazelcastClusterNode implements ClusterNode, Closeable {
 
     @Override
     public String getNodeName() {
+        if (hazelcastInstance == null ||
+                !hazelcastInstance.getLifecycleService().isRunning()) {
+            return null;
+        }
         var member = hazelcastInstance.getCluster().getLocalMember();
         return member.getUuid().toString();
     }

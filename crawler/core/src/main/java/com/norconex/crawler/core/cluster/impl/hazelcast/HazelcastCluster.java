@@ -14,14 +14,11 @@
  */
 package com.norconex.crawler.core.cluster.impl.hazelcast;
 
-import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
 
 import com.hazelcast.cluster.Member;
 import com.hazelcast.cluster.MembershipEvent;
@@ -31,11 +28,9 @@ import com.hazelcast.config.IndexConfig;
 import com.hazelcast.config.IndexType;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapStoreConfig;
-import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.norconex.commons.lang.Sleeper;
-import com.norconex.crawler.core.cluster.CacheException;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CoordinatorChangeListener;
 import com.norconex.crawler.core.event.CrawlerEvent;
@@ -81,6 +76,9 @@ public class HazelcastCluster implements Cluster {
         this.workDir = workDir;
         LOG.info("HazelcastCluster.init(workDir={})", workDir);
 
+        // Suppress Hazelcast logo in logs
+        //System.setProperty("hazelcast.logging.logo.enabled", "false");
+
         // Generate unique node name
         var uniqueNodeName = new ULID().nextULID();
         LOG.info("HazelcastCluster node ULID: {}", uniqueNodeName);
@@ -97,9 +95,9 @@ public class HazelcastCluster implements Cluster {
                             .normalize();
             LOG.info("Hazelcast persistence directory: {}", persistenceDir);
             // Use RocksDBMapStore for persistent maps
-            MapConfig ledgerConfig = new MapConfig("ledger_*")
+            var ledgerConfig = new MapConfig("ledger_*")
                     .setBackupCount(configuration.getBackupCount());
-            MapStoreConfig mapStoreConfig = new MapStoreConfig()
+            var mapStoreConfig = new MapStoreConfig()
                     .setEnabled(true)
                     .setClassName(
                             "com.hazelcast.mapstore.rocksdb.RocksDBMapStore")
@@ -117,7 +115,7 @@ public class HazelcastCluster implements Cluster {
             membershipListenerId = hazelcastInstance.getCluster()
                     .addMembershipListener(new ClusterMembershipListener());
 
-            boolean standalone =
+            var standalone =
                     configuration.getPreset().isStandalone();
             cacheManager = new HazelcastCacheManager(hazelcastInstance);
             localNode = new HazelcastClusterNode(hazelcastInstance, standalone);
@@ -126,7 +124,8 @@ public class HazelcastCluster implements Cluster {
             stopController = new CacheStopController(this);
 
             LOG.info("HazelcastCluster initialized on node: {}",
-                    localNode.getNodeName());
+                    localNode.getNodeName() != null ? localNode.getNodeName()
+                            : "(inactive)");
 
         } catch (Exception e) {
             LOG.error("Failed to initialize Hazelcast for workDir='{}' ",
@@ -217,9 +216,9 @@ public class HazelcastCluster implements Cluster {
     public List<String> getNodeNames() {
         if (hazelcastInstance == null
                 || !hazelcastInstance.getLifecycleService().isRunning()) {
-            return List.of(localNode.getNodeName());
+            var nodeName = localNode.getNodeName();
+            return nodeName != null ? List.of(nodeName) : List.of();
         }
-
         return hazelcastInstance.getCluster().getMembers().stream()
                 .map(Member::getUuid)
                 .map(UUID::toString)
@@ -234,7 +233,9 @@ public class HazelcastCluster implements Cluster {
     //--- Private methods ------------------------------------------------------
 
     private Config buildConfig(Path workDir, String nodeName) {
-        Config config = new Config();
+        var config = new Config();
+        config.setProperty("hazelcast.logging.type", "slf4j");
+
         config.setClusterName(configuration.getClusterName());
 
         // Set instance name

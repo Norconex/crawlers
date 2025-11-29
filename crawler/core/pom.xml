@@ -32,7 +32,7 @@
     <classgraph.version>4.8.181</classgraph.version>
     <cxf.version>3.4.5</cxf.version>
     <h2.version>2.4.240</h2.version>
-    <hazelcast.version>5.5.0</hazelcast.version>
+    <hazelcast.version>5.6.0</hazelcast.version>
     <jdom2.version>2.0.6.1</jdom2.version>
     <sulky-ulid.version>8.2.0</sulky-ulid.version>
     <mvstore.version>2.3.232</mvstore.version>
@@ -236,6 +236,22 @@
       <plugin>
         <groupId>org.sonatype.central</groupId>
         <artifactId>central-publishing-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.2.5</version>
+        <configuration>
+          <argLine>
+            --add-modules java.se
+            --add-exports java.base/jdk.internal.ref=ALL-UNNAMED
+            --add-opens java.base/java.lang=ALL-UNNAMED
+            --add-opens java.base/sun.nio.ch=ALL-UNNAMED
+            --add-opens java.management/sun.management=ALL-UNNAMED
+            --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED
+          </argLine>
+        </configuration>
       </plugin>
 
     </plugins>

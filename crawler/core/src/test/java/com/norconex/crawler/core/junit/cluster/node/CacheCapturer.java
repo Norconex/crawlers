@@ -18,7 +18,6 @@ import java.util.function.Consumer;
 
 import com.norconex.crawler.core.junit.cluster.state.StateDbClient;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,11 +35,9 @@ public class CacheCapturer implements Consumer<CrawlSession> {
         LOG.info("Coordinator is exporting cache to state DB...");
 
         var cacheManager = session.getCluster().getCacheManager();
-        cacheManager.forEach((name, cache) -> cache.forEach(
-                (id, obj) -> stateDb.put(
-                        StateDbClient.TOPIC_CACHE,
-                        name + "_" + id,
-                        SerialUtil.toJsonString(obj))));
+        cacheManager
+                .forEach((name, cache) -> cache.forEach((key, obj) -> stateDb
+                        .saveCacheEntry(name, key, obj)));
         LOG.info("Done exporting cache.");
     }
 }
