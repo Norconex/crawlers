@@ -22,6 +22,6 @@ import lombok.experimental.StandardException;
  * Runtime exception for cache-related errors.
  */
 @StandardException
-public class CacheException extends CrawlerException {
+public class ClusterException extends CrawlerException {
     private static final long serialVersionUID = 1L;
 }

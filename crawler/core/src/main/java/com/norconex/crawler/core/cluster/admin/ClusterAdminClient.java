@@ -24,7 +24,7 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.function.Function;
 
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.cluster.ClusterConfig;
 
 import lombok.Builder;
 import lombok.NonNull;
@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @Builder
 public class ClusterAdminClient {
     public static final String DEFAULT_NODE_URL =
-            "http://localhost:" + CrawlConfig.DEFAULT_CLUSTER_PORT;
+            "http://localhost:" + ClusterConfig.DEFAULT_ADMIN_PORT;
 
     @Singular
     private List<String> nodeUrls;

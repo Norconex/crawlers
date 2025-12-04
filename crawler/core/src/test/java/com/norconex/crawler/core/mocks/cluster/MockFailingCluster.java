@@ -51,7 +51,7 @@ public class MockFailingCluster implements Cluster {
     }
 
     @Override
-    public void init(Path crawlerWorkDir) {
+    public void init(Path crawlerWorkDir, boolean isClustered) {
         throw new UnsupportedOperationException("IN_TEST");
     }
 
@@ -84,9 +84,9 @@ public class MockFailingCluster implements Cluster {
     public List<String> getNodeNames() {
         throw new UnsupportedOperationException("IN_TEST");
     }
-
-    @Override
-    public boolean isStandalone() {
-        return false;
-    }
+    //
+    //    @Override
+    //    public boolean isStandalone() {
+    //        return false;
+    //    }
 }

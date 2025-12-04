@@ -25,7 +25,7 @@ import java.util.function.Supplier;
 
 import com.norconex.commons.lang.event.Event;
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.cluster.Cache;
+import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.ClusterNode;
 import com.norconex.crawler.core.cluster.SerializedEnvelope;
@@ -86,8 +86,8 @@ public class CrawlSession implements Closeable {
     private ClusterAdminServer adminServer;
     @Getter
     private final CrawlContext crawlContext;
-    private Cache<String> crawlSessionCache;
-    private Cache<String> crawlRunCache;
+    private CacheMap<String> crawlSessionCache;
+    private CacheMap<String> crawlRunCache;
     private CrawlRunInfo crawlRunInfo;
     private State state;
     //    private ScheduledExecutorService heartbeatScheduler =
@@ -194,10 +194,14 @@ public class CrawlSession implements Closeable {
             throw new IllegalStateException(
                     "Cannot initialize a closed CrawlSession.");
         }
+        var clusterConfig = crawlContext.getCrawlConfig().getClusterConfig();
+
         createDir(crawlContext.getTempDir()); // also creates workDir
-        cluster.init(crawlContext.getWorkDir());
+        cluster.init(crawlContext.getWorkDir(), clusterConfig.isClustered());
         crawlSessionCache = cluster.getCacheManager().getCrawlSessionCache();
         crawlRunCache = cluster.getCacheManager().getCrawlRunCache();
+        System.err.println(
+                "XXX local node name: " + cluster.getLocalNode().getNodeName());
         SESSIONS.put(cluster.getLocalNode().getNodeName(), this);
         try {
             //NOTE: this resolver will also clear the session cache if needed.
@@ -215,7 +219,7 @@ public class CrawlSession implements Closeable {
             crawlContext.init(this);
 
             // Start the cluster admin server
-            if (!crawlContext.getCrawlConfig().isClusterAdminDisabled()) {
+            if (!clusterConfig.isAdminDisabled()) {
                 adminServer = new ClusterAdminServer(this);
                 adminServer.start();
             } else {
@@ -242,7 +246,7 @@ public class CrawlSession implements Closeable {
         });
 
         if (cluster.getLocalNode() != null) {
-            String nodeName = cluster.getLocalNode().getNodeName();
+            var nodeName = cluster.getLocalNode().getNodeName();
             if (nodeName != null) {
                 SESSIONS.remove(nodeName);
             }
@@ -387,7 +391,7 @@ public class CrawlSession implements Closeable {
     }
 
     private void oncePerCache(
-            Cache<String> cache, String taskId, Runnable runnable) {
+            CacheMap<String> cache, String taskId, Runnable runnable) {
         var key = "once-" + taskId;
         cache.computeIfAbsent(key, k -> {
             runnable.run();
@@ -397,7 +401,7 @@ public class CrawlSession implements Closeable {
 
     @SuppressWarnings("unchecked")
     private <T> T oncePerCacheAndGet(
-            Cache<String> cache, String taskId, Supplier<T> supplier) {
+            CacheMap<String> cache, String taskId, Supplier<T> supplier) {
         var key = "once-get-" + taskId;
         var stored = cache.computeIfAbsent(key, k -> {
             var value = supplier.get();

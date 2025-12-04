@@ -28,8 +28,8 @@ import org.apache.commons.lang3.mutable.MutableLong;
 
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.cluster.Cache;
-import com.norconex.crawler.core.cluster.CacheException;
+import com.norconex.crawler.core.cluster.CacheMap;
+import com.norconex.crawler.core.cluster.ClusterException;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.util.SerialUtil;
@@ -62,7 +62,7 @@ public class StoreExportCommand implements Command {
             try {
                 exportAllStores(session);
             } catch (Exception e) {
-                throw new CacheException(
+                throw new ClusterException(
                         "A problem occured while exporting crawler caches.", e);
             }
             session.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_END, this);
@@ -107,7 +107,7 @@ public class StoreExportCommand implements Command {
     private void exportOneStore(
             CrawlSession session,
             String name,
-            Cache<?> cache,
+            CacheMap<?> cache,
             OutputStream out
     //            ,
     //            Class<?> type

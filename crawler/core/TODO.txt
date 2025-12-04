@@ -1,6 +1,9 @@
 TODO:
 ==============
 
+- Recreate queue from map on startup.
+
+
 - For compute and pipeline, make everything runnable not returning any value
   or make them return a value even if they are not the one that ran the job.
   Involve serialization so the first option is likely the best.

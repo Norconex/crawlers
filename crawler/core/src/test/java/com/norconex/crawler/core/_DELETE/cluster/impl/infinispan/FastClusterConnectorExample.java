@@ -101,7 +101,7 @@ class FastClusterConnectorExample {
         public void accept(CrawlConfig config) {
             var fastTests = System.getenv("FAST_TESTS");
             if ("true".equalsIgnoreCase(fastTests)) {
-                config.setClusterConnector(
+                config.getClusterConfig().setConnector(
                         new FastLocalInfinispanClusterConnector());
             }
         }

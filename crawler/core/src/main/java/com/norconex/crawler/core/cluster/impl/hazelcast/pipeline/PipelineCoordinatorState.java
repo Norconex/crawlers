@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cluster.impl.hazelcast;
+package com.norconex.crawler.core.cluster.impl.hazelcast.pipeline;
 
 import static java.util.Optional.ofNullable;
 
@@ -28,7 +28,11 @@ import org.apache.commons.collections4.bag.HashBag;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.Sleeper;
-import com.norconex.crawler.core.cluster.Cache;
+import com.norconex.crawler.core.cluster.CacheMap;
+import com.norconex.crawler.core.cluster.impl.hazelcast.CacheKeys;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastCluster;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastUtil;
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListener;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
@@ -51,8 +55,8 @@ public class PipelineCoordinatorState implements AutoCloseable {
     private final String pipelineKey; // sessionId:pipelineId
 
     // Caches
-    private final Cache<StepRecord> pipelineStepCache;
-    private final Cache<StepRecord> workerStatusCache;
+    private final CacheMap<StepRecord> pipelineStepCache;
+    private final CacheMap<StepRecord> workerStatusCache;
 
     // Flags
     @Getter
@@ -344,7 +348,7 @@ public class PipelineCoordinatorState implements AutoCloseable {
 
     private void initNodeExpiryTimeout() {
         var connector = session.getCrawlContext().getCrawlConfig()
-                .getClusterConnector();
+                .getClusterConfig().getConnector();
         if (connector instanceof HazelcastClusterConnector conn) {
             var configured = ofNullable(
                     conn.getConfiguration().getNodeExpiryTimeout())

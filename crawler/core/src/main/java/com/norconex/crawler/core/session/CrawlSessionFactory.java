@@ -33,7 +33,7 @@ public final class CrawlSessionFactory {
 
     public static CrawlSession create(
             CrawlDriver crawlDriver, CrawlConfig crawlConfig) {
-        var cluster = crawlConfig.getClusterConnector().connect();
+        var cluster = crawlConfig.getClusterConfig().getConnector().connect();
         var ctx = CrawlContextFactory.builder() //NOSONAR
                 .config(crawlConfig)
                 .driver(crawlDriver)

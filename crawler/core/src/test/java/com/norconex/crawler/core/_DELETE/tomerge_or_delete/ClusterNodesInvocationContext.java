@@ -21,7 +21,6 @@ import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core._DELETE.ClusterTestUtil;
 import com.norconex.crawler.core.cluster.CacheManager;
 import com.norconex.crawler.core.cluster.Cluster;
-import com.norconex.crawler.core.cluster.ClusterConnector;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionFactory;
@@ -100,8 +99,7 @@ class ClusterNodesInvocationContext implements TestTemplateInvocationContext {
             var cfg = new CrawlConfig();
             cfg.setId(sharedCrawlerId); // unified id across nodes
             cfg.setWorkDir(workDir);
-            ClusterConnector connector =
-                    ann.connector().getDeclaredConstructor().newInstance();
+            ann.connector().getDeclaredConstructor().newInstance();
             //            if (connector instanceof InfinispanClusterConnector ic) {
             //                var builderHolder = InfinispanUtil.configBuilderHolder(
             //                        ann.infinispanConfig());
@@ -110,7 +108,7 @@ class ClusterNodesInvocationContext implements TestTemplateInvocationContext {
             //                        .setNodeExpiryTimeout(Duration
             //                                .ofMillis(ann.infinispanNodeExpiryTimeout()));
             //            }
-            cfg.setClusterConnector(connector);
+            //    cfg.setClusterConnector(connector);
             return CrawlSessionFactory.create(driverFactory.get(), cfg);
         } catch (Exception e) {
             throw new RuntimeException("Could not create session", e);

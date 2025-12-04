@@ -24,7 +24,7 @@ import java.util.function.Supplier;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core._DELETE.ClusterTestUtil;
-import com.norconex.crawler.core.cluster.Cache;
+import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 
@@ -80,7 +80,7 @@ public final class PipelineTestUtil {
                 Duration.ofMillis(150));
     }
 
-    public static long countCacheKeysWithPrefix(Cache<String> cache,
+    public static long countCacheKeysWithPrefix(CacheMap<String> cache,
             String prefix) {
         final long[] cnt = { 0 };
         cache.forEach((k, v) -> {

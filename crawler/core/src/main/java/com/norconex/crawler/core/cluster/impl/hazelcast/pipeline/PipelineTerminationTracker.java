@@ -12,9 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cluster.impl.hazelcast;
+package com.norconex.crawler.core.cluster.impl.hazelcast.pipeline;
 
 import com.norconex.commons.lang.Sleeper;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastCluster;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastUtil;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineResult;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;

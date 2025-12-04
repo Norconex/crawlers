@@ -157,12 +157,13 @@ public final class CrawlerConfigStubber {
      */
     public static CrawlConfig toMemoryCrawlerConfig(
             Path workDir, CrawlConfig cfg) {
-        return cfg.setId(CRAWLER_ID)
+        cfg.setId(CRAWLER_ID)
                 // Some tests define this so we can't set it as default here.
                 //                .setNumThreads(1)
                 .setWorkDir(workDir)
-                .setClusterConnector(new MockSingleNodeConnector())
                 .setCommitters(List.of(new MemoryCommitter()));
+        cfg.getClusterConfig().setConnector(new MockSingleNodeConnector());
+        return cfg;
     }
 
     public static CrawlConfig randomMemoryCrawlerConfig(Path workDir) {

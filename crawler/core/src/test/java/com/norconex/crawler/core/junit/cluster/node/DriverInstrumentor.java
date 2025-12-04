@@ -92,9 +92,6 @@ final class DriverInstrumentor {
             if (captures.isEvents()) {
                 cfg.addEventListener(new EventsCapturer());
             }
-
-            // Make sure each nodes have a unique port for the admin server
-            cfg.setClusterAdminPort(0);
         };
     }
 

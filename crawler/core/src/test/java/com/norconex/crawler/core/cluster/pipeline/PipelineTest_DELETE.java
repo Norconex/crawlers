@@ -43,7 +43,7 @@ import com.norconex.crawler.core._DELETE.junit.cluster_old.node.CrawlerNode;
 import com.norconex.crawler.core._DELETE.junit.cluster_old.node.NodeExecutionResult;
 import com.norconex.crawler.core._DELETE.tomerge_or_delete.ClusterNodesTest;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
-import com.norconex.crawler.core.cluster.Cache;
+import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.junit.cluster.node.CaptureFlags;
@@ -348,7 +348,7 @@ class PipelineTest_DELETE {
             }
         }));
 
-        Cache<String> cache;
+        CacheMap<String> cache;
 
         try (var session1 = CrawlSessionStubber
                 .multiNodesCrawlSession(tempDir.resolve("node1"))) {

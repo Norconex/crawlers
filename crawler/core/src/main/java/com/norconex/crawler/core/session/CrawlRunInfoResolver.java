@@ -30,8 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class CrawlRunInfoResolver {
 
-    private static final String CRAWL_RUN_ID_KEY = "crawlRunId";
-    private static final String CRAWL_RUN_INFO_KEY = "crawlRunInfo";
+    public static final String CRAWL_RUN_ID_KEY = "crawlRunId";
+    public static final String CRAWL_RUN_INFO_KEY = "crawlRunInfo";
 
     private CrawlRunInfoResolver() {
     }
@@ -57,8 +57,11 @@ public final class CrawlRunInfoResolver {
 
         // Try to derive next CrawlRunInfo based on prior persisted state
         var prior = load(session).orElse(null);
+        System.err.println("XXX PRIOR RUN: " + prior);
         final CrawlRunInfo info;
         if (prior == null) {
+            LOG.info("No active or previous crawl session detected, "
+                    + "starting a new one.");
             info = newInfoForNewSession(session, runId);
         } else if (Objects.equals(prior.getCrawlRunId(), runId)) {
             LOG.info("Found an active crawl session. Joining it.");

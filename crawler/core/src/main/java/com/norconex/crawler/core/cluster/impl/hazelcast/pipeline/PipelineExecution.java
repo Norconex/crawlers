@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cluster.impl.hazelcast;
+package com.norconex.crawler.core.cluster.impl.hazelcast.pipeline;
 
 import static java.util.Optional.ofNullable;
 
@@ -23,6 +23,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastCluster;
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CoordinatorChangeListener;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineException;

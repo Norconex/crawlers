@@ -33,7 +33,7 @@ public final class CrawlSessionStubber {
     public static CrawlSession multiNodesCrawlSession(
             Path workDir, Consumer<CrawlConfig> configModifier) {
         var config = CrawlerConfigStubber.memoryCrawlerConfig(workDir);
-        config.setClusterConnector(
+        config.getClusterConfig().setConnector(
                 ClusterStubber.multiMemoryNodesClusterConnector());
         if (configModifier != null) {
             configModifier.accept(config);
@@ -47,7 +47,7 @@ public final class CrawlSessionStubber {
     // then delete this one and corredponding config:
     public static CrawlSession singleNodeCrawlSession(Path workDir) {
         var config = CrawlerConfigStubber.memoryCrawlerConfig(workDir);
-        config.setClusterConnector(
+        config.getClusterConfig().setConnector(
                 ClusterStubber.singleMemoryNodeClusterConnector());
         return CrawlSessionFactory.create(
                 TestCrawlDriverFactory.create(),

@@ -536,7 +536,8 @@ class CliCrawlerLauncherTest {
                 .args(List.of(cmdArgs))
                 .workDir(workDir)
                 .logErrors(true)
-                .configModifier(cfg -> cfg.setClusterConnector(conn))
+                .configModifier(
+                        cfg -> cfg.getClusterConfig().setConnector(conn))
                 .build()
                 .launch();
     }

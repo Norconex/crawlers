@@ -61,7 +61,7 @@ public class CrawlerNode {
     private final CaptureFlags captures = new CaptureFlags();
 
     public Process launch(String nodeName, Path nodeWorkDir, Path configFile) {
-        var captures = this.captures;
+        var caps = this.captures;
         var jvm = JvmProcess.builder()
                 .mainClass(CrawlerNode.class)
                 .workDir(nodeWorkDir)
@@ -69,8 +69,8 @@ public class CrawlerNode {
         applyDebugMode(jvm);
         applyLogLevels(jvm);
         applyJvmArgs(jvm, nodeName, nodeWorkDir, configFile);
-        if (captures.isEvents() || captures.isCaches()) {
-            jvm.jvmArg(captures.asJvmSysProp());
+        if (caps.isEvents() || caps.isCaches()) {
+            jvm.jvmArg(caps.asJvmSysProp());
         }
         // Let JvmProcess redirect stdout/stderr to log files. Do not attach
         // StreamCapturer to stdout/stderr anymore to avoid storing logs in H2

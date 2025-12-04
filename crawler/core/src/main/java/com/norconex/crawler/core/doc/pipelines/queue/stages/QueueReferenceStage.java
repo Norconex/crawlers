@@ -29,21 +29,17 @@ import lombok.extern.slf4j.Slf4j;
 public class QueueReferenceStage implements Predicate<QueuePipelineContext> {
 
     @Override
-    public boolean test(QueuePipelineContext ctx) {
+    public boolean test(QueuePipelineContext ctx) { //NOSONAR
         //TODO document and make sure it cannot be blank and remove this check?
         var ref = ctx.getCrawlEntry().getReference();
         if (StringUtils.isBlank(ref)) {
             return true;
         }
 
-        var ledger =
-                ctx.getCrawlSession().getCrawlContext().getCrawlEntryLedger();
-        if (ledger.exists(ref)) {
-            LOG.debug("Reference already accounted for: {}", ref);
-        } else {
-            ledger.queue(ctx.getCrawlEntry());
-            LOG.debug("Queued for processing: {}", ref);
-        }
+        ctx.getCrawlSession()
+                .getCrawlContext()
+                .getCrawlEntryLedger()
+                .queue(ctx.getCrawlEntry());
         return true;
     }
 }

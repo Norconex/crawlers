@@ -18,26 +18,22 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.hazelcast.cluster.Member;
 import com.hazelcast.cluster.MembershipEvent;
 import com.hazelcast.cluster.MembershipListener;
-import com.hazelcast.config.Config;
-import com.hazelcast.config.IndexConfig;
-import com.hazelcast.config.IndexType;
-import com.hazelcast.config.MapConfig;
-import com.hazelcast.config.MapStoreConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CoordinatorChangeListener;
+import com.norconex.crawler.core.cluster.impl.hazelcast.pipeline.HazelcastPipelineManager;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 
-import de.huxhorn.sulky.ulid.ULID;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +58,7 @@ public class HazelcastCluster implements Cluster {
     private final HazelcastClusterConfig configuration;
     private HazelcastInstance hazelcastInstance;
     private UUID membershipListenerId;
+    private boolean clustered;
 
     public String getCrawlerId() {
         return getCrawlSession().getCrawlerId();
@@ -72,41 +69,26 @@ public class HazelcastCluster implements Cluster {
     }
 
     @Override
-    public void init(Path workDir) {
+    public void init(Path workDir, boolean clustered) {
         this.workDir = workDir;
+        this.clustered = clustered;
         LOG.info("HazelcastCluster.init(workDir={})", workDir);
 
-        // Suppress Hazelcast logo in logs
-        //System.setProperty("hazelcast.logging.logo.enabled", "false");
+        // Set persistence directory for Hazelcast YAML config
+        System.setProperty("hazelcast.persistence.dir",
+                workDir.resolve("cache/rocksdb").normalize().toString());
 
-        // Generate unique node name
-        var uniqueNodeName = new ULID().nextULID();
-        LOG.info("HazelcastCluster node ULID: {}", uniqueNodeName);
-
-        // Build Hazelcast configuration
-        var hazelcastConfig = buildConfig(workDir, uniqueNodeName);
-
-        // Configure persistence directory if enabled
-        if (configuration.isPersistenceEnabled()
-                && configuration
-                        .getPreset() != HazelcastClusterConfig.Preset.STANDALONE_MEMORY) {
-            var persistenceDir =
-                    workDir.resolve("cache/rocksdb/" + uniqueNodeName)
-                            .normalize();
-            LOG.info("Hazelcast persistence directory: {}", persistenceDir);
-            // Use RocksDBMapStore for persistent maps
-            var ledgerConfig = new MapConfig("ledger_*")
-                    .setBackupCount(configuration.getBackupCount());
-            var mapStoreConfig = new MapStoreConfig()
-                    .setEnabled(true)
-                    .setClassName(
-                            "com.hazelcast.mapstore.rocksdb.RocksDBMapStore")
-                    .setProperty("database.dir", persistenceDir.toString());
-            ledgerConfig.setMapStoreConfig(mapStoreConfig);
-            hazelcastConfig.addMapConfig(ledgerConfig);
-        }
+        var hazelcastConfig =
+                HazelcastConfigLoader.load(configuration, clustered);
 
         try {
+
+            hazelcastConfig.setProperty("hazelcast.logging.type", "slf4j");
+
+            if (StringUtils.isNotBlank(configuration.getClusterName())) {
+                hazelcastConfig.setClusterName(configuration.getClusterName());
+            }
+
             LOG.info("Creating HazelcastInstance with cluster name: {}",
                     hazelcastConfig.getClusterName());
             hazelcastInstance = Hazelcast.newHazelcastInstance(hazelcastConfig);
@@ -115,13 +97,17 @@ public class HazelcastCluster implements Cluster {
             membershipListenerId = hazelcastInstance.getCluster()
                     .addMembershipListener(new ClusterMembershipListener());
 
-            var standalone =
-                    configuration.getPreset().isStandalone();
             cacheManager = new HazelcastCacheManager(hazelcastInstance);
-            localNode = new HazelcastClusterNode(hazelcastInstance, standalone);
+            localNode = new HazelcastClusterNode(hazelcastInstance,
+                    !clustered);
             pipelineManager = new HazelcastPipelineManager(this);
 
             stopController = new CacheStopController(this);
+
+            //            // Set instance name
+            //       hazelcastConfig.setInstanceName(nodeName);
+            //
+            //
 
             LOG.info("HazelcastCluster initialized on node: {}",
                     localNode.getNodeName() != null ? localNode.getNodeName()
@@ -154,16 +140,6 @@ public class HazelcastCluster implements Cluster {
         coordinatorListeners.remove(listener);
     }
 
-    private void checkCoordinatorStatus() {
-        var isCoordinator = localNode.isCoordinator();
-        if (isCoordinator != lastCoordinatorState) {
-            lastCoordinatorState = isCoordinator;
-            for (CoordinatorChangeListener l : coordinatorListeners) {
-                l.onCoordinatorChange(isCoordinator);
-            }
-        }
-    }
-
     @Override
     public void stop() {
         if (stopController != null) {
@@ -194,6 +170,9 @@ public class HazelcastCluster implements Cluster {
 
         } catch (Exception e) {
             LOG.warn("Error during initial cleanup", e);
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
         }
 
         LOG.info("Closing local node...");
@@ -222,17 +201,21 @@ public class HazelcastCluster implements Cluster {
         return hazelcastInstance.getCluster().getMembers().stream()
                 .map(Member::getUuid)
                 .map(UUID::toString)
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    @Override
     public boolean isStandalone() {
-        return configuration.getPreset().isStandalone();
+        return !isClustered();
+    }
+
+    public boolean isClustered() {
+        return clustered;
     }
 
     //--- Private methods ------------------------------------------------------
+    /*
 
-    private Config buildConfig(Path workDir, String nodeName) {
+    private Config buildConfig(String nodeName) {
         var config = new Config();
         config.setProperty("hazelcast.logging.type", "slf4j");
 
@@ -264,19 +247,19 @@ public class HazelcastCluster implements Cluster {
 
             // Add index on processingStatus for efficient queries
             mapConfig.addIndexConfig(new IndexConfig(
-                    IndexType.HASH, "processingStatus"));
+                    IndexType.HASH, CrawlEntry.Fields.processingStatus));
 
             // Add sorted index on queuedAt for ordering
-            mapConfig.addIndexConfig(new IndexConfig(
-                    IndexType.SORTED, "queuedAt"));
+            //            mapConfig.addIndexConfig(new IndexConfig(
+            //                    IndexType.SORTED, CrawlEntry.Fields.queuedAt));
 
             config.addMapConfig(mapConfig);
         }
 
         // Counters map
-        var countersConfig = new MapConfig(CacheNames.COUNTERS);
-        countersConfig.setBackupCount(configuration.getBackupCount());
-        config.addMapConfig(countersConfig);
+        //        var countersConfig = new MapConfig(CacheNames.COUNTERS);
+        //        countersConfig.setBackupCount(configuration.getBackupCount());
+        //        config.addMapConfig(countersConfig);
     }
 
     private void configurePipelineMaps(Config config) {
@@ -299,6 +282,7 @@ public class HazelcastCluster implements Cluster {
         config.addMapConfig(adminConfig);
     }
 
+    */
     //--- Inner classes --------------------------------------------------------
 
     private class ClusterMembershipListener implements MembershipListener {
@@ -316,6 +300,16 @@ public class HazelcastCluster implements Cluster {
                     membershipEvent.getMember().getUuid());
             Sleeper.sleepMillis(100); // Allow state to settle
             checkCoordinatorStatus();
+        }
+
+        private void checkCoordinatorStatus() {
+            var isCoordinator = localNode.isCoordinator();
+            if (isCoordinator != lastCoordinatorState) {
+                lastCoordinatorState = isCoordinator;
+                for (CoordinatorChangeListener l : coordinatorListeners) {
+                    l.onCoordinatorChange(isCoordinator);
+                }
+            }
         }
     }
 }

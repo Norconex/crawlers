@@ -87,7 +87,7 @@ final class CrawlDriverInstrumentor {
             cfg.setWorkDir(nodeWorkDir);
             // defaults to cluster with persistence if no connector
             // specified
-            if (cfg.getClusterConnector() == null) {
+            if (cfg.getClusterConfig().getConnector() == null) {
                 //                cfg.setClusterConnector(
                 //                        new TestClusterConnector.ClusterWithPersistence());
             }

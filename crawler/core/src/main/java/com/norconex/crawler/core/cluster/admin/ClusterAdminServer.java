@@ -15,14 +15,15 @@
 package com.norconex.crawler.core.cluster.admin;
 
 import java.io.IOException;
+import java.net.BindException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cluster.Cluster;
+import com.norconex.crawler.core.cluster.ClusterConfig;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -53,12 +54,12 @@ public class ClusterAdminServer {
 
     /**
      * Starts the HTTP server on an available port starting from
-     * {@value CrawlConfig#DEFAULT_CLUSTER_PORT}.
+     * {@value ClusterConfig#DEFAULT_ADMIN_PORT}.
      * @return the server port
      */
     public int start() {
         var config = session.getCrawlContext().getCrawlConfig();
-        var basePort = config.getClusterAdminPort();
+        var basePort = config.getClusterConfig().getAdminPort();
         if (basePort == 0) {
             try {
                 return startHttpServer(0);
@@ -74,7 +75,7 @@ public class ClusterAdminServer {
             try {
                 return startHttpServer(port);
             } catch (IOException e) {
-                if (e instanceof java.net.BindException) {
+                if (e instanceof BindException) {
                     LOG.warn("Port {} is taken after findAvailablePort, "
                             + "trying next...", port);
                     port++;

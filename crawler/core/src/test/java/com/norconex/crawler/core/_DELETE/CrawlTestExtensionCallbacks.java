@@ -89,7 +89,7 @@ public class CrawlTestExtensionCallbacks implements
         LOG.info("Creating cluster: {}", clusterClass);
         ClusterConnector conn = clusterClass.getDeclaredConstructor()
                 .newInstance();
-        crawlConfig.setClusterConnector(conn);
+        crawlConfig.getClusterConfig().setConnector(conn);
 
         // apply custom config from text
         if (StringUtils.isNotBlank(annotation.config())) {

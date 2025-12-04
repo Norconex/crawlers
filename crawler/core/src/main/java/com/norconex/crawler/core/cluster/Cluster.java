@@ -40,7 +40,7 @@ public interface Cluster extends Closeable {
 
     PipelineManager getPipelineManager();
 
-    void init(Path crawlerWorkDir);
+    void init(Path crawlerWorkDir, boolean isClustered);
 
     /**
      * Starts monitoring for stop signals. Should only be called by commands
@@ -54,18 +54,18 @@ public interface Cluster extends Closeable {
      */
     void stop();
 
-    /**
-     * Checks if the cluster is configured in standalone (non-clustered)
-     * mode.
-     * <p>
-     * Use this when you need to know the intended clustering mode from
-     * configuration, not the current runtime state. For example, to avoid
-     * waiting for cluster stabilization in standalone mode or other
-     * node synchronization activities.
-     * </p>
-     * @return true if configured for standalone mode
-     */
-    boolean isStandalone();
+    //    /**
+    //     * Checks if the cluster is configured in standalone (non-clustered)
+    //     * mode.
+    //     * <p>
+    //     * Use this when you need to know the intended clustering mode from
+    //     * configuration, not the current runtime state. For example, to avoid
+    //     * waiting for cluster stabilization in standalone mode or other
+    //     * node synchronization activities.
+    //     * </p>
+    //     * @return true if configured for standalone mode
+    //     */
+    //    boolean isStandalone();
 
     @Override
     void close();

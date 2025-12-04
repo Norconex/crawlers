@@ -14,20 +14,15 @@
  */
 package com.norconex.crawler.core.ledger;
 
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import com.norconex.commons.lang.bean.BeanUtil;
-import com.norconex.crawler.core.cluster.Cache;
 import com.norconex.crawler.core.cluster.CacheManager;
+import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.cluster.CacheQueue;
+import com.norconex.crawler.core.cluster.QueryFilter;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
 
@@ -67,17 +62,68 @@ public final class CrawlEntryLedger {
 
     // we use aliases for previous and current ledgers as we can't assume
     // we can physically rename them and copying data over could be
-    // too inefficient. The "indexed" suffix is used by cache configuration.
+    // too inefficient.
     private static final String LEDGER_A = "ledger_a";
     private static final String LEDGER_B = "ledger_b";
 
-    private Cache<CrawlEntry> currentLedger;
-    private Cache<CrawlEntry> baselineLedger;
-    private CacheQueue<CrawlEntry> queue;
+    private CacheMap<CrawlEntry> currentLedger;
+    private CacheMap<CrawlEntry> baselineLedger;
+    private CacheQueue<String> queue; // Non-persistent, stores references
     private long totalMaxDocsThisRun;
 
     private CacheManager cacheManager;
     private CrawlSession session;
+
+    /**
+     * Gets the current active ledger by reading the alias from session cache.
+     * This ensures all cluster nodes use the same ledger after coordinator
+     * rotation, even if they initialized before the rotation occurred.
+     * Lazily initializes on first access - happens after bootstrap completes.
+     */
+    private CacheMap<CrawlEntry> getCurrentLedger() {
+        if (currentLedger == null) {
+            var sessionCache = cacheManager.getCrawlSessionCache();
+            var currentAlias = sessionCache.get(CURRENT_LEDGER_ALIAS_KEY)
+                    .orElse(LEDGER_A);
+            currentLedger = cacheManager.getCache(
+                    currentAlias, CrawlEntry.class);
+            LOG.debug("Lazy-initialized current ledger to: {}", currentAlias);
+        }
+        return currentLedger;
+    }
+
+    /**
+     * Gets the baseline (previous) ledger for delta detection.
+     * Lazily initializes on first access.
+     */
+    private CacheMap<CrawlEntry> getBaselineLedger() {
+        if (baselineLedger == null) {
+            var sessionCache = cacheManager.getCrawlSessionCache();
+            var currentAlias = sessionCache.get(CURRENT_LEDGER_ALIAS_KEY)
+                    .orElse(LEDGER_A);
+            var previousAlias = LEDGER_A.equals(currentAlias)
+                    ? LEDGER_B
+                    : LEDGER_A;
+            baselineLedger = cacheManager.cacheExists(previousAlias)
+                    ? cacheManager.getCache(previousAlias, CrawlEntry.class)
+                    : null;
+            LOG.debug("Lazy-initialized baseline ledger to: {}",
+                    previousAlias);
+        }
+        return baselineLedger;
+    }
+
+    /**
+     * Ensures the current ledger alias exists in session cache.
+     * Sets default (LEDGER_A) if not present. This should be called
+     * by the coordinator before any ledger rotation to establish the
+     * initial state for all cluster nodes.
+     */
+    public void ensureCurrentLedgerAliasExists() {
+        var sessionCache = cacheManager.getCrawlSessionCache();
+        sessionCache.computeIfAbsent(CURRENT_LEDGER_ALIAS_KEY,
+                k -> LEDGER_A);
+    }
 
     public void init(CrawlSession session) {
         LOG.info("Initializing crawl entry ledger...");
@@ -85,34 +131,11 @@ public final class CrawlEntryLedger {
         cacheManager = session.getCluster().getCacheManager();
 
         // Caches:
-        // Avoid lambda in computeIfAbsent to prevent serialization issues
-        // in distributed cache replication
-        var sessionCache = cacheManager.getCrawlSessionCache();
-        var currentAlias = sessionCache.get(CURRENT_LEDGER_ALIAS_KEY)
-                .orElseGet(() -> {
-                    sessionCache.put(CURRENT_LEDGER_ALIAS_KEY, LEDGER_A);
-                    return LEDGER_A;
-                });
-        var previousAlias = LEDGER_A.equals(currentAlias)
-                ? LEDGER_B
-                : LEDGER_A;
-        //        currentLedger = new CrawlEntryCacheAdapter(cacheManager.getCache(
-        //                currentAlias, CrawlEntryProtoAdapter.class));
-        //        previousLedger = cacheManager.cacheExists(previousAlias)
-        //                ? new CrawlEntryCacheAdapter(cacheManager
-        //                        .getCache(previousAlias, CrawlEntryProtoAdapter.class))
-        //                : null;
-        currentLedger = cacheManager.getCache(
-                currentAlias, CrawlEntry.class);
-        baselineLedger = cacheManager.cacheExists(previousAlias)
-                ? cacheManager.getCache(previousAlias, CrawlEntry.class)
-                : null;
-        queue = cacheManager.getQueue("crawlQueue", CrawlEntry.class);
-
-        // If this is a fresh run, initialize counters based on current cache content
-        if (!session.isResumed()) {
-            initializeStatusCounters();
-        }
+        // currentLedger and baselineLedger are lazily initialized on first
+        // access to ensure they reference the correct ledger after bootstrap
+        // rotation completes (coordinator rotates ledgers during bootstrap,
+        // but workers shouldn't cache the reference until after rotation)
+        queue = cacheManager.getQueue("crawlQueue", String.class);
 
         // Max docs
         long runMaxDocs =
@@ -120,12 +143,9 @@ public final class CrawlEntryLedger {
         totalMaxDocsThisRun = runMaxDocs;
         var resumed = session.isResumed();
         if (resumed && runMaxDocs > -1) {
-            totalMaxDocsThisRun +=
-                    currentLedger.count(
-                            "FROM %s WHERE processingStatus = '%s'"
-                                    .formatted(
-                                            CrawlEntry.class.getName(),
-                                            ProcessingStatus.PROCESSED.name()));
+            var current = getCurrentLedger();
+            totalMaxDocsThisRun += current.count(
+                    statusQueryFilter(ProcessingStatus.PROCESSED));
             LOG.info("""
                     An additional maximum of {} processed documents is
                     added to this resumed session, for a maximum total of {}.
@@ -137,20 +157,22 @@ public final class CrawlEntryLedger {
     }
 
     /**
-     * Initialize status counters by querying the cache.
-     * This is only needed for the first run to establish baseline counts.
+     * Reconstructs the queue from QUEUED entries in the ledger.
+     * This should be called by the bootstrapper when resuming a crawl.
      */
-    private void initializeStatusCounters() {
-        LOG.info("Initializing status counters...");
-        for (ProcessingStatus status : ProcessingStatus.values()) {
-            var count = currentLedger.count(
-                    "FROM %s WHERE processingStatus = '%s'"
-                            .formatted(
-                                    CrawlEntry.class.getName(),
-                                    status.name()));
-            LOG.debug("Status counter for {} initialized to {}", status, count);
+    public void reconstructQueueFromLedger() {
+        LOG.info("Reconstructing queue from ledger...");
+        queue.clear(); // Ensure queue is empty before reconstruction
+        var current = getCurrentLedger();
+        var queuedEntries = current.queryIterator(
+                statusQueryFilter(ProcessingStatus.QUEUED));
+        var count = 0;
+        while (queuedEntries.hasNext()) {
+            var entry = queuedEntries.next();
+            queue.add(entry.getReference());
+            count++;
         }
-        LOG.info("Status counters initialized.");
+        LOG.info("Reconstructed queue with {} entries.", count);
     }
 
     /**
@@ -160,11 +182,9 @@ public final class CrawlEntryLedger {
      */
     public Optional<CrawlEntry> updateEntry(CrawlEntry entry) {
         var reference = entry.getReference();
-        ProcessingStatus newStatus = entry.getProcessingStatus();
-
-        var previous = currentLedger.get(reference);
-        currentLedger.put(reference, entry);
-
+        var current = getCurrentLedger();
+        var previous = current.get(reference);
+        current.put(reference, entry);
         return previous;
     }
 
@@ -174,10 +194,11 @@ public final class CrawlEntryLedger {
      * @return the removed entry if it existed
      */
     public Optional<CrawlEntry> removeEntry(String reference) {
-        var entry = currentLedger.get(reference);
+        var current = getCurrentLedger();
+        var entry = current.get(reference);
         if (entry.isPresent()) {
-            ProcessingStatus status = entry.get().getProcessingStatus();
-            currentLedger.remove(reference);
+            entry.get().getProcessingStatus();
+            current.remove(reference);
         }
         return entry;
     }
@@ -188,7 +209,7 @@ public final class CrawlEntryLedger {
      * @return {@code true} if existing
      */
     public boolean exists(String ref) {
-        return currentLedger.containsKey(ref);
+        return getCurrentLedger().containsKey(ref);
     }
 
     /**
@@ -198,7 +219,7 @@ public final class CrawlEntryLedger {
      * @return the processing status
      */
     public ProcessingStatus getProcessingStatus(String ref) {
-        return currentLedger.get(ref)
+        return getCurrentLedger().get(ref)
                 .map(CrawlEntry::getProcessingStatus)
                 .orElse(ProcessingStatus.UNTRACKED);
     }
@@ -206,18 +227,16 @@ public final class CrawlEntryLedger {
     //--- Queue ---
 
     public boolean isQueueEmpty() {
-        return getQueueCount() == 0;
+        return queue.isEmpty();
     }
 
     public long getQueueCount() {
-        return currentLedger.count(
-                "FROM %s WHERE processingStatus = '%s'"
-                        .formatted(CrawlEntry.class.getName(),
-                                ProcessingStatus.QUEUED.name()));
+        return queue.size();
     }
 
     public void clearQueue() {
-        currentLedger.delete(fromWhereStatusQuery(ProcessingStatus.QUEUED));
+        queue.clear();
+        getCurrentLedger().delete(statusQueryFilter(ProcessingStatus.QUEUED));
     }
 
     public void forEachQueued(Consumer<CrawlEntry> c) {
@@ -225,9 +244,20 @@ public final class CrawlEntryLedger {
     }
 
     public void queue(@NonNull CrawlEntry crawlEntry) {
+        var current = getCurrentLedger();
+        if (current.containsKey(crawlEntry.getReference())) {
+            LOG.debug("Reference already accounted for: {}",
+                    crawlEntry.getReference());
+            return;
+        }
+
+        // Store the full entry in the ledger and only the reference
+        // in the queue
         crawlEntry.setProcessingStatus(ProcessingStatus.QUEUED);
-        queue.add(crawlEntry);
-        LOG.debug("Saved queued: {}", crawlEntry.getReference());
+        current.put(crawlEntry.getReference(), crawlEntry);
+        queue.add(crawlEntry.getReference());
+        LOG.debug("Queued for processing: {}", crawlEntry.getReference());
+
         session.fire(CrawlerEvent.builder()
                 .name(CrawlerEvent.DOCUMENT_QUEUED)
                 .source(session)
@@ -237,40 +267,61 @@ public final class CrawlEntryLedger {
 
     public List<CrawlEntry> nextQueuedBatch(int batchSize) {
         var nodeName = session.getCluster().getLocalNode().getNodeName();
-        LOG.trace(
-                "[{}] CrawlEntryLedger.nextQueuedBatch(batchSize={}) called. queuedCount={}.",
-                nodeName, batchSize,
-                currentLedger.count(
-                        "FROM %s WHERE processingStatus = '%s'"
-                                .formatted(CrawlEntry.class.getName(),
-                                        ProcessingStatus.QUEUED.name())));
-        List<CrawlEntry> batch = queue.pollBatch(batchSize);
-        for (CrawlEntry entry : batch) {
-            entry.setProcessingStatus(ProcessingStatus.PROCESSING);
+
+        // Always get the current ledger dynamically to ensure we're using
+        // the same ledger as the coordinator, even if it rotated after
+        // this worker node initialized
+        var activeLedger = getCurrentLedger();
+
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("[{}] CrawlEntryLedger.nextQueuedBatch(batchSize={}) "
+                    + "called. queuedCount={}.",
+                    nodeName, batchSize, activeLedger.count(
+                            statusQueryFilter(ProcessingStatus.QUEUED)));
         }
-        LOG.trace("[{}] CrawlEntryLedger.nextQueuedBatch returning {} entries.",
-                nodeName, batch.size());
+
+        // Poll references from queue
+        var references = queue.pollBatch(batchSize);
+        var batch = new java.util.ArrayList<CrawlEntry>(references.size());
+
+        // For each reference, fetch and update the entry in the ledger
+        for (String reference : references) {
+            var entryOpt = activeLedger.get(reference);
+            if (entryOpt.isPresent()) {
+                var entry = entryOpt.get();
+                // Update status to PROCESSING
+                entry.setProcessingStatus(ProcessingStatus.PROCESSING);
+                activeLedger.put(reference, entry);
+                batch.add(entry);
+            } else {
+                LOG.warn("[{}] Reference {} polled from queue but not "
+                        + "found in ledger.", nodeName, reference);
+            }
+        }
+
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("[{}] CrawlEntryLedger.nextQueuedBatch returning "
+                    + "{} entries.", nodeName, batch.size());
+        }
         return batch;
     }
 
-    public Optional<CrawlEntry> nextQueued() {
-        var query = fromWhereStatusQuery(ProcessingStatus.QUEUED);
-        var queuedEntries = currentLedger.queryIterator(query);
-        if (!queuedEntries.hasNext()) {
-            return Optional.empty();
-        }
-        var entry = queuedEntries.next();
-        var reference = entry.getReference();
-        return claimQueuedEntry(reference);
-    }
+    //    public Optional<CrawlEntry> nextQueued() {
+    //        var query = statusQueryFilter(ProcessingStatus.QUEUED);
+    //        var queuedEntries = currentLedger.queryIterator(query);
+    //        if (!queuedEntries.hasNext()) {
+    //            return Optional.empty();
+    //        }
+    //        var entry = queuedEntries.next();
+    //        var reference = entry.getReference();
+    //        return claimQueuedEntry(reference);
+    //    }
 
     //--- Processing ---
 
     public long getProcessingCount() {
-        return currentLedger.count(
-                "FROM %s WHERE processingStatus = '%s'"
-                        .formatted(CrawlEntry.class.getName(),
-                                ProcessingStatus.PROCESSING.name()));
+        return getCurrentLedger().count(
+                statusQueryFilter(ProcessingStatus.PROCESSING));
     }
 
     public boolean isProcessingEmpty() {
@@ -283,18 +334,16 @@ public final class CrawlEntryLedger {
 
     private void forEachProcessingStatus(
             ProcessingStatus status, Consumer<CrawlEntry> c) {
-        currentLedger.queryIterator(
-                fromWhereStatusQuery(status))
+        getCurrentLedger().queryIterator(
+                statusQueryFilter(status))
                 .forEachRemaining(c::accept);
     }
 
     //--- Processed ---
 
     public long getProcessedCount() {
-        return currentLedger.count(
-                "FROM %s WHERE processingStatus = '%s'"
-                        .formatted(CrawlEntry.class.getName(),
-                                ProcessingStatus.PROCESSED.name()));
+        return getCurrentLedger().count(
+                statusQueryFilter(ProcessingStatus.PROCESSED));
     }
 
     public boolean isProcessedEmpty() {
@@ -308,19 +357,22 @@ public final class CrawlEntryLedger {
     //--- Previous baseline crawl entries ---
 
     public long getBaselineCount() {
-        return baselineLedger == null ? 0L : baselineLedger.size();
+        var baseline = getBaselineLedger();
+        return baseline == null ? 0L : baseline.size();
     }
 
     public void forEachBaseline(Consumer<CrawlEntry> c) {
-        if (baselineLedger != null) {
-            baselineLedger.forEach((k, v) -> c.accept(v));
+        var baseline = getBaselineLedger();
+        if (baseline != null) {
+            baseline.forEach((k, v) -> c.accept(v));
         }
     }
 
     public Optional<CrawlEntry> getBaselineEntry(String id) {
-        return baselineLedger == null
+        var baseline = getBaselineLedger();
+        return baseline == null
                 ? Optional.empty()
-                : baselineLedger.get(id);
+                : baseline.get(id);
     }
 
     //--- Misc. ---
@@ -331,7 +383,7 @@ public final class CrawlEntryLedger {
      * @return matching entries
      */
     public Iterator<CrawlEntry> getEntriesByStatus(ProcessingStatus status) {
-        return currentLedger.queryIterator(fromWhereStatusQuery(status));
+        return getCurrentLedger().queryIterator(statusQueryFilter(status));
     }
 
     /**
@@ -341,19 +393,16 @@ public final class CrawlEntryLedger {
      * @return count of entries with the given status
      */
     public long countByStatus(ProcessingStatus status) {
-        return currentLedger.count(
-                "FROM %s WHERE processingStatus = '%s'"
-                        .formatted(CrawlEntry.class.getName(), status.name()));
+        return getCurrentLedger().count(statusQueryFilter(status));
     }
 
     /**
      * Deletes all entries with the given processing status.
      * Also updates the status counter accordingly.
      * @param status the processing status of entries to delete
-     * @return number of entries deleted
      */
-    public long deleteByStatus(ProcessingStatus status) {
-        return currentLedger.delete(fromWhereStatusQuery(status));
+    public void deleteByStatus(ProcessingStatus status) {
+        getCurrentLedger().delete(statusQueryFilter(status));
     }
 
     /**
@@ -361,28 +410,50 @@ public final class CrawlEntryLedger {
      * to start fresh.
      */
     public synchronized void archiveCurrentLedger() {
-        if (baselineLedger != null) {
-            // Remove all entries individually without clearing persistent
-            // storage. Using clear() tries to delete files that may still
-            // be locked on Windows. Using forEach to remove each entry
-            // avoids the file deletion issue while still emptying the cache.
-            // The persistent storage will be reused when entries are added.
-            baselineLedger.forEach((key, value) -> baselineLedger.remove(key));
+        // Clear previous baseline ledger (old current run) if it was initialized
+        var baseline = getBaselineLedger();
+        if (baseline != null) {
+            try {
+                baseline.clear(); // Use bulk clear for efficiency
+                LOG.info("Cleared previous baseline ledger using clear().");
+            } catch (Exception e) {
+                LOG.warn("Failed to clear baseline ledger with clear(), "
+                        + "falling back to per-entry removal: {}",
+                        e.toString());
+                baseline.forEach((key, value) -> baseline.remove(key));
+            }
         }
-        var currentAlias = cacheManager.getCrawlSessionCache()
-                .get(CURRENT_LEDGER_ALIAS_KEY).orElse(null);
-        currentAlias = LEDGER_A.equals(currentAlias)
-                ? LEDGER_B
-                : LEDGER_A;
-        cacheManager.getCrawlSessionCache()
-                .put(CURRENT_LEDGER_ALIAS_KEY, currentAlias);
-        var previousAlias = LEDGER_A.equals(currentAlias)
-                ? LEDGER_B
-                : LEDGER_A;
-        currentLedger = cacheManager.getCache(currentAlias, CrawlEntry.class);
-        baselineLedger = cacheManager.cacheExists(previousAlias)
-                ? cacheManager.getCache(previousAlias, CrawlEntry.class)
-                : null;
+
+        // Flip alias for current ledger in session cache
+        var sessionCache = cacheManager.getCrawlSessionCache();
+        var currentAlias =
+                sessionCache.get(CURRENT_LEDGER_ALIAS_KEY).orElse(null);
+        var newAlias = LEDGER_A.equals(currentAlias) ? LEDGER_B : LEDGER_A;
+        sessionCache.put(CURRENT_LEDGER_ALIAS_KEY, newAlias);
+        var previousAlias = LEDGER_A.equals(newAlias) ? LEDGER_B : LEDGER_A;
+
+        // Update cached references if they were already initialized
+        // (this only matters for coordinator which calls this method)
+        if (!newAlias.equals(currentAlias)) {
+            currentLedger = cacheManager.getCache(newAlias, CrawlEntry.class);
+            baselineLedger = cacheManager.cacheExists(previousAlias)
+                    ? cacheManager.getCache(previousAlias, CrawlEntry.class)
+                    : null;
+            try {
+                currentLedger.clear(); // Use bulk clear for efficiency
+                LOG.info("Cleared new current ledger using clear().");
+            } catch (Exception e) {
+                LOG.warn("Failed to clear current ledger with clear(), "
+                        + "falling back to per-entry removal: {}",
+                        e.toString());
+                currentLedger
+                        .forEach((key, value) -> currentLedger.remove(key));
+            }
+        } else {
+            LOG.info("Alias unchanged; caches not recreated.");
+        }
+        LOG.info("Ledger rotation complete: current={}, previous={}", newAlias,
+                previousAlias);
     }
 
     public boolean isMaxDocsProcessedReached() {
@@ -402,99 +473,92 @@ public final class CrawlEntryLedger {
 
     //--- Private methods ------------------------------------------------------
 
-    /**
-     * Atomically claims a QUEUED entry for processing, updating its status
-     * and timestamp.
-     * Updates status counters if successful.
-     * Uses atomic replace() to avoid serialization issues with BiFunction.
-     * @param reference the reference to claim
-     * @return the updated entry if successfully claimed, otherwise empty
-     */
-    private Optional<CrawlEntry> claimQueuedEntry(String reference) {
-        var nodeName = session.getCluster().getLocalNode().getNodeName();
-        var current = currentLedger.get(reference);
-        if (current.isEmpty()) {
-            LOG.trace("[{}] claimQueuedEntry({}) current empty.",
-                    nodeName, reference);
-            return Optional.empty();
-        }
+    //    /**
+    //     * Atomically claims a QUEUED entry for processing, updating its status
+    //     * and timestamp.
+    //     * Updates status counters if successful.
+    //     * Uses atomic replace() to avoid serialization issues with BiFunction.
+    //     * @param reference the reference to claim
+    //     * @return the updated entry if successfully claimed, otherwise empty
+    //     */
+    //    private Optional<CrawlEntry> claimQueuedEntry(String reference) {
+    //        var nodeName = session.getCluster().getLocalNode().getNodeName();
+    //        var current = currentLedger.get(reference);
+    //        if (current.isEmpty()) {
+    //            LOG.trace("[{}] claimQueuedEntry({}) current empty.",
+    //                    nodeName, reference);
+    //            return Optional.empty();
+    //        }
+    //
+    //        var entry = current.get();
+    //        if (entry.getProcessingStatus() != ProcessingStatus.QUEUED) {
+    //            LOG.trace("[{}] claimQueuedEntry({}) status is {} (not QUEUED).",
+    //                    nodeName, reference, entry.getProcessingStatus());
+    //            return Optional.empty();
+    //        }
+    //
+    //        var updatedEntry = BeanUtil.clone(entry);
+    //        updatedEntry.setProcessingStatus(ProcessingStatus.PROCESSING);
+    //        updatedEntry.setProcessingAt(Instant.now().atZone(ZoneOffset.UTC));
+    //
+    //        var replaced = currentLedger.replace(
+    //                reference, entry, updatedEntry);
+    //
+    //        if (replaced) {
+    //            LOG.trace("[{}] claimQueuedEntry({}) SUCCESS. "
+    //                    + "queuedCount={} processingCount={}.",
+    //                    nodeName, reference,
+    //                    currentLedger.count(
+    //                            statusQueryFilter(ProcessingStatus.QUEUED)),
+    //                    currentLedger.count(
+    //                            statusQueryFilter(ProcessingStatus.PROCESSING)));
+    //            return Optional.of(updatedEntry);
+    //        }
+    //
+    //        LOG.trace(
+    //                "[{}] claimQueuedEntry({}) FAILED replace (concurrent update).",
+    //                nodeName, reference);
+    //        return Optional.empty();
+    //    }
 
-        var entry = current.get();
-        if (entry.getProcessingStatus() != ProcessingStatus.QUEUED) {
-            LOG.trace("[{}] claimQueuedEntry({}) status is {} (not QUEUED).",
-                    nodeName, reference, entry.getProcessingStatus());
-            return Optional.empty();
-        }
-
-        var updatedEntry = BeanUtil.clone(entry);
-        updatedEntry.setProcessingStatus(ProcessingStatus.PROCESSING);
-        updatedEntry.setProcessingAt(Instant.now().atZone(ZoneOffset.UTC));
-
-        var replaced = currentLedger.replace(
-                reference, entry, updatedEntry);
-
-        if (replaced) {
-            LOG.trace(
-                    "[{}] claimQueuedEntry({}) SUCCESS. queuedCount={} processingCount={}.",
-                    nodeName, reference,
-                    currentLedger.count(
-                            "FROM %s WHERE processingStatus = '%s'"
-                                    .formatted(CrawlEntry.class.getName(),
-                                            ProcessingStatus.QUEUED.name())),
-                    currentLedger.count(
-                            "FROM %s WHERE processingStatus = '%s'"
-                                    .formatted(CrawlEntry.class.getName(),
-                                            ProcessingStatus.PROCESSING
-                                                    .name())));
-            return Optional.of(updatedEntry);
-        }
-
-        LOG.trace(
-                "[{}] claimQueuedEntry({}) FAILED replace (concurrent update).",
-                nodeName, reference);
-        return Optional.empty();
+    private QueryFilter statusQueryFilter(ProcessingStatus status) {
+        return QueryFilter.of(
+                CrawlEntry.Fields.processingStatus, status.name());
     }
 
-    private String fromWhereStatusQuery(ProcessingStatus status) {
-        // Use Java class name for queries - the cache implementation
-        // handles serialization/deserialization
-        return "FROM %s WHERE processingStatus = '%s'"
-                .formatted(CrawlEntry.class.getName(), status.name());
-    }
-
-    private String fromOrderedQueuedQuery() {
-        // Use Java class name for queries - the cache implementation
-        // handles serialization/deserialization
-        return "FROM %s WHERE processingStatus = '%s' ORDER BY %s"
-                .formatted(
-                        CrawlEntry.class.getName(),
-                        ProcessingStatus.QUEUED.name(),
-                        CrawlEntry.Fields.queuedAt);
-    }
-
-    // To stream in slightly larger batches for efficiency on multi-nodes
-    private int bonifiedBatchSize(int batchSize) {
-        var nodeCnt = session.getCluster().getNodeCount();
-        // When multiple nodes are present, scan deeper than the local
-        // batch size so slower nodes can still discover unclaimed
-        // entries further down the global queue. Keep it modest to
-        // avoid scanning the entire cache on every poll, but also
-        // not so aggressive that the first node claims everything.
-        int overscanFactor;
-        if (nodeCnt <= 1) {
-            overscanFactor = 1;
-        } else if ((nodeCnt == 2) || (nodeCnt > 4)) {
-            // Reduced from 8 to 3 to give both nodes fairer access
-            overscanFactor = 3;
-        } else {
-            overscanFactor = 4;
-        }
-        var bonified = Math.max(batchSize, batchSize * overscanFactor);
-        LOG.trace(
-                "[{}] bonifiedBatchSize({}) -> {} (nodeCnt={}, overscanFactor={}).",
-                session.getCluster().getLocalNode().getNodeName(),
-                batchSize, bonified, nodeCnt, overscanFactor);
-        return bonified;
-    }
+    //    private String fromOrderedQueuedQuery() {
+    //        // Use Java class name for queries - the cache implementation
+    //        // handles serialization/deserialization
+    //        return "FROM %s WHERE processingStatus = '%s' ORDER BY %s"
+    //                .formatted(
+    //                        CrawlEntry.class.getName(),
+    //                        ProcessingStatus.QUEUED.name(),
+    //                        CrawlEntry.Fields.queuedAt);
+    //    }
+    //
+    //    // To stream in slightly larger batches for efficiency on multi-nodes
+    //    private int bonifiedBatchSize(int batchSize) {
+    //        var nodeCnt = session.getCluster().getNodeCount();
+    //        // When multiple nodes are present, scan deeper than the local
+    //        // batch size so slower nodes can still discover unclaimed
+    //        // entries further down the global queue. Keep it modest to
+    //        // avoid scanning the entire cache on every poll, but also
+    //        // not so aggressive that the first node claims everything.
+    //        int overscanFactor;
+    //        if (nodeCnt <= 1) {
+    //            overscanFactor = 1;
+    //        } else if ((nodeCnt == 2) || (nodeCnt > 4)) {
+    //            // Reduced from 8 to 3 to give both nodes fairer access
+    //            overscanFactor = 3;
+    //        } else {
+    //            overscanFactor = 4;
+    //        }
+    //        var bonified = Math.max(batchSize, batchSize * overscanFactor);
+    //        LOG.trace(
+    //                "[{}] bonifiedBatchSize({}) -> {} (nodeCnt={}, overscanFactor={}).",
+    //                session.getCluster().getLocalNode().getNodeName(),
+    //                batchSize, bonified, nodeCnt, overscanFactor);
+    //        return bonified;
+    //    }
 
 }

@@ -2,7 +2,6 @@ package com.norconex.crawler.core.junit.cluster;
 
 import static java.util.Optional.ofNullable;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -40,7 +39,7 @@ public class ClusterClient implements AutoCloseable {
     private final AtomicInteger nodeCounter = new AtomicInteger();
 
     private String crawlerId;
-    private final CrawlConfig crawlConfig;
+    private CrawlConfig crawlConfig;
     private final Path clusterRootDir;
     @Getter
     private final Path configFile;
@@ -139,6 +138,37 @@ public class ClusterClient implements AutoCloseable {
                 this);
     }
 
+    public int activeNodeCount() {
+        return (int) nodes.stream().filter(Process::isAlive).count();
+    }
+
+    /**
+     * Adjust client state so that new launches appear to be on a new cluster.
+     */
+    public void reset() {
+        reset(null);
+    }
+
+    public void reset(CrawlConfig config) {
+        if (nodes.isEmpty()) {
+            throw new IllegalStateException(
+                    "Nothing to reset. No nodes found.");
+        }
+        if (activeNodeCount() > 0) {
+            throw new IllegalStateException(
+                    "Cannot reset cluster client while one or more nodes are "
+                            + "still active.");
+        }
+        nodes.clear();
+        nodeCounter.set(0);
+        getStateDb().clear();
+        // Write configuration in case it changed.
+        if (config != null) {
+            crawlConfig = config;
+            CoreTestUtil.writeConfigToFile(crawlConfig, configFile);
+        }
+    }
+
     /**
      * Stops all crawler nodes and releases resources.
      * This should be called when done with the cluster to ensure
@@ -223,7 +253,7 @@ public class ClusterClient implements AutoCloseable {
     }
 
     public void printNodeLogsOrderedByNode(Path clusterRootOverride) {
-        Path root = ofNullable(clusterRootOverride)
+        var root = ofNullable(clusterRootOverride)
                 .orElse(clusterRootDir);
         if (root == null) {
             LOG.warn("Cluster root directory is not set; "
@@ -256,7 +286,7 @@ public class ClusterClient implements AutoCloseable {
         var stream = isErrorStream ? System.err : System.out;
         var prefix = isErrorStream ? "[" + nodeName + ":stderr] "
                 : "[" + nodeName + ":stdout] ";
-        try (BufferedReader reader = Files.newBufferedReader(
+        try (var reader = Files.newBufferedReader(
                 file, StandardCharsets.UTF_8)) {
             String line;
             while ((line = reader.readLine()) != null) {

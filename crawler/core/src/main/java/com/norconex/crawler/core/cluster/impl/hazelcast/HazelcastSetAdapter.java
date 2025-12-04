@@ -17,17 +17,22 @@ package com.norconex.crawler.core.cluster.impl.hazelcast;
 import java.util.Iterator;
 import java.util.function.Consumer;
 
-import com.hazelcast.map.IMap;
+import com.hazelcast.collection.ISet;
 import com.norconex.crawler.core.cluster.CacheSet;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Hazelcast ISet-backed implementation of CacheSet.
+ * Note: ISet is backed by IMap internally in Hazelcast, so persistence
+ * via RocksDBMapStore works automatically.
+ */
 @Slf4j
-class HazelcastCacheSetAdapter implements CacheSet {
+class HazelcastSetAdapter implements CacheSet {
 
-    private final IMap<String, Boolean> delegate;
+    private final ISet<String> delegate;
 
-    public HazelcastCacheSetAdapter(IMap<String, Boolean> delegate) {
+    public HazelcastSetAdapter(ISet<String> delegate) {
         this.delegate = delegate;
     }
 
@@ -48,7 +53,7 @@ class HazelcastCacheSetAdapter implements CacheSet {
 
     @Override
     public boolean contains(String key) {
-        return delegate.containsKey(key);
+        return delegate.contains(key);
     }
 
     @Override
@@ -58,16 +63,16 @@ class HazelcastCacheSetAdapter implements CacheSet {
 
     @Override
     public void forEach(Consumer<String> action) {
-        delegate.keySet().forEach(action::accept);
+        delegate.forEach(action::accept);
     }
 
     @Override
     public void add(String key) {
-        delegate.put(key, Boolean.TRUE);
+        delegate.add(key);
     }
 
     @Override
     public Iterator<String> iterator() {
-        return delegate.keySet().iterator();
+        return delegate.iterator();
     }
 }

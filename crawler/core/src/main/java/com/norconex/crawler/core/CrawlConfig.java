@@ -29,8 +29,7 @@ import com.norconex.committer.core.Committer;
 import com.norconex.commons.lang.bean.jackson.JsonXmlCollection;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core.cluster.ClusterConnector;
-import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
+import com.norconex.crawler.core.cluster.ClusterConfig;
 import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
 import com.norconex.crawler.core.doc.operations.DocumentConsumer;
 import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
@@ -49,6 +48,7 @@ import com.norconex.importer.ImporterConfig;
 
 import jakarta.validation.constraints.Min;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 
@@ -89,11 +89,11 @@ public class CrawlConfig {
             Duration.ofSeconds(0);
     public static final Duration DEFAULT_MIN_PROGRESS_LOGGING_INTERVAL =
             Duration.ofSeconds(30);
-    /**
-     * Default port used to communicate via a node for some administrative
-     * crawler cluster tasks.
-     */
-    public static final int DEFAULT_CLUSTER_PORT = 27295;
+    //    /**
+    //     * Default port used to communicate via a node for some administrative
+    //     * crawler cluster tasks.
+    //     */
+    //    public static final int DEFAULT_ADMIN_PORT = 27295;
 
     //--- Properties -----------------------------------------------------------
 
@@ -156,22 +156,29 @@ public class CrawlConfig {
     private Duration maxCrawlDuration = Duration.ZERO;
 
     /**
-     * The cluster used to run the crawler. Default (Hazelcast) handles
-     * both running the crawler on single and multiple nodes.
+     * The Importer module configuration.
      */
-    private ClusterConnector clusterConnector =
-            new HazelcastClusterConnector();
-    /**
-     * Disable launching the crawler administrative server endpoints.
-     */
-    private boolean clusterAdminDisabled;
-    /**
-     * Port the crawler cluster listens to for administrative commands,
-     * on each nodes. Incremented
-     * to the next available port in case of conflicts.
-     * Default is 27295 (mnemonic: ‘CRAWL’ on a phone keypad).
-     */
-    private int clusterAdminPort = DEFAULT_CLUSTER_PORT;
+    @NonNull
+    @JsonProperty("cluster")
+    private ClusterConfig clusterConfig = new ClusterConfig();
+
+    //    /**
+    //     * The cluster used to run the crawler. Default (Hazelcast) handles
+    //     * both running the crawler on single and multiple nodes.
+    //     */
+    //    private ClusterConnector clusterConnector =
+    //            new HazelcastClusterConnector();
+    //    /**
+    //     * Disable launching the crawler administrative server endpoints.
+    //     */
+    //    private boolean clusterAdminDisabled;
+    //    /**
+    //     * Port the crawler cluster listens to for administrative commands,
+    //     * on each nodes. Incremented
+    //     * to the next available port in case of conflicts.
+    //     * Default is 27295 (mnemonic: ‘CRAWL’ on a phone keypad).
+    //     */
+    //    private int clusterAdminPort = DEFAULT_ADMIN_PORT;
 
     /**
      * Whether the start references should be loaded asynchronously. When

@@ -16,19 +16,21 @@ package com.norconex.crawler.core.cluster;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
-public interface Cache<T> {
+public interface CacheMap<T> {
 
     //TODO add listener
 
     boolean isEmpty();
 
     void put(String key, T value);
+
+    void putAll(Map<String, T> entries);
 
     Optional<T> get(String key);
 
@@ -69,57 +71,59 @@ public interface Cache<T> {
      */
     T putIfAbsent(String key, T value);
 
-    /**
-     * Queries the cache for entries matching the given query expression.
-     * The query syntax depends on the cache implementation.
-     * Note: This method loads all results into memory at once.
-     * For large result sets, consider using {@link #queryIterator} instead.
-     *
-     * @param queryExpression the query expression
-     * @return a list of matching entries
-     */
-    List<T> query(String queryExpression);
-
     boolean replace(String key, T oldValue, T newValue);
 
     /**
-     * Queries the cache for entries matching the given query expression
+     * Queries the cache for entries matching the given query filter.
+     * Note: This method loads all results into memory at once.
+     * For large result sets, consider using {@link #queryIterator} instead.
+     *
+     * @param filter the query filter
+     * @return a list of matching entries or an empty list (never null)
+     */
+    List<T> query(QueryFilter filter);
+
+    /**
+     * Queries the cache for entries matching the given filter
      * and returns an iterator for memory-efficient processing of results.
      * This avoids loading all results into memory at once.
      *
-     * @param queryExpression the query expression
+     * @param filter the query filter
      * @return an iterator over the matching entries
      */
-    Iterator<T> queryIterator(String queryExpression);
+    Iterator<T> queryIterator(QueryFilter filter);
 
     /**
-     * Queries the cache for entries matching the given query expression
+     * Queries the cache for entries matching the given query filter
      * with pagination support.
      *
-     * @param queryExpression the query expression
+     * @param filter the query filter
      * @param startOffset the starting offset (0-based)
      * @param maxResults the maximum number of results to return
      * @return a list of matching entries within the specified range
      */
-    List<T> queryPaged(String queryExpression, int startOffset, int maxResults);
-
+    /*
+    List<T> queryPaged(QueryFilter filter, int startOffset, int maxResults);
+    */
     /**
      * Queries the cache and processes results in a streaming fashion
      * without loading all results into memory at once.
      *
-     * @param queryExpression the query expression
+     * @param filter the query filter
      * @param consumer the consumer that will process each entry
      * @param batchSize the number of entries to process in each batch
      */
-    void queryStream(String queryExpression, Consumer<T> consumer,
+    /*
+    void queryStream(QueryFilter filter, Consumer<T> consumer,
             int batchSize);
+    */
 
     /**
-     * Counts the number of entries matching the given query expression.
-     * @param queryExpression the query expression
+     * Counts the number of entries matching the given query filter.
+     * @param filter the query filter
      * @return the count of matching entries
      */
-    long count(String queryExpression);
+    long count(QueryFilter filter);
 
     /**
      * Counts the number of entries in this cache.
@@ -128,11 +132,10 @@ public interface Cache<T> {
     long size();
 
     /**
-     * Deletes entries matching the given query expression.
-     * @param queryExpression the query expression
-     * @return the number of entries deleted
+     * Deletes entries matching the given query filter.
+     * @param filter the query filter
      */
-    long delete(String queryExpression);
+    void delete(QueryFilter filter);
 
     void forEach(BiConsumer<String, ? super T> action);
 
@@ -142,8 +145,5 @@ public interface Cache<T> {
      * @return a list of all keys in the cache
      */
     List<String> keys();
-
-    //    void queryForEach(
-    //            String queryExpression, BiConsumer<String, ? super T> action);
 
 }

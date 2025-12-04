@@ -16,7 +16,7 @@ package com.norconex.crawler.core.doc.pipelines;
 
 import java.util.Optional;
 
-import com.norconex.crawler.core.cluster.Cache;
+import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.ledger.CrawlEntry;
 import com.norconex.crawler.core.session.CrawlSession;
 
@@ -28,8 +28,8 @@ public class DedupService {
     //TODO merge with CrawlDocLedger if we can query by checksum
     // at no extra cost?
 
-    private Cache<String> dedupMetadataStore; // checksum -> ref
-    private Cache<String> dedupDocumentStore; // checksum -> ref
+    private CacheMap<String> dedupMetadataStore; // checksum -> ref
+    private CacheMap<String> dedupDocumentStore; // checksum -> ref
 
     public void init(CrawlSession session) {
         var ctx = session.getCrawlContext();
@@ -86,7 +86,7 @@ public class DedupService {
     }
 
     private Optional<String> doFindOrTrack(
-            Cache<String> cache, String checksum, String reference) {
+            CacheMap<String> cache, String checksum, String reference) {
 
         if (cache == null || checksum == null) {
             return Optional.empty();

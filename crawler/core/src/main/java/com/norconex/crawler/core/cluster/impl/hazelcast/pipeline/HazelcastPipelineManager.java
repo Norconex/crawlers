@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cluster.impl.hazelcast;
+package com.norconex.crawler.core.cluster.impl.hazelcast.pipeline;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -20,6 +20,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import com.norconex.crawler.core.cluster.impl.hazelcast.CacheKeys;
+import com.norconex.crawler.core.cluster.impl.hazelcast.CacheNames;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastCluster;
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListener;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;

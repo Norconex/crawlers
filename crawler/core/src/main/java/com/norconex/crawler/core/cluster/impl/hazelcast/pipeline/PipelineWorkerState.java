@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cluster.impl.hazelcast;
+package com.norconex.crawler.core.cluster.impl.hazelcast.pipeline;
 
 import static java.util.Optional.ofNullable;
 
@@ -30,7 +30,10 @@ import java.util.function.Consumer;
 
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
-import com.norconex.crawler.core.cluster.Cache;
+import com.norconex.crawler.core.cluster.CacheMap;
+import com.norconex.crawler.core.cluster.impl.hazelcast.CacheKeys;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastCluster;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastUtil;
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListener;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
@@ -54,8 +57,8 @@ public class PipelineWorkerState implements AutoCloseable {
     private final String workerKey; // sessionId:pipelineId:runId:nodeName
 
     // Caches
-    private final Cache<StepRecord> pipelineStepCache;
-    private final Cache<StepRecord> workerStatusCache;
+    private final CacheMap<StepRecord> pipelineStepCache;
+    private final CacheMap<StepRecord> workerStatusCache;
 
     // Flags
     @Getter
@@ -120,9 +123,9 @@ public class PipelineWorkerState implements AutoCloseable {
         long rawHeartbeatMs = ofNullable(config.getWorkerHeartbeatInterval())
                 .map(Duration::toMillis)
                 .orElse(1_000L);
-        long minHeartbeatMs = 500L;
-        long maxByExpiry = Math.max(minHeartbeatMs, expiryMs / 3);
-        long heartbeatMs = Math.max(minHeartbeatMs,
+        var minHeartbeatMs = 500L;
+        var maxByExpiry = Math.max(minHeartbeatMs, expiryMs / 3);
+        var heartbeatMs = Math.max(minHeartbeatMs,
                 Math.min(rawHeartbeatMs, maxByExpiry));
 
         if (heartbeatMs != rawHeartbeatMs) {

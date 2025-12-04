@@ -8,7 +8,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.Sleeper;
-import com.norconex.crawler.core.cluster.Cache;
+import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.session.CrawlSession;
 
@@ -26,9 +26,9 @@ public final class ClusterTestUtil {
      * @param cacheName name of the cache to create or get
      * @return cache
      */
-    public static Cache<String> stringCache(
+    public static CacheMap<String> stringCache(
             CrawlSession session, String cacheName) {
-        return cache(session, String.class, cacheName);
+        return cacheMap(session, String.class, cacheName);
     }
 
     /**
@@ -39,7 +39,7 @@ public final class ClusterTestUtil {
      * @param <T> cache type
      * @return cache
      */
-    public static <T> Cache<T> cache(
+    public static <T> CacheMap<T> cacheMap(
             CrawlSession session, Class<T> type, String cacheName) {
         return session.getCluster().getCacheManager().getCache(cacheName, type);
     }
@@ -49,7 +49,7 @@ public final class ClusterTestUtil {
      * @param session crawl session
      * @return unique String cache
      */
-    public static Cache<String> uniqueStringCache(CrawlSession session) {
+    public static CacheMap<String> uniqueStringCache(CrawlSession session) {
         return uniqueStringCache(session, null);
     }
 
@@ -61,7 +61,7 @@ public final class ClusterTestUtil {
      *     (may be null or blank)
      * @return unique String cache
      */
-    public static Cache<String> uniqueStringCache(
+    public static CacheMap<String> uniqueStringCache(
             CrawlSession session, String namePrefix) {
         return uniqueCache(session, String.class, namePrefix);
     }
@@ -73,7 +73,7 @@ public final class ClusterTestUtil {
      * @param <T> cache type
      * @return unique cache
      */
-    public static <T> Cache<T> uniqueCache(
+    public static <T> CacheMap<T> uniqueCache(
             CrawlSession session, Class<T> type) {
         return uniqueCache(session, type, null);
     }
@@ -88,7 +88,7 @@ public final class ClusterTestUtil {
      *     (may be null or blank)
      * @return unique cache
      */
-    public static <T> Cache<T> uniqueCache(
+    public static <T> CacheMap<T> uniqueCache(
             CrawlSession session, Class<T> type, String namePrefix) {
         return session.getCluster().getCacheManager()
                 .getCache(uniqueCacheName(namePrefix), type);
@@ -173,7 +173,7 @@ public final class ClusterTestUtil {
      * @param timeout maximum time to wait
      */
     public static void waitForCacheSize(
-            Cache<?> cache, long expected, Duration timeout) {
+            CacheMap<?> cache, long expected, Duration timeout) {
         waitForCacheSize(cache, expected, timeout, Duration.ofMillis(100));
     }
 
@@ -185,7 +185,7 @@ public final class ClusterTestUtil {
      * @param pollInterval interval used to check if timed out
      */
     public static void waitForCacheSize(
-            Cache<?> cache,
+            CacheMap<?> cache,
             long expected,
             Duration timeout,
             Duration pollInterval) {

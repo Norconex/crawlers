@@ -33,20 +33,22 @@ public class HazelcastClusterConfig {
          * Suitable for production environments where nodes need to discover
          * each other over the network.
          */
-        CLUSTER(false),
+        CLUSTER("classpath:cache/hazelcast-cluster.yaml"),
         /**
          * Standalone mode for single-node deployments. Optimized for
          * single-node performance with local persistence.
          */
-        STANDALONE(true),
+        STANDALONE("classpath:cache/hazelcast-standalone.yaml"),
         /**
          * In-memory only mode without persistence. Useful for quick
          * experiments and short-lived crawls. Data is lost on shutdown.
          */
-        STANDALONE_MEMORY(true);
+        STANDALONE_MEMORY("classpath:cache/hazelcast-memory.yaml");
 
+        //        @Getter
+        //        private final boolean standalone;
         @Getter
-        private final boolean standalone;
+        private final String path;
     }
 
     /**
@@ -104,12 +106,12 @@ public class HazelcastClusterConfig {
      */
     private Duration workerHeartbeatInterval = Duration.ofSeconds(1);
 
-    /**
-     * Whether to enable persistence for caches. When enabled, cache
-     * data is persisted to local storage. This allows
-     * crawls to be resumed after a restart.
-     */
-    private boolean persistenceEnabled = true;
+    //    /**
+    //     * Whether to enable persistence for caches. When enabled, cache
+    //     * data is persisted to local storage. This allows
+    //     * crawls to be resumed after a restart.
+    //     */
+    //    private boolean persistenceDisabled = false;
 
     /**
      * Number of backup copies for distributed data. In cluster mode,

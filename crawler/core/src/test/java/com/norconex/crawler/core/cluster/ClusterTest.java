@@ -31,6 +31,8 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 import com.norconex.crawler.core.cluster.impl.hazelcast.CacheNames;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConfig.Preset;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.cluster.ClusterClient;
 import com.norconex.crawler.core.junit.cluster.node.CaptureFlags;
@@ -38,6 +40,8 @@ import com.norconex.crawler.core.junit.cluster.node.CrawlerNode;
 import com.norconex.crawler.core.junit.todo.usethis.annotations.SlowTest;
 import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
+import com.norconex.crawler.core.session.CrawlMode;
+import com.norconex.crawler.core.session.CrawlResumeState;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -53,16 +57,7 @@ class ClusterTest {
     void testNormalClusterExecution() {
         var numOfRefs = 10;
 
-        var crawlCfg = new CrawlConfig()
-                .setId("" + TimeIdGenerator.next())
-                .setWorkDir(tempDir)
-                .setMaxQueueBatchSize(1)
-                .setStartReferences(IntStream.range(0, numOfRefs)
-                        .mapToObj(i -> "ref-" + i).toList())
-                .setFetchers(List.of(Configurable.configure(
-                        new MockFetcher(),
-                        cfg -> cfg.setDelay(Duration.ofMillis(0)))))
-                .setNumThreads(1);
+        var crawlCfg = longRunning(numOfRefs, 0);
 
         var starter = CrawlerNode
                 .builder()
@@ -97,15 +92,17 @@ class ClusterTest {
                             .isEqualTo(numOfRefs);
 
             // those are found with default cluster impl:
+
             var caches = cluster.getStateDb().getCachesAsMap();
-            var counters = caches.get(CacheNames.COUNTERS);
-            assertThat(counters.getInteger("status-counter-QUEUED"))
+            var sessionCache = caches.get(CacheNames.CRAWL_SESSION);
+
+            assertThat(sessionCache.getInteger("status-counter-QUEUED"))
                     .isZero();
-            assertThat(counters.getInteger("status-counter-UNTRACKED"))
+            assertThat(sessionCache.getInteger("status-counter-UNTRACKED"))
                     .isZero();
-            assertThat(counters.getInteger("status-counter-PROCESSING"))
+            assertThat(sessionCache.getInteger("status-counter-PROCESSING"))
                     .isZero();
-            assertThat(counters.getInteger("status-counter-PROCESSED"))
+            assertThat(sessionCache.getInteger("status-counter-PROCESSED"))
                     .isEqualTo(10);
         }
     }
@@ -115,16 +112,7 @@ class ClusterTest {
     void testStopResumeClusterExecution() {
         var numOfRefs = 100;
 
-        var crawlCfg = new CrawlConfig()
-                .setId("" + TimeIdGenerator.next())
-                .setWorkDir(tempDir)
-                .setMaxQueueBatchSize(1)
-                .setStartReferences(IntStream.range(0, numOfRefs)
-                        .mapToObj(i -> "ref-" + i).toList())
-                .setFetchers(List.of(Configurable.configure(
-                        new MockFetcher(),
-                        cfg -> cfg.setDelay(Duration.ofMillis(500)))))
-                .setNumThreads(1);
+        var crawlCfg = longRunning(numOfRefs, 500);
 
         var starter = CrawlerNode
                 .builder()
@@ -144,10 +132,6 @@ class ClusterTest {
                 cluster.waitFor()
                         .allNodesToHaveFired(CrawlerEvent.DOCUMENT_IMPORTED);
             } catch (Exception e) {
-                System.err.println("=== CACHES ===");
-                cluster.getStateDb().getCacheRecords()
-                        .forEach(rec -> System.err.println("REC: " + rec));
-                System.err.println("=== LOGS ===");
                 cluster.printNodeLogsOrderedByNode();
                 throw e;
             }
@@ -169,15 +153,60 @@ class ClusterTest {
                     .allMatch(code -> code == 0);
 
             // should not be done processing
-            var eventBag = cluster.getStateDb().getEventNameBag();
+            var stateDb = cluster.getStateDb();
+            var eventBag = stateDb.getEventNameBag();
             assertThat(eventBag.getCount(
                     CrawlerEvent.DOCUMENT_QUEUED)).isGreaterThan(0);
             assertThat(eventBag.getCount(
                     CrawlerEvent.DOCUMENT_IMPORTED)).isLessThan(numOfRefs);
 
-            cluster.getStateDb().getCacheRecords()
-                    .forEach(rec -> System.err.println("REC: " + rec));
+            var runInfo = stateDb.getCrawlRunInfo();
+            assertThat(runInfo.getCrawlMode()).isSameAs(CrawlMode.FULL);
+            assertThat(runInfo.getCrawlResumeState())
+                    .isSameAs(CrawlResumeState.NEW);
+            assertThat(cluster.activeNodeCount()).isZero();
+
+            // Start again, which should resume (but don't wait)
+            crawlCfg = longRunning(numOfRefs, 0);
+            cluster.reset(crawlCfg);
+            cluster.launch(starter, 2);
+            exitCodes = cluster.waitFor(Duration.ofSeconds(40)).termination();
+            cluster.printNodeLogsOrderedByNode();
+            assertThat(exitCodes)
+                    .as("all cluster nodes should exit successfully")
+                    .isNotEmpty()
+                    .allMatch(code -> code == 0);
+            // should be done processing
+            stateDb = cluster.getStateDb();
+            eventBag = stateDb.getEventNameBag();
+
+            runInfo = stateDb.getCrawlRunInfo();
+            assertThat(runInfo.getCrawlMode()).isSameAs(CrawlMode.FULL);
+            assertThat(runInfo.getCrawlResumeState())
+                    .isSameAs(CrawlResumeState.RESUMED);
+            assertThat(cluster.activeNodeCount()).isZero();
+
+            assertThat(eventBag.getCount(
+                    CrawlerEvent.DOCUMENT_QUEUED)).isEqualTo(numOfRefs);
+            assertThat(eventBag.getCount(
+                    CrawlerEvent.DOCUMENT_IMPORTED)).isEqualTo(numOfRefs);
         }
     }
 
+    private CrawlConfig longRunning(int numOfRefs, long delayMs) {
+        var crawlCfg = new CrawlConfig()
+                .setId("" + TimeIdGenerator.next())
+                .setWorkDir(tempDir)
+                .setMaxQueueBatchSize(1)
+                .setStartReferences(IntStream.range(0, numOfRefs)
+                        .mapToObj(i -> "ref-" + i).toList())
+                .setFetchers(List.of(Configurable.configure(
+                        new MockFetcher(),
+                        cfg -> cfg.setDelay(Duration.ofMillis(delayMs)))))
+                .setNumThreads(1);
+        crawlCfg.getClusterConfig().setClustered(true);
+        ((HazelcastClusterConnector) crawlCfg.getClusterConfig().getConnector())
+                .getConfiguration().setPreset(Preset.CLUSTER);
+        return crawlCfg;
+    }
 }

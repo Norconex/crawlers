@@ -25,8 +25,8 @@ import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.norconex.crawler.core.cluster.Cache;
-import com.norconex.crawler.core.cluster.CacheException;
+import com.norconex.crawler.core.cluster.CacheMap;
+import com.norconex.crawler.core.cluster.ClusterException;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.util.SerialUtil;
@@ -54,7 +54,8 @@ public class StoreImportCommand implements Command {
             try {
                 importAllStores(session);
             } catch (Exception e) {
-                throw new CacheException("Could not import file: " + inFile, e);
+                throw new ClusterException("Could not import file: " + inFile,
+                        e);
             }
             session.fire(CrawlerEvent.CRAWLER_STORE_IMPORT_END, this);
         } else {
@@ -122,7 +123,7 @@ public class StoreImportCommand implements Command {
 
                 LOG.info("Importing \"{}\".", storeName);
 
-                Cache<Object> cache =
+                CacheMap<Object> cache =
                         cacheManager.getCache(storeName, Object.class);
                 //                GridStore<?> store = concreteStore(
                 //                        cacheManager, storeSuperClass, storeName, objectClass);
@@ -144,7 +145,7 @@ public class StoreImportCommand implements Command {
     }
 
     private <T> void loadRecord(
-            Cache<T> cache, JsonParser parser, Class<T> objectClass)
+            CacheMap<T> cache, JsonParser parser, Class<T> objectClass)
             throws IOException {
         parser.nextToken(); // id:
         var id = parser.nextTextValue();

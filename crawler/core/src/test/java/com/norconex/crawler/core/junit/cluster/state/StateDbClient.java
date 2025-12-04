@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.collections4.Bag;
@@ -20,6 +21,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.crawler.core.cluster.impl.hazelcast.CacheNames;
+import com.norconex.crawler.core.session.CrawlRunInfo;
+import com.norconex.crawler.core.session.CrawlRunInfoResolver;
 import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.Getter;
@@ -108,8 +112,38 @@ public class StateDbClient {
         return cachesMap;
     }
 
-    public void saveCacheEntry(String cacheName, String key, Object val) {
-        put(TOPIC_CACHE, cacheName + "__" + key, SerialUtil.toJsonString(val));
+    public void putCacheEntry(String cacheName, String key, Object val) {
+        put(TOPIC_CACHE, cacheName + "__" + key, Objects.toString(val, ""));
+    }
+
+    @SneakyThrows
+    public StateRecord getCacheEntry(String cacheName, String key) {
+        try (var ps = newConnection().prepareStatement(sqlSelectAllFrom()
+                + "WHERE topic = ? AND k = ?")) {
+            ps.setString(1, TOPIC_CACHE);
+            ps.setString(2, cacheName + "__" + key);
+            try (var rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    return toRecord(rs);
+                }
+            }
+        }
+        return null;
+    }
+
+    public CrawlRunInfo getCrawlRunInfo() {
+        var rec = getCacheEntry(
+                CacheNames.CRAWL_RUN,
+                CrawlRunInfoResolver.CRAWL_RUN_INFO_KEY);
+        return SerialUtil.fromJson(rec.getValue(), CrawlRunInfo.class);
+    }
+
+    @SneakyThrows
+    public void clear() {
+        try (var ps = newConnection().prepareStatement(
+                "DELETE FROM cluster_state")) {
+            ps.executeUpdate();
+        }
     }
 
     @SneakyThrows
@@ -168,22 +202,6 @@ public class StateDbClient {
             }
         }
     }
-
-    //    public List<StateRecord> getStdoutForAllNodes() {
-    //        return getRecordsForTopic(TOPIC_STDOUT);
-    //    }
-    //
-    //    public List<StateRecord> getStdoutForNode(int nodeNumber) {
-    //        return getRecordsForTopicAndNode(TOPIC_STDOUT, nodeNumber);
-    //    }
-    //
-    //    public List<StateRecord> getStderrForAllNodes() {
-    //        return getRecordsForTopic(TOPIC_STDERR);
-    //    }
-    //
-    //    public List<StateRecord> getStderrForNode(int nodeNumber) {
-    //        return getRecordsForTopicAndNode(TOPIC_STDERR, nodeNumber);
-    //    }
 
     @SneakyThrows
     public List<StateRecord> getRecordsForTopic(String topic) {

@@ -24,8 +24,10 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConfig.Preset;
+import com.norconex.crawler.core.junit.todo.usethis.annotations.SlowTest;
 
 @Timeout(60)
+@SlowTest
 class HazelcastClusterStartupTest {
 
     @TempDir
@@ -37,7 +39,7 @@ class HazelcastClusterStartupTest {
                 .setPreset(Preset.STANDALONE)
                 .setClusterName("standalone-test");
         var cluster = new HazelcastCluster(config);
-        cluster.init(tempDir);
+        cluster.init(tempDir, false);
         assertThat(cluster.isStandalone()).isTrue();
         assertThat(cluster.getNodeCount()).isEqualTo(1);
         assertThat(cluster.getNodeNames()).hasSize(1);
@@ -56,7 +58,7 @@ class HazelcastClusterStartupTest {
             dirs[i] = tempDir.resolve("node" + i);
             java.nio.file.Files.createDirectories(dirs[i]);
             clusters[i] = new HazelcastCluster(config);
-            clusters[i].init(dirs[i]);
+            clusters[i].init(dirs[i], true);
         }
         // Wait for cluster formation
         Sleeper.sleepSeconds(2);

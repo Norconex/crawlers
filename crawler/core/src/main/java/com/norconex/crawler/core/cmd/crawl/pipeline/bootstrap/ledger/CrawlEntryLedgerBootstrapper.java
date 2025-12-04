@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
  * </p>
  */
 @Slf4j
-public final class DocLedgerBootstrapper implements CrawlBootstrapper {
+public final class CrawlEntryLedgerBootstrapper implements CrawlBootstrapper {
 
     //NOTE: Runs after the DocProcessingLedger#init() method has been invoked.
 
@@ -61,7 +61,15 @@ public final class DocLedgerBootstrapper implements CrawlBootstrapper {
     private static void prepareForCrawl(CrawlSession session) {
         var crawlContext = session.getCrawlContext();
         var ledger = crawlContext.getCrawlEntryLedger();
+
+        // Ensure the current ledger alias is set in session cache
+        // before any operations (important for cluster synchronization)
+        ledger.ensureCurrentLedgerAliasExists();
+
         if (session.isResumed()) {
+            // Reconstruct the in-memory queue from QUEUED entries in ledger
+            ledger.reconstructQueueFromLedger();
+
             if (LOG.isInfoEnabled()) {
                 //TODO use total count to track progress independently
                 var processedCount = ledger.getProcessedCount();

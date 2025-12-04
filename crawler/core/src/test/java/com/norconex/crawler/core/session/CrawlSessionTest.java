@@ -4,30 +4,35 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.core.cluster.Cache;
 import com.norconex.crawler.core.cluster.CacheManager;
+import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.cluster.Cluster;
+import com.norconex.crawler.core.cluster.QueryFilter;
 import com.norconex.crawler.core.context.CrawlContext;
 
 class CrawlSessionTest {
 
     private CrawlSession session;
-    private Cache<String> cache;
+    private CacheMap<String> cacheMap;
 
     @BeforeEach
     void setUp() {
-        cache = new InMemoryCache<>();
+        cacheMap = new InMemoryCache<>();
         var cluster = mock(Cluster.class);
         var context = mock(CrawlContext.class);
         var cacheManager = mock(CacheManager.class);
         when(cluster.getCacheManager()).thenReturn(cacheManager);
-        when(cacheManager.getCrawlSessionCache()).thenReturn(cache);
+        when(cacheManager.getCrawlSessionCache()).thenReturn(cacheMap);
         when(cluster.getLocalNode()).thenReturn(null); // not used in test
         when(context.getId()).thenReturn("testCrawler");
         try {
@@ -43,7 +48,7 @@ class CrawlSessionTest {
             var field =
                     CrawlSession.class.getDeclaredField("crawlSessionCache");
             field.setAccessible(true);
-            field.set(session, cache);
+            field.set(session, cacheMap);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -96,8 +101,8 @@ class CrawlSessionTest {
     }
 
     // Simple in-memory cache for testing
-    static class InMemoryCache<V> implements Cache<V> {
-        private final java.util.Map<String, V> map = new java.util.HashMap<>();
+    static class InMemoryCache<V> implements CacheMap<V> {
+        private final Map<String, V> map = new HashMap<>();
 
         @Override
         public boolean isEmpty() {
@@ -107,6 +112,11 @@ class CrawlSessionTest {
         @Override
         public void put(String key, V value) {
             map.put(key, value);
+        }
+
+        @Override
+        public void putAll(Map<String, V> entries) {
+            map.putAll(entries);
         }
 
         @Override
@@ -186,11 +196,6 @@ class CrawlSessionTest {
         }
 
         @Override
-        public java.util.List<V> query(String queryExpression) {
-            return java.util.Collections.emptyList();
-        }
-
-        @Override
         public boolean replace(String key, V oldValue, V newValue) {
             if (map.containsKey(key)
                     && java.util.Objects.equals(map.get(key), oldValue)) {
@@ -201,34 +206,8 @@ class CrawlSessionTest {
         }
 
         @Override
-        public java.util.Iterator<V> queryIterator(String queryExpression) {
-            return java.util.Collections.emptyIterator();
-        }
-
-        @Override
-        public java.util.List<V> queryPaged(String queryExpression,
-                int startOffset, int maxResults) {
-            return java.util.Collections.emptyList();
-        }
-
-        @Override
-        public void queryStream(String queryExpression,
-                java.util.function.Consumer<V> consumer, int batchSize) {
-        }
-
-        @Override
-        public long count(String queryExpression) {
-            return 0;
-        }
-
-        @Override
         public long size() {
             return map.size();
-        }
-
-        @Override
-        public long delete(String queryExpression) {
-            return 0;
         }
 
         @Override
@@ -240,6 +219,26 @@ class CrawlSessionTest {
         @Override
         public java.util.List<String> keys() {
             return new java.util.ArrayList<>(map.keySet());
+        }
+
+        @Override
+        public List<V> query(QueryFilter filter) {
+            return null;
+        }
+
+        @Override
+        public Iterator<V> queryIterator(QueryFilter filter) {
+            return null;
+        }
+
+        @Override
+        public long count(QueryFilter filter) {
+            return map.size();
+        }
+
+        @Override
+        public void delete(QueryFilter filter) {
+            //noop
         }
     }
 

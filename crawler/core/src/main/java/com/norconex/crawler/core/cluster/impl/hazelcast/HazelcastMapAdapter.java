@@ -18,22 +18,27 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.LifecycleService;
 import com.hazelcast.map.IMap;
+import com.hazelcast.query.PagingPredicate;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.Predicates;
-import com.norconex.crawler.core.cluster.Cache;
+import com.hazelcast.query.impl.predicates.PagingPredicateImpl;
+import com.norconex.crawler.core.cluster.CacheMap;
+import com.norconex.crawler.core.cluster.QueryFilter;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,7 +50,7 @@ import lombok.extern.slf4j.Slf4j;
  * @param <T> the type of values stored in the cache
  */
 @Slf4j
-public class HazelcastCacheAdapter<T> implements Cache<T> {
+public class HazelcastMapAdapter<T> implements CacheMap<T> {
 
     private final IMap<String, T> delegate;
     private final HazelcastInstance hazelcastInstance;
@@ -53,18 +58,7 @@ public class HazelcastCacheAdapter<T> implements Cache<T> {
     private static final Set<String> CLOSED_LOGGED =
             ConcurrentHashMap.newKeySet();
 
-    // Pattern to parse simple SQL-like queries:
-    // "FROM ClassName WHERE field = 'value'"
-    private static final Pattern QUERY_PATTERN = Pattern.compile(
-            "FROM\\s+[\\w.]+\\s+WHERE\\s+(\\w+)\\s*=\\s*'([^']*)'",
-            Pattern.CASE_INSENSITIVE);
-
-    // Pattern to parse ORDER BY queries
-    private static final Pattern ORDER_PATTERN = Pattern.compile(
-            "ORDER\\s+BY\\s+(\\w+)",
-            Pattern.CASE_INSENSITIVE);
-
-    public HazelcastCacheAdapter(
+    public HazelcastMapAdapter(
             IMap<String, T> delegate,
             HazelcastInstance hazelcastInstance) {
         this.delegate = delegate;
@@ -79,6 +73,11 @@ public class HazelcastCacheAdapter<T> implements Cache<T> {
     @Override
     public void put(String key, T value) {
         runIfCache(() -> delegate.put(key, value));
+    }
+
+    @Override
+    public void putAll(Map<String, T> entries) {
+        runIfCache(() -> delegate.putAll(entries));
     }
 
     @Override
@@ -115,15 +114,14 @@ public class HazelcastCacheAdapter<T> implements Cache<T> {
     public Optional<T> computeIfPresent(String key,
             BiFunction<String, ? super T, ? extends T> remappingFunction) {
         return Optional.ofNullable(supplyIfCache(() -> {
-            T oldValue = delegate.get(key);
+            var oldValue = delegate.get(key);
             if (oldValue != null) {
                 T newValue = remappingFunction.apply(key, oldValue);
                 if (newValue != null) {
                     delegate.put(key, newValue);
                     return newValue;
-                } else {
-                    delegate.remove(key);
                 }
+                delegate.remove(key);
             }
             return null;
         }, null));
@@ -133,12 +131,13 @@ public class HazelcastCacheAdapter<T> implements Cache<T> {
     public Optional<T> compute(String key,
             BiFunction<String, ? super T, ? extends T> remappingFunction) {
         return Optional.ofNullable(supplyIfCache(() -> {
-            T oldValue = delegate.get(key);
+            var oldValue = delegate.get(key);
             T newValue = remappingFunction.apply(key, oldValue);
             if (newValue != null) {
                 delegate.put(key, newValue);
                 return newValue;
-            } else if (oldValue != null) {
+            }
+            if (oldValue != null) {
                 delegate.remove(key);
             }
             return null;
@@ -149,8 +148,8 @@ public class HazelcastCacheAdapter<T> implements Cache<T> {
     public T merge(String key, T value,
             BiFunction<? super T, ? super T, ? extends T> remappingFunction) {
         return supplyIfCache(() -> {
-            T oldValue = delegate.get(key);
-            T newValue =
+            var oldValue = delegate.get(key);
+            var newValue =
                     (oldValue == null) ? value
                             : remappingFunction.apply(oldValue, value);
             if (newValue != null) {
@@ -185,71 +184,36 @@ public class HazelcastCacheAdapter<T> implements Cache<T> {
     }
 
     @Override
-    public List<T> query(String queryExpression) {
-        return supplyIfCache(() -> {
-            var predicate = parseQueryToPredicate(queryExpression);
-            if (predicate != null) {
-                return new ArrayList<>(delegate.values(predicate));
-            }
-            // If no predicate could be parsed, return all values
-            return new ArrayList<>(delegate.values());
-        }, Collections.emptyList());
+    public List<T> query(QueryFilter filter) {
+        return supplyIfCache(
+                () -> new ArrayList<>(delegate.values(toPredicate(filter))),
+                Collections.emptyList());
     }
 
     @Override
-    public Iterator<T> queryIterator(String queryExpression) {
-        return supplyIfCache(() -> query(queryExpression).iterator(),
-                Collections.emptyIterator());
+    public Iterator<T> queryIterator(QueryFilter filter) {
+        return supplyIfCache(() -> new PagingIterator<>(
+                delegate,
+                toPredicate(filter),
+                DEFAULT_BATCH_SIZE), Collections.emptyIterator());
     }
 
-    @Override
-    public List<T> queryPaged(String queryExpression, int startOffset,
-            int maxResults) {
-        return supplyIfCache(() -> {
-            var allResults = query(queryExpression);
-            int fromIndex = Math.min(startOffset, allResults.size());
-            int toIndex = Math.min(startOffset + maxResults, allResults.size());
-            return allResults.subList(fromIndex, toIndex);
-        }, Collections.emptyList());
-    }
+    //
+    //    @Override
+    //    public void queryStream(QueryFilter filter, Consumer<T> consumer,
+    //            int batchSize) {
+    //        runIfCache(() -> {
+    //            Iterator<T> it = new PagingIterator<>(delegate, toPredicate(filter),
+    //                    batchSize > 0 ? batchSize : DEFAULT_BATCH_SIZE);
+    //            while (it.hasNext()) {
+    //                consumer.accept(it.next());
+    //            }
+    //        });
+    //    }
 
     @Override
-    public void queryStream(
-            String queryExpression, Consumer<T> consumer, int batchSize) {
-        runIfCache(() -> {
-            var bsize = batchSize <= 0 ? DEFAULT_BATCH_SIZE : batchSize;
-            var results = query(queryExpression);
-
-            LOG.trace("Starting streaming query with {} matching entries "
-                    + "using batch size {}", results.size(), bsize);
-
-            var offset = 0;
-            while (offset < results.size()) {
-                int endIndex = Math.min(offset + bsize, results.size());
-                var batch = results.subList(offset, endIndex);
-                batch.forEach(consumer);
-                offset = endIndex;
-
-                if (LOG.isTraceEnabled() && (offset % (bsize * 10) == 0
-                        || offset >= results.size())) {
-                    LOG.trace("Query-streamed {} entries out of {}",
-                            offset, results.size());
-                }
-            }
-
-            LOG.trace("Finished streaming query, streamed {} entries", offset);
-        });
-    }
-
-    @Override
-    public long count(String queryExpression) {
-        return supplyIfCache(() -> {
-            var predicate = parseQueryToPredicate(queryExpression);
-            if (predicate != null) {
-                return (long) delegate.values(predicate).size();
-            }
-            return (long) delegate.size();
-        }, -1L);
+    public long count(QueryFilter filter) {
+        return delegate.keySet(toPredicate(filter)).size();
     }
 
     @Override
@@ -258,25 +222,15 @@ public class HazelcastCacheAdapter<T> implements Cache<T> {
     }
 
     @Override
-    public long delete(String queryExpression) {
-        return supplyIfCache(() -> {
-            var predicate = parseQueryToPredicate(queryExpression);
-            if (predicate == null) {
-                return 0L;
-            }
-
-            var keysToDelete = delegate.keySet(predicate);
-            long count = keysToDelete.size();
-
-            LOG.debug("Deleting {} entries matching query", count);
-
-            for (var key : keysToDelete) {
-                delegate.remove(key);
-            }
-
-            LOG.debug("Finished deleting {} entries", count);
-            return count;
-        }, -1L);
+    public void delete(QueryFilter filter) {
+        if (filter == null) {
+            return;
+        }
+        runIfCache(() -> {
+            LOG.debug("Deleting entries matching filter: {}...", filter);
+            delegate.removeAll(toPredicate(filter));
+            LOG.debug("Finished deleting {} entries");
+        });
     }
 
     @Override
@@ -304,30 +258,15 @@ public class HazelcastCacheAdapter<T> implements Cache<T> {
     //--- Private methods ------------------------------------------------------
 
     /**
-     * Parses a simple SQL-like query to a Hazelcast Predicate.
-     * Supports queries like:
-     * - "FROM ClassName WHERE field = 'value'"
-     * - "FROM ClassName WHERE field = 'value' ORDER BY otherField"
+     * Convert an entry filter to an Hazelcast Predicate.
      */
-    @SuppressWarnings("unchecked")
-    private Predicate<String, T> parseQueryToPredicate(String queryExpression) {
-        if (queryExpression == null || queryExpression.isBlank()) {
-            return null;
+    private Predicate<String, T> toPredicate(QueryFilter filter) {
+        if (filter == null || StringUtils.isBlank(filter.getFieldName())) {
+            return Predicates.alwaysTrue();
         }
-
-        var matcher = QUERY_PATTERN.matcher(queryExpression);
-        if (matcher.find()) {
-            String fieldName = matcher.group(1);
-            String fieldValue = matcher.group(2);
-
-            LOG.trace("Parsed query: field={}, value={}", fieldName,
-                    fieldValue);
-
-            return Predicates.equal(fieldName, fieldValue);
-        }
-
-        LOG.debug("Could not parse query expression: {}", queryExpression);
-        return null;
+        return Predicates.equal(
+                filter.getFieldName(),
+                Objects.toString(filter.getFieldValue(), ""));
     }
 
     private <R> R supplyIfCache(Supplier<R> supplier, R defaultValue) {
@@ -341,7 +280,7 @@ public class HazelcastCacheAdapter<T> implements Cache<T> {
     }
 
     private boolean isCacheClosed() {
-        LifecycleService lifecycle = hazelcastInstance.getLifecycleService();
+        var lifecycle = hazelcastInstance.getLifecycleService();
         if (!lifecycle.isRunning()) {
             var name = delegate.getName();
             if (CLOSED_LOGGED.add(name)) {
@@ -354,5 +293,64 @@ public class HazelcastCacheAdapter<T> implements Cache<T> {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Iterator that pages results from Hazelcast IMap using PagingPredicate.
+     * Only the current page is loaded in memory.
+     */
+    private static class PagingIterator<T> implements Iterator<T> {
+        private final IMap<String, T> map;
+        private final com.hazelcast.query.Predicate<String, T> predicate;
+        private final int pageSize;
+        private int pageIndex = 0;
+        private Iterator<T> currentPageIterator;
+        private boolean lastPage = false;
+
+        PagingIterator(IMap<String, T> map,
+                com.hazelcast.query.Predicate<String, T> predicate,
+                int pageSize) {
+            this.map = map;
+            this.predicate = predicate;
+            this.pageSize = pageSize;
+            loadPage();
+        }
+
+        private void loadPage() {
+            PagingPredicate<String, T> pagingPredicate =
+                    new PagingPredicateImpl<>(predicate, pageSize);
+            pagingPredicate.setPage(pageIndex);
+            Iterable<Entry<String, T>> entrySet = map.entrySet(pagingPredicate);
+            List<T> values = new ArrayList<>();
+            for (var entry : entrySet) {
+                values.add(entry.getValue());
+            }
+            currentPageIterator = values.iterator();
+            lastPage = values.size() < pageSize;
+        }
+
+        @Override
+        public boolean hasNext() {
+            if (currentPageIterator == null) {
+                return false;
+            }
+            if (currentPageIterator.hasNext()) {
+                return true;
+            }
+            if (!lastPage) {
+                pageIndex++;
+                loadPage();
+                return hasNext();
+            }
+            return false;
+        }
+
+        @Override
+        public T next() {
+            if (!hasNext()) {
+                throw new java.util.NoSuchElementException();
+            }
+            return currentPageIterator.next();
+        }
     }
 }

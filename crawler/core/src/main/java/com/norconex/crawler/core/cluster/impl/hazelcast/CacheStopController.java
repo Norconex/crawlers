@@ -19,7 +19,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.norconex.crawler.core.cluster.Cache;
+import com.norconex.crawler.core.cluster.CacheMap;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 class CacheStopController implements AutoCloseable {
 
     private final HazelcastCluster cluster;
-    private final Cache<String> adminCache;
+    private final CacheMap<String> adminCache;
     private final ScheduledExecutorService scheduler;
     private final AtomicBoolean stopping = new AtomicBoolean(false);
 

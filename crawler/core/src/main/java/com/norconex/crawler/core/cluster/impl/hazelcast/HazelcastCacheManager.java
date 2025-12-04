@@ -23,12 +23,11 @@ import java.util.function.BiConsumer;
 import com.hazelcast.collection.IQueue;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
-import com.norconex.crawler.core.cluster.Cache;
-import com.norconex.crawler.core.cluster.CacheException;
+import com.norconex.crawler.core.cluster.CacheMap;
+import com.norconex.crawler.core.cluster.ClusterException;
 import com.norconex.crawler.core.cluster.CacheManager;
 import com.norconex.crawler.core.cluster.CacheQueue;
 import com.norconex.crawler.core.cluster.CacheSet;
-import com.norconex.crawler.core.cluster.Counter;
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListener;
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListenerAdapter;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
@@ -54,30 +53,30 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
     }
 
     @Override
-    public <T> Cache<T> getCache(String name, Class<T> valueType) {
-        return new HazelcastCacheAdapter<>(getHazelcastMap(name), hazelcast);
+    public <T> CacheMap<T> getCache(String name, Class<T> valueType) {
+        return new HazelcastMapAdapter<>(getHazelcastMap(name), hazelcast);
     }
 
     @Override
     public CacheSet getCacheSet(String name) {
-        return new HazelcastCacheSetAdapter(getHazelcastMap(name));
+        return new HazelcastSetAdapter(hazelcast.getSet(name));
     }
 
     @Override
-    public Cache<String> getCrawlerCache() {
-        return new HazelcastCacheAdapter<>(
+    public CacheMap<String> getCrawlerCache() {
+        return new HazelcastMapAdapter<>(
                 getHazelcastMap(CacheNames.CRAWLER), hazelcast);
     }
 
     @Override
-    public Cache<String> getCrawlSessionCache() {
-        return new HazelcastCacheAdapter<>(
+    public CacheMap<String> getCrawlSessionCache() {
+        return new HazelcastMapAdapter<>(
                 getHazelcastMap(CacheNames.CRAWL_SESSION), hazelcast);
     }
 
     @Override
-    public Cache<String> getCrawlRunCache() {
-        return new HazelcastCacheAdapter<>(
+    public CacheMap<String> getCrawlRunCache() {
+        return new HazelcastMapAdapter<>(
                 getHazelcastMap(CacheNames.CRAWL_RUN), hazelcast);
     }
 
@@ -114,31 +113,31 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
         return hazelcast;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public void forEach(BiConsumer<String, Cache<?>> c) {
+    public void forEach(BiConsumer<String, CacheMap<?>> c) {
         hazelcast.getDistributedObjects().stream()
                 .filter(IMap.class::isInstance)
                 .map(obj -> (IMap<String, ?>) obj)
                 .forEach(map -> c.accept(
                         map.getName(),
-                        new HazelcastCacheAdapter<>(map, hazelcast)));
+                        new HazelcastMapAdapter<>(map, hazelcast)));
     }
 
     //--- Hazelcast-specific custom caches ------------------------------------
 
-    public Cache<String> getAdminCache() {
+    public CacheMap<String> getAdminCache() {
         return getCache(CacheNames.ADMIN, String.class);
     }
 
-    public Cache<StepRecord> getPipelineStepCache() {
+    public CacheMap<StepRecord> getPipelineStepCache() {
         return getCache(CacheNames.PIPE_CURRENT_STEP, StepRecord.class);
     }
 
-    public Cache<StepRecord> getPipelineWorkerStatusCache() {
+    public CacheMap<StepRecord> getPipelineWorkerStatusCache() {
         return getCache(CacheNames.PIPE_WORKER_STATUSES, StepRecord.class);
     }
 
-    @SuppressWarnings("unchecked")
     public <T> void addCacheEntryChangeListener(
             @NonNull CacheEntryChangeListener<T> listener, String cacheName) {
         var adapter = new CacheEntryChangeListenerAdapter<>(listener);
@@ -148,7 +147,6 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
         adapterMappings.put(listener, adapter);
     }
 
-    @SuppressWarnings("unchecked")
     public <T> void removeCacheEntryChangeListener(
             @NonNull CacheEntryChangeListener<T> listener, String cacheName) {
         var adapter = adapterMappings.remove(listener);
@@ -163,18 +161,6 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
         }
     }
 
-    //--- Hazelcast queue support ------------------------------------------------
-
-    public <T> IQueue<T> getHazelcastQueue(String queueName) {
-        var lifecycle = hazelcast.getLifecycleService();
-        if (!lifecycle.isRunning()) {
-            throw new CacheException(
-                    "Hazelcast instance is not running; cannot access queue '%s'."
-                            .formatted(queueName));
-        }
-        return hazelcast.getQueue(queueName);
-    }
-
     // Adapter for queue operations (to be used in CrawlEntryLedger)
     @Override
     public <T> CacheQueue<T> getQueue(String name, Class<T> valueType) {
@@ -183,10 +169,20 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
 
     //--- Private methods ------------------------------------------------------
 
+    private <T> IQueue<T> getHazelcastQueue(String queueName) {
+        var lifecycle = hazelcast.getLifecycleService();
+        if (!lifecycle.isRunning()) {
+            throw new ClusterException(
+                    "Hazelcast instance is not running; cannot access "
+                            + "queue '%s'.".formatted(queueName));
+        }
+        return hazelcast.getQueue(queueName);
+    }
+
     private <K, V> IMap<K, V> getHazelcastMap(String mapName) {
         var lifecycle = hazelcast.getLifecycleService();
         if (!lifecycle.isRunning()) {
-            throw new CacheException(
+            throw new ClusterException(
                     "Hazelcast instance is not running; cannot access map '%s'."
                             .formatted(mapName));
         }

@@ -1,9 +1,10 @@
 package com.norconex.crawler.core.cluster.impl.hazelcast;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.hazelcast.collection.IQueue;
 import com.norconex.crawler.core.cluster.CacheQueue;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class HazelcastQueueAdapter<T> implements CacheQueue<T> {
     private final IQueue<T> queue;
@@ -24,7 +25,15 @@ public class HazelcastQueueAdapter<T> implements CacheQueue<T> {
 
     @Override
     public List<T> pollBatch(int batchSize) {
-        return queue.stream().limit(batchSize).collect(Collectors.toList());
+        List<T> batch = new ArrayList<>(batchSize);
+        for (var i = 0; i < batchSize; i++) {
+            var item = queue.poll();
+            if (item == null) {
+                break;
+            }
+            batch.add(item);
+        }
+        return batch;
     }
 
     @Override

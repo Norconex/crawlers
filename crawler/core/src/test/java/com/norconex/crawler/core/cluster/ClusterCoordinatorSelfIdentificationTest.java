@@ -36,7 +36,7 @@ class ClusterCoordinatorSelfIdentificationTest {
             recordRole(s.getCluster(), cacheName);
         }
 
-        Cache<String> cache = sessions.get(0).getCluster().getCacheManager()
+        CacheMap<String> cache = sessions.get(0).getCluster().getCacheManager()
                 .getCache(cacheName, String.class);
 
         // Wait until all node role entries are present in the shared cache
@@ -67,7 +67,7 @@ class ClusterCoordinatorSelfIdentificationTest {
     }
 
     private void recordRole(Cluster cluster, String cacheName) {
-        Cache<String> cache =
+        CacheMap<String> cache =
                 cluster.getCacheManager().getCache(cacheName, String.class);
         var node = cluster.getLocalNode();
         var role = node.isCoordinator() ? "COORDINATOR" : "NON_COORDINATOR";

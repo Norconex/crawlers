@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.norconex.crawler.core.cluster.Cache;
+import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.ledger.CrawlEntryLedger;
 import com.norconex.crawler.core.session.CrawlSession;
 
@@ -42,7 +42,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
     private CrawlEntryLedger ledger;
     private final ConcurrentHashMap<String, Long> eventCountsLocalBatch =
             new ConcurrentHashMap<>();
-    private Cache<Long> eventCountsStore;
+    private CacheMap<Long> eventCountsStore;
     private ScheduledExecutorService scheduler;
     private boolean closed;
     private boolean closedAndFlushed;
@@ -170,7 +170,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
     }
 
     private static void atomicIncrement(
-            Cache<Long> store, String key, long increment) {
+            CacheMap<Long> store, String key, long increment) {
         try {
             var updated = false;
             var attempts = 0;

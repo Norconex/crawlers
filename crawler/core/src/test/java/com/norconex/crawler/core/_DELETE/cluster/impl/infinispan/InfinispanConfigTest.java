@@ -35,7 +35,7 @@ class InfinispanConfigTest {
         //this test ensure our test XML configs work for whatever other
         // tests needing them
         ClusterStubber.withSingleMemoryNodeCluster(cluster -> {
-            cluster.init(tempDir);
+            cluster.init(tempDir, false);
             //            cluster.init(CrawlContextStubber.crawlerContext(tempDir));
             assertThat(cluster.getLocalNode().isCoordinator()).isTrue();
             var cache =
@@ -48,22 +48,22 @@ class InfinispanConfigTest {
         });
     }
 
-    @Test
-    void testMultiMemoryNodeCluster() {
-        //this test ensure our test XML configs work for whatever other
-        // tests needing them
-        ClusterStubber.withMultiMemoryNodesCluster(2, (cluster, idx) -> {
-            cluster.init(tempDir);
-            assertThat(cluster.getLocalNode().isCoordinator()).isTrue();
-            var cache =
-                    cluster.getCacheManager().getCache("cache", String.class);
-            assertThat(cache.get("str")).isEmpty();
-            cache.put("str", "A");
-            assertThat(cache.get("str")).contains("A");
-            cache.merge("str", "B", (val1, val2) -> val1 + val2);
-            assertThat(cache.get("str")).contains("AB");
-        });
-    }
+    //    @Test
+    //    void testMultiMemoryNodeCluster() {
+    //        //this test ensure our test XML configs work for whatever other
+    //        // tests needing them
+    //        ClusterStubber.withMultiMemoryNodesCluster(2, (cluster, idx) -> {
+    //            cluster.init(tempDir, );
+    //            assertThat(cluster.getLocalNode().isCoordinator()).isTrue();
+    //            var cache =
+    //                    cluster.getCacheManager().getCache("cache", String.class);
+    //            assertThat(cache.get("str")).isEmpty();
+    //            cache.put("str", "A");
+    //            assertThat(cache.get("str")).contains("A");
+    //            cache.merge("str", "B", (val1, val2) -> val1 + val2);
+    //            assertThat(cache.get("str")).contains("AB");
+    //        });
+    //    }
 
     //    @Test
     //    void testDefaultClusterNodeSetup() {

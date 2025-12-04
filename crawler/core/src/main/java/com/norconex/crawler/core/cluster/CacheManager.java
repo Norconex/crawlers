@@ -2,8 +2,6 @@ package com.norconex.crawler.core.cluster;
 
 import java.util.function.BiConsumer;
 
-import com.norconex.crawler.core.cluster.CacheQueue;
-
 public interface CacheManager {
 
     /**
@@ -15,7 +13,7 @@ public interface CacheManager {
      * @param valueType class of the value to store
      * @return a named cache
      */
-    <T> Cache<T> getCache(String name, Class<T> valueType);
+    <T> CacheMap<T> getCache(String name, Class<T> valueType);
 
     /**
      * As string-based set, keeping only unique keys.
@@ -28,37 +26,35 @@ public interface CacheManager {
 
     boolean cacheExists(String name);
 
-    void forEach(BiConsumer<String, Cache<?>> c);
+    void forEach(BiConsumer<String, CacheMap<?>> c);
 
     /**
      * Gets a generic shared cache bound to a crawler that persists
      * forever (never deleted).
      * @return crawler-scoped persistent cache
      */
-    Cache<String> getCrawlerCache();
+    CacheMap<String> getCrawlerCache();
 
     /**
      * Gets a generic shared cache bound to a crawl session that persists
      * until a new crawl session is started (for the same crawler).
      * @return crawl session-scoped persistent cache
      */
-    Cache<String> getCrawlSessionCache();
+    CacheMap<String> getCrawlSessionCache();
 
     /**
      * Gets a generic shared cache tied to a specific crawler run and
      * <b>does not get persisted</b> when the crawler run terminates.
      * @return crawl run non-persistent cache
      */
-    Cache<String> getCrawlRunCache();
-    //
+    CacheMap<String> getCrawlRunCache();
 
+    /**
+     * Gets a FIFO queue.
+     * @param <T> the type of elements in the queue
+     * @param name the queue name
+     * @param valueType the value type
+     * @return cache queue
+     */
     <T> CacheQueue<T> getQueue(String name, Class<T> valueType);
-
-    //    /**
-    //     * Initializes the cache manager.
-    //     * @param crawlerWorkdir
-    //     */
-    //    void init(String crawlerWorkdir);
-    //
-    //    void close();
 }

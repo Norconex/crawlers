@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 
 import com.norconex.crawler.core._DELETE.CrawlTest;
-import com.norconex.crawler.core._DELETE.MockSingleNodeConnector;
 import com.norconex.crawler.core._DELETE.CrawlTest.Focus;
+import com.norconex.crawler.core._DELETE.MockSingleNodeConnector;
 import com.norconex.crawler.core.session.CrawlSession;
 
 class CrawlEntryLedgerTest {
@@ -29,10 +29,8 @@ class CrawlEntryLedgerTest {
         assertThat(ledger.getProcessedCount()).isZero();
 
         // Claim entries for processing
-        refs.forEach(ref -> {
-            var claimed = ledger.nextQueued();
-            assertThat(claimed).isPresent();
-        });
+        var batch = ledger.nextQueuedBatch(3);
+        assertThat(batch).hasSize(3);
         assertThat(ledger.getQueueCount()).isZero();
         assertThat(ledger.getProcessingCount()).isEqualTo(3);
         assertThat(ledger.getProcessedCount()).isZero();
