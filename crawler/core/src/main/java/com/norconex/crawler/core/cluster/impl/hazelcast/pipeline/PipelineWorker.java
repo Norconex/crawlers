@@ -165,7 +165,17 @@ public class PipelineWorker implements AutoCloseable {
                     state.pushWorkerStatus(PipelineStatus.FAILED);
                     return;
                 }
-                state.pushWorkerStatus(PipelineStatus.COMPLETED);
+                // If step was asked to stop, treat this worker as STOPPED
+                if (step.isStopRequested()) {
+                    LOG.info("Worker node {} completed step {} after stop "
+                            + "was requested. Marking worker status as "
+                            + "STOPPED instead of COMPLETED.",
+                            cluster.getLocalNode().getNodeName(),
+                            stepRec.getStepId());
+                    state.pushWorkerStatus(PipelineStatus.STOPPED);
+                } else {
+                    state.pushWorkerStatus(PipelineStatus.COMPLETED);
+                }
             } catch (RuntimeException e) {
                 LOG.error("Failure detected in pipeline {} step {} execution.",
                         stepRec.getPipelineId(),

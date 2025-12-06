@@ -93,6 +93,18 @@ public class HazelcastCluster implements Cluster {
                     hazelcastConfig.getClusterName());
             hazelcastInstance = Hazelcast.newHazelcastInstance(hazelcastConfig);
 
+            //TODO XXX is it necessary?
+            // Register lifecycle listener to persist backup data before shutdown
+            hazelcastInstance.getLifecycleService().addLifecycleListener(
+                    event -> {
+                        if (event
+                                .getState() == com.hazelcast.core.LifecycleEvent.LifecycleState.SHUTTING_DOWN) {
+                            LOG.info(
+                                    "Hazelcast shutting down, persisting backup data to RocksDB...");
+                            persistAllBackupData();
+                        }
+                    });
+
             // Add membership listener for coordinator changes
             membershipListenerId = hazelcastInstance.getCluster()
                     .addMembershipListener(new ClusterMembershipListener());
@@ -210,6 +222,20 @@ public class HazelcastCluster implements Cluster {
 
     public boolean isClustered() {
         return clustered;
+    }
+
+    /**
+     * Persists all backup data to RocksDB before Hazelcast shutdown.
+     * This ensures that backup replicas are not lost when all nodes restart.
+     */
+    private void persistAllBackupData() {
+        try {
+            LOG.info("Persisting all backup data before Hazelcast shutdown...");
+            RocksDBMapStore.persistAllBackupData();
+            LOG.info("Backup data persistence complete");
+        } catch (Exception e) {
+            LOG.error("Failed to persist backup data", e);
+        }
     }
 
     //--- Private methods ------------------------------------------------------

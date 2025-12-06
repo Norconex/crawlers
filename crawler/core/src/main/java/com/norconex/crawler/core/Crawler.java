@@ -96,9 +96,8 @@ public class Crawler {
     // to a cluster. Does not participate in normal command launch flow.
     private void executeDetachedCommand(Runnable... commands) {
         for (Runnable cmd : commands) {
-            LOG.info("Executing command: {}",
-                    cmd.getClass().getSimpleName());
-            ExceptionSwallower.runWithInterruptClear(() -> cmd.run());
+            LOG.info("Executing command: {}", cmd.getClass().getSimpleName());
+            ExceptionSwallower.runWithInterruptClear(cmd::run);
         }
     }
 

@@ -23,6 +23,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 import com.norconex.crawler.core.cluster.pipeline.PipelineProgress;
 import com.norconex.crawler.core.cluster.pipeline.PipelineProgressJMX;
 import com.norconex.crawler.core.cluster.pipeline.PipelineResult;
@@ -50,6 +52,18 @@ public class CrawlCommand implements Command {
     @Override
     public void execute(CrawlSession session) {
         var ctx = session.getCrawlContext();
+
+        //XXX START TEST
+
+        if (CollectionUtils.isNotEmpty(ctx.getBootstrappers())) {
+            session.oncePerRun("crawl-bootstrappers", () -> {
+                LOG.info("Running bootstrappers...");
+                //TODO XXX rename getCrawlBootstrappers() or crawlRunBootstrappers
+                ctx.getBootstrappers().forEach(boot -> boot.bootstrap(session));
+            });
+
+        }
+        //XXX END TEST
 
         pendingLoggerStopped.set(false); // just in case
         if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {
@@ -191,16 +205,14 @@ public class CrawlCommand implements Command {
 
         // Log diagnostic information for non-success statuses
         if (pipeStatus != PipelineStatus.COMPLETED) {
-            LOG.warn(
-                    "Pipeline did not complete successfully. Status: {}, "
-                            + "Result: {}",
+            LOG.warn("Pipeline did not complete successfully. Status: {}, "
+                    + "Result: {}",
                     pipeStatus, result);
             if (pipeStatus == PipelineStatus.EXPIRED) {
-                LOG.error(
-                        """
-                            Pipeline EXPIRED - workers failed to report status \
-                            within timeout. Check for worker thread issues, \
-                            cluster connectivity problems, or deadlocks.""");
+                LOG.error("""
+                    Pipeline EXPIRED - workers failed to report status \
+                    within timeout. Check for worker thread issues, \
+                    cluster connectivity problems, or deadlocks.""");
             }
         }
 

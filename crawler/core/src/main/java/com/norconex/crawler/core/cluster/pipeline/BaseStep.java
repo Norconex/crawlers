@@ -43,6 +43,11 @@ public abstract class BaseStep implements Step {
     }
 
     @Override
+    public boolean isStopRequested() {
+        return stopRequested;
+    }
+
+    @Override
     public PipelineStatus reduce(
             CrawlSession session, Bag<PipelineStatus> statuses) {
         // Treat empty status bag as not-yet-started

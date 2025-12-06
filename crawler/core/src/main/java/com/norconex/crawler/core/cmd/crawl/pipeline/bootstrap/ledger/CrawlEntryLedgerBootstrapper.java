@@ -46,15 +46,22 @@ public final class CrawlEntryLedgerBootstrapper implements CrawlBootstrapper {
         // Use atomic operation to prevent race condition in clustered
         // environments where coordinator election may not be complete
         // during initial startup
-        if (!session.setBooleanIfAbsent(BOOTSTRAP_KEY, true)) {
+        if (!session.getCrawlRunAttributes().setBooleanIfAbsent(
+                BOOTSTRAP_KEY, true)) {
             LOG.info("Bootstrap already in progress or completed by "
                     + "coordinator, skipping.");
             return;
         }
+
+        //        if (!session.setBooleanIfAbsent(BOOTSTRAP_KEY, true)) {
+        //            LOG.info("Bootstrap already in progress or completed by "
+        //                    + "coordinator, skipping.");
+        //            return;
+        //        }
         try {
             prepareForCrawl(session);
         } finally {
-            session.setBoolean(BOOTSTRAP_KEY, false);
+            session.getCrawlRunAttributes().setBoolean(BOOTSTRAP_KEY, false);
         }
     }
 

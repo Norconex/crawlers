@@ -57,7 +57,7 @@ public final class CrawlRunInfoResolver {
 
         // Try to derive next CrawlRunInfo based on prior persisted state
         var prior = load(session).orElse(null);
-        System.err.println("XXX PRIOR RUN: " + prior);
+        LOG.debug("Prior run info loaded from cache: {}", prior);
         final CrawlRunInfo info;
         if (prior == null) {
             LOG.info("No active or previous crawl session detected, "
@@ -68,7 +68,14 @@ public final class CrawlRunInfoResolver {
             info = prior;
         } else {
             var timedState = session.loadState();
-            info = buildForNextRun(session, runId, prior, timedState);
+            LOG.debug("Loaded state for resume detection: {}", timedState);
+            if (timedState == null || timedState.getCrawlState() == null) {
+                LOG.warn("Prior run found but state is missing/invalid. "
+                        + "Starting fresh.");
+                info = newInfoForNewSession(session, runId);
+            } else {
+                info = buildForNextRun(session, runId, prior, timedState);
+            }
         }
 
         // Elect exactly one creator for this run's info using putIfAbsent.
@@ -84,6 +91,12 @@ public final class CrawlRunInfoResolver {
             LOG.info(
                     "Clearing any previous session-specific cache information");
             sessCache.clear();
+        } else if (info.getCrawlResumeState() == CrawlResumeState.RESUMED) {
+            // When resuming, clear pipeline terminal state so coordinator
+            // can restart from where it left off instead of immediately exiting
+            LOG.info(
+                    "Resuming crawl - clearing terminal pipeline state to allow restart");
+            clearPipelineTerminalState(session);
         }
         // Persist to session cache for cross-run reference and durability.
         save(session, info);
@@ -91,14 +104,15 @@ public final class CrawlRunInfoResolver {
     }
 
     private static String resolveCrawlRunId(CrawlSession session) {
-        var cache = session.getCluster().getCacheManager().getCrawlRunCache();
-        var existing = cache.get(CRAWL_RUN_ID_KEY).orElse(null);
-        if (existing != null) {
-            return existing;
-        }
+        // Always generate a new crawl run id per process start. The
+        // previous run id is persisted as part of CrawlRunInfo in the
+        // session cache and is used for resume detection. Reusing the
+        // same run id across process lifecycles can prevent us from
+        // correctly detecting prior STOPPED/FAILED runs.
         var newId = "cr-" + new ULID().nextULID();
-        var prev = cache.putIfAbsent(CRAWL_RUN_ID_KEY, newId);
-        return prev != null ? prev : newId;
+        var cache = session.getCluster().getCacheManager().getCrawlRunCache();
+        cache.put(CRAWL_RUN_ID_KEY, newId);
+        return newId;
     }
 
     private static CrawlRunInfo newInfoForNewSession(
@@ -163,10 +177,10 @@ public final class CrawlRunInfoResolver {
     }
 
     private static Optional<CrawlRunInfo> load(CrawlSession session) {
-        return session.getCluster()
+        var cache = session.getCluster()
                 .getCacheManager()
-                .getCrawlSessionCache()
-                .get(CRAWL_RUN_INFO_KEY)
+                .getCrawlSessionCache();
+        return cache.get(CRAWL_RUN_INFO_KEY)
                 .map(json -> SerialUtil.fromJson(json, CrawlRunInfo.class));
     }
 
@@ -175,5 +189,30 @@ public final class CrawlRunInfoResolver {
                 .getCacheManager()
                 .getCrawlSessionCache()
                 .put(CRAWL_RUN_INFO_KEY, SerialUtil.toJsonString(info));
+    }
+
+    /**
+     * Clears pipeline terminal state when resuming a crawl. This allows
+     * the coordinator to restart processing from where it left off instead
+     * of treating the previous STOPPED/FAILED state as terminal and exiting
+     * immediately.
+     */
+    private static void clearPipelineTerminalState(CrawlSession session) {
+        var sessCache = session.getCluster()
+                .getCacheManager()
+                .getCrawlSessionCache();
+
+        // Clear the pipeCurrentStep cache which stores terminal step status
+        // The coordinator checks this and exits if it finds a terminal status
+        // By clearing it, we force the pipeline to restart from scratch
+        var keys = sessCache.keys();
+        var pipelineKeys = keys.stream()
+                .filter(key -> key.startsWith("pipe-step-"))
+                .toList();
+
+        pipelineKeys.forEach(sessCache::remove);
+
+        LOG.debug("Cleared {} pipeline step records for resume",
+                pipelineKeys.size());
     }
 }

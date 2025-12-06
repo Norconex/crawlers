@@ -87,11 +87,24 @@ public final class HazelcastUtil {
             stepRec.setRunId(cluster.getCrawlSession().getCrawlRunId());
             stepRec.setUpdatedAt(System.currentTimeMillis());
         } else {
-            LOG.info("Resuming pipeline \"{}\" at step \"{}\" from status {}"
-                    .formatted(
-                            stepRec.getPipelineId(),
-                            stepRec.getStepId(),
-                            stepRec.getStatus()));
+            LOG.info("Resuming pipeline \"{}\" at step \"{}\" from "
+                    + "status {} (runId={})",
+                    stepRec.getPipelineId(),
+                    stepRec.getStepId(),
+                    stepRec.getStatus(),
+                    stepRec.getRunId());
+            // When resuming a stopped/terminal pipeline, we need to
+            // transition the step back to PENDING for the new run so
+            // execution can continue instead of short-circuiting on a
+            // terminal status from the previous run.
+            if (stepRec.getStatus().isTerminal()) {
+                stepRec.setStatus(PipelineStatus.PENDING);
+                stepRec.setRunId(
+                        cluster.getCrawlSession().getCrawlRunId());
+                stepRec.setUpdatedAt(System.currentTimeMillis());
+                cluster.getCacheManager().getPipelineStepCache()
+                        .put(pipelineKey, stepRec);
+            }
         }
         return stepRec;
     }

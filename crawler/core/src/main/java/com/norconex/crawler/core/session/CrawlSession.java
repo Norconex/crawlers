@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
@@ -86,8 +85,15 @@ public class CrawlSession implements Closeable {
     private ClusterAdminServer adminServer;
     @Getter
     private final CrawlContext crawlContext;
-    private CacheMap<String> crawlSessionCache;
+
+    private CacheMap<String> sessionCache;
+    private CrawlAttributes sessionAttributes;
+
     private CacheMap<String> crawlRunCache;
+    private CrawlAttributes crawlRunAttributes;
+
+    private CrawlAttributes crawlerAttributes;
+
     private CrawlRunInfo crawlRunInfo;
     private State state;
     //    private ScheduledExecutorService heartbeatScheduler =
@@ -129,11 +135,11 @@ public class CrawlSession implements Closeable {
     }
 
     public void oncePerSession(String taskId, Runnable runnable) {
-        oncePerCache(crawlSessionCache, taskId, runnable);
+        oncePerCache(sessionCache, taskId, runnable);
     }
 
     public <T> T oncePerSessionAndGet(String taskId, Supplier<T> supplier) {
-        return oncePerCacheAndGet(crawlSessionCache, taskId, supplier);
+        return oncePerCacheAndGet(sessionCache, taskId, supplier);
     }
 
     public void oncePerRun(String taskId, Runnable runnable) {
@@ -189,6 +195,27 @@ public class CrawlSession implements Closeable {
         return closed;
     }
 
+    public CrawlAttributes getSessionAttributes() {
+        if (sessionAttributes == null) {
+            throw new IllegalStateException("CrawlSession not initialized.");
+        }
+        return sessionAttributes;
+    }
+
+    public CrawlAttributes getCrawlRunAttributes() {
+        if (crawlRunAttributes == null) {
+            throw new IllegalStateException("CrawlSession not initialized.");
+        }
+        return crawlRunAttributes;
+    }
+
+    public CrawlAttributes getCrawlerAttributes() {
+        if (crawlerAttributes == null) {
+            throw new IllegalStateException("CrawlSession not initialized.");
+        }
+        return crawlerAttributes;
+    }
+
     void init() {
         if (closed) {
             throw new IllegalStateException(
@@ -196,36 +223,66 @@ public class CrawlSession implements Closeable {
         }
         var clusterConfig = crawlContext.getCrawlConfig().getClusterConfig();
 
+        LOG.info("CrawlSession.init() - Creating directories...");
         createDir(crawlContext.getTempDir()); // also creates workDir
+
+        LOG.info("CrawlSession.init() - Initializing cluster...");
         cluster.init(crawlContext.getWorkDir(), clusterConfig.isClustered());
-        crawlSessionCache = cluster.getCacheManager().getCrawlSessionCache();
+
+        LOG.info("CrawlSession.init() - Getting cache managers...");
+        sessionCache = cluster.getCacheManager().getCrawlSessionCache();
+        sessionAttributes = new CrawlAttributes(sessionCache);
         crawlRunCache = cluster.getCacheManager().getCrawlRunCache();
-        System.err.println(
-                "XXX local node name: " + cluster.getLocalNode().getNodeName());
-        SESSIONS.put(cluster.getLocalNode().getNodeName(), this);
+        crawlRunAttributes = new CrawlAttributes(crawlRunCache);
+        crawlerAttributes = new CrawlAttributes(
+                cluster.getCacheManager().getCrawlerCache());
+
+        var nodeName = cluster.getLocalNode().getNodeName();
+        LOG.info("CrawlSession.init() - Registering node: {}", nodeName);
+        SESSIONS.put(nodeName, this);
+
         try {
             //NOTE: this resolver will also clear the session cache if needed.
             // The crawlRunCache does not need clearing as it is ephemeral
+            LOG.info("CrawlSession.init() - Resolving crawl run info...");
             crawlRunInfo = CrawlRunInfoResolver.resolve(this);
-            //START TEST
-            //            crawlContext.init(this);
-            //END TEST
+            LOG.info("CrawlSession.init() - Crawl run info resolved: "
+                    + "mode={}, resumeState={}",
+                    crawlRunInfo.getCrawlMode(),
+                    crawlRunInfo.getCrawlResumeState());
+
             //TODO will always setting it have an impact for non crawl commands?
             if (cluster.getLocalNode().isCoordinator()) {
+                LOG.info("CrawlSession.init() - Updating crawl state to "
+                        + "RUNNING (coordinator)...");
                 updateCrawlState(CrawlState.RUNNING);
+                LOG.info("CrawlSession.init() - Crawl state updated "
+                        + "successfully");
+            } else {
+                LOG.info("CrawlSession.init() - Skipping state update "
+                        + "(not coordinator)");
             }
-            //            scheduleHeartbeat();
 
+            LOG.info("CrawlSession.init() - Initializing crawl context...");
             crawlContext.init(this);
+            LOG.info("CrawlSession.init() - Crawl context initialized "
+                    + "successfully");
 
             // Start the cluster admin server
             if (!clusterConfig.isAdminDisabled()) {
+                LOG.info("CrawlSession.init() - Starting cluster "
+                        + "admin server...");
                 adminServer = new ClusterAdminServer(this);
                 adminServer.start();
+                LOG.info("CrawlSession.init() - Cluster admin server started");
             } else {
-                LOG.info("Cluster admin server is disabled.");
+                LOG.info("CrawlSession.init() - Cluster admin server is "
+                        + "disabled");
             }
+
+            LOG.info("CrawlSession.init() - Initialization complete!");
         } catch (RuntimeException e) {
+            LOG.error("CrawlSession.init() - Initialization failed!", e);
             SESSIONS.remove(cluster.getLocalNode().getNodeName());
             throw e;
         }
@@ -277,65 +334,65 @@ public class CrawlSession implements Closeable {
         postCloseCleanup = cleanup;
     }
 
-    /**
-     * Sets a session attribute as a string.
-     * @param key attribute key
-     * @param value attribute value
-     */
-    public void setString(String key, String value) {
-        crawlSessionCache.put(key, value);
-    }
-
-    /**
-     * Gets a session attribute as a string.
-     * @param key attribute key
-     * @return value attribute value
-     */
-    public Optional<String> getString(String key) {
-        return crawlSessionCache.get(key);
-    }
-
-    /**
-     * Sets a session attribute as a boolean.
-     * @param key attribute key
-     * @param value attribute value
-     */
-    public void setBoolean(String key, boolean value) {
-        crawlSessionCache.put(key, Boolean.toString(value));
-    }
-
-    /**
-     * Gets a session attribute as a boolean.
-     * @param key attribute key
-     * @return value attribute value
-     */
-    public boolean getBoolean(String key) {
-        return crawlSessionCache.get(key).map(Boolean::parseBoolean)
-                .orElse(false);
-    }
-
-    /**
-     * Atomically sets a session attribute as a boolean if it is not
-     * already set. This is a cluster-safe operation that prevents race
-     * conditions in distributed environments.
-     * @param key attribute key
-     * @param value attribute value to set if key is absent
-     * @return true if the value was set (key was absent), false if the
-     *         key already existed
-     */
-    public boolean setBooleanIfAbsent(String key, boolean value) {
-        var previousValue =
-                crawlSessionCache.putIfAbsent(
-                        key, Boolean.toString(value));
-        return previousValue == null;
-    }
+    //    /**
+    //     * Sets a session attribute as a string.
+    //     * @param key attribute key
+    //     * @param value attribute value
+    //     */
+    //    public void setString(String key, String value) {
+    //        sessionCache.put(key, value);
+    //    }
+    //
+    //    /**
+    //     * Gets a session attribute as a string.
+    //     * @param key attribute key
+    //     * @return value attribute value
+    //     */
+    //    public Optional<String> getString(String key) {
+    //        return sessionCache.get(key);
+    //    }
+    //
+    //    /**
+    //     * Sets a session attribute as a boolean.
+    //     * @param key attribute key
+    //     * @param value attribute value
+    //     */
+    //    public void setBoolean(String key, boolean value) {
+    //        sessionCache.put(key, Boolean.toString(value));
+    //    }
+    //
+    //    /**
+    //     * Gets a session attribute as a boolean.
+    //     * @param key attribute key
+    //     * @return value attribute value
+    //     */
+    //    public boolean getBoolean(String key) {
+    //        return sessionCache.get(key).map(Boolean::parseBoolean)
+    //                .orElse(false);
+    //    }
+    //
+    //    /**
+    //     * Atomically sets a session attribute as a boolean if it is not
+    //     * already set. This is a cluster-safe operation that prevents race
+    //     * conditions in distributed environments.
+    //     * @param key attribute key
+    //     * @param value attribute value to set if key is absent
+    //     * @return true if the value was set (key was absent), false if the
+    //     *         key already existed
+    //     */
+    //    public boolean setBooleanIfAbsent(String key, boolean value) {
+    //        var previousValue =
+    //                sessionCache.putIfAbsent(
+    //                        key, Boolean.toString(value));
+    //        return previousValue == null;
+    //    }
 
     public boolean isStartRefsQueueingComplete() {
-        return getBoolean(START_REFS_QUEUED_KEY);
+        return sessionAttributes.getBoolean(START_REFS_QUEUED_KEY);
     }
 
     public void setStartRefsQueueingComplete(boolean isComplete) {
-        setBoolean(START_REFS_QUEUED_KEY, isComplete);
+        sessionAttributes.setBoolean(START_REFS_QUEUED_KEY, isComplete);
     }
 
     public void updateCrawlState(CrawlState state) {
@@ -373,7 +430,7 @@ public class CrawlSession implements Closeable {
     //TODO make package private
     public State loadState() {
         return SerialUtil.fromJson(
-                crawlSessionCache.getOrDefault(SESSION_STATE_KEY, null),
+                sessionCache.getOrDefault(SESSION_STATE_KEY, null),
                 State.class);
     }
 
@@ -386,7 +443,7 @@ public class CrawlSession implements Closeable {
     }
 
     private void saveCrawlState(State state) {
-        crawlSessionCache.put(SESSION_STATE_KEY,
+        sessionCache.put(SESSION_STATE_KEY,
                 SerialUtil.toJsonString(state));
     }
 

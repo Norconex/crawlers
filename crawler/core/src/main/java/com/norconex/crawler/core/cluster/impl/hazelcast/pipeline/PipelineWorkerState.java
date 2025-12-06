@@ -142,9 +142,8 @@ public class PipelineWorkerState implements AutoCloseable {
             // Avoid doing work once the cluster is no longer running.
             if (!HazelcastUtil.isClusterRunning(cluster)) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug(
-                            "Skipping worker status heartbeat for pipeline {} "
-                                    + "because cluster is not running.",
+                    LOG.debug("Skipping worker status heartbeat for pipeline "
+                            + "{} because cluster is not running.",
                             pipeline.getId());
                 }
                 return;
@@ -168,6 +167,8 @@ public class PipelineWorkerState implements AutoCloseable {
                                 .setUpdatedAt(rec.getUpdatedAt());
                     }
                 });
+                // Push status immediately so coordinator sees the correct stepId
+                pushWorkerStatus(currentStepRecord.getStatus());
             }
         }, 0, heartbeatMs, TimeUnit.MILLISECONDS);
     }

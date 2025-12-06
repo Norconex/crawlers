@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=./hazelcast-config-5.6.json
+hazelcast:
+  map:
+    default:
+      backup-count: 1
+      map-store:
+        enabled: true
+        initial-mode: EAGER
+        write-delay-seconds: 0
+        write-coalescing: false
+        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBMapStore
+        properties:
+          database.dir: ${hazelcast.persistence.dir}
+    # Admin cache - used for cluster-wide control signals (e.g., STOP)
+    # Small data volume, needs replication for reliability
+    admin:
+      backup-count: 1
+      map-store:
+        enabled: false
+    # CrawlRun cache - ephemeral per-run metadata, not persisted
+    # Small data volume, needs replication for cluster coordination
+    crawlRun:
+      backup-count: 1
+      map-store:
+        enabled: false
+    # CrawlSession cache - cluster-wide session metadata for resume detection
+    # Enhanced RocksDBMapStore persists ALL local data (primary + backup)
+    # during graceful shutdown, so backup-count can remain at default (1)
+    crawlSession:
+      backup-count: 1
+      map-store:
+        enabled: true
+        initial-mode: EAGER
+        write-delay-seconds: 0
+        write-coalescing: false
+        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBMapStore
+        properties:
+          database.dir: ${hazelcast.persistence.dir}
+    ledger_a:
+      backup-count: 1
+      map-store:
+        enabled: true
+        initial-mode: EAGER
+        write-delay-seconds: 0
+        write-coalescing: false
+        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBMapStore
+        properties:
+          database.dir: ${hazelcast.persistence.dir}
+      indexes:
+        - type: HASH
+          attributes:
+            - processingStatus
+    ledger_b:
+      backup-count: 1
+      map-store:
+        enabled: true
+        initial-mode: EAGER
+        write-delay-seconds: 0
+        write-coalescing: false
+        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBMapStore
+        properties:
+          database.dir: ${hazelcast.persistence.dir}
+      indexes:
+        - type: HASH
+          attributes:
+            - processingStatus
+  
+    # The following are other known caches using the "default" map configuration:
+    #   crawler:
+    #   crawlSession:
+    #   crawlEventCounts:
+    #     map-store:
+    #       enabled: false
+    #   pipeCurrentStep:
+    #   pipeWorkerStatuses:

@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import com.norconex.crawler.core.CrawlConfig.OrphansStrategy;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.Step;
-import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapStep;
 import com.norconex.crawler.core.cmd.crawl.pipeline.orphans.RequeueOrphansForDeletionStep;
 import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessStep;
 import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessStep.ProcessQueueAction;
@@ -30,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DefaultCrawlPipelineFactory implements CrawlPipelineFactory {
 
-    public static final String STEP_BOOTSTRAP = "bootstrap";
+    //XXX     public static final String STEP_BOOTSTRAP = "bootstrap";
     public static final String STEP_CRAWL_DOCUMENTS = "crawlDocuments";
     public static final String STEP_DELETE_ORPHANS = "deleteOrphans";
     public static final String STEP_CRAWL_ORPHANS = "crawlOrphans";
@@ -38,7 +37,7 @@ public class DefaultCrawlPipelineFactory implements CrawlPipelineFactory {
     @Override
     public Pipeline create(CrawlSession session) {
         var steps = new ArrayList<Step>();
-        steps.add(new CrawlBootstrapStep(STEP_BOOTSTRAP));
+        //XXX        steps.add(new CrawlBootstrapStep(STEP_BOOTSTRAP));
         steps.add(new CrawlProcessStep(
                 STEP_CRAWL_DOCUMENTS, ProcessQueueAction.CRAWL_ALL)
                         .setDistributed(true));

@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=./hazelcast-config-5.6.json
+#
+# Standalone crawler without persistence. Ideal for testing and typically
+# not for production use.
+hazelcast:
+  cluster-name: memory-crawler
+  network:
+    port: 5701
+    port-auto-increment: true
+    join:
+      multicast:
+        enabled: false
+      tcp-ip:
+        enabled: false
+  map:
+    default:
+      backup-count: 0
+      map-store:
+        enabled: false
+    ledger_a:
+      indexes:
+        - type: HASH
+          attributes:
+            - processingStatus
+    ledger_b:
+      indexes:
+        - type: HASH
+          attributes:
+            - processingStatus

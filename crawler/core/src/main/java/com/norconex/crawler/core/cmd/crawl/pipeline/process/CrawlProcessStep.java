@@ -176,6 +176,10 @@ public class CrawlProcessStep extends BaseStep {
                                 .getProcessedCount());
             }
             LOG.info("XXX ---> CrawlProcessStep - 2");
+        } catch (com.hazelcast.core.HazelcastInstanceNotActiveException e) {
+            LOG.info("Hazelcast instance became inactive while processing "
+                    + "queue on node {}. Treating as graceful stop.",
+                    nodeName);
         } catch (Exception e) {
             LOG.error("Problem in thread execution.", e);
         }

@@ -164,7 +164,8 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
     // Adapter for queue operations (to be used in CrawlEntryLedger)
     @Override
     public <T> CacheQueue<T> getQueue(String name, Class<T> valueType) {
-        return new HazelcastQueueAdapter<>(getHazelcastQueue(name));
+        return new HazelcastQueueAdapter<>(
+                getHazelcastQueue(name), hazelcast);
     }
 
     //--- Private methods ------------------------------------------------------

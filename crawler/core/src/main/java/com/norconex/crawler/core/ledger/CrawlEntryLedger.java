@@ -164,6 +164,29 @@ public final class CrawlEntryLedger {
         LOG.info("Reconstructing queue from ledger...");
         queue.clear(); // Ensure queue is empty before reconstruction
         var current = getCurrentLedger();
+
+        // Re-queue any entries that were left in PROCESSING state from the
+        // previous run. These represent in-flight documents that should be
+        // retried on resume.
+        var inFlight = current.queryIterator(
+                statusQueryFilter(ProcessingStatus.PROCESSING));
+        var requeuedFromProcessing = 0;
+        while (inFlight.hasNext()) {
+            var entry = inFlight.next();
+            entry.setProcessingStatus(ProcessingStatus.QUEUED);
+            current.put(entry.getReference(), entry);
+            queue.add(entry.getReference());
+            requeuedFromProcessing++;
+        }
+        if (requeuedFromProcessing > 0) {
+            LOG.info("Re-queued {} entries that were PROCESSING from "
+                    + "previous run.", requeuedFromProcessing);
+        }
+
+        // Also ensure all QUEUED entries are present in the in-memory
+        // queue. These may already have been queued during bootstrap of
+        // a previous run, but we rebuild the queue deterministically
+        // from the ledger state.
         var queuedEntries = current.queryIterator(
                 statusQueryFilter(ProcessingStatus.QUEUED));
         var count = 0;
@@ -172,7 +195,9 @@ public final class CrawlEntryLedger {
             queue.add(entry.getReference());
             count++;
         }
-        LOG.info("Reconstructed queue with {} entries.", count);
+        LOG.info("Reconstructed queue with {} entries (including {} "
+                + "re-queued from PROCESSING).", count,
+                requeuedFromProcessing);
     }
 
     /**

@@ -24,7 +24,7 @@ import com.norconex.crawler.core.session.CrawlSession;
  * crawling.
  */
 public class CrawlBootstrapStep extends BaseStep {
-
+    //TODO XXX Delete this class?
     public CrawlBootstrapStep(String id) {
         super(id);
     }

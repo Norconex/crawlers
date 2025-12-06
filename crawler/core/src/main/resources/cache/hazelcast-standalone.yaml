@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=./hazelcast-config-5.6.json
+hazelcast:
+  cluster-name: standalone-crawler
+  network:
+    port: 5701
+    port-auto-increment: true
+    join:
+      multicast:
+        enabled: false
+      tcp-ip:
+        enabled: false
+  map:
+    default:
+      backup-count: 0
+      map-store:
+        enabled: true
+        initial-mode: EAGER
+        write-delay-seconds: 0
+        write-coalescing: false
+        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBMapStore
+        properties:
+          database.dir: ${hazelcast.persistence.dir}
+    admin:
+      map-store:
+        enabled: false
+    crawlRun:
+      map-store:
+        enabled: false
+    ledger_a:
+      map-store:
+        enabled: true
+        initial-mode: EAGER
+        write-delay-seconds: 0
+        write-coalescing: false
+        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBMapStore
+        properties:
+          database.dir: ${hazelcast.persistence.dir}
+      indexes:
+        - type: HASH
+          attributes:
+            - processingStatus
+    ledger_b:
+      map-store:
+        enabled: true
+        initial-mode: EAGER
+        write-delay-seconds: 0
+        write-coalescing: false
+        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBMapStore
+        properties:
+          database.dir: ${hazelcast.persistence.dir}
+      indexes:
+        - type: HASH
+          attributes:
+            - processingStatus
