@@ -73,12 +73,21 @@ public final class CrawlEntryLedgerBootstrapper implements CrawlBootstrapper {
         // before any operations (important for cluster synchronization)
         ledger.ensureCurrentLedgerAliasExists();
 
+        // Queue is persistent (RocksDBQueueStore) and preserves FIFO order
+        // automatically across restarts, but we need to restore any entries
+        // that were in PROCESSING state when the crawler stopped
         if (session.isResumed()) {
-            // Reconstruct the in-memory queue from QUEUED entries in ledger
-            ledger.reconstructQueueFromLedger();
+            // Restore entries that were in PROCESSING state (were pulled
+            // from queue but not completed). These are added to the front
+            // of the queue since they were already being processed.
+            var requeuedCount = ledger.requeueProcessingEntries();
+            if (requeuedCount > 0) {
+                LOG.info(
+                        "Re-queued {} entries that were PROCESSING from previous run.",
+                        requeuedCount);
+            }
 
             if (LOG.isInfoEnabled()) {
-                //TODO use total count to track progress independently
                 var processedCount = ledger.getProcessedCount();
                 var cachedCount = ledger.getBaselineCount();
                 var totalCount = processedCount

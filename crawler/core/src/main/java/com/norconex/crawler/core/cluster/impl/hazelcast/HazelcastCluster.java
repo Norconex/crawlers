@@ -102,6 +102,8 @@ public class HazelcastCluster implements Cluster {
                             LOG.info(
                                     "Hazelcast shutting down, persisting backup data to RocksDB...");
                             persistAllBackupData();
+                            // Close all shared RocksDB queue store instances
+                            RocksDBQueueStore.closeAll();
                         }
                     });
 

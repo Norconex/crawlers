@@ -12,30 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap;
-
-import org.apache.commons.collections4.CollectionUtils;
+package com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue;
 
 import com.norconex.crawler.core.cluster.pipeline.BaseStep;
 import com.norconex.crawler.core.session.CrawlSession;
 
-/**
- * Bootstrap session artifacts, including the cluster, making it ready for
- * crawling.
- */
-@Deprecated
-public class CrawlBootstrapStep extends BaseStep {
-    //TODO XXX Delete this class?
-    public CrawlBootstrapStep(String id) {
+public class StartRefsQueueStep extends BaseStep {
+    public StartRefsQueueStep(String id) {
         super(id);
     }
 
     @Override
     public void execute(CrawlSession session) {
-        var ctx = session.getCrawlContext();
 
-        if (CollectionUtils.isNotEmpty(ctx.getBootstrappers())) {
-            ctx.getBootstrappers().forEach(boot -> boot.bootstrap(session));
-        }
+        new QueueBootstrapper().bootstrap(session);
+
+        //        var ctx = session.getCrawlContext();
+        //
+        //        
+        //        if (CollectionUtils.isNotEmpty(ctx.getBootstrappers())) {
+        //            ctx.getBootstrappers().forEach(boot -> boot.bootstrap(session));
+        //        }
     }
 }

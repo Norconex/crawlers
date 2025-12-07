@@ -48,7 +48,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @EqualsAndHashCode
+//TODO XXX rename this if no longer a "bootstrapper" as we are moving the logic back to pipeline
 public class QueueBootstrapper implements CrawlBootstrapper {
+
+    //TODO XXX ******** make summary about crawl run, just total process for session? Or show delta? ***********
 
     private final List<ReferenceEnqueuer> enqueuers = new ArrayList<>();
 

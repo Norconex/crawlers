@@ -68,7 +68,7 @@ public final class CrawlEntryLedger {
 
     private CacheMap<CrawlEntry> currentLedger;
     private CacheMap<CrawlEntry> baselineLedger;
-    private CacheQueue<String> queue; // Non-persistent, stores references
+    private CacheQueue<String> queue; // Persistent, preserves FIFO order
     private long totalMaxDocsThisRun;
 
     private CacheManager cacheManager;
@@ -154,50 +154,6 @@ public final class CrawlEntryLedger {
         }
 
         LOG.info("Done initializing crawl entry ledger.");
-    }
-
-    /**
-     * Reconstructs the queue from QUEUED entries in the ledger.
-     * This should be called by the bootstrapper when resuming a crawl.
-     */
-    public void reconstructQueueFromLedger() {
-        LOG.info("Reconstructing queue from ledger...");
-        queue.clear(); // Ensure queue is empty before reconstruction
-        var current = getCurrentLedger();
-
-        // Re-queue any entries that were left in PROCESSING state from the
-        // previous run. These represent in-flight documents that should be
-        // retried on resume.
-        var inFlight = current.queryIterator(
-                statusQueryFilter(ProcessingStatus.PROCESSING));
-        var requeuedFromProcessing = 0;
-        while (inFlight.hasNext()) {
-            var entry = inFlight.next();
-            entry.setProcessingStatus(ProcessingStatus.QUEUED);
-            current.put(entry.getReference(), entry);
-            queue.add(entry.getReference());
-            requeuedFromProcessing++;
-        }
-        if (requeuedFromProcessing > 0) {
-            LOG.info("Re-queued {} entries that were PROCESSING from "
-                    + "previous run.", requeuedFromProcessing);
-        }
-
-        // Also ensure all QUEUED entries are present in the in-memory
-        // queue. These may already have been queued during bootstrap of
-        // a previous run, but we rebuild the queue deterministically
-        // from the ledger state.
-        var queuedEntries = current.queryIterator(
-                statusQueryFilter(ProcessingStatus.QUEUED));
-        var count = 0;
-        while (queuedEntries.hasNext()) {
-            var entry = queuedEntries.next();
-            queue.add(entry.getReference());
-            count++;
-        }
-        LOG.info("Reconstructed queue with {} entries (including {} "
-                + "re-queued from PROCESSING).", count,
-                requeuedFromProcessing);
     }
 
     /**
@@ -329,6 +285,29 @@ public final class CrawlEntryLedger {
                     + "{} entries.", nodeName, batch.size());
         }
         return batch;
+    }
+
+    /**
+     * Re-queues entries that were in PROCESSING state when the crawler
+     * stopped. These entries were pulled from the queue but not completed,
+     * so they need to be queued again on resume to avoid losing them.
+     * Updates their status back to QUEUED.
+     * 
+     * @return the number of entries re-queued
+     */
+    public int requeueProcessingEntries() {
+        var current = getCurrentLedger();
+        var inFlight = current.queryIterator(
+                statusQueryFilter(ProcessingStatus.PROCESSING));
+        var requeuedCount = 0;
+        while (inFlight.hasNext()) {
+            var entry = inFlight.next();
+            entry.setProcessingStatus(ProcessingStatus.QUEUED);
+            current.put(entry.getReference(), entry);
+            queue.add(entry.getReference());
+            requeuedCount++;
+        }
+        return requeuedCount;
     }
 
     //    public Optional<CrawlEntry> nextQueued() {

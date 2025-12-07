@@ -27,3 +27,8 @@ hazelcast:
         - type: HASH
           attributes:
             - processingStatus
+  queue:
+    crawlQueue:
+      backup-count: 0
+      queue-store:
+        enabled: false

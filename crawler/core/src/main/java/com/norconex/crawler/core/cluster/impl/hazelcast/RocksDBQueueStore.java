@@ -40,14 +40,22 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * RocksDB-based QueueStore implementation for Hazelcast queue persistence.
  * This provides durable storage for Hazelcast queues using RocksDB.
+ * 
+ * <p>Since Hazelcast creates multiple QueueStore instances for different
+ * partitions, this implementation shares a single RocksDB instance per
+ * queue name to avoid file locking issues.</p>
  */
 @Slf4j
 public class RocksDBQueueStore implements QueueStore<Object> {
 
+    // Shared RocksDB instances per queue name
+    private static final Map<String, RocksDB> DB_INSTANCES =
+            new java.util.concurrent.ConcurrentHashMap<>();
+    private static final Map<String, Options> OPTIONS_INSTANCES =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
     private RocksDB db;
-    private Options options;
     private String queueName;
-    private long nextId = 0;
 
     static {
         RocksDB.loadLibrary();
@@ -55,6 +63,11 @@ public class RocksDBQueueStore implements QueueStore<Object> {
 
     @Override
     public void store(Long key, Object value) {
+        if (db == null) {
+            throw new IllegalStateException(
+                    "RocksDB not initialized for queue: " + queueName
+                            + ". Ensure RocksDBQueueStoreFactory is used.");
+        }
         try {
             var keyBytes = longToBytes(key);
             var valueBytes = serialize(value);
@@ -132,46 +145,75 @@ public class RocksDBQueueStore implements QueueStore<Object> {
 
     public void init(Properties properties, String queueName) {
         this.queueName = queueName;
-        var dbDir = properties.getProperty("database.dir");
-        if (dbDir == null) {
-            throw new IllegalArgumentException(
-                    "database.dir property is required");
-        }
-
-        try {
-            var dbPath = Paths.get(dbDir, "queues", queueName);
-            Files.createDirectories(dbPath);
-
-            options = new Options()
-                    .setCreateIfMissing(true)
-                    .setMaxOpenFiles(100);
-
-            db = RocksDB.open(options, dbPath.toString());
-
-            // Find the highest key to set nextId
-            try (var iterator = db.newIterator()) {
-                iterator.seekToLast();
-                if (iterator.isValid()) {
-                    nextId = bytesToLong(iterator.key()) + 1;
-                }
+        
+        // Get or create shared RocksDB instance for this queue
+        db = DB_INSTANCES.computeIfAbsent(queueName, name -> {
+            var dbDir = properties.getProperty("database.dir");
+            if (dbDir == null) {
+                throw new IllegalArgumentException(
+                        "database.dir property is required");
             }
 
-            LOG.info("RocksDB QueueStore initialized for queue '{}' at: {}",
-                    queueName, dbPath);
-        } catch (RocksDBException | IOException e) {
-            throw new RuntimeException(
-                    "Failed to initialize RocksDB for queue: " + queueName, e);
-        }
+            try {
+                var dbPath = Paths.get(dbDir, "queues", name);
+                Files.createDirectories(dbPath);
+
+                var options = new Options()
+                        .setCreateIfMissing(true)
+                        .setMaxOpenFiles(100);
+                
+                // Store options for later cleanup
+                OPTIONS_INSTANCES.put(name, options);
+
+                var rocksDb = RocksDB.open(options, dbPath.toString());
+
+                LOG.info(
+                        "RocksDB QueueStore initialized for queue '{}' at: {}",
+                        name, dbPath);
+                
+                return rocksDb;
+            } catch (RocksDBException | IOException e) {
+                throw new RuntimeException(
+                        "Failed to initialize RocksDB for queue: " + name, e);
+            }
+        });
+        
+        LOG.debug("RocksDB QueueStore instance created for queue '{}'",
+                queueName);
     }
 
     public void destroy() {
-        if (db != null) {
-            db.close();
-            LOG.info("RocksDB QueueStore closed for queue: {}", queueName);
+        // Don't close shared instances here - they're managed globally
+        LOG.debug("RocksDB QueueStore instance destroyed for queue: {}",
+                queueName);
+    }
+    
+    /**
+     * Closes all shared RocksDB instances. Should be called during
+     * application shutdown.
+     */
+    public static void closeAll() {
+        LOG.info("Closing all RocksDB QueueStore instances");
+        for (var entry : DB_INSTANCES.entrySet()) {
+            try {
+                entry.getValue().close();
+                LOG.info("Closed RocksDB for queue: {}", entry.getKey());
+            } catch (Exception e) {
+                LOG.warn("Failed to close RocksDB for queue: {}",
+                        entry.getKey(), e);
+            }
         }
-        if (options != null) {
-            options.close();
+        DB_INSTANCES.clear();
+        
+        for (var entry : OPTIONS_INSTANCES.entrySet()) {
+            try {
+                entry.getValue().close();
+            } catch (Exception e) {
+                LOG.warn("Failed to close options for queue: {}",
+                        entry.getKey(), e);
+            }
         }
+        OPTIONS_INSTANCES.clear();
     }
 
     private byte[] serialize(Object obj) throws IOException {

@@ -16,14 +16,10 @@ package com.norconex.crawler.core.metrics;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import com.norconex.crawler.core.cluster.CacheMap;
+import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.ledger.CrawlEntryLedger;
 import com.norconex.crawler.core.session.CrawlSession;
 
@@ -33,21 +29,14 @@ import lombok.extern.slf4j.Slf4j;
 public class CrawlerMetricsImpl implements CrawlerMetrics {
 
     private static final String EVENT_COUNTS_CACHE = "crawlEventCounts";
-    // Scheduled batch flush interval in seconds
-    //TODO make configurable?
-    private static final long BATCH_INTERVAL = TimeUnit.SECONDS.toMillis(1);
+    private static final String PROCESSED_TOTAL_CACHE =
+            "crawlProcessedTotal";
+    private static final String PROCESSED_TOTAL_KEY = "TOTAL";
 
-    //MAYBE: have it configured to decide what to capture? Cons: may conflict
-    // with listeners expectations.
     private CrawlEntryLedger ledger;
-    private final ConcurrentHashMap<String, Long> eventCountsLocalBatch =
-            new ConcurrentHashMap<>();
     private CacheMap<Long> eventCountsStore;
-    private ScheduledExecutorService scheduler;
+    private CacheMap<Long> processedTotalStore;
     private boolean closed;
-    private boolean closedAndFlushed;
-
-    private final Lock flushLock = new ReentrantLock();
 
     private final MetricsMemCache memCache = new MetricsMemCache();
 
@@ -61,91 +50,72 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
         memCache.clear();
         var ctx = crawlSession.getCrawlContext();
         ledger = ctx.getCrawlEntryLedger();
-        eventCountsStore = crawlSession.getCluster().getCacheManager().getCache(
+        var cacheManager = crawlSession.getCluster().getCacheManager();
+        eventCountsStore = cacheManager.getCache(
                 EVENT_COUNTS_CACHE, Long.class);
-        ctx.getEventManager().addListener(
-                event -> batchIncrementCounter(event.getName(), 1L));
-        scheduler = Executors.newScheduledThreadPool(1);
-        scheduler.scheduleAtFixedRate(this::flushBatch,
-                BATCH_INTERVAL, BATCH_INTERVAL, TimeUnit.MILLISECONDS);
+        processedTotalStore = cacheManager.getCache(
+                PROCESSED_TOTAL_CACHE, Long.class);
+
+        // Prime processed total from persistent store if present
+        if (processedTotalStore != null) {
+            try {
+                var stored = processedTotalStore.get(PROCESSED_TOTAL_KEY);
+                if (stored.isPresent()) {
+                    var val = stored.get();
+                    memCache.processedTotal.set(val);
+                }
+            } catch (Exception e) {
+                LOG.warn("Could not sync processed total from cluster: {}",
+                        e.getMessage());
+            }
+        }
+
+        ctx.getEventManager().addListener(event -> {
+            incrementCounter(event.getName(), 1L);
+            if (CrawlerEvent.DOCUMENT_PROCESSED.equals(event.getName())) {
+                incrementProcessedTotal(1L);
+            }
+        });
     }
 
-    public void batchIncrementCounter(String eventName, long incrementBy) {
-        eventCountsLocalBatch.merge(eventName, incrementBy, Long::sum);
-    }
+    //--- Event counts ------------------------------------------------------
 
-    private void doFlushBatch(boolean blocking) {
-        if (closedAndFlushed) {
-            LOG.debug("CrawlerMetrics already flushed and closed.");
+    public void incrementCounter(String eventName, long incrementBy) {
+        if (incrementBy == 0) {
             return;
         }
-        if (blocking) {
-            flushLock.lock();
-        } else if (!flushLock.tryLock()) {
-            LOG.warn("Could not acquire lock to flush batch, skipping this "
-                    + "interval.");
+        if (eventCountsStore == null) {
+            LOG.warn("Event counts store is not initialized yet. "
+                    + "Increment will only be reflected in memory.");
+        } else {
+            try {
+                atomicIncrement(eventCountsStore, eventName, incrementBy);
+            } catch (Exception e) {
+                LOG.error("Error updating event count cache for event: "
+                        + eventName, e);
+            }
+        }
+        memCache.eventCounts.merge(eventName, incrementBy, Long::sum);
+    }
+
+    private void incrementProcessedTotal(long incrementBy) {
+        if (incrementBy == 0) {
             return;
         }
-        try {
-            eventCountsLocalBatch.forEach((eventName, increment) -> {
-                if (increment == null || increment == 0L) {
-                    return;
-                }
-                try {
-                    // atomicIncrement is a private static helper defined
-                    // below in this class; call it directly.
-                    atomicIncrement(eventCountsStore, eventName, increment);
-                    eventCountsLocalBatch.put(eventName, 0L);
-                    memCache.eventCounts.merge(
-                            eventName, increment, Long::sum);
-                } catch (Exception e) {
-                    LOG.error("Error updating event count cache for event: "
-                            + eventName, e);
-                }
-            });
-        } finally {
-            flushLock.unlock();
+        if (processedTotalStore == null) {
+            LOG.warn("Processed-total store is not initialized yet. "
+                    + "Increment will only be reflected in memory.");
+        } else {
+            try {
+                atomicIncrement(
+                        processedTotalStore,
+                        PROCESSED_TOTAL_KEY,
+                        incrementBy);
+            } catch (Exception e) {
+                LOG.error("Error updating processed total cache.", e);
+            }
         }
-    }
-
-    private void flushBatch() {
-        doFlushBatch(false);
-    }
-
-    public void flushBlocking() {
-        doFlushBatch(true);
-    }
-
-    @Override
-    public long getProcessingCount() {
-        if (!isClosed()) {
-            memCache.processingCount.set(ledger.getProcessingCount());
-        }
-        return memCache.processingCount.get();
-    }
-
-    @Override
-    public long getProcessedCount() {
-        if (!isClosed()) {
-            memCache.processedCount.set(ledger.getProcessedCount());
-        }
-        return memCache.processedCount.get();
-    }
-
-    @Override
-    public long getQueuedCount() {
-        if (!isClosed()) {
-            memCache.queuedCount.set(ledger.getQueueCount());
-        }
-        return memCache.queuedCount.get();
-    }
-
-    @Override
-    public long getBaselineCount() {
-        if (!isClosed()) {
-            memCache.baselineCount.set(ledger.getBaselineCount());
-        }
-        return memCache.baselineCount.get();
+        memCache.processedTotal.addAndGet(incrementBy);
     }
 
     @Override
@@ -165,54 +135,93 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
         return memCache.eventCounts;
     }
 
+    //--- Document state counts --------------------------------------------
+
+    @Override
+    public long getProcessingCount() {
+        if (!isClosed()) {
+            memCache.processingCount.set(ledger.getProcessingCount());
+        }
+        return memCache.processingCount.get();
+    }
+
+    @Override
+    public long getProcessedCount() {
+        if (!isClosed()) {
+            if (processedTotalStore != null) {
+                try {
+                    var stored =
+                            processedTotalStore.get(PROCESSED_TOTAL_KEY);
+                    if (stored.isPresent()) {
+                        var val = stored.get();
+                        memCache.processedTotal.set(val);
+                    }
+                } catch (Exception e) {
+                    LOG.warn("Could not sync processed total from cluster: {}",
+                            e.getMessage());
+                }
+            }
+        }
+        return memCache.processedTotal.get();
+    }
+
+    @Override
+    public long getQueuedCount() {
+        if (!isClosed()) {
+            memCache.queuedCount.set(ledger.getQueueCount());
+        }
+        return memCache.queuedCount.get();
+    }
+
+    @Override
+    public long getBaselineCount() {
+        if (!isClosed()) {
+            memCache.baselineCount.set(ledger.getBaselineCount());
+        }
+        return memCache.baselineCount.get();
+    }
+
     public boolean isClosed() {
         return closed;
     }
 
     private static void atomicIncrement(
             CacheMap<Long> store, String key, long increment) {
-        try {
-            var updated = false;
-            var attempts = 0;
-            while (!updated && attempts < 3) {
-                var currentValue = store.get(key);
-                Long currentLongValue = 0L;
-                if (!currentValue.isEmpty()) {
-                    Object val = currentValue.get();
-                    if (val instanceof Long longVal) {
-                        currentLongValue = longVal;
-                    } else if (val instanceof Integer intVal) {
-                        currentLongValue = intVal.longValue();
-                    } else {
-                        throw new ClassCastException(
-                                "Unsupported type in eventCountsStore: "
-                                        + val.getClass());
-                    }
-                }
-                Long newValue = currentLongValue + increment;
-
-                if (currentValue.isEmpty()) {
-                    var result = store.putIfAbsent(key, newValue);
-                    updated = (result == null);
+        var updated = false;
+        var attempts = 0;
+        while (!updated && attempts < 3) {
+            var currentValue = store.get(key);
+            Long currentLongValue = 0L;
+            if (!currentValue.isEmpty()) {
+                Object val = currentValue.get();
+                if (val instanceof Long longVal) {
+                    currentLongValue = longVal;
+                } else if (val instanceof Integer intVal) {
+                    currentLongValue = intVal.longValue();
                 } else {
-                    updated = store.replace(key, currentLongValue, newValue);
+                    throw new ClassCastException(
+                            "Unsupported type in eventCountsStore: "
+                                    + val.getClass());
                 }
-
-                attempts++;
             }
-        } catch (Exception e) {
-            LOG.error("Error updating event count cache for key: " + key, e);
-            throw e;
+            Long newValue = currentLongValue + increment;
+
+            if (currentValue.isEmpty()) {
+                var result = store.putIfAbsent(key, newValue);
+                updated = (result == null);
+            } else {
+                updated = store.replace(key, currentLongValue, newValue);
+            }
+
+            attempts++;
         }
     }
 
     @Override
     public void flush() {
-        if (this instanceof CrawlerMetricsImpl) {
-            flushBlocking();
-        } else {
-            flushBatch();
-        }
+        // No-op for now: metrics are written directly to the cache
+        // on each increment and ledger counts are queried on demand.
+        // This method is kept for API compatibility and future hooks.
     }
 
     @Override
@@ -222,22 +231,41 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
             LOG.info("CrawlerMetrics already closed.");
             return;
         }
-        closed = true;
-        LOG.info("Flusing CrawlerMetrics data...");
-        flushBlocking();
-        closedAndFlushed = true;
-        LOG.info("Shutting down CrawlerMetrics scheduler...");
-        if (scheduler != null) {
-            scheduler.shutdown();
-            try {
-                if (!scheduler.awaitTermination(2, TimeUnit.SECONDS)) {
-                    scheduler.shutdownNow();
-                }
-            } catch (InterruptedException e) {
-                scheduler.shutdownNow();
-                Thread.currentThread().interrupt();
+
+        // Best-effort final sync from cluster caches into memory so
+        // we can still report accurate metrics after shutdown.
+        try {
+            if (eventCountsStore != null) {
+                eventCountsStore.forEach(memCache.eventCounts::put);
             }
+        } catch (Exception e) {
+            LOG.warn("Could not sync event counts on close: {}",
+                    e.getMessage());
         }
+
+        try {
+            if (processedTotalStore != null) {
+                var stored =
+                        processedTotalStore.get(PROCESSED_TOTAL_KEY);
+                stored.ifPresent(memCache.processedTotal::set);
+            }
+        } catch (Exception e) {
+            LOG.warn("Could not sync processed total on close: {}",
+                    e.getMessage());
+        }
+
+        try {
+            if (ledger != null) {
+                memCache.queuedCount.set(ledger.getQueueCount());
+                memCache.processingCount.set(ledger.getProcessingCount());
+                memCache.baselineCount.set(ledger.getBaselineCount());
+            }
+        } catch (Exception e) {
+            LOG.warn("Could not sync state counts on close: {}",
+                    e.getMessage());
+        }
+
+        closed = true;
         LOG.info("CrawlerMetrics closed.");
     }
 
@@ -251,6 +279,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
         private final AtomicLong processingCount = new AtomicLong();
         private final AtomicLong processedCount = new AtomicLong();
         private final AtomicLong baselineCount = new AtomicLong();
+        private final AtomicLong processedTotal = new AtomicLong();
 
         void clear() {
             eventCounts.clear();
@@ -258,6 +287,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
             processedCount.set(0);
             queuedCount.set(0);
             baselineCount.set(0);
+            processedTotal.set(0);
         }
     }
 }

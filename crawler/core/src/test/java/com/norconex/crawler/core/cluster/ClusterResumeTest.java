@@ -61,7 +61,6 @@ class ClusterResumeTest {
         var driver = new TestCrawlDriverFactory();
 
         // First run: start and then stop via CLI in-process
-
         var crawler = new Crawler(driver.get(), crawlCfg);
 
         // Start
@@ -75,7 +74,7 @@ class ClusterResumeTest {
         crawler.stop(ClusterAdminClient.DEFAULT_NODE_URL);
 
         future.get(30, TimeUnit.SECONDS);
-        // At this point we have a STOPPED run with partial progress.
+
         // Second run: same crawler ID, zero delay, should resume and
         // process all remaining documents.
         crawlCfg = crawlConfig(numOfRefs, 0);
@@ -83,9 +82,29 @@ class ClusterResumeTest {
 
         var crawler2 = new Crawler(driver.get(), crawlCfg);
 
-        // Start
+        // Start second run
         crawler2.crawl();
 
+        // After the second run completes, create a read-only session to
+        // inspect final metrics.
+        //        crawler2.withCrawlSession((CrawlSession session) -> {
+        //            var crawlContext = session.getCrawlContext();
+        //            CrawlerMetrics metrics = crawlContext.getMetrics();
+        //
+        //            var summary =
+        //                    new com.norconex.crawler.core.cmd.crawl.CrawlProgressLogger(
+        //                            crawlContext)
+        //                                    .getExecutionSummary();
+        //
+        //            LOG.info("Execution summary after resume:\n{}", summary);
+        //
+        //            assertThat(summary)
+        //                    .contains("Total processed:   " + numOfRefs);
+        //
+        //            var eventCounts = metrics.getEventCounts();
+        //            assertThat(eventCounts.get(CrawlerEvent.DOCUMENT_IMPORTED))
+        //                    .isEqualTo(numOfRefs);
+        //        });
     }
 
     private CrawlConfig crawlConfig(int numOfRefs, long delayMs) {

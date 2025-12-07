@@ -23,7 +23,6 @@ import com.norconex.crawler.core.cmd.crawl.pipeline.CrawlPipelineFactory;
 import com.norconex.crawler.core.cmd.crawl.pipeline.DefaultCrawlPipelineFactory;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapper;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.ledger.CrawlEntryLedgerBootstrapper;
-import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.QueueBootstrapper;
 import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
 import com.norconex.crawler.core.fetch.MultiFetcher.ResponseAggregator;
 import com.norconex.crawler.core.fetch.MultiFetcher.UnsuccessfulResponseFactory;
@@ -53,8 +52,8 @@ public class CrawlDriver {
     @Default
     private final List<CrawlBootstrapper> bootstrappers =
             new ArrayList<>(List.of(
-                    new CrawlEntryLedgerBootstrapper(),
-                    new QueueBootstrapper()));
+                    new CrawlEntryLedgerBootstrapper()));
+    //                    new QueueBootstrapper()));
     private final CrawlDocPipelines docPipelines;
     @Default
     private final CrawlCallbacks callbacks = CrawlCallbacks.builder().build();

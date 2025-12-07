@@ -52,3 +52,11 @@ hazelcast:
         - type: HASH
           attributes:
             - processingStatus
+  queue:
+    crawlQueue:
+      backup-count: 0
+      queue-store:
+        enabled: true
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBQueueStoreFactory
+        properties:
+          database.dir: ${hazelcast.persistence.dir}
