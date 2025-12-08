@@ -170,7 +170,7 @@ public class PipelineWorkerState implements AutoCloseable {
                 // Push status immediately so coordinator sees the correct stepId
                 pushWorkerStatus(currentStepRecord.getStatus());
             }
-        }, 0, heartbeatMs, TimeUnit.MILLISECONDS);
+        }, heartbeatMs, heartbeatMs, TimeUnit.MILLISECONDS); // Changed initial delay from 0 to heartbeatMs
     }
 
     /**

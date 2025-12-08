@@ -1,6 +1,11 @@
 TODO:
 ==============
 
+- Use TestHazelcastInstanceFactory to simulate clusters, with TestContainers for DB (e.g., postgresql).
+- No longer default to local FS for distributed crawls (H2 for standalone, and have people supply their option for clustered).
+- 
+
+
 - Recreate queue from map on startup.
 
 

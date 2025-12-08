@@ -104,6 +104,15 @@ public final class HazelcastUtil {
                 stepRec.setUpdatedAt(System.currentTimeMillis());
                 cluster.getCacheManager().getPipelineStepCache()
                         .put(pipelineKey, stepRec);
+
+                // Note: We do NOT clear worker statuses here. Worker statuses
+                // contain the runId, so when nodes re-register for the new
+                // runId, they'll naturally create new entries. The old entries
+                // will be ignored by the coordinator since it checks runId.
+                LOG.info("Resuming pipeline \"{}\" at step \"{}\" with new "
+                        + "runId \"{}\"",
+                        pipeline.getId(), stepRec.getStepId(),
+                        stepRec.getRunId());
             }
         }
         return stepRec;
@@ -115,8 +124,8 @@ public final class HazelcastUtil {
     }
 
     public static void waitForClusterWarmUp(HazelcastCluster cluster) {
-        // Allow up to ~5 seconds for cluster to stabilize
-        var deadline = System.currentTimeMillis() + 5_000;
+        // Allow up to ~10 seconds for cluster to stabilize
+        var deadline = System.currentTimeMillis() + 10_000;
         var lastSize = cluster.getNodeCount();
         var stableTicks = 0;
         var coordinatorElected = false;
@@ -140,14 +149,18 @@ public final class HazelcastUtil {
                 LOG.debug("Coordinator election completed");
             }
 
-            if (stableTicks >= 2 && coordinatorElected) {
+            // Require more stable ticks (10 instead of 5) and an additional
+            // delay to ensure all nodes have time to register pipeline workers
+            if (stableTicks >= 10 && coordinatorElected) {
+                // Give additional time for worker registration
+                Sleeper.sleepMillis(500);
                 return;
             }
             Sleeper.sleepMillis(100);
         }
         LOG.warn("Cluster warm-up timed out (stable={}, coordinator={}); "
                 + "proceeding anyway.",
-                stableTicks >= 2, coordinatorElected);
+                stableTicks >= 10, coordinatorElected);
     }
 
     /**

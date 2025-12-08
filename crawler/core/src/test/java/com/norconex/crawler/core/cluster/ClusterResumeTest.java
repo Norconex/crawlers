@@ -14,28 +14,41 @@
  */
 package com.norconex.crawler.core.cluster;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-import com.norconex.commons.lang.TimeIdGenerator;
+import com.hazelcast.core.Hazelcast;
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.cluster.admin.ClusterAdminClient;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConfig.Preset;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
+import com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBMapStore;
+import com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBQueueStore;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.junit.cluster.node.CaptureFlags;
+import com.norconex.crawler.core.junit.cluster.node.DriverInstrumentor;
+import com.norconex.crawler.core.junit.cluster.state.StateDbServer;
 import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 
@@ -47,75 +60,136 @@ class ClusterResumeTest {
     private @TempDir Path tempDir;
     private CountDownLatch latch;
 
-    @Test
-    @Timeout(120)
-    void testSingleNodeStopResumeInSameJvm()
-            throws InterruptedException, ExecutionException, TimeoutException {
+    @AfterEach
+    void cleanup() {
+        LOG.info("=== Cleaning up after test ===");
 
-        var numOfRefs = 20;
-        latch = new CountDownLatch(1);
+        // Shutdown all Hazelcast instances
+        Hazelcast.shutdownAll();
 
-        // Initial config
-        var crawlCfg = crawlConfig(numOfRefs, 500);
-        var crawlerId = crawlCfg.getId();
-        var driver = new TestCrawlDriverFactory();
+        // Give OS time to release file locks
+        Sleeper.sleepSeconds(1);
 
-        // First run: start and then stop via CLI in-process
-        var crawler = new Crawler(driver.get(), crawlCfg);
-
-        // Start
-        var future = Executors.newSingleThreadExecutor().submit(() -> {
-            crawler.crawl();
-        });
-
-        latch.await(30, TimeUnit.SECONDS);
-
-        System.err.println("XXX stop it!");
-        crawler.stop(ClusterAdminClient.DEFAULT_NODE_URL);
-
-        future.get(30, TimeUnit.SECONDS);
-
-        // Second run: same crawler ID, zero delay, should resume and
-        // process all remaining documents.
-        crawlCfg = crawlConfig(numOfRefs, 0);
-        crawlCfg.setId(crawlerId);
-
-        var crawler2 = new Crawler(driver.get(), crawlCfg);
-
-        // Start second run
-        crawler2.crawl();
-
-        // After the second run completes, create a read-only session to
-        // inspect final metrics.
-        //        crawler2.withCrawlSession((CrawlSession session) -> {
-        //            var crawlContext = session.getCrawlContext();
-        //            CrawlerMetrics metrics = crawlContext.getMetrics();
-        //
-        //            var summary =
-        //                    new com.norconex.crawler.core.cmd.crawl.CrawlProgressLogger(
-        //                            crawlContext)
-        //                                    .getExecutionSummary();
-        //
-        //            LOG.info("Execution summary after resume:\n{}", summary);
-        //
-        //            assertThat(summary)
-        //                    .contains("Total processed:   " + numOfRefs);
-        //
-        //            var eventCounts = metrics.getEventCounts();
-        //            assertThat(eventCounts.get(CrawlerEvent.DOCUMENT_IMPORTED))
-        //                    .isEqualTo(numOfRefs);
-        //        });
+        LOG.info("=== Cleanup complete ===");
     }
 
-    private CrawlConfig crawlConfig(int numOfRefs, long delayMs) {
+    @Timeout(120)
+    @ParameterizedTest
+    @ValueSource(ints = { 2 })
+    void testNodeStopResumeInSameJvm(int numNodes) {
+        latch = new CountDownLatch(numNodes);
+        var numOfRefs = 10;
+
+        new StateDbServer(tempDir, "resume-db").withStateDb(stateDb -> {
+            List<Future<?>> futures = new ArrayList<>();
+
+            var exec = Executors.newFixedThreadPool(numNodes);
+            //                    .submit(() -> crawler.crawl());
+
+            var crawlerRef = new AtomicReference<Crawler>();
+
+            for (var i = 0; i < numNodes; i++) {
+                var idx = i;
+                futures.add(exec.submit(() -> {
+                    var crawlCfg = crawlConfig(numNodes, idx, numOfRefs, 1000);
+                    var crawler = new Crawler(driver(idx), crawlCfg);
+                    if (crawlerRef.get() == null) {
+                        crawlerRef.set(crawler);
+                    }
+                    crawler.crawl();
+                }));
+                // Give more time between node starts to ensure proper
+                // cluster formation and worker registration
+                Sleeper.sleepMillis(1000);
+            }
+
+            System.err.println("XXX latch count is : " + latch.getCount());
+
+            latch.await(30, TimeUnit.SECONDS);
+
+            // Give a moment for any in-flight queue operations to complete
+            // before stopping, ensuring all queue items are persisted
+            Sleeper.sleepSeconds(2);
+
+            LOG.info("Stop running crawler(s).");
+            //            crawlerRef.get().stop(null);
+            //            CrawlSession.
+            //            int adminPort = crawlerRef.get().
+            crawlerRef.get().stop(ClusterAdminClient.DEFAULT_NODE_URL);
+            crawlerRef.set(null);
+            futures.forEach(f -> {
+                try {
+                    f.get(30, TimeUnit.SECONDS);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            futures.clear();
+
+            var eventCounts = stateDb.getEventNameBag();
+            assertThat(eventCounts.getCount(CrawlerEvent.DOCUMENT_IMPORTED))
+                    .isBetween(1, numOfRefs - 1);
+            Sleeper.sleepSeconds(2);
+
+            LOG.info("=== Cleanup between runs ===");
+            // Close all RocksDB instances to release file locks
+            // This is critical for the second run to reopen the same RocksDB paths
+            RocksDBQueueStore.closeAll();
+            RocksDBMapStore.closeAll();
+
+            // Give OS time to release file locks
+            Sleeper.sleepSeconds(1);
+            LOG.info("=== Cleanup complete, ready for resume ===");
+
+            //            if (true)
+            //                return;
+
+            //--- Second run ---------------------------------------------------
+            // same crawler ID, zero delay, should resume and
+            // process all remaining documents.
+
+            var exec2 = Executors.newFixedThreadPool(numNodes);
+            for (var i = 0; i < numNodes; i++) {
+                var idx = i;
+                futures.add(exec2.submit(() -> {
+                    var crawlCfg = crawlConfig(numNodes, idx, numOfRefs, 0);
+                    var crawler = new Crawler(driver(idx), crawlCfg);
+                    crawler.crawl();
+                }));
+            }
+            futures.forEach(f -> {
+                try {
+                    f.get(30, TimeUnit.SECONDS);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+            eventCounts = stateDb.getEventNameBag();
+            assertThat(eventCounts.getCount(CrawlerEvent.DOCUMENT_IMPORTED))
+                    .isEqualTo(numOfRefs);
+        });
+    }
+
+    private CrawlDriver driver(int nodeIndex) {
+        return DriverInstrumentor.from(
+                tempDir.resolve("node-" + nodeIndex),
+                new CaptureFlags().setEvents(true))
+                .instrument(new TestCrawlDriverFactory().get());
+    }
+
+    private CrawlConfig crawlConfig(
+            int numNodes, int idx, int numOfRefs, long delayMs) {
+        var importedOne = new AtomicBoolean();
+        //NOTE: workdir is instrumented
         var crawlCfg = new CrawlConfig()
-                .setId("" + TimeIdGenerator.next())
-                .setWorkDir(tempDir)
+                .setId("testCrawler-" + numNodes + "nodes")
                 .setMaxQueueBatchSize(1)
                 .setEventListeners(List.of(ev -> {
                     if (ev.is(CrawlerEvent.DOCUMENT_IMPORTED)
-                            && latch.getCount() > 0) {
-                        LOG.info("At least 1 document imported.");
+                            && !importedOne.get()) {
+                        LOG.info("At least 1 document imported by node-" + idx);
+                        importedOne.set(true);
                         latch.countDown();
                     }
                 }))

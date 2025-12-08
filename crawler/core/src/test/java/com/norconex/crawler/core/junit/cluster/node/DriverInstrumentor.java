@@ -27,19 +27,32 @@ import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 import com.norconex.crawler.core.session.CrawlSession;
 
 import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Wraps provided crawl driver supplier to add features necessary for testing.
  */
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-final class DriverInstrumentor {
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public final class DriverInstrumentor {
 
-    private static CaptureFlags captures = CaptureFlags.fromSysProp();
+    private final Path nodeWorkDir;
+    private final CaptureFlags captures;
 
-    public static CrawlDriver instrument(CrawlDriver delegate) {
+    public static DriverInstrumentor from(
+            @NonNull Path nodeWorkDir, @NonNull CaptureFlags flags) {
+        return new DriverInstrumentor(nodeWorkDir, flags);
+    }
+
+    public static DriverInstrumentor fromSysProps() {
+        return new DriverInstrumentor(
+                Path.of(System.getProperty(CrawlerNode.PROP_NODE_WORKDIR)),
+                CaptureFlags.fromSysProp());
+    }
+
+    public CrawlDriver instrument(CrawlDriver delegate) {
 
         return TestCrawlDriverFactory.builder()
                 .beanMapper(delegate.beanMapper())
@@ -54,7 +67,7 @@ final class DriverInstrumentor {
                 .build();
     }
 
-    private static CrawlCallbacks callbacks(CrawlCallbacks cbs) {
+    private CrawlCallbacks callbacks(CrawlCallbacks cbs) {
         var base = cbs == null ? CrawlCallbacks.builder().build() : cbs;
         return CrawlCallbacks.builder()
                 .beforeSession(beforeSession(base.getBeforeSession()))
@@ -68,13 +81,15 @@ final class DriverInstrumentor {
                 .build();
     }
 
-    private static Consumer<CrawlConfig> beforeSession(
+    private Consumer<CrawlConfig> beforeSession(
             Consumer<CrawlConfig> bs) {
         return cfg -> {
             // Node working directory
-            var nodeWorkDir = Path.of(
-                    System.getProperty(CrawlerNode.PROP_NODE_WORKDIR));
             cfg.setWorkDir(nodeWorkDir);
+
+            System.err.println("XXX [%s] workdir: %s".formatted(
+                    Thread.currentThread().getName(),
+                    cfg.getWorkDir()));
 
             // Cluster connector.
             // Defaults to cluster with persistence if no connector specified.
@@ -96,7 +111,7 @@ final class DriverInstrumentor {
     }
 
     // store number of nodes in cluster
-    private static BiConsumer<CrawlSession, Class<? extends Command>>
+    private BiConsumer<CrawlSession, Class<? extends Command>>
             beforeCommand(
                     BiConsumer<CrawlSession, Class<? extends Command>> bc) {
         return bc;
@@ -148,7 +163,7 @@ final class DriverInstrumentor {
     }
 
     // Export caches
-    private static BiConsumer<CrawlSession, Class<? extends Command>>
+    private BiConsumer<CrawlSession, Class<? extends Command>>
             afterCommand(
                     BiConsumer<CrawlSession, Class<? extends Command>> ac) {
         if (!captures.isCaches()) {

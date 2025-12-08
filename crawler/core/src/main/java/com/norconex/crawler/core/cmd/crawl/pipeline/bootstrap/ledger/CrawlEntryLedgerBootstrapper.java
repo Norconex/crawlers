@@ -73,10 +73,28 @@ public final class CrawlEntryLedgerBootstrapper implements CrawlBootstrapper {
         // before any operations (important for cluster synchronization)
         ledger.ensureCurrentLedgerAliasExists();
 
+        LOG.info(
+                "Bootstrap prepareForCrawl: isResumed={}, queueCount={}, processedCount={}",
+                session.isResumed(), ledger.getQueueCount(),
+                ledger.getProcessedCount());
+
         // Queue is persistent (RocksDBQueueStore) and preserves FIFO order
         // automatically across restarts, but we need to restore any entries
         // that were in PROCESSING state when the crawler stopped
         if (session.isResumed()) {
+            LOG.info("RESUMING crawl - queue currently has {} items",
+                    ledger.getQueueCount());
+
+            //            // Restore entries that were in QUEUED state. The Hazelcast
+            //            // persistent queue may not have restored them properly due to
+            //            // partition ownership changes across restarts.
+            //            var queuedCount = ledger.requeueQueuedEntries();
+            //            if (queuedCount > 0) {
+            //                LOG.info(
+            //                        "Re-queued {} entries that were QUEUED from previous run.",
+            //                        queuedCount);
+            //            }
+
             // Restore entries that were in PROCESSING state (were pulled
             // from queue but not completed). These are added to the front
             // of the queue since they were already being processed.
@@ -105,20 +123,61 @@ public final class CrawlEntryLedgerBootstrapper implements CrawlBootstrapper {
                         + cachedCount);
             }
         } else {
-            ledger.clearQueue();
+            LOG.info(
+                    "NOT resuming - queueCount={}, will check if should preserve queue",
+                    ledger.getQueueCount());
+            // Only clear the queue if it's truly empty or this is a fresh start.
+            // If the queue already has items (e.g., from a previous run where
+            // resume detection failed due to Hazelcast cache partition issues),
+            // preserve them to avoid data loss.
+            var queueCount = ledger.getQueueCount();
+            if (queueCount > 0) {
+                LOG.warn("""
+                    Queue has {} items but resume was not detected. \
+                    This may indicate a resume detection issue. \
+                    Preserving queue to avoid data loss.""",
+                        queueCount);
+                // Treat this as a resume even though it wasn't properly detected
 
-            // Valid Processed -> Cached
-            LOG.info("Caching any valid references from previous run.");
+                //                // Restore both QUEUED and PROCESSING entries
+                //                var queuedCount = ledger.requeueQueuedEntries();
+                //                if (queuedCount > 0) {
+                //                    LOG.info(
+                //                            "Re-queued {} entries that were QUEUED from previous run.",
+                //                            queuedCount);
+                //                }
 
-            ledger.archiveCurrentLedger();
+                var requeuedCount = ledger.requeueProcessingEntries();
+                if (requeuedCount > 0) {
+                    LOG.info(
+                            "Re-queued {} entries that were PROCESSING from previous run.",
+                            requeuedCount);
+                }
+                var processedCount = ledger.getProcessedCount();
+                var cachedCount = ledger.getBaselineCount();
+                ledger.getQueueCount();
+                LOG.info(
+                        "Continuing from previous state: {} queued, {} processed",
+                        ledger.getQueueCount(), processedCount);
+            } else {
+                // Queue is empty, safe to clear and start fresh
+                ledger.clearQueue();
 
-            if (LOG.isInfoEnabled()) {
-                var cacheCount = ledger.getBaselineCount();
-                if (cacheCount > 0) {
-                    LOG.info("STARTING an incremental crawl from previous {} "
-                            + "valid references.", cacheCount);
-                } else {
-                    LOG.info("STARTING a fresh crawl.");
+                // Valid Processed -> Cached
+                LOG.info("Caching any valid references from previous run.");
+
+                ledger.archiveCurrentLedger();
+
+                if (LOG.isInfoEnabled()) {
+                    var cacheCount = ledger.getBaselineCount();
+                    if (cacheCount > 0) {
+                        LOG.info(
+                                "STARTING an incremental crawl from previous {} "
+                                        + "valid references.",
+                                cacheCount);
+                    } else {
+                        LOG.info("STARTING a fresh crawl.");
+                    }
                 }
             }
         }

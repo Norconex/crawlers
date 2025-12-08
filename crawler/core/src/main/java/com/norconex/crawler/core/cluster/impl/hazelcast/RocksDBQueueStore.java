@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * RocksDB-based QueueStore implementation for Hazelcast queue persistence.
  * This provides durable storage for Hazelcast queues using RocksDB.
- * 
+ *
  * <p>Since Hazelcast creates multiple QueueStore instances for different
  * partitions, this implementation shares a single RocksDB instance per
  * queue name to avoid file locking issues.</p>
@@ -72,6 +72,7 @@ public class RocksDBQueueStore implements QueueStore<Object> {
             var keyBytes = longToBytes(key);
             var valueBytes = serialize(value);
             db.put(keyBytes, valueBytes);
+            LOG.debug("Stored item in queue '{}' with key: {}", queueName, key);
         } catch (RocksDBException | IOException e) {
             LOG.error("Failed to store item in queue '{}'", queueName, e);
             throw new RuntimeException(
@@ -91,6 +92,8 @@ public class RocksDBQueueStore implements QueueStore<Object> {
         try {
             var keyBytes = longToBytes(key);
             db.delete(keyBytes);
+            LOG.debug("Deleted item from queue '{}' with key: {}", queueName,
+                    key);
         } catch (RocksDBException e) {
             LOG.error("Failed to delete item from queue '{}'", queueName, e);
             throw new RuntimeException(
@@ -140,13 +143,16 @@ public class RocksDBQueueStore implements QueueStore<Object> {
                 iterator.next();
             }
         }
+        LOG.info("Loaded {} keys from RocksDB for queue '{}'", keys.size(),
+                queueName);
         return keys;
     }
 
     public void init(Properties properties, String queueName) {
         this.queueName = queueName;
-        
+
         // Get or create shared RocksDB instance for this queue
+        var isNewInstance = !DB_INSTANCES.containsKey(queueName);
         db = DB_INSTANCES.computeIfAbsent(queueName, name -> {
             var dbDir = properties.getProperty("database.dir");
             if (dbDir == null) {
@@ -161,7 +167,7 @@ public class RocksDBQueueStore implements QueueStore<Object> {
                 var options = new Options()
                         .setCreateIfMissing(true)
                         .setMaxOpenFiles(100);
-                
+
                 // Store options for later cleanup
                 OPTIONS_INSTANCES.put(name, options);
 
@@ -170,14 +176,24 @@ public class RocksDBQueueStore implements QueueStore<Object> {
                 LOG.info(
                         "RocksDB QueueStore initialized for queue '{}' at: {}",
                         name, dbPath);
-                
+
                 return rocksDb;
             } catch (RocksDBException | IOException e) {
                 throw new RuntimeException(
                         "Failed to initialize RocksDB for queue: " + name, e);
             }
         });
-        
+
+        if (isNewInstance) {
+            LOG.info("RocksDB QueueStore created NEW instance for queue '{}'",
+                    queueName);
+        } else {
+            LOG.info(
+                    "RocksDB QueueStore REUSING existing instance for queue '{}' "
+                            + "(will load existing items)",
+                    queueName);
+        }
+
         LOG.debug("RocksDB QueueStore instance created for queue '{}'",
                 queueName);
     }
@@ -187,7 +203,7 @@ public class RocksDBQueueStore implements QueueStore<Object> {
         LOG.debug("RocksDB QueueStore instance destroyed for queue: {}",
                 queueName);
     }
-    
+
     /**
      * Closes all shared RocksDB instances. Should be called during
      * application shutdown.
@@ -204,7 +220,7 @@ public class RocksDBQueueStore implements QueueStore<Object> {
             }
         }
         DB_INSTANCES.clear();
-        
+
         for (var entry : OPTIONS_INSTANCES.entrySet()) {
             try {
                 entry.getValue().close();

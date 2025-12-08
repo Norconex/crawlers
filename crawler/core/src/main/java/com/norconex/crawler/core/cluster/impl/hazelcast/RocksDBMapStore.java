@@ -90,11 +90,18 @@ public class RocksDBMapStore
 
         try {
             var dbPath = Paths.get(dbDir, mapName);
+
+            LOG.debug("RocksDB map store path: {}", dbPath.toString());
+
             Files.createDirectories(dbPath);
 
             options = new Options()
                     .setCreateIfMissing(true)
                     .setMaxOpenFiles(100);
+
+            System.err.println("XXX [%s] RocksDB opening path: %s".formatted(
+                    Thread.currentThread().getName(),
+                    dbPath.toString()));
 
             db = RocksDB.open(options, dbPath.toString());
 
@@ -134,7 +141,7 @@ public class RocksDBMapStore
                     localEntries.size(), mapName);
 
             // Persist all of them to RocksDB
-            int persisted = 0;
+            var persisted = 0;
             for (var entry : localEntries.entrySet()) {
                 try {
                     var keyBytes = serialize(entry.getKey());
@@ -220,7 +227,7 @@ public class RocksDBMapStore
 
     @Override
     public Map<Object, Object> loadAll(Collection<Object> keys) {
-        var result = new HashMap<Object, Object>();
+        var result = new HashMap<>();
         for (var key : keys) {
             var value = load(key);
             if (value != null) {
@@ -232,7 +239,7 @@ public class RocksDBMapStore
 
     @Override
     public Iterable<Object> loadAllKeys() {
-        var keys = new ArrayList<Object>();
+        var keys = new ArrayList<>();
         try (var iterator = db.newIterator()) {
             iterator.seekToFirst();
             while (iterator.isValid()) {
@@ -244,6 +251,30 @@ public class RocksDBMapStore
             throw new RuntimeException("Failed to load all keys", e);
         }
         return keys;
+    }
+
+    /**
+     * Closes all RocksDB instances. Should be called during
+     * application shutdown or between tests.
+     */
+    public static void closeAll() {
+        LOG.info("Closing all RocksDB MapStore instances");
+        for (var entry : INSTANCES.entrySet()) {
+            try {
+                var store = entry.getValue();
+                if (store.db != null) {
+                    store.db.close();
+                    LOG.info("Closed RocksDB for map: {}", entry.getKey());
+                }
+                if (store.options != null) {
+                    store.options.close();
+                }
+            } catch (Exception e) {
+                LOG.warn("Failed to close RocksDB for map: {}",
+                        entry.getKey(), e);
+            }
+        }
+        INSTANCES.clear();
     }
 
     private byte[] serialize(Object obj) throws IOException {

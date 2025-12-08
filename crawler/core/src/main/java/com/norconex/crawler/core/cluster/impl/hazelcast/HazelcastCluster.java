@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.hazelcast.cluster.Member;
 import com.hazelcast.cluster.MembershipEvent;
 import com.hazelcast.cluster.MembershipListener;
+import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.norconex.commons.lang.Sleeper;
@@ -74,12 +75,13 @@ public class HazelcastCluster implements Cluster {
         this.clustered = clustered;
         LOG.info("HazelcastCluster.init(workDir={})", workDir);
 
-        // Set persistence directory for Hazelcast YAML config
-        System.setProperty("hazelcast.persistence.dir",
-                workDir.resolve("cache/rocksdb").normalize().toString());
+        var persistenceDir = workDir.resolve("cache/rocksdb").normalize();
 
         var hazelcastConfig =
                 HazelcastConfigLoader.load(configuration, clustered);
+
+        //        hazelcastConfig.setInstanceName(buildInstanceName(workDir));
+        applyPersistenceDir(hazelcastConfig, persistenceDir);
 
         try {
 
@@ -240,77 +242,45 @@ public class HazelcastCluster implements Cluster {
         }
     }
 
-    //--- Private methods ------------------------------------------------------
-    /*
+    private static void applyPersistenceDir(Config hzConfig, Path dir) {
+        var path = dir.normalize().toString();
 
-    private Config buildConfig(String nodeName) {
-        var config = new Config();
-        config.setProperty("hazelcast.logging.type", "slf4j");
+        hzConfig.getMapConfigs().values().forEach(mapCfg -> {
+            var mapStoreCfg = mapCfg.getMapStoreConfig();
+            if (mapStoreCfg == null || !mapStoreCfg.isEnabled()) {
+                return;
+            }
+            var props = mapStoreCfg.getProperties();
+            if (props == null) {
+                props = new java.util.Properties();
+                mapStoreCfg.setProperties(props);
+            }
+            props.setProperty("database.dir", path);
+        });
 
-        config.setClusterName(configuration.getClusterName());
-
-        // Set instance name
-        config.setInstanceName(nodeName);
-
-        // Configure default map settings
-        var defaultMapConfig = new MapConfig("default");
-        defaultMapConfig.setBackupCount(configuration.getBackupCount());
-        defaultMapConfig.setAsyncBackupCount(0);
-        config.addMapConfig(defaultMapConfig);
-
-        // Configure indexed maps for ledger entries
-        configureLedgerMaps(config);
-
-        // Configure pipeline-related maps
-        configurePipelineMaps(config);
-
-        return config;
+        hzConfig.getQueueConfigs().values().forEach(queueCfg -> {
+            var queueStoreCfg = queueCfg.getQueueStoreConfig();
+            if (queueStoreCfg == null || !queueStoreCfg.isEnabled()) {
+                return;
+            }
+            var props = queueStoreCfg.getProperties();
+            if (props == null) {
+                props = new java.util.Properties();
+                queueStoreCfg.setProperties(props);
+            }
+            props.setProperty("database.dir", path);
+        });
     }
 
-    private void configureLedgerMaps(Config config) {
-        // Create ledger map configurations with indexes
-        for (var ledgerName : List.of("ledger_a", "ledger_b")) {
-            var mapConfig = new MapConfig(ledgerName);
-            mapConfig.setBackupCount(configuration.getBackupCount());
+    //    private static String buildInstanceName(Path workDir) {
+    //        if (workDir == null) {
+    //            return "crawler-node";
+    //        }
+    //        var fileName = workDir.getFileName();
+    //        var suffix = fileName != null ? fileName.toString() : "node";
+    //        return "crawler-" + suffix + "-" + Math.abs(workDir.hashCode());
+    //    }
 
-            // Add index on processingStatus for efficient queries
-            mapConfig.addIndexConfig(new IndexConfig(
-                    IndexType.HASH, CrawlEntry.Fields.processingStatus));
-
-            // Add sorted index on queuedAt for ordering
-            //            mapConfig.addIndexConfig(new IndexConfig(
-            //                    IndexType.SORTED, CrawlEntry.Fields.queuedAt));
-
-            config.addMapConfig(mapConfig);
-        }
-
-        // Counters map
-        //        var countersConfig = new MapConfig(CacheNames.COUNTERS);
-        //        countersConfig.setBackupCount(configuration.getBackupCount());
-        //        config.addMapConfig(countersConfig);
-    }
-
-    private void configurePipelineMaps(Config config) {
-        // Pipeline step cache - replicated for shutdown safety
-        var stepConfig = new MapConfig(CacheNames.PIPE_CURRENT_STEP);
-        stepConfig.setBackupCount(
-                Math.max(1, configuration.getBackupCount()));
-        config.addMapConfig(stepConfig);
-
-        // Worker statuses cache - replicated for shutdown safety
-        var workerConfig = new MapConfig(CacheNames.PIPE_WORKER_STATUSES);
-        workerConfig.setBackupCount(
-                Math.max(1, configuration.getBackupCount()));
-        config.addMapConfig(workerConfig);
-
-        // Admin cache
-        var adminConfig = new MapConfig(CacheNames.ADMIN);
-        adminConfig.setBackupCount(
-                Math.max(1, configuration.getBackupCount()));
-        config.addMapConfig(adminConfig);
-    }
-
-    */
     //--- Inner classes --------------------------------------------------------
 
     private class ClusterMembershipListener implements MembershipListener {

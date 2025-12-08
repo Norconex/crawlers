@@ -10,7 +10,7 @@ hazelcast:
         write-coalescing: false
         class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBMapStore
         properties:
-          database.dir: ${hazelcast.persistence.dir}
+          database.dir: cache/rocksdb
     # Admin cache - used for cluster-wide control signals (e.g., STOP)
     # Small data volume, needs replication for reliability
     admin:
@@ -35,7 +35,7 @@ hazelcast:
         write-coalescing: false
         class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBMapStore
         properties:
-          database.dir: ${hazelcast.persistence.dir}
+          database.dir: cache/rocksdb
     ledger_a:
       backup-count: 1
       map-store:
@@ -45,7 +45,7 @@ hazelcast:
         write-coalescing: false
         class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBMapStore
         properties:
-          database.dir: ${hazelcast.persistence.dir}
+          database.dir: cache/rocksdb
       indexes:
         - type: HASH
           attributes:
@@ -59,7 +59,7 @@ hazelcast:
         write-coalescing: false
         class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBMapStore
         properties:
-          database.dir: ${hazelcast.persistence.dir}
+          database.dir: cache/rocksdb
       indexes:
         - type: HASH
           attributes:
@@ -71,7 +71,7 @@ hazelcast:
         enabled: true
         factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBQueueStoreFactory
         properties:
-          database.dir: ${hazelcast.persistence.dir}
+          database.dir: cache/rocksdb
 
     # The following are other known caches using the "default" map configuration:
     #   crawler:

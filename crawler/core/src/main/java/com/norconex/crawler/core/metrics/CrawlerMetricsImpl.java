@@ -19,7 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.norconex.crawler.core.cluster.CacheMap;
-import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.ledger.CrawlEntryLedger;
 import com.norconex.crawler.core.session.CrawlSession;
 
@@ -29,13 +28,13 @@ import lombok.extern.slf4j.Slf4j;
 public class CrawlerMetricsImpl implements CrawlerMetrics {
 
     private static final String EVENT_COUNTS_CACHE = "crawlEventCounts";
-    private static final String PROCESSED_TOTAL_CACHE =
-            "crawlProcessedTotal";
-    private static final String PROCESSED_TOTAL_KEY = "TOTAL";
+    //    private static final String PROCESSED_TOTAL_CACHE =
+    //            "crawlProcessedTotal";
+    //    private static final String PROCESSED_TOTAL_KEY = "TOTAL";
 
     private CrawlEntryLedger ledger;
     private CacheMap<Long> eventCountsStore;
-    private CacheMap<Long> processedTotalStore;
+    //    private CacheMap<Long> processedTotalStore;
     private boolean closed;
 
     private final MetricsMemCache memCache = new MetricsMemCache();
@@ -53,28 +52,28 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
         var cacheManager = crawlSession.getCluster().getCacheManager();
         eventCountsStore = cacheManager.getCache(
                 EVENT_COUNTS_CACHE, Long.class);
-        processedTotalStore = cacheManager.getCache(
-                PROCESSED_TOTAL_CACHE, Long.class);
+        //        processedTotalStore = cacheManager.getCache(
+        //                PROCESSED_TOTAL_CACHE, Long.class);
 
-        // Prime processed total from persistent store if present
-        if (processedTotalStore != null) {
-            try {
-                var stored = processedTotalStore.get(PROCESSED_TOTAL_KEY);
-                if (stored.isPresent()) {
-                    var val = stored.get();
-                    memCache.processedTotal.set(val);
-                }
-            } catch (Exception e) {
-                LOG.warn("Could not sync processed total from cluster: {}",
-                        e.getMessage());
-            }
-        }
+        //        // Prime processed total from persistent store if present
+        //        if (processedTotalStore != null) {
+        //            try {
+        //                var stored = processedTotalStore.get(PROCESSED_TOTAL_KEY);
+        //                if (stored.isPresent()) {
+        //                    var val = stored.get();
+        //                    memCache.processedTotal.set(val);
+        //                }
+        //            } catch (Exception e) {
+        //                LOG.warn("Could not sync processed total from cluster: {}",
+        //                        e.getMessage());
+        //            }
+        //        }
 
         ctx.getEventManager().addListener(event -> {
             incrementCounter(event.getName(), 1L);
-            if (CrawlerEvent.DOCUMENT_PROCESSED.equals(event.getName())) {
-                incrementProcessedTotal(1L);
-            }
+            //            if (CrawlerEvent.DOCUMENT_PROCESSED.equals(event.getName())) {
+            //                incrementProcessedTotal(1L);
+            //            }
         });
     }
 
@@ -98,25 +97,25 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
         memCache.eventCounts.merge(eventName, incrementBy, Long::sum);
     }
 
-    private void incrementProcessedTotal(long incrementBy) {
-        if (incrementBy == 0) {
-            return;
-        }
-        if (processedTotalStore == null) {
-            LOG.warn("Processed-total store is not initialized yet. "
-                    + "Increment will only be reflected in memory.");
-        } else {
-            try {
-                atomicIncrement(
-                        processedTotalStore,
-                        PROCESSED_TOTAL_KEY,
-                        incrementBy);
-            } catch (Exception e) {
-                LOG.error("Error updating processed total cache.", e);
-            }
-        }
-        memCache.processedTotal.addAndGet(incrementBy);
-    }
+    //    private void incrementProcessedTotal(long incrementBy) {
+    //        if (incrementBy == 0) {
+    //            return;
+    //        }
+    //        if (processedTotalStore == null) {
+    //            LOG.warn("Processed-total store is not initialized yet. "
+    //                    + "Increment will only be reflected in memory.");
+    //        } else {
+    //            try {
+    //                atomicIncrement(
+    //                        processedTotalStore,
+    //                        PROCESSED_TOTAL_KEY,
+    //                        incrementBy);
+    //            } catch (Exception e) {
+    //                LOG.error("Error updating processed total cache.", e);
+    //            }
+    //        }
+    //        memCache.processedTotal.addAndGet(incrementBy);
+    //    }
 
     @Override
     public Map<String, Long> getEventCounts() {
@@ -147,22 +146,25 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
 
     @Override
     public long getProcessedCount() {
+        //        if (!isClosed()) {
+        //            if (processedTotalStore != null) {
+        //                try {
+        //                    var stored =
+        //                            processedTotalStore.get(PROCESSED_TOTAL_KEY);
+        //                    if (stored.isPresent()) {
+        //                        var val = stored.get();
+        //                        memCache.processedTotal.set(val);
+        //                    }
+        //                } catch (Exception e) {
+        //                    LOG.warn("Could not sync processed total from cluster: {}",
+        //                            e.getMessage());
+        //                }
+        //            }
+        //        }
         if (!isClosed()) {
-            if (processedTotalStore != null) {
-                try {
-                    var stored =
-                            processedTotalStore.get(PROCESSED_TOTAL_KEY);
-                    if (stored.isPresent()) {
-                        var val = stored.get();
-                        memCache.processedTotal.set(val);
-                    }
-                } catch (Exception e) {
-                    LOG.warn("Could not sync processed total from cluster: {}",
-                            e.getMessage());
-                }
-            }
+            memCache.processedCount.set(ledger.getProcessedCount());
         }
-        return memCache.processedTotal.get();
+        return memCache.processedCount.get();
     }
 
     @Override
@@ -243,21 +245,22 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
                     e.getMessage());
         }
 
-        try {
-            if (processedTotalStore != null) {
-                var stored =
-                        processedTotalStore.get(PROCESSED_TOTAL_KEY);
-                stored.ifPresent(memCache.processedTotal::set);
-            }
-        } catch (Exception e) {
-            LOG.warn("Could not sync processed total on close: {}",
-                    e.getMessage());
-        }
+        //        try {
+        //            if (processedTotalStore != null) {
+        //                var stored =
+        //                        processedTotalStore.get(PROCESSED_TOTAL_KEY);
+        //                stored.ifPresent(memCache.processedTotal::set);
+        //            }
+        //        } catch (Exception e) {
+        //            LOG.warn("Could not sync processed total on close: {}",
+        //                    e.getMessage());
+        //        }
 
         try {
             if (ledger != null) {
                 memCache.queuedCount.set(ledger.getQueueCount());
                 memCache.processingCount.set(ledger.getProcessingCount());
+                memCache.processedCount.set(ledger.getProcessedCount());
                 memCache.baselineCount.set(ledger.getBaselineCount());
             }
         } catch (Exception e) {
@@ -279,7 +282,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
         private final AtomicLong processingCount = new AtomicLong();
         private final AtomicLong processedCount = new AtomicLong();
         private final AtomicLong baselineCount = new AtomicLong();
-        private final AtomicLong processedTotal = new AtomicLong();
+        //        private final AtomicLong processedTotal = new AtomicLong();
 
         void clear() {
             eventCounts.clear();
@@ -287,7 +290,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
             processedCount.set(0);
             queuedCount.set(0);
             baselineCount.set(0);
-            processedTotal.set(0);
+            //          processedTotal.set(0);
         }
     }
 }

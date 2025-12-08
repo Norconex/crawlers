@@ -287,12 +287,32 @@ public final class CrawlEntryLedger {
         return batch;
     }
 
+    //    /**
+    //     * Re-queues entries that were in QUEUED state from a previous run.
+    //     * This is needed when the Hazelcast persistent queue fails to restore
+    //     * items (e.g., due to partition ownership changes across restarts).
+    //     * @return the number of entries re-queued
+    //     */
+    //    public int requeueQueuedEntries() {
+    //        var current = getCurrentLedger();
+    //        var queued = current.queryIterator(
+    //                statusQueryFilter(ProcessingStatus.QUEUED));
+    //        var requeuedCount = 0;
+    //        while (queued.hasNext()) {
+    //            var entry = queued.next();
+    //            // Entry is already QUEUED in ledger, just need to add to queue
+    //            queue.add(entry.getReference());
+    //            requeuedCount++;
+    //        }
+    //        return requeuedCount;
+    //    }
+
     /**
-     * Re-queues entries that were in PROCESSING state when the crawler
+     * Re-queues entries that were in PROCESSING state from a previous run.
      * stopped. These entries were pulled from the queue but not completed,
      * so they need to be queued again on resume to avoid losing them.
      * Updates their status back to QUEUED.
-     * 
+     *
      * @return the number of entries re-queued
      */
     public int requeueProcessingEntries() {

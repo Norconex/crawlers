@@ -61,7 +61,7 @@ public class CrawlerNode {
     private final CaptureFlags captures = new CaptureFlags();
 
     public Process launch(String nodeName, Path nodeWorkDir, Path configFile) {
-        var caps = this.captures;
+        var caps = captures;
         var jvm = JvmProcess.builder()
                 .mainClass(CrawlerNode.class)
                 .workDir(nodeWorkDir)
@@ -228,7 +228,7 @@ public class CrawlerNode {
             if (StringUtils.isNotBlank(driverSuppl)) {
                 driverSupplClass = Class.forName(driverSuppl);
             }
-            return DriverInstrumentor.instrument(
+            return DriverInstrumentor.fromSysProps().instrument(
                     ((Supplier<CrawlDriver>) driverSupplClass
                             .getDeclaredConstructor()
                             .newInstance()).get());

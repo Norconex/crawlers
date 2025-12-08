@@ -29,6 +29,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -46,6 +47,8 @@ public class ClusterAdminServer {
     private final Cluster cluster;
     private final CrawlSession session;
     private HttpServer httpServer;
+    @Getter
+    private int port;
 
     public ClusterAdminServer(CrawlSession session) {
         this.session = session;
@@ -58,6 +61,11 @@ public class ClusterAdminServer {
      * @return the server port
      */
     public int start() {
+        port = doStart();
+        return port;
+    }
+
+    public int doStart() {
         var config = session.getCrawlContext().getCrawlConfig();
         var basePort = config.getClusterConfig().getAdminPort();
         if (basePort == 0) {

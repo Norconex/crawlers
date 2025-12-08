@@ -5,14 +5,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
 
+import org.apache.commons.lang3.function.FailableConsumer;
 import org.h2.tools.Server;
 
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A lightweight state-coordination database server for multi-nodes cluster
  * testing.
  */
+@Slf4j
 public class StateDbServer {
     private static String jdbcUrl;
     private Server h2Server;
@@ -54,6 +57,23 @@ public class StateDbServer {
         if (h2Server != null) {
             h2Server.stop();
         }
+    }
+
+    @SneakyThrows
+    public void withStateDb(FailableConsumer<StateDbClient, Exception> c) {
+        LOG.info("Starting StoreDB server...");
+        //        Executors.newSingleThreadExecutor()
+        //                .submit(() -> start());
+        start();
+        LOG.info("StoreDB server started at: {}", jdbcUrl);
+        try {
+            c.accept(StateDbClient.get());
+        } finally {
+            LOG.info("Stopping StoreDB server...");
+            stop();
+            LOG.info("StoreDB server stopped.");
+        }
+
     }
 
     public static String getJdbcUrl() {

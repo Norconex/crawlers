@@ -74,6 +74,12 @@ public class PipelineWorker implements AutoCloseable {
         // Register listener only after state is non-null to avoid race
         state.registerStepListener();
         LOG.info("PipelineWorker - step listener registered");
+        
+        
+        //TODO XXX good idea to push here??
+        // Push initial worker status so coordinator knows this worker exists
+        state.pushWorkerStatus(PipelineStatus.PENDING);
+        LOG.info("PipelineWorker - initial status pushed");
 
         return new PipelineTerminationTracker(
                 cluster, pipeline, state).await(0L);

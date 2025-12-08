@@ -38,9 +38,9 @@ class CrawlActivityChecker {
 
     private final long expireAt;
 
-    private static boolean isResolving;
-    private static boolean isPresumedActive = true;
-    private static AtomicBoolean canContinue = new AtomicBoolean(true);
+    private boolean isResolving;
+    private boolean isPresumedActive = true;
+    private AtomicBoolean canContinue = new AtomicBoolean(true);
     //    private boolean maxDocsReached;
 
     public CrawlActivityChecker(CrawlSession session, boolean deleting) {

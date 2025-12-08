@@ -29,7 +29,7 @@ public class StartRefsQueueStep extends BaseStep {
 
         //        var ctx = session.getCrawlContext();
         //
-        //        
+        //
         //        if (CollectionUtils.isNotEmpty(ctx.getBootstrappers())) {
         //            ctx.getBootstrappers().forEach(boot -> boot.bootstrap(session));
         //        }

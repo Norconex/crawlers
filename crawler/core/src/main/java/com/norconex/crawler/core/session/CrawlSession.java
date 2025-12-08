@@ -334,58 +334,9 @@ public class CrawlSession implements Closeable {
         postCloseCleanup = cleanup;
     }
 
-    //    /**
-    //     * Sets a session attribute as a string.
-    //     * @param key attribute key
-    //     * @param value attribute value
-    //     */
-    //    public void setString(String key, String value) {
-    //        sessionCache.put(key, value);
-    //    }
-    //
-    //    /**
-    //     * Gets a session attribute as a string.
-    //     * @param key attribute key
-    //     * @return value attribute value
-    //     */
-    //    public Optional<String> getString(String key) {
-    //        return sessionCache.get(key);
-    //    }
-    //
-    //    /**
-    //     * Sets a session attribute as a boolean.
-    //     * @param key attribute key
-    //     * @param value attribute value
-    //     */
-    //    public void setBoolean(String key, boolean value) {
-    //        sessionCache.put(key, Boolean.toString(value));
-    //    }
-    //
-    //    /**
-    //     * Gets a session attribute as a boolean.
-    //     * @param key attribute key
-    //     * @return value attribute value
-    //     */
-    //    public boolean getBoolean(String key) {
-    //        return sessionCache.get(key).map(Boolean::parseBoolean)
-    //                .orElse(false);
-    //    }
-    //
-    //    /**
-    //     * Atomically sets a session attribute as a boolean if it is not
-    //     * already set. This is a cluster-safe operation that prevents race
-    //     * conditions in distributed environments.
-    //     * @param key attribute key
-    //     * @param value attribute value to set if key is absent
-    //     * @return true if the value was set (key was absent), false if the
-    //     *         key already existed
-    //     */
-    //    public boolean setBooleanIfAbsent(String key, boolean value) {
-    //        var previousValue =
-    //                sessionCache.putIfAbsent(
-    //                        key, Boolean.toString(value));
-    //        return previousValue == null;
-    //    }
+    public int getAdminPort() {
+        return adminServer.getPort();
+    }
 
     public boolean isStartRefsQueueingComplete() {
         return sessionAttributes.getBoolean(START_REFS_QUEUED_KEY);
