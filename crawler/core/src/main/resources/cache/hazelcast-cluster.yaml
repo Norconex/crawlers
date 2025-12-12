@@ -1,84 +1,110 @@
 # yaml-language-server: $schema=./hazelcast-config-5.6.json
+
+# Hazelcast Cluster Configuration
+#
+# This configuration is designed for multi-node cluster deployments with:
+# - Backup count of 1 for data redundancy
+# - TCP/IP discovery enabled (for test environments)
+# - JDBC persistence support (configure credentials programmatically)
+#
+# Note: JDBC connection details should be configured programmatically
+# in Java code to allow dynamic configuration (e.g., for tests).
+# Tables are created via Liquibase migrations.
+#
+# IMPORTANT: Only ONE discovery method (multicast OR tcp-ip) can be
+# enabled at a time. This config uses TCP/IP by default.
+#
 hazelcast:
+  cluster-name: crawler-cluster
+
+  # No default data-connection - configure programmatically
+  # to allow dynamic JDBC URLs and credentials (e.g., TestContainers)
+  
+  jet:
+    enabled: true
+    backup-count: 1
+    #resource-upload-enabled: false
+    #flow-control-period: 100
+    #scale-up-delay-millis: 10000
+    #lossless-restart-enabled: false
+    #max-processor-accumulated-records: 9223372036854776000
+      
+  network:
+    port:
+      port: 5701
+      auto-increment: true
+      port-count: 100
+    join:
+      # Multicast for automatic cluster discovery
+      # Note: Only ONE discovery method can be enabled at a time
+      # To use multicast: set enabled: true here AND tcp-ip enabled: false
+      multicast:
+        enabled: false
+        multicast-group: 224.2.2.3
+        multicast-port: 54327
+        multicast-time-to-live: 32
+        multicast-timeout-seconds: 2
+        trusted-interfaces:
+          - 127.0.0.*
+          - 192.168.*.*
+      
+      # TCP/IP for explicit member list (enabled by default)
+      # Good for tests and environments without multicast
+      # To use TCP/IP: set enabled: true here AND multicast enabled: false
+      tcp-ip:
+        enabled: true
+        member-list:
+          - 127.0.0.1
+          - 127.0.0.1:5701
+          - 127.0.0.1:5702
+          - 127.0.0.1:5703
+        connection-timeout-seconds: 5
+
+  # Map configurations with backup-count: 1 for cluster redundancy
   map:
     default:
       backup-count: 1
+      async-backup-count: 0
+      read-backup-data: false
       map-store:
-        enabled: true
+        enabled: false
+
+    CRAWLER:
+      backup-count: 1
+      async-backup-count: 0
+      read-backup-data: false
+      map-store:
+        # MapStore configuration should be done programmatically
+        # to support GenericMapStore with dynamic JDBC credentials
+        enabled: false
         initial-mode: EAGER
         write-delay-seconds: 0
         write-coalescing: false
-        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBMapStore
-        properties:
-          database.dir: cache/rocksdb
-    # Admin cache - used for cluster-wide control signals (e.g., STOP)
-    # Small data volume, needs replication for reliability
-    admin:
-      backup-count: 1
-      map-store:
-        enabled: false
-    # CrawlRun cache - ephemeral per-run metadata, not persisted
-    # Small data volume, needs replication for cluster coordination
+
     crawlRun:
       backup-count: 1
-      map-store:
-        enabled: false
-    # CrawlSession cache - cluster-wide session metadata for resume detection
-    # Enhanced RocksDBMapStore persists ALL local data (primary + backup)
-    # during graceful shutdown, so backup-count can remain at default (1)
+      async-backup-count: 0
+        
     crawlSession:
       backup-count: 1
-      map-store:
-        enabled: true
-        initial-mode: EAGER
-        write-delay-seconds: 0
-        write-coalescing: false
-        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBMapStore
-        properties:
-          database.dir: cache/rocksdb
-    ledger_a:
-      backup-count: 1
-      map-store:
-        enabled: true
-        initial-mode: EAGER
-        write-delay-seconds: 0
-        write-coalescing: false
-        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBMapStore
-        properties:
-          database.dir: cache/rocksdb
-      indexes:
-        - type: HASH
-          attributes:
-            - processingStatus
-    ledger_b:
-      backup-count: 1
-      map-store:
-        enabled: true
-        initial-mode: EAGER
-        write-delay-seconds: 0
-        write-coalescing: false
-        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBMapStore
-        properties:
-          database.dir: cache/rocksdb
-      indexes:
-        - type: HASH
-          attributes:
-            - processingStatus
+      async-backup-count: 0
+
+  # Queue configurations  
   queue:
+    default:
+      backup-count: 1
+      async-backup-count: 0
+
     crawlQueue:
       backup-count: 1
-      queue-store:
-        enabled: true
-        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBQueueStoreFactory
-        properties:
-          database.dir: cache/rocksdb
+      async-backup-count: 0
+      max-size: 0  # unlimited
 
-    # The following are other known caches using the "default" map configuration:
-    #   crawler:
-    #   crawlQueue
-    #   crawlSession:
-    #   crawlEventCounts:
-    #     map-store:
-    #       enabled: false
-    #   pipeCurrentStep:
-    #   pipeWorkerStatuses:
+  # Partition group configuration for cluster
+  partition-group:
+    enabled: false
+    group-type: PER_MEMBER
+
+  # Management Center (optional)
+  management-center:
+    scripting-enabled: false

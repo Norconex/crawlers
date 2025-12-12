@@ -1,62 +1,142 @@
 # yaml-language-server: $schema=./hazelcast-config-5.6.json
+
+# Hazelcast Standalone Configuration
+#
+# Note: JDBC persistence with MapStore should be configured programmatically 
+# in Java code, not in YAML, to avoid schema validation issues in Hazelcast OSS 5.6.
+#
+# See HazelcastInstanceFactory.java for programmatic MapStore configuration.
+# Tables are created via Liquibase migrations (see HazelcastDatabaseMigrator.java)
+#
 hazelcast:
   cluster-name: standalone-crawler
+
+  data-connection:
+    h2:
+      type: JDBC
+      properties:
+        jdbcUrl: jdbc:h2:file:./data/crawler_db
+        username: sa
+        password: ""
+        maximumPoolSize: 10
+      shared: true  
+  
+  jet:
+    enabled: true
+    #resource-upload-enabled: false
+    #flow-control-period: 100
+    #backup-count: 1
+    #scale-up-delay-millis: 10000
+    #lossless-restart-enabled: false
+    #max-processor-accumulated-records: 9223372036854776000
+      
   network:
-    port: 5701
-    port-auto-increment: true
+    port:
+      # was: 5701
+      port: 0
+      auto-increment: true
     join:
       multicast:
         enabled: false
       tcp-ip:
         enabled: false
+
+  # Map configurations
   map:
     default:
       backup-count: 0
       map-store:
-        enabled: true
-        initial-mode: EAGER
-        write-delay-seconds: 0
-        write-coalescing: false
-        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBMapStore
-        properties:
-          database.dir: ${hazelcast.persistence.dir}
-    admin:
-      map-store:
         enabled: false
-    crawlRun:
-      map-store:
-        enabled: false
-    ledger_a:
-      map-store:
-        enabled: true
-        initial-mode: EAGER
-        write-delay-seconds: 0
-        write-coalescing: false
-        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBMapStore
-        properties:
-          database.dir: ${hazelcast.persistence.dir}
-      indexes:
-        - type: HASH
-          attributes:
-            - processingStatus
-    ledger_b:
-      map-store:
-        enabled: true
-        initial-mode: EAGER
-        write-delay-seconds: 0
-        write-coalescing: false
-        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBMapStore
-        properties:
-          database.dir: ${hazelcast.persistence.dir}
-      indexes:
-        - type: HASH
-          attributes:
-            - processingStatus
-  queue:
-    crawlQueue:
+
+    CRAWLER:
       backup-count: 0
-      queue-store:
+      map-store:
         enabled: true
-        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBQueueStoreFactory
+        initial-mode: EAGER
+        write-delay-seconds: 0
+        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.SimpleJdbcMapStore
         properties:
-          database.dir: ${hazelcast.persistence.dir}
+          jdbcUrl: jdbc:h2:file:./data/crawler_db
+          username: sa
+          password: ""
+          tableName: CRAWLER
+          keyColumn: map_key
+          valueColumn: map_value
+
+#    crawlRun:
+#      backup-count: 0
+#        
+#    crawlSession:
+#      backup-count: 0
+#        
+#    ledger_a:
+#      backup-count: 0
+#      indexes:
+#        - type: HASH
+#          attributes:
+#            - processingStatus
+#      map-store:
+#        enabled: true
+#        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.HazelcastJdbcMapStore
+#        properties:
+#          jdbc.url: jdbc:h2:file:./data/crawler_db
+#          jdbc.username: sa
+#          jdbc.password: ""
+#          store.table: HZ_MAP_LEDGER_A
+#          store.keyColumn: MAP_KEY
+#          store.valueColumn: MAP_VALUE
+#    ledger_b:
+#      backup-count: 0
+#      indexes:
+#        - type: HASH
+#          attributes:
+#            - processingStatus
+#      map-store:
+#        enabled: true
+#        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.HazelcastJdbcMapStore
+#        properties:
+#          jdbc.url: jdbc:h2:file:./data/crawler_db
+#          jdbc.username: sa
+#          jdbc.password: ""
+#          store.table: HZ_MAP_LEDGER_B
+#          store.keyColumn: MAP_KEY
+#          store.valueColumn: MAP_VALUE
+#
+#    pipeCurrentStep:
+#      backup-count: 0
+#      map-store:
+#        enabled: true
+#        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.HazelcastJdbcMapStore
+#        properties:
+#          jdbc.url: jdbc:h2:file:./data/crawler_db
+#          jdbc.username: sa
+#          jdbc.password: ""
+#          store.table: HZ_MAP_PIPE_CURRENT_STEP
+#          store.keyColumn: MAP_KEY
+#          store.valueColumn: MAP_VALUE
+#
+#    pipeWorkerStatuses:
+#      backup-count: 0
+#      map-store:
+#        enabled: true
+#        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.HazelcastJdbcMapStore
+#        properties:
+#          jdbc.url: jdbc:h2:file:./data/crawler_db
+#          jdbc.username: sa
+#          jdbc.password: ""
+#          store.table: HZ_MAP_PIPE_WORKER_STATUSES
+#          store.keyColumn: MAP_KEY
+#          store.valueColumn: MAP_VALUE
+#  queue:
+#    crawlQueue:
+#      backup-count: 0
+#      queue-store:
+#        enabled: true
+#        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.HazelcastJdbcQueueStoreFactory
+#        properties:
+#          jdbc.url: jdbc:h2:file:./data/crawler_db
+#          jdbc.username: sa
+#          jdbc.password: ""
+#          store.table: HZ_JDBC_QUEUE
+#          store.orderColumn: QUEUE_ORDER
+#          store.valueColumn: QUEUE_VALUE
