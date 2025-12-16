@@ -36,6 +36,10 @@
     <jdom2.version>2.0.6.1</jdom2.version>
     <sulky-ulid.version>8.2.0</sulky-ulid.version>
     <mvstore.version>2.3.232</mvstore.version>
+    <!--
+    <log4j.version>2.20.0</log4j.version>
+    <slf4j.version>2.0.0-alpha1</slf4j.version>
+    -->
   </properties>
 
   <inceptionYear>2014</inceptionYear>
@@ -142,6 +146,9 @@
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j2-impl</artifactId>
+      <!--
+      <version>${log4j.version}</version>
+      -->
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -164,7 +171,18 @@
       <groupId>software.xdev</groupId>
       <artifactId>testcontainers-junit4-mock</artifactId>
       <scope>test</scope>
-    </dependency>        
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>42.7.4</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.jeasy</groupId>
       <artifactId>easy-random-core</artifactId>
@@ -195,8 +213,55 @@
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <version>${h2.version}</version>
-      <scope>test</scope>
+      <!--<scope>test</scope>-->
     </dependency>    
+
+    <dependency>
+      <groupId>com.zaxxer</groupId>
+      <artifactId>HikariCP</artifactId>
+      <version>5.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-dbutils</groupId>
+      <artifactId>commons-dbutils</artifactId>
+      <version>1.7</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jdbi</groupId>
+      <artifactId>jdbi3-core</artifactId>
+      <version>3.43.0</version>
+    </dependency>
+    
+<dependency>
+    <groupId>com.hazelcast</groupId>
+    <artifactId>hazelcast-jdbc</artifactId>
+    <version>5.6.0</version>
+</dependency>    
+<dependency>
+    <groupId>com.hazelcast</groupId>
+    <artifactId>hazelcast-sql</artifactId>
+    <version>5.6.0</version> 
+  </dependency>
+    
+<dependency>
+    <groupId>com.hazelcast</groupId>
+    <artifactId>hazelcast-mapstore</artifactId>
+    <version>5.6.0</version> 
+</dependency>
+<!--    <dependency>
+      <groupId>org.liquibase</groupId>
+      <artifactId>liquibase-core</artifactId>
+      <version>4.25.1</version>
+    </dependency>-->
+    <!--
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jul-to-slf4j</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>test</scope>
+    </dependency>
+    -->
+
   </dependencies>
 
   <build>

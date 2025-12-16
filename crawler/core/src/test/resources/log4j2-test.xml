@@ -31,6 +31,9 @@
     <Logger name="com.norconex.crawler.core.ledger.CrawlEntryLedger" level="TRACE" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
+    <Logger name="liquibase" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
     
     
   

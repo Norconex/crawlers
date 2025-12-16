@@ -74,8 +74,7 @@ public class PipelineWorker implements AutoCloseable {
         // Register listener only after state is non-null to avoid race
         state.registerStepListener();
         LOG.info("PipelineWorker - step listener registered");
-        
-        
+
         //TODO XXX good idea to push here??
         // Push initial worker status so coordinator knows this worker exists
         state.pushWorkerStatus(PipelineStatus.PENDING);
@@ -128,7 +127,7 @@ public class PipelineWorker implements AutoCloseable {
             LOG.warn("Hazelcast cluster node not RUNNING for {}. "
                     + "Ignoring request to execute step {}.",
                     cluster.getLocalNode().getNodeName(),
-                    stepRec.stepId);
+                    stepRec.getStepId());
             return;
         }
 
@@ -173,9 +172,10 @@ public class PipelineWorker implements AutoCloseable {
                 }
                 // If step was asked to stop, treat this worker as STOPPED
                 if (step.isStopRequested()) {
-                    LOG.info("Worker node {} completed step {} after stop "
-                            + "was requested. Marking worker status as "
-                            + "STOPPED instead of COMPLETED.",
+                    LOG.info("""
+                        Worker node {} completed step {} after stop \
+                        was requested. Marking worker status as \
+                        STOPPED instead of COMPLETED.""",
                             cluster.getLocalNode().getNodeName(),
                             stepRec.getStepId());
                     state.pushWorkerStatus(PipelineStatus.STOPPED);

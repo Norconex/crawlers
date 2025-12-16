@@ -17,62 +17,21 @@ package com.norconex.crawler.core.cluster.impl.hazelcast;
 import java.time.Duration;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
 public class HazelcastClusterConfig {
 
-    @RequiredArgsConstructor
-    public enum Preset {
-        /**
-         * Cluster mode using TCP/IP discovery for multi-node deployments.
-         * Suitable for production environments where nodes need to discover
-         * each other over the network.
-         */
-        CLUSTER("classpath:cache/hazelcast-cluster.yaml"),
-        /**
-         * Standalone mode for single-node deployments. Optimized for
-         * single-node performance with local persistence.
-         */
-        STANDALONE("classpath:cache/hazelcast-standalone.yaml"),
-        /**
-         * In-memory only mode without persistence. Useful for quick
-         * experiments and short-lived crawls. Data is lost on shutdown.
-         */
-        STANDALONE_MEMORY("classpath:cache/hazelcast-memory.yaml");
-
-        //        @Getter
-        //        private final boolean standalone;
-        @Getter
-        private final String path;
-    }
+    public static final String DEFAULT_CONFIG_FILE =
+            "classpath:cache/hazelcast-standalone.yaml";
 
     /**
-     * Pre-defined configuration settings. The "CLUSTER" preset is used by
-     * default and will also work if you have just one node. Extra nodes
-     * can be added during an executing crawl. If you are not running
-     * the crawler on a clustered environment, choosing the "STANDALONE"
-     * preset is recommended for better single-node performance.
-     * <p>
-     * The "STANDALONE_MEMORY" preset is a lightweight, single-node
-     * configuration that keeps caches local and avoids persisting
-     * data. It is useful for quick experiments and short-lived crawls,
-     * but is not intended for durable, restartable crawls.
-     * </p>
+     * Hazelcast configuration file path. Can be a local file-system
+     * file or a classpath resource when prefixed with "classpath:".
+     * Default is {@value HazelcastClusterConfig#DEFAULT_CONFIG_FILE}.
      */
-    @NonNull
-    private Preset preset = Preset.CLUSTER;
-
-    /**
-     * Custom Hazelcast configuration file path. Can be a local file-system
-     * file or a classpath resource. If specified, overrides the preset
-     * configuration.
-     */
-    private String configFile;
+    private String configFile = DEFAULT_CONFIG_FILE;
 
     /**
      * Cluster name for Hazelcast instance. All nodes with the same cluster
@@ -105,20 +64,6 @@ public class HazelcastClusterConfig {
      * </p>
      */
     private Duration workerHeartbeatInterval = Duration.ofSeconds(1);
-
-    //    /**
-    //     * Whether to enable persistence for caches. When enabled, cache
-    //     * data is persisted to local storage. This allows
-    //     * crawls to be resumed after a restart.
-    //     */
-    //    private boolean persistenceDisabled = false;
-
-    /**
-     * Number of backup copies for distributed data. In cluster mode,
-     * this determines how many copies of each entry are stored across
-     * the cluster for fault tolerance. Default is 1.
-     */
-    private int backupCount = 1;
 
     /**
      * TCP/IP members list for cluster discovery. Comma-separated list

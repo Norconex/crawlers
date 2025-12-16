@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.core.cluster.impl.hazelcast;
 
+import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -29,109 +30,61 @@ import com.norconex.crawler.core.cluster.ClusterException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-final class HazelcastConfigLoader {
+public final class HazelcastConfigLoader {
+
+    static {
+        System.setProperty("hazelcast.phone.home.enabled", "false");
+    }
 
     private HazelcastConfigLoader() {
     }
 
-    static Config load(
-            HazelcastClusterConfig hzClusterConfig, boolean isClustered) {
-        LOG.info("Executing in standalone mode: {}", !isClustered);
-        var cfg = doLoad(hzClusterConfig);
-        //        configureQueuePersistence(cfg);
-        validateClusterMode(cfg, hzClusterConfig, isClustered);
-        return cfg;
-    }
+    public static Config load(String configFile, Path workDir) {
 
-    private static Config doLoad(
-            HazelcastClusterConfig hzClusterConfig) {
-        var configPath =
-                StringUtils.trimToNull(hzClusterConfig.getConfigFile());
-        if (configPath == null) {
-            configPath = hzClusterConfig.getPreset().getPath();
-        }
-
-        LOG.info("Using configuration preset: {}", configPath);
-
-        var isClasspath = configPath.startsWith("classpath:");
-        var resourceName = isClasspath
-                ? configPath.substring("classpath:".length())
-                : configPath;
-        var lowerName = resourceName.toLowerCase();
+        Config config;
         try {
-            if (lowerName.endsWith(".yaml") || lowerName.endsWith(".yml")) {
-                if (isClasspath || !Files.exists(Path.of(resourceName))) {
-                    return new ClasspathYamlConfig(resourceName);
-                }
-                return new FileSystemYamlConfig(resourceName);
-            }
-            if (lowerName.endsWith(".xml")) {
-                if (isClasspath || !Files.exists(Path.of(resourceName))) {
-                    return new ClasspathXmlConfig(resourceName);
-                }
-                return new FileSystemXmlConfig(resourceName);
-            }
-            throw new IllegalArgumentException(
-                    "Unknown Hazelcast config file type: " + configPath);
-        } catch (Exception e) {
+            config = doLoad(configFile, workDir);
+        } catch (FileNotFoundException e) {
             throw new ClusterException(
-                    "Failed to load Hazelcast config: " + configPath, e);
+                    "Could not load Hazelcast configuration.", e);
         }
+
+        config.getDataConnectionConfigs().forEach((k, cfg) -> {
+            var url = cfg.getProperty("jdbcUrl");
+            if (StringUtils.isNotBlank(url)) {
+                cfg.setProperty("jdbcUrl",
+                        url.replace("{workDir}", workDir.toString()));
+            }
+        });
+
+        return config;
     }
 
-    //TODO reconstruct queue from map on startup instead
-    //    private static void configureQueuePersistence(Config config) {
-    //        // Configure RocksDB persistence for the crawlQueue
-    //        var queueConfig = config.getQueueConfig("crawlQueue");
-    //        var queueStoreConfig = new com.hazelcast.config.QueueStoreConfig();
-    //        queueStoreConfig.setEnabled(true);
-    //        queueStoreConfig.setClassName(RocksDBQueueStore.class.getName());
-    //        // The database.dir property will be read from system property
-    //        // set in HazelcastCluster.init()
-    //        var props = new java.util.Properties();
-    //        props.setProperty("database.dir",
-    //            System.getProperty("hazelcast.persistence.dir", "data/rocksdb"));
-    //        queueStoreConfig.setProperties(props);
-    //        queueConfig.setQueueStoreConfig(queueStoreConfig);
-    //
-    //        LOG.info("Configured RocksDB persistence for crawlQueue");
-    //    }
+    static Config doLoad(String configFile, Path workDir)
+            throws FileNotFoundException {
+        var cfgPath = StringUtils.trimToNull(configFile);
 
-    private static void validateClusterMode(
-            Config hzConfig, HazelcastClusterConfig hzClusterConfig,
-            boolean isClustered) {
-        var configIsClustered = false;
-        var join = hzConfig.getNetworkConfig().getJoin();
-        // Consider clustered if multicast or tcp-ip join is enabled
-        if ((join.getMulticastConfig() != null
-                && join.getMulticastConfig().isEnabled()) ||
-                (join.getTcpIpConfig() != null
-                        && join.getTcpIpConfig().isEnabled())) {
-            configIsClustered = true;
+        var isClasspath = cfgPath.startsWith("classpath:");
+        var resourceName = isClasspath
+                ? cfgPath.substring("classpath:".length())
+                : cfgPath;
+        var lowerName = resourceName.toLowerCase();
+        if (lowerName.endsWith(".yaml")
+                || lowerName.endsWith(".yml")) {
+            if (isClasspath
+                    || !Files.exists(Path.of(resourceName))) {
+                return new ClasspathYamlConfig(resourceName);
+            }
+            return new FileSystemYamlConfig(resourceName);
         }
-        // Also consider backup-count > 0 as a sign of clustering
-        var backupCount = hzConfig.getMapConfig("default") != null
-                ? hzConfig.getMapConfig("default").getBackupCount()
-                : 0;
-        if (backupCount > 0) {
-            configIsClustered = true;
+        if (lowerName.endsWith(".xml")) {
+            if (isClasspath
+                    || !Files.exists(Path.of(resourceName))) {
+                return new ClasspathXmlConfig(resourceName);
+            }
+            return new FileSystemXmlConfig(resourceName);
         }
-        var intendedClustered = hzClusterConfig
-                .getPreset() == HazelcastClusterConfig.Preset.CLUSTER;
-        // If configFile is set, use isClustered() method
-        if (StringUtils.isNotBlank(hzClusterConfig.getConfigFile())) {
-            intendedClustered = isClustered;
-        }
-        if (configIsClustered != intendedClustered) {
-            var msg = String.format("""
-                Hazelcast config mode mismatch: Config is %s but \
-                intended mode is %s. Check your Hazelcast config and \
-                application settings.""",
-                    configIsClustered ? "CLUSTERED" : "STANDALONE",
-                    intendedClustered ? "CLUSTERED" : "STANDALONE");
-            //            LOG.warn(msg);
-            // Optionally, throw exception to fail fast
-            throw new ClusterException(msg);
-        }
+        throw new IllegalArgumentException(
+                "Unknown Hazelcast config file type: " + cfgPath);
     }
 }

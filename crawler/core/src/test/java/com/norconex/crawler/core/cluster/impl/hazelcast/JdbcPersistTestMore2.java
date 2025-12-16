@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cluster.impl.hazelcast.GOOD;
+package com.norconex.crawler.core.cluster.impl.hazelcast;
 
 import java.io.File;
 import java.sql.Connection;
@@ -27,11 +27,10 @@ import com.hazelcast.config.ClasspathYamlConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
-import com.norconex.crawler.core.cluster.impl.hazelcast.LiquibaseMigrationRunner;
 
 import lombok.SneakyThrows;
 
-class JdbcPersistStandalone {
+class JdbcPersistTestMore2 {
     @TempDir
     File tempDir;
 
@@ -44,9 +43,7 @@ class JdbcPersistStandalone {
 
     void clearLiquibaseHistory(String dbPath) {
         try (Connection conn = DriverManager.getConnection(
-                "jdbc:h2:file:" + dbPath
-                        + ";AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1",
-                "sa", "")) {
+                "jdbc:h2:file:" + dbPath, "sa", "")) {
             Statement stmt = conn.createStatement();
             stmt.execute("DROP TABLE IF EXISTS DATABASECHANGELOG");
             stmt.execute("DROP TABLE IF EXISTS DATABASECHANGELOGLOCK");
@@ -71,8 +68,10 @@ class JdbcPersistStandalone {
         }
         dbFile.getParentFile().mkdirs();
 
-        // Don't add .mv.db extension - H2 adds it automatically
-        LiquibaseMigrationRunner.runH2Migrations(dbPath);
+        // Clear Liquibase history to force fresh migrations
+        clearLiquibaseHistory(dbPath);
+
+       // LiquibaseMigrationRunner.runH2Migrations(dbPath + ".mv.db");
         System.out.println("DB file after migration: "
                 + dbFile.getAbsolutePath() + ", exists: " + dbFile.exists());
         printDbTables(dbPath); // Print tables after migration
@@ -81,13 +80,15 @@ class JdbcPersistStandalone {
         config.getNetworkConfig().getJoin().getMulticastConfig()
                 .setEnabled(false);
 
-        // Override the CRAWLER map JDBC URL to use temp directory
-        var mapConfig = config.getMapConfig("CRAWLER");
-        var mapStoreConfig = mapConfig.getMapStoreConfig();
-        mapStoreConfig.setProperty("jdbcUrl", "jdbc:h2:file:" + dbPath
-                + ";AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1");
-        System.out.println("Updated CRAWLER MapStore jdbcUrl to: jdbc:h2:file:"
-                + dbPath + ";AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1");
+        // Override the H2 data-connection JDBC URL to use temp directory
+        var dataConnectionConfig = config.getDataConnectionConfigs().get("h2");
+        if (dataConnectionConfig != null) {
+            dataConnectionConfig.setProperty("jdbcUrl",
+                    "jdbc:h2:file:" + dbPath);
+            System.out.println(
+                    "Updated Hazelcast data-connection jdbcUrl to: jdbc:h2:file:"
+                            + dbPath);
+        }
 
         System.out.println("Multicast enabled (forced): " +
                 config.getNetworkConfig().getJoin().getMulticastConfig()
@@ -103,15 +104,13 @@ class JdbcPersistStandalone {
 
     void printDbContents(String dbPath) {
         try (Connection conn = DriverManager.getConnection(
-                "jdbc:h2:file:" + dbPath
-                        + ";AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1",
-                "sa", "")) {
+                "jdbc:h2:file:" + dbPath, "sa", "")) {
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT * FROM CRAWLER");
             System.out.println("DB contents:");
             while (rs.next()) {
-                System.out.println("map_key=" + rs.getString("map_key")
-                        + ", map_value=" + rs.getString("map_value"));
+                System.out.println("key=" + rs.getString("key") + ", value="
+                        + rs.getString("value"));
             }
         } catch (Exception e) {
             System.out.println("DB query error: " + e.getMessage());
@@ -126,24 +125,17 @@ class JdbcPersistStandalone {
             // ignore
         }
         try (Connection conn = DriverManager.getConnection(
-                "jdbc:h2:file:" + dbPath
-                        + ";AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1",
-                "sa", "")) {
-            // Query INFORMATION_SCHEMA directly
-            String sql = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES "
-                    + "WHERE TABLE_SCHEMA = 'PUBLIC' AND TABLE_TYPE = 'TABLE' "
-                    + "ORDER BY TABLE_NAME";
-            try (Statement stmt = conn.createStatement();
-                    ResultSet rs = stmt.executeQuery(sql)) {
-                System.out.println("DB tables after migration:");
-                int count = 0;
-                while (rs.next()) {
-                    System.out.println(
-                            "Table: " + rs.getString("TABLE_NAME"));
-                    count++;
-                }
-                System.out.println("Total tables found: " + count);
+                "jdbc:h2:file:" + dbPath, "sa", "")) {
+            // Query from PUBLIC schema explicitly
+            ResultSet rs = conn.getMetaData().getTables(null, "PUBLIC", "%",
+                    new String[] { "TABLE" });
+            System.out.println("DB tables after migration:");
+            int count = 0;
+            while (rs.next()) {
+                System.out.println("Table: " + rs.getString("TABLE_NAME"));
+                count++;
             }
+            System.out.println("Total tables found: " + count);
         } catch (Exception e) {
             System.out.println("DB table query error: " + e.getMessage());
         }

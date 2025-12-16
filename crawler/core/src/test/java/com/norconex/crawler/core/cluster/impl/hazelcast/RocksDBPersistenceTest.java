@@ -61,7 +61,7 @@ class RocksDBPersistenceTest {
         Hazelcast.shutdownAll();
 
         // Close all RocksDB queue instances (clears static map)
-        RocksDBQueueStore.closeAll();
+        //  RocksDBQueueStore.closeAll();
 
         // Give OS time to release file locks
         sleep(1000);
@@ -339,7 +339,7 @@ class RocksDBPersistenceTest {
                 .setInitialLoadMode(MapStoreConfig.InitialLoadMode.EAGER)
                 .setWriteDelaySeconds(0)
                 .setWriteCoalescing(false)
-                .setClassName(RocksDBMapStore.class.getName())
+                //         .setClassName(RocksDBMapStore.class.getName())
                 .setProperty("database.dir", dbDir);
 
         mapConfig.setMapStoreConfig(mapStoreConfig);
@@ -373,8 +373,8 @@ class RocksDBPersistenceTest {
 
         var queueStoreConfig = new QueueStoreConfig()
                 .setEnabled(true)
-                .setFactoryClassName(
-                        RocksDBQueueStoreFactory.class.getName())
+                //                .setFactoryClassName(
+                //                        RocksDBQueueStoreFactory.class.getName())
                 .setProperty("database.dir", dbDir);
 
         queueConfig.setQueueStoreConfig(queueStoreConfig);

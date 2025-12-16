@@ -1,21 +1,16 @@
 # yaml-language-server: $schema=./hazelcast-config-5.6.json
 
 # Hazelcast Standalone Configuration
-#
-# Note: JDBC persistence with MapStore should be configured programmatically 
-# in Java code, not in YAML, to avoid schema validation issues in Hazelcast OSS 5.6.
-#
-# See HazelcastInstanceFactory.java for programmatic MapStore configuration.
-# Tables are created via Liquibase migrations (see HazelcastDatabaseMigrator.java)
-#
+# The ${workDir} variable is substituted for the "workDir" specified in 
+# the crawler config.
 hazelcast:
   cluster-name: standalone-crawler
 
   data-connection:
-    h2:
+    jdbc-datasource:
       type: JDBC
       properties:
-        jdbcUrl: jdbc:h2:file:./data/crawler_db
+        jdbcUrl: jdbc:h2:file:{workDir}/db;DB_CLOSE_DELAY=-1
         username: sa
         password: ""
         maximumPoolSize: 10
@@ -23,12 +18,6 @@ hazelcast:
   
   jet:
     enabled: true
-    #resource-upload-enabled: false
-    #flow-control-period: 100
-    #backup-count: 1
-    #scale-up-delay-millis: 10000
-    #lossless-restart-enabled: false
-    #max-processor-accumulated-records: 9223372036854776000
       
   network:
     port:
@@ -46,23 +35,55 @@ hazelcast:
     default:
       backup-count: 0
       map-store:
-        enabled: false
-
-    CRAWLER:
-      backup-count: 0
-      map-store:
         enabled: true
         initial-mode: EAGER
         write-delay-seconds: 0
-        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.SimpleJdbcMapStore
+        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.JdbcMapStore
         properties:
-          jdbcUrl: jdbc:h2:file:./data/crawler_db
-          username: sa
-          password: ""
-          tableName: CRAWLER
-          keyColumn: map_key
-          valueColumn: map_value
+          # Need to reference data source since there could be multiple
+          data-connection-ref: jdbc-datasource
+          column-key-type: VARCHAR(4096)
+          column-value-type: TEXT
+          sql-merge: |
+            MERGE INTO "{tableName}" (k, v)
+            KEY(k)
+            VALUES (?, ?)
 
+    eph-*:
+      backup-count: 0
+      map-store:
+        enabled: false
+
+#    CRAWLER_ATTRIBS_BLAH:
+#      backup-count: 0
+#      map-store:
+#        enabled: true
+#        initial-mode: EAGER
+#        write-delay-seconds: 0
+#        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.JdbcMapStore
+#        properties:
+#          # Need to reference data source since there could be multiple
+#          data-connection-ref: jdbc-datasource
+#          column-key-type: VARCHAR(4096)
+#          column-value-type: TEXT
+          #table-name: CRAWLER_ATTRIBS
+#          id-column: k
+#          columns: v
+
+          
+#          tableName: CRAWLER
+#          keyColumn: map_key
+#          valueColumn: map_value
+          
+
+#          table-name: CRAWLER
+#          id-column: key
+#          columns: value          
+
+
+
+                    
+          
 #    crawlRun:
 #      backup-count: 0
 #        
@@ -79,6 +100,7 @@ hazelcast:
 #        enabled: true
 #        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.HazelcastJdbcMapStore
 #        properties:
+#    mapped-object: com.norconex.crawler.core.ledger.CrawlEntry
 #          jdbc.url: jdbc:h2:file:./data/crawler_db
 #          jdbc.username: sa
 #          jdbc.password: ""

@@ -28,11 +28,11 @@ public class StepRecord implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    public String pipelineId;
-    public String stepId;
-    public long updatedAt;
-    public PipelineStatus status;
-    public String runId;
+    private String pipelineId;
+    private String stepId;
+    private long updatedAt;
+    private PipelineStatus status;
+    private String runId;
 
     public boolean hasTimedOut(long timeoutMs) {
         if (timeoutMs == 0) {

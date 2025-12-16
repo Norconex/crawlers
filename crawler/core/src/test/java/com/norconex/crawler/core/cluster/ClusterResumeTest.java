@@ -41,10 +41,6 @@ import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.cluster.admin.ClusterAdminClient;
-import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConfig.Preset;
-import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
-import com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBMapStore;
-import com.norconex.crawler.core.cluster.impl.hazelcast.RocksDBQueueStore;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.cluster.node.CaptureFlags;
 import com.norconex.crawler.core.junit.cluster.node.DriverInstrumentor;
@@ -134,8 +130,8 @@ class ClusterResumeTest {
             LOG.info("=== Cleanup between runs ===");
             // Close all RocksDB instances to release file locks
             // This is critical for the second run to reopen the same RocksDB paths
-            RocksDBQueueStore.closeAll();
-            RocksDBMapStore.closeAll();
+            //            RocksDBQueueStore.closeAll();
+            //            RocksDBMapStore.closeAll();
 
             // Give OS time to release file locks
             Sleeper.sleepSeconds(1);
@@ -200,9 +196,9 @@ class ClusterResumeTest {
                         cfg -> cfg.setDelay(Duration.ofMillis(delayMs)))))
                 .setNumThreads(1);
         crawlCfg.getClusterConfig().setClustered(true);
-        ((HazelcastClusterConnector) crawlCfg.getClusterConfig().getConnector())
-                .getConfiguration()
-                .setPreset(Preset.CLUSTER);
+        //        ((HazelcastClusterConnector) crawlCfg.getClusterConfig().getConnector())
+        //                .getConfiguration()
+        //                .setPreset(Preset.CLUSTER);
         return crawlCfg;
     }
 }

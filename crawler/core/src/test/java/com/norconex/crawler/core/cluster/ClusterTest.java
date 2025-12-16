@@ -31,8 +31,6 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 import com.norconex.crawler.core.cluster.impl.hazelcast.CacheNames;
-import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConfig.Preset;
-import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.cluster.ClusterClient;
 import com.norconex.crawler.core.junit.cluster.node.CaptureFlags;
@@ -288,9 +286,9 @@ class ClusterTest {
                         cfg -> cfg.setDelay(Duration.ofMillis(delayMs)))))
                 .setNumThreads(1);
         crawlCfg.getClusterConfig().setClustered(true);
-        ((HazelcastClusterConnector) crawlCfg.getClusterConfig().getConnector())
-                .getConfiguration()
-                .setPreset(Preset.CLUSTER);
+        //        ((HazelcastClusterConnector) crawlCfg.getClusterConfig().getConnector())
+        //                .getConfiguration()
+        //                .setPreset(Preset.CLUSTER);
         return crawlCfg;
     }
 }

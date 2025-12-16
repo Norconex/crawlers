@@ -30,7 +30,7 @@ import com.hazelcast.map.IMap;
 
 import lombok.SneakyThrows;
 
-class JdbcPersistTestMore {
+public class JdbcPersistWasWorking {
     @TempDir
     File tempDir;
 
@@ -71,7 +71,7 @@ class JdbcPersistTestMore {
         dbFile.getParentFile().mkdirs();
 
         // Don't add .mv.db extension - H2 adds it automatically
-   //     LiquibaseMigrationRunner.runH2Migrations(dbPath);
+//        LiquibaseMigrationRunner.runH2Migrations(dbPath);
         System.out.println("DB file after migration: "
                 + dbFile.getAbsolutePath() + ", exists: " + dbFile.exists());
         printDbTables(dbPath); // Print tables after migration

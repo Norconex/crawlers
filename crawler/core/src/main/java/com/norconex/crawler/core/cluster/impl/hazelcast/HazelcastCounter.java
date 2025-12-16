@@ -21,6 +21,7 @@ import com.norconex.crawler.core.cluster.Counter;
  * A distributed counter implementation using Hazelcast IMap.
  * Uses atomic operations to ensure thread-safety across the cluster.
  */
+//TODO Expose and use it or DELETE it if not used.
 class HazelcastCounter implements Counter {
 
     private final IMap<String, Long> counterMap;
@@ -46,11 +47,11 @@ class HazelcastCounter implements Counter {
     @Override
     public long addAndGet(long delta) {
         return counterMap.executeOnKey(key, entry -> {
-            Long current = entry.getValue();
+            var current = entry.getValue();
             if (current == null) {
                 current = 0L;
             }
-            long newValue = current + delta;
+            var newValue = current + delta;
             entry.setValue(newValue);
             return newValue;
         });
@@ -59,7 +60,7 @@ class HazelcastCounter implements Counter {
     @Override
     public long getAndAdd(long delta) {
         return counterMap.executeOnKey(key, entry -> {
-            Long current = entry.getValue();
+            var current = entry.getValue();
             if (current == null) {
                 current = 0L;
             }
@@ -85,7 +86,7 @@ class HazelcastCounter implements Counter {
 
     @Override
     public long get() {
-        Long value = counterMap.get(key);
+        var value = counterMap.get(key);
         return value != null ? value : 0L;
     }
 

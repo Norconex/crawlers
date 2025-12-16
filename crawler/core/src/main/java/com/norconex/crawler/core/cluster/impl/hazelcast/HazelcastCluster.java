@@ -73,47 +73,53 @@ public class HazelcastCluster implements Cluster {
     public void init(Path workDir, boolean clustered) {
         this.workDir = workDir;
         this.clustered = clustered;
-        LOG.info("HazelcastCluster.init(workDir={})", workDir);
 
-        var persistenceDir = workDir.resolve("cache/rocksdb").normalize();
+        LOG.info("Initializing Hazelcast cluster node...");
 
-        var hazelcastConfig =
-                HazelcastConfigLoader.load(configuration, clustered);
+        var hzConfig = HazelcastConfigLoader.load(
+                configuration.getConfigFile(), workDir);
+        hzConfig.setProperty("hazelcast.logging.type", "slf4j");
+
+        //        var listenerCfg = new ListenerConfig();
+        //        listenerCfg.setImplementation(new DataSourceLifecycleListener(dbProps));
+        //        hzConfig.addListenerConfig(listenerCfg);
 
         //        hazelcastConfig.setInstanceName(buildInstanceName(workDir));
-        applyPersistenceDir(hazelcastConfig, persistenceDir);
+        //        var persistenceDir = workDir.resolve("cache/hazelcast").normalize();
+        //        applyPersistenceDir(hzConfig, persistenceDir);
 
         try {
 
-            hazelcastConfig.setProperty("hazelcast.logging.type", "slf4j");
-
             if (StringUtils.isNotBlank(configuration.getClusterName())) {
-                hazelcastConfig.setClusterName(configuration.getClusterName());
+                hzConfig.setClusterName(configuration.getClusterName());
             }
 
-            LOG.info("Creating HazelcastInstance with cluster name: {}",
-                    hazelcastConfig.getClusterName());
-            hazelcastInstance = Hazelcast.newHazelcastInstance(hazelcastConfig);
+            validateClusterMode(hzConfig, configuration, clustered);
 
-            //TODO XXX is it necessary?
-            // Register lifecycle listener to persist backup data before shutdown
-            hazelcastInstance.getLifecycleService().addLifecycleListener(
-                    event -> {
-                        if (event
-                                .getState() == com.hazelcast.core.LifecycleEvent.LifecycleState.SHUTTING_DOWN) {
-                            LOG.info(
-                                    "Hazelcast shutting down, persisting backup data to RocksDB...");
-                            persistAllBackupData();
-                            // Close all shared RocksDB queue store instances
-                            RocksDBQueueStore.closeAll();
-                        }
-                    });
+            LOG.info("Creating HazelcastInstance with cluster name: {}",
+                    hzConfig.getClusterName());
+            hazelcastInstance = Hazelcast.newHazelcastInstance(hzConfig);
+
+            //            //TODO XXX is it necessary?
+            //            // Register lifecycle listener to persist backup data before shutdown
+            //            hazelcastInstance.getLifecycleService().addLifecycleListener(
+            //                    event -> {
+            //                        if (event
+            //                                .getState() == com.hazelcast.core.LifecycleEvent.LifecycleState.SHUTTING_DOWN) {
+            //                            LOG.info(
+            //                                    "Hazelcast shutting down, persisting backup data to RocksDB...");
+            //                            persistAllBackupData();
+            //                            // Close all shared RocksDB queue store instances
+            //                            RocksDBQueueStore.closeAll();
+            //                        }
+            //                    });
 
             // Add membership listener for coordinator changes
             membershipListenerId = hazelcastInstance.getCluster()
                     .addMembershipListener(new ClusterMembershipListener());
 
             cacheManager = new HazelcastCacheManager(hazelcastInstance);
+
             localNode = new HazelcastClusterNode(hazelcastInstance,
                     !clustered);
             pipelineManager = new HazelcastPipelineManager(this);
@@ -228,49 +234,49 @@ public class HazelcastCluster implements Cluster {
         return clustered;
     }
 
-    /**
-     * Persists all backup data to RocksDB before Hazelcast shutdown.
-     * This ensures that backup replicas are not lost when all nodes restart.
-     */
-    private void persistAllBackupData() {
-        try {
-            LOG.info("Persisting all backup data before Hazelcast shutdown...");
-            RocksDBMapStore.persistAllBackupData();
-            LOG.info("Backup data persistence complete");
-        } catch (Exception e) {
-            LOG.error("Failed to persist backup data", e);
-        }
-    }
-
-    private static void applyPersistenceDir(Config hzConfig, Path dir) {
-        var path = dir.normalize().toString();
-
-        hzConfig.getMapConfigs().values().forEach(mapCfg -> {
-            var mapStoreCfg = mapCfg.getMapStoreConfig();
-            if (mapStoreCfg == null || !mapStoreCfg.isEnabled()) {
-                return;
-            }
-            var props = mapStoreCfg.getProperties();
-            if (props == null) {
-                props = new java.util.Properties();
-                mapStoreCfg.setProperties(props);
-            }
-            props.setProperty("database.dir", path);
-        });
-
-        hzConfig.getQueueConfigs().values().forEach(queueCfg -> {
-            var queueStoreCfg = queueCfg.getQueueStoreConfig();
-            if (queueStoreCfg == null || !queueStoreCfg.isEnabled()) {
-                return;
-            }
-            var props = queueStoreCfg.getProperties();
-            if (props == null) {
-                props = new java.util.Properties();
-                queueStoreCfg.setProperties(props);
-            }
-            props.setProperty("database.dir", path);
-        });
-    }
+    //    /**
+    //     * Persists all backup data to RocksDB before Hazelcast shutdown.
+    //     * This ensures that backup replicas are not lost when all nodes restart.
+    //     */
+    //    private void persistAllBackupData() {
+    //        try {
+    //            LOG.info("Persisting all backup data before Hazelcast shutdown...");
+    //            RocksDBMapStore.persistAllBackupData();
+    //            LOG.info("Backup data persistence complete");
+    //        } catch (Exception e) {
+    //            LOG.error("Failed to persist backup data", e);
+    //        }
+    //    }
+    //
+    //    private static void applyPersistenceDir(Config hzConfig, Path dir) {
+    //        var path = dir.normalize().toString();
+    //
+    //        hzConfig.getMapConfigs().values().forEach(mapCfg -> {
+    //            var mapStoreCfg = mapCfg.getMapStoreConfig();
+    //            if (mapStoreCfg == null || !mapStoreCfg.isEnabled()) {
+    //                return;
+    //            }
+    //            var props = mapStoreCfg.getProperties();
+    //            if (props == null) {
+    //                props = new java.util.Properties();
+    //                mapStoreCfg.setProperties(props);
+    //            }
+    //            props.setProperty("database.dir", path);
+    //        });
+    //
+    //        hzConfig.getQueueConfigs().values().forEach(queueCfg -> {
+    //            var queueStoreCfg = queueCfg.getQueueStoreConfig();
+    //            if (queueStoreCfg == null || !queueStoreCfg.isEnabled()) {
+    //                return;
+    //            }
+    //            var props = queueStoreCfg.getProperties();
+    //            if (props == null) {
+    //                props = new java.util.Properties();
+    //                queueStoreCfg.setProperties(props);
+    //            }
+    //            props.setProperty("database.dir", path);
+    //        });
+    //    }
 
     //    private static String buildInstanceName(Path workDir) {
     //        if (workDir == null) {
@@ -280,6 +286,38 @@ public class HazelcastCluster implements Cluster {
     //        var suffix = fileName != null ? fileName.toString() : "node";
     //        return "crawler-" + suffix + "-" + Math.abs(workDir.hashCode());
     //    }
+
+    //TODO move this logic to
+    private static void validateClusterMode(
+            Config hzConfig, HazelcastClusterConfig hzClusterConfig,
+            boolean isClustered) {
+        var configAnalyzedClustered = false;
+        var join = hzConfig.getNetworkConfig().getJoin();
+        // Consider clustered if multicast or tcp-ip join is enabled
+        if ((join.getMulticastConfig() != null
+                && join.getMulticastConfig().isEnabled()) ||
+                (join.getTcpIpConfig() != null
+                        && join.getTcpIpConfig().isEnabled())) {
+            configAnalyzedClustered = true;
+        }
+        // Also consider backup-count > 0 as a sign of clustering
+        var backupCount = hzConfig.getMapConfig("default") != null
+                ? hzConfig.getMapConfig("default").getBackupCount()
+                : 0;
+        if (backupCount > 0) {
+            configAnalyzedClustered = true;
+        }
+        if (configAnalyzedClustered != isClustered) {
+            var msg = String.format("""
+                %s mode requested, but Hazelcast configuration
+                appears to be configured as %s.""",
+                    isClustered ? "CLUSTERED" : "STANDALONE",
+                    !isClustered ? "CLUSTERED" : "STANDALONE");
+            //            LOG.warn(msg);
+            // Optionally, throw exception to fail fast
+            LOG.warn(msg);
+        }
+    }
 
     //--- Inner classes --------------------------------------------------------
 
