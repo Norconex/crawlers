@@ -80,8 +80,6 @@ public class StandaloneCliCrawlerLauncher {
     private final Consumer<CrawlConfig> configModifier;
     private final boolean printErrors;
     private final CrawlDriver crawlDriver;
-    private final boolean cluster;
-    private final boolean persistent;
 
     public StandaloneExecutionResult launch() {
         return launch(null);
@@ -110,11 +108,6 @@ public class StandaloneCliCrawlerLauncher {
                     .noneMatch(TestEventMemoryListener.class::isInstance)) {
                 config.addEventListener(new TestEventMemoryListener());
             }
-
-            //            config.setClusterConnector(TestClusterConnector.builder()
-            //                    .cluster(cluster)
-            //                    .persistent(persistent)
-            //                    .build());
 
             if (config.getCommitters().stream()
                     .noneMatch(MemoryCommitter.class::isInstance)) {

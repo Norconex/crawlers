@@ -15,7 +15,10 @@
 package com.norconex.crawler.core.cluster.impl.hazelcast;
 
 import java.io.Closeable;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
@@ -23,11 +26,11 @@ import java.util.function.BiConsumer;
 import com.hazelcast.collection.IQueue;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
-import com.norconex.crawler.core.cluster.CacheMap;
-import com.norconex.crawler.core.cluster.ClusterException;
 import com.norconex.crawler.core.cluster.CacheManager;
+import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.cluster.CacheQueue;
 import com.norconex.crawler.core.cluster.CacheSet;
+import com.norconex.crawler.core.cluster.ClusterException;
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListener;
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListenerAdapter;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
@@ -40,6 +43,7 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
 
     private static final Map<HazelcastInstance, AtomicInteger> REF_COUNTS =
             new ConcurrentHashMap<>();
+    private static final int BATCH_SIZE = 1000;
 
     private final HazelcastInstance hazelcast;
     private final Map<CacheEntryChangeListener<?>,
@@ -54,7 +58,21 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
 
     @Override
     public <T> CacheMap<T> getCache(String name, Class<T> valueType) {
-        return new HazelcastMapAdapter<>(getHazelcastMap(name), hazelcast);
+        // Ensure the factory is installed in the Hazelcast Config
+        try {
+            var cfg = hazelcast.getConfig();
+            // idempotent installer updates or installs factory
+            MapStoreFactoryInstaller.installTypedFactoryIfNeeded(
+                    cfg, name, valueType);
+        } catch (Exception e) {
+            LOG.debug("Could not install typed MapStore factory for '{}': {}",
+                    name, e.toString());
+        }
+
+        return new HazelcastMapAdapter<>(
+                getHazelcastMap(name),
+                hazelcast,
+                valueType);
     }
 
     @Override
@@ -64,20 +82,29 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
 
     @Override
     public CacheMap<String> getCrawlerCache() {
-        return new HazelcastMapAdapter<>(
-                getHazelcastMap(CacheNames.CRAWLER), hazelcast);
+        return getCache(CacheNames.CRAWLER, String.class);
+        //        return new HazelcastMapAdapter<>(
+        //                getHazelcastMap(CacheNames.CRAWLER),
+        //                hazelcast,
+        //                String.class);
     }
 
     @Override
     public CacheMap<String> getCrawlSessionCache() {
-        return new HazelcastMapAdapter<>(
-                getHazelcastMap(CacheNames.CRAWL_SESSION), hazelcast);
+        return getCache(CacheNames.CRAWL_SESSION, String.class);
+        //        return new HazelcastMapAdapter<>(
+        //                getHazelcastMap(CacheNames.CRAWL_SESSION),
+        //                hazelcast,
+        //                String.class);
     }
 
     @Override
     public CacheMap<String> getCrawlRunCache() {
-        return new HazelcastMapAdapter<>(
-                getHazelcastMap(CacheNames.CRAWL_RUN), hazelcast);
+        return getCache(CacheNames.CRAWL_RUN, String.class);
+        //        return new HazelcastMapAdapter<>(
+        //                getHazelcastMap(CacheNames.CRAWL_RUN),
+        //                hazelcast,
+        //                String.class);
     }
 
     @Override
@@ -115,13 +142,42 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void forEach(BiConsumer<String, CacheMap<?>> c) {
+    public void exportCaches(
+            BiConsumer<String, Iterator<Entry<String, String>>> c) {
         hazelcast.getDistributedObjects().stream()
                 .filter(IMap.class::isInstance)
-                .map(obj -> (IMap<String, ?>) obj)
-                .forEach(map -> c.accept(
-                        map.getName(),
-                        new HazelcastMapAdapter<>(map, hazelcast)));
+                .map(obj -> (IMap<String, String>) obj)
+                .forEach(imap -> c.accept(
+                        imap.getName(),
+                        imap.iterator()));
+    }
+
+    @Override
+    public void
+            importCaches(Map<String, Iterator<Entry<String, String>>> caches) {
+        caches.forEach((name, iterator) -> {
+            IMap<String, String> imap = getHazelcastMap(name);
+            Map<String, String> batch = new HashMap<>();
+            while (iterator.hasNext()) {
+                var entry = iterator.next();
+                batch.put(entry.getKey(), entry.getValue());
+                if (batch.size() >= BATCH_SIZE) {
+                    imap.putAll(batch);
+                    batch.clear();
+                }
+            }
+            if (!batch.isEmpty()) {
+                imap.putAll(batch);
+            }
+        });
+    }
+
+    @Override
+    public void clearCaches() {
+        hazelcast.getDistributedObjects().stream()
+                .filter(IMap.class::isInstance)
+                .map(obj -> (IMap<?, ?>) obj)
+                .forEach(IMap::clear);
     }
 
     //--- Hazelcast-specific custom caches ------------------------------------

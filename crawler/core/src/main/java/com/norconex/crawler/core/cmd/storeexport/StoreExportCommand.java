@@ -20,20 +20,21 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.NumberFormat;
+import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.mutable.MutableLong;
 
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.cluster.ClusterException;
 import com.norconex.crawler.core.cmd.Command;
+import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.util.SerialUtil;
-import com.norconex.crawler.core.event.CrawlerEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -85,13 +86,11 @@ public class StoreExportCommand implements Command {
 
         try (var zipOS = new ZipOutputStream(
                 IOUtils.buffer(Files.newOutputStream(outFile)), UTF_8)) {
-            cacheManager.forEach((name, cache) -> {
-
-                //                                var type = cache.getType();
+            cacheManager.exportCaches((name, recIt) -> {
                 try {
                     zipOS.putNextEntry(new ZipEntry(
                             FileUtil.toSafeFileName(name) + ".json"));
-                    exportOneStore(session, name, cache, zipOS);//, type);
+                    exportOneStore(session, name, recIt, zipOS);
                     zipOS.flush();
                     zipOS.closeEntry();
                 } catch (IOException e) {
@@ -107,60 +106,45 @@ public class StoreExportCommand implements Command {
     private void exportOneStore(
             CrawlSession session,
             String name,
-            CacheMap<?> cache,
-            OutputStream out
-    //            ,
-    //            Class<?> type
-    ) throws IOException {
+            Iterator<Entry<String, String>> recIt,
+            OutputStream out) throws IOException {
 
         var writer = SerialUtil.jsonGenerator(out);
         if (pretty) {
             writer.useDefaultPrettyPrinter();
         }
-        var qty = cache.size();
 
-        LOG.info("Exporting {} entries from \"{}\".", qty, name);
+        var cnt = 0L;
 
-        var cnt = new MutableLong();
-        var lastPercent = new MutableLong();
+        LOG.info("Exporting \"{}\" cache entries...", name);
+
         writer.writeStartObject();
         writer.writeStringField("crawler", session.getCrawlerId());
         writer.writeStringField("store", name);
-        //        writer.writeStringField("storeType", storeSuperClassName(cache));
-        //        writer.writeStringField("objectType", type.getName());
         writer.writeFieldName("records");
         writer.writeStartArray();
 
-        cache.forEach((id, obj) -> {
+        for (var entry : (Iterable<Entry<String, String>>) () -> recIt) {
             try {
                 writer.writeStartObject();
-                writer.writeStringField("id", id);
-                writer.writePOJOField("object", obj);
+                writer.writeStringField("id", entry.getKey());
+                writer.writePOJOField("object", entry.getValue());
                 writer.writeEndObject();
-                var c = cnt.incrementAndGet();
-                var percent = qty == 0 ? 0 : Math.floorDiv(c * 100, qty);
-                if (percent != lastPercent.longValue()) {
-                    LOG.info(" {}%", percent);
+                cnt++;
+                if (cnt % 1000 == 0) {
+                    LOG.info(" Exported {} \"{}\" records.",
+                            NumberFormat.getNumberInstance().format(cnt), name);
                 }
-                lastPercent.setValue(percent);
             } catch (IOException e) {
-                throw new CrawlerException("Could not export " + id, e);
+                throw new CrawlerException(
+                        "Could not export " + entry.getKey(), e);
             }
-        });
+        }
+        LOG.info(" Total exported: {} records.",
+                NumberFormat.getNumberInstance().format(cnt));
 
         writer.writeEndArray();
         writer.writeEndObject();
         writer.flush();
     }
-
-    //    private String storeSuperClassName(GridStore<?> store) {
-    //        var concreteClass = store.getClass();
-    //        if (GridQueue.class.isAssignableFrom(concreteClass)) {
-    //            return GridQueue.class.getName();
-    //        }
-    //        if (GridSet.class.isAssignableFrom(concreteClass)) {
-    //            return GridSet.class.getName();
-    //        }
-    //        return GridMap.class.getName();
-    //    }
 }

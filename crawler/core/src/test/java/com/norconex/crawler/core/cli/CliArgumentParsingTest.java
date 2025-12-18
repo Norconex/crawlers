@@ -22,6 +22,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.junit.standalone.StandaloneCliCrawlerLauncher;
 import com.norconex.crawler.core.junit.standalone.StandaloneExecutionResult;
 
@@ -30,6 +31,7 @@ import com.norconex.crawler.core.junit.standalone.StandaloneExecutionResult;
  * These tests verify the CLI interface without requiring actual
  * cluster coordination or crawling.
  */
+@WithTestWatcherLogging
 class CliArgumentParsingTest {
 
     @TempDir

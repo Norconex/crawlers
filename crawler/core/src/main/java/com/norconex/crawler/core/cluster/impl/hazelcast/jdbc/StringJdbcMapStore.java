@@ -22,9 +22,14 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * JDBC-based key-value MapStore for Hazelcast OSS. Used in Hazelcast
  * configuration object/files. Both keys and values are strings.
+ *
+ * Use this store when the persistent representation should remain a
+ * raw {@link String}. For typed-in-memory behavior prefer installing a
+ * {@link TypedJdbcMapStoreFactory} which will create typed
+ * instances that serialize/deserialize to strings for persistence.
  */
 @Slf4j
-public class JdbcMapStore
+public class StringJdbcMapStore
         implements MapStore<String, String>, MapLoaderLifecycleSupport {
 
     private static class Sqls {

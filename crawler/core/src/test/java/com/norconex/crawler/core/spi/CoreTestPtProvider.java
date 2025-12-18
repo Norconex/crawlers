@@ -16,9 +16,6 @@ package com.norconex.crawler.core.spi;
 
 import com.norconex.commons.lang.bean.spi.BasePolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core._DELETE.CrawlTestCapturer;
-import com.norconex.crawler.core._DELETE.MockMultiNodesConnector;
-import com.norconex.crawler.core._DELETE.MockSingleNodeConnector;
 import com.norconex.crawler.core.cluster.ClusterConnector;
 import com.norconex.crawler.core.cmd.crawl.pipeline.process.ProcessUpsertTest;
 import com.norconex.crawler.core.doc.operations.DocumentConsumer;
@@ -39,8 +36,10 @@ public class CoreTestPtProvider extends BasePolymorphicTypeProvider {
                 .add(Fetcher.class,
                         MockFetcher.class)
                 .add(EventListener.class,
-                        TestEventMemoryListener.class,
-                        CrawlTestCapturer.class)
+                        TestEventMemoryListener.class
+                //                        ,
+                //                        CrawlTestCapturer.class
+                )
                 .add(ImporterResponseProcessor.class,
                         ProcessUpsertTest.TestResponseProcessor.class)
                 .add(ClusterConnector.class,
@@ -48,9 +47,11 @@ public class CoreTestPtProvider extends BasePolymorphicTypeProvider {
                         //                        TestClusterConnector.ClusterWithPersistence.class,
                         //                        TestClusterConnector.StandaloneNoPersistence.class,
                         //                        TestClusterConnector.StandaloneWithPersistence.class,
-                        MockFailingClusterConnector.class,
-                        MockSingleNodeConnector.class,
-                        MockMultiNodesConnector.class);
+                        MockFailingClusterConnector.class
+                //                        ,
+                //                        MockSingleNodeConnector.class,
+                //                        MockMultiNodesConnector.class
+                );
 
     }
 }

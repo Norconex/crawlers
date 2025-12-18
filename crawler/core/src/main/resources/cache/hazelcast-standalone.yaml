@@ -38,7 +38,7 @@ hazelcast:
         enabled: true
         initial-mode: EAGER
         write-delay-seconds: 0
-        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.JdbcMapStore
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
         properties:
           # Need to reference data source since there could be multiple
           data-connection-ref: jdbc-datasource

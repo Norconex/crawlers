@@ -18,19 +18,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.NumberFormat;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.cluster.ClusterException;
 import com.norconex.crawler.core.cmd.Command;
+import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.util.SerialUtil;
-import com.norconex.crawler.core.event.CrawlerEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -68,114 +72,91 @@ public class StoreImportCommand implements Command {
     }
 
     private void importAllStores(CrawlSession session)
-            throws IOException, ClassNotFoundException {
-        // Export/Import is normally executed in a controlled environment
-        // so not susceptible to Zip Bomb attacks.
+            throws IOException {
+        Map<String, Iterator<Entry<String, String>>> imports = new HashMap<>();
         try (var zipIn = new ZipInputStream(
                 IOUtils.buffer(Files.newInputStream(inFile)))) {
-            var zipEntry = zipIn.getNextEntry(); //NOSONAR
-            while (zipEntry != null) {
-                if (!importOneStore(session, zipIn)) {
-                    LOG.debug("Input file \"{}\" not matching crawler "
-                            + "\"{}\". Skipping.",
-                            inFile, session.getCrawlerId());
-                }
+            while ((zipIn.getNextEntry()) != null) {
+                importOneStore(session, zipIn, imports);
                 zipIn.closeEntry();
-                zipEntry = zipIn.getNextEntry(); //NOSONAR
             }
-            zipIn.closeEntry();
         }
+        var cacheManager = session.getCluster().getCacheManager();
+        cacheManager.importCaches(imports);
     }
 
-    private boolean importOneStore(
-            CrawlSession session, InputStream in)
-            throws IOException, ClassNotFoundException {
-
-        var cacheManager = session.getCluster().getCacheManager();
-
+    private void importOneStore(
+            CrawlSession session, InputStream in,
+            Map<String, Iterator<Entry<String, String>>> imports)
+            throws IOException {
         var parser = SerialUtil.jsonParser(in);
 
-        var objectClass = Object.class;// null;
+        String crawlerId = null;
         String storeName = null;
-        //        Class<? extends GridStore<?>> storeSuperClass = null;
 
         parser.nextToken();
         while (parser.nextToken() != JsonToken.END_OBJECT) {
             var key = parser.currentName();
             if ("crawler".equals(key)) {
-                parser.nextTextValue();
+                crawlerId = parser.nextTextValue();
             } else if ("store".equals(key)) {
                 storeName = parser.nextTextValue();
-                //            } else if ("storeType".equals(key)) {
-                //                storeSuperClass = (Class<? extends GridStore<?>>) Class.forName(
-                //                        parser.nextTextValue());
-                //            } else if ("objectType".equals(key)) {
-                //                objectClass = Class.forName(parser.nextTextValue());
             } else if ("records".equals(key)) {
-                // check if we got crawler first and it matched, else
-                // there is something wrong (records should only exist
-                // after expected fields.
-                //                if (StringUtils.isAnyBlank(crawlerId, storeName)
-                //                        || ObjectUtils.anyNull(objectClass, storeSuperClass)) {
-                //                    LOG.error("Invalid import file encountered.");
-                //                    return false;
-                //                }
-
-                LOG.info("Importing \"{}\".", storeName);
-
-                CacheMap<Object> cache =
-                        cacheManager.getCache(storeName, Object.class);
-                //                GridStore<?> store = concreteStore(
-                //                        cacheManager, storeSuperClass, storeName, objectClass);
-
-                var cnt = 0L;
-                parser.nextToken();
-                while (parser.nextToken() != JsonToken.END_ARRAY) {
-                    loadRecord(cache, parser, objectClass);
-                    cnt++;
-                    logProgress(cnt, false);
+                if (StringUtils.isAnyBlank(crawlerId, storeName)) {
+                    LOG.error("Invalid import file encountered for entry.");
+                    return;
                 }
-                logProgress(cnt, true);
+                if (!crawlerId.equals(session.getCrawlerId())) {
+                    LOG.debug("Skipping store {} for crawler {}", storeName,
+                            crawlerId);
+                    return;
+                }
+                LOG.info("Parsing records for store \"{}\" from file.",
+                        storeName);
+                parser.nextToken(); // start array
+                imports.put(storeName, new LazyRecordIterator(parser));
             } else {
                 parser.nextValue();
             }
-
         }
-        return true;
     }
 
-    private <T> void loadRecord(
-            CacheMap<T> cache, JsonParser parser, Class<T> objectClass)
-            throws IOException {
-        parser.nextToken(); // id:
-        var id = parser.nextTextValue();
-        parser.nextToken(); // object:
-        parser.nextToken(); // { //NOSONAR
-        var value = SerialUtil.fromJson(parser, objectClass);
-        //        if (cache instanceof GridMap cache) { //NOSONAR
-        cache.put(id, value);
-        //        }
-        parser.nextToken(); // } //NOSONAR
-    }
+    private static class LazyRecordIterator
+            implements Iterator<Entry<String, String>> {
 
-    //    GridStore<?> concreteStore(
-    //            CacheManager cacheManager,
-    //            Class<?> storeSuperType,
-    //            String storeName,
-    //            Class<?> objectType) {
-    //        if (storeSuperType.equals(GridQueue.class)) {
-    //            return cacheManager.getQueue(storeName, objectType);
-    //        }
-    //        if (storeSuperType.equals(GridSet.class)) {
-    //            return cacheManager.getSet(storeName);
-    //        }
-    //        return cacheManager.getMap(storeName, objectType);
-    //    }
+        private final JsonParser parser;
+        private boolean hasNext = true;
 
-    private static void logProgress(long cnt, boolean done) {
-        if (LOG.isInfoEnabled() && (cnt % 10000 == 0 ^ done)) {
-            LOG.info("{} imported.",
-                    NumberFormat.getIntegerInstance().format(cnt));
+        public LazyRecordIterator(JsonParser parser) {
+            this.parser = parser;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return hasNext;
+        }
+
+        @Override
+        public Entry<String, String> next() {
+            if (!hasNext) {
+                throw new NoSuchElementException();
+            }
+            try {
+                parser.nextToken(); // START_OBJECT
+                parser.nextToken(); // "id"
+                var id = parser.nextTextValue();
+                parser.nextToken(); // "object"
+                var value = parser.nextTextValue();
+                parser.nextToken(); // END_OBJECT
+                parser.nextToken(); // check next
+                if (parser.currentToken() == JsonToken.END_ARRAY) {
+                    hasNext = false;
+                }
+                return Map.entry(id, value);
+            } catch (IOException e) {
+                throw new NoSuchElementException(
+                        "Error reading next record: " + e.getMessage());
+            }
         }
     }
 

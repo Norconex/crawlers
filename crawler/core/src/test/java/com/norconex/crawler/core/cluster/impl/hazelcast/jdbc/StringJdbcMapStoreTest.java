@@ -32,7 +32,7 @@ import com.hazelcast.map.IMap;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConfig;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastConfigLoader;
 
-class JdbcMapStoreTest {
+class StringJdbcMapStoreTest {
 
     @TempDir
     private Path tempDir;

@@ -41,9 +41,7 @@ public class CleanCommand implements Command {
         var acquired = ephemeralCache.putIfAbsent(lockKey, ownerId) == null;
         if (acquired) {
             try {
-                cacheManager.forEach((cacheName, cache) -> {
-                    cache.clear();
-                });
+                cacheManager.clearCaches();
                 LOG.info("Clean command executed.");
             } finally {
                 // Only remove if still owned by us

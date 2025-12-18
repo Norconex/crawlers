@@ -18,11 +18,11 @@ public final class CacheNames {
 
     public static final String PIPE_CURRENT_STEP = "pipeCurrentStep";
     public static final String PIPE_WORKER_STATUSES = "pipeWorkerStatuses";
-    public static final String ADMIN = "admin";
+    public static final String ADMIN = "eph-admin";
     //    public static final String COUNTERS = "counters";
     public static final String CRAWLER = "crawler";
     public static final String CRAWL_SESSION = "crawlSession";
-    public static final String CRAWL_RUN = "crawlRun";
+    public static final String CRAWL_RUN = "eph-crawlRun";
 
     private CacheNames() {
     }

@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.junit.standalone.StandaloneCliCrawlerLauncher;
 
 /**
@@ -32,6 +33,7 @@ import com.norconex.crawler.core.junit.standalone.StandaloneCliCrawlerLauncher;
  * These tests verify configuration parsing and validation logic
  * without requiring cluster coordination.
  */
+@WithTestWatcherLogging
 class CliConfigCommandsTest {
 
     @TempDir

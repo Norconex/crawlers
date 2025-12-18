@@ -1,5 +1,8 @@
 package com.norconex.crawler.core.cluster;
 
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.function.BiConsumer;
 
 public interface CacheManager {
@@ -22,11 +25,28 @@ public interface CacheManager {
      */
     CacheSet getCacheSet(String name);
 
-    //    Cache<String> getGenericCache();
-
     boolean cacheExists(String name);
 
-    void forEach(BiConsumer<String, CacheMap<?>> c);
+    /**
+     * For every persistent cache, consumes its cache name and an iterator
+     * of cache entries, where the entry key is the cache record key, and the
+     * value is the cache record value as serialized JSON String.
+     * @param c cache name and entry iterator consumer .
+     *
+     */
+    void exportCaches(BiConsumer<String, Iterator<Entry<String, String>>> c);
+
+    /**
+     * Import caches previously exported with {@link #exportCaches(BiConsumer)}.
+     * @param caches map entry iterator consumer .
+     *
+     */
+    void importCaches(Map<String, Iterator<Entry<String, String>>> caches);
+
+    /**
+     * Clears all caches.
+     */
+    void clearCaches();
 
     /**
      * Gets a generic shared cache bound to a crawler that persists

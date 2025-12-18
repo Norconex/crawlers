@@ -51,12 +51,12 @@ public class TestCrawlDriverFactory implements Supplier<CrawlDriver> {
                     public Pipeline create(CrawlSession session) {
                         LOG.info("XXX HERE!!!!");
                         var pipeline = super.create(session);
-                        NodeState.props().set(
-                                NodeState.CRAWL_PIPELINE_CREATED, true);
-                        LOG.info("XXX NodeState pipe created just added: {}",
-                                NodeState.props()
-                                        .getBooleans(
-                                                NodeState.CRAWL_PIPELINE_CREATED));
+//                        NodeState.props().set(
+//                                NodeState.CRAWL_PIPELINE_CREATED, true);
+//                        LOG.info("XXX NodeState pipe created just added: {}",
+//                                NodeState.props()
+//                                        .getBooleans(
+//                                                NodeState.CRAWL_PIPELINE_CREATED));
                         return pipeline;
                     }
                 });

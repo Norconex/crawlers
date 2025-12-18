@@ -36,46 +36,96 @@ import lombok.extern.slf4j.Slf4j;
 @ExtendWith(LoggingTestWatcher.class)
 public @interface WithTestWatcherLogging {
 
-    @Slf4j(topic = "🧪 Test")
+    @Slf4j(topic = "TEST") //
     public static class LoggingTestWatcher
             implements TestWatcher, BeforeTestExecutionCallback {
 
+        private static final String LINE = "─".repeat(76) + "···";
+        private static final String START_TOP = "┌" + LINE;
+        private static final String START_BOTTOM = "▼";
+        private static final String DONE_TOP = "▲";
+        private static final String DONE_BOTTOM = "└" + LINE;
+
         @Override
         public void beforeTestExecution(ExtensionContext context) {
-            //TODO does the sleeping help with DB issues?
-            //            Sleeper.sleepMillis(10);
-            LOG.info(toName("STARTING", context));
+            LOG.info(print(false, "🧪", "STARTED", context));
         }
 
         @Override
         public void testSuccessful(ExtensionContext context) {
-            LOG.info(toName("PASSED", context));
+            LOG.info(print(true, "✅", "PASSED", context));
         }
 
         @Override
         public void testFailed(ExtensionContext context, Throwable cause) {
-            LOG.warn(toName("FAILED", context), cause);
+            LOG.warn(print(true, "❌", "FAILED", context), cause);
         }
 
         @Override
         public void testDisabled(
                 ExtensionContext context, Optional<String> reason) {
-            LOG.info(toName("DISABLED", context) + " - Reason: {}",
+            LOG.info(print(true, "🚫", "DISABLED", context) + " - Reason: {}",
                     reason.orElse("None given."));
         }
 
         @Override
         public void testAborted(ExtensionContext context, Throwable cause) {
-            LOG.warn(toName("ABORTED", context) + " - Cause: {}",
+            LOG.warn(print(true, "⏹️", "ABORTED", context) + " - Cause: {}",
                     cause.getLocalizedMessage());
         }
 
-        private static String toName(String state, ExtensionContext context) {
-            return state + " \""
-                    + context.getRequiredTestClass().getSimpleName()
-                    + "." + context.getRequiredTestMethod().getName()
-                    + "\"" + " " + context.getDisplayName();
+        private static String print(
+                boolean done,
+                String icon,
+                String state,
+                ExtensionContext context) {
+            var top = done ? DONE_TOP : START_TOP;
+            var bottom = done ? DONE_BOTTOM : START_BOTTOM;
+            var className = context.getRequiredTestClass().getSimpleName();
+            var methodName = context.getRequiredTestMethod().getName();
+            var displayName = context.getDisplayName();
+            return """
+
+                %s
+                │ %s %s: %s
+                │    %s.%s
+                %s""".formatted(
+                    top,
+                    icon, state, displayName,
+                    className,
+                    methodName,
+                    bottom);
+            //            return state + " \""
+            //                    + context.getRequiredTestClass().getSimpleName()
+            //                    + "." + context.getRequiredTestMethod().getName()
+            //                    + "\"" + " " + context.getDisplayName();
 
         }
+
+        //        private static String print(
+        //                boolean done, String state, ExtensionContext context) {
+        //            var line = done ? EQUAL : DASH;
+        //            var className = context.getRequiredTestClass().getSimpleName();
+        //            var methodName = context.getRequiredTestMethod().getName();
+        //            var displayName = context.getDisplayName();
+        //            return """
+        //
+        //                %s
+        //                %s: "%s" - %s
+        //                    Class: %s
+        //                %s
+        //                """.formatted(
+        //                    line,
+        //                    state,
+        //                    methodName,
+        //                    displayName,
+        //                    className,
+        //                    line);
+        //            //            return state + " \""
+        //            //                    + context.getRequiredTestClass().getSimpleName()
+        //            //                    + "." + context.getRequiredTestMethod().getName()
+        //            //                    + "\"" + " " + context.getDisplayName();
+        //
+        //        }
     }
 }

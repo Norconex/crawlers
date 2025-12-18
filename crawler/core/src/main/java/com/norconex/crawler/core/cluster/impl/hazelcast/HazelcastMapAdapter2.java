@@ -39,39 +39,31 @@ import com.hazelcast.query.Predicates;
 import com.hazelcast.query.impl.predicates.PagingPredicateImpl;
 import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.cluster.QueryFilter;
-import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Hazelcast IMap-based implementation of the Cache interface.
- * Adapter performs transparent conversion between values exposed as
- * type {@code T} and the values actually stored in Hazelcast which
- * may be plain {@link String} JSON (or raw String) or actual objects.
+ * Supports SQL-like queries by converting query syntax to
+ * Hazelcast predicates.
  *
- * This allows persisting everything as strings in the DB-backed
- * MapStore while presenting typed objects to callers.
- *
- * @param <T> the type of values stored in the cache view
+ * @param <T> the type of values stored in the cache
  */
 @Slf4j
-public class HazelcastMapAdapter<T> implements CacheMap<T> {
+public class HazelcastMapAdapter2<T> implements CacheMap<T> {
 
-    // underlying map kept as Object-valued to allow string storage
-    private final IMap<String, Object> delegate;
+    private final IMap<String, T> delegate;
     private final HazelcastInstance hazelcastInstance;
     private static final int DEFAULT_BATCH_SIZE = 100;
     private static final Set<String> CLOSED_LOGGED =
             ConcurrentHashMap.newKeySet();
     private final Class<T> type;
 
-    @SuppressWarnings("unchecked")
-    public HazelcastMapAdapter(
-            IMap<String, ?> delegate,
+    public HazelcastMapAdapter2(
+            IMap<String, T> delegate,
             HazelcastInstance hazelcastInstance,
             Class<T> type) {
-        // cast is safe: we only treat values as Object and convert
-        this.delegate = (IMap<String, Object>) delegate;
+        this.delegate = delegate;
         this.hazelcastInstance = hazelcastInstance;
         this.type = type;
     }
@@ -83,22 +75,18 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
 
     @Override
     public void put(String key, T value) {
-        runIfCache(() -> delegate.put(key, toStored(value)));
+        runIfCache(() -> delegate.put(key, value));
     }
 
     @Override
     public void putAll(Map<String, T> entries) {
-        runIfCache(() -> {
-            var converted = new java.util.HashMap<String, Object>();
-            entries.forEach((k, v) -> converted.put(k, toStored(v)));
-            delegate.putAll(converted);
-        });
+        runIfCache(() -> delegate.putAll(entries));
     }
 
     @Override
     public Optional<T> get(String key) {
         return Optional.ofNullable(
-                supplyIfCache(() -> fromStored(delegate.get(key)), null));
+                supplyIfCache(() -> delegate.get(key), null));
     }
 
     @Override
@@ -115,13 +103,13 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
     public T computeIfAbsent(String key,
             Function<String, ? extends T> mappingFunction) {
         return supplyIfCache(() -> {
-            var stored = delegate.get(key);
-            if (stored != null) {
-                return fromStored(stored);
+            var existing = delegate.get(key);
+            if (existing != null) {
+                return existing;
             }
             T newVal = mappingFunction.apply(key);
-            var prev = delegate.putIfAbsent(key, toStored(newVal));
-            return prev != null ? fromStored(prev) : newVal;
+            var prev = delegate.putIfAbsent(key, newVal);
+            return prev != null ? prev : newVal;
         }, null);
     }
 
@@ -129,12 +117,11 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
     public Optional<T> computeIfPresent(String key,
             BiFunction<String, ? super T, ? extends T> remappingFunction) {
         return Optional.ofNullable(supplyIfCache(() -> {
-            var storedOld = delegate.get(key);
-            if (storedOld != null) {
-                var oldValue = fromStored(storedOld);
+            var oldValue = delegate.get(key);
+            if (oldValue != null) {
                 T newValue = remappingFunction.apply(key, oldValue);
                 if (newValue != null) {
-                    delegate.put(key, toStored(newValue));
+                    delegate.put(key, newValue);
                     return newValue;
                 }
                 delegate.remove(key);
@@ -147,11 +134,10 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
     public Optional<T> compute(String key,
             BiFunction<String, ? super T, ? extends T> remappingFunction) {
         return Optional.ofNullable(supplyIfCache(() -> {
-            var storedOld = delegate.get(key);
-            var oldValue = fromStored(storedOld);
+            var oldValue = delegate.get(key);
             T newValue = remappingFunction.apply(key, oldValue);
             if (newValue != null) {
-                delegate.put(key, toStored(newValue));
+                delegate.put(key, newValue);
                 return newValue;
             }
             if (oldValue != null) {
@@ -165,12 +151,12 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
     public T merge(String key, T value,
             BiFunction<? super T, ? super T, ? extends T> remappingFunction) {
         return supplyIfCache(() -> {
-            var storedOld = delegate.get(key);
-            var oldValue = fromStored(storedOld);
-            var newValue = (oldValue == null) ? value
-                    : remappingFunction.apply(oldValue, value);
+            var oldValue = delegate.get(key);
+            var newValue =
+                    (oldValue == null) ? value
+                            : remappingFunction.apply(oldValue, value);
             if (newValue != null) {
-                delegate.put(key, toStored(newValue));
+                delegate.put(key, newValue);
             } else {
                 delegate.remove(key);
             }
@@ -186,39 +172,25 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
     @Override
     public T getOrDefault(String key, T defaultValue) {
         return supplyIfCache(
-                () -> {
-                    var stored = delegate.getOrDefault(key, null);
-                    var val = fromStored(stored);
-                    return val != null ? val : defaultValue;
-                }, defaultValue);
+                () -> delegate.getOrDefault(key, defaultValue), defaultValue);
     }
 
     @Override
     public T putIfAbsent(String key, T value) {
-        return supplyIfCache(() -> {
-            var prev = delegate.putIfAbsent(key, toStored(value));
-            return fromStored(prev);
-        }, null);
+        return supplyIfCache(() -> delegate.putIfAbsent(key, value), null);
     }
 
     @Override
     public boolean replace(String key, T oldValue, T newValue) {
         return supplyIfCache(
-                () -> delegate.replace(key, toStored(oldValue),
-                        toStored(newValue)),
-                false);
+                () -> delegate.replace(key, oldValue, newValue), false);
     }
 
     @Override
     public List<T> query(QueryFilter filter) {
-        return supplyIfCache(() -> {
-            var objs = delegate.values(toPredicate(filter));
-            var out = new ArrayList<T>(objs.size());
-            for (var o : objs) {
-                out.add(fromStored(o));
-            }
-            return out;
-        }, Collections.emptyList());
+        return supplyIfCache(
+                () -> new ArrayList<>(delegate.values(toPredicate(filter))),
+                Collections.emptyList());
     }
 
     @Override
@@ -228,6 +200,19 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
                 toPredicate(filter),
                 DEFAULT_BATCH_SIZE), Collections.emptyIterator());
     }
+
+    //
+    //    @Override
+    //    public void queryStream(QueryFilter filter, Consumer<T> consumer,
+    //            int batchSize) {
+    //        runIfCache(() -> {
+    //            Iterator<T> it = new PagingIterator<>(delegate, toPredicate(filter),
+    //                    batchSize > 0 ? batchSize : DEFAULT_BATCH_SIZE);
+    //            while (it.hasNext()) {
+    //                consumer.accept(it.next());
+    //            }
+    //        });
+    //    }
 
     @Override
     public long count(QueryFilter filter) {
@@ -253,11 +238,9 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
 
     @Override
     public void forEach(BiConsumer<String, ? super T> action) {
-        runIfCache(() -> {
-            for (var entry : delegate.entrySet()) {
-                action.accept(entry.getKey(), fromStored(entry.getValue()));
-            }
-        });
+        runIfCache(() -> delegate.entrySet()
+                .forEach(entry -> action.accept(
+                        entry.getKey(), entry.getValue())));
     }
 
     @Override
@@ -268,17 +251,19 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
     }
 
     /**
-     * Return the underlying Hazelcast IMap as typed view.
-     * Use with caution: underlying values are stored as Objects/Strings.
+     * Get the underlying Hazelcast IMap.
+     * @return the delegate IMap
      */
-    @SuppressWarnings("unchecked")
     public IMap<String, T> vendor() {
-        return (IMap<String, T>) delegate;
+        return delegate;
     }
 
     //--- Private methods ------------------------------------------------------
 
-    private Predicate<String, Object> toPredicate(QueryFilter filter) {
+    /**
+     * Convert an entry filter to an Hazelcast Predicate.
+     */
+    private Predicate<String, T> toPredicate(QueryFilter filter) {
         if (filter == null || StringUtils.isBlank(filter.getFieldName())) {
             return Predicates.alwaysTrue();
         }
@@ -305,74 +290,43 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
                 LOG.warn("Attempted to use cache '{}' after it was closed.",
                         name);
             } else if (LOG.isDebugEnabled()) {
-                LOG.debug("(suppressed) Attempted to use cache '{}' after it "
-                        + "was closed.", name);
+                LOG.debug("(suppressed) Attempted to use closed cache '{}'.",
+                        name);
             }
             return true;
         }
         return false;
     }
 
-    private Object toStored(T value) {
-        if (value == null) {
-            return null;
-        }
-        // If the cache is typed as String, keep strings as-is. For all
-        // other types, store the actual object so Hazelcast keeps typed
-        // objects in memory. If older entries are strings (JSON), the
-        // adapter will deserialize them on read in fromStored().
-        return value;
-    }
-
-    private T fromStored(Object stored) {
-        if (stored == null) {
-            return null;
-        }
-        if (type == String.class) {
-            return type.cast(Objects.toString(stored, null));
-        }
-        if (stored instanceof String s) {
-            return SerialUtil.fromJson(s, type);
-        }
-        return type.cast(stored);
-    }
-
     /**
      * Iterator that pages results from Hazelcast IMap using PagingPredicate.
-     * Converts stored values to type T lazily.
+     * Only the current page is loaded in memory.
      */
     private static class PagingIterator<T> implements Iterator<T> {
-        private final IMap<String, Object> map;
-        private final com.hazelcast.query.Predicate<String, Object> predicate;
+        private final IMap<String, T> map;
+        private final com.hazelcast.query.Predicate<String, T> predicate;
         private final int pageSize;
         private int pageIndex = 0;
         private Iterator<T> currentPageIterator;
         private boolean lastPage = false;
-        private final Class<T> type;
 
-        PagingIterator(IMap<String, Object> map,
-                com.hazelcast.query.Predicate<String, Object> predicate,
+        PagingIterator(IMap<String, T> map,
+                com.hazelcast.query.Predicate<String, T> predicate,
                 int pageSize) {
             this.map = map;
             this.predicate = predicate;
             this.pageSize = pageSize;
-            type = null; // will be ignored and handled by adapter
             loadPage();
         }
 
-        @SuppressWarnings("unchecked")
         private void loadPage() {
-            PagingPredicate<String, Object> pagingPredicate =
+            PagingPredicate<String, T> pagingPredicate =
                     new PagingPredicateImpl<>(predicate, pageSize);
             pagingPredicate.setPage(pageIndex);
-            Iterable<Entry<String, Object>> entrySet =
-                    map.entrySet(pagingPredicate);
+            Iterable<Entry<String, T>> entrySet = map.entrySet(pagingPredicate);
             List<T> values = new ArrayList<>();
             for (var entry : entrySet) {
-                var o = entry.getValue();
-                // best-effort conversion: if value is String try to keep it,
-                // otherwise cast (the adapter will handle typed conversion).
-                values.add((T) o);
+                values.add(entry.getValue());
             }
             currentPageIterator = values.iterator();
             lastPage = values.size() < pageSize;

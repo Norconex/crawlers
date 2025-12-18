@@ -71,7 +71,7 @@ class JdbcPersistTestMore2 {
         // Clear Liquibase history to force fresh migrations
         clearLiquibaseHistory(dbPath);
 
-       // LiquibaseMigrationRunner.runH2Migrations(dbPath + ".mv.db");
+        // LiquibaseMigrationRunner.runH2Migrations(dbPath + ".mv.db");
         System.out.println("DB file after migration: "
                 + dbFile.getAbsolutePath() + ", exists: " + dbFile.exists());
         printDbTables(dbPath); // Print tables after migration
