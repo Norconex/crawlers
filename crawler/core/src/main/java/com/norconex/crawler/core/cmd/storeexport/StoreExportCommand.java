@@ -87,15 +87,18 @@ public class StoreExportCommand implements Command {
                 IOUtils.buffer(Files.newOutputStream(outFile)), UTF_8)) {
             cacheManager.exportCaches(serialCache -> {
                 var name = serialCache.getCacheName();
-                try {
-                    zipOS.putNextEntry(new ZipEntry(
-                            FileUtil.toSafeFileName(name) + ".json"));
-                    exportOneStore(session, serialCache, zipOS);
-                    zipOS.flush();
-                    zipOS.closeEntry();
-                } catch (IOException e) {
-                    throw new CrawlerException(
-                            "Could not export store: " + name, e);
+                //NOTE: export only persistent caches
+                if (serialCache.isPersistent()) {
+                    try {
+                        zipOS.putNextEntry(new ZipEntry(
+                                FileUtil.toSafeFileName(name) + ".json"));
+                        exportOneStore(session, serialCache, zipOS);
+                        zipOS.flush();
+                        zipOS.closeEntry();
+                    } catch (IOException e) {
+                        throw new CrawlerException(
+                                "Could not export store: " + name, e);
+                    }
                 }
             });
             zipOS.flush();

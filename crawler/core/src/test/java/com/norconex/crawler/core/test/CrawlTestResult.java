@@ -21,6 +21,9 @@ import org.apache.commons.collections4.Bag;
 import org.apache.commons.collections4.bag.TreeBag;
 
 import com.norconex.crawler.core.cluster.impl.hazelcast.CacheNames;
+import com.norconex.crawler.core.session.CrawlRunInfo;
+import com.norconex.crawler.core.session.CrawlRunInfoResolver;
+import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.Builder;
 import lombok.Data;
@@ -69,5 +72,11 @@ public class CrawlTestResult {
                 Long.parseLong(sessionMap.get("status-counter-UNTRACKED")),
                 Long.parseLong(sessionMap.get("status-counter-PROCESSING")),
                 Long.parseLong(sessionMap.get("status-counter-PROCESSED")));
+    }
+
+    public CrawlRunInfo getCrawlRunInfo() {
+        var rec = getCache(CacheNames.CRAWL_RUN)
+                .get(CrawlRunInfoResolver.CRAWL_RUN_INFO_KEY);
+        return SerialUtil.fromJson(rec, CrawlRunInfo.class);
     }
 }

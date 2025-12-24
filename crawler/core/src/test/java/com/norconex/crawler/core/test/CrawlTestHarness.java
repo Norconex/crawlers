@@ -48,8 +48,6 @@ public interface CrawlTestHarness extends Closeable {
     @Getter(value = AccessLevel.PACKAGE)
     @Accessors(fluent = true)
     public static class StandaloneBuilder extends Builder {
-        /** Directory from which node-specific directories will be created.*/
-        //private Path clusterDir;
         private boolean recordEvents;
         private boolean recordLogs;
         private boolean recordCaches;

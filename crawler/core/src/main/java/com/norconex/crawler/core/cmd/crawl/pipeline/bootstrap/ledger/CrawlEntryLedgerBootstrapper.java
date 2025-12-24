@@ -149,16 +149,14 @@ public final class CrawlEntryLedgerBootstrapper implements CrawlBootstrapper {
 
                 var requeuedCount = ledger.requeueProcessingEntries();
                 if (requeuedCount > 0) {
-                    LOG.info(
-                            "Re-queued {} entries that were PROCESSING from previous run.",
+                    LOG.info("Re-queued {} entries that were PROCESSING from "
+                            + "previous run.",
                             requeuedCount);
                 }
-                var processedCount = ledger.getProcessedCount();
-                var cachedCount = ledger.getBaselineCount();
-                ledger.getQueueCount();
-                LOG.info(
-                        "Continuing from previous state: {} queued, {} processed",
-                        ledger.getQueueCount(), processedCount);
+                LOG.info("Continuing from previous state: {} queued, "
+                        + "{} processed",
+                        ledger.getQueueCount(),
+                        ledger.getProcessedCount());
             } else {
                 // Queue is empty, safe to clear and start fresh
                 ledger.clearQueue();
@@ -171,9 +169,8 @@ public final class CrawlEntryLedgerBootstrapper implements CrawlBootstrapper {
                 if (LOG.isInfoEnabled()) {
                     var cacheCount = ledger.getBaselineCount();
                     if (cacheCount > 0) {
-                        LOG.info(
-                                "STARTING an incremental crawl from previous {} "
-                                        + "valid references.",
+                        LOG.info("STARTING an incremental crawl from "
+                                + "previous {} valid references.",
                                 cacheCount);
                     } else {
                         LOG.info("STARTING a fresh crawl.");

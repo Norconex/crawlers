@@ -186,11 +186,11 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
         hazelcast.getDistributedObjects().stream()
                 .filter(IMap.class::isInstance)
                 .map(obj -> (IMap<String, ?>) obj)
-                .filter(imap -> HazelcastUtil.isPersistent(
-                        hazelcast, imap.getName()))
                 .filter(imap -> !TYPE_REGISTRY_MAP.equals(imap.getName()))
                 .forEach(imap -> {
                     var serialCache = new SerializedCache();
+                    serialCache.setPersistent(HazelcastUtil.isPersistent(
+                            hazelcast, imap.getName()));
                     serialCache.setCacheName(imap.getName());
                     serialCache.setClassName(
                             cacheTypes.get(imap.getName()).orElse(null));

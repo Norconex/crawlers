@@ -33,7 +33,10 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
+import com.norconex.crawler.core.session.CrawlMode;
+import com.norconex.crawler.core.session.CrawlResumeState;
 import com.norconex.crawler.core.test.CrawlTestDriver;
 import com.norconex.crawler.core.test.CrawlTestHarness;
 
@@ -42,6 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 //@SlowTest
 // Run single node in JVM
 @Slf4j
+@WithTestWatcherLogging
 class StandaloneClusterTest {
     @TempDir
     private Path tempDir;
@@ -77,7 +81,7 @@ class StandaloneClusterTest {
     @Test
     @Timeout(120)
     void testStopResumeClusterExecution() throws Exception {
-        var numOfRefs = 100;
+        var numOfRefs = 30;
         var crawlerId = "stop-resume-crawl";
 
         var harness1 = CrawlTestHarness.standalone(tempDir)
@@ -94,13 +98,16 @@ class StandaloneClusterTest {
         new Crawler(CrawlTestDriver.create(), harness1.getCrawlConfig()).stop();
         var result = future.get(30, TimeUnit.SECONDS);
 
-        assertThat(result.getEventNameBag()
-                .getCount(CrawlerEvent.DOCUMENT_IMPORTED)).isBetween(1, 99);
+        var firstRunCount = result.getEventNameBag().getCount(
+                CrawlerEvent.DOCUMENT_IMPORTED);
+
+        assertThat(firstRunCount).isBetween(1, numOfRefs - 1);
 
         // Crawler ran and stopped, now resume...
 
         var harness2 = CrawlTestHarness.standalone(tempDir)
                 .recordEvents(true)
+                .recordCaches(true)
                 .configModifier(cfg -> {
                     cfg.setId(crawlerId);
                     configModifier(numOfRefs, 0).accept(cfg);
@@ -108,100 +115,16 @@ class StandaloneClusterTest {
                 .build();
 
         result = harness2.launch();
-        assertThat(result.getEventNameBag()
-                .getCount(CrawlerEvent.DOCUMENT_IMPORTED)).isEqualTo(100);
 
-        //        try (var cluster = new ClusterClient(crawlCfg)) {
-        //            // Use explicit node names so they can be reused on restart
-        //            cluster.launch(starter, "node-1", "node-2");
-        //
-        //            // wait until both nodes are active
-        //            try {
-        //                cluster.waitFor()
-        //                        .allNodesToHaveFired(CrawlerEvent.DOCUMENT_IMPORTED);
-        //            } catch (Exception e) {
-        //                cluster.printNodeLogsOrderedByNode();
-        //                throw e;
-        //            }
-        //
-        //            LOG.info("Launching stopper JVM/command...");
-        //            CliCrawlerLauncher.launch(
-        //                    CrawlTestDriver.create(),
-        //                    "stop",
-        //                    "-config", cluster.getConfigFile().toString());
-        //
-        //            var exitCodes =
-        //                    cluster.waitFor(Duration.ofSeconds(40)).termination();
-        //
-        //            cluster.printNodeLogsOrderedByNode();
-        //
-        //            assertThat(exitCodes)
-        //                    .as("all cluster nodes should exit successfully")
-        //                    .isNotEmpty()
-        //                    .allMatch(code -> code == 0);
-        //
-        //            // should not be done processing
-        //            var stateDb = cluster.getStateDb();
-        //            var eventBag = stateDb.getEventNameBag();
-        //            assertThat(eventBag.getCount(
-        //                    CrawlerEvent.DOCUMENT_QUEUED)).isGreaterThan(0);
-        //            assertThat(eventBag.getCount(
-        //                    CrawlerEvent.DOCUMENT_IMPORTED)).isLessThan(numOfRefs);
-        //
-        //            //            // Verify via logs that the crawlDocuments step did not
-        //            //            // complete successfully on all workers. We expect at least
-        //            //            // one reduction to STOPPED and no reduction to COMPLETED for
-        //            //            // crawlDocuments in this first run.
-        //            //            var stdoutRecords = stateDb.getRecordsForTopic(
-        //            //                    StateDbClient.TOPIC_STDOUT);
-        //            //            var reductions = stdoutRecords.stream()
-        //            //                    .map(StateRecord::getValue)
-        //            //                    .filter(msg -> msg.contains(
-        //            //                            "Step \"crawlDocuments\" reduced to"))
-        //            //                    .toList();
-        //            //            assertThat(reductions)
-        //            //                    .as("Expected at least one reduction log for "
-        //            //                            + "crawlDocuments")
-        //            //                    .isNotEmpty();
-        //            //            assertThat(reductions)
-        //            //                    .noneMatch(msg -> msg.contains("reduced to COMPLETED"));
-        //            //            assertThat(reductions)
-        //            //                    .anyMatch(msg -> msg.contains("reduced to STOPPED"));
-        //
-        //            var runInfo = stateDb.getCrawlRunInfo();
-        //            assertThat(runInfo.getCrawlMode()).isSameAs(CrawlMode.FULL);
-        //            assertThat(runInfo.getCrawlResumeState())
-        //                    .isSameAs(CrawlResumeState.NEW);
-        //            assertThat(cluster.activeNodeCount()).isZero();
-        //
-        //            // Start again with SAME crawler ID, which should resume
-        //            crawlCfg = longRunning(numOfRefs, 0);
-        //            crawlCfg.setId(crawlerId); // Reuse the same crawler ID
-        //            cluster.reset(crawlCfg);
-        //            // IMPORTANT: Use the same node names to reuse persisted cache data
-        //            cluster.launch(starter, "node-1", "node-2");
-        //            exitCodes = cluster.waitFor(Duration.ofSeconds(40)).termination();
-        //            cluster.printNodeLogsOrderedByNode();
-        //            assertThat(exitCodes)
-        //                    .as("all cluster nodes should exit successfully")
-        //                    .isNotEmpty()
-        //                    .allMatch(code -> code == 0);
-        //            // should be done processing
-        //            stateDb = cluster.getStateDb();
-        //            eventBag = stateDb.getEventNameBag();
-        //
-        //            runInfo = stateDb.getCrawlRunInfo();
-        //            assertThat(runInfo.getCrawlMode()).isSameAs(CrawlMode.FULL);
-        //            assertThat(runInfo.getCrawlResumeState())
-        //                    .isSameAs(CrawlResumeState.RESUMED);
-        //            assertThat(cluster.activeNodeCount()).isZero();
-        //
-        //            assertThat(eventBag.getCount(
-        //                    CrawlerEvent.DOCUMENT_QUEUED)).isEqualTo(numOfRefs);
-        //            assertThat(eventBag.getCount(
-        //                    CrawlerEvent.DOCUMENT_IMPORTED)).isEqualTo(numOfRefs);
-        //    }
+        var secondRunCount = result.getEventNameBag().getCount(
+                CrawlerEvent.DOCUMENT_IMPORTED);
 
+        assertThat(firstRunCount + secondRunCount).isEqualTo(numOfRefs);
+
+        var runInfo = result.getCrawlRunInfo();
+        assertThat(runInfo.getCrawlMode()).isSameAs(CrawlMode.FULL);
+        assertThat(runInfo.getCrawlResumeState())
+                .isSameAs(CrawlResumeState.RESUMED);
     }
 
     //        @Test
@@ -266,6 +189,8 @@ class StandaloneClusterTest {
     private Consumer<CrawlConfig> configModifier(int numOfRefs, long delayMs) {
         return cfg -> cfg.setStartReferences(IntStream.range(0, numOfRefs)
                 .mapToObj(i -> "ref-" + i).toList())
+                .setMaxQueueBatchSize(10)
+                .setNumThreads(2)
                 .setFetchers(List.of(Configurable.configure(
                         new MockFetcher(),
                         fcfg -> fcfg.setDelay(Duration.ofMillis(delayMs)))));

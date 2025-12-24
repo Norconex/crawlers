@@ -93,6 +93,8 @@ public class StoreImportCommand implements Command {
         LOG.info("Importing \"{}\" cache entries...", cacheName);
 
         var serializedCache = new SerializedCache();
+        //NOTE we ignore the persistent field as it is the cache config/impl
+        // that decides
         serializedCache.setCacheName(cacheName);
         serializedCache.setClassName(cacheType);
 

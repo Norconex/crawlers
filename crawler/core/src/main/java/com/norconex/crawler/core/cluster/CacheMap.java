@@ -146,4 +146,16 @@ public interface CacheMap<T> {
      */
     List<String> keys();
 
+    /**
+     * Returns whether this cache persists data across restarts.
+     * @return true if the cache is persistent, false if ephemeral
+     */
+    boolean isPersistent();
+
+    /**
+     * Gets the name of this cache.
+     * @return cache name
+     */
+    String getName();
+
 }

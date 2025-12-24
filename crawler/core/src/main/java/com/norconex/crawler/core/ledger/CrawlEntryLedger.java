@@ -155,28 +155,28 @@ public final class CrawlEntryLedger {
                     totalMaxDocsThisRun);
         }
 
-        // If resuming and the persistent queue is empty, attempt to restore
-        // it from ledger entries. This covers cases where the underlying
-        // queue data structure did not restore items (e.g. partition
-        // ownership changes). We avoid duplicating entries when the queue
-        // is already populated.
-        if (resumed) {
-            try {
-                if (queue.isEmpty()) {
-                    var requeuedProcessing = requeueProcessingEntries();
-                    LOG.info("Resuming with {} entries in crawl queue "
-                            + "({} brought back from 'processing' state).",
-                            queue.size(), requeuedProcessing);
-                } else {
-                    LOG.info(
-                            "Resuming with {} entries in crawl queue (restored from persistence).",
-                            queue.size());
-                }
-            } catch (Exception e) {
-                LOG.warn("Failed to restore persistent queue from ledger: {}",
-                        e.toString());
-            }
-        }
+        //        // If resuming and the persistent queue is empty, attempt to restore
+        //        // it from ledger entries. This covers cases where the underlying
+        //        // queue data structure did not restore items (e.g. partition
+        //        // ownership changes). We avoid duplicating entries when the queue
+        //        // is already populated.
+        //        if (resumed) {
+        //            try {
+        //                if (queue.isEmpty()) {
+        //                    var requeuedProcessing = requeueProcessingEntries();
+        //                    LOG.info("Resuming with {} entries in crawl queue "
+        //                            + "({} brought back from 'processing' state).",
+        //                            queue.size(), requeuedProcessing);
+        //                } else {
+        //                    LOG.info(
+        //                            "Resuming with {} entries in crawl queue (restored from persistence).",
+        //                            queue.size());
+        //                }
+        //            } catch (Exception e) {
+        //                LOG.warn("Failed to restore persistent queue from ledger: {}",
+        //                        e.toString());
+        //            }
+        //        }
 
         LOG.info("Done initializing crawl entry ledger.");
     }

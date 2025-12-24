@@ -16,14 +16,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class HazelcastQueueAdapter<T> implements CacheQueue<T> {
 
-    private final IQueue<Object> queue;
-    private final HazelcastInstance hazelcastInstance;
+    private final IQueue<Object> hzQueue;
+    private final HazelcastInstance hzInstance;
     private final Class<T> valueType;
+    private final String name;
 
-    public HazelcastQueueAdapter(IQueue<Object> queue,
-            HazelcastInstance hazelcastInstance, Class<T> valueType) {
-        this.queue = Objects.requireNonNull(queue, "queue");
-        this.hazelcastInstance = hazelcastInstance;
+    @SuppressWarnings("unchecked")
+    public HazelcastQueueAdapter(
+            IQueue<Object> hzQueue,
+            HazelcastInstance hzInstance,
+            Class<T> valueType) {
+        this.hzQueue = Objects.requireNonNull(hzQueue, "queue");
+        name = hzQueue.getName();
+        this.hzInstance = hzInstance;
         this.valueType =
                 valueType == null ? (Class<T>) String.class : valueType;
     }
@@ -42,18 +47,17 @@ public class HazelcastQueueAdapter<T> implements CacheQueue<T> {
             try {
                 toStore = SerialUtil.toJsonString(item);
             } catch (SerializationException e) {
-                LOG.debug(
-                        "Could not serialize queue item; storing toString: {}",
-                        e.toString());
+                LOG.debug("Could not serialize queue item; storing "
+                        + "toString: {}", e.toString());
                 toStore = item.toString();
             }
         }
         // Offer to the distributed FIFO queue.
         try {
-            queue.offer(toStore);
+            hzQueue.offer(toStore);
         } catch (Exception e) {
             LOG.debug("Could not add item to queue '{}': {}",
-                    queue.getName(), e.toString());
+                    hzQueue.getName(), e.toString());
         }
     }
 
@@ -70,13 +74,13 @@ public class HazelcastQueueAdapter<T> implements CacheQueue<T> {
             return batch;
         }
 
-        for (int i = 0; i < batchSize; i++) {
+        for (var i = 0; i < batchSize; i++) {
             Object obj = null;
             try {
-                obj = queue.poll();
+                obj = hzQueue.poll();
             } catch (Exception e) {
                 LOG.debug("Could not poll item from queue '{}': {}",
-                        queue.getName(), e.toString());
+                        hzQueue.getName(), e.toString());
             }
             if (obj == null) {
                 break; // queue empty
@@ -91,12 +95,12 @@ public class HazelcastQueueAdapter<T> implements CacheQueue<T> {
                             e.toString());
                     // fallback to returning the raw string
                     @SuppressWarnings("unchecked")
-                    T cast = (T) str;
+                    var cast = (T) str;
                     val = cast;
                 }
             } else {
                 @SuppressWarnings("unchecked")
-                T cast = (T) obj;
+                var cast = (T) obj;
                 val = cast;
             }
             batch.add(val);
@@ -111,10 +115,10 @@ public class HazelcastQueueAdapter<T> implements CacheQueue<T> {
             return 0;
         }
         try {
-            return queue.size();
+            return hzQueue.size();
         } catch (Exception e) {
             LOG.debug("Could not get size for queue '{}': {}",
-                    queue.getName(), e.toString());
+                    hzQueue.getName(), e.toString());
             return 0;
         }
     }
@@ -125,10 +129,10 @@ public class HazelcastQueueAdapter<T> implements CacheQueue<T> {
             return true;
         }
         try {
-            return queue.isEmpty();
+            return hzQueue.isEmpty();
         } catch (Exception e) {
             LOG.debug("Could not check emptiness for queue '{}': {}",
-                    queue.getName(), e.toString());
+                    hzQueue.getName(), e.toString());
             return true;
         }
     }
@@ -139,21 +143,31 @@ public class HazelcastQueueAdapter<T> implements CacheQueue<T> {
             return;
         }
         try {
-            queue.clear();
+            hzQueue.clear();
         } catch (Exception e) {
             LOG.debug("Could not clear queue '{}': {}",
-                    queue.getName(), e.toString());
+                    hzQueue.getName(), e.toString());
         }
     }
 
     private boolean isQueueAvailable() {
-        var lifecycle = hazelcastInstance.getLifecycleService();
+        var lifecycle = hzInstance.getLifecycleService();
         if (!lifecycle.isRunning()) {
-            var name = queue.getName();
+            var qname = hzQueue.getName();
             LOG.debug("Skipping operation on queue '{}' because "
-                    + "Hazelcast instance is not running.", name);
+                    + "Hazelcast instance is not running.", qname);
             return false;
         }
         return true;
+    }
+
+    @Override
+    public boolean isPersistent() {
+        return HazelcastUtil.isPersistent(hzInstance, getName());
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 }

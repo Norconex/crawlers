@@ -160,11 +160,10 @@ public class StringJdbcQueueStore implements QueueStore<String> {
             return map;
         }
 
-        var sql = "SELECT k, v "
-                + "WHERE k IN ("
+        var sql = ("SELECT k, v FROM \"%s\" WHERE k IN ("
                 + String.join(",",
                         keys.stream().map(k -> "?").toArray(String[]::new))
-                + ") ORDER BY k";
+                + ") ORDER BY k").formatted(tableName);
         try (var conn = db.getConnection();
                 var ps = conn.prepareStatement(sql)) {
             var i = 1;

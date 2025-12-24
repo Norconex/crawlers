@@ -58,32 +58,34 @@ import lombok.extern.slf4j.Slf4j;
 public class HazelcastMapAdapter<T> implements CacheMap<T> {
 
     // underlying map kept as Object-valued to allow string storage
-    private final IMap<String, Object> delegate;
-    private final HazelcastInstance hazelcastInstance;
+    private final IMap<String, Object> hzMap;
+    private final HazelcastInstance hzInstance;
     private static final int DEFAULT_BATCH_SIZE = 100;
     private static final Set<String> CLOSED_LOGGED =
             ConcurrentHashMap.newKeySet();
     private final Class<T> type;
+    private final String name;
 
     @SuppressWarnings("unchecked")
     public HazelcastMapAdapter(
-            IMap<String, ?> delegate,
-            HazelcastInstance hazelcastInstance,
+            IMap<String, ?> hzMap,
+            HazelcastInstance hzInstance,
             Class<T> type) {
         // cast is safe: we only treat values as Object and convert
-        this.delegate = (IMap<String, Object>) delegate;
-        this.hazelcastInstance = hazelcastInstance;
+        this.hzMap = (IMap<String, Object>) hzMap;
+        name = hzMap.getName();
+        this.hzInstance = hzInstance;
         this.type = type;
     }
 
     @Override
     public boolean isEmpty() {
-        return supplyIfCache(delegate::isEmpty, false);
+        return supplyIfCache(hzMap::isEmpty, false);
     }
 
     @Override
     public void put(String key, T value) {
-        runIfCache(() -> delegate.put(key, toStored(value)));
+        runIfCache(() -> hzMap.put(key, toStored(value)));
     }
 
     @Override
@@ -91,36 +93,36 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
         runIfCache(() -> {
             var converted = new java.util.HashMap<String, Object>();
             entries.forEach((k, v) -> converted.put(k, toStored(v)));
-            delegate.putAll(converted);
+            hzMap.putAll(converted);
         });
     }
 
     @Override
     public Optional<T> get(String key) {
         return Optional.ofNullable(
-                supplyIfCache(() -> fromStored(delegate.get(key)), null));
+                supplyIfCache(() -> fromStored(hzMap.get(key)), null));
     }
 
     @Override
     public void remove(String key) {
-        runIfCache(() -> delegate.remove(key));
+        runIfCache(() -> hzMap.remove(key));
     }
 
     @Override
     public void clear() {
-        runIfCache(delegate::clear);
+        runIfCache(hzMap::clear);
     }
 
     @Override
     public T computeIfAbsent(String key,
             Function<String, ? extends T> mappingFunction) {
         return supplyIfCache(() -> {
-            var stored = delegate.get(key);
+            var stored = hzMap.get(key);
             if (stored != null) {
                 return fromStored(stored);
             }
             T newVal = mappingFunction.apply(key);
-            var prev = delegate.putIfAbsent(key, toStored(newVal));
+            var prev = hzMap.putIfAbsent(key, toStored(newVal));
             return prev != null ? fromStored(prev) : newVal;
         }, null);
     }
@@ -129,15 +131,15 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
     public Optional<T> computeIfPresent(String key,
             BiFunction<String, ? super T, ? extends T> remappingFunction) {
         return Optional.ofNullable(supplyIfCache(() -> {
-            var storedOld = delegate.get(key);
+            var storedOld = hzMap.get(key);
             if (storedOld != null) {
                 var oldValue = fromStored(storedOld);
                 T newValue = remappingFunction.apply(key, oldValue);
                 if (newValue != null) {
-                    delegate.put(key, toStored(newValue));
+                    hzMap.put(key, toStored(newValue));
                     return newValue;
                 }
-                delegate.remove(key);
+                hzMap.remove(key);
             }
             return null;
         }, null));
@@ -147,15 +149,15 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
     public Optional<T> compute(String key,
             BiFunction<String, ? super T, ? extends T> remappingFunction) {
         return Optional.ofNullable(supplyIfCache(() -> {
-            var storedOld = delegate.get(key);
+            var storedOld = hzMap.get(key);
             var oldValue = fromStored(storedOld);
             T newValue = remappingFunction.apply(key, oldValue);
             if (newValue != null) {
-                delegate.put(key, toStored(newValue));
+                hzMap.put(key, toStored(newValue));
                 return newValue;
             }
             if (oldValue != null) {
-                delegate.remove(key);
+                hzMap.remove(key);
             }
             return null;
         }, null));
@@ -165,14 +167,14 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
     public T merge(String key, T value,
             BiFunction<? super T, ? super T, ? extends T> remappingFunction) {
         return supplyIfCache(() -> {
-            var storedOld = delegate.get(key);
+            var storedOld = hzMap.get(key);
             var oldValue = fromStored(storedOld);
             var newValue = (oldValue == null) ? value
                     : remappingFunction.apply(oldValue, value);
             if (newValue != null) {
-                delegate.put(key, toStored(newValue));
+                hzMap.put(key, toStored(newValue));
             } else {
-                delegate.remove(key);
+                hzMap.remove(key);
             }
             return newValue;
         }, null);
@@ -180,14 +182,14 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
 
     @Override
     public boolean containsKey(String key) {
-        return supplyIfCache(() -> delegate.containsKey(key), false);
+        return supplyIfCache(() -> hzMap.containsKey(key), false);
     }
 
     @Override
     public T getOrDefault(String key, T defaultValue) {
         return supplyIfCache(
                 () -> {
-                    var stored = delegate.getOrDefault(key, null);
+                    var stored = hzMap.getOrDefault(key, null);
                     var val = fromStored(stored);
                     return val != null ? val : defaultValue;
                 }, defaultValue);
@@ -196,7 +198,7 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
     @Override
     public T putIfAbsent(String key, T value) {
         return supplyIfCache(() -> {
-            var prev = delegate.putIfAbsent(key, toStored(value));
+            var prev = hzMap.putIfAbsent(key, toStored(value));
             return fromStored(prev);
         }, null);
     }
@@ -204,7 +206,7 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
     @Override
     public boolean replace(String key, T oldValue, T newValue) {
         return supplyIfCache(
-                () -> delegate.replace(key, toStored(oldValue),
+                () -> hzMap.replace(key, toStored(oldValue),
                         toStored(newValue)),
                 false);
     }
@@ -212,7 +214,7 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
     @Override
     public List<T> query(QueryFilter filter) {
         return supplyIfCache(() -> {
-            var objs = delegate.values(toPredicate(filter));
+            var objs = hzMap.values(toPredicate(filter));
             var out = new ArrayList<T>(objs.size());
             for (var o : objs) {
                 out.add(fromStored(o));
@@ -224,19 +226,19 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
     @Override
     public Iterator<T> queryIterator(QueryFilter filter) {
         return supplyIfCache(() -> new PagingIterator<>(
-                delegate,
+                hzMap,
                 toPredicate(filter),
                 DEFAULT_BATCH_SIZE), Collections.emptyIterator());
     }
 
     @Override
     public long count(QueryFilter filter) {
-        return delegate.keySet(toPredicate(filter)).size();
+        return hzMap.keySet(toPredicate(filter)).size();
     }
 
     @Override
     public long size() {
-        return supplyIfCache(delegate::size, -1);
+        return supplyIfCache(hzMap::size, -1);
     }
 
     @Override
@@ -246,7 +248,7 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
         }
         runIfCache(() -> {
             LOG.debug("Deleting entries matching filter: {}...", filter);
-            delegate.removeAll(toPredicate(filter));
+            hzMap.removeAll(toPredicate(filter));
             LOG.debug("Finished deleting {} entries");
         });
     }
@@ -254,7 +256,7 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
     @Override
     public void forEach(BiConsumer<String, ? super T> action) {
         runIfCache(() -> {
-            for (var entry : delegate.entrySet()) {
+            for (var entry : hzMap.entrySet()) {
                 action.accept(entry.getKey(), fromStored(entry.getValue()));
             }
         });
@@ -263,7 +265,7 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
     @Override
     public List<String> keys() {
         return supplyIfCache(
-                () -> new ArrayList<>(delegate.keySet()),
+                () -> new ArrayList<>(hzMap.keySet()),
                 new ArrayList<>());
     }
 
@@ -273,7 +275,7 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
      */
     @SuppressWarnings("unchecked")
     public IMap<String, T> vendor() {
-        return (IMap<String, T>) delegate;
+        return (IMap<String, T>) hzMap;
     }
 
     //--- Private methods ------------------------------------------------------
@@ -298,9 +300,9 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
     }
 
     private boolean isCacheClosed() {
-        var lifecycle = hazelcastInstance.getLifecycleService();
+        var lifecycle = hzInstance.getLifecycleService();
         if (!lifecycle.isRunning()) {
-            var name = delegate.getName();
+            var name = hzMap.getName();
             if (CLOSED_LOGGED.add(name)) {
                 LOG.warn("Attempted to use cache '{}' after it was closed.",
                         name);
@@ -314,9 +316,6 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
     }
 
     private Object toStored(T value) {
-        if (value == null) {
-            return null;
-        }
         // If the cache is typed as String, keep strings as-is. For all
         // other types, store the actual object so Hazelcast keeps typed
         // objects in memory. If older entries are strings (JSON), the
@@ -348,7 +347,6 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
         private int pageIndex = 0;
         private Iterator<T> currentPageIterator;
         private boolean lastPage = false;
-        private final Class<T> type;
 
         PagingIterator(IMap<String, Object> map,
                 com.hazelcast.query.Predicate<String, Object> predicate,
@@ -356,7 +354,6 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
             this.map = map;
             this.predicate = predicate;
             this.pageSize = pageSize;
-            type = null; // will be ignored and handled by adapter
             loadPage();
         }
 
@@ -401,5 +398,15 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
             }
             return currentPageIterator.next();
         }
+    }
+
+    @Override
+    public boolean isPersistent() {
+        return HazelcastUtil.isPersistent(hzInstance, getName());
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 }

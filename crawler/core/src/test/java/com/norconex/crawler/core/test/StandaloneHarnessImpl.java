@@ -56,10 +56,9 @@ class StandaloneHarnessImpl implements CrawlTestHarness {
         if (StringUtils.isBlank(cfg.getId())) {
             cfg.setId("crawl-" + TimeIdGenerator.next());
         }
-        cfg
-                .setFetchers(List.of(Configurable.configure(new MockFetcher())))
-                .setMaxQueueBatchSize(1)
-                .setNumThreads(1);
+        cfg.setFetchers(List.of(Configurable.configure(new MockFetcher())));
+        //                .setMaxQueueBatchSize(1)
+        //                .setNumThreads(1);
         cfg.getClusterConfig().setClustered(false);
         if (b.configModifier() != null) {
             b.configModifier().accept(cfg);

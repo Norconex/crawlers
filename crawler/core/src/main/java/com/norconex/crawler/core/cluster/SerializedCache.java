@@ -22,9 +22,16 @@ public final class SerializedCache
 
     private String cacheName;
     private String className;
+    /**
+     * Whether this cache is persisted by the crawler between runs.
+     */
+    private boolean persistent;
     @Getter(value = AccessLevel.NONE)
     private Iterator<SerializedEntry> entries;
 
+    /**
+     * Lazy-loaded (in batches) cache entries iterator.
+     */
     @Override
     public Iterator<SerializedCache.SerializedEntry> iterator() {
         return entries;

@@ -15,4 +15,17 @@ public interface CacheQueue<T> {
     boolean isEmpty();
 
     void clear();
+
+    /**
+     * Returns whether this queue persists data across restarts.
+     * @return true if the queue is persistent, false if ephemeral
+     */
+    boolean isPersistent();
+
+    /**
+     * Gets the name of this cache.
+     * @return cache name
+     */
+    String getName();
+
 }

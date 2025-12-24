@@ -26,10 +26,9 @@ public interface CacheManager {
     boolean cacheExists(String name);
 
     /**
-     * For every persistent cache, consumes its cache name and an iterator
-     * of cache entries, where the entry key is the cache record key, and the
-     * value is the cache record value as serialized JSON String.
-     * @param c cache name and entry iterator consumer .
+     * Consumes every caches, where record value are serialized JSON String.
+     * Entries are lazy loaded.
+     * @param c serialized cache.
      *
      */
     void exportCaches(Consumer<SerializedCache> c);
