@@ -21,10 +21,11 @@ import java.util.function.Consumer;
 import com.norconex.crawler.core.CrawlCallbacks;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
+import com.norconex.crawler.core._DELETE_OR_MIGRATE.CacheCapturer;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
-import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.test.CrawlTestDriver;
 
 import lombok.AccessLevel;
 import lombok.NonNull;
@@ -54,7 +55,7 @@ public final class DriverInstrumentor {
 
     public CrawlDriver instrument(CrawlDriver delegate) {
 
-        return TestCrawlDriverFactory.builder()
+        return CrawlTestDriver.builder()
                 .beanMapper(delegate.beanMapper())
                 .bootstrappers(delegate.bootstrappers())
                 .callbacks(callbacks(delegate.callbacks()))

@@ -45,8 +45,8 @@ import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.cluster.node.CaptureFlags;
 import com.norconex.crawler.core.junit.cluster.node.DriverInstrumentor;
 import com.norconex.crawler.core.junit.cluster.state.StateDbServer;
-import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
+import com.norconex.crawler.core.test.CrawlTestDriver;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -171,7 +171,7 @@ class ClusterResumeTest {
         return DriverInstrumentor.from(
                 tempDir.resolve("node-" + nodeIndex),
                 new CaptureFlags().setEvents(true))
-                .instrument(new TestCrawlDriverFactory().get());
+                .instrument(new CrawlTestDriver().get());
     }
 
     private CrawlConfig crawlConfig(

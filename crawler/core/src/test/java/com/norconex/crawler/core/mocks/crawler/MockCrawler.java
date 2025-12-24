@@ -15,6 +15,7 @@
 package com.norconex.crawler.core.mocks.crawler;
 
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
+import com.norconex.crawler.core.test.CrawlTestDriver;
 
 import lombok.Generated;
 
@@ -31,6 +32,6 @@ public class MockCrawler {
     }
 
     public int launch(String... args) {
-        return CliCrawlerLauncher.launch(TestCrawlDriverFactory.create(), args);
+        return CliCrawlerLauncher.launch(CrawlTestDriver.create(), args);
     }
 }

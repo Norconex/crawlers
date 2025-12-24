@@ -50,7 +50,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
         var ctx = crawlSession.getCrawlContext();
         ledger = ctx.getCrawlEntryLedger();
         var cacheManager = crawlSession.getCluster().getCacheManager();
-        eventCountsStore = cacheManager.getCache(
+        eventCountsStore = cacheManager.getCacheMap(
                 EVENT_COUNTS_CACHE, Long.class);
         //        processedTotalStore = cacheManager.getCache(
         //                PROCESSED_TOTAL_CACHE, Long.class);

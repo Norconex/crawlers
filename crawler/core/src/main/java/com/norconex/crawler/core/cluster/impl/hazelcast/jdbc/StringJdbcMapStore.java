@@ -43,7 +43,7 @@ public class StringJdbcMapStore
             store = (StringUtils.isNotBlank(mergeSql)
                     ? mergeSql
                     : """
-                        MERGE INTO "${tableName}" AS T
+                        MERGE INTO "{tableName}" AS T
                         USING (SELECT ? AS k, ? AS v) AS S
                         ON (T.k = S.k)
                         WHEN MATCHED THEN
@@ -65,7 +65,7 @@ public class StringJdbcMapStore
         }
     }
 
-    private DbClient db;
+    private JdbcClient db;
     private Sqls sqls;
     private String tableName;
 
@@ -75,17 +75,20 @@ public class StringJdbcMapStore
             Properties storeProps,
             String storeName) {
 
-        db = new DbClient(hzInstance, storeProps);
-        tableName = storeProps.getProperty(DbClient.PROP_TABLE_NAME, storeName);
+        db = new JdbcClient(hzInstance, storeProps);
+        tableName = storeProps.getProperty(
+                JdbcClient.PROP_TABLE_NAME, storeName);
         sqls = new Sqls(tableName, storeProps.getProperty("sql-merge"));
 
         LOG.info("Initializing Jdbc map store '{}' with table '{}'.",
                 storeName, tableName);
         try {
-            db.ensureTableExists(tableName,
+            db.ensureTableExists(tableName, List.of(
                     "k " + storeProps.getProperty(
-                            "column-key-type", "VARCHAR(4096)"),
-                    "v " + storeProps.getProperty("column-value-type", "CLOB"));
+                            "column-key-type", "VARCHAR(4096)")
+                            + " PRIMARY KEY",
+                    "v " + storeProps.getProperty("column-value-type",
+                            "CLOB")));
         } catch (SQLException e) {
             throw new ClusterException("Can't initialize JDBC map store.", e);
         }
@@ -110,18 +113,20 @@ public class StringJdbcMapStore
     }
 
     @Override
-    public void storeAll(Map<String, String> map) {
-        try (var conn = db.getConnection();
-                var stmt = conn.prepareStatement(sqls.store)) {
-            for (var entry : map.entrySet()) {
-                stmt.setString(1, entry.getKey());
-                stmt.setString(2, entry.getValue());
-                stmt.addBatch();
-            }
-            stmt.executeBatch();
-        } catch (SQLException e) {
-            throw new ClusterException("Failed to store all records", e);
+    public void storeAll(Map<String, String> entries) {
+        if (entries.isEmpty()) {
+            return;
         }
+        db.executeInTransaction(conn -> {
+            try (var stmt = conn.prepareStatement(sqls.store)) {
+                for (var entry : entries.entrySet()) {
+                    stmt.setString(1, entry.getKey());
+                    stmt.setString(2, entry.getValue());
+                    stmt.addBatch();
+                }
+                stmt.executeBatch();
+            }
+        });
     }
 
     @Override
@@ -130,7 +135,7 @@ public class StringJdbcMapStore
                 var stmt = conn.prepareStatement(sqls.delete)) {
             stmt.setString(1, key);
             stmt.executeUpdate();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw new ClusterException("Failed to delete record (key=%s)"
                     .formatted(key), e);
         }
@@ -138,9 +143,18 @@ public class StringJdbcMapStore
 
     @Override
     public void deleteAll(Collection<String> keys) {
-        for (var key : keys) {
-            delete(key);
+        if (keys.isEmpty()) {
+            return;
         }
+        db.executeInTransaction(conn -> {
+            try (var stmt = conn.prepareStatement(sqls.delete)) {
+                for (var key : keys) {
+                    stmt.setString(1, key);
+                    stmt.addBatch();
+                }
+                stmt.executeBatch();
+            }
+        });
     }
 
     @Override
@@ -153,7 +167,7 @@ public class StringJdbcMapStore
                     return rs.getString(1);
                 }
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             throw new ClusterException("Failed to load record (key=%s)"
                     .formatted(key), e);
         }

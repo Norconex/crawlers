@@ -18,19 +18,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.norconex.crawler.core.cluster.ClusterException;
+import com.norconex.crawler.core.cluster.SerializedCache;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
@@ -71,13 +69,12 @@ public class StoreImportCommand implements Command {
 
     }
 
-    private void importAllStores(CrawlSession session)
-            throws IOException {
-        Map<String, Iterator<Entry<String, String>>> imports = new HashMap<>();
+    private void importAllStores(CrawlSession session) throws IOException {
+        List<SerializedCache> imports = new ArrayList<>();
         try (var zipIn = new ZipInputStream(
                 IOUtils.buffer(Files.newInputStream(inFile)))) {
             while ((zipIn.getNextEntry()) != null) {
-                importOneStore(session, zipIn, imports);
+                importOneStore(zipIn, imports);
                 zipIn.closeEntry();
             }
         }
@@ -86,78 +83,60 @@ public class StoreImportCommand implements Command {
     }
 
     private void importOneStore(
-            CrawlSession session, InputStream in,
-            Map<String, Iterator<Entry<String, String>>> imports)
-            throws IOException {
-        var parser = SerialUtil.jsonParser(in);
+            InputStream in,
+            List<SerializedCache> imports) throws IOException {
 
-        String crawlerId = null;
-        String storeName = null;
+        var rootNode = SerialUtil.getMapper().readTree(in);
+        var cacheName = rootNode.get("store").asText();
+        var cacheType = rootNode.get("type").asText();
 
-        parser.nextToken();
-        while (parser.nextToken() != JsonToken.END_OBJECT) {
-            var key = parser.currentName();
-            if ("crawler".equals(key)) {
-                crawlerId = parser.nextTextValue();
-            } else if ("store".equals(key)) {
-                storeName = parser.nextTextValue();
-            } else if ("records".equals(key)) {
-                if (StringUtils.isAnyBlank(crawlerId, storeName)) {
-                    LOG.error("Invalid import file encountered for entry.");
-                    return;
+        LOG.info("Importing \"{}\" cache entries...", cacheName);
+
+        var serializedCache = new SerializedCache();
+        serializedCache.setCacheName(cacheName);
+        serializedCache.setClassName(cacheType);
+
+        var records = rootNode.get("records");
+        if (records != null && records.isArray()) {
+            serializedCache.setEntries(new Iterator<>() {
+                private final Iterator<JsonNode> recordIterator =
+                        records.iterator();
+
+                @Override
+                public boolean hasNext() {
+                    return recordIterator.hasNext();
                 }
-                if (!crawlerId.equals(session.getCrawlerId())) {
-                    LOG.debug("Skipping store {} for crawler {}", storeName,
-                            crawlerId);
-                    return;
+
+                @Override
+                public SerializedCache.SerializedEntry next() {
+                    var rec = recordIterator.next();
+                    try {
+                        var id = rec.get("id").asText();
+                        var object = rec.get("object").toString();
+                        return new SerializedCache.SerializedEntry(id, object);
+                    } catch (Exception e) {
+                        throw new IllegalArgumentException(
+                                "Could not import record for cache: "
+                                        + cacheName,
+                                e);
+                    }
                 }
-                LOG.info("Parsing records for store \"{}\" from file.",
-                        storeName);
-                parser.nextToken(); // start array
-                imports.put(storeName, new LazyRecordIterator(parser));
-            } else {
-                parser.nextValue();
-            }
+            });
+        } else {
+            serializedCache.setEntries(new Iterator<>() {
+                @Override
+                public boolean hasNext() {
+                    return false;
+                }
+
+                @Override
+                public SerializedCache.SerializedEntry next() {
+                    throw new NoSuchElementException("No entries available.");
+                }
+            });
         }
+
+        imports.add(serializedCache);
+        LOG.info("Imported \"{}\" cache entries successfully.", cacheName);
     }
-
-    private static class LazyRecordIterator
-            implements Iterator<Entry<String, String>> {
-
-        private final JsonParser parser;
-        private boolean hasNext = true;
-
-        public LazyRecordIterator(JsonParser parser) {
-            this.parser = parser;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return hasNext;
-        }
-
-        @Override
-        public Entry<String, String> next() {
-            if (!hasNext) {
-                throw new NoSuchElementException();
-            }
-            try {
-                parser.nextToken(); // START_OBJECT
-                parser.nextToken(); // "id"
-                var id = parser.nextTextValue();
-                parser.nextToken(); // "object"
-                var value = parser.nextTextValue();
-                parser.nextToken(); // END_OBJECT
-                parser.nextToken(); // check next
-                if (parser.currentToken() == JsonToken.END_ARRAY) {
-                    hasNext = false;
-                }
-                return Map.entry(id, value);
-            } catch (IOException e) {
-                throw new NoSuchElementException(
-                        "Error reading next record: " + e.getMessage());
-            }
-        }
-    }
-
 }

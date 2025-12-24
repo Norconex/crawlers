@@ -16,6 +16,7 @@ package com.norconex.crawler.core.cluster.impl.hazelcast.jdbc;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Properties;
 
 import javax.sql.DataSource;
@@ -34,14 +35,19 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Getter
-public class DbClient {
+public class JdbcClient {
+
+    @FunctionalInterface
+    public interface SQLTask {
+        void run(Connection conn) throws SQLException;
+    }
 
     public static final String PROP_TABLE_NAME = "table-name";
     public static final String PROP_DATA_CONN_REF = "data-connection-ref";
 
     private final DataSource dataSource;
 
-    public DbClient(HazelcastInstance hz, Properties storeProps) {
+    public JdbcClient(HazelcastInstance hz, Properties storeProps) {
         dataSource = createOrGetDataSource(hz, storeProps);
     }
 
@@ -57,7 +63,8 @@ public class DbClient {
      * @throws SQLException if table cannot be created or found
      */
     public void ensureTableExists(
-            @NonNull String tableName, @NonNull String... columnDefs)
+            @NonNull String tableName,
+            @NonNull List<String> columnDefs)
             throws SQLException {
 
         var conn = dataSource.getConnection();
@@ -112,6 +119,33 @@ public class DbClient {
 
     public Connection getConnection() throws SQLException {
         return dataSource.getConnection();
+    }
+
+    public void executeInTransaction(SQLTask task) {
+        Connection conn = null;
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false);
+            task.run(conn);
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackEx) {
+                    e.addSuppressed(rollbackEx);
+                }
+            }
+            throw new ClusterException("Transaction failed", e);
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    //NOOP
+                }
+            }
+        }
     }
 
     //--- Private methods ------------------------------------------------------

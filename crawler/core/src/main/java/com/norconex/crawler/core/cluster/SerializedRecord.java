@@ -17,11 +17,11 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-public final class SerializedEnvelope {
+public final class SerializedRecord {
     private String className;
     private String serialized;
 
-    public SerializedEnvelope(Object object) {
+    public SerializedRecord(Object object) {
         if (object != null) {
             this.className = object.getClass().getName();
             this.serialized = SerialUtil.toJsonString(object);
@@ -33,8 +33,8 @@ public final class SerializedEnvelope {
      * @param object object to wrap
      * @return serialized envelope
      */
-    public static SerializedEnvelope wrap(Object object) {
-        return new SerializedEnvelope(object);
+    public static SerializedRecord wrap(Object object) {
+        return new SerializedRecord(object);
     }
 
     /**

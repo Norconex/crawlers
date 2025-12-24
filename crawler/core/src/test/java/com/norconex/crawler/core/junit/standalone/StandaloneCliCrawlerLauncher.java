@@ -34,7 +34,7 @@ import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 import com.norconex.crawler.core.event.listeners.TestEventMemory;
 import com.norconex.crawler.core.event.listeners.TestEventMemoryListener;
 import com.norconex.crawler.core.junit.CrawlerExecutionResult;
-import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
+import com.norconex.crawler.core.test.CrawlTestDriver;
 import com.norconex.crawler.core.util.CoreTestUtil;
 
 import lombok.Builder;
@@ -87,7 +87,7 @@ public class StandaloneCliCrawlerLauncher {
 
     public StandaloneExecutionResult launch(CrawlConfig crawlConfig) {
         var driver = ofNullable(crawlDriver).orElseGet(
-                TestCrawlDriverFactory::create);
+                CrawlTestDriver::create);
         var allArgs = new ArrayList<>(args);
 
         // only consider config if at least one command argument is passed
@@ -137,7 +137,7 @@ public class StandaloneCliCrawlerLauncher {
         if (LOG.isDebugEnabled()) {
             LOG.debug(exit.getStdOut());
         }
-        if ((LOG.isDebugEnabled() || printErrors)
+        if ((printErrors)
                 && StringUtils.isNotBlank(exit.getStdErr())) {
             LOG.error(exit.getStdErr());
         }
@@ -168,14 +168,14 @@ public class StandaloneCliCrawlerLauncher {
     /**
      * Launches a crawler as if using {@link CliCrawlerLauncher} directly
      * (no configuration instrumentalization), with
-     * {@link TestCrawlDriverFactory} to create the crawler driver,
+     * {@link CrawlTestDriver} to create the crawler driver,
      * and captures the the return value, STDERR and STDOUT.
      * Unless required, use the {@link #builder()} approach instead.
      * @param args crawler arguments
      * @return captured output
      */
     public static Captured<Integer> capture(String... args) {
-        return capture(TestCrawlDriverFactory.create(), args);
+        return capture(CrawlTestDriver.create(), args);
     }
 
     /**

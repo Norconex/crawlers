@@ -21,6 +21,7 @@ import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.stubs.CrawlerConfigStubber;
+import com.norconex.crawler.core.test.CrawlTestDriver;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -38,10 +39,10 @@ public class MockCrawlerBuilder {
 
     /**
      * Crawler specification provider. Defaults to
-     * {@link TestCrawlDriverFactory}.
+     * {@link CrawlTestDriver}.
      */
     @NonNull
-    private CrawlDriver crawlDriver = TestCrawlDriverFactory.create();
+    private CrawlDriver crawlDriver = CrawlTestDriver.create();
 
     /**
      * Crawler configuration. Creates a default one if not provided.

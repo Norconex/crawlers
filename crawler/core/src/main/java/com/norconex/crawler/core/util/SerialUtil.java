@@ -167,4 +167,12 @@ public final class SerialUtil {
                     "Could not deserialize JSON node to object." + json, e);
         }
     }
+
+    /**
+     * Returns the shared ObjectMapper instance.
+     * @return the ObjectMapper
+     */
+    public static ObjectMapper getMapper() {
+        return mapper;
+    }
 }

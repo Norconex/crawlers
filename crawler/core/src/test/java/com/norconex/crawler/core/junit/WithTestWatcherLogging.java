@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 @ExtendWith(LoggingTestWatcher.class)
 public @interface WithTestWatcherLogging {
 
-    @Slf4j(topic = "TEST") //
+    @Slf4j(topic = "TEST")
     public static class LoggingTestWatcher
             implements TestWatcher, BeforeTestExecutionCallback {
 
@@ -87,8 +87,7 @@ public @interface WithTestWatcherLogging {
             return """
 
                 %s
-                │ %s %s: %s
-                │    %s.%s
+                │ %s %s: %s | %s#%s
                 %s""".formatted(
                     top,
                     icon, state, displayName,

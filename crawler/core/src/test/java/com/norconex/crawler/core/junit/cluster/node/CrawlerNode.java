@@ -26,7 +26,7 @@ import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 import com.norconex.crawler.core.junit.WithLogLevel;
 import com.norconex.crawler.core.junit.cluster.state.StateDbClient;
-import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
+import com.norconex.crawler.core.test.CrawlTestDriver;
 import com.norconex.crawler.core.util.ExecUtil;
 import com.norconex.crawler.core.util.ThreadTracker;
 
@@ -113,7 +113,7 @@ public class CrawlerNode {
         jvm.jvmArg(dArg(PROP_DRIVER_SUPPL,
                 Optional.<Class<? extends Supplier<CrawlDriver>>>ofNullable(
                         driverSupplierClass)
-                        .orElse(TestCrawlDriverFactory.class).getName()));
+                        .orElse(CrawlTestDriver.class).getName()));
         jvm.jvmArg(dArg(PROP_NODE_WORKDIR, nodeWorkDir));
         // Capture flags (events/caches) are passed from launch() when
         // requested; avoid duplicating here.
@@ -224,7 +224,7 @@ public class CrawlerNode {
     private static CrawlDriver createDriver() {
         var driverSuppl = System.getProperty(PROP_DRIVER_SUPPL);
         try {
-            Class<?> driverSupplClass = TestCrawlDriverFactory.class;
+            Class<?> driverSupplClass = CrawlTestDriver.class;
             if (StringUtils.isNotBlank(driverSuppl)) {
                 driverSupplClass = Class.forName(driverSuppl);
             }

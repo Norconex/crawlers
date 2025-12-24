@@ -41,7 +41,7 @@ public class DedupService {
         if (crawlConfig.isMetadataDeduplicate()
                 && crawlConfig.getMetadataChecksummer() != null) {
             dedupMetadataStore =
-                    cacheManager.getCache("dedupMetadata", String.class);
+                    cacheManager.getCacheMap("dedupMetadata", String.class);
             LOG.info("Initialized deduplication based on document metadata.");
         } else {
             dedupMetadataStore = null;
@@ -49,7 +49,7 @@ public class DedupService {
         if (crawlConfig.isDocumentDeduplicate()
                 && crawlConfig.getDocumentChecksummer() != null) {
             dedupDocumentStore =
-                    cacheManager.getCache("dedupDocument", String.class);
+                    cacheManager.getCacheMap("dedupDocument", String.class);
             LOG.info("Initialized deduplication based on document content.");
         } else {
             dedupDocumentStore = null;

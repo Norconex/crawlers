@@ -12,18 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cluster.impl.hazelcast;
+package com.norconex.crawler.core.test;
 
-public final class CacheNames {
-
-    public static final String PIPE_CURRENT_STEP = "pipeCurrentStep";
-    public static final String PIPE_WORKER_STATUSES = "pipeWorkerStatuses";
-    public static final String ADMIN = "eph-admin";
-    public static final String CRAWLER = "crawler";
-    public static final String CRAWL_SESSION = "crawlSession";
-    public static final String CRAWL_RUN = "eph-crawlRun";
-    public static final String REFERENCE_QUEUE = "queue-refs";
-
-    private CacheNames() {
-    }
+public interface CrawlTestWaitFor {
+    void allNodesToHaveFired(String eventName);
 }

@@ -16,6 +16,7 @@ package com.norconex.crawler.core.cluster.impl.hazelcast;
 
 import java.util.Objects;
 
+import com.hazelcast.core.HazelcastInstance;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
@@ -26,6 +27,20 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class HazelcastUtil {
     private HazelcastUtil() {
+    }
+
+    public static boolean isPersistent(
+            HazelcastInstance hazelcast, String mapName) {
+        try {
+            var cfg = hazelcast.getConfig();
+            var mcfg = cfg.getMapConfig(mapName);
+            var ms = mcfg.getMapStoreConfig();
+            return ms != null && ms.isEnabled();
+        } catch (Exception e) {
+            LOG.debug("Could not determine persistence for '{}': {}",
+                    mapName, e.toString());
+            return false;
+        }
     }
 
     /**

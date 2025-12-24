@@ -15,13 +15,16 @@
 package com.norconex.crawler.core.cluster.impl.hazelcast;
 
 import java.io.Closeable;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
+import org.apache.commons.collections4.map.ListOrderedMap;
+import org.apache.commons.lang3.SerializationException;
 
 import com.hazelcast.collection.IQueue;
 import com.hazelcast.core.HazelcastInstance;
@@ -31,9 +34,14 @@ import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.cluster.CacheQueue;
 import com.norconex.crawler.core.cluster.CacheSet;
 import com.norconex.crawler.core.cluster.ClusterException;
+import com.norconex.crawler.core.cluster.SerializedCache;
+import com.norconex.crawler.core.cluster.SerializedCache.SerializedEntry;
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListener;
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListenerAdapter;
+import com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory;
+import com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcQueueStoreFactory;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
+import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class HazelcastCacheManager implements CacheManager, Closeable {
 
+    private static final String TYPE_REGISTRY_MAP = "__cache_types";
     private static final Map<HazelcastInstance, AtomicInteger> REF_COUNTS =
             new ConcurrentHashMap<>();
     private static final int BATCH_SIZE = 1000;
@@ -57,17 +66,26 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
     }
 
     @Override
-    public <T> CacheMap<T> getCache(String name, Class<T> valueType) {
-        // Ensure the factory is installed in the Hazelcast Config
-        try {
-            var cfg = hazelcast.getConfig();
-            // idempotent installer updates or installs factory
-            MapStoreFactoryInstaller.installTypedFactoryIfNeeded(
-                    cfg, name, valueType);
-        } catch (Exception e) {
-            LOG.debug("Could not install typed MapStore factory for '{}': {}",
-                    name, e.toString());
+    public <T> CacheMap<T> getCacheMap(String name, Class<T> valueType) {
+        // Ensure the factory is configured with the correct value type
+        var cfg = hazelcast.getConfig();
+        var mapConfig = cfg.getMapConfig(name);
+        var storeConfig = mapConfig.getMapStoreConfig();
+        if (storeConfig != null) {
+            var factory = storeConfig.getFactoryImplementation();
+            if (factory == null) {
+                factory = new TypedJdbcMapStoreFactory();
+                storeConfig.setFactoryImplementation(factory);
+            }
+            if (factory instanceof LazyTypedStoreFactory) {
+                ((LazyTypedStoreFactory) factory).setValueClass(valueType);
+                ((LazyTypedStoreFactory) factory)
+                        .setHazelcastInstance(hazelcast);
+            }
         }
+
+        // register cache type so import/export know how to convert
+        registerCacheType(name, valueType);
 
         return new HazelcastMapAdapter<>(
                 getHazelcastMap(name),
@@ -80,31 +98,50 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
         return new HazelcastSetAdapter(hazelcast.getSet(name));
     }
 
+    // Adapter for queue operations (to be used in CrawlEntryLedger)
+    @Override
+    public <T> CacheQueue<T> getCacheQueue(String name, Class<T> valueType) {
+        // Ensure the factory is configured with the correct value type
+        var cfg = hazelcast.getConfig();
+        var queueConfig = cfg.getQueueConfig(name);
+        var storeConfig = queueConfig.getQueueStoreConfig();
+        if (storeConfig != null) {
+            var factory = storeConfig.getFactoryImplementation();
+            if (factory == null) {
+                factory = new TypedJdbcQueueStoreFactory();
+                storeConfig.setFactoryImplementation(factory);
+            }
+            if (factory instanceof LazyTypedStoreFactory) {
+                ((LazyTypedStoreFactory) factory).setValueClass(valueType);
+                ((LazyTypedStoreFactory) factory)
+                        .setHazelcastInstance(hazelcast);
+            }
+        }
+
+        registerCacheType(name, valueType);
+
+        // Use a Hazelcast IQueue so items are FIFO and distributable.
+        // The queue will store Strings or JSON-serialized objects
+        // depending on the valueType.
+        return new HazelcastQueueAdapter<>(
+                getHazelcastQueue(name),
+                hazelcast,
+                valueType);
+    }
+
     @Override
     public CacheMap<String> getCrawlerCache() {
-        return getCache(CacheNames.CRAWLER, String.class);
-        //        return new HazelcastMapAdapter<>(
-        //                getHazelcastMap(CacheNames.CRAWLER),
-        //                hazelcast,
-        //                String.class);
+        return getCacheMap(CacheNames.CRAWLER, String.class);
     }
 
     @Override
     public CacheMap<String> getCrawlSessionCache() {
-        return getCache(CacheNames.CRAWL_SESSION, String.class);
-        //        return new HazelcastMapAdapter<>(
-        //                getHazelcastMap(CacheNames.CRAWL_SESSION),
-        //                hazelcast,
-        //                String.class);
+        return getCacheMap(CacheNames.CRAWL_SESSION, String.class);
     }
 
     @Override
     public CacheMap<String> getCrawlRunCache() {
-        return getCache(CacheNames.CRAWL_RUN, String.class);
-        //        return new HazelcastMapAdapter<>(
-        //                getHazelcastMap(CacheNames.CRAWL_RUN),
-        //                hazelcast,
-        //                String.class);
+        return getCacheMap(CacheNames.CRAWL_RUN, String.class);
     }
 
     @Override
@@ -142,26 +179,130 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void exportCaches(
-            BiConsumer<String, Iterator<Entry<String, String>>> c) {
+    public void exportCaches(Consumer<SerializedCache> c) {
+
+        var cacheTypes = getCacheTypes();
+
         hazelcast.getDistributedObjects().stream()
                 .filter(IMap.class::isInstance)
-                .map(obj -> (IMap<String, String>) obj)
-                .forEach(imap -> c.accept(
-                        imap.getName(),
-                        imap.iterator()));
+                .map(obj -> (IMap<String, ?>) obj)
+                .filter(imap -> HazelcastUtil.isPersistent(
+                        hazelcast, imap.getName()))
+                .filter(imap -> !TYPE_REGISTRY_MAP.equals(imap.getName()))
+                .forEach(imap -> {
+                    var serialCache = new SerializedCache();
+                    serialCache.setCacheName(imap.getName());
+                    serialCache.setClassName(
+                            cacheTypes.get(imap.getName()).orElse(null));
+
+                    var rawIt = imap.iterator();
+
+                    serialCache.setEntries(new Iterator<>() {
+                        @Override
+                        public boolean hasNext() {
+                            return rawIt.hasNext();
+                        }
+
+                        @Override
+                        public SerializedEntry next() {
+                            Entry<String, ?> e = rawIt.next();
+                            var key = e.getKey() == null ? null : e.getKey();
+                            Object val = e.getValue();
+                            if (val == null) {
+                                return new SerializedEntry(key, null);
+                            }
+                            if (val instanceof String strVal) {
+                                return new SerializedEntry(key, strVal);
+                            }
+                            // serialize any non-String value to JSON
+                            try {
+                                var json = SerialUtil.toJsonString(val);
+                                return new SerializedEntry(key, json);
+                            } catch (SerializationException ex) {
+                                LOG.debug("Could not serialize value for cache "
+                                        + "'{}': {}", imap.getName(),
+                                        ex.toString());
+                                return new SerializedEntry(key, val.toString());
+                            }
+                        }
+                    });
+
+                    c.accept(serialCache);
+                });
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
-    public void
-            importCaches(Map<String, Iterator<Entry<String, String>>> caches) {
-        caches.forEach((name, iterator) -> {
-            IMap<String, String> imap = getHazelcastMap(name);
-            Map<String, String> batch = new HashMap<>();
-            while (iterator.hasNext()) {
-                var entry = iterator.next();
-                batch.put(entry.getKey(), entry.getValue());
+    public void importCaches(List<SerializedCache> caches) {
+
+        for (var serialCache : caches) {
+            Class<?> targetClass = String.class;
+            if (serialCache.getClassName() != null) {
+                try {
+                    targetClass = Class.forName(serialCache.getClassName());
+                } catch (ClassNotFoundException e) {
+                    LOG.debug("Could not load class {} for cache {}; "
+                            + "defaulting to String",
+                            serialCache.getClassName(),
+                            serialCache.getCacheName());
+                    targetClass = String.class;
+                }
+            }
+
+            // Ensure the type registry is populated for this cache so
+            // subsequent import/export operations know the cache type.
+            try {
+                Class cls = targetClass;
+                registerCacheType(serialCache.getCacheName(), cls);
+            } catch (Exception e) {
+                LOG.debug("Could not register cache type for '{}': {}",
+                        serialCache.getCacheName(), e.toString());
+            }
+
+            // Ensure the factory is configured with the correct value type
+            var cfg = hazelcast.getConfig();
+            var mapConfig = cfg.getMapConfig(serialCache.getCacheName());
+            var storeConfig = mapConfig.getMapStoreConfig();
+            if (storeConfig != null) {
+                var factory = storeConfig.getFactoryImplementation();
+                if (factory == null) {
+                    factory = new TypedJdbcMapStoreFactory();
+                    storeConfig.setFactoryImplementation(factory);
+                }
+                if (factory instanceof LazyTypedStoreFactory) {
+                    ((LazyTypedStoreFactory) factory)
+                            .setValueClass(targetClass);
+                    ((LazyTypedStoreFactory) factory)
+                            .setHazelcastInstance(hazelcast);
+                }
+            }
+
+            // Use the underlying Hazelcast IMap to avoid generic
+            // incompatibilities of CacheMap.putAll(Map<String,T>).
+            IMap<String, Object> imap = (IMap) getHazelcastMap(
+                    serialCache.getCacheName());
+
+            Map<String, Object> batch = new ListOrderedMap<>();
+
+            for (SerializedEntry entry : serialCache) {
+                var str = entry.getJson();
+                Object val = null;
+                if (str != null && targetClass != String.class) {
+                    try {
+                        val = SerialUtil.fromJson(str, (Class) targetClass);
+                    } catch (Exception ex) {
+                        LOG.debug("Could not deserialize entry for "
+                                + "cache '{}': {}",
+                                serialCache.getCacheName(), ex.toString());
+                        val = str;
+                    }
+                } else {
+                    val = str;
+                }
+
+                batch.put(entry.getKey(), val);
                 if (batch.size() >= BATCH_SIZE) {
+                    // write directly to Hazelcast map (no generics issue)
                     imap.putAll(batch);
                     batch.clear();
                 }
@@ -169,7 +310,7 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
             if (!batch.isEmpty()) {
                 imap.putAll(batch);
             }
-        });
+        }
     }
 
     @Override
@@ -183,15 +324,15 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
     //--- Hazelcast-specific custom caches ------------------------------------
 
     public CacheMap<String> getAdminCache() {
-        return getCache(CacheNames.ADMIN, String.class);
+        return getCacheMap(CacheNames.ADMIN, String.class);
     }
 
     public CacheMap<StepRecord> getPipelineStepCache() {
-        return getCache(CacheNames.PIPE_CURRENT_STEP, StepRecord.class);
+        return getCacheMap(CacheNames.PIPE_CURRENT_STEP, StepRecord.class);
     }
 
     public CacheMap<StepRecord> getPipelineWorkerStatusCache() {
-        return getCache(CacheNames.PIPE_WORKER_STATUSES, StepRecord.class);
+        return getCacheMap(CacheNames.PIPE_WORKER_STATUSES, StepRecord.class);
     }
 
     public <T> void addCacheEntryChangeListener(
@@ -217,14 +358,23 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
         }
     }
 
-    // Adapter for queue operations (to be used in CrawlEntryLedger)
-    @Override
-    public <T> CacheQueue<T> getQueue(String name, Class<T> valueType) {
-        return new HazelcastQueueAdapter<>(
-                getHazelcastQueue(name), hazelcast);
+    //--- Private methods ------------------------------------------------------
+
+    private CacheMap<String> getCacheTypes() {
+        return getCacheMap(TYPE_REGISTRY_MAP, String.class);
     }
 
-    //--- Private methods ------------------------------------------------------
+    private <T> void registerCacheType(String name, Class<T> valueType) {
+        if (TYPE_REGISTRY_MAP.equals(name)) {
+            return;
+        }
+        try {
+            getCacheTypes().putIfAbsent(name, valueType.getName());
+        } catch (Exception e) {
+            LOG.debug("Could not register cache type for '{}': {}",
+                    name, e.toString());
+        }
+    }
 
     private <T> IQueue<T> getHazelcastQueue(String queueName) {
         var lifecycle = hazelcast.getLifecycleService();

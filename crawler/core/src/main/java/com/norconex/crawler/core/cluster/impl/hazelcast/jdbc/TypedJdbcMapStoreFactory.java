@@ -1,17 +1,11 @@
 package com.norconex.crawler.core.cluster.impl.hazelcast.jdbc;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.map.MapLoaderLifecycleSupport;
-import com.hazelcast.map.MapStoreFactory;
 import com.hazelcast.map.MapStore;
-import com.norconex.crawler.core.util.SerialUtil;
+import com.hazelcast.map.MapStoreFactory;
+import com.norconex.crawler.core.cluster.impl.hazelcast.LazyTypedStoreFactory;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,149 +22,59 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class TypedJdbcMapStoreFactory
-        implements MapStoreFactory<String, Object> {
+        implements MapStoreFactory<String, Object>, LazyTypedStoreFactory {
 
-    private volatile Class<?> valueClass;
+    private Class<?> valueClass;
+    private HazelcastInstance hazelcastInstance;
 
-    public TypedJdbcMapStoreFactory() {
-    }
-
-    public TypedJdbcMapStoreFactory(Class<?> valueClass) {
-        this.valueClass = valueClass;
-    }
-
+    @Override
     public void setValueClass(Class<?> valueClass) {
         this.valueClass = valueClass;
     }
 
+    @Override
     public Class<?> getValueClass() {
         return valueClass;
     }
 
     @Override
+    public void setHazelcastInstance(HazelcastInstance hz) {
+        this.hazelcastInstance = hz;
+    }
+
+    @Override
+    public HazelcastInstance getHazelcastInstance() {
+        return hazelcastInstance;
+    }
+
+    @Override
     public MapStore<String, Object> newMapStore(
             String mapName, Properties properties) {
-        Objects.requireNonNull(valueClass,
-                "valueClass must be set on TypedJdbcMapStoreFactory"
-                        + " before creating a MapStore for: " + mapName);
+        // If valueClass was not set (for example when Hazelcast
+        // instantiated the factory reflectively from config before we
+        // had a chance to set it), default to String for the special
+        // type-registry map and otherwise log and default to String to
+        // avoid NPE.
+        Class<?> vc = valueClass;
+        if (vc == null) {
+            if ("__cache_types".equals(mapName)) {
+                LOG.debug("Defaulting valueClass to String for map '{}'",
+                        mapName);
+            } else {
+                LOG.warn("valueClass not set on TypedJdbcMapStoreFactory "
+                        + "for map '{}'; defaulting to String", mapName);
+            }
+            vc = String.class;
+        }
+
         LOG.debug("Creating typed MapStore for map '{}' and type {}",
-                mapName, valueClass.getName());
+                mapName, vc.getName());
 
         // Create an underlying string-based JDBC store and return a
         // MapStore that (de)serializes values to/from JSON strings.
-        final StringJdbcMapStore stringStore = new StringJdbcMapStore();
-        final Class<?> vc = valueClass;
+        final var stringStore = new StringJdbcMapStore();
 
-        return new DelegatingMapStore(stringStore, vc);
-    }
-
-    // Private nested class implementing both MapStore and lifecycle
-    private static final class DelegatingMapStore
-            implements MapStore<String, Object>, MapLoaderLifecycleSupport {
-
-        private final StringJdbcMapStore stringStore;
-        private final Class<?> valueClass;
-
-        DelegatingMapStore(StringJdbcMapStore stringStore,
-                Class<?> valueClass) {
-            this.stringStore = stringStore;
-            this.valueClass = valueClass;
-        }
-
-        @Override
-        public void init(HazelcastInstance hzInstance, Properties storeProps,
-                String storeName) {
-            stringStore.init(hzInstance, storeProps, storeName);
-        }
-
-        @Override
-        public void destroy() {
-            stringStore.destroy();
-        }
-
-        @Override
-        public void store(String key, Object value) {
-            if (value == null) {
-                stringStore.delete(key);
-                return;
-            }
-            if (valueClass == String.class || value instanceof String) {
-                stringStore.store(key, Objects.toString(value, null));
-                return;
-            }
-            stringStore.store(key, SerialUtil.toJsonString(value));
-        }
-
-        @Override
-        public void storeAll(Map<String, Object> map) {
-            if (map == null || map.isEmpty()) {
-                return;
-            }
-            Map<String, String> batch = new HashMap<>();
-            for (var e : map.entrySet()) {
-                var k = e.getKey();
-                var v = e.getValue();
-                if (v == null) {
-                    batch.put(k, null);
-                } else if (valueClass == String.class || v instanceof String) {
-                    batch.put(k, Objects.toString(v, null));
-                } else {
-                    batch.put(k, SerialUtil.toJsonString(v));
-                }
-            }
-            Map<String, String> toStore = batch.entrySet().stream()
-                    .filter(ent -> ent.getValue() != null)
-                    .collect(Collectors.toMap(Map.Entry::getKey,
-                            Map.Entry::getValue));
-            if (!toStore.isEmpty()) {
-                stringStore.storeAll(toStore);
-            }
-            batch.entrySet().stream()
-                    .filter(ent -> ent.getValue() == null)
-                    .map(Map.Entry::getKey)
-                    .forEach(stringStore::delete);
-        }
-
-        @Override
-        public void delete(String key) {
-            stringStore.delete(key);
-        }
-
-        @Override
-        public void deleteAll(Collection<String> keys) {
-            stringStore.deleteAll(keys);
-        }
-
-        @Override
-        public Object load(String key) {
-            String json = stringStore.load(key);
-            if (json == null) {
-                return null;
-            }
-            if (valueClass == String.class) {
-                return json;
-            }
-            return SerialUtil.fromJson(json, valueClass);
-        }
-
-        @Override
-        public Map<String, Object> loadAll(Collection<String> keys) {
-            Map<String, String> stringMap = stringStore.loadAll(keys);
-            Map<String, Object> out = new HashMap<>();
-            for (var e : stringMap.entrySet()) {
-                if (valueClass == String.class) {
-                    out.put(e.getKey(), e.getValue());
-                } else {
-                    out.put(e.getKey(),
-                            SerialUtil.fromJson(e.getValue(), valueClass));
-                }
-            }
-            return out;
-        }
-
-        @Override
-        public Iterable<String> loadAllKeys() {
-            return stringStore.loadAllKeys();
-        }
+        return new TypedJdbcMapStore(stringStore, vc, hazelcastInstance,
+                properties, mapName);
     }
 }

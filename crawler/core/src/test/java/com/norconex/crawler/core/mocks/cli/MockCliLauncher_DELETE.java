@@ -28,8 +28,8 @@ import com.norconex.commons.lang.SystemUtil.Captured;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
-import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 import com.norconex.crawler.core.stubs.CrawlerConfigStubber;
+import com.norconex.crawler.core.test.CrawlTestDriver;
 
 import lombok.Builder;
 import lombok.NonNull;
@@ -123,7 +123,7 @@ public class MockCliLauncher_DELETE {
     public static MockCliExit launchVerbatim(String... cmdArgs) {
         Captured<Integer> captured = SystemUtil.withOutputCapture(
                 () -> CliCrawlerLauncher.launch(
-                        TestCrawlDriverFactory.create(),
+                        CrawlTestDriver.create(),
                         cmdArgs));
         var exit = new MockCliExit();
         exit.setCode(captured.getReturnValue());

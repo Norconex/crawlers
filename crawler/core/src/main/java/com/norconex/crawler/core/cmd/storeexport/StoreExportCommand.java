@@ -21,8 +21,6 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.NumberFormat;
-import java.util.Iterator;
-import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -31,6 +29,7 @@ import org.apache.commons.io.IOUtils;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cluster.ClusterException;
+import com.norconex.crawler.core.cluster.SerializedCache;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
@@ -86,11 +85,12 @@ public class StoreExportCommand implements Command {
 
         try (var zipOS = new ZipOutputStream(
                 IOUtils.buffer(Files.newOutputStream(outFile)), UTF_8)) {
-            cacheManager.exportCaches((name, recIt) -> {
+            cacheManager.exportCaches(serialCache -> {
+                var name = serialCache.getCacheName();
                 try {
                     zipOS.putNextEntry(new ZipEntry(
                             FileUtil.toSafeFileName(name) + ".json"));
-                    exportOneStore(session, name, recIt, zipOS);
+                    exportOneStore(session, serialCache, zipOS);
                     zipOS.flush();
                     zipOS.closeEntry();
                 } catch (IOException e) {
@@ -105,10 +105,10 @@ public class StoreExportCommand implements Command {
 
     private void exportOneStore(
             CrawlSession session,
-            String name,
-            Iterator<Entry<String, String>> recIt,
+            SerializedCache serialCache,
             OutputStream out) throws IOException {
 
+        var name = serialCache.getCacheName();
         var writer = SerialUtil.jsonGenerator(out);
         if (pretty) {
             writer.useDefaultPrettyPrinter();
@@ -121,14 +121,15 @@ public class StoreExportCommand implements Command {
         writer.writeStartObject();
         writer.writeStringField("crawler", session.getCrawlerId());
         writer.writeStringField("store", name);
+        writer.writeStringField("type", serialCache.getClassName());
         writer.writeFieldName("records");
         writer.writeStartArray();
 
-        for (var entry : (Iterable<Entry<String, String>>) () -> recIt) {
+        for (var entry : serialCache) {
             try {
                 writer.writeStartObject();
                 writer.writeStringField("id", entry.getKey());
-                writer.writePOJOField("object", entry.getValue());
+                writer.writePOJOField("object", entry.getJson());
                 writer.writeEndObject();
                 cnt++;
                 if (cnt % 1000 == 0) {

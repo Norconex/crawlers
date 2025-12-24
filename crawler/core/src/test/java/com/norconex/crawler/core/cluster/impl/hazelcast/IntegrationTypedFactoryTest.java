@@ -46,7 +46,8 @@ class IntegrationTypedFactoryTest {
         try {
             HazelcastCacheManager mgr = new HazelcastCacheManager(hz);
             // This should trigger MapStoreFactoryInstaller to replace class-name
-            CacheMap<TestValue> cache = mgr.getCache(mapName, TestValue.class);
+            CacheMap<TestValue> cache =
+                    mgr.getCacheMap(mapName, TestValue.class);
             assertThat(cache).isNotNull();
 
             MapStoreConfig installed = hz.getConfig()

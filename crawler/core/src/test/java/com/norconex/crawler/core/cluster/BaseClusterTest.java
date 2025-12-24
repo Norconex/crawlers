@@ -40,14 +40,20 @@ import com.norconex.crawler.core.session.CrawlMode;
 import com.norconex.crawler.core.session.CrawlResumeState;
 import com.norconex.crawler.core.test.CrawlTestDriver;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 //@SlowTest
 @Slf4j
-class ClusterTest {
+abstract class BaseClusterTest {
 
+    @Getter
     @TempDir
     private Path tempDir;
+
+    protected abstract boolean isClustered();
+
+    protected abstract void configure(CrawlConfig cfg);
 
     @Test
     @Timeout(120)
@@ -55,6 +61,7 @@ class ClusterTest {
         var numOfRefs = 10;
 
         var crawlCfg = longRunning(numOfRefs, 0);
+        configure(crawlCfg);
 
         var starter = CrawlerNode
                 .builder()
@@ -285,7 +292,7 @@ class ClusterTest {
                         new MockFetcher(),
                         cfg -> cfg.setDelay(Duration.ofMillis(delayMs)))))
                 .setNumThreads(1);
-        crawlCfg.getClusterConfig().setClustered(true);
+        crawlCfg.getClusterConfig().setClustered(isClustered());
         //        ((HazelcastClusterConnector) crawlCfg.getClusterConfig().getConnector())
         //                .getConfiguration()
         //                .setPreset(Preset.CLUSTER);

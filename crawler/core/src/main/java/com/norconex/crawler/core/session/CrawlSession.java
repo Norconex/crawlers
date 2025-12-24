@@ -27,7 +27,7 @@ import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.ClusterNode;
-import com.norconex.crawler.core.cluster.SerializedEnvelope;
+import com.norconex.crawler.core.cluster.SerializedRecord;
 import com.norconex.crawler.core.cluster.admin.ClusterAdminServer;
 import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
@@ -420,7 +420,7 @@ public class CrawlSession implements Closeable {
             //                return MARKER_B64 + SerialUtil.toBase64String(serializable);
             //            }
             // Fallback: use neutral envelope for JSON payload + class name
-            var env = SerializedEnvelope.wrap(value);
+            var env = SerializedRecord.wrap(value);
             return MARKER_WRAPPED_JSON + SerialUtil.toJsonString(env);
         });
         if (stored == null || MARKER_NULL.equals(stored)) {
@@ -432,7 +432,7 @@ public class CrawlSession implements Closeable {
         //        }
         if (stored.startsWith(MARKER_WRAPPED_JSON)) {
             var json = stored.substring(MARKER_WRAPPED_JSON.length());
-            var env = SerialUtil.fromJson(json, SerializedEnvelope.class);
+            var env = SerialUtil.fromJson(json, SerializedRecord.class);
             if (env == null) {
                 return null;
             }

@@ -12,27 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.mocks.crawler;
+package com.norconex.crawler.core.test;
 
 import java.util.function.Supplier;
 
+import com.norconex.crawler.core.CrawlCallbacks;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.CrawlDriver.FetchDriver;
-import com.norconex.crawler.core._DELETE.junit.cluster_old.node.NodeState;
-import com.norconex.crawler.core.cluster.pipeline.Pipeline;
-import com.norconex.crawler.core.cmd.crawl.pipeline.DefaultCrawlPipelineFactory;
 import com.norconex.crawler.core.ledger.CrawlEntry;
 import com.norconex.crawler.core.mocks.fetch.MockFetchResponseImpl;
-import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.stubs.PipelineStubs;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class TestCrawlDriverFactory implements Supplier<CrawlDriver> {
+public class CrawlTestDriver implements Supplier<CrawlDriver> {
 
     public static CrawlDriver create() {
-        return new TestCrawlDriverFactory().get();
+        return new CrawlTestDriver().get();
     }
 
     public static CrawlDriver.Builder builder() {
@@ -45,21 +42,11 @@ public class TestCrawlDriverFactory implements Supplier<CrawlDriver> {
                                         .setReasonPhrase(msg)
                                         .setProcessingOutcome(outcome)))
                 .docPipelines(PipelineStubs.pipelines())
-                .crawlEntryType(CrawlEntry.class)
-                .crawlPipelineFactory(new DefaultCrawlPipelineFactory() {
-                    @Override
-                    public Pipeline create(CrawlSession session) {
-                        LOG.info("XXX HERE!!!!");
-                        var pipeline = super.create(session);
-//                        NodeState.props().set(
-//                                NodeState.CRAWL_PIPELINE_CREATED, true);
-//                        LOG.info("XXX NodeState pipe created just added: {}",
-//                                NodeState.props()
-//                                        .getBooleans(
-//                                                NodeState.CRAWL_PIPELINE_CREATED));
-                        return pipeline;
-                    }
-                });
+                .callbacks(CrawlCallbacks
+                        .builder()
+                        .afterCommand(new CachesRecorder())
+                        .build())
+                .crawlEntryType(CrawlEntry.class);
     }
 
     @Override

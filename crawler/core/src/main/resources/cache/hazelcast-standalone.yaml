@@ -22,7 +22,7 @@ hazelcast:
   network:
     port:
       # was: 5701
-      port: 0
+      #port: 0
       auto-increment: true
     join:
       multicast:
@@ -40,7 +40,6 @@ hazelcast:
         write-delay-seconds: 0
         factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
         properties:
-          # Need to reference data source since there could be multiple
           data-connection-ref: jdbc-datasource
           column-key-type: VARCHAR(4096)
           column-value-type: TEXT
@@ -54,6 +53,52 @@ hazelcast:
       map-store:
         enabled: false
 
+#    queue-*:
+#      backup-count: 0
+#      map-store:
+#        enabled: true
+#        initial-mode: EAGER
+#        write-delay-seconds: 0
+#        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.QueueJdbcMapStore
+#        properties:
+#          data-connection-ref: jdbc-datasource
+#          column-key-type: VARCHAR(4096)
+#          column-value-type: BIGINT
+#      indexes:
+#        - type: SORTED
+#          attributes:
+#            - this 
+
+# queue-* entries were previously configured under map. Move them
+# to the proper queue section to define distributed FIFO queues. The
+# queue store should persist values as strings (JSON when not a
+# String) for JDBC portability.
+  
+  queue:
+    # Configure distributed FIFO queues matching "queue-*" names. Values
+    # are persisted as strings (VARCHAR) so JSON-serialized objects are
+    # portable across JDBC implementations. The queue store factory class
+    # should implement persistence using a single value column.
+    queue-*:
+      backup-count: 0
+      queue-store:
+        enabled: true
+        #initial-mode: EAGER
+        #write-delay-seconds: 0
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcQueueStoreFactory
+        properties:
+          data-connection-ref: jdbc-datasource
+          column-value-type: VARCHAR(4096)
+        
+        
+        # Optional: to use a typed queue store that (de)serializes
+        # objects to/from JSON, set the fully-qualified class name here.
+        # Example:
+        # class-name: com.example.YourQueueItemClass
+    # Note: ordering should be handled by the QueueStore implementation
+    # (for example using an internal sequence). The JDBC persistence
+    # column for the queue value is VARCHAR(4096) by default.
+          
 #    CRAWLER_ATTRIBS_BLAH:
 #      backup-count: 0
 #      map-store:
@@ -66,7 +111,7 @@ hazelcast:
 #          data-connection-ref: jdbc-datasource
 #          column-key-type: VARCHAR(4096)
 #          column-value-type: TEXT
-          #table-name: CRAWLER_ATTRIBS
+#          table-name: CRAWLER_ATTRIBS
 #          id-column: k
 #          columns: v
 

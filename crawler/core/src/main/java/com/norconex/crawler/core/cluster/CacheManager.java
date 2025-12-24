@@ -1,9 +1,7 @@
 package com.norconex.crawler.core.cluster;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.function.BiConsumer;
+import java.util.List;
+import java.util.function.Consumer;
 
 public interface CacheManager {
 
@@ -16,7 +14,7 @@ public interface CacheManager {
      * @param valueType class of the value to store
      * @return a named cache
      */
-    <T> CacheMap<T> getCache(String name, Class<T> valueType);
+    <T> CacheMap<T> getCacheMap(String name, Class<T> valueType);
 
     /**
      * As string-based set, keeping only unique keys.
@@ -34,14 +32,14 @@ public interface CacheManager {
      * @param c cache name and entry iterator consumer .
      *
      */
-    void exportCaches(BiConsumer<String, Iterator<Entry<String, String>>> c);
+    void exportCaches(Consumer<SerializedCache> c);
 
     /**
-     * Import caches previously exported with {@link #exportCaches(BiConsumer)}.
-     * @param caches map entry iterator consumer .
+     * Import caches previously exported with {@link #exportCaches(Consumer)}.
+     * @param caches caches to import
      *
      */
-    void importCaches(Map<String, Iterator<Entry<String, String>>> caches);
+    void importCaches(List<SerializedCache> caches);
 
     /**
      * Clears all caches.
@@ -76,5 +74,5 @@ public interface CacheManager {
      * @param valueType the value type
      * @return cache queue
      */
-    <T> CacheQueue<T> getQueue(String name, Class<T> valueType);
+    <T> CacheQueue<T> getCacheQueue(String name, Class<T> valueType);
 }

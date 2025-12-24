@@ -47,9 +47,9 @@ import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.junit.cluster.node.CaptureFlags;
-import com.norconex.crawler.core.mocks.crawler.TestCrawlDriverFactory;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.stubs.CrawlSessionStubber;
+import com.norconex.crawler.core.test.CrawlTestDriver;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 
 import lombok.extern.slf4j.Slf4j;
@@ -228,7 +228,7 @@ class PipelineTest_DELETE {
             // Launch stop command in separate JVM (tests real CLI scenario)
             LOG.info("Launching stopper JVM/command...");
             CliCrawlerLauncher.launch(
-                    TestCrawlDriverFactory.create(),
+                    CrawlTestDriver.create(),
                     "stop",
                     "-config", cluster.getConfigFile().toString());
 

@@ -29,7 +29,7 @@ class HazelcastCacheManagerTest {
         when(hz.getMap("testMap")).thenReturn(imap);
 
         HazelcastCacheManager mgr = new HazelcastCacheManager(hz);
-        var cache = mgr.getCache("testMap", String.class);
+        var cache = mgr.getCacheMap("testMap", String.class);
         assertThat(cache).isNotNull();
     }
 }
