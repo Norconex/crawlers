@@ -29,6 +29,7 @@ import org.apache.commons.io.IOUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.norconex.crawler.core.cluster.ClusterException;
 import com.norconex.crawler.core.cluster.SerializedCache;
+import com.norconex.crawler.core.cluster.SerializedCache.CacheType;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
@@ -88,7 +89,7 @@ public class StoreImportCommand implements Command {
 
         var rootNode = SerialUtil.getMapper().readTree(in);
         var cacheName = rootNode.get("store").asText();
-        var cacheType = rootNode.get("type").asText();
+        var className = rootNode.get("type").asText();
 
         LOG.info("Importing \"{}\" cache entries...", cacheName);
 
@@ -96,7 +97,13 @@ public class StoreImportCommand implements Command {
         //NOTE we ignore the persistent field as it is the cache config/impl
         // that decides
         serializedCache.setCacheName(cacheName);
-        serializedCache.setClassName(cacheType);
+        serializedCache.setClassName(className);
+
+        var cacheTypeField = rootNode.get("cacheType");
+        serializedCache.setCacheType(
+                cacheTypeField != null
+                        ? CacheType.valueOf(cacheTypeField.asText())
+                        : CacheType.MAP);
 
         var records = rootNode.get("records");
         if (records != null && records.isArray()) {
@@ -113,7 +120,8 @@ public class StoreImportCommand implements Command {
                 public SerializedCache.SerializedEntry next() {
                     var rec = recordIterator.next();
                     try {
-                        var id = rec.get("id").asText();
+                        var idNode = rec.get("id");
+                        String id = idNode.isNull() ? null : idNode.asText();
                         var object = rec.get("object").toString();
                         return new SerializedCache.SerializedEntry(id, object);
                     } catch (Exception e) {

@@ -16,7 +16,9 @@ package com.norconex.crawler.core.cluster.impl.hazelcast;
 
 import java.util.Objects;
 
+import com.hazelcast.collection.IQueue;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.map.IMap;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
@@ -30,17 +32,37 @@ public final class HazelcastUtil {
     }
 
     public static boolean isPersistent(
-            HazelcastInstance hazelcast, String mapName) {
+            HazelcastInstance hazelcast, String name) {
         try {
             var cfg = hazelcast.getConfig();
-            var mcfg = cfg.getMapConfig(mapName);
-            var ms = mcfg.getMapStoreConfig();
-            return ms != null && ms.isEnabled();
+            // Try map first
+            try {
+                var mcfg = cfg.getMapConfig(name);
+                var ms = mcfg.getMapStoreConfig();
+                if (ms != null && ms.isEnabled()) {
+                    return true;
+                }
+            } catch (Exception e) {
+                // ignore
+            }
+            // Try queue
+            try {
+                var qcfg = cfg.getQueueConfig(name);
+                var qs = qcfg.getQueueStoreConfig();
+                return qs != null && qs.isEnabled();
+            } catch (Exception e) {
+                // ignore
+            }
+            return false;
         } catch (Exception e) {
             LOG.debug("Could not determine persistence for '{}': {}",
-                    mapName, e.toString());
+                    name, e.toString());
             return false;
         }
+    }
+
+    public static boolean isSupportedCacheType(Object obj) {
+        return obj instanceof IMap || obj instanceof IQueue;
     }
 
     /**

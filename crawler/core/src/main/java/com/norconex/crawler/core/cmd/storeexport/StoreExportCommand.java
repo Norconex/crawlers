@@ -125,6 +125,7 @@ public class StoreExportCommand implements Command {
         writer.writeStringField("crawler", session.getCrawlerId());
         writer.writeStringField("store", name);
         writer.writeStringField("type", serialCache.getClassName());
+        writer.writeStringField("cacheType", serialCache.getCacheType().name());
         writer.writeFieldName("records");
         writer.writeStartArray();
 

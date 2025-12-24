@@ -20,12 +20,17 @@ public final class SerializedCache
         String json;
     }
 
+    public enum CacheType {
+        MAP, QUEUE
+    }
+
     private String cacheName;
     private String className;
     /**
      * Whether this cache is persisted by the crawler between runs.
      */
     private boolean persistent;
+    private CacheType cacheType;
     @Getter(value = AccessLevel.NONE)
     private Iterator<SerializedEntry> entries;
 
