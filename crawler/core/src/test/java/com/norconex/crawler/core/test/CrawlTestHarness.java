@@ -14,117 +14,196 @@
  */
 package com.norconex.crawler.core.test;
 
-import static java.util.Optional.ofNullable;
-
 import java.io.Closeable;
-import java.nio.file.Path;
+import java.io.IOException;
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import com.norconex.crawler.core.CrawlConfig;
+import org.apache.commons.lang3.StringUtils;
+import org.testcontainers.postgresql.PostgreSQLContainer;
+
+import com.norconex.commons.lang.ClassUtil;
+import com.norconex.commons.lang.TimeIdGenerator;
+import com.norconex.commons.lang.bean.BeanUtil;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
+import com.norconex.crawler.core.util.ExceptionSwallower;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 
-public interface CrawlTestHarness extends Closeable {
+@Slf4j
+@RequiredArgsConstructor
+public class CrawlTestHarness implements Closeable {
 
-    //TODO have a builder launched by either standalone or clustered
-    // then the builder is for instrumentalization (and modifying config).
-    // then offer to launch, get config, and get crawl metrics.
-    @Setter
+    // Configure container with explicit waiting strategy and credentials so
+    // tests are less likely to race on startup and we can log mapped port.
+    static PostgreSQLContainer postgres =
+            new PostgreSQLContainer("postgres:16-alpine")
+                    .withDatabaseName("test")
+                    .withUsername("test")
+                    .withPassword("test")
+    // Prefer waiting for the DB to log that it is ready to accept
+    // connections. Waiting only for a listening port can return
+    // before Postgres is fully ready to accept connections.
+    ;
+    //                    .waitingFor(Wait.forLogMessage(
+    //                            ".*database system is ready to accept connections.*\\n",
+    //                            1)
+    //                            .withStartupTimeout(Duration.ofSeconds(60)));
+
+    @NonNull
     @Getter(value = AccessLevel.PACKAGE)
-    @Accessors(fluent = true)
-    @RequiredArgsConstructor
-    public abstract static class Builder {
-        private final CrawlConfig crawlConfig;
-    }
+    private final CrawlTestInstrument instrumentTemplate;
+    @Getter
+    private final String id = "" + TimeIdGenerator.next();
 
-    @Setter
-    @Getter(value = AccessLevel.PACKAGE)
-    @Accessors(fluent = true)
-    public static class StandaloneBuilder extends Builder {
-        private boolean recordEvents;
-        private boolean recordLogs;
-        private boolean recordCaches;
-        private Consumer<CrawlConfig> configModifier;
+    private final Map<String, TestCrawler> nodeCrawlers = new HashMap<>();
+    private final ExecutorService executor = Executors.newCachedThreadPool();
 
-        public StandaloneBuilder(@NonNull CrawlConfig crawlConfig) {
-            super(crawlConfig);
+    public CompletableFuture<CrawlTestHarnessResult> launchAsync(
+            @NonNull String... nodeNames) {
+        if (Arrays.stream(nodeNames).anyMatch(StringUtils::isBlank)) {
+            throw new IllegalArgumentException("Node name must not be null.");
+        }
+        if (Arrays.stream(nodeNames).distinct().count() != nodeNames.length) {
+            throw new IllegalArgumentException("Node names must be unique.");
         }
 
-        public CrawlTestHarness build() {
-            return new StandaloneHarnessImpl(this);
+        var isClustered = instrumentTemplate.isClustered();
+        if (isClustered) {
+            // TestCrawler will know to grab the right HZ cfg when clustered
+            postgres.start();
+            // Log actual connection info so we can diagnose refused connections
+            try {
+                LOG.info("Postgres container started: id='{}', jdbcUrl='{}'",
+                        //                        , "
+                        //                        + "host='{}', mappedPort={}",
+                        postgres.getContainerId(), postgres.getJdbcUrl());
+                //                        postgres.getHost(),
+                //                        postgres.getMappedPort(5432));
+            } catch (Exception e) {
+                LOG.warn("Could not determine mapped Postgres port: {}",
+                        e.getMessage());
+            }
+        }
+
+        Map<String, CompletableFuture<CrawlTestNodeOutput>> futures =
+                new ConcurrentHashMap<>();
+        for (String nodeName : nodeNames) {
+
+            var instrument = instrumentNode(nodeName);
+
+            var testCrawler = new TestCrawler(instrument);
+            nodeCrawlers.put(nodeName, testCrawler);
+            futures.put(nodeName, CompletableFuture.supplyAsync(
+                    testCrawler::crawl, executor));
+            LOG.debug("Launched \"{}\".", nodeName);
+        }
+
+        var allDone = CompletableFuture.allOf(
+                futures.values().toArray(new CompletableFuture[0]));
+
+        return allDone.thenApply(v -> {
+            Map<String, CrawlTestNodeOutput> results = new HashMap<>();
+            futures.forEach((name, future) -> results.put(name, future.join()));
+            if (isClustered) {
+                postgres.stop();
+            }
+            return new CrawlTestHarnessResult(results);
+        });
+    }
+
+    public CrawlTestHarnessResult launchSync(@NonNull String... nodeNames) {
+
+        try {
+            return launchAsync(nodeNames).get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted while waiting for crawlers",
+                    e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException("Failed to launch crawlers",
+                    e.getCause());
         }
     }
 
-    @Setter
-    @Getter(value = AccessLevel.PACKAGE)
-    @Accessors(fluent = true)
-    public static class ClusteredBuilder extends Builder {
-        public ClusteredBuilder(CrawlConfig crawlConfig) {
-            super(crawlConfig);
+    public CrawlTestHarnessResult getResults() {
+        Map<String, CrawlTestNodeOutput> results = new HashMap<>();
+        nodeCrawlers.forEach((name, crawler) -> {
+            results.put(name, crawler.getResult());
+        });
+        return new CrawlTestHarnessResult(results);
+    }
+
+    public Optional<CrawlTestNodeOutput> getNodeOutput(String nodeName) {
+        var crawler = nodeCrawlers.get(nodeName);
+        if (crawler != null) {
+            return Optional.ofNullable(crawler.getResult());
         }
+        return Optional.empty();
+    }
 
-        public CrawlTestHarness build() {
-            return new ClusteredHarnessImpl(this);
+    CrawlTestWaitFor waitFor() {
+        return new CrawlTestWaitFor(Duration.ofSeconds(30), this);
+    }
+
+    CrawlTestWaitFor waitFor(@NonNull Duration timeout) {
+        return new CrawlTestWaitFor(timeout, this);
+    }
+
+    @Override
+    public void close() throws IOException {
+        nodeCrawlers
+                .forEach((name, crawler) -> ExceptionSwallower.close(crawler));
+        executor.shutdownNow();
+        postgres.close();
+    }
+
+    private CrawlTestInstrument instrumentNode(String nodeName) {
+        var instrument = newInstrumentFromTemplate();
+        instrument.setNodeName(nodeName);
+        if (instrument.getCrawlConfig().getId() == null) {
+            instrument.getCrawlConfig().setId(id);
         }
+        if (instrument.isClustered()) {
+            var connConfig = ((HazelcastClusterConnector) instrument
+                    .getCrawlConfig()
+                    .getClusterConfig()
+                    .getConnector())
+                            .getConfiguration();
+            var props = connConfig.getProperties();
+            // matches variables in HZ yaml configuration
+            props.setProperty("JDBC_URL", postgres.getJdbcUrl());
+            props.setProperty("JDBC_USERNAME", postgres.getUsername());
+            props.setProperty("JDBC_PASSWORD", postgres.getPassword());
+            props.setProperty("JDBC_DRIVER", postgres.getDriverClassName());
+
+            LOG.info("CrawlTestHarness instrumented database properties: {}",
+                    props);
+        }
+        return instrument;
     }
 
-    static StandaloneBuilder standalone(Path workDir) {
-        return standalone(workDir, null);
+    private CrawlTestInstrument newInstrumentFromTemplate() {
+        var instrument = BeanUtil.clone(instrumentTemplate);
+        if (instrument.getCrawlConfig() == null) {
+            var driver = ClassUtil
+                    .newInstance(instrument.getDriverSupplierClass()).get();
+            var cfg = ClassUtil.newInstance(driver.crawlerConfigClass());
+            instrument.setCrawlConfig(cfg);
+        }
+        return instrument;
     }
-
-    static StandaloneBuilder standalone(Path workDir, CrawlConfig crawlConfig) {
-        var cfg = ofNullable(crawlConfig).orElseGet(CrawlConfig::new);
-        cfg.setWorkDir(workDir);
-        return new StandaloneBuilder(cfg);
-    }
-
-    static ClusteredBuilder clustered() {
-        return clustered(null);
-    }
-
-    static ClusteredBuilder clustered(CrawlConfig crawlConfig) {
-        return new ClusteredBuilder(crawlConfig);
-    }
-
-    /**
-     * Gets the crawl configuration.
-     * @return crawl configuration
-     */
-    CrawlConfig getCrawlConfig();
-
-    /**
-     * Launches a new crawler node for each node names specified and wait
-     * for them to terminate before returning. The first
-     * time this method is called for this instance will create a new cluster.
-     * Subsequent times, it adds to the existing cluster.
-     *
-     * <b>Specifying one or several names for a standalone crawl has no
-     * effect.</b>
-     * @param nodeNames names of each nodes (must be unique)
-     * @return the added nodes
-     */
-    CrawlTestResult launch(@NonNull String... nodeNames);
-
-    CompletableFuture<CrawlTestResult>
-            launchAsync(@NonNull String... nodeNames);
-
-    /**
-     * Get test results so far. If called after the crawl has terminated,
-     * the results shall be the same as the test result returned by
-     * the launch methods.
-     * @return result
-     */
-    CrawlTestResult getResult();
-
-    CrawlTestWaitFor waitFor();
-
-    CrawlTestWaitFor waitFor(Duration timeout);
 
 }

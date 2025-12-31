@@ -64,15 +64,27 @@
         <artifactId>assertj-core</artifactId>
         <scope>test</scope>
     </dependency>
+		<dependency>
+		  <groupId>org.testcontainers</groupId>
+		  <artifactId>testcontainers</artifactId>
+		  <version>${testcontainers.version}</version>
+		  <scope>test</scope>
+		</dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>neo4j</artifactId>
-      <version>${testcontainers.version}</version>
+      <artifactId>testcontainers-junit-jupiter</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>junit-jupiter</artifactId>
+      <artifactId>testcontainers-neo4j</artifactId>
+      <version>${testcontainers.version}</version>
       <scope>test</scope>
     </dependency>
 

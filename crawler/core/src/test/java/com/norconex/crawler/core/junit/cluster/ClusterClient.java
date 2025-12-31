@@ -22,7 +22,6 @@ import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.junit.cluster.node.CrawlerNode;
 import com.norconex.crawler.core.junit.cluster.state.StateDbClient;
 import com.norconex.crawler.core.junit.cluster.state.StateDbServer;
-import com.norconex.crawler.core.util.CoreTestUtil;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 
 import lombok.Getter;
@@ -165,7 +164,7 @@ public class ClusterClient implements AutoCloseable {
         // Write configuration in case it changed.
         if (config != null) {
             crawlConfig = config;
-            CoreTestUtil.writeConfigToFile(crawlConfig, configFile);
+            // CoreTestUtil.writeConfigToFile(crawlConfig, configFile);
         }
     }
 
@@ -239,7 +238,7 @@ public class ClusterClient implements AutoCloseable {
             }
 
             // Write configuration
-            CoreTestUtil.writeConfigToFile(crawlConfig, configFile);
+            //     CoreTestUtil.writeConfigToFile(crawlConfig, configFile);
 
             // Start state server
             var dbName = "testdb_" + TimeIdGenerator.next();

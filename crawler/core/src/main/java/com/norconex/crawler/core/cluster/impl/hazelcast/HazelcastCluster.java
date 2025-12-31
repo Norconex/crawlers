@@ -14,8 +14,13 @@
  */
 package com.norconex.crawler.core.cluster.impl.hazelcast;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -25,6 +30,7 @@ import com.hazelcast.cluster.Member;
 import com.hazelcast.cluster.MembershipEvent;
 import com.hazelcast.cluster.MembershipListener;
 import com.hazelcast.config.Config;
+import com.hazelcast.config.DataConnectionConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.norconex.commons.lang.Sleeper;
@@ -56,7 +62,7 @@ public class HazelcastCluster implements Cluster {
     private CacheStopController stopController;
     private Path workDir;
 
-    private final HazelcastClusterConfig configuration;
+    private final HazelcastClusterConnectorConfig configuration;
     private HazelcastInstance hazelcastInstance;
     private UUID membershipListenerId;
     private boolean clustered;
@@ -76,17 +82,14 @@ public class HazelcastCluster implements Cluster {
 
         LOG.info("Initializing Hazelcast cluster node...");
 
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("workDir", workDir.toAbsolutePath().toString());
+        configuration.getProperties()
+                .forEach((k, v) -> variables.put(Objects.toString(k, null), v));
         var hzConfig = HazelcastConfigLoader.load(
-                configuration.getConfigFile(), workDir);
+                configuration.getConfigFile(), variables);
+
         hzConfig.setProperty("hazelcast.logging.type", "slf4j");
-
-        //        var listenerCfg = new ListenerConfig();
-        //        listenerCfg.setImplementation(new DataSourceLifecycleListener(dbProps));
-        //        hzConfig.addListenerConfig(listenerCfg);
-
-        //        hazelcastConfig.setInstanceName(buildInstanceName(workDir));
-        //        var persistenceDir = workDir.resolve("cache/hazelcast").normalize();
-        //        applyPersistenceDir(hzConfig, persistenceDir);
 
         try {
 
@@ -98,21 +101,112 @@ public class HazelcastCluster implements Cluster {
 
             LOG.info("Creating HazelcastInstance with cluster name: {}",
                     hzConfig.getClusterName());
-            hazelcastInstance = Hazelcast.newHazelcastInstance(hzConfig);
+            hazelcastInstance = createHazelcastInstance(hzConfig);
 
-            //            //TODO XXX is it necessary?
-            //            // Register lifecycle listener to persist backup data before shutdown
-            //            hazelcastInstance.getLifecycleService().addLifecycleListener(
-            //                    event -> {
-            //                        if (event
-            //                                .getState() == com.hazelcast.core.LifecycleEvent.LifecycleState.SHUTTING_DOWN) {
-            //                            LOG.info(
-            //                                    "Hazelcast shutting down, persisting backup data to RocksDB...");
-            //                            persistAllBackupData();
-            //                            // Close all shared RocksDB queue store instances
-            //                            RocksDBQueueStore.closeAll();
-            //                        }
-            //                    });
+            // Diagnostic dump: log DataConnectionConfig and map configs so
+            // we can verify which JDBC properties Hazelcast actually has
+            // at runtime (helps debug mismatches between Testcontainers
+            // jdbcUrl and Hikari's attempted connection).
+            try {
+                // Also write to a file in the workDir so we don't lose it if
+                // test console output is truncated.
+                var dumpFile = workDir.resolve("hazelcast-runtime-dump.log");
+                var dumpLines = new java.util.ArrayList<String>();
+                dumpLines.add("=== Hazelcast runtime dump ===");
+                dumpLines.add("nodeWorkDir=" + workDir);
+                var runtimeCfg = hazelcastInstance.getConfig();
+                var dataConns = runtimeCfg.getDataConnectionConfigs();
+                if (dataConns != null && !dataConns.isEmpty()) {
+                    LOG.info("Hazelcast DataConnectionConfigs (count={}):",
+                            dataConns.size());
+                    dumpLines.add("DataConnectionConfigs count="
+                            + dataConns.size());
+                    dataConns.forEach((name, dcc) -> {
+                        try {
+                            var props = dcc.getProperties();
+                            LOG.info(
+                                    "  data-conn name='{}' type='{}' shared='{}'",
+                                    name, dcc.getType(), dcc.isShared());
+                            dumpLines.add("  data-conn name='" + name
+                                    + "' type='" + dcc.getType()
+                                    + "' shared='" + dcc.isShared() + "'");
+                            if (props != null && !props.isEmpty()) {
+                                for (String k : props.stringPropertyNames()) {
+                                    LOG.info("    {}='{}'", k,
+                                            props.getProperty(k));
+                                    dumpLines.add("    " + k + "='"
+                                            + props.getProperty(k) + "'");
+                                }
+                            } else {
+                                LOG.info("    (no properties)");
+                                dumpLines.add("    (no properties)");
+                            }
+                        } catch (Exception e) {
+                            LOG.warn(
+                                    "Could not log DataConnectionConfig '{}' : {}",
+                                    name, e.getMessage());
+                            dumpLines.add("  ERROR data-conn name='" + name
+                                    + "': " + e);
+                        }
+                    });
+                } else {
+                    LOG.info(
+                            "No DataConnectionConfigs present in Hazelcast config");
+                    dumpLines.add("No DataConnectionConfigs present");
+                }
+
+                var mapCfgs = runtimeCfg.getMapConfigs();
+                LOG.info("Hazelcast MapConfigs (count={})", mapCfgs.size());
+                dumpLines.add("MapConfigs count=" + mapCfgs.size());
+                mapCfgs.forEach((mname, mc) -> {
+                    try {
+                        var msc = mc.getMapStoreConfig();
+                        if (msc == null) {
+                            LOG.info("  map='{}' mapStore=null", mname);
+                            dumpLines.add("  map='" + mname
+                                    + "' mapStore=null");
+                        } else {
+                            LOG.info(
+                                    "  map='{}' mapStore.enabled={} factory='{}'",
+                                    mname, msc.isEnabled(),
+                                    msc.getFactoryClassName());
+                            dumpLines.add("  map='" + mname
+                                    + "' mapStore.enabled=" + msc.isEnabled()
+                                    + " factory='" + msc.getFactoryClassName()
+                                    + "'");
+                            var mprops = msc.getProperties();
+                            if (mprops != null && !mprops.isEmpty()) {
+                                for (String k : mprops.stringPropertyNames()) {
+                                    LOG.info("    {}='{}'", k,
+                                            mprops.getProperty(k));
+                                    dumpLines.add("    " + k + "='"
+                                            + mprops.getProperty(k) + "'");
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        LOG.warn("Could not log MapConfig '{}' : {}", mname,
+                                e.getMessage());
+                        dumpLines.add(
+                                "  ERROR map='" + mname + "': " + e);
+                    }
+                });
+
+                dumpLines.add("=== end ===");
+                try {
+                    Files.write(dumpFile, dumpLines,
+                            StandardOpenOption.CREATE,
+                            StandardOpenOption.APPEND);
+                    LOG.info("Wrote Hazelcast runtime dump to: {}",
+                            dumpFile.toAbsolutePath());
+                } catch (Exception e) {
+                    LOG.warn("Could not write Hazelcast runtime dump file: {}",
+                            e.getMessage());
+                }
+            } catch (Exception e) {
+                LOG.warn("Could not dump Hazelcast runtime config: {}",
+                        e.getMessage());
+            }
 
             // Add membership listener for coordinator changes
             membershipListenerId = hazelcastInstance.getCluster()
@@ -140,6 +234,10 @@ public class HazelcastCluster implements Cluster {
                     workDir, e);
             throw e;
         }
+    }
+
+    protected HazelcastInstance createHazelcastInstance(Config hzConfig) {
+        return Hazelcast.newHazelcastInstance(hzConfig);
     }
 
     @Override
@@ -289,7 +387,7 @@ public class HazelcastCluster implements Cluster {
 
     //TODO move this logic to
     private static void validateClusterMode(
-            Config hzConfig, HazelcastClusterConfig hzClusterConfig,
+            Config hzConfig, HazelcastClusterConnectorConfig hzClusterConfig,
             boolean isClustered) {
         var configAnalyzedClustered = false;
         var join = hzConfig.getNetworkConfig().getJoin();

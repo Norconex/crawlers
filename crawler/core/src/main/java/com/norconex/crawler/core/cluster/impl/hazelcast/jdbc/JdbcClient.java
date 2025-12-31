@@ -48,6 +48,7 @@ public class JdbcClient {
     private final DataSource dataSource;
 
     public JdbcClient(HazelcastInstance hz, Properties storeProps) {
+        LOG.info("XXX NEW JDBC CLIENT");
         dataSource = createOrGetDataSource(hz, storeProps);
     }
 
@@ -118,7 +119,33 @@ public class JdbcClient {
     }
 
     public Connection getConnection() throws SQLException {
-        return dataSource.getConnection();
+        try {
+            if (dataSource instanceof HikariDataSource hds) {
+                LOG.info(
+                        "Getting connection from HikariDataSource: jdbcUrl='{}', driver='{}'",
+                        hds.getJdbcUrl(), hds.getDriverClassName());
+            } else {
+                LOG.info("Getting connection from DataSource of type: {}",
+                        dataSource.getClass().getName());
+            }
+            return dataSource.getConnection();
+        } catch (SQLException e) {
+            try {
+                if (dataSource instanceof HikariDataSource hds) {
+                    LOG.error(
+                            "Connection attempt failed for HikariDataSource: jdbcUrl='{}', driver='{}'",
+                            hds.getJdbcUrl(), hds.getDriverClassName());
+                } else {
+                    LOG.error(
+                            "Connection attempt failed for DataSource of type: {}",
+                            dataSource.getClass().getName());
+                }
+            } catch (Exception ex) {
+                LOG.debug("Could not extract DataSource details: {}",
+                        ex.toString());
+            }
+            throw e;
+        }
     }
 
     public void executeInTransaction(SQLTask task) {
@@ -155,6 +182,7 @@ public class JdbcClient {
 
         var hzConf = hz.getConfig();
         var dbRef = storeProps.getProperty(PROP_DATA_CONN_REF);
+        LOG.info("XXX dbRef: " + dbRef);
         DataConnectionConfig dbConf = null;
         if (StringUtils.isNotBlank(dbRef)) {
             dbConf = hzConf.getDataConnectionConfig(dbRef);
@@ -173,10 +201,22 @@ public class JdbcClient {
         }
         dbRef = dbConf.getName();
 
+        // Important: Hazelcast may populate properties with a key present but
+        // a null value (e.g., driverClassName). Passing such Properties to
+        // Hikari's reflective PropertyElf causes:
+        // "Failed to load driver class null".
+        // We therefore build the config ourselves and ignore null values.
         var dbProps = dbConf.getProperties();
-        return (DataSource) hz.getUserContext().computeIfAbsent(
-                dbRef,
-                k -> new HikariDataSource(new HikariConfig(dbProps)));
+
+        return (DataSource) hz.getUserContext().computeIfAbsent(dbRef, k -> {
+            var hikariConfig = new HikariConfig(dbProps);
+
+            LOG.info("XXX hikari config jdbcUrl: " +
+                    hikariConfig.getJdbcUrl());
+            LOG.info("XXX hikari config driver: " +
+                    hikariConfig.getDriverClassName());
+            return new HikariDataSource(hikariConfig);
+        });
     }
 
     private static boolean doTableExists(Connection conn, String tableName)

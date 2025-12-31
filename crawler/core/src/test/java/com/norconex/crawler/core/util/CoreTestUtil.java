@@ -15,6 +15,7 @@
 package com.norconex.crawler.core.util;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.nio.file.Files;
@@ -27,7 +28,6 @@ import com.norconex.commons.lang.SystemUtil.UncheckedCallableException;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
-import com.norconex.crawler.core.CrawlConfig;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -35,20 +35,22 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class CoreTestUtil {
 
+    public static final String CONTAINER_POSTGRESQL = "postgres:16";
+
     public static final String SYS_PROP_PREFER_IPV4 =
             "java.net.preferIPv4Stack";
     public static final String SYS_PROP_PREFER_IPV6 =
             "java.net.preferIPv6Addresses";
 
-    public static Path writeConfigToDir(
-            CrawlConfig crawlConfig, Path targetDir) {
+    public static Path writeToDir(
+            Object obj, Path targetDir) {
         var file = targetDir.resolve(TimeIdGenerator.next() + ".yaml");
-        writeConfigToFile(crawlConfig, file);
+        writeToFile(obj, file);
         return file;
     }
 
-    public static void writeConfigToFile(
-            CrawlConfig crawlConfig, Path targetFile) {
+    public static void writeToFile(
+            Object obj, Path targetFile) {
         // make sure directory exists
         try {
             Files.createDirectories(targetFile.getParent());
@@ -59,7 +61,15 @@ public final class CoreTestUtil {
                 targetFile,
                 StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING)) {
-            BeanMapper.DEFAULT.write(crawlConfig, w, Format.YAML);
+            BeanMapper.DEFAULT.write(obj, w, Format.YAML);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public static <T> T readFromFile(Path file, Class<T> objectType) {
+        try (Reader r = Files.newBufferedReader(file)) {
+            return BeanMapper.DEFAULT.read(objectType, r, Format.YAML);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

@@ -70,10 +70,12 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
                 factory = new TypedJdbcMapStoreFactory();
                 storeConfig.setFactoryImplementation(factory);
             }
-            if (factory instanceof LazyTypedStoreFactory) {
-                ((LazyTypedStoreFactory) factory).setValueClass(valueType);
-                ((LazyTypedStoreFactory) factory)
-                        .setHazelcastInstance(hazelcast);
+            if (factory instanceof LazyTypedStoreFactory lazyFactory) {
+                lazyFactory.setValueClass(valueType);
+                // Always set HazelcastInstance if not set
+                if (lazyFactory.getHazelcastInstance() == null) {
+                    lazyFactory.setHazelcastInstance(hazelcast);
+                }
             }
         }
 
@@ -104,10 +106,12 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
                 factory = new TypedJdbcQueueStoreFactory();
                 storeConfig.setFactoryImplementation(factory);
             }
-            if (factory instanceof LazyTypedStoreFactory) {
-                ((LazyTypedStoreFactory) factory).setValueClass(valueType);
-                ((LazyTypedStoreFactory) factory)
-                        .setHazelcastInstance(hazelcast);
+            if (factory instanceof LazyTypedStoreFactory lazyFactory) {
+                lazyFactory.setValueClass(valueType);
+                // Always set HazelcastInstance if not set
+                if (lazyFactory.getHazelcastInstance() == null) {
+                    lazyFactory.setHazelcastInstance(hazelcast);
+                }
             }
         }
 
@@ -245,6 +249,23 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
             return;
         }
         try {
+            // Only register cache types for maps that have an active
+            // MapStore configured. Ephemeral maps (eph-*) are explicitly
+            // disabled in the YAML and should not trigger DB-backed
+            // initialization of the type registry map.
+            var cfg = hazelcast.getConfig();
+            var mapConfig = cfg.getMapConfig(name);
+            if (mapConfig == null) {
+                LOG.debug("No map config for '{}'; skipping type registration",
+                        name);
+                return;
+            }
+            var storeConfig = mapConfig.getMapStoreConfig();
+            if (storeConfig == null || !storeConfig.isEnabled()) {
+                LOG.debug("Map '{}' has no active MapStore; skipping type "
+                        + "registration", name);
+                return;
+            }
             getCacheTypes().putIfAbsent(name, valueType.getName());
         } catch (Exception e) {
             LOG.debug("Could not register cache type for '{}': {}",

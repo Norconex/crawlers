@@ -23,10 +23,9 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.Sleeper;
-import com.norconex.crawler.core.junit.todo.usethis.annotations.SlowTest;
 
 @Timeout(60)
-@SlowTest
+//@SlowTest
 class HazelcastClusterStartupTest {
 
     @TempDir
@@ -34,7 +33,7 @@ class HazelcastClusterStartupTest {
 
     @Test
     void testStandaloneClusterStartup() {
-        var config = new HazelcastClusterConfig()
+        var config = new HazelcastClusterConnectorConfig()
                 //                .setPreset(Preset.STANDALONE)
                 .setClusterName("standalone-test");
         var cluster = new HazelcastCluster(config);
@@ -48,7 +47,7 @@ class HazelcastClusterStartupTest {
     @Test
     void testClusterModeStartup() throws Exception {
         var numNodes = 2;
-        var config = new HazelcastClusterConfig()
+        var config = new HazelcastClusterConnectorConfig()
                 //TODO              .setPreset(Preset.CLUSTER)
                 .setClusterName("cluster-test");
         var clusters = new HazelcastCluster[numNodes];

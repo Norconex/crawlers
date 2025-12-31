@@ -15,16 +15,12 @@
 package com.norconex.crawler.core.spi;
 
 import com.norconex.commons.lang.bean.spi.BasePolymorphicTypeProvider;
-import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.cluster.ClusterConnector;
-import com.norconex.crawler.core.cmd.crawl.pipeline.process.ProcessUpsertTest;
 import com.norconex.crawler.core.doc.operations.DocumentConsumer;
-import com.norconex.crawler.core.event.listeners.TestEventMemoryListener;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.junit.cluster.node.ConfigInstrumentor.PostImportWaitForEventOnNodes;
 import com.norconex.crawler.core.mocks.cluster.MockFailingClusterConnector;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
-import com.norconex.importer.response.ImporterResponseProcessor;
 
 public class CoreTestPtProvider extends BasePolymorphicTypeProvider {
 
@@ -35,13 +31,13 @@ public class CoreTestPtProvider extends BasePolymorphicTypeProvider {
                         PostImportWaitForEventOnNodes.class)
                 .add(Fetcher.class,
                         MockFetcher.class)
-                .add(EventListener.class,
-                        TestEventMemoryListener.class
+                //                .add(EventListener.class,
+                //                        TestEventMemoryListener.class
                 //                        ,
                 //                        CrawlTestCapturer.class
-                )
-                .add(ImporterResponseProcessor.class,
-                        ProcessUpsertTest.TestResponseProcessor.class)
+                //                )
+                //                .add(ImporterResponseProcessor.class,
+                //                        ProcessUpsertTest.TestResponseProcessor.class)
                 .add(ClusterConnector.class,
                         //                        TestClusterConnector.ClusterNoPersistence.class,
                         //                        TestClusterConnector.ClusterWithPersistence.class,

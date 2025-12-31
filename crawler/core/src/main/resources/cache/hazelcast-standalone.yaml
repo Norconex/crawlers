@@ -1,7 +1,8 @@
 # yaml-language-server: $schema=./hazelcast-config-5.6.json
 
 # Hazelcast Standalone Configuration
-# The ${workDir} variable is substituted for the "workDir" specified in 
+#
+# The {workDir} variable is substituted for the "workDir" specified in 
 # the crawler config.
 hazelcast:
   cluster-name: standalone-crawler
@@ -10,7 +11,7 @@ hazelcast:
     jdbc-datasource:
       type: JDBC
       properties:
-        jdbcUrl: jdbc:h2:file:{workDir}/db;DB_CLOSE_DELAY=-1
+        jdbcUrl: jdbc:h2:file:${workDir}/db;DB_CLOSE_DELAY=-1
         username: sa
         password: ""
         maximumPoolSize: 10
@@ -53,27 +54,8 @@ hazelcast:
       map-store:
         enabled: false
 
-#    queue-*:
-#      backup-count: 0
-#      map-store:
-#        enabled: true
-#        initial-mode: EAGER
-#        write-delay-seconds: 0
-#        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.QueueJdbcMapStore
-#        properties:
-#          data-connection-ref: jdbc-datasource
-#          column-key-type: VARCHAR(4096)
-#          column-value-type: BIGINT
-#      indexes:
-#        - type: SORTED
-#          attributes:
-#            - this 
 
-# queue-* entries were previously configured under map. Move them
-# to the proper queue section to define distributed FIFO queues. The
-# queue store should persist values as strings (JSON when not a
-# String) for JDBC portability.
-  
+  # Queue configurations
   queue:
     # Configure distributed FIFO queues matching "queue-*" names. Values
     # are persisted as strings (VARCHAR) so JSON-serialized objects are
@@ -83,127 +65,12 @@ hazelcast:
       backup-count: 0
       queue-store:
         enabled: true
-        #initial-mode: EAGER
-        #write-delay-seconds: 0
         factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcQueueStoreFactory
         properties:
           data-connection-ref: jdbc-datasource
           column-value-type: VARCHAR(4096)
         
         
-        # Optional: to use a typed queue store that (de)serializes
-        # objects to/from JSON, set the fully-qualified class name here.
-        # Example:
-        # class-name: com.example.YourQueueItemClass
     # Note: ordering should be handled by the QueueStore implementation
     # (for example using an internal sequence). The JDBC persistence
     # column for the queue value is VARCHAR(4096) by default.
-          
-#    CRAWLER_ATTRIBS_BLAH:
-#      backup-count: 0
-#      map-store:
-#        enabled: true
-#        initial-mode: EAGER
-#        write-delay-seconds: 0
-#        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.JdbcMapStore
-#        properties:
-#          # Need to reference data source since there could be multiple
-#          data-connection-ref: jdbc-datasource
-#          column-key-type: VARCHAR(4096)
-#          column-value-type: TEXT
-#          table-name: CRAWLER_ATTRIBS
-#          id-column: k
-#          columns: v
-
-          
-#          tableName: CRAWLER
-#          keyColumn: map_key
-#          valueColumn: map_value
-          
-
-#          table-name: CRAWLER
-#          id-column: key
-#          columns: value          
-
-
-
-                    
-          
-#    crawlRun:
-#      backup-count: 0
-#        
-#    crawlSession:
-#      backup-count: 0
-#        
-#    ledger_a:
-#      backup-count: 0
-#      indexes:
-#        - type: HASH
-#          attributes:
-#            - processingStatus
-#      map-store:
-#        enabled: true
-#        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.HazelcastJdbcMapStore
-#        properties:
-#    mapped-object: com.norconex.crawler.core.ledger.CrawlEntry
-#          jdbc.url: jdbc:h2:file:./data/crawler_db
-#          jdbc.username: sa
-#          jdbc.password: ""
-#          store.table: HZ_MAP_LEDGER_A
-#          store.keyColumn: MAP_KEY
-#          store.valueColumn: MAP_VALUE
-#    ledger_b:
-#      backup-count: 0
-#      indexes:
-#        - type: HASH
-#          attributes:
-#            - processingStatus
-#      map-store:
-#        enabled: true
-#        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.HazelcastJdbcMapStore
-#        properties:
-#          jdbc.url: jdbc:h2:file:./data/crawler_db
-#          jdbc.username: sa
-#          jdbc.password: ""
-#          store.table: HZ_MAP_LEDGER_B
-#          store.keyColumn: MAP_KEY
-#          store.valueColumn: MAP_VALUE
-#
-#    pipeCurrentStep:
-#      backup-count: 0
-#      map-store:
-#        enabled: true
-#        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.HazelcastJdbcMapStore
-#        properties:
-#          jdbc.url: jdbc:h2:file:./data/crawler_db
-#          jdbc.username: sa
-#          jdbc.password: ""
-#          store.table: HZ_MAP_PIPE_CURRENT_STEP
-#          store.keyColumn: MAP_KEY
-#          store.valueColumn: MAP_VALUE
-#
-#    pipeWorkerStatuses:
-#      backup-count: 0
-#      map-store:
-#        enabled: true
-#        class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.HazelcastJdbcMapStore
-#        properties:
-#          jdbc.url: jdbc:h2:file:./data/crawler_db
-#          jdbc.username: sa
-#          jdbc.password: ""
-#          store.table: HZ_MAP_PIPE_WORKER_STATUSES
-#          store.keyColumn: MAP_KEY
-#          store.valueColumn: MAP_VALUE
-#  queue:
-#    crawlQueue:
-#      backup-count: 0
-#      queue-store:
-#        enabled: true
-#        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.HazelcastJdbcQueueStoreFactory
-#        properties:
-#          jdbc.url: jdbc:h2:file:./data/crawler_db
-#          jdbc.username: sa
-#          jdbc.password: ""
-#          store.table: HZ_JDBC_QUEUE
-#          store.orderColumn: QUEUE_ORDER
-#          store.valueColumn: QUEUE_VALUE

@@ -32,9 +32,9 @@ public class TestLogAppender extends AbstractAppender {
     private final List<String> messages = new CopyOnWriteArrayList<>();
     private boolean started;
 
-    protected TestLogAppender(String name) {
+    public TestLogAppender() {
         super(
-                name,
+                "test",
                 null,
                 PatternLayout.newBuilder()
                         .withPattern("%level %logger - %msg")

@@ -15,13 +15,14 @@
 package com.norconex.crawler.core.cluster.impl.hazelcast;
 
 import java.time.Duration;
+import java.util.Properties;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-public class HazelcastClusterConfig {
+public class HazelcastClusterConnectorConfig {
 
     public static final String DEFAULT_CONFIG_FILE =
             "classpath:cache/hazelcast-standalone.yaml";
@@ -29,9 +30,21 @@ public class HazelcastClusterConfig {
     /**
      * Hazelcast configuration file path. Can be a local file-system
      * file or a classpath resource when prefixed with "classpath:".
-     * Default is {@value HazelcastClusterConfig#DEFAULT_CONFIG_FILE}.
+     * Default is {@value HazelcastClusterConnectorConfig#DEFAULT_CONFIG_FILE}.
      */
     private String configFile = DEFAULT_CONFIG_FILE;
+
+    /**
+     * Any variables replacing matching ones specified in hazelcast
+     * configuration file. Syntax is: <code>${variableName|defaultValue}</code>
+     * where the default value is optional. The following variables are
+     * automatically set so you do not need to add them:
+     * <ul>
+     *   <li>workDir</li>
+     * </ul>
+     *
+     */
+    private final Properties properties = new Properties();
 
     /**
      * Cluster name for Hazelcast instance. All nodes with the same cluster

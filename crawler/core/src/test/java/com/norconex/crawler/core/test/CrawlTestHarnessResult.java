@@ -1,4 +1,4 @@
-/* Copyright 2022-2024 Norconex Inc.
+/* Copyright 2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,27 +12,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.mocks.fetch;
+package com.norconex.crawler.core.test;
 
-import com.norconex.crawler.core.fetch.FetchRequest;
-import com.norconex.importer.doc.Doc;
+import java.util.Map;
 
-import lombok.Data;
+import org.apache.commons.collections4.Bag;
+import org.apache.commons.collections4.bag.TreeBag;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-@Data
 @RequiredArgsConstructor
-@Getter
-public class MockFetchRequest implements FetchRequest {
+public class CrawlTestHarnessResult {
+    @Getter
+    private final Map<String, CrawlTestNodeOutput> nodeOutputs;
 
-    private final Doc doc;
-
-    public MockFetchRequest(String ref) {
-        doc = new Doc(ref);
+    public Bag<String> getAllNodesEventNameBag() {
+        var bag = new TreeBag<String>();
+        nodeOutputs.values().forEach(out -> bag.addAll(out.getEventNames()));
+        return bag;
     }
 
-    public String getRef() {
-        return doc.getReference();
+    public CrawlTestNodeOutput getNodeOutput(String nodeName) {
+        return nodeOutputs.get(nodeName);
     }
 }

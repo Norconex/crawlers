@@ -21,7 +21,6 @@ import java.util.function.Consumer;
 import com.norconex.crawler.core.CrawlCallbacks;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
-import com.norconex.crawler.core._DELETE_OR_MIGRATE.CacheCapturer;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
 import com.norconex.crawler.core.session.CrawlSession;
@@ -181,11 +180,10 @@ public final class DriverInstrumentor {
             // command is a crawl command
             if (!CrawlCommand.class.equals(cmdCls)
                     || !session.getCluster().getLocalNode().isCoordinator()) {
-                return;
             }
 
             // Capture cache entries to state DB
-            new CacheCapturer().accept(session);
+            //            new CacheCapturer().accept(session);
 
             //            // Wait for cache synchronization to complete before exporting.
             //            // Infinispan cache writes are asynchronous and may not be

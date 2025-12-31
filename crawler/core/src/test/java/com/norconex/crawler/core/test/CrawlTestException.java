@@ -12,15 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core;
+package com.norconex.crawler.core.test;
 
-import org.junit.jupiter.api.Test;
+import lombok.experimental.StandardException;
 
-class CrawlerTest {
-
-    @Test
-    void testCrawler() {
-        //    Crawler.main(new String[] {});
-    }
-
+@StandardException
+public class CrawlTestException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
 }

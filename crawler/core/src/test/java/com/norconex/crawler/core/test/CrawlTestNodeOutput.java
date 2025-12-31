@@ -14,25 +14,39 @@
  */
 package com.norconex.crawler.core.test;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections4.Bag;
 import org.apache.commons.collections4.bag.TreeBag;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.norconex.crawler.core.cluster.impl.hazelcast.CacheNames;
 import com.norconex.crawler.core.session.CrawlRunInfo;
 import com.norconex.crawler.core.session.CrawlRunInfoResolver;
 import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NonNull;
 
-@Builder
-@Getter
-public class CrawlTestResult {
+@JsonDeserialize(builder = CrawlTestNodeOutput.NodeTestResultBuilder.class)
+@Data
+@Builder(builderClassName = "NodeTestResultBuilder")
+public class CrawlTestNodeOutput implements Serializable {
+
+    private static final long serialVersionUID = -9001010026702054867L;
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class NodeTestResultBuilder {
+        // Lombok will fill this in
+    }
 
     @Data
     public static class StatusCounts {
@@ -42,29 +56,36 @@ public class CrawlTestResult {
         private final long processed;
     }
 
+    @Default
     @NonNull
-    private final List<String> eventNames;
+    private final List<String> eventNames = new ArrayList<>();
 
+    @Default
     @NonNull
-    private final List<String> logLines;
+    private List<String> logLines = new ArrayList<>();
 
+    @Default
     @NonNull
-    private final Map<String, Map<String, String>> caches;
+    private final Map<String, Map<String, String>> caches = new HashMap<>();
 
+    @JsonIgnore
     public Bag<String> getEventNameBag() {
         var bag = new TreeBag<String>();
         getEventNames().forEach(bag::add);
         return bag;
     }
 
+    @JsonIgnore
     public String getLog() {
         return String.join("\n", logLines);
     }
 
+    @JsonIgnore
     public Map<String, String> getCache(String name) {
         return caches.get(name);
     }
 
+    @JsonIgnore
     public StatusCounts getLedgerStatusCounts() {
         var sessionMap = caches.get(CacheNames.CRAWL_SESSION);
         return new StatusCounts(
@@ -74,6 +95,7 @@ public class CrawlTestResult {
                 Long.parseLong(sessionMap.get("status-counter-PROCESSED")));
     }
 
+    @JsonIgnore
     public CrawlRunInfo getCrawlRunInfo() {
         var rec = getCache(CacheNames.CRAWL_RUN)
                 .get(CrawlRunInfoResolver.CRAWL_RUN_INFO_KEY);

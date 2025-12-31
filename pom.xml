@@ -90,8 +90,10 @@
     <junit-platform.version>1.12.0</junit-platform.version>
     <mockito.version>5.12.0</mockito.version>
     <mockserver.version>5.15.0</mockserver.version>
-    <testcontainers.version>1.21.3</testcontainers.version>
+    <testcontainers.version>2.0.3</testcontainers.version>
+    <!--
     <testcontainers-junit4-mock.version>1.0.1</testcontainers-junit4-mock.version>
+    -->
     
     <!-- === Maven plugins ================================================= -->
 
@@ -465,22 +467,31 @@
       </dependency>
       <dependency>
         <groupId>org.testcontainers</groupId>
-        <artifactId>junit-jupiter</artifactId>
+        <artifactId>testcontainers-bom</artifactId>
+        <version>${testcontainers.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <!--
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers-junit-jupiter</artifactId>
         <version>${testcontainers.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.testcontainers</groupId>
-        <artifactId>postgresql</artifactId>
+        <artifactId>testcontainers-postgresql</artifactId>
         <version>${testcontainers.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.testcontainers</groupId>
-        <artifactId>selenium</artifactId>
+        <artifactId>testcontainers-selenium</artifactId>
         <version>${testcontainers.version}</version>
         <scope>test</scope>
       </dependency>
+      -->
       <dependency>
         <groupId>software.xdev</groupId>
         <artifactId>testcontainers-junit4-mock</artifactId>

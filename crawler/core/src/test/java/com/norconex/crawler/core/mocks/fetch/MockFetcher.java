@@ -41,16 +41,16 @@ public class MockFetcher extends AbstractFetcher<MockFetcherConfig> {
             Sleeper.sleepMillis(configuration.getDelay().toMillis());
         }
 
-        var req = (MockFetchRequest) fetchRequest;
+        var ref = fetchRequest.getDoc().getReference();
         var resp = new MockFetchResponseImpl();
         resp.setProcessingOutcome(
                 configuration.isReturnBadStatus()
                         ? ProcessingOutcome.BAD_STATUS
                         : ProcessingOutcome.NEW);
         var content = configuration.isRandomDocContent()
-                ? "Fake content for: " + req.getRef()
+                ? "Fake content for: " + ref
                         + "\nRandomness: " + TimeIdGenerator.next()
-                : "Fake content for: " + req.getRef();
+                : "Fake content for: " + ref;
         fetchRequest.getDoc().setInputStream(
                 new ByteArrayInputStream(content.getBytes()));
         return resp;

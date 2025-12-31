@@ -50,6 +50,14 @@ public class TypedJdbcMapStoreFactory
     @Override
     public MapStore<String, Object> newMapStore(
             String mapName, Properties properties) {
+        // Defensive: fail fast if hazelcastInstance is not set
+        if (hazelcastInstance == null) {
+            throw new IllegalStateException(
+                    "HazelcastInstance is not set on TypedJdbcMapStoreFactory "
+                            +
+                            "for map '" + mapName + "'. " +
+                            "Ensure it is set before use (see HazelcastCacheManager).");
+        }
         // If valueClass was not set (for example when Hazelcast
         // instantiated the factory reflectively from config before we
         // had a chance to set it), default to String for the special

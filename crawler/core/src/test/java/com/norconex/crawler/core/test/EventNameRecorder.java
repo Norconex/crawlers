@@ -34,6 +34,8 @@ public class EventNameRecorder implements EventListener<Event> {
         if (event == null) {
             return;
         }
+        System.err.println("XXX %s got event %s".formatted(
+                Thread.currentThread().getName(), event.getName()));
         events.add(event.getName());
 
     }

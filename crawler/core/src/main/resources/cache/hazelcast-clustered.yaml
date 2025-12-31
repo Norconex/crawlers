@@ -7,18 +7,22 @@
 # - TCP/IP discovery enabled (for test environments)
 # - JDBC persistence support (configure credentials programmatically)
 #
-# Note: JDBC connection details should be configured programmatically
-# in Java code to allow dynamic configuration (e.g., for tests).
-# Tables are created via Liquibase migrations.
-#
 # IMPORTANT: Only ONE discovery method (multicast OR tcp-ip) can be
 # enabled at a time. This config uses TCP/IP by default.
 #
 hazelcast:
   cluster-name: crawler-cluster
 
-  # No default data-connection - configure programmatically
-  # to allow dynamic JDBC URLs and credentials (e.g., TestContainers)
+  data-connection:
+    jdbc-datasource:
+      type: JDBC
+      properties:
+        jdbcUrl: ${JDBC_URL}
+        username: ${JDBC_USERNAME}
+        password: ${JDBC_PASSWORD}
+        driverClassName: ${JDBC_DRIVER}
+        maximumPoolSize: 10
+      shared: true  
   
   jet:
     enabled: true
@@ -61,44 +65,46 @@ hazelcast:
         connection-timeout-seconds: 5
 
   # Map configurations with backup-count: 1 for cluster redundancy
+  
   map:
     default:
       backup-count: 1
       async-backup-count: 0
       read-backup-data: false
       map-store:
-        enabled: false
-
-    CRAWLER:
-      backup-count: 1
-      async-backup-count: 0
-      read-backup-data: false
-      map-store:
-        # MapStore configuration should be done programmatically
-        # to support GenericMapStore with dynamic JDBC credentials
-        enabled: false
+        enabled: true
         initial-mode: EAGER
         write-delay-seconds: 0
-        write-coalescing: false
-
-    crawlRun:
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
+        properties:
+          data-connection-ref: jdbc-datasource
+          column-key-type: VARCHAR(4096)
+          column-value-type: TEXT
+          sql-merge: |
+            INSERT INTO "{tableName}" (k, v) 
+            VALUES (?, ?) 
+            ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v
+    eph-*:
       backup-count: 1
       async-backup-count: 0
+      map-store:
+        enabled: false
         
-    crawlSession:
-      backup-count: 1
-      async-backup-count: 0
-
-  # Queue configurations  
+  # Queue configurations
   queue:
-    default:
+    # Configure distributed FIFO queues matching "queue-*" names. Values
+    # are persisted as strings (VARCHAR) so JSON-serialized objects are
+    # portable across JDBC implementations. The queue store factory class
+    # should implement persistence using a single value column.
+    queue-*:
       backup-count: 1
       async-backup-count: 0
-
-    crawlQueue:
-      backup-count: 1
-      async-backup-count: 0
-      max-size: 0  # unlimited
+      queue-store:
+        enabled: true
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcQueueStoreFactory
+        properties:
+          data-connection-ref: jdbc-datasource
+          column-value-type: VARCHAR(4096)
 
   # Partition group configuration for cluster
   partition-group:

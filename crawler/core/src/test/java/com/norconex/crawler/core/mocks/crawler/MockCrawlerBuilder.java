@@ -20,7 +20,6 @@ import java.util.function.Consumer;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.stubs.CrawlerConfigStubber;
 import com.norconex.crawler.core.test.CrawlTestDriver;
 
 import lombok.Data;
@@ -31,7 +30,7 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 public class MockCrawlerBuilder {
 
-    public static final String CRAWLER_ID = CrawlerConfigStubber.CRAWLER_ID;
+    public static final String CRAWLER_ID = null;//CrawlerConfigStubber.CRAWLER_ID;
 
     //NOTE: we could just assume that the workDir is set in config already,
     // but we want to enforce passing one when testing.
@@ -67,12 +66,13 @@ public class MockCrawlerBuilder {
     }
 
     private CrawlConfig resolvedConfig() {
-        var cfg = config != null
-                ? CrawlerConfigStubber.toMemoryCrawlerConfig(workDir, config)
-                : CrawlerConfigStubber.memoryCrawlerConfig(workDir);
-        if (configModifier != null) {
-            configModifier.accept(cfg);
-        }
-        return cfg;
+        //        var cfg = config != null
+        //                ? CrawlerConfigStubber.toMemoryCrawlerConfig(workDir, config)
+        //                : CrawlerConfigStubber.memoryCrawlerConfig(workDir);
+        //        if (configModifier != null) {
+        //            configModifier.accept(cfg);
+        //        }
+        //        return cfg;
+        return null;
     }
 }

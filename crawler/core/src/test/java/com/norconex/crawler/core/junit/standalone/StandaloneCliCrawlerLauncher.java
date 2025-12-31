@@ -14,28 +14,18 @@
  */
 package com.norconex.crawler.core.junit.standalone;
 
-import static java.util.Optional.ofNullable;
-
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.norconex.committer.core.impl.MemoryCommitter;
-import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.SystemUtil;
 import com.norconex.commons.lang.SystemUtil.Captured;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
-import com.norconex.crawler.core.event.listeners.TestEventMemory;
-import com.norconex.crawler.core.event.listeners.TestEventMemoryListener;
 import com.norconex.crawler.core.junit.CrawlerExecutionResult;
 import com.norconex.crawler.core.test.CrawlTestDriver;
-import com.norconex.crawler.core.util.CoreTestUtil;
 
 import lombok.Builder;
 import lombok.NonNull;
@@ -86,62 +76,60 @@ public class StandaloneCliCrawlerLauncher {
     }
 
     public StandaloneExecutionResult launch(CrawlConfig crawlConfig) {
-        var driver = ofNullable(crawlDriver).orElseGet(
-                CrawlTestDriver::create);
-        var allArgs = new ArrayList<>(args);
+        //        var driver = ofNullable(crawlDriver).orElseGet(
+        //                CrawlTestDriver::create);
+        //        var allArgs = new ArrayList<>(args);
+        //
+        //        // only consider config if at least one command argument is passed
+        //        if (allArgs.stream().anyMatch(arg -> !arg.startsWith("-"))) {
+        //            var config = ofNullable(crawlConfig).orElseGet(
+        //                    () -> ClassUtil.newInstance(driver.crawlerConfigClass()));
+        //
+        //            config.setWorkDir(workDir);
+        //            if (StringUtils.isBlank(config.getId())) {
+        //                config.setId(DEFAULT_CRAWLER_ID);
+        //            }
+        //
+        //            if (configModifier != null) {
+        //                configModifier.accept(config);
+        //            }
+        //
+        //            if (config.getEventListeners().stream()
+        //                    .noneMatch(TestEventMemoryListener.class::isInstance)) {
+        //                config.addEventListener(new TestEventMemoryListener());
+        //            }
+        //
+        //            if (config.getCommitters().stream()
+        //                    .noneMatch(MemoryCommitter.class::isInstance)) {
+        //                config.addCommitter(new MemoryCommitter());
+        //            }
+        //
+        //            var configFile = CoreTestUtil.writeConfigToDir(config, workDir);
+        //            allArgs.add("-config");
+        //            allArgs.add(configFile.toAbsolutePath().toString());
+        //        }
 
-        // only consider config if at least one command argument is passed
-        if (allArgs.stream().anyMatch(arg -> !arg.startsWith("-"))) {
-            var config = ofNullable(crawlConfig).orElseGet(
-                    () -> ClassUtil.newInstance(driver.crawlerConfigClass()));
-
-            config.setWorkDir(workDir);
-            if (StringUtils.isBlank(config.getId())) {
-                config.setId(DEFAULT_CRAWLER_ID);
-            }
-
-            if (configModifier != null) {
-                configModifier.accept(config);
-            }
-
-            if (config.getEventListeners().stream()
-                    .noneMatch(TestEventMemoryListener.class::isInstance)) {
-                config.addEventListener(new TestEventMemoryListener());
-            }
-
-            if (config.getCommitters().stream()
-                    .noneMatch(MemoryCommitter.class::isInstance)) {
-                config.addCommitter(new MemoryCommitter());
-            }
-
-            var configFile = CoreTestUtil.writeConfigToDir(config, workDir);
-            allArgs.add("-config");
-            allArgs.add(configFile.toAbsolutePath().toString());
-        }
-
-        // Launch
-        var exit = new StandaloneExecutionResult();
-        LOG.info("CLI arguments: {}", String.join(" ", allArgs));
-        try (var memEvents = TestEventMemory.create()) {
-            Captured<Integer> captured =
-                    CoreTestUtil.withIpv4(() -> SystemUtil.withOutputCapture(
-                            () -> CliCrawlerLauncher.launch(
-                                    driver, allArgs.toArray(
-                                            ArrayUtils.EMPTY_STRING_ARRAY))));
-            exit.setExitCode(captured.getReturnValue());
-            exit.setStdOut(captured.getStdOut());
-            exit.setStdErr(captured.getStdErr());
-            exit.getEvents().addAll(TestEventMemory.getEvents());
-        }
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(exit.getStdOut());
-        }
-        if ((printErrors)
-                && StringUtils.isNotBlank(exit.getStdErr())) {
-            LOG.error(exit.getStdErr());
-        }
-        return exit;
+        //        LOG.info("CLI arguments: {}", String.join(" ", allArgs));
+        //        try (var memEvents = TestEventMemory.create()) {
+        //            Captured<Integer> captured =
+        //                    CoreTestUtil.withIpv4(() -> SystemUtil.withOutputCapture(
+        //                            () -> CliCrawlerLauncher.launch(
+        //                                    driver, allArgs.toArray(
+        //                                            ArrayUtils.EMPTY_STRING_ARRAY))));
+        //            exit.setExitCode(captured.getReturnValue());
+        //            exit.setStdOut(captured.getStdOut());
+        //            exit.setStdErr(captured.getStdErr());
+        //            exit.getEvents().addAll(TestEventMemory.getEvents());
+        //        }
+        //
+        //        if (LOG.isDebugEnabled()) {
+        //            LOG.debug(exit.getStdOut());
+        //        }
+        //        if ((printErrors)
+        //                && StringUtils.isNotBlank(exit.getStdErr())) {
+        //            LOG.error(exit.getStdErr());
+        //        }
+        return new StandaloneExecutionResult();
     }
 
     /**

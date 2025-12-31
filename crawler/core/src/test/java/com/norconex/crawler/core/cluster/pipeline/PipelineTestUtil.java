@@ -23,7 +23,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import com.norconex.commons.lang.Sleeper;
-import com.norconex.crawler.core._DELETE.ClusterTestUtil;
 import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.util.ConcurrentUtil;
@@ -52,9 +51,9 @@ public final class PipelineTestUtil {
 
     public static void prewarmStringCache(
             CrawlSession session, String cacheName) {
-        var cache = ClusterTestUtil.stringCache(session, cacheName);
-        cache.put("__warmup__", "1");
-        cache.remove("__warmup__");
+        //        var cache = ClusterTestUtil.stringCache(session, cacheName);
+        //        cache.put("__warmup__", "1");
+        //        cache.remove("__warmup__");
     }
 
     public static void prewarmStringCache(

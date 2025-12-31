@@ -24,10 +24,11 @@ import lombok.Getter;
 @EqualsAndHashCode
 @Getter
 public class HazelcastClusterConnector
-        implements ClusterConnector, Configurable<HazelcastClusterConfig> {
+        implements ClusterConnector,
+        Configurable<HazelcastClusterConnectorConfig> {
 
-    private final HazelcastClusterConfig configuration =
-            new HazelcastClusterConfig();
+    private final HazelcastClusterConnectorConfig configuration =
+            new HazelcastClusterConnectorConfig();
 
     @Override
     public Cluster connect() {

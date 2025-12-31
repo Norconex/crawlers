@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2025 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,19 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.fetch;
+package com.norconex.crawler.core.cluster.impl.hazelcast;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.norconex.crawler.core.CrawlConfig;
 
-import org.junit.jupiter.api.Test;
-
-class FetchDirectiveTest {
-
-    @Test
-    void testFetchDirective() {
-        assertThat(FetchDirective.DOCUMENT.is(
-                FetchDirective.DOCUMENT)).isTrue();
-        assertThat(FetchDirective.DOCUMENT.is(
-                FetchDirective.METADATA)).isFalse();
+public final class HzUtil {
+    private HzUtil() {
     }
+
+    public static HazelcastClusterConnectorConfig
+            connectorConfig(CrawlConfig cfg) {
+        return ((HazelcastClusterConnector) cfg.getClusterConfig()
+                .getConnector()).getConfiguration();
+    }
+
 }
