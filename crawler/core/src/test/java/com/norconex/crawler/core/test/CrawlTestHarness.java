@@ -28,6 +28,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import com.norconex.commons.lang.ClassUtil;
@@ -53,10 +54,13 @@ public class CrawlTestHarness implements Closeable {
                     .withDatabaseName("test")
                     .withUsername("test")
                     .withPassword("test")
-    // Prefer waiting for the DB to log that it is ready to accept
-    // connections. Waiting only for a listening port can return
-    // before Postgres is fully ready to accept connections.
-    ;
+                    // Prefer waiting for the DB to log that it is ready to accept
+                    // connections. Waiting only for a listening port can return
+                    // before Postgres is fully ready to accept connections.
+                    .waitingFor(Wait.forLogMessage(
+                            ".*database system is ready to accept connections.*\\n",
+                            1)
+                            .withStartupTimeout(Duration.ofSeconds(60)));
     //                    .waitingFor(Wait.forLogMessage(
     //                            ".*database system is ready to accept connections.*\\n",
     //                            1)

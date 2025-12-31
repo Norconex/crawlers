@@ -52,7 +52,7 @@ class ClusterTest {
 
     @ParameterizedTest
     @ValueSource(ints = { 2 })
-    @Timeout(180)
+    @Timeout(60)
     void testNormalExecution(int numNodes) throws IOException {
         var numOfRefs = 10;
 

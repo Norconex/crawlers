@@ -109,3 +109,13 @@ To consider for testing:
     </stack>
   </jgroups>
 ```
+
+TODO: Investigate connection pooling strategy for larger Hazelcast clusters
+- Current JDBC map store pool size is per-node; with N nodes, total connections = N * maximumPoolSize
+- For indefinite scaling, consider centralized connection pooling or optimizing concurrent DB operations during startup/shutdown
+- Monitor connection usage in multi-node tests and production to avoid database overload
+
+TODO: Make Hazelcast map-store initial-mode configurable
+- Use LAZY for fresh (initial) crawls to improve startup performance
+- Use EAGER for resume/incremental crawls to ensure all persisted state is loaded upfront
+- Add configuration option to toggle based on crawl type

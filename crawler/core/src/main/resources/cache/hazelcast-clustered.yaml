@@ -21,7 +21,7 @@ hazelcast:
         username: ${JDBC_USERNAME}
         password: ${JDBC_PASSWORD}
         driverClassName: ${JDBC_DRIVER}
-        maximumPoolSize: 10
+        maximumPoolSize: 20
       shared: true  
   
   jet:
