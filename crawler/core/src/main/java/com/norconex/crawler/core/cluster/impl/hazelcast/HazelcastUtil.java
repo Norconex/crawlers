@@ -156,7 +156,7 @@ public final class HazelcastUtil {
     }
 
     public static boolean isClusterRunning(HazelcastCluster cluster) {
-        return cluster.getCacheManager().vendor()
+        return ((HazelcastInstance) cluster.getCacheManager().vendor())
                 .getLifecycleService().isRunning();
     }
 
@@ -207,7 +207,8 @@ public final class HazelcastUtil {
      */
     private static boolean hasStableCoordinator(HazelcastCluster cluster) {
         try {
-            var hazelcast = cluster.getCacheManager().vendor();
+            var hazelcast =
+                    (HazelcastInstance) cluster.getCacheManager().vendor();
             if (hazelcast == null
                     || !hazelcast.getLifecycleService().isRunning()) {
                 return false;

@@ -248,8 +248,10 @@ public class JvmLauncher {
      * command line length limitations.
      */
     private Path createManifestJar(String classpath) throws IOException {
-        var manifestJar =
-                workDir.resolve("classpath-manifest.jar").toAbsolutePath();
+        // Use a unique manifest JAR name to avoid collisions and locked files
+        var uniqueName = "classpath-manifest-" + System.nanoTime() + "-"
+                + java.util.UUID.randomUUID() + ".jar";
+        var manifestJar = workDir.resolve(uniqueName).toAbsolutePath();
 
         // Convert classpath entries to file:/// URLs for manifest
         var entries = classpath.split(File.pathSeparator);
@@ -278,7 +280,14 @@ public class JvmLauncher {
             // No entries needed, just the manifest
         }
 
-        LOG.debug("Created manifest JAR: {}", manifestJar);
+        // Schedule best-effort deletion on JVM exit and log the path.
+        try {
+            manifestJar.toFile().deleteOnExit();
+        } catch (Exception e) {
+            // ignore
+        }
+
+        LOG.debug("Created unique manifest JAR: {}", manifestJar);
         return manifestJar;
     }
 

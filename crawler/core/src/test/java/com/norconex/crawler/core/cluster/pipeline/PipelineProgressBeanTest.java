@@ -6,6 +6,8 @@ import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.Test;
 
+import com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListener;
+
 class PipelineProgressBeanTest {
 
     static class PipeManagerStub implements PipelineManager {
@@ -30,6 +32,35 @@ class PipelineProgressBeanTest {
         @Override
         public PipelineProgress getPipelineProgress(String pipelineId) {
             return progress;
+        }
+
+        @Override
+        public void stop() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void addStepChangeListener(
+                CacheEntryChangeListener<StepRecord> listener) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void removeStepChangeListener(
+                CacheEntryChangeListener<StepRecord> listener) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void addWorkerStatusListener(
+                CacheEntryChangeListener<StepRecord> listener) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void removeWorkerStatusListener(
+                CacheEntryChangeListener<StepRecord> listener) {
+            throw new UnsupportedOperationException();
         }
     }
 

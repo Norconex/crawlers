@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -50,6 +51,22 @@ import lombok.extern.slf4j.Slf4j;
 public class TestCrawler implements Closeable {
 
     private static final String TEST_RESULT_FILE_NAME = "testResults.json";
+    private static final List<Process> ALL_CHILD_PROCESSES =
+            new CopyOnWriteArrayList<>();
+
+    static {
+        // Add shutdown hook to ensure all child processes are killed when JVM exits
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            LOG.info("Shutdown hook triggered. Destroying {} child processes.",
+                    ALL_CHILD_PROCESSES.size());
+            ALL_CHILD_PROCESSES.forEach(process -> {
+                if (process.isAlive()) {
+                    LOG.info("Destroying child process: {}", process);
+                    process.destroyForcibly();
+                }
+            });
+        }, "TestCrawler-ShutdownHook"));
+    }
 
     private final CrawlTestInstrument instrument;
     private final CrawlConfig crawlConfig;
@@ -57,6 +74,8 @@ public class TestCrawler implements Closeable {
     private final TestLogAppender logAppender = new TestLogAppender();
     private final CrawlDriver crawlDriver;
     private final boolean client;
+    private final AtomicReference<Process> childProcess =
+            new AtomicReference<>();
 
     public TestCrawler(@NonNull CrawlTestInstrument crawlTestInstrument) {
         this(crawlTestInstrument, false);
@@ -114,15 +133,46 @@ public class TestCrawler implements Closeable {
                 .build();
     }
 
+    // For debug harness: expose workDir of child process
+    Path getWorkDir() {
+        return crawlConfig.getWorkDir();
+    }
+
     @Override
     public void close() throws IOException {
+        LOG.info("TestCrawler.close() called for cleanup.");
         if (instrument.isRecordEvents()) {
             crawlConfig.removeEventListener(eventNameRecorder);
+            LOG.info("EventNameRecorder removed.");
         }
         if (instrument.isRecordLogs()) {
             logAppender.stopCapture();
+            LOG.info("LogAppender stopped.");
         }
 
+        // Destroy child process if still running
+        var process = childProcess.get();
+        if (process != null && process.isAlive()) {
+            LOG.info("Destroying child JVM process forcibly.");
+            process.destroyForcibly();
+            ALL_CHILD_PROCESSES.remove(process);
+            try {
+                // Wait a bit for the process to terminate
+                if (process.waitFor(5, TimeUnit.SECONDS)) {
+                    LOG.info("Child JVM process terminated gracefully.");
+                } else {
+                    LOG.warn(
+                            "Child JVM process did not terminate within timeout.");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                LOG.warn(
+                        "Interrupted while waiting for child process to terminate.");
+            }
+        }
+
+        // No explicit Hazelcast or CacheManager shutdown here; handled by underlying Crawler.
+        LOG.info("TestCrawler.close() cleanup complete.");
     }
 
     public static void main(String[] args) {
@@ -132,13 +182,19 @@ public class TestCrawler implements Closeable {
         var resultPath = instrument.getCrawlConfig().getWorkDir()
                 .resolve(TEST_RESULT_FILE_NAME);
         System.err.println("XXX INSTRUMENT in MAIN: " + instrument);
+        LOG.info("TestCrawler main() starting. PID: {}",
+                ProcessHandle.current().pid());
         try (var crawler = new TestCrawler(instrument, true)) {
             CrawlTestNodeOutput finalResult;
             if (instrument.getRecordInterval() != null) {
                 final var resultHolder =
                         new AtomicReference<CrawlTestNodeOutput>();
                 var crawlThread = new Thread(() -> {
+                    LOG.info("crawlThread started. Thread: {}",
+                            Thread.currentThread().getName());
                     resultHolder.set(crawler.doCrawl());
+                    LOG.info("crawlThread finished. Thread: {}",
+                            Thread.currentThread().getName());
                 });
                 crawlThread.start();
 
@@ -150,24 +206,47 @@ public class TestCrawler implements Closeable {
                         TimeUnit.MILLISECONDS);
                 try {
                     crawlThread.join();
+                    LOG.info("crawlThread joined. Thread: {}",
+                            crawlThread.getName());
                 } catch (InterruptedException e) {
+                    LOG.warn("Interrupted while joining crawlThread.");
                     Thread.currentThread().interrupt();
                 }
                 scheduler.shutdown();
+                LOG.info("Scheduler shutdown initiated.");
                 try {
                     if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+                        LOG.warn(
+                                "Scheduler did not terminate in time. Calling shutdownNow().");
                         scheduler.shutdownNow();
+                    } else {
+                        LOG.info("Scheduler terminated cleanly.");
                     }
                 } catch (InterruptedException e) {
+                    LOG.warn(
+                            "Interrupted while waiting for scheduler termination.");
                     scheduler.shutdownNow();
                     Thread.currentThread().interrupt();
                 }
-
+                LOG.info(
+                        "After scheduler shutdown. Remaining non-daemon threads:");
+                Thread.getAllStackTraces().keySet().stream()
+                        .filter(t -> t.isAlive() && !t.isDaemon())
+                        .forEach(t -> LOG.info("Thread: {} (id={})",
+                                t.getName(), t.getId()));
+                Thread.currentThread().interrupt();
                 finalResult = resultHolder.get();
             } else {
                 finalResult = crawler.doCrawl();
             }
             CoreTestUtil.writeToFile(finalResult, resultPath);
+            LOG.info("TestCrawler main() finishing. PID: {}",
+                    ProcessHandle.current().pid());
+            LOG.info("Active non-daemon threads at exit:");
+            Thread.getAllStackTraces().keySet().stream()
+                    .filter(t -> t.isAlive() && !t.isDaemon())
+                    .forEach(t -> LOG.info("Thread: {} (id={})", t.getName(),
+                            t.getId()));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -252,6 +331,9 @@ public class TestCrawler implements Closeable {
                         line -> LOG.error("[{}-stderr] {}", nodeName, line))
                 .build()
                 .start();
+
+        childProcess.set(process);
+        ALL_CHILD_PROCESSES.add(process);
 
         try {
             process.waitFor();

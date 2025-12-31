@@ -102,7 +102,7 @@ public class CrawlTestHarness implements Closeable {
                 new ConcurrentHashMap<>();
         for (String nodeName : nodeNames) {
 
-            var instrument = instrumentNode(nodeName);
+            var instrument = instrumentNode(nodeName, nodeNames.length);
 
             var testCrawler = new TestCrawler(instrument);
             nodeCrawlers.put(nodeName, testCrawler);
@@ -164,13 +164,20 @@ public class CrawlTestHarness implements Closeable {
 
     @Override
     public void close() throws IOException {
-        nodeCrawlers
-                .forEach((name, crawler) -> ExceptionSwallower.close(crawler));
+        LOG.info("CrawlTestHarness.close() called for cleanup.");
+        nodeCrawlers.forEach((name, crawler) -> {
+            LOG.info("Closing TestCrawler node: {}", name);
+            ExceptionSwallower.close(crawler);
+        });
         executor.shutdownNow();
+        LOG.info("ExecutorService shutdown.");
         postgres.close();
+        LOG.info("PostgreSQL container closed.");
+        LOG.info("CrawlTestHarness.close() cleanup complete.");
     }
 
-    private CrawlTestInstrument instrumentNode(String nodeName) {
+    private CrawlTestInstrument instrumentNode(String nodeName,
+            int totalNodes) {
         var instrument = newInstrumentFromTemplate();
         instrument.setNodeName(nodeName);
         if (instrument.getCrawlConfig().getId() == null) {
@@ -188,6 +195,16 @@ public class CrawlTestHarness implements Closeable {
             props.setProperty("JDBC_USERNAME", postgres.getUsername());
             props.setProperty("JDBC_PASSWORD", postgres.getPassword());
             props.setProperty("JDBC_DRIVER", postgres.getDriverClassName());
+
+            // Set TCP members for cluster discovery - generate ports dynamically
+            var tcpMembers = new StringBuilder();
+            for (int i = 0; i < totalNodes; i++) {
+                if (i > 0) {
+                    tcpMembers.append(",");
+                }
+                tcpMembers.append("127.0.0.1:").append(5701 + i);
+            }
+            connConfig.setTcpMembers(tcpMembers.toString());
 
             LOG.info("CrawlTestHarness instrumented database properties: {}",
                     props);

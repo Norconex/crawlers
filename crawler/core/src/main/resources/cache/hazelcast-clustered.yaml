@@ -58,7 +58,6 @@ hazelcast:
       tcp-ip:
         enabled: true
         member-list:
-          - 127.0.0.1
           - 127.0.0.1:5701
           - 127.0.0.1:5702
           - 127.0.0.1:5703

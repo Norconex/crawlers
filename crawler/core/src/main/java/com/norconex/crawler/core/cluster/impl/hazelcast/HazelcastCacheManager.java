@@ -45,6 +45,9 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
     static final String TYPE_REGISTRY_MAP = "__cache_types";
     private static final Map<HazelcastInstance, AtomicInteger> REF_COUNTS =
             new ConcurrentHashMap<>();
+    // Static registry to allow factories to access HazelcastInstance
+    private static final Map<String, HazelcastInstance> instanceRegistry =
+            new ConcurrentHashMap<>();
     static final int BATCH_SIZE = 1000;
 
     final HazelcastInstance hazelcast;
@@ -56,6 +59,13 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
         hazelcast = hazelcastInstance;
         REF_COUNTS.computeIfAbsent(hazelcast, k -> new AtomicInteger(0))
                 .incrementAndGet();
+        // Register this instance for factories to access
+        instanceRegistry.put(hazelcast.getName(), hazelcast);
+    }
+
+    // Static method for factories to access HazelcastInstance
+    public static HazelcastInstance getHazelcastInstance(String name) {
+        return instanceRegistry.get(name);
     }
 
     @Override
@@ -153,21 +163,26 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
 
     @Override
     public void close() {
+        LOG.info("HazelcastCacheManager.close() called for cleanup.");
         var counter = REF_COUNTS.get(hazelcast);
         if (counter == null) {
-            LOG.debug("Shutting down Hazelcast instance (unknown ref count)");
+            LOG.info("Shutting down Hazelcast instance (unknown ref count)");
             hazelcast.shutdown();
+            LOG.info("Hazelcast instance shutdown complete.");
             return;
         }
         var remaining = counter.decrementAndGet();
         if (remaining <= 0) {
             REF_COUNTS.remove(hazelcast);
-            LOG.debug("Shutting down Hazelcast instance (last reference)");
+            LOG.info("Shutting down Hazelcast instance (last reference)");
             hazelcast.shutdown();
+            LOG.info("Hazelcast instance shutdown complete.");
         } else {
-            LOG.debug("Hazelcast instance still in use by {} manager(s); "
-                    + "skipping shutdown.", remaining);
+            LOG.info(
+                    "Hazelcast instance still in use by {} manager(s); skipping shutdown.",
+                    remaining);
         }
+        LOG.info("HazelcastCacheManager.close() cleanup complete.");
     }
 
     public HazelcastInstance vendor() {

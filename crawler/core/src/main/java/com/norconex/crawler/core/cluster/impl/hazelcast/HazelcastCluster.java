@@ -30,13 +30,15 @@ import com.hazelcast.cluster.Member;
 import com.hazelcast.cluster.MembershipEvent;
 import com.hazelcast.cluster.MembershipListener;
 import com.hazelcast.config.Config;
-import com.hazelcast.config.DataConnectionConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.norconex.commons.lang.Sleeper;
+import com.norconex.crawler.core.cluster.CacheManager;
 import com.norconex.crawler.core.cluster.Cluster;
+import com.norconex.crawler.core.cluster.ClusterNode;
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CoordinatorChangeListener;
 import com.norconex.crawler.core.cluster.impl.hazelcast.pipeline.HazelcastPipelineManager;
+import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.util.ExceptionSwallower;
@@ -47,8 +49,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
-@EqualsAndHashCode
-@Getter
+@EqualsAndHashCode(exclude = { "pipelineManager", "coordinatorListeners" })
 @Slf4j
 public class HazelcastCluster implements Cluster {
 
@@ -60,8 +61,10 @@ public class HazelcastCluster implements Cluster {
             new CopyOnWriteArrayList<>();
     private volatile boolean lastCoordinatorState = false;
     private CacheStopController stopController;
+    @Getter
     private Path workDir;
 
+    @Getter
     private final HazelcastClusterConnectorConfig configuration;
     private HazelcastInstance hazelcastInstance;
     private UUID membershipListenerId;
@@ -69,6 +72,21 @@ public class HazelcastCluster implements Cluster {
 
     public String getCrawlerId() {
         return getCrawlSession().getCrawlerId();
+    }
+
+    @Override
+    public ClusterNode getLocalNode() {
+        return localNode;
+    }
+
+    @Override
+    public CacheManager getCacheManager() {
+        return cacheManager;
+    }
+
+    @Override
+    public PipelineManager getPipelineManager() {
+        return pipelineManager;
     }
 
     public CrawlSession getCrawlSession() {
@@ -102,6 +120,19 @@ public class HazelcastCluster implements Cluster {
             LOG.info("Creating HazelcastInstance with cluster name: {}",
                     hzConfig.getClusterName());
             hazelcastInstance = createHazelcastInstance(hzConfig);
+
+            // Set HazelcastInstance on any LazyTypedStoreFactory instances
+            // created by Hazelcast during config loading
+            var factoryCfg = hazelcastInstance.getConfig();
+            for (var mapConfig : factoryCfg.getMapConfigs().values()) {
+                var storeConfig = mapConfig.getMapStoreConfig();
+                if (storeConfig != null) {
+                    var factory = storeConfig.getFactoryImplementation();
+                    if (factory instanceof LazyTypedStoreFactory lazyFactory) {
+                        lazyFactory.setHazelcastInstance(hazelcastInstance);
+                    }
+                }
+            }
 
             // Diagnostic dump: log DataConnectionConfig and map configs so
             // we can verify which JDBC properties Hazelcast actually has
@@ -206,6 +237,19 @@ public class HazelcastCluster implements Cluster {
             } catch (Exception e) {
                 LOG.warn("Could not dump Hazelcast runtime config: {}",
                         e.getMessage());
+            }
+
+            // Set HazelcastInstance on any LazyTypedStoreFactory instances
+            // created by Hazelcast during config loading
+            var mapRuntimeCfg = hazelcastInstance.getConfig();
+            for (var mapConfig : mapRuntimeCfg.getMapConfigs().values()) {
+                var storeConfig = mapConfig.getMapStoreConfig();
+                if (storeConfig != null) {
+                    var factory = storeConfig.getFactoryImplementation();
+                    if (factory instanceof LazyTypedStoreFactory lazyFactory) {
+                        lazyFactory.setHazelcastInstance(hazelcastInstance);
+                    }
+                }
             }
 
             // Add membership listener for coordinator changes

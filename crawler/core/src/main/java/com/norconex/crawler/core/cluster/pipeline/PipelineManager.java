@@ -16,6 +16,8 @@ package com.norconex.crawler.core.cluster.pipeline;
 
 import java.util.concurrent.CompletableFuture;
 
+import com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListener;
+
 /**
  * Responsible for pipeline execution.
  */
@@ -42,4 +44,34 @@ public interface PipelineManager {
      */
     PipelineProgress getPipelineProgress(String pipelineId);
 
+    /**
+     * Stops all pipeline executions.
+     */
+    void stop();
+
+    /**
+     * Adds a listener for step changes.
+     * @param listener the listener to add
+     */
+    void addStepChangeListener(CacheEntryChangeListener<StepRecord> listener);
+
+    /**
+     * Removes a listener for step changes.
+     * @param listener the listener to remove
+     */
+    void removeStepChangeListener(
+            CacheEntryChangeListener<StepRecord> listener);
+
+    /**
+     * Adds a listener for worker status changes.
+     * @param listener the listener to add
+     */
+    void addWorkerStatusListener(CacheEntryChangeListener<StepRecord> listener);
+
+    /**
+     * Removes a listener for worker status changes.
+     * @param listener the listener to remove
+     */
+    void removeWorkerStatusListener(
+            CacheEntryChangeListener<StepRecord> listener);
 }

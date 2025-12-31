@@ -3,6 +3,9 @@ package com.norconex.crawler.core.cluster;
 import java.util.List;
 import java.util.function.Consumer;
 
+import com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListener;
+import com.norconex.crawler.core.cluster.pipeline.StepRecord;
+
 public interface CacheManager {
 
     /**
@@ -74,4 +77,46 @@ public interface CacheManager {
      * @return cache queue
      */
     <T> CacheQueue<T> getCacheQueue(String name, Class<T> valueType);
+
+    /**
+     * Gets the admin cache for storing administrative data.
+     * @return admin cache
+     */
+    CacheMap<String> getAdminCache();
+
+    /**
+     * Gets the pipeline step cache for storing current pipeline steps.
+     * @return pipeline step cache
+     */
+    CacheMap<StepRecord> getPipelineStepCache();
+
+    /**
+     * Gets the pipeline worker status cache for storing worker statuses.
+     * @return pipeline worker status cache
+     */
+    CacheMap<StepRecord> getPipelineWorkerStatusCache();
+
+    /**
+     * Adds a cache entry change listener to the specified cache.
+     * @param <T> the type of values in the cache
+     * @param listener the listener to add
+     * @param cacheName the name of the cache
+     */
+    <T> void addCacheEntryChangeListener(
+            CacheEntryChangeListener<T> listener, String cacheName);
+
+    /**
+     * Removes a cache entry change listener from the specified cache.
+     * @param <T> the type of values in the cache
+     * @param listener the listener to remove
+     * @param cacheName the name of the cache
+     */
+    <T> void removeCacheEntryChangeListener(
+            CacheEntryChangeListener<T> listener, String cacheName);
+
+    /**
+     * Gets the vendor-specific implementation object.
+     * @return vendor implementation
+     */
+    Object vendor();
 }

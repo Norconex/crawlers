@@ -26,6 +26,7 @@ public class TypedJdbcMapStoreFactory
 
     private Class<?> valueClass;
     private HazelcastInstance hazelcastInstance;
+    private String hazelcastInstanceName;
 
     @Override
     public void setValueClass(Class<?> valueClass) {
@@ -40,6 +41,7 @@ public class TypedJdbcMapStoreFactory
     @Override
     public void setHazelcastInstance(HazelcastInstance hz) {
         this.hazelcastInstance = hz;
+        this.hazelcastInstanceName = hz.getName();
     }
 
     @Override
@@ -50,13 +52,30 @@ public class TypedJdbcMapStoreFactory
     @Override
     public MapStore<String, Object> newMapStore(
             String mapName, Properties properties) {
-        // Defensive: fail fast if hazelcastInstance is not set
-        if (hazelcastInstance == null) {
+        // Get HazelcastInstance - either from injection or from registry
+        HazelcastInstance hz = hazelcastInstance;
+        if (hz == null && hazelcastInstanceName != null) {
+            hz = com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastCacheManager
+                    .getHazelcastInstance(hazelcastInstanceName);
+        }
+        if (hz == null) {
+            // Fallback: try to get any available instance
+            var instances =
+                    com.hazelcast.core.Hazelcast.getAllHazelcastInstances();
+            if (!instances.isEmpty()) {
+                hz = instances.iterator().next();
+                LOG.debug("Using fallback HazelcastInstance for map '{}'",
+                        mapName);
+            }
+        }
+
+        // Defensive: fail fast if hazelcastInstance is not available
+        if (hz == null) {
             throw new IllegalStateException(
-                    "HazelcastInstance is not set on TypedJdbcMapStoreFactory "
+                    "HazelcastInstance is not available for TypedJdbcMapStoreFactory "
                             +
                             "for map '" + mapName + "'. " +
-                            "Ensure it is set before use (see HazelcastCacheManager).");
+                            "Ensure HazelcastCacheManager is properly initialized.");
         }
         // If valueClass was not set (for example when Hazelcast
         // instantiated the factory reflectively from config before we
@@ -82,7 +101,7 @@ public class TypedJdbcMapStoreFactory
         // MapStore that (de)serializes values to/from JSON strings.
         final var stringStore = new StringJdbcMapStore();
 
-        return new TypedJdbcMapStore(stringStore, vc, hazelcastInstance,
+        return new TypedJdbcMapStore(stringStore, vc, hz,
                 properties, mapName);
     }
 }
