@@ -233,10 +233,10 @@ public class TestCrawler implements Closeable {
     }
 
     private CrawlTestNodeOutput launchNewJvm() {
-        Objects.requireNonNull(
-                instrument.getNodeName(), "nodeName is required");
+        var nodeName = instrument.getNodeName();
+        Objects.requireNonNull(nodeName, "nodeName is required");
 
-        var workDir = instrument.getWorkDir().resolve(instrument.getNodeName());
+        var workDir = instrument.getWorkDir().resolve(nodeName);
         crawlConfig.setWorkDir(workDir);
 
         var instrumentPath = workDir.resolve("instrument.yaml");
@@ -246,6 +246,10 @@ public class TestCrawler implements Closeable {
                 .mainClass(TestCrawler.class)
                 .workDir(workDir)
                 .appArg(instrumentPath.toAbsolutePath().toString())
+                .stdoutListener(
+                        line -> LOG.info("[{}-stdout] {}", nodeName, line))
+                .stderrListener(
+                        line -> LOG.error("[{}-stderr] {}", nodeName, line))
                 .build()
                 .start();
 

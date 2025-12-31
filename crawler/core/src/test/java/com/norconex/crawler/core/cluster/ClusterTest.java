@@ -50,8 +50,8 @@ class ClusterTest {
     private Path tempDir;
 
     @ParameterizedTest
-    @ValueSource(ints = { 1 })
-    @Timeout(120)
+    @ValueSource(ints = { 2 })
+    @Timeout(60)
     void testNormalExecution(int numNodes) throws IOException {
         var numOfRefs = 10;
 
@@ -64,10 +64,11 @@ class ClusterTest {
                 new CrawlTestInstrument()
                         .setRecordEvents(true)
                         .setRecordCaches(true)
+                        .setRecordInterval(Duration.ofSeconds(1))
                         .setConfigModifier(configModifier(numOfRefs, 0))
                         .setWorkDir(tempDir)
-                        .setNewJvm(false)
-                        .setClustered(true))) {
+                        .setNewJvm(numNodes > 1)
+                        .setClustered(numNodes > 1))) {
             var results = harness.launchSync(nodes);
 
             var eventBag = results.getAllNodesEventNameBag();

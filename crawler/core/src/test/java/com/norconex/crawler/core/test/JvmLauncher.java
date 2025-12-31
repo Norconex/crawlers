@@ -1,14 +1,17 @@
 package com.norconex.crawler.core.test;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.jar.Attributes;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
@@ -47,6 +50,15 @@ public class JvmLauncher {
     @NonNull
     private final Path workDir;
 
+    /**
+     * Optional: If set, lines from child JVM STDOUT will be sent to this consumer instead of being written to a file.
+     */
+    private final Consumer<String> stdoutListener;
+    /**
+     * Optional: If set, lines from child JVM STDERR will be sent to this consumer instead of being written to a file.
+     */
+    private final Consumer<String> stderrListener;
+
     public Process start() {
         List<String> command = new ArrayList<>();
         command.add(SystemUtils.JAVA_HOME + "/bin/java");
@@ -84,22 +96,69 @@ public class JvmLauncher {
                 to fail.""", commandLength);
         }
         LOG.info("JVM launch command: {}", fullCommand);
-        //        LOG.debug("Classpath has {} entries",
-        //                classpath.split(File.pathSeparator).length);
 
         var pb = new ProcessBuilder(command);
         pb.directory(workDir.toFile());
 
-        // Redirect STDOUT and STDERR to separate log files
         try {
             Files.createDirectories(workDir);
-            pb.redirectOutput(ProcessBuilder.Redirect
-                    .to(workDir.resolve(STDOUT_FILE_NAME).toFile()));
-            pb.redirectError(ProcessBuilder.Redirect
-                    .to(workDir.resolve(STDERR_FILE_NAME).toFile()));
+            boolean useStdoutListener = stdoutListener != null;
+            boolean useStderrListener = stderrListener != null;
+            if (!useStdoutListener) {
+                pb.redirectOutput(ProcessBuilder.Redirect
+                        .to(workDir.resolve(STDOUT_FILE_NAME).toFile()));
+            }
+            if (!useStderrListener) {
+                pb.redirectError(ProcessBuilder.Redirect
+                        .to(workDir.resolve(STDERR_FILE_NAME).toFile()));
+            }
 
             var process = pb.start();
+            handleProcessOutput(process, useStdoutListener, useStderrListener,
+                    commandLength);
+            return process;
+        } catch (IOException e) {
+            LOG.error("Failed to start child JVM process. Command length: {}",
+                    commandLength,
+                    e);
+            throw new UncheckedIOException(e);
+        }
+    }
 
+    /**
+     * Handles output redirection and listener threads for the launched process.
+     */
+    private void handleProcessOutput(Process process, boolean useStdoutListener,
+            boolean useStderrListener, int commandLength) {
+        if (useStdoutListener) {
+            new Thread(() -> {
+                try (BufferedReader reader =
+                        new BufferedReader(new InputStreamReader(
+                                process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        stdoutListener.accept(line);
+                    }
+                } catch (IOException e) {
+                    LOG.warn("Error reading child JVM STDOUT", e);
+                }
+            }, "JvmLauncher-stdout-listener").start();
+        }
+        if (useStderrListener) {
+            new Thread(() -> {
+                try (BufferedReader reader =
+                        new BufferedReader(new InputStreamReader(
+                                process.getErrorStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        stderrListener.accept(line);
+                    }
+                } catch (IOException e) {
+                    LOG.warn("Error reading child JVM STDERR", e);
+                }
+            }, "JvmLauncher-stderr-listener").start();
+        }
+        if (!useStdoutListener && !useStderrListener) {
             // Give the process a moment to fail if there's an immediate error
             try {
                 Thread.sleep(100); //NOSONAR
@@ -116,21 +175,17 @@ public class JvmLauncher {
                     if (Files.exists(stderrFile)) {
                         var stderr = Files.readString(stderrFile);
                         if (!stderr.isEmpty()) {
-                            LOG.error("Child JVM stderr output:\n{}", stderr);
+                            LOG.error("Child JVM stderr output:\n{}",
+                                    stderr);
                         }
                     }
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 LOG.warn("Interrupted while checking process status");
+            } catch (IOException e) {
+                LOG.warn("Error reading child JVM stderr file", e);
             }
-
-            return process;
-        } catch (IOException e) {
-            LOG.error("Failed to start child JVM process. Command length: {}",
-                    commandLength,
-                    e);
-            throw new UncheckedIOException(e);
         }
     }
 
