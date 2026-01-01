@@ -38,6 +38,7 @@ import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 import com.norconex.crawler.core.test.CrawlTestHarness;
 import com.norconex.crawler.core.test.CrawlTestInstrument;
+import com.norconex.crawler.core.test.CrawlTestNodeOutput;
 import com.norconex.crawler.core.test.TestCrawler;
 
 import lombok.extern.slf4j.Slf4j;
@@ -51,8 +52,8 @@ class ClusterTest {
     private Path tempDir;
 
     @ParameterizedTest
-    @ValueSource(ints = { 2 })
-    @Timeout(60)
+    @ValueSource(ints = { 1, 2 })
+    @Timeout(120)
     void testNormalExecution(int numNodes) throws IOException {
         var numOfRefs = 10;
 
@@ -81,9 +82,11 @@ class ClusterTest {
                     CommitterServiceEvent.COMMITTER_SERVICE_UPSERT_END))
                             .isEqualTo(numOfRefs);
 
-            results.getNodeOutputs().forEach((name, output) -> {
-                System.err.println(name + " -> " + output);
-            });
+            if (Boolean.getBoolean("norconex.tests.dumpNodeOutputs")) {
+                results.getNodeOutputs().forEach((name, output) -> {
+                    System.err.println(name + " -> " + summarize(output));
+                });
+            }
 
             // Find the coordinator node (the one with cache data)
             var coordinatorOutput = results.getNodeOutputs().values().stream()
@@ -100,6 +103,18 @@ class ClusterTest {
             assertThat(statusCounts.getProcessed()).isEqualTo(numOfRefs);
 
         }
+    }
+
+    private static String summarize(CrawlTestNodeOutput output) {
+        if (output == null) {
+            return "<null>";
+        }
+        var cacheNames = output.getCaches() == null
+                ? List.<String>of()
+                : output.getCaches().keySet().stream().sorted().toList();
+        return "CrawlTestNodeOutput(eventNames=" + output.getEventNames().size()
+                + ", logLines=" + output.getLogLines().size()
+                + ", caches=" + cacheNames + ")";
     }
 
     @Test

@@ -16,6 +16,9 @@ package com.norconex.crawler.core.test;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.containers.wait.strategy.Wait;
@@ -49,7 +53,7 @@ public class CrawlTestHarness implements Closeable {
 
     // Configure container with explicit waiting strategy and credentials so
     // tests are less likely to race on startup and we can log mapped port.
-    static PostgreSQLContainer postgres =
+    PostgreSQLContainer postgres =
             new PostgreSQLContainer("postgres:16-alpine")
                     .withDatabaseName("test")
                     .withUsername("test")
@@ -72,6 +76,11 @@ public class CrawlTestHarness implements Closeable {
     @Getter
     private final String id = "" + TimeIdGenerator.next();
 
+    // Used to isolate concurrent/repeated clustered test runs.
+    private final String hazelcastClusterName = "crawler-test-" + id;
+    private volatile Integer hazelcastPortBase;
+    private volatile Integer hazelcastPortCount;
+
     private final Map<String, TestCrawler> nodeCrawlers = new HashMap<>();
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -88,6 +97,12 @@ public class CrawlTestHarness implements Closeable {
         if (isClustered) {
             // TestCrawler will know to grab the right HZ cfg when clustered
             postgres.start();
+
+            // Pick an isolated port range for this harness instance so repeated
+            // invocations (e.g., parameterized tests) don't collide on 5701+.
+            hazelcastPortCount = Math.max(3, nodeNames.length + 1);
+            hazelcastPortBase = findFreeLocalPortRangeBase(hazelcastPortCount);
+
             // Log actual connection info so we can diagnose refused connections
             try {
                 LOG.info("Postgres container started: id='{}', jdbcUrl='{}'",
@@ -193,6 +208,10 @@ public class CrawlTestHarness implements Closeable {
                     .getClusterConfig()
                     .getConnector())
                             .getConfiguration();
+
+            // Ensure this harness run forms its own cluster.
+            connConfig.setClusterName(hazelcastClusterName);
+
             var props = connConfig.getProperties();
             // matches variables in HZ yaml configuration
             props.setProperty("JDBC_URL", postgres.getJdbcUrl());
@@ -200,13 +219,23 @@ public class CrawlTestHarness implements Closeable {
             props.setProperty("JDBC_PASSWORD", postgres.getPassword());
             props.setProperty("JDBC_DRIVER", postgres.getDriverClassName());
 
-            // Set TCP members for cluster discovery - generate ports dynamically
+            // Set TCP members for cluster discovery using the per-harness port
+            // range chosen in launchAsync(). HazelcastCluster will apply this
+            // list to the loaded Config before instance creation.
+            var base = hazelcastPortBase;
+            var count = hazelcastPortCount;
+            if (base == null || count == null) {
+                // Fallback (should not normally happen)
+                base = 5701;
+                count = Math.max(3, totalNodes + 1);
+            }
+
             var tcpMembers = new StringBuilder();
-            for (int i = 0; i < totalNodes; i++) {
+            for (int i = 0; i < count; i++) {
                 if (i > 0) {
                     tcpMembers.append(",");
                 }
-                tcpMembers.append("127.0.0.1:").append(5701 + i);
+                tcpMembers.append("127.0.0.1:").append(base + i);
             }
             connConfig.setTcpMembers(tcpMembers.toString());
 
@@ -214,6 +243,46 @@ public class CrawlTestHarness implements Closeable {
                     props);
         }
         return instrument;
+    }
+
+    private static int findFreeLocalPortRangeBase(int rangeSize) {
+        if (rangeSize <= 0) {
+            throw new IllegalArgumentException("rangeSize must be > 0");
+        }
+
+        // Keep the range in a generally safe ephemeral-ish window and avoid
+        // running past the max port.
+        var rnd = ThreadLocalRandom.current();
+        var host = InetAddress.getLoopbackAddress();
+        int minBase = 20_000;
+        int maxBase = 60_000 - rangeSize;
+
+        for (int attempt = 0; attempt < 200; attempt++) {
+            int base = rnd.nextInt(minBase, Math.max(minBase + 1, maxBase));
+            if (isLocalPortRangeFree(host, base, rangeSize)) {
+                LOG.info("Selected Hazelcast port range base={} (size={})",
+                        base, rangeSize);
+                return base;
+            }
+        }
+
+        throw new IllegalStateException(
+                "Could not find a free localhost port range of size "
+                        + rangeSize);
+    }
+
+    private static boolean isLocalPortRangeFree(
+            InetAddress host, int base, int rangeSize) {
+        for (int i = 0; i < rangeSize; i++) {
+            int port = base + i;
+            try (ServerSocket socket = new ServerSocket()) {
+                socket.setReuseAddress(false);
+                socket.bind(new InetSocketAddress(host, port));
+            } catch (IOException e) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private CrawlTestInstrument newInstrumentFromTemplate() {

@@ -18,7 +18,6 @@ import static java.util.Optional.ofNullable;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -176,79 +175,104 @@ public class TestCrawler implements Closeable {
     }
 
     public static void main(String[] args) {
-        var instPath = Path.of(args[0]);
-        var instrument =
-                CoreTestUtil.readFromFile(instPath, CrawlTestInstrument.class);
-        var resultPath = instrument.getCrawlConfig().getWorkDir()
-                .resolve(TEST_RESULT_FILE_NAME);
-        System.err.println("XXX INSTRUMENT in MAIN: " + instrument);
-        LOG.info("TestCrawler main() starting. PID: {}",
-                ProcessHandle.current().pid());
-        try (var crawler = new TestCrawler(instrument, true)) {
-            CrawlTestNodeOutput finalResult;
-            if (instrument.getRecordInterval() != null) {
-                final var resultHolder =
-                        new AtomicReference<CrawlTestNodeOutput>();
-                var crawlThread = new Thread(() -> {
-                    LOG.info("crawlThread started. Thread: {}",
-                            Thread.currentThread().getName());
-                    resultHolder.set(crawler.doCrawl());
-                    LOG.info("crawlThread finished. Thread: {}",
-                            Thread.currentThread().getName());
-                });
-                crawlThread.start();
+        int exitCode = 0;
+        try {
+            var instPath = Path.of(args[0]);
+            var instrument = CoreTestUtil.readFromFile(instPath,
+                    CrawlTestInstrument.class);
+            var resultPath = instrument.getCrawlConfig().getWorkDir()
+                    .resolve(TEST_RESULT_FILE_NAME);
+            System.err.println("XXX INSTRUMENT in MAIN: " + instrument);
+            LOG.info("TestCrawler main() starting. PID: {}",
+                    ProcessHandle.current().pid());
 
-                var scheduler = Executors.newScheduledThreadPool(1);
-                scheduler.scheduleAtFixedRate(() -> {
-                    CoreTestUtil.writeToFile(crawler.getResult(), resultPath);
-                }, instrument.getRecordInterval().toMillis(),
-                        instrument.getRecordInterval().toMillis(),
-                        TimeUnit.MILLISECONDS);
-                try {
-                    crawlThread.join();
-                    LOG.info("crawlThread joined. Thread: {}",
-                            crawlThread.getName());
-                } catch (InterruptedException e) {
-                    LOG.warn("Interrupted while joining crawlThread.");
-                    Thread.currentThread().interrupt();
-                }
-                scheduler.shutdown();
-                LOG.info("Scheduler shutdown initiated.");
-                try {
-                    if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
-                        LOG.warn(
-                                "Scheduler did not terminate in time. Calling shutdownNow().");
-                        scheduler.shutdownNow();
-                    } else {
-                        LOG.info("Scheduler terminated cleanly.");
+            try (var crawler = new TestCrawler(instrument, true)) {
+                CrawlTestNodeOutput finalResult;
+                if (instrument.getRecordInterval() != null) {
+                    final var resultHolder =
+                            new AtomicReference<CrawlTestNodeOutput>();
+                    var crawlThread = new Thread(() -> {
+                        LOG.info("crawlThread started. Thread: {}",
+                                Thread.currentThread().getName());
+                        resultHolder.set(crawler.doCrawl());
+                        LOG.info("crawlThread finished. Thread: {}",
+                                Thread.currentThread().getName());
+                    });
+                    crawlThread.start();
+
+                    var scheduler = Executors.newScheduledThreadPool(1);
+                    scheduler.scheduleAtFixedRate(() -> {
+                        CoreTestUtil.writeToFile(crawler.getResult(),
+                                resultPath);
+                    }, instrument.getRecordInterval().toMillis(),
+                            instrument.getRecordInterval().toMillis(),
+                            TimeUnit.MILLISECONDS);
+                    try {
+                        crawlThread.join();
+                        LOG.info("crawlThread joined. Thread: {}",
+                                crawlThread.getName());
+                    } catch (InterruptedException e) {
+                        LOG.warn("Interrupted while joining crawlThread.");
+                        Thread.currentThread().interrupt();
                     }
-                } catch (InterruptedException e) {
-                    LOG.warn(
-                            "Interrupted while waiting for scheduler termination.");
-                    scheduler.shutdownNow();
+                    scheduler.shutdown();
+                    LOG.info("Scheduler shutdown initiated.");
+                    try {
+                        if (!scheduler.awaitTermination(5,
+                                TimeUnit.SECONDS)) {
+                            LOG.warn(
+                                    "Scheduler did not terminate in time. Calling shutdownNow().");
+                            scheduler.shutdownNow();
+                        } else {
+                            LOG.info("Scheduler terminated cleanly.");
+                        }
+                    } catch (InterruptedException e) {
+                        LOG.warn(
+                                "Interrupted while waiting for scheduler termination.");
+                        scheduler.shutdownNow();
+                        Thread.currentThread().interrupt();
+                    }
+                    LOG.info(
+                            "After scheduler shutdown. Remaining non-daemon threads:");
+                    Thread.getAllStackTraces().keySet().stream()
+                            .filter(t -> t.isAlive() && !t.isDaemon())
+                            .forEach(t -> LOG.info("Thread: {} (id={})",
+                                    t.getName(), t.getId()));
                     Thread.currentThread().interrupt();
+                    finalResult = resultHolder.get();
+                } else {
+                    finalResult = crawler.doCrawl();
                 }
-                LOG.info(
-                        "After scheduler shutdown. Remaining non-daemon threads:");
+                CoreTestUtil.writeToFile(finalResult, resultPath);
+                LOG.info("TestCrawler main() finishing. PID: {}",
+                        ProcessHandle.current().pid());
+                LOG.info("Active non-daemon threads at exit:");
                 Thread.getAllStackTraces().keySet().stream()
                         .filter(t -> t.isAlive() && !t.isDaemon())
                         .forEach(t -> LOG.info("Thread: {} (id={})",
                                 t.getName(), t.getId()));
-                Thread.currentThread().interrupt();
-                finalResult = resultHolder.get();
-            } else {
-                finalResult = crawler.doCrawl();
             }
-            CoreTestUtil.writeToFile(finalResult, resultPath);
-            LOG.info("TestCrawler main() finishing. PID: {}",
-                    ProcessHandle.current().pid());
-            LOG.info("Active non-daemon threads at exit:");
-            Thread.getAllStackTraces().keySet().stream()
-                    .filter(t -> t.isAlive() && !t.isDaemon())
-                    .forEach(t -> LOG.info("Thread: {} (id={})", t.getName(),
-                            t.getId()));
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            exitCode = 1;
+            LOG.error("TestCrawler main() failed", e);
+        } catch (RuntimeException e) {
+            exitCode = 1;
+            LOG.error("TestCrawler main() failed", e);
+        } catch (Error e) {
+            exitCode = 1;
+            LOG.error("TestCrawler main() failed", e);
+        } finally {
+            try {
+                System.out.flush();
+            } catch (Exception ignored) {
+                // ignore
+            }
+            try {
+                System.err.flush();
+            } catch (Exception ignored) {
+                // ignore
+            }
+            System.exit(exitCode);
         }
     }
 

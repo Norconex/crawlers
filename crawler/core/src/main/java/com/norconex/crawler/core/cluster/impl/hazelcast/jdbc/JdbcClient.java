@@ -63,59 +63,59 @@ public class JdbcClient {
      * @param columnDefs Table column definitions
      * @throws SQLException if table cannot be created or found
      */
-    public void ensureTableExists(
+    public synchronized void ensureTableExists(
             @NonNull String tableName,
             @NonNull List<String> columnDefs)
             throws SQLException {
 
-        var conn = dataSource.getConnection();
-
-        if (doTableExists(conn, tableName)) {
-            LOG.debug("Table '{}' already exists.", tableName);
-            return;
-        }
-
-        // 1. Try CREATE TABLE ... IF NOT EXISTS
-        var sqlIfNotExists = "CREATE TABLE IF NOT EXISTS \"%s\" (%s)".formatted(
-                tableName, String.join(", ", columnDefs));
-        try (var stmt = conn.createStatement()) {
-            stmt.executeUpdate(sqlIfNotExists);
-            LOG.info("Created table (IF NOT EXISTS): {}", tableName);
-            return;
-        } catch (SQLException e) {
-            LOG.debug("CREATE TABLE IF NOT EXISTS failed: {}", e.getMessage());
-        }
-        // 2. Try plain CREATE TABLE
-        var sqlPlain = "CREATE TABLE " + tableName + " " + columnDefs;
-        try (var stmt = conn.createStatement()) {
-            stmt.executeUpdate(sqlPlain);
-            LOG.info("Created table: {}", tableName);
-            return;
-        } catch (SQLException e) {
-            LOG.debug("Plain CREATE TABLE failed: {}", e.getMessage());
-        }
-        // 3. Wait and check if table now exists (created by another node)
-        var retries = 5;
-        var waitMs = 1000;
-        for (var i = 0; i < retries; i++) {
-            try {
-                Thread.sleep(waitMs);
-            } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
-                throw new SQLException(
-                        "Interrupted while waiting for table creation.", ie);
-            }
+        try (var conn = dataSource.getConnection()) {
+            // Double-check after acquiring lock
             if (doTableExists(conn, tableName)) {
-                LOG.info("Table '{}' found after waiting.", tableName);
+                LOG.debug("Table '{}' already exists.", tableName);
+                return;
+            }
+
+            // 1. Try CREATE TABLE ... IF NOT EXISTS
+            var sqlIfNotExists =
+                    "CREATE TABLE IF NOT EXISTS \"%s\" (%s)".formatted(
+                            tableName, String.join(", ", columnDefs));
+            try (var stmt = conn.createStatement()) {
+                stmt.executeUpdate(sqlIfNotExists);
+                LOG.info("Created table (IF NOT EXISTS): {}", tableName);
+                return;
+            } catch (SQLException e) {
+                LOG.debug("CREATE TABLE IF NOT EXISTS failed: {}",
+                        e.getMessage());
+            }
+
+            // 2. Try plain CREATE TABLE
+            var sqlPlain = "CREATE TABLE \"%s\" (%s)".formatted(
+                    tableName, String.join(", ", columnDefs));
+            try (var stmt = conn.createStatement()) {
+                stmt.executeUpdate(sqlPlain);
+                LOG.info("Created table: {}", tableName);
+                return;
+            } catch (SQLException e) {
+                LOG.debug("Plain CREATE TABLE failed: {}", e.getMessage());
+            }
+
+            // 3. Final check - table might have been created by another node
+            // between attempts
+            if (doTableExists(conn, tableName)) {
+                LOG.info("Table '{}' exists (created by another node).",
+                        tableName);
                 return;
             }
         }
+
         throw new SQLException("Could not create or find table: " + tableName);
     }
 
     public boolean tableExists(String tableName)
             throws SQLException {
-        return doTableExists(dataSource.getConnection(), tableName);
+        try (var conn = dataSource.getConnection()) {
+            return doTableExists(conn, tableName);
+        }
     }
 
     public Connection getConnection() throws SQLException {

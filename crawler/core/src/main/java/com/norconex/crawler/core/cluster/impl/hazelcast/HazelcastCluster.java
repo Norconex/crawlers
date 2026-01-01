@@ -17,6 +17,7 @@ package com.norconex.crawler.core.cluster.impl.hazelcast;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -114,6 +115,11 @@ public class HazelcastCluster implements Cluster {
             if (StringUtils.isNotBlank(configuration.getClusterName())) {
                 hzConfig.setClusterName(configuration.getClusterName());
             }
+
+            // Test/driver override: allow explicit TCP/IP member list to be
+            // injected via configuration (e.g., for isolated tests running
+            // multiple clusters on the same machine).
+            applyTcpMembersOverride(hzConfig, clustered);
 
             validateClusterMode(hzConfig, configuration, clustered);
 
@@ -277,6 +283,78 @@ public class HazelcastCluster implements Cluster {
             LOG.error("Failed to initialize Hazelcast for workDir='{}' ",
                     workDir, e);
             throw e;
+        }
+    }
+
+    private void applyTcpMembersOverride(Config hzConfig, boolean clustered) {
+        if (!clustered) {
+            return;
+        }
+
+        var tcpMembersRaw =
+                StringUtils.trimToNull(configuration.getTcpMembers());
+        if (tcpMembersRaw == null) {
+            return;
+        }
+
+        // Accept comma-separated list; ignore blanks.
+        var members = new ArrayList<String>();
+        for (String part : StringUtils.split(tcpMembersRaw, ',')) {
+            var member = StringUtils.trimToNull(part);
+            if (member != null) {
+                members.add(member);
+            }
+        }
+        if (members.isEmpty()) {
+            return;
+        }
+
+        try {
+            var net = hzConfig.getNetworkConfig();
+            var join = net.getJoin();
+
+            // Ensure we only use TCP/IP discovery for this run.
+            if (join.getMulticastConfig() != null) {
+                join.getMulticastConfig().setEnabled(false);
+            }
+            if (join.getAutoDetectionConfig() != null) {
+                join.getAutoDetectionConfig().setEnabled(false);
+            }
+
+            var tcp = join.getTcpIpConfig();
+            tcp.setEnabled(true);
+            tcp.setMembers(members);
+
+            // If ports are present in the member list, also align the bind port
+            // range to that list so nodes auto-increment within the same range.
+            int minPort = Integer.MAX_VALUE;
+            int maxPort = Integer.MIN_VALUE;
+            boolean sawPort = false;
+            for (String m : members) {
+                int idx = m.lastIndexOf(':');
+                if (idx <= 0 || idx >= m.length() - 1) {
+                    continue;
+                }
+                try {
+                    int p = Integer.parseInt(m.substring(idx + 1));
+                    sawPort = true;
+                    minPort = Math.min(minPort, p);
+                    maxPort = Math.max(maxPort, p);
+                } catch (NumberFormatException e) {
+                    // ignore
+                }
+            }
+            if (sawPort && minPort >= 0 && maxPort >= minPort) {
+                net.setPort(minPort);
+                net.setPortAutoIncrement(true);
+                net.setPortCount(Math.max(1, (maxPort - minPort) + 1));
+            }
+
+            LOG.info("Applied Hazelcast TCP/IP member override (count={}): {}",
+                    members.size(), members);
+        } catch (Exception e) {
+            LOG.warn("Failed applying tcpMembers override '{}': {}",
+                    tcpMembersRaw, e.getMessage());
         }
     }
 
