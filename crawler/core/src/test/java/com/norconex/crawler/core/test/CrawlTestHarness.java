@@ -143,11 +143,19 @@ public class CrawlTestHarness implements Closeable {
                 futures.values().toArray(new CompletableFuture[0]));
 
         return allDone.thenApply(v -> {
+            LOG.info("=== All node futures completed, collecting results ===");
             Map<String, CrawlTestNodeOutput> results = new HashMap<>();
-            futures.forEach((name, future) -> results.put(name, future.join()));
+            futures.forEach((name, future) -> {
+                LOG.info("=== Joining result from node: {} ===", name);
+                results.put(name, future.join());
+                LOG.info("=== Successfully joined result from node: {} ===",
+                        name);
+            });
             // Note: postgres.stop() is NOT called here anymore to support
             // adding new nodes later or resuming crawls. It will be stopped
             // in close().
+            LOG.info("=== Returning CrawlTestHarnessResult with {} nodes ===",
+                    results.size());
             return new CrawlTestHarnessResult(results);
         });
     }
@@ -169,13 +177,21 @@ public class CrawlTestHarness implements Closeable {
 
     public CrawlTestHarnessResult launchSync(@NonNull String... nodeNames) {
 
+        LOG.info("=== launchSync() called for {} nodes ===", nodeNames.length);
         try {
-            return launchAsync(nodeNames).get();
+            LOG.info(
+                    "=== Waiting for CompletableFuture.allOf() to complete ===");
+            var result = launchAsync(nodeNames).get();
+            LOG.info(
+                    "=== CompletableFuture.allOf() completed successfully ===");
+            return result;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            LOG.error("=== launchSync() INTERRUPTED ===", e);
             throw new RuntimeException("Interrupted while waiting for crawlers",
                     e);
         } catch (ExecutionException e) {
+            LOG.error("=== launchSync() EXECUTION EXCEPTION ===", e);
             throw new RuntimeException("Failed to launch crawlers",
                     e.getCause());
         }

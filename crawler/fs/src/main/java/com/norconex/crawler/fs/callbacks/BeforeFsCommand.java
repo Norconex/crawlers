@@ -16,11 +16,11 @@ package com.norconex.crawler.fs.callbacks;
 
 import java.util.function.Consumer;
 
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.context.CrawlContext;
 
 import lombok.extern.slf4j.Slf4j;
 
-/**
+/** 
  * Web crawler-specific initialization before the crawler starts.
  */
 @Slf4j

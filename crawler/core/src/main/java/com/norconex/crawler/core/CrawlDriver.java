@@ -53,7 +53,7 @@ public class CrawlDriver {
     private final List<CrawlBootstrapper> bootstrappers =
             new ArrayList<>(List.of(
                     new CrawlEntryLedgerBootstrapper()));
-    //                    new QueueBootstrapper()));
+
     private final CrawlDocPipelines docPipelines;
     @Default
     private final CrawlCallbacks callbacks = CrawlCallbacks.builder().build();

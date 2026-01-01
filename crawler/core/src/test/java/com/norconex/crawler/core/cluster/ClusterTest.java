@@ -65,9 +65,7 @@ class ClusterTest {
                 new CrawlTestInstrument()
                         .setRecordEvents(true)
                         .setRecordCaches(true)
-                        // No recordInterval for normal execution - results should be
-                        // written once at completion. If this fails, that's the bug to fix.
-                        //.setRecordInterval(Duration.ofSeconds(1))
+                        .setRecordInterval(Duration.ofSeconds(1))
                         .setConfigModifier(configModifier(numOfRefs, 0))
                         .setWorkDir(tempDir)
                         .setNewJvm(numNodes > 1)
@@ -222,6 +220,9 @@ class ClusterTest {
                 //                .setId("someId")
                 .setMaxQueueBatchSize(10)
                 .setNumThreads(2)
+                // Configure idleTimeout for multi-node coordination
+                // Nodes wait this long after seeing empty queue before deciding work is done
+                .setIdleTimeout(Duration.ofSeconds(5))
                 .setFetchers(List.of(Configurable.configure(
                         new MockFetcher(),
                         fcfg -> fcfg.setDelay(Duration.ofMillis(delayMs)))));

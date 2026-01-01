@@ -18,6 +18,7 @@ import java.util.Locale;
 
 import com.norconex.commons.lang.PercentFormatter;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapper;
+import com.norconex.crawler.core.ledger.ProcessingStatus;
 import com.norconex.crawler.core.session.CrawlSession;
 
 import lombok.extern.slf4j.Slf4j;
@@ -85,15 +86,24 @@ public final class CrawlEntryLedgerBootstrapper implements CrawlBootstrapper {
             LOG.info("RESUMING crawl - queue currently has {} items",
                     ledger.getQueueCount());
 
-            //            // Restore entries that were in QUEUED state. The Hazelcast
-            //            // persistent queue may not have restored them properly due to
-            //            // partition ownership changes across restarts.
-            //            var queuedCount = ledger.requeueQueuedEntries();
-            //            if (queuedCount > 0) {
-            //                LOG.info(
-            //                        "Re-queued {} entries that were QUEUED from previous run.",
-            //                        queuedCount);
-            //            }
+            // Restore entries that were in QUEUED state. The Hazelcast
+            // persistent queue may not have restored them properly due to
+            // partition ownership changes across restarts.
+            // Check if queue is empty but ledger has QUEUED entries.
+            if (ledger.getQueueCount() == 0) {
+                var ledgerQueuedCount = ledger.countByStatus(
+                        ProcessingStatus.QUEUED);
+                if (ledgerQueuedCount > 0) {
+                    LOG.warn(
+                            "Queue empty but ledger has {} QUEUED entries. "
+                                    + "Restoring from ledger (likely Hazelcast partition "
+                                    + "rebalancing issue).",
+                            ledgerQueuedCount);
+                    var restoredCount = ledger.requeueQueuedEntries();
+                    LOG.info("Restored {} QUEUED entries to queue from ledger.",
+                            restoredCount);
+                }
+            }
 
             // Restore entries that were in PROCESSING state (were pulled
             // from queue but not completed). These are added to the front

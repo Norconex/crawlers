@@ -103,9 +103,15 @@ public class TestCrawler implements Closeable {
     }
 
     public CrawlTestNodeOutput crawl() {
+        LOG.info("=== TestCrawler.crawl() called for node: {} ===",
+                instrument.getNodeName());
         if (instrument.isNewJvm()) {
+            LOG.info("=== Launching new JVM for node: {} ===",
+                    instrument.getNodeName());
             return launchNewJvm();
         }
+        LOG.info("=== Executing doCrawl() in same JVM for node: {} ===",
+                instrument.getNodeName());
         return doCrawl();
     }
 
@@ -361,10 +367,17 @@ public class TestCrawler implements Closeable {
         childProcess.set(process);
         ALL_CHILD_PROCESSES.add(process);
 
+        LOG.info(
+                "=== Node {} child process started. PID: {}. Waiting for completion... ===",
+                nodeName, process.pid());
         try {
             process.waitFor();
+            LOG.info("=== Node {} child process completed. Exit code: {} ===",
+                    nodeName, process.exitValue());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            LOG.error("=== Node {} child process waitFor() INTERRUPTED ===",
+                    nodeName, e);
         }
 
         // Diagnose if results file is missing. Read child STDOUT/ERR to

@@ -155,74 +155,53 @@ public final class CrawlEntryLedger {
                     totalMaxDocsThisRun);
         }
 
-        //        // If resuming and the persistent queue is empty, attempt to restore
-        //        // it from ledger entries. This covers cases where the underlying
-        //        // queue data structure did not restore items (e.g. partition
-        //        // ownership changes). We avoid duplicating entries when the queue
-        //        // is already populated.
-        //        if (resumed) {
-        //            try {
-        //                if (queue.isEmpty()) {
-        //                    var requeuedProcessing = requeueProcessingEntries();
-        //                    LOG.info("Resuming with {} entries in crawl queue "
-        //                            + "({} brought back from 'processing' state).",
-        //                            queue.size(), requeuedProcessing);
-        //                } else {
-        //                    LOG.info(
-        //                            "Resuming with {} entries in crawl queue (restored from persistence).",
-        //                            queue.size());
-        //                }
-        //            } catch (Exception e) {
-        //                LOG.warn("Failed to restore persistent queue from ledger: {}",
-        //                        e.toString());
-        //            }
-        //        }
-
-        LOG.info("Done initializing crawl entry ledger.");
+        LOG.info("Done initializing crawl entry ledger. Queue size: {}",
+                queue.size());
     }
 
-    //    /**
-    //     * Re-queues entries that were in QUEUED state from a previous run.
-    //     * This is needed when the persistent queue fails to restore items
-    //     * (e.g., due to partition ownership changes across restarts).
-    //     * @return the number of entries re-queued
-    //     */
-    //    public int requeueQueuedEntries() {
-    //        var current = getCurrentLedger();
-    //        var queuedIt = current.queryIterator(
-    //                statusQueryFilter(ProcessingStatus.QUEUED));
-    //
-    //        // Collect entries and sort by queuedAt (nulls last) to preserve
-    //        // FIFO ordering as much as possible when restoring queue.
-    //        var entries = new java.util.ArrayList<CrawlEntry>();
-    //        while (queuedIt.hasNext()) {
-    //            entries.add(queuedIt.next());
-    //        }
-    //
-    //        entries.sort((a, b) -> {
-    //            var qa = a.getQueuedAt();
-    //            var qb = b.getQueuedAt();
-    //            if (qa == null && qb == null) {
-    //                return 0;
-    //            }
-    //            if (qa == null) {
-    //                return 1; // put nulls last
-    //            }
-    //            if (qb == null) {
-    //                return -1;
-    //            }
-    //            return qa.compareTo(qb);
-    //        });
-    //
-    //        var requeuedCount = 0;
-    //        for (var entry : entries) {
-    //            queue.add(entry.getReference());
-    //            requeuedCount++;
-    //        }
-    //        LOG.info("Re-queued {} previously QUEUED entries into queue.",
-    //                requeuedCount);
-    //        return requeuedCount;
-    //    }
+    /**
+     * Re-queues entries that were in QUEUED state from a previous run.
+     * This is needed when the persistent queue fails to restore items
+     * (e.g., due to partition ownership changes across restarts).
+     * Called by CrawlEntryLedgerBootstrapper during RUN LEVEL initialization.
+     * @return the number of entries re-queued
+     */
+    public int requeueQueuedEntries() {
+        var current = getCurrentLedger();
+        var queuedIt = current.queryIterator(
+                statusQueryFilter(ProcessingStatus.QUEUED));
+
+        // Collect entries and sort by queuedAt (nulls last) to preserve
+        // FIFO ordering as much as possible when restoring queue.
+        var entries = new java.util.ArrayList<CrawlEntry>();
+        while (queuedIt.hasNext()) {
+            entries.add(queuedIt.next());
+        }
+
+        entries.sort((a, b) -> {
+            var qa = a.getQueuedAt();
+            var qb = b.getQueuedAt();
+            if (qa == null && qb == null) {
+                return 0;
+            }
+            if (qa == null) {
+                return 1; // put nulls last
+            }
+            if (qb == null) {
+                return -1;
+            }
+            return qa.compareTo(qb);
+        });
+
+        var requeuedCount = 0;
+        for (var entry : entries) {
+            queue.add(entry.getReference());
+            requeuedCount++;
+        }
+        LOG.info("Re-queued {} previously QUEUED entries into queue.",
+                requeuedCount);
+        return requeuedCount;
+    }
 
     /**
      * Updates an entry in the ledger, maintaining the status counters.
@@ -323,10 +302,11 @@ public final class CrawlEntryLedger {
         var activeLedger = getCurrentLedger();
 
         if (LOG.isTraceEnabled()) {
+            var queuedCount = activeLedger.count(
+                    statusQueryFilter(ProcessingStatus.QUEUED));
             LOG.trace("[{}] CrawlEntryLedger.nextQueuedBatch(batchSize={}) "
                     + "called. queuedCount={}.",
-                    nodeName, batchSize, activeLedger.count(
-                            statusQueryFilter(ProcessingStatus.QUEUED)));
+                    nodeName, batchSize, queuedCount);
         }
 
         // Poll references from queue

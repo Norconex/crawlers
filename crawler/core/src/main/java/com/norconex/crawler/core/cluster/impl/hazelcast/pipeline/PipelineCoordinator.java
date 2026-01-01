@@ -219,6 +219,37 @@ public class PipelineCoordinator implements AutoCloseable {
                 return;
             }
         }
+
+        // After all steps complete successfully, wait for all workers
+        // to see the COMPLETED status and transition to terminal state.
+        // This prevents coordinator from shutting down before workers
+        // receive the completion notification.
+        if (!cluster.isStandalone() && !state.getStopRequested().get()) {
+            LOG.info("All pipeline steps completed. Waiting for workers to "
+                    + "acknowledge completion...");
+            try {
+                // Wait up to 30 seconds for all workers to reach terminal status
+                if (ConcurrentUtil.waitUntil(
+                        () -> state
+                                .isStatusOfAllWorkers(PipelineStatus.COMPLETED)
+                                || state.isStatusOfAllWorkers(
+                                        PipelineStatus.STOPPED),
+                        Duration.ofSeconds(30),
+                        Duration.ofMillis(500))) {
+                    LOG.info("All workers acknowledged pipeline completion.");
+                } else {
+                    LOG.warn("Not all workers acknowledged completion within "
+                            + "30 seconds. Proceeding with shutdown.");
+                }
+            } catch (SleeperException e) {
+                if (!(e.getCause() instanceof InterruptedException)) {
+                    throw e;
+                }
+                Thread.currentThread().interrupt();
+                LOG.debug("Interrupted while waiting for worker "
+                        + "acknowledgment (normal during shutdown).");
+            }
+        }
     }
 
     private PipelineStatus executeLocally(Step step) {
