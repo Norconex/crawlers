@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.core.test;
 
+import static java.util.Optional.ofNullable;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -31,6 +33,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.apache.commons.collections4.OrderedMap;
+import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.postgresql.PostgreSQLContainer;
@@ -38,6 +42,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.bean.BeanUtil;
+import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 
@@ -81,7 +86,8 @@ public class CrawlTestHarness implements Closeable {
     private volatile Integer hazelcastPortBase;
     private volatile Integer hazelcastPortCount;
 
-    private final Map<String, TestCrawler> nodeCrawlers = new HashMap<>();
+    private final OrderedMap<String, TestCrawler> nodeCrawlers =
+            new ListOrderedMap<>();
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
     public CompletableFuture<CrawlTestHarnessResult> launchAsync(
@@ -125,8 +131,11 @@ public class CrawlTestHarness implements Closeable {
 
             var testCrawler = new TestCrawler(instrument);
             nodeCrawlers.put(nodeName, testCrawler);
-            futures.put(nodeName, CompletableFuture.supplyAsync(
-                    testCrawler::crawl, executor));
+
+            var future = CompletableFuture.supplyAsync(
+                    testCrawler::crawl, executor);
+
+            futures.put(nodeName, future);
             LOG.debug("Launched \"{}\".", nodeName);
         }
 
@@ -136,11 +145,26 @@ public class CrawlTestHarness implements Closeable {
         return allDone.thenApply(v -> {
             Map<String, CrawlTestNodeOutput> results = new HashMap<>();
             futures.forEach((name, future) -> results.put(name, future.join()));
-            if (isClustered) {
-                postgres.stop();
-            }
+            // Note: postgres.stop() is NOT called here anymore to support
+            // adding new nodes later or resuming crawls. It will be stopped
+            // in close().
             return new CrawlTestHarnessResult(results);
         });
+    }
+
+    public CrawlTestInstrument getCrawlInstrument(String nodeName) {
+        return ofNullable(nodeCrawlers.get(nodeName))
+                .map(TestCrawler::getInstrument)
+                .orElse(null);
+    }
+
+    public CrawlConfig getFirstNodeConfig() {
+        if (nodeCrawlers.isEmpty()) {
+            return null;
+        }
+        return nodeCrawlers.get(nodeCrawlers.firstKey())
+                .getInstrument()
+                .getCrawlConfig();
     }
 
     public CrawlTestHarnessResult launchSync(@NonNull String... nodeNames) {
@@ -173,11 +197,11 @@ public class CrawlTestHarness implements Closeable {
         return Optional.empty();
     }
 
-    CrawlTestWaitFor waitFor() {
+    public CrawlTestWaitFor waitFor() {
         return new CrawlTestWaitFor(Duration.ofSeconds(30), this);
     }
 
-    CrawlTestWaitFor waitFor(@NonNull Duration timeout) {
+    public CrawlTestWaitFor waitFor(@NonNull Duration timeout) {
         return new CrawlTestWaitFor(timeout, this);
     }
 
@@ -186,12 +210,17 @@ public class CrawlTestHarness implements Closeable {
         LOG.info("CrawlTestHarness.close() called for cleanup.");
         nodeCrawlers.forEach((name, crawler) -> {
             LOG.info("Closing TestCrawler node: {}", name);
+            // Crawlers may already be closed from whenComplete() callback
             ExceptionSwallower.close(crawler);
         });
         executor.shutdownNow();
         LOG.info("ExecutorService shutdown.");
-        postgres.close();
-        LOG.info("PostgreSQL container closed.");
+        if (postgres.isRunning()) {
+            postgres.stop();
+            LOG.info("PostgreSQL container stopped.");
+        } else {
+            LOG.info("PostgreSQL container already stopped.");
+        }
         LOG.info("CrawlTestHarness.close() cleanup complete.");
     }
 

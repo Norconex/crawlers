@@ -49,6 +49,20 @@ public final class CoreTestUtil {
         return file;
     }
 
+    /**
+     * Returns an array with a number of node names equal to the `numNodes` value
+     * provided. The nodes naming pattern is: {@code node-<cnt>} where
+     * {@code <cnt>} is a 1-based index.
+     * @return
+     */
+    public static String[] nodeNames(int numNodes) {
+        var nodeNames = new String[numNodes];
+        for (var i = 0; i < nodeNames.length; i++) {
+            nodeNames[i] = "node-" + (i + 1);
+        }
+        return nodeNames;
+    }
+
     public static void writeToFile(
             Object obj, Path targetFile) {
         // make sure directory exists

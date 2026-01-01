@@ -42,6 +42,7 @@ import com.norconex.crawler.core.cluster.impl.hazelcast.HzUtil;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 import com.norconex.crawler.core.util.CoreTestUtil;
 
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -67,6 +68,7 @@ public class TestCrawler implements Closeable {
         }, "TestCrawler-ShutdownHook"));
     }
 
+    @Getter
     private final CrawlTestInstrument instrument;
     private final CrawlConfig crawlConfig;
     private final EventNameRecorder eventNameRecorder = new EventNameRecorder();
