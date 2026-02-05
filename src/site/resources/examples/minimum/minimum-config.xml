@@ -21,7 +21,7 @@
 <httpcollector id="Minimum Config HTTP Collector">
 
   <!-- Decide where to store generated files. -->
-  <workDir>./examples-output/complex</workDir>
+  <workDir>./examples-output/simple</workDir>
 
   <crawlers>
     <crawler id="Norconex Minimum Test Page">
@@ -64,5 +64,6 @@
 
     </crawler>
   </crawlers>
+
 
 </httpcollector>
