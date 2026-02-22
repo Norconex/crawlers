@@ -261,6 +261,16 @@
     <Logger name="org.eclipse.jetty" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
+    
+    <Logger name="org.apache.poi.hdgf" level="OFF" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.apache.poi.hpsf" level="OFF" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.apache.poi.hslf" level="OFF" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
 
     <Root level="INFO">
       <AppenderRef ref="Console"/>

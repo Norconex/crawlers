@@ -20,35 +20,40 @@
   <parent>
     <groupId>com.norconex.commons</groupId>
     <artifactId>norconex-commons-maven-parent</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
   </parent>  
   <groupId>com.norconex.collectors</groupId>
   <artifactId>norconex-collector-http</artifactId>
   <name>Norconex HTTP Collector</name>
-  <version>3.1.0</version>
+  <version>3.2.0-SNAPSHOT</version>
 
   <properties>
-    <maven.compiler.source>11</maven.compiler.source>
-    <maven.compiler.target>11</maven.compiler.target>
-    <java.version>11</java.version>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <java.version>17</java.version>
 
-    <commons-lang3.version>3.14.0</commons-lang3.version>
+    <norconex-committer-core.version>3.0.0</norconex-committer-core.version>
+    <norconex-collector-core.version>2.2.0-SNAPSHOT</norconex-collector-core.version>
+    <norconex-importer.version>3.2.0-SNAPSHOT</norconex-importer.version>
+
+
+    <commons-lang3.version>3.18.0</commons-lang3.version>
       
-    <bc.version>1.69</bc.version>
+    <bc.version>1.79</bc.version>
     <littleproxy.version>2.4.0</littleproxy.version>
     <guava.version>33.0.0-jre</guava.version>
     <imgscalr.version>4.2</imgscalr.version>
     <jetty.version>9.4.54.v20240208</jetty.version>
     <netty.version>4.1.96.Final</netty.version>
     <selenium.version>4.31.0</selenium.version>
-    <okhttp.version>3.14.9</okhttp.version>
+    <okhttp.version>4.11.0</okhttp.version>
     
     <commons-compress.version>1.21</commons-compress.version>
     <cxf.version>3.4.5</cxf.version>
-    <h2.version>2.0.204</h2.version>
+    <h2.version>2.2.220</h2.version>
     <hikaricp.version>4.0.3</hikaricp.version>
     <jdom2.version>2.0.6.1</jdom2.version>
-    <jsoup.version>1.15.3</jsoup.version>
+    <jsoup.version>1.21.1</jsoup.version>
     <mongodb.version>4.3.2</mongodb.version>
   </properties>
 
@@ -83,12 +88,12 @@
       </dependency>
       <dependency>
         <groupId>org.bouncycastle</groupId>
-        <artifactId>bcprov-jdk15on</artifactId>
+        <artifactId>bcprov-jdk18on</artifactId>
         <version>${bc.version}</version>
       </dependency>
       <dependency>
         <groupId>org.bouncycastle</groupId>
-        <artifactId>bcpkix-jdk15on</artifactId>
+        <artifactId>bcpkix-jdk18on</artifactId>
         <version>${bc.version}</version>
       </dependency>
       <dependency>
@@ -124,6 +129,7 @@
     <dependency>
       <groupId>com.norconex.collectors</groupId>
       <artifactId>norconex-collector-core</artifactId>
+      <version>${norconex-collector-core.version}</version>
       <exclusions>
         <exclusion>
           <groupId>commons-logging</groupId>
@@ -173,15 +179,18 @@
 
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-slf4j-impl</artifactId>
+      <artifactId>log4j-slf4j2-impl</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-core</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>jcl-over-slf4j</artifactId>
+      <scope>test</scope>
     </dependency>
 
     <!-- Test + provided dependencies: -->
@@ -231,6 +240,12 @@
               <version>${norconex-collector-core.version}</version>
             </tagletArtifact>
           </tagletArtifacts>
+          <failOnError>false</failOnError>
+          <failOnWarning>false</failOnWarning>
+          <quiet>true</quiet>
+          <options>
+            <option>-Xdoclint:none</option>
+          </options>
         </configuration>
       </plugin>
 
@@ -251,8 +266,8 @@
       </plugin>
 
       <plugin>
-        <groupId>org.sonatype.plugins</groupId>
-        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <groupId>org.sonatype.central</groupId>
+        <artifactId>central-publishing-maven-plugin</artifactId>
       </plugin>
       
       <plugin>

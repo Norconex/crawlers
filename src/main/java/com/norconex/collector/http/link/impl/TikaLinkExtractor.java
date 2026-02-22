@@ -31,7 +31,7 @@ import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.html.DefaultHtmlMapper;
 import org.apache.tika.parser.html.HtmlMapper;
-import org.apache.tika.parser.html.HtmlParser;
+import org.apache.tika.parser.html.JSoupParser;
 import org.apache.tika.sax.Link;
 import org.apache.tika.sax.LinkContentHandler;
 import org.xml.sax.SAXException;
@@ -96,7 +96,7 @@ public class TikaLinkExtractor extends AbstractLinkExtractor {
         ParseContext parseContext = new ParseContext();
         parseContext.set(HtmlMapper.class, fixedHtmlMapper);
 
-        HtmlParser parser = new HtmlParser();
+        JSoupParser parser = new JSoupParser();
         String url = doc.getReference();
         try (InputStream is = doc.getInputStream()) {
             parser.parse(is, linkHandler, metadata, parseContext);

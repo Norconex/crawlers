@@ -17,10 +17,7 @@ package com.norconex.collector.http.link.impl;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Set;
-
-import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -60,10 +57,12 @@ public class XMLFeedLinkExtractorTest {
                 baseURL + "atom/page2.html",
         };
 
-        InputStream is = IOUtils.buffer(getClass().getResourceAsStream(
+        CachedInputStream is = CachedInputStream.cache(
+                getClass().getResourceAsStream(
                 "XMLFeedLinkExtractorTest.atom"));
 
         ContentType ct = ContentTypeDetector.detect(is);
+        is.rewind();
 
 //        Assertions.assertTrue(
 //                extractor.accepts(docURL, ct),
@@ -99,10 +98,12 @@ public class XMLFeedLinkExtractorTest {
                 baseURL + "rss/page2.html",
         };
 
-        InputStream is = IOUtils.buffer(getClass().getResourceAsStream(
+        CachedInputStream is = CachedInputStream.cache(
+                getClass().getResourceAsStream(
                 "XMLFeedLinkExtractorTest.rss"));
 
         ContentType ct = ContentTypeDetector.detect(is);
+        is.rewind();
 
 //        Assertions.assertTrue(
 //                extractor.accepts(docURL, ct),
@@ -142,7 +143,7 @@ public class XMLFeedLinkExtractorTest {
         return false;
     }
 
-    private CrawlDoc toCrawlDoc(String ref, ContentType ct, InputStream is) {
+    private CrawlDoc toCrawlDoc(String ref, ContentType ct, CachedInputStream is) {
         HttpDocInfo docInfo = new HttpDocInfo(ref);
         docInfo.setContentType(ct);
         CrawlDoc doc = new CrawlDoc(docInfo, CachedInputStream.cache(is));
