@@ -34,8 +34,10 @@
     <jpeg2000-imageio.version>1.4.0</jpeg2000-imageio.version>
     <jython.version>2.7.3</jython.version>
     <luaj-jse.version>3.0.1</luaj-jse.version>
-    <opencsv.version>5.8</opencsv.version>
-    <tika.version>2.9.1</tika.version>
+    <opencsv.version>5.12.0</opencsv.version>
+    <tika.version>3.2.3</tika.version>
+    <!-- Tika 3.x JSoupParser requires jsoup 1.17.1+; must override parent mgmt -->
+    <jsoup.version>1.21.1</jsoup.version>
     <ucar-jj2000.version>5.4</ucar-jj2000.version>
     <webp-imageio.version>0.1.6</webp-imageio.version>
     
@@ -163,8 +165,28 @@
     </dependency>
     <dependency>
       <groupId>org.apache.tika</groupId>
+      <artifactId>tika-langdetect-optimaize</artifactId>
+      <version>${tika.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tika</groupId>
+      <artifactId>tika-parser-advancedmedia-package</artifactId>
+      <version>${tika.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tika</groupId>
+      <artifactId>tika-parser-nlp-package</artifactId>
+      <version>${tika.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tika</groupId>
       <artifactId>tika-translate</artifactId>
       <version>${tika.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>jbig2-imageio</artifactId>
+      <version>3.0.4</version>
     </dependency>
 
     <dependency>
@@ -306,6 +328,26 @@
     </dependency>
 
 
+    <!-- Ensure required POI and XMLBeans classes are available at compile scope
+         to prevent StackOverflowError in XWPFRelation initialization.
+         Using poi-ooxml-full (~15-20 MB) instead of poi-ooxml-lite (~2-3 MB) for maximum
+         compatibility with Office documents that use uncommon schemas or advanced features. -->
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi-ooxml-full</artifactId>
+      <version>5.5.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.xmlbeans</groupId>
+      <artifactId>xmlbeans</artifactId>
+      <version>5.3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi</artifactId>
+      <version>5.5.1</version>
+    </dependency>
+
     <!-- This jpeg2000 dep is not distributed due to JPEG 2000 licensing issue.
          It is included here as "test" only so it does not get distributed.
          https://github.com/jai-imageio/jai-imageio-jpeg2000/blob/master/LICENSE-JJ2000.txt
@@ -338,6 +380,12 @@
         <artifactId>maven-javadoc-plugin</artifactId>
         <configuration>
           <excludePackageNames>org.*</excludePackageNames>
+          <failOnError>false</failOnError>
+          <failOnWarning>false</failOnWarning>
+          <quiet>true</quiet>
+          <options>
+            <option>-Xdoclint:none</option>
+          </options>
         </configuration>
       </plugin>
       
@@ -376,6 +424,22 @@
       <plugin>
         <groupId>org.sonatype.central</groupId>
         <artifactId>central-publishing-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <!-- Set forkCount to 1 to enable test forking, which allows argLine JVM arguments
+               (like add-opens) to be applied. This is required for Java 17+ module system. -->
+          <forkCount>1</forkCount>
+          <reuseForks>true</reuseForks>
+          <useModulePath>false</useModulePath>
+          <argLine>--add-opens java.base/java.util=ALL-UNNAMED</argLine>
+          <systemPropertyVariables>
+            <tika.config>${project.basedir}/src/test/resources/tika-config.xml</tika.config>
+          </systemPropertyVariables>
+        </configuration>
       </plugin>
 
     </plugins>

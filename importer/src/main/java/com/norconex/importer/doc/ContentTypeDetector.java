@@ -17,13 +17,22 @@ package com.norconex.importer.doc;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
+import org.apache.tika.detect.DefaultDetector;
+import org.apache.tika.detect.Detector;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.TikaCoreProperties;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
+import org.apache.tika.mime.MimeTypesFactory;
 
 import com.norconex.commons.lang.file.ContentType;
 
@@ -37,7 +46,72 @@ public final class ContentTypeDetector {
 
     private static final Pattern EXTENSION_PATTERN =
             Pattern.compile("^.*(\\.[A-z0-9]+).*");
-    private static final Tika TIKA = new Tika();
+    private static final MimeTypes CUSTOM_MIME_TYPES;
+    private static final Detector DETECTOR;
+    private static final Tika TIKA;
+    static {
+        configureCustomMimeTypes();
+        CUSTOM_MIME_TYPES = createCustomMimeTypes();
+        DETECTOR = new DefaultDetector(CUSTOM_MIME_TYPES);
+        TIKA = new Tika(DETECTOR);
+    }
+
+    private static void configureCustomMimeTypes() {
+        if (System
+                .getProperty(MimeTypesFactory.CUSTOM_MIMES_SYS_PROP) != null) {
+            return;
+        }
+        URL resource = ContentTypeDetector.class.getClassLoader().getResource(
+                "org/apache/tika/mime/custom-mimetypes.xml");
+        if (resource == null) {
+            return;
+        }
+        try {
+            if ("file".equalsIgnoreCase(resource.getProtocol())) {
+                var path = Path.of(resource.toURI());
+                System.setProperty(
+                        MimeTypesFactory.CUSTOM_MIMES_SYS_PROP,
+                        path.toString());
+                return;
+            }
+            try (var in = resource.openStream()) {
+                var temp =
+                        Files.createTempFile("tika-custom-mimetypes-", ".xml");
+                Files.copy(in, temp, StandardCopyOption.REPLACE_EXISTING);
+                temp.toFile().deleteOnExit();
+                System.setProperty(
+                        MimeTypesFactory.CUSTOM_MIMES_SYS_PROP,
+                        temp.toString());
+            }
+        } catch (Exception e) {
+            LOG.warn("Could not register custom mime types resource.", e);
+        }
+    }
+
+    private static MimeTypes createCustomMimeTypes() {
+        try {
+            return MimeTypesFactory.create(
+                    "tika-mimetypes.xml",
+                    "custom-mimetypes.xml",
+                    ContentTypeDetector.class.getClassLoader());
+        } catch (IOException | MimeTypeException e) {
+            LOG.warn(
+                    "Could not load custom mime types; falling back to defaults.",
+                    e);
+            return MimeTypes.getDefaultMimeTypes();
+        }
+    }
+
+    /**
+     * Returns the custom MIME type detector used for content type detection.
+     * This detector is pre-configured with Norconex custom MIME types
+     * (e.g., application/vnd.xfdl) and can be used to configure
+     * Tika parsers to recognise the same types.
+     * @return the custom Tika detector
+     */
+    public static Detector getDetector() {
+        return DETECTOR;
+    }
 
     private ContentTypeDetector() {
     }
@@ -75,9 +149,7 @@ public final class ContentTypeDetector {
      * @throws IOException problem detecting content type
      */
     public static ContentType detect(InputStream content) throws IOException {
-        var type = TIKA.detect(content);
-        LOG.debug("Detected \"{}\" content-type for input stream.", type);
-        return ContentType.valueOf(type);
+        return doDetect(content, null);
     }
 
     /**
@@ -98,13 +170,14 @@ public final class ContentTypeDetector {
             InputStream is, String fileName) throws IOException {
         var tikaStream = TikaInputStream.get(is);
         var meta = new Metadata();
-        var extension = StringUtils.isBlank(fileName)
-                ? ""
-                : EXTENSION_PATTERN.matcher(fileName).replaceFirst("$1");
-        meta.set(
-                TikaCoreProperties.RESOURCE_NAME_KEY,
-                "file:///detect" + extension);
-        var media = TIKA.getDetector().detect(tikaStream, meta);
+        if (StringUtils.isNotBlank(fileName)) {
+            var extension =
+                    EXTENSION_PATTERN.matcher(fileName).replaceFirst("$1");
+            meta.set(
+                    TikaCoreProperties.RESOURCE_NAME_KEY,
+                    "file:///detect" + extension);
+        }
+        var media = DETECTOR.detect(tikaStream, meta);
 
         LOG.debug("Detected \"{}\" content-type for file: {}", media, fileName);
         return ContentType.valueOf(media.toString());

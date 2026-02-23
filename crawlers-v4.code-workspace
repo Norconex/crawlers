@@ -1,0 +1,28 @@
+{
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "../commons-lang-3.0"
+    },
+    {
+      "path": "../../../work/zandbox/zandbox-crawler-4"
+    }
+  ],
+  "settings": {
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.format.settings.url": "./norconex-formatter.xml",
+    "java.dependency.packagePresentation": "hierarchical",
+    "maven.view": "flat",
+    "java.dependency.syncWithFolderExplorer": true,
+    "powershell.cwd": "crawlers-v4",
+    "chat.tools.terminal.autoApprove": {
+      "mvn dependency:resolve": true,
+      "mvn dependency:tree": true,
+      "mvn test": true,
+      "Test-Path": true
+    }
+  }
+}

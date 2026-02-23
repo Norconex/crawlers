@@ -148,6 +148,32 @@ public class PipelineWorkerState implements AutoCloseable {
                 }
                 return;
             }
+
+            // Keep the worker's view of the active step in sync with the
+            // coordinator. This is especially important for nodes joining
+            // mid-run (e.g., resume) where the Hazelcast cache event can be
+            // missed.
+            var pipeRec = pipelineStepCache.get(pipelineKey).orElse(null);
+            if (pipeRec != null && isStepForThisRun(pipeRec)) {
+                var curStepId = currentStepRecord.getStepId();
+                var curStatus = currentStepRecord.getStatus();
+                var curUpdatedAt = currentStepRecord.getUpdatedAt();
+                var needsSync = curStepId == null
+                        || curStatus == null
+                        || curUpdatedAt < pipeRec.getUpdatedAt()
+                        || !pipeRec.getStatus().equals(curStatus)
+                        || (pipeRec.getStepId() != null
+                                && !pipeRec.getStepId().equals(curStepId));
+                if (needsSync) {
+                    updateCurrentStepRecord(currentRec -> {
+                        logStepRecordReceived(pipeRec, "heartbeat sync");
+                        currentRec.setStatus(pipeRec.getStatus())
+                                .setStepId(pipeRec.getStepId())
+                                .setUpdatedAt(pipeRec.getUpdatedAt());
+                    });
+                }
+            }
+
             pushWorkerStatus(workerStatus);
 
             // every ~15 seconds update pipeline status in case we missed it
@@ -185,6 +211,23 @@ public class PipelineWorkerState implements AutoCloseable {
         if (pipelineStepListener == null) {
             initStepListener();
         }
+
+        // Sync current step immediately in case this node joined after the
+        // coordinator already published the active step (common on resume).
+        // This avoids waiting for the periodic explicit-check.
+        updateCurrentStepRecord(currentRec -> {
+            var rec = pipelineStepCache.get(pipelineKey).orElse(null);
+            logStepRecordReceived(rec, "initial sync");
+            if (rec == null || !isStepForThisRun(rec)) {
+                currentRec.setStatus(PipelineStatus.PENDING)
+                        .setStepId(null)
+                        .setUpdatedAt(0);
+            } else {
+                currentRec.setStatus(rec.getStatus())
+                        .setStepId(rec.getStepId())
+                        .setUpdatedAt(rec.getUpdatedAt());
+            }
+        });
     }
 
     public Step getCurrentStep() {

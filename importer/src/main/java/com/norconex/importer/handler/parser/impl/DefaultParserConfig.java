@@ -40,4 +40,7 @@ public class DefaultParserConfig {
     @NonNull
     @JsonProperty("embedded")
     private final EmbeddedConfig embeddedConfig = new EmbeddedConfig();
+
+    @JsonProperty("grobid")
+    private final GrobidConfig grobidConfig = new GrobidConfig();
 }

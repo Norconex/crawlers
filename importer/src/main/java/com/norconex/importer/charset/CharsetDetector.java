@@ -158,7 +158,10 @@ public class CharsetDetector {
             return fallbackCharset;
         }
         try {
-            return detect(new ByteArrayInputStream(input.getBytes()));
+            // Use UTF_8 explicitly: Java Strings are Unicode internally;
+            // using getBytes() (platform-default) causes non-deterministic
+            // behavior across platforms and Tika versions.
+            return detect(new ByteArrayInputStream(input.getBytes(UTF_8)));
         } catch (IOException e) {
             // We swallow and return fallback if it fails. Since
             // the input is a string, it should not happen.

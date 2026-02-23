@@ -14,9 +14,7 @@
  */
 package com.norconex.crawler.core.cluster.impl.hazelcast;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -127,126 +125,8 @@ public class HazelcastCluster implements Cluster {
                     hzConfig.getClusterName());
             hazelcastInstance = createHazelcastInstance(hzConfig);
 
-            // Set HazelcastInstance on any LazyTypedStoreFactory instances
-            // created by Hazelcast during config loading
-            var factoryCfg = hazelcastInstance.getConfig();
-            for (var mapConfig : factoryCfg.getMapConfigs().values()) {
-                var storeConfig = mapConfig.getMapStoreConfig();
-                if (storeConfig != null) {
-                    var factory = storeConfig.getFactoryImplementation();
-                    if (factory instanceof LazyTypedStoreFactory lazyFactory) {
-                        lazyFactory.setHazelcastInstance(hazelcastInstance);
-                    }
-                }
-            }
-
-            // Diagnostic dump: log DataConnectionConfig and map configs so
-            // we can verify which JDBC properties Hazelcast actually has
-            // at runtime (helps debug mismatches between Testcontainers
-            // jdbcUrl and Hikari's attempted connection).
-            try {
-                // Also write to a file in the workDir so we don't lose it if
-                // test console output is truncated.
-                var dumpFile = workDir.resolve("hazelcast-runtime-dump.log");
-                var dumpLines = new java.util.ArrayList<String>();
-                dumpLines.add("=== Hazelcast runtime dump ===");
-                dumpLines.add("nodeWorkDir=" + workDir);
-                var runtimeCfg = hazelcastInstance.getConfig();
-                var dataConns = runtimeCfg.getDataConnectionConfigs();
-                if (dataConns != null && !dataConns.isEmpty()) {
-                    LOG.info("Hazelcast DataConnectionConfigs (count={}):",
-                            dataConns.size());
-                    dumpLines.add("DataConnectionConfigs count="
-                            + dataConns.size());
-                    dataConns.forEach((name, dcc) -> {
-                        try {
-                            var props = dcc.getProperties();
-                            LOG.info(
-                                    "  data-conn name='{}' type='{}' shared='{}'",
-                                    name, dcc.getType(), dcc.isShared());
-                            dumpLines.add("  data-conn name='" + name
-                                    + "' type='" + dcc.getType()
-                                    + "' shared='" + dcc.isShared() + "'");
-                            if (props != null && !props.isEmpty()) {
-                                for (String k : props.stringPropertyNames()) {
-                                    LOG.info("    {}='{}'", k,
-                                            props.getProperty(k));
-                                    dumpLines.add("    " + k + "='"
-                                            + props.getProperty(k) + "'");
-                                }
-                            } else {
-                                LOG.info("    (no properties)");
-                                dumpLines.add("    (no properties)");
-                            }
-                        } catch (Exception e) {
-                            LOG.warn(
-                                    "Could not log DataConnectionConfig '{}' : {}",
-                                    name, e.getMessage());
-                            dumpLines.add("  ERROR data-conn name='" + name
-                                    + "': " + e);
-                        }
-                    });
-                } else {
-                    LOG.info(
-                            "No DataConnectionConfigs present in Hazelcast config");
-                    dumpLines.add("No DataConnectionConfigs present");
-                }
-
-                var mapCfgs = runtimeCfg.getMapConfigs();
-                LOG.info("Hazelcast MapConfigs (count={})", mapCfgs.size());
-                dumpLines.add("MapConfigs count=" + mapCfgs.size());
-                mapCfgs.forEach((mname, mc) -> {
-                    try {
-                        var msc = mc.getMapStoreConfig();
-                        if (msc == null) {
-                            LOG.info("  map='{}' mapStore=null", mname);
-                            dumpLines.add("  map='" + mname
-                                    + "' mapStore=null");
-                        } else {
-                            LOG.info(
-                                    "  map='{}' mapStore.enabled={} factory='{}'",
-                                    mname, msc.isEnabled(),
-                                    msc.getFactoryClassName());
-                            dumpLines.add("  map='" + mname
-                                    + "' mapStore.enabled=" + msc.isEnabled()
-                                    + " factory='" + msc.getFactoryClassName()
-                                    + "'");
-                            var mprops = msc.getProperties();
-                            if (mprops != null && !mprops.isEmpty()) {
-                                for (String k : mprops.stringPropertyNames()) {
-                                    LOG.info("    {}='{}'", k,
-                                            mprops.getProperty(k));
-                                    dumpLines.add("    " + k + "='"
-                                            + mprops.getProperty(k) + "'");
-                                }
-                            }
-                        }
-                    } catch (Exception e) {
-                        LOG.warn("Could not log MapConfig '{}' : {}", mname,
-                                e.getMessage());
-                        dumpLines.add(
-                                "  ERROR map='" + mname + "': " + e);
-                    }
-                });
-
-                dumpLines.add("=== end ===");
-                try {
-                    Files.write(dumpFile, dumpLines,
-                            StandardOpenOption.CREATE,
-                            StandardOpenOption.APPEND);
-                    LOG.info("Wrote Hazelcast runtime dump to: {}",
-                            dumpFile.toAbsolutePath());
-                } catch (Exception e) {
-                    LOG.warn("Could not write Hazelcast runtime dump file: {}",
-                            e.getMessage());
-                }
-            } catch (Exception e) {
-                LOG.warn("Could not dump Hazelcast runtime config: {}",
-                        e.getMessage());
-            }
-
-            // Set HazelcastInstance on any LazyTypedStoreFactory instances
-            // created by Hazelcast during config loading
+            // Wire HazelcastInstance into any LazyTypedStoreFactory instances
+            // that Hazelcast created while loading the map-store config.
             var mapRuntimeCfg = hazelcastInstance.getConfig();
             for (var mapConfig : mapRuntimeCfg.getMapConfigs().values()) {
                 var storeConfig = mapConfig.getMapStoreConfig();
@@ -266,6 +146,9 @@ public class HazelcastCluster implements Cluster {
 
             localNode = new HazelcastClusterNode(hazelcastInstance,
                     !clustered);
+            // Seed the tracked coordinator state so that the first membership
+            // event does not fire a spurious transition (Fix D).
+            lastCoordinatorState = localNode.isCoordinator();
             pipelineManager = new HazelcastPipelineManager(this);
 
             stopController = new CacheStopController(this);
@@ -373,8 +256,12 @@ public class HazelcastCluster implements Cluster {
     public void addCoordinatorChangeListener(
             CoordinatorChangeListener listener) {
         coordinatorListeners.add(listener);
-        // Explicitly fire when registering
-        listener.onCoordinatorChange(localNode.isCoordinator());
+        // Snapshot current state, update the tracked field, then fire.
+        // Updating lastCoordinatorState here keeps it in sync so that
+        // the next membership event does not fire spuriously.
+        var isCoordinator = localNode.isCoordinator();
+        lastCoordinatorState = isCoordinator;
+        listener.onCoordinatorChange(isCoordinator);
     }
 
     public void removeCoordinatorChangeListener(
@@ -546,7 +433,17 @@ public class HazelcastCluster implements Cluster {
         public void memberAdded(MembershipEvent membershipEvent) {
             LOG.info("Member added to cluster: {}",
                     membershipEvent.getMember().getUuid());
-            Sleeper.sleepMillis(100); // Allow state to settle
+            // Allow state to settle, but never fail membership handling
+            // because a shutdown/interruption occurred.
+            try {
+                Sleeper.sleepMillis(100);
+            } catch (RuntimeException e) {
+                if (Thread.currentThread().isInterrupted()) {
+                    Thread.currentThread().interrupt();
+                } else {
+                    throw e;
+                }
+            }
             checkCoordinatorStatus();
         }
 
@@ -554,7 +451,17 @@ public class HazelcastCluster implements Cluster {
         public void memberRemoved(MembershipEvent membershipEvent) {
             LOG.info("Member removed from cluster: {}",
                     membershipEvent.getMember().getUuid());
-            Sleeper.sleepMillis(100); // Allow state to settle
+            // Allow state to settle, but never fail membership handling
+            // because a shutdown/interruption occurred.
+            try {
+                Sleeper.sleepMillis(100);
+            } catch (RuntimeException e) {
+                if (Thread.currentThread().isInterrupted()) {
+                    Thread.currentThread().interrupt();
+                } else {
+                    throw e;
+                }
+            }
             checkCoordinatorStatus();
         }
 

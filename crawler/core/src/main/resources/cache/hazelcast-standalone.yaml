@@ -49,6 +49,60 @@ hazelcast:
             KEY(k)
             VALUES (?, ?)
 
+    pipeCurrentStep:
+      backup-count: 0
+      map-store:
+        enabled: true
+        initial-mode: EAGER
+        write-delay-seconds: 0
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
+        properties:
+          # Avoid remote type registry lookups from partition-operation threads.
+          value-class-name: com.norconex.crawler.core.cluster.pipeline.StepRecord
+          data-connection-ref: jdbc-datasource
+          column-key-type: VARCHAR(4096)
+          column-value-type: TEXT
+          sql-merge: |
+            MERGE INTO "{tableName}" (k, v)
+            KEY(k)
+            VALUES (?, ?)
+
+    pipeWorkerStatuses:
+      backup-count: 0
+      map-store:
+        enabled: true
+        initial-mode: EAGER
+        write-delay-seconds: 0
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
+        properties:
+          # Avoid remote type registry lookups from partition-operation threads.
+          value-class-name: com.norconex.crawler.core.cluster.pipeline.StepRecord
+          data-connection-ref: jdbc-datasource
+          column-key-type: VARCHAR(4096)
+          column-value-type: TEXT
+          sql-merge: |
+            MERGE INTO "{tableName}" (k, v)
+            KEY(k)
+            VALUES (?, ?)
+
+    ledger_*:
+      backup-count: 0
+      map-store:
+        enabled: true
+        initial-mode: EAGER
+        write-delay-seconds: 0
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
+        properties:
+          # Avoid remote type registry lookups from partition-operation threads.
+          value-class-name: com.norconex.crawler.core.ledger.CrawlEntry
+          data-connection-ref: jdbc-datasource
+          column-key-type: VARCHAR(4096)
+          column-value-type: TEXT
+          sql-merge: |
+            MERGE INTO "{tableName}" (k, v)
+            KEY(k)
+            VALUES (?, ?)
+
     eph-*:
       backup-count: 0
       map-store:

@@ -23,7 +23,6 @@ import java.util.stream.IntStream;
 
 import org.apache.commons.collections4.CollectionUtils;
 
-import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.cluster.pipeline.BaseStep;
 import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core.doc.CrawlDocContext;
@@ -80,7 +79,8 @@ public class CrawlProcessStep extends BaseStep {
 
         batchDispatcher = BatchDispatcher.builder()
                 .maxBatchSize(cfg.getMaxQueueBatchSize())
-                .lowWatermark(Math.max(1, cfg.getMaxQueueBatchSize() / 5))
+                .lowWatermark(Math.max(1,
+                        cfg.getMaxQueueBatchSize() / 5))
                 .session(session)
                 .build();
 
@@ -89,19 +89,26 @@ public class CrawlProcessStep extends BaseStep {
                         .create(session.getCrawlerId()));
 
         var futures = IntStream.range(0, numThreads)
-                .mapToObj(i -> CompletableFuture.runAsync(() -> {
-                    try {
-                        processQueue(session, i);
-                    } catch (Exception e) {
-                        LOG.error("Problem running task {} {} of {}.",
-                                "crawl-" + session.getCrawlerId(),
-                                i, numThreads, e);
-                        throw new CompletionException(e);
-                    }
-                }, executor))
+                .mapToObj(i -> CompletableFuture
+                        .runAsync(() -> {
+                            try {
+                                processQueue(session,
+                                        i);
+                            } catch (Exception e) {
+                                LOG.error("Problem running task {} {} of {}.",
+                                        "crawl-" + session
+                                                .getCrawlerId(),
+                                        i,
+                                        numThreads,
+                                        e);
+                                throw new CompletionException(
+                                        e);
+                            }
+                        }, executor))
                 .toList();
         CompletableFuture.allOf(
-                futures.toArray(new CompletableFuture[0])).join();
+                futures.toArray(new CompletableFuture[0]))
+                .join();
         ConcurrentUtil.cleanShutdown(executor);
     }
 
@@ -117,7 +124,9 @@ public class CrawlProcessStep extends BaseStep {
         var queued = ledger.getQueueCount();
         var denom = processed + queued;
         var progress =
-                denom <= 0 ? 0.0f : (float) (processed / (double) denom);
+                denom <= 0 ? 0.0f
+                        : (float) (processed
+                                / (double) denom);
         var msg = "processed=" + processed + ", queued=" + queued;
         return new Step.StepProgress(progress, msg);
     }
@@ -128,7 +137,8 @@ public class CrawlProcessStep extends BaseStep {
 
     // just invoked in its own thread
     void processQueue(CrawlSession session, int threadIndex) {
-        var nodeName = session.getCluster().getLocalNode().getNodeName();
+        var nodeName = session.getCluster().getLocalNode()
+                .getNodeName();
         LOG.debug("[{}] processQueue(threadIndex={}) starting.",
                 nodeName, threadIndex);
         LOG.debug("[{}] initial queueCount={} processingCount={} "
@@ -142,12 +152,14 @@ public class CrawlProcessStep extends BaseStep {
                         .getProcessedCount());
         LOG.debug("Crawler thread #{} starting...", threadIndex);
         Thread.currentThread()
-                .setName(session.getCrawlerId() + "#" + threadIndex);
+                .setName(session.getCrawlerId() + "#"
+                        + threadIndex);
         LogUtil.setMdcCrawlerId(session.getCrawlerId());
 
         try {
             var activityChecker = new CrawlActivityChecker(
-                    session, queueAction == ProcessQueueAction.DELETE_ALL);
+                    session,
+                    queueAction == ProcessQueueAction.DELETE_ALL);
             LOG.info("XXX ---> CrawlProcessStep - 1");
             while (!isStopRequested()) {
                 if (!activityChecker.canContinue()) {
@@ -156,23 +168,26 @@ public class CrawlProcessStep extends BaseStep {
                             nodeName, threadIndex);
                     break;
                 }
-                if (!processNextInQueue(session, activityChecker)) {
+                if (!processNextInQueue(session,
+                        activityChecker)) {
                     LOG.trace("[{}] processQueue(threadIndex={}) "
                             + "stopping: processNextInQueue returned false.",
                             nodeName, threadIndex);
                     break;
                 }
-                Sleeper.sleepMillis(250); //XXX TEMP testing ................................................
             }
             if (LOG.isDebugEnabled()) {
                 LOG.debug("[{}] processQueue(threadIndex={}) exiting. "
                         + "queueCount={} processingCount={} processedCount={}.",
                         nodeName, threadIndex,
-                        session.getCrawlContext().getCrawlEntryLedger()
+                        session.getCrawlContext()
+                                .getCrawlEntryLedger()
                                 .getQueueCount(),
-                        session.getCrawlContext().getCrawlEntryLedger()
+                        session.getCrawlContext()
+                                .getCrawlEntryLedger()
                                 .getProcessingCount(),
-                        session.getCrawlContext().getCrawlEntryLedger()
+                        session.getCrawlContext()
+                                .getCrawlEntryLedger()
                                 .getProcessedCount());
             }
             LOG.info("XXX ---> CrawlProcessStep - 2");
@@ -191,7 +206,8 @@ public class CrawlProcessStep extends BaseStep {
 
         var crawlCtx = session.getCrawlContext();
         var docProcessCtx = new ProcessContext().crawlSession(session);
-        var nodeName = session.getCluster().getLocalNode().getNodeName();
+        var nodeName = session.getCluster().getLocalNode()
+                .getNodeName();
         try {
             var currentEntry = batchDispatcher.take();
 
@@ -205,14 +221,16 @@ public class CrawlProcessStep extends BaseStep {
 
             if (currentEntry == null) {
                 LOG.trace("[{}] processNextInQueue got null entry from "
-                        + "dispatcher. Checking isActive()...", nodeName);
+                        + "dispatcher. Checking isActive()...",
+                        nodeName);
                 var active = activityChecker.isActive();
                 LOG.trace("[{}] activityChecker.isActive() returned {}.",
                         nodeName, active);
                 return active;
             }
 
-            LOG.trace("[{}] processNextInQueue processing ref={}.", nodeName,
+            LOG.trace("[{}] processNextInQueue processing ref={}.",
+                    nodeName,
                     currentEntry.getReference());
 
             var doc = new Doc(currentEntry.getReference()); //NOSONAR
@@ -220,7 +238,8 @@ public class CrawlProcessStep extends BaseStep {
             if (session.isIncremental()) {
                 previousEntry = crawlCtx
                         .getCrawlEntryLedger()
-                        .getBaselineEntry(currentEntry.getReference())
+                        .getBaselineEntry(currentEntry
+                                .getReference())
                         .orElse(null);
             }
 
@@ -235,8 +254,10 @@ public class CrawlProcessStep extends BaseStep {
             docProcessCtx.docContext(docContext);
 
             // Before document processing
-            ofNullable(crawlCtx.getCallbacks().getBeforeDocumentProcessing())
-                    .ifPresent(bdp -> bdp.accept(session, doc));
+            ofNullable(crawlCtx.getCallbacks()
+                    .getBeforeDocumentProcessing())
+                            .ifPresent(bdp -> bdp
+                                    .accept(session, doc));
 
             if (activityChecker.isDeleting()) {
                 ProcessDelete.execute(docProcessCtx);
@@ -245,10 +266,13 @@ public class CrawlProcessStep extends BaseStep {
             }
 
             // After document processing
-            ofNullable(crawlCtx.getCallbacks().getAfterDocumentProcessing())
-                    .ifPresent(adp -> adp.accept(
-                            session,
-                            docProcessCtx.docContext().getDoc()));
+            ofNullable(crawlCtx.getCallbacks()
+                    .getAfterDocumentProcessing())
+                            .ifPresent(adp -> adp
+                                    .accept(
+                                            session,
+                                            docProcessCtx.docContext()
+                                                    .getDoc()));
             return true;
         } catch (Exception e) {
             if (e instanceof InterruptedException) {
@@ -296,17 +320,22 @@ public class CrawlProcessStep extends BaseStep {
                 .setProcessingOutcome(ProcessingOutcome.ERROR);
         if (LOG.isDebugEnabled()) {
             LOG.info("Could not process document: {} ({})",
-                    docProcessCtx.docContext().getReference(), e.getMessage(),
+                    docProcessCtx.docContext()
+                            .getReference(),
+                    e.getMessage(),
                     e);
         } else {
             LOG.info("Could not process document: {} ({})",
-                    docProcessCtx.docContext().getReference(), e.getMessage());
+                    docProcessCtx.docContext()
+                            .getReference(),
+                    e.getMessage());
         }
         crawlCtx.getEventManager().fire(
                 CrawlerEvent.builder()
                         .name(CrawlerEvent.REJECTED_ERROR)
                         .source(session)
-                        .crawlEntry(docContext.getCurrentCrawlEntry())
+                        .crawlEntry(docContext
+                                .getCurrentCrawlEntry())
                         .exception(e)
                         .build());
         ProcessFinalize.execute(docProcessCtx);
@@ -318,7 +347,8 @@ public class CrawlProcessStep extends BaseStep {
             for (Class<? extends Exception> c : exceptionClasses) {
                 if (c.isAssignableFrom(e.getClass())) {
                     LOG.error("Encountered a crawler-stopping exception as "
-                            + "per configuration.", e);
+                            + "per configuration.",
+                            e);
                     return stopTheCrawler;
                 }
             }

@@ -115,14 +115,31 @@ public class BatchDispatcher {
         var ledger = session.getCrawlContext().getCrawlEntryLedger();
         var queueCount = ledger.getQueueCount();
         var nodeCount = session.getCluster().getNodeCount();
-        var fairShare = (int) Math.ceil((double) queueCount / nodeCount);
-        var batchSize = Math.max(1, Math.min(maxBatchSize, fairShare));
-        LOG.trace("""
-            [{}] BatchDispatcher.computeBatchSize() queueCount={}, \
-            nodeCount={}, fairShare={}, maxBatchSize={} => \
-            batchSize= {}.""",
+        var localQueueSize = localQueue.size();
+
+        // Calculate total work available (global + what this node already has)
+        var totalAvailable = queueCount + localQueueSize;
+
+        // This node's fair share of the total work
+        var nodeFairShare =
+                (int) Math.ceil((double) totalAvailable / nodeCount);
+
+        // How much more should this node grab?
+        // (fair share minus what it already has locally)
+        var remainingAllowance = Math.max(0, nodeFairShare - localQueueSize);
+
+        // Limit by: what's available in queue, this node's remaining allowance, and max batch
+        var batchSize = (int) Math.max(1,
+                Math.min(maxBatchSize,
+                        Math.min(queueCount, remainingAllowance)));
+
+        LOG.trace("[{}] BatchDispatcher.computeBatchSize() queueCount={}, "
+                + "nodeCount={}, localQueueSize={}, totalAvailable={}, "
+                + "nodeFairShare={}, remainingAllowance={}, maxBatchSize={} "
+                + "=> batchSize={}.",
                 session.getCluster().getLocalNode().getNodeName(),
-                queueCount, nodeCount, fairShare, maxBatchSize, batchSize);
+                queueCount, nodeCount, localQueueSize, totalAvailable,
+                nodeFairShare, remainingAllowance, maxBatchSize, batchSize);
         return batchSize;
     }
 

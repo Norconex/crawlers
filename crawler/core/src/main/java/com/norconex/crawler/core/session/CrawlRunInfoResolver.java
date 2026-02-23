@@ -96,7 +96,7 @@ public final class CrawlRunInfoResolver {
             // can restart from where it left off instead of immediately exiting
             LOG.info(
                     "Resuming crawl - clearing terminal pipeline state to allow restart");
-            clearPipelineTerminalState(session);
+            clearPipelineTerminalState(session, info);
         }
         // Persist to session cache for cross-run reference and durability.
         save(session, info);
@@ -197,22 +197,31 @@ public final class CrawlRunInfoResolver {
      * of treating the previous STOPPED/FAILED state as terminal and exiting
      * immediately.
      */
-    private static void clearPipelineTerminalState(CrawlSession session) {
-        var sessCache = session.getCluster()
-                .getCacheManager()
-                .getCrawlSessionCache();
+    private static void clearPipelineTerminalState(
+            CrawlSession session, CrawlRunInfo info) {
+        var cm = session.getCluster().getCacheManager();
+        var sessionIdPrefix = info.getCrawlSessionId() + ":";
 
-        // Clear the pipeCurrentStep cache which stores terminal step status
-        // The coordinator checks this and exits if it finds a terminal status
-        // By clearing it, we force the pipeline to restart from scratch
-        var keys = sessCache.keys();
-        var pipelineKeys = keys.stream()
-                .filter(key -> key.startsWith("pipe-step-"))
+        // The pipeline caches are persistent and keyed with crawlSessionId.
+        // If a previous run stopped/failed, the coordinator may see terminal
+        // pipeline status and refuse to restart unless we clear those records.
+        var stepCache = cm.getPipelineStepCache();
+        var stepKeys = stepCache.keys().stream()
+                .filter(key -> key.startsWith(sessionIdPrefix))
                 .toList();
+        stepKeys.forEach(stepCache::remove);
 
-        pipelineKeys.forEach(sessCache::remove);
+        // Worker statuses are per run (keys include crawlRunId) but we clear
+        // them as well to avoid stale progress/status accumulation.
+        var workerCache = cm.getPipelineWorkerStatusCache();
+        var workerKeys = workerCache.keys().stream()
+                .filter(key -> key.startsWith(sessionIdPrefix))
+                .toList();
+        workerKeys.forEach(workerCache::remove);
 
-        LOG.debug("Cleared {} pipeline step records for resume",
-                pipelineKeys.size());
+        LOG.debug(
+                "Cleared {} pipeline step records and {} worker status records for resume",
+                stepKeys.size(),
+                workerKeys.size());
     }
 }

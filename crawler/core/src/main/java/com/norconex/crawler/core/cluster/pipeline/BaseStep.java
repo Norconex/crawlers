@@ -34,17 +34,12 @@ public abstract class BaseStep implements Step {
     private final String id;
     private boolean distributed;
     @Setter(value = AccessLevel.NONE)
-    @Getter(value = AccessLevel.PROTECTED)
+    @Getter
     private boolean stopRequested;
 
     @Override
     public void stop(CrawlSession session) {
         stopRequested = true;
-    }
-
-    @Override
-    public boolean isStopRequested() {
-        return stopRequested;
     }
 
     @Override

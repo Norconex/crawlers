@@ -86,7 +86,7 @@ public class CrawlConfig {
     }
 
     public static final Duration DEFAULT_IDLE_TIMEOUT =
-            Duration.ofSeconds(0);
+            Duration.ofSeconds(5);
     public static final Duration DEFAULT_MIN_PROGRESS_LOGGING_INTERVAL =
             Duration.ofSeconds(30);
     //    /**

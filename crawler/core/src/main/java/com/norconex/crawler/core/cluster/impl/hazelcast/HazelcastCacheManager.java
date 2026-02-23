@@ -32,8 +32,6 @@ import com.norconex.crawler.core.cluster.ClusterException;
 import com.norconex.crawler.core.cluster.SerializedCache;
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListener;
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListenerAdapter;
-import com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory;
-import com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcQueueStoreFactory;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
 
 import lombok.NonNull;
@@ -70,26 +68,8 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
 
     @Override
     public <T> CacheMap<T> getCacheMap(String name, Class<T> valueType) {
-        // Ensure the factory is configured with the correct value type
-        var cfg = hazelcast.getConfig();
-        var mapConfig = cfg.getMapConfig(name);
-        var storeConfig = mapConfig.getMapStoreConfig();
-        if (storeConfig != null) {
-            var factory = storeConfig.getFactoryImplementation();
-            if (factory == null) {
-                factory = new TypedJdbcMapStoreFactory();
-                storeConfig.setFactoryImplementation(factory);
-            }
-            if (factory instanceof LazyTypedStoreFactory lazyFactory) {
-                lazyFactory.setValueClass(valueType);
-                // Always set HazelcastInstance if not set
-                if (lazyFactory.getHazelcastInstance() == null) {
-                    lazyFactory.setHazelcastInstance(hazelcast);
-                }
-            }
-        }
-
-        // register cache type so import/export know how to convert
+        // Register cache type so typed stores can resolve it from
+        // the durable type registry before any data is loaded.
         registerCacheType(name, valueType);
 
         return new HazelcastMapAdapter<>(
@@ -106,25 +86,8 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
     // Adapter for queue operations (to be used in CrawlEntryLedger)
     @Override
     public <T> CacheQueue<T> getCacheQueue(String name, Class<T> valueType) {
-        // Ensure the factory is configured with the correct value type
-        var cfg = hazelcast.getConfig();
-        var queueConfig = cfg.getQueueConfig(name);
-        var storeConfig = queueConfig.getQueueStoreConfig();
-        if (storeConfig != null) {
-            var factory = storeConfig.getFactoryImplementation();
-            if (factory == null) {
-                factory = new TypedJdbcQueueStoreFactory();
-                storeConfig.setFactoryImplementation(factory);
-            }
-            if (factory instanceof LazyTypedStoreFactory lazyFactory) {
-                lazyFactory.setValueClass(valueType);
-                // Always set HazelcastInstance if not set
-                if (lazyFactory.getHazelcastInstance() == null) {
-                    lazyFactory.setHazelcastInstance(hazelcast);
-                }
-            }
-        }
-
+        // Same rationale as maps: record the type up-front so JDBC queue
+        // stores (de)serialize consistently across nodes.
         registerCacheType(name, valueType);
 
         // Use a Hazelcast IQueue so items are FIFO and distributable.
@@ -166,6 +129,7 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
         LOG.info("HazelcastCacheManager.close() called for cleanup.");
         var counter = REF_COUNTS.get(hazelcast);
         if (counter == null) {
+            instanceRegistry.remove(hazelcast.getName());
             LOG.info("Shutting down Hazelcast instance (unknown ref count)");
             hazelcast.shutdown();
             LOG.info("Hazelcast instance shutdown complete.");
@@ -174,6 +138,7 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
         var remaining = counter.decrementAndGet();
         if (remaining <= 0) {
             REF_COUNTS.remove(hazelcast);
+            instanceRegistry.remove(hazelcast.getName());
             LOG.info("Shutting down Hazelcast instance (last reference)");
             hazelcast.shutdown();
             LOG.info("Hazelcast instance shutdown complete.");

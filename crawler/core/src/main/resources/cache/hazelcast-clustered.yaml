@@ -83,6 +83,66 @@ hazelcast:
             INSERT INTO "{tableName}" (k, v) 
             VALUES (?, ?) 
             ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v
+
+    pipeCurrentStep:
+      backup-count: 1
+      async-backup-count: 0
+      read-backup-data: false
+      map-store:
+        enabled: true
+        initial-mode: EAGER
+        write-delay-seconds: 0
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
+        properties:
+          # Avoid remote type registry lookups from partition-operation threads.
+          value-class-name: com.norconex.crawler.core.cluster.pipeline.StepRecord
+          data-connection-ref: jdbc-datasource
+          column-key-type: VARCHAR(4096)
+          column-value-type: TEXT
+          sql-merge: |
+            INSERT INTO "{tableName}" (k, v) 
+            VALUES (?, ?) 
+            ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v
+
+    pipeWorkerStatuses:
+      backup-count: 1
+      async-backup-count: 0
+      read-backup-data: false
+      map-store:
+        enabled: true
+        initial-mode: EAGER
+        write-delay-seconds: 0
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
+        properties:
+          # Avoid remote type registry lookups from partition-operation threads.
+          value-class-name: com.norconex.crawler.core.cluster.pipeline.StepRecord
+          data-connection-ref: jdbc-datasource
+          column-key-type: VARCHAR(4096)
+          column-value-type: TEXT
+          sql-merge: |
+            INSERT INTO "{tableName}" (k, v) 
+            VALUES (?, ?) 
+            ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v
+
+    ledger_*:
+      backup-count: 1
+      async-backup-count: 0
+      read-backup-data: false
+      map-store:
+        enabled: true
+        initial-mode: EAGER
+        write-delay-seconds: 0
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
+        properties:
+          # Avoid remote type registry lookups from partition-operation threads.
+          value-class-name: com.norconex.crawler.core.ledger.CrawlEntry
+          data-connection-ref: jdbc-datasource
+          column-key-type: VARCHAR(4096)
+          column-value-type: TEXT
+          sql-merge: |
+            INSERT INTO "{tableName}" (k, v) 
+            VALUES (?, ?) 
+            ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v
     eph-*:
       backup-count: 1
       async-backup-count: 0
