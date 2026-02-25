@@ -58,7 +58,7 @@ class StopCrawlerOnMaxEventTest {
         lis.getConfiguration().setMaximum(10);
         lis.getConfiguration().setOnMultiple(OnMultiple.SUM);
         cfg.addEventListeners(List.of(lis));
-        cfg.setNumThreads(1);
+        cfg.setNumThreadsPerNode(1);
         cfg.setMaxDocuments(-1);
 
         // reject references with odd depth number

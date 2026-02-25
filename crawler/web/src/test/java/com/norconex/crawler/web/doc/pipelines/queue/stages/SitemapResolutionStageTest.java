@@ -80,7 +80,7 @@ class SitemapResolutionStageTest {
                 .setSitemapResolver(new GenericSitemapResolver())
                 .setStartReferences(
                         List.of(serverUrl(client, "/stayOnSitemap")))
-                .setNumThreads(1)
+                .setNumThreadsPerNode(1)
                 .setMaxDocuments(10);
         ((GenericUrlScopeResolver) cfg.getUrlScopeResolver())
                 .getConfiguration().setStayOnSitemap(true);
@@ -112,7 +112,7 @@ class SitemapResolutionStageTest {
 
         cfg.setSitemapLocator(new GenericSitemapLocator())
                 .setSitemapResolver(new GenericSitemapResolver())
-                .setNumThreads(1)
+                .setNumThreadsPerNode(1)
                 .setMaxDocuments(10)
                 .setStartReferences(List.of(serverUrl(client, "/0002")));
         ((GenericUrlScopeResolver) cfg.getUrlScopeResolver())

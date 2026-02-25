@@ -14,8 +14,6 @@
  */
 package com.norconex.crawler.core;
 
-import static java.util.Optional.ofNullable;
-
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
@@ -27,6 +25,7 @@ import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
 import com.norconex.crawler.core.cmd.stop.StopCommand;
 import com.norconex.crawler.core.cmd.storeexport.StoreExportCommand;
 import com.norconex.crawler.core.cmd.storeimport.StoreImportCommand;
+import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlSessionFactory;
 import com.norconex.crawler.core.util.ExceptionSwallower;
@@ -105,32 +104,43 @@ public class Crawler {
     private void executeCommand(Command... commands) {
         validateConfig(crawlConfig);
         LogUtil.logCommandIntro(LOG, crawlConfig);
-        ofNullable(crawlDriver.callbacks().getBeforeSession()).ifPresent(
-                c -> c.accept(crawlConfig));
+
+        var em = crawlDriver.eventManager();
+        em.addListener(crawlDriver.callbacks());
+
+        em.fire(CrawlerEvent.builder()
+                .name(CrawlerEvent.CRAWLER_SESSION_BEGIN)
+                .source(crawlConfig)
+                .build());
 
         withCrawlSession(sess -> {
             for (Command cmd : commands) {
                 try {
                     LOG.info("Executing command: {}",
                             cmd.getClass().getSimpleName());
-                    ofNullable(sess.getCrawlContext().getCallbacks()
-                            .getBeforeCommand()).ifPresent(
-                                    c -> c.accept(sess, cmd.getClass()));
+                    sess.fire(CrawlerEvent.builder()
+                            .name(CrawlerEvent.CRAWLER_COMMAND_BEGIN)
+                            .crawlSession(sess)
+                            .commandClass(cmd.getClass())
+                            .source(cmd.getClass())
+                            .build());
                     ExceptionSwallower
                             .runWithInterruptClear(() -> cmd.execute(sess));
                 } finally {
-                    ofNullable(sess
-                            .getCrawlContext()
-                            .getCallbacks()
-                            .getAfterCommand()).ifPresent(
-                                    c -> c.accept(sess, cmd.getClass()));
+                    sess.fire(CrawlerEvent.builder()
+                            .name(CrawlerEvent.CRAWLER_COMMAND_END)
+                            .crawlSession(sess)
+                            .commandClass(cmd.getClass())
+                            .source(cmd.getClass())
+                            .build());
                 }
             }
         });
-        ofNullable(crawlDriver
-                .callbacks()
-                .getAfterSession())
-                        .ifPresent(c -> c.accept(crawlConfig));
+
+        em.fire(CrawlerEvent.builder()
+                .name(CrawlerEvent.CRAWLER_SESSION_END)
+                .source(crawlConfig)
+                .build());
     }
 
     public void withCrawlSession(Consumer<CrawlSession> c) {

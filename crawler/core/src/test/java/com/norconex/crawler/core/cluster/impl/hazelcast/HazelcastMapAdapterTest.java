@@ -240,4 +240,234 @@ class HazelcastMapAdapterTest {
         assertThat(map.get("ref-1").map(CrawlEntry::getProcessingStatus))
                 .contains(ProcessingStatus.PROCESSING);
     }
+
+    // -----------------------------------------------------------------
+    // computeIfPresent
+    // -----------------------------------------------------------------
+
+    @Test
+    void testComputeIfPresent_existingKey_updates() {
+        var map = cacheManager.<String>getCacheMap(mapPrefix + "cip",
+                String.class);
+        map.put("k", "v1");
+        var result = map.computeIfPresent("k", (key, val) -> val + "-updated");
+        assertThat(result).hasValue("v1-updated");
+        assertThat(map.get("k")).hasValue("v1-updated");
+    }
+
+    @Test
+    void testComputeIfPresent_missingKey_returnsEmpty() {
+        var map = cacheManager.<String>getCacheMap(mapPrefix + "cip2",
+                String.class);
+        var result = map.computeIfPresent("missing", (key, val) -> "x");
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void testComputeIfPresent_remapToNull_removesEntry() {
+        var map = cacheManager.<String>getCacheMap(mapPrefix + "cip3",
+                String.class);
+        map.put("rm", "val");
+        map.computeIfPresent("rm", (key, val) -> null);
+        assertThat(map.get("rm")).isEmpty();
+    }
+
+    // -----------------------------------------------------------------
+    // compute
+    // -----------------------------------------------------------------
+
+    @Test
+    void testCompute_insertsNewEntry() {
+        var map = cacheManager.<String>getCacheMap(mapPrefix + "comp",
+                String.class);
+        var result = map.compute("nk", (key, old) -> "brand-new");
+        assertThat(result).hasValue("brand-new");
+        assertThat(map.get("nk")).hasValue("brand-new");
+    }
+
+    @Test
+    void testCompute_updatesExistingEntry() {
+        var map = cacheManager.<String>getCacheMap(mapPrefix + "comp2",
+                String.class);
+        map.put("k", "old");
+        var result = map.compute("k", (key, old) -> old + "-upd");
+        assertThat(result).hasValue("old-upd");
+    }
+
+    @Test
+    void testCompute_returnsNullRemovesEntry() {
+        var map = cacheManager.<String>getCacheMap(mapPrefix + "comp3",
+                String.class);
+        map.put("k", "v");
+        var result = map.compute("k", (key, old) -> null);
+        assertThat(result).isEmpty();
+        assertThat(map.get("k")).isEmpty();
+    }
+
+    // -----------------------------------------------------------------
+    // merge
+    // -----------------------------------------------------------------
+
+    @Test
+    void testMerge_noExistingEntry_usesValue() {
+        var map = cacheManager.<String>getCacheMap(mapPrefix + "merge",
+                String.class);
+        var result = map.merge("k", "init", (old, v) -> old + "+" + v);
+        assertThat(result).isEqualTo("init");
+        assertThat(map.get("k")).hasValue("init");
+    }
+
+    @Test
+    void testMerge_existingEntry_remap() {
+        var map = cacheManager.<String>getCacheMap(mapPrefix + "merge2",
+                String.class);
+        map.put("k", "existing");
+        var result = map.merge("k", "value", (old, v) -> old + "+" + v);
+        assertThat(result).isEqualTo("existing+value");
+    }
+
+    @Test
+    void testMerge_remapToNull_removesEntry() {
+        var map = cacheManager.<String>getCacheMap(mapPrefix + "merge3",
+                String.class);
+        map.put("k", "v");
+        var result = map.merge("k", "ignored", (old, v) -> null);
+        assertThat(result).isNull();
+        assertThat(map.get("k")).isEmpty();
+    }
+
+    // -----------------------------------------------------------------
+    // getOrDefault / putAll / isPersistent / getName / vendor
+    // -----------------------------------------------------------------
+
+    @Test
+    void testGetOrDefault_missingKey_returnsDefault() {
+        var map = cacheManager.<String>getCacheMap(mapPrefix + "god",
+                String.class);
+        assertThat(map.getOrDefault("none", "fallback")).isEqualTo("fallback");
+    }
+
+    @Test
+    void testGetOrDefault_existingKey_returnsValue() {
+        var map = cacheManager.<String>getCacheMap(mapPrefix + "god2",
+                String.class);
+        map.put("k", "real");
+        assertThat(map.getOrDefault("k", "fallback")).isEqualTo("real");
+    }
+
+    @Test
+    void testPutAll_multipleEntries() {
+        var map = cacheManager.<String>getCacheMap(mapPrefix + "pa",
+                String.class);
+        map.putAll(java.util.Map.of("m1", "v1", "m2", "v2", "m3", "v3"));
+        assertThat(map.size()).isEqualTo(3L);
+        assertThat(map.get("m1")).hasValue("v1");
+    }
+
+    @Test
+    void testIsPersistent_inMemory_returnsFalse() {
+        var map = cacheManager.<String>getCacheMap(mapPrefix + "persist",
+                String.class);
+        assertThat(map.isPersistent()).isFalse();
+    }
+
+    @Test
+    void testGetName_returnsMapName() {
+        var name = mapPrefix + "named";
+        var map = cacheManager.<String>getCacheMap(name, String.class);
+        assertThat(map.getName()).isEqualTo(name);
+    }
+
+    @Test
+    void testVendor_returnsRawIMap() {
+        var map = cacheManager.<String>getCacheMap(mapPrefix + "vendor",
+                String.class);
+        map.put("vk", "vv");
+
+        if (map instanceof HazelcastMapAdapter<?> adapter) {
+            var vendor = adapter.vendor();
+            assertThat((java.util.Map<?, ?>) vendor).isNotNull();
+            assertThat(vendor.get("vk")).isEqualTo("vv");
+        }
+    }
+
+    // -----------------------------------------------------------------
+    // query / delete (with QueryFilter)
+    // -----------------------------------------------------------------
+
+    @Test
+    void testQuery_returnsAllWithAlwaysTrue() {
+        var map = cacheManager.<String>getCacheMap(mapPrefix + "qall",
+                String.class);
+        map.putAll(java.util.Map.of("q1", "a", "q2", "b"));
+        var results = map.query(QueryFilter.ofAll());
+        assertThat(results).hasSize(2);
+    }
+
+    @Test
+    void testDelete_nullFilter_noOp() {
+        var map = cacheManager.<String>getCacheMap(mapPrefix + "delnull",
+                String.class);
+        map.put("d", "v");
+        map.delete(null);
+        assertThat(map.get("d")).hasValue("v");
+    }
+
+    @Test
+    void testDelete_allMatchingFilter_removesAll() {
+        var map = cacheManager.<String>getCacheMap(mapPrefix + "delall",
+                String.class);
+        map.putAll(java.util.Map.of("e1", "v1", "e2", "v2"));
+        map.delete(QueryFilter.ofAll());
+        assertThat(map.isEmpty()).isTrue();
+    }
+
+    // -----------------------------------------------------------------
+    // queryIterator — exercises PagingIterator (currently 0% covered)
+    // -----------------------------------------------------------------
+
+    @Test
+    void testQueryIterator_iteratesAllEntries() {
+        var map = cacheManager.<String>getCacheMap(mapPrefix + "qi",
+                String.class);
+        map.putAll(java.util.Map.of("p1", "alpha", "p2", "beta",
+                "p3", "gamma"));
+
+        var it = map.queryIterator(null);
+        assertThat(it).isNotNull();
+
+        var collected = new java.util.ArrayList<String>();
+        it.forEachRemaining(collected::add);
+        assertThat(collected).hasSize(3);
+    }
+
+    @Test
+    void testQueryIterator_emptyMap_returnsEmptyIterator() {
+        var map = cacheManager.<String>getCacheMap(mapPrefix + "qi-empty",
+                String.class);
+        var it = map.queryIterator(null);
+        assertThat(it).isNotNull();
+        assertThat(it.hasNext()).isFalse();
+    }
+
+    // -----------------------------------------------------------------
+    // Behaviour after HZ shutdown (isCacheClosed path)
+    // -----------------------------------------------------------------
+
+    @Test
+    void testOperationsAfterClose_returnDefaults() {
+        var localHz = HazelcastTestSupport.startNode();
+        var localMgr = new HazelcastCacheManager(localHz);
+        var map = localMgr.getCacheMap("closed-map-" + mapPrefix, String.class);
+        map.put("k", "before-close");
+
+        localHz.shutdown();
+
+        assertThat(map.isEmpty()).isFalse(); // defaultValue
+        assertThat(map.get("k")).isEmpty(); // null → empty Optional
+        assertThat(map.size()).isEqualTo(-1L);
+        assertThat(map.containsKey("k")).isFalse();
+        assertThat(map.query(QueryFilter.ofAll())).isEmpty();
+        assertThat(map.keys()).isEmpty();
+    }
 }

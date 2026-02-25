@@ -15,13 +15,13 @@
 package com.norconex.crawler.core.cmd.crawl.pipeline.process;
 
 import static com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizerConfig.DEFAULT_FALLBACK_STRATEGY;
-import static java.util.Optional.ofNullable;
 
 import java.util.HashSet;
 import java.util.Optional;
 
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategy;
+import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.core.ledger.ProcessingStatus;
 
@@ -64,12 +64,14 @@ final class ProcessFinalize {
         try {
 
             // important to call this before copying properties further down
-            //TODO revisit all the before/after on crawlerImpl
-            ofNullable(crawlCtx
-                    .getCallbacks()
-                    .getBeforeDocumentFinalizing())
-                            .ifPresent(bdf -> bdf.accept(ctx.crawlSession(),
-                                    docCtx.getDoc()));
+            var beforeDoc = docCtx.getDoc();
+            if (beforeDoc != null) {
+                ctx.crawlSession().fire(CrawlerEvent.builder()
+                        .name(CrawlerEvent.DOCUMENT_FINALIZING_BEGIN)
+                        .crawlSession(ctx.crawlSession())
+                        .source(beforeDoc)
+                        .build());
+            }
 
             //--- If doc crawl was incomplete, set missing info from cache -----
             // If document is not new or modified, it did not go through
@@ -105,11 +107,14 @@ final class ProcessFinalize {
                     "Could not mark reference as processed: {} ({})",
                     docCtx.getReference(), e.getMessage(), e);
         } finally {
-            ofNullable(crawlCtx
-                    .getCallbacks()
-                    .getAfterDocumentFinalizing()).ifPresent(
-                            adf -> adf.accept(ctx.crawlSession(),
-                                    docCtx.getDoc()));
+            var afterDoc = docCtx.getDoc();
+            if (afterDoc != null) {
+                ctx.crawlSession().fire(CrawlerEvent.builder()
+                        .name(CrawlerEvent.DOCUMENT_FINALIZING_END)
+                        .crawlSession(ctx.crawlSession())
+                        .source(afterDoc)
+                        .build());
+            }
         }
 
         try {

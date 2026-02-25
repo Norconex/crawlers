@@ -14,8 +14,6 @@
  */
 package com.norconex.crawler.core.cmd.crawl.pipeline.process;
 
-import static java.util.Optional.ofNullable;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
@@ -75,7 +73,7 @@ public class CrawlProcessStep extends BaseStep {
         LOG.info("Processing crawler queue...");
         var cfg = ctx.getCrawlConfig();
 
-        var numThreads = cfg.getNumThreads();
+        var numThreads = cfg.getNumThreadsPerNode();
 
         batchDispatcher = BatchDispatcher.builder()
                 .maxBatchSize(cfg.getMaxQueueBatchSize())
@@ -254,10 +252,13 @@ public class CrawlProcessStep extends BaseStep {
             docProcessCtx.docContext(docContext);
 
             // Before document processing
-            ofNullable(crawlCtx.getCallbacks()
-                    .getBeforeDocumentProcessing())
-                            .ifPresent(bdp -> bdp
-                                    .accept(session, doc));
+            if (doc != null) {
+                session.fire(CrawlerEvent.builder()
+                        .name(CrawlerEvent.DOCUMENT_PROCESSING_BEGIN)
+                        .crawlSession(session)
+                        .source(doc)
+                        .build());
+            }
 
             if (activityChecker.isDeleting()) {
                 ProcessDelete.execute(docProcessCtx);
@@ -266,13 +267,14 @@ public class CrawlProcessStep extends BaseStep {
             }
 
             // After document processing
-            ofNullable(crawlCtx.getCallbacks()
-                    .getAfterDocumentProcessing())
-                            .ifPresent(adp -> adp
-                                    .accept(
-                                            session,
-                                            docProcessCtx.docContext()
-                                                    .getDoc()));
+            var processedDoc = docProcessCtx.docContext().getDoc();
+            if (processedDoc != null) {
+                session.fire(CrawlerEvent.builder()
+                        .name(CrawlerEvent.DOCUMENT_PROCESSING_END)
+                        .crawlSession(session)
+                        .source(processedDoc)
+                        .build());
+            }
             return true;
         } catch (Exception e) {
             if (e instanceof InterruptedException) {

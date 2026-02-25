@@ -63,7 +63,7 @@ class StartCleanAfterStopTest {
         var cfg = CrawlerConfigStubs.memoryCrawlerConfig(crawlerDir);
         cfg.setStartReferences(List.of(serverUrl(client, path + "/0000")));
         cfg.setWorkDir(crawlerDir);
-        cfg.setNumThreads(1);
+        cfg.setNumThreadsPerNode(1);
         cfg.setMaxDepth(-1);
         cfg.setMaxDocuments(MAX_DOCS);
         cfg.setDelayResolver(WebTestUtil.delayResolver(1000));

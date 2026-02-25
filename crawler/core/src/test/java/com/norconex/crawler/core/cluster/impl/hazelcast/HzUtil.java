@@ -14,16 +14,16 @@
  */
 package com.norconex.crawler.core.cluster.impl.hazelcast;
 
-public final class CacheNames {
+import com.norconex.crawler.core.CrawlConfig;
 
-    public static final String PIPE_CURRENT_STEP = "pipeCurrentStep";
-    public static final String PIPE_WORKER_STATUSES = "pipeWorkerStatuses";
-    public static final String ADMIN = "eph-admin";
-    public static final String CRAWLER = "crawler";
-    public static final String CRAWL_SESSION = "crawlSession";
-    public static final String CRAWL_RUN = "eph-crawlRun";
-    public static final String REFERENCE_QUEUE = "queue-refs";
-
-    private CacheNames() {
+public final class HzUtil {
+    private HzUtil() {
     }
+
+    public static HazelcastClusterConnectorConfig
+            connectorConfig(CrawlConfig cfg) {
+        return ((HazelcastClusterConnector) cfg.getClusterConfig()
+                .getConnector()).getConfiguration();
+    }
+
 }

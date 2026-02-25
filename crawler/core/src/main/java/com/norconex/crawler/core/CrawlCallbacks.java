@@ -17,8 +17,11 @@ package com.norconex.crawler.core;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import com.norconex.commons.lang.event.Event;
+import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
+import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.importer.doc.Doc;
 
@@ -54,7 +57,7 @@ import lombok.Getter;
  */
 @Builder
 @Getter
-public class CrawlCallbacks {
+public class CrawlCallbacks implements EventListener<Event> {
 
     /**
      * Convenience interface providing a default implementation of
@@ -110,4 +113,49 @@ public class CrawlCallbacks {
     BiConsumer<CrawlSession, Doc> beforeDocumentFinalizing;
     BiConsumer<CrawlSession, Doc> afterDocumentFinalizing;
 
+    /**
+     * Dispatches crawler lifecycle events to the appropriate hook. This method
+     * is called automatically when this instance is registered as an
+     * {@link EventListener} on the crawler's {@code EventManager}.
+     */
+    @Override
+    public void accept(Event event) {
+        if (!(event instanceof CrawlerEvent ce)) {
+            return;
+        }
+        switch (ce.getName()) {
+            case CrawlerEvent.CRAWLER_SESSION_BEGIN ->
+                    ifPresent(beforeSession,
+                            c -> c.accept((CrawlConfig) ce.getSource()));
+            case CrawlerEvent.CRAWLER_SESSION_END ->
+                    ifPresent(afterSession,
+                            c -> c.accept((CrawlConfig) ce.getSource()));
+            case CrawlerEvent.CRAWLER_COMMAND_BEGIN ->
+                    ifPresent(beforeCommand, c -> c.accept(
+                            ce.getCrawlSession(), ce.getCommandClass()));
+            case CrawlerEvent.CRAWLER_COMMAND_END ->
+                    ifPresent(afterCommand, c -> c.accept(
+                            ce.getCrawlSession(), ce.getCommandClass()));
+            case CrawlerEvent.DOCUMENT_PROCESSING_BEGIN ->
+                    ifPresent(beforeDocumentProcessing, c -> c.accept(
+                            ce.getCrawlSession(), (Doc) ce.getSource()));
+            case CrawlerEvent.DOCUMENT_PROCESSING_END ->
+                    ifPresent(afterDocumentProcessing, c -> c.accept(
+                            ce.getCrawlSession(), (Doc) ce.getSource()));
+            case CrawlerEvent.DOCUMENT_FINALIZING_BEGIN ->
+                    ifPresent(beforeDocumentFinalizing, c -> c.accept(
+                            ce.getCrawlSession(), (Doc) ce.getSource()));
+            case CrawlerEvent.DOCUMENT_FINALIZING_END ->
+                    ifPresent(afterDocumentFinalizing, c -> c.accept(
+                            ce.getCrawlSession(), (Doc) ce.getSource()));
+            default -> {
+                /* not a callback-relevant event */ }
+        }
+    }
+
+    private static <T> void ifPresent(T obj, Consumer<T> action) {
+        if (obj != null) {
+            action.accept(obj);
+        }
+    }
 }

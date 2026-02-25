@@ -79,7 +79,7 @@ public final class CrawlEntryLedgerBootstrapper implements CrawlBootstrapper {
                 session.isResumed(), ledger.getQueueCount(),
                 ledger.getProcessedCount());
 
-        // Queue is persistent (RocksDBQueueStore) and preserves FIFO order
+        // Queue is persistent (JDBC queue store) and preserves FIFO order
         // automatically across restarts, but we need to restore any entries
         // that were in PROCESSING state when the crawler stopped
         if (session.isResumed()) {

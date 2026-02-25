@@ -192,10 +192,11 @@ public class CrawlConfig {
     private boolean startReferencesAsync;
 
     /**
-     * The maximum number of threads a crawler can use. Default is 2.
+     * The maximum number of threads a crawler can use per cluster node.
+     * Default is 2.
      */
     @Min(1)
-    private int numThreads = 2;
+    private int numThreadsPerNode = 2;
 
     /**
      * <p>

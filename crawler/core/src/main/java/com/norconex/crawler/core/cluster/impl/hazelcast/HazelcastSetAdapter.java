@@ -24,8 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Hazelcast ISet-backed implementation of CacheSet.
- * Note: ISet is backed by IMap internally in Hazelcast, so persistence
- * via RocksDBMapStore works automatically.
+ * Note: ISet is backed by IMap internally in Hazelcast, so JDBC-backed
+ * persistence works automatically.
  */
 @Slf4j
 class HazelcastSetAdapter implements CacheSet {

@@ -61,6 +61,7 @@ class CrawlEntryLedgerTest {
         lenient().when(cluster.getCacheManager()).thenReturn(cacheManager);
         lenient().when(cluster.getLocalNode()).thenReturn(localNode);
         lenient().when(localNode.getNodeName()).thenReturn("unit-test-node");
+        lenient().when(localNode.isCoordinator()).thenReturn(true);
         lenient().when(session.getCrawlContext()).thenReturn(crawlContext);
         lenient().when(crawlContext.getCrawlConfig()).thenReturn(crawlConfig);
         lenient().when(session.isResumed()).thenReturn(false);

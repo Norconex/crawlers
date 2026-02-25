@@ -21,10 +21,9 @@ import java.util.function.Consumer;
 
 import com.norconex.crawler.core.cluster.CacheManager;
 import com.norconex.crawler.core.cluster.CacheMap;
+import com.norconex.crawler.core.cluster.CacheNames;
 import com.norconex.crawler.core.cluster.CacheQueue;
 import com.norconex.crawler.core.cluster.QueryFilter;
-import com.norconex.crawler.core.cluster.impl.hazelcast.CacheNames;
-import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
 
 import lombok.NonNull;
@@ -56,8 +55,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class CrawlEntryLedger {
 
-    //TODO remove all synchronized keywords?
-
     private static final String CURRENT_LEDGER_ALIAS_KEY =
             "ledger.current.alias";
 
@@ -69,8 +66,16 @@ public final class CrawlEntryLedger {
 
     private CacheMap<CrawlEntry> currentLedger;
     private CacheMap<CrawlEntry> baselineLedger;
-    private CacheQueue<String> queue; // Persistent, preserves FIFO order
+    // The queue owns FIFO ordering; the map owns authoritative entry state.
+    // These two structures are intentionally separate: one provides ordering,
+    // the other provides status-based queries and key-value access.
+    private CacheQueue<String> queue;
     private long totalMaxDocsThisRun;
+
+    // Invoked after a reference is added to the queue. Defaults to a no-op;
+    // call setQueuedListener() to attach application-level event publishing.
+    // This keeps the ledger free of any dependency on session or events.
+    private Consumer<CrawlEntry> onQueued = e -> {};
 
     private CacheManager cacheManager;
     private CrawlSession session;
@@ -120,6 +125,17 @@ public final class CrawlEntryLedger {
      * by the coordinator before any ledger rotation to establish the
      * initial state for all cluster nodes.
      */
+    /**
+     * Registers a listener that is called each time a new reference is
+     * successfully added to the queue. Use this to decouple application-level
+     * event publishing from the ledger.
+     *
+     * @param listener callback invoked with the queued {@link CrawlEntry}
+     */
+    public void setQueuedListener(Consumer<CrawlEntry> listener) {
+        this.onQueued = listener != null ? listener : e -> {};
+    }
+
     public void ensureCurrentLedgerAliasExists() {
         var sessionCache = cacheManager.getCrawlSessionCache();
         sessionCache.computeIfAbsent(CURRENT_LEDGER_ALIAS_KEY,
@@ -285,12 +301,7 @@ public final class CrawlEntryLedger {
         current.put(crawlEntry.getReference(), crawlEntry);
         queue.add(crawlEntry.getReference());
         LOG.debug("Queued for processing: {}", crawlEntry.getReference());
-
-        session.fire(CrawlerEvent.builder()
-                .name(CrawlerEvent.DOCUMENT_QUEUED)
-                .source(session)
-                .crawlEntry(crawlEntry)
-                .build());
+        onQueued.accept(crawlEntry);
     }
 
     public List<CrawlEntry> nextQueuedBatch(int batchSize) {
@@ -458,10 +469,17 @@ public final class CrawlEntryLedger {
     }
 
     /**
-     * Make the current leger the pervious one. and blank the current one
-     * to start fresh.
+     * Archives the current ledger by making it the baseline and resetting
+     * the current ledger to empty. <strong>Must only be called by the
+     * coordinator node.</strong> In a multi-node cluster, calling this on
+     * a non-coordinator node is a no-op (logged as a warning).
      */
-    public synchronized void archiveCurrentLedger() {
+    public void archiveCurrentLedger() {
+        if (!session.getCluster().getLocalNode().isCoordinator()) {
+            LOG.warn("archiveCurrentLedger() called on non-coordinator node; "
+                    + "ignoring.");
+            return;
+        }
         // Clear previous baseline ledger (old current run) if it was initialized
         var baseline = getBaselineLedger();
         if (baseline != null) {

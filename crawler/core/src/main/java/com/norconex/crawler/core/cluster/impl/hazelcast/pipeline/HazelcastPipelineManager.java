@@ -20,8 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import com.norconex.crawler.core.cluster.CacheNames;
 import com.norconex.crawler.core.cluster.impl.hazelcast.CacheKeys;
-import com.norconex.crawler.core.cluster.impl.hazelcast.CacheNames;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastCluster;
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListener;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;

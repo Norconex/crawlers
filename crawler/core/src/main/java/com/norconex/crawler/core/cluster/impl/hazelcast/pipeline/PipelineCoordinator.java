@@ -23,7 +23,6 @@ import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
-import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 
@@ -256,7 +255,7 @@ public class PipelineCoordinator implements AutoCloseable {
         locallyExecutedStep = step;
         LOG.info("Running step {} on a single node.", step.getId());
         try {
-            step.execute(CrawlSession.get(cluster.getLocalNode()));
+            step.execute(cluster.getCrawlSession());
             LOG.info("Pipeline {} step {} completed.",
                     pipeline.getId(), step.getId());
             return PipelineStatus.COMPLETED;

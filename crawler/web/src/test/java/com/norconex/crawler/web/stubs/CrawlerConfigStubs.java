@@ -43,7 +43,7 @@ public final class CrawlerConfigStubs {
     public static WebCrawlerConfig memoryCrawlerConfig(Path workDir) {
         var cfg = (WebCrawlerConfig) new WebCrawlerConfig()
                 .setId(CRAWLER_ID)
-                .setNumThreads(1)
+                .setNumThreadsPerNode(1)
                 .setWorkDir(workDir)
                 .setCommitters(List.of(new MemoryCommitter()));
         ((GenericDelayResolver) cfg.getDelayResolver())
@@ -65,7 +65,7 @@ public final class CrawlerConfigStubs {
         var cfg = (WebCrawlerConfig) WebTestUtil.randomize(
                 WebCrawlerConfig.class)
                 .setId(CRAWLER_ID)
-                .setNumThreads(1)
+                .setNumThreadsPerNode(1)
                 .setWorkDir(workDir)
                 .setCommitters(List.of(new MemoryCommitter()));
         ((GenericDelayResolver) cfg.getDelayResolver())

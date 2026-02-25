@@ -68,9 +68,10 @@ public class HazelcastCluster implements Cluster {
     private HazelcastInstance hazelcastInstance;
     private UUID membershipListenerId;
     private boolean clustered;
+    private CrawlSession session;
 
     public String getCrawlerId() {
-        return getCrawlSession().getCrawlerId();
+        return session != null ? session.getCrawlerId() : null;
     }
 
     @Override
@@ -88,8 +89,14 @@ public class HazelcastCluster implements Cluster {
         return pipelineManager;
     }
 
+    @Override
     public CrawlSession getCrawlSession() {
-        return CrawlSession.get(localNode);
+        return session;
+    }
+
+    @Override
+    public void bindSession(CrawlSession session) {
+        this.session = session;
     }
 
     @Override
@@ -256,12 +263,10 @@ public class HazelcastCluster implements Cluster {
     public void addCoordinatorChangeListener(
             CoordinatorChangeListener listener) {
         coordinatorListeners.add(listener);
-        // Snapshot current state, update the tracked field, then fire.
-        // Updating lastCoordinatorState here keeps it in sync so that
-        // the next membership event does not fire spuriously.
-        var isCoordinator = localNode.isCoordinator();
-        lastCoordinatorState = isCoordinator;
-        listener.onCoordinatorChange(isCoordinator);
+        // Fire immediately with current state so the listener is fully
+        // initialised on registration. Do NOT update lastCoordinatorState
+        // here — that field is owned by the membership-event path.
+        listener.onCoordinatorChange(localNode.isCoordinator());
     }
 
     public void removeCoordinatorChangeListener(
@@ -340,59 +345,6 @@ public class HazelcastCluster implements Cluster {
     public boolean isClustered() {
         return clustered;
     }
-
-    //    /**
-    //     * Persists all backup data to RocksDB before Hazelcast shutdown.
-    //     * This ensures that backup replicas are not lost when all nodes restart.
-    //     */
-    //    private void persistAllBackupData() {
-    //        try {
-    //            LOG.info("Persisting all backup data before Hazelcast shutdown...");
-    //            RocksDBMapStore.persistAllBackupData();
-    //            LOG.info("Backup data persistence complete");
-    //        } catch (Exception e) {
-    //            LOG.error("Failed to persist backup data", e);
-    //        }
-    //    }
-    //
-    //    private static void applyPersistenceDir(Config hzConfig, Path dir) {
-    //        var path = dir.normalize().toString();
-    //
-    //        hzConfig.getMapConfigs().values().forEach(mapCfg -> {
-    //            var mapStoreCfg = mapCfg.getMapStoreConfig();
-    //            if (mapStoreCfg == null || !mapStoreCfg.isEnabled()) {
-    //                return;
-    //            }
-    //            var props = mapStoreCfg.getProperties();
-    //            if (props == null) {
-    //                props = new java.util.Properties();
-    //                mapStoreCfg.setProperties(props);
-    //            }
-    //            props.setProperty("database.dir", path);
-    //        });
-    //
-    //        hzConfig.getQueueConfigs().values().forEach(queueCfg -> {
-    //            var queueStoreCfg = queueCfg.getQueueStoreConfig();
-    //            if (queueStoreCfg == null || !queueStoreCfg.isEnabled()) {
-    //                return;
-    //            }
-    //            var props = queueStoreCfg.getProperties();
-    //            if (props == null) {
-    //                props = new java.util.Properties();
-    //                queueStoreCfg.setProperties(props);
-    //            }
-    //            props.setProperty("database.dir", path);
-    //        });
-    //    }
-
-    //    private static String buildInstanceName(Path workDir) {
-    //        if (workDir == null) {
-    //            return "crawler-node";
-    //        }
-    //        var fileName = workDir.getFileName();
-    //        var suffix = fileName != null ? fileName.toString() : "node";
-    //        return "crawler-" + suffix + "-" + Math.abs(workDir.hashCode());
-    //    }
 
     //TODO move this logic to
     private static void validateClusterMode(

@@ -90,13 +90,6 @@
       <version>${hazelcast.version}</version>
     </dependency>
     
-    <!-- RocksDB for Hazelcast persistence -->
-    <dependency>
-      <groupId>org.rocksdb</groupId>
-      <artifactId>rocksdbjni</artifactId>
-      <version>9.8.4</version>
-    </dependency>
-    
     <dependency>
       <groupId>de.huxhorn.sulky</groupId>
       <artifactId>de.huxhorn.sulky.ulid</artifactId>
@@ -316,6 +309,7 @@
         <version>3.2.5</version>
         <configuration>
           <argLine>
+            ${jacocoArgLine}
             --add-modules java.se
             --add-exports java.base/jdk.internal.ref=ALL-UNNAMED
             --add-opens java.base/java.lang=ALL-UNNAMED

@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
+import com.norconex.crawler.core.session.CrawlSession;
 
 public interface Cluster extends Closeable {
 
@@ -39,6 +40,20 @@ public interface Cluster extends Closeable {
     CacheManager getCacheManager();
 
     PipelineManager getPipelineManager();
+
+    /**
+     * Returns the crawl session bound to this cluster node, or {@code null}
+     * if the session has not been bound yet.
+     * @return the crawl session
+     */
+    CrawlSession getCrawlSession();
+
+    /**
+     * Binds the given crawl session to this cluster node. Called once during
+     * session initialization.
+     * @param session the crawl session
+     */
+    void bindSession(CrawlSession session);
 
     void init(Path crawlerWorkDir, boolean isClustered);
 

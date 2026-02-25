@@ -22,10 +22,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import com.hazelcast.collection.IQueue;
+import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
 import com.norconex.crawler.core.cluster.CacheManager;
 import com.norconex.crawler.core.cluster.CacheMap;
+import com.norconex.crawler.core.cluster.CacheNames;
 import com.norconex.crawler.core.cluster.CacheQueue;
 import com.norconex.crawler.core.cluster.CacheSet;
 import com.norconex.crawler.core.cluster.ClusterException;
@@ -43,9 +45,6 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
     static final String TYPE_REGISTRY_MAP = "__cache_types";
     private static final Map<HazelcastInstance, AtomicInteger> REF_COUNTS =
             new ConcurrentHashMap<>();
-    // Static registry to allow factories to access HazelcastInstance
-    private static final Map<String, HazelcastInstance> instanceRegistry =
-            new ConcurrentHashMap<>();
     static final int BATCH_SIZE = 1000;
 
     final HazelcastInstance hazelcast;
@@ -57,13 +56,15 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
         hazelcast = hazelcastInstance;
         REF_COUNTS.computeIfAbsent(hazelcast, k -> new AtomicInteger(0))
                 .incrementAndGet();
-        // Register this instance for factories to access
-        instanceRegistry.put(hazelcast.getName(), hazelcast);
     }
 
-    // Static method for factories to access HazelcastInstance
+    /**
+     * Returns the {@link HazelcastInstance} with the given name using
+     * Hazelcast's own instance registry. Returns {@code null} if no
+     * instance with that name is currently running on this JVM.
+     */
     public static HazelcastInstance getHazelcastInstance(String name) {
-        return instanceRegistry.get(name);
+        return Hazelcast.getHazelcastInstanceByName(name);
     }
 
     @Override
@@ -129,7 +130,6 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
         LOG.info("HazelcastCacheManager.close() called for cleanup.");
         var counter = REF_COUNTS.get(hazelcast);
         if (counter == null) {
-            instanceRegistry.remove(hazelcast.getName());
             LOG.info("Shutting down Hazelcast instance (unknown ref count)");
             hazelcast.shutdown();
             LOG.info("Hazelcast instance shutdown complete.");
@@ -138,7 +138,6 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
         var remaining = counter.decrementAndGet();
         if (remaining <= 0) {
             REF_COUNTS.remove(hazelcast);
-            instanceRegistry.remove(hazelcast.getName());
             LOG.info("Shutting down Hazelcast instance (last reference)");
             hazelcast.shutdown();
             LOG.info("Hazelcast instance shutdown complete.");

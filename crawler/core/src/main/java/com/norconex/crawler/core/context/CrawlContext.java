@@ -40,6 +40,7 @@ import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapper;
 import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
 import com.norconex.crawler.core.doc.pipelines.DedupService;
+import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.ledger.CrawlEntry;
 import com.norconex.crawler.core.ledger.CrawlEntryLedger;
@@ -131,6 +132,15 @@ public class CrawlContext implements Closeable {
     public void init(CrawlSession session) {
         getEventManager().addListenersFromScan(getCrawlConfig());
         getCrawlEntryLedger().init(session);
+        // Publish the DOCUMENT_QUEUED application event from the component
+        // that owns both session and ledger, keeping the ledger itself free
+        // of any dependency on CrawlerEvent or CrawlSession.
+        getCrawlEntryLedger()
+                .setQueuedListener(entry -> session.fire(CrawlerEvent.builder()
+                        .name(CrawlerEvent.DOCUMENT_QUEUED)
+                        .source(session)
+                        .crawlEntry(entry)
+                        .build()));
         //TODO consider skipping below initialization if not crawl command
         getMetrics().init(session);
         getCommitterService().init(CommitterContext

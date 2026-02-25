@@ -19,6 +19,7 @@ import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.event.Event;
+import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.ledger.CrawlEntry;
 import com.norconex.crawler.core.session.CrawlSession;
 
@@ -74,6 +75,28 @@ public class CrawlerEvent extends Event {
             "CRAWLER_STORE_IMPORT_END";
 
     public static final String CRAWLER_ERROR = "CRAWLER_ERROR";
+
+    /**
+     * Fired just before a crawl session is initialized. The event source
+     * is the {@link com.norconex.crawler.core.CrawlConfig}.
+     */
+    public static final String CRAWLER_SESSION_BEGIN = "CRAWLER_SESSION_BEGIN";
+    /**
+     * Fired just after a crawl session has been closed. The event source
+     * is the {@link com.norconex.crawler.core.CrawlConfig}.
+     */
+    public static final String CRAWLER_SESSION_END = "CRAWLER_SESSION_END";
+
+    /**
+     * Fired just before a command starts executing.
+     * The {@link #getCommandClass()} field carries the command type.
+     */
+    public static final String CRAWLER_COMMAND_BEGIN = "CRAWLER_COMMAND_BEGIN";
+    /**
+     * Fired just after a command finishes executing.
+     * The {@link #getCommandClass()} field carries the command type.
+     */
+    public static final String CRAWLER_COMMAND_END = "CRAWLER_COMMAND_END";
 
     /**
      * A document was rejected by a filters.
@@ -150,6 +173,32 @@ public class CrawlerEvent extends Event {
      */
     public static final String DOCUMENT_PROCESSED = "DOCUMENT_PROCESSED";
 
+    /**
+     * Fired just before document processing begins.
+     * The event source is the {@link com.norconex.importer.doc.Doc}.
+     */
+    public static final String DOCUMENT_PROCESSING_BEGIN =
+            "DOCUMENT_PROCESSING_BEGIN";
+    /**
+     * Fired just after document processing ends.
+     * The event source is the {@link com.norconex.importer.doc.Doc}.
+     */
+    public static final String DOCUMENT_PROCESSING_END =
+            "DOCUMENT_PROCESSING_END";
+
+    /**
+     * Fired just before document finalization begins.
+     * The event source is the {@link com.norconex.importer.doc.Doc}.
+     */
+    public static final String DOCUMENT_FINALIZING_BEGIN =
+            "DOCUMENT_FINALIZING_BEGIN";
+    /**
+     * Fired just after document finalization ends.
+     * The event source is the {@link com.norconex.importer.doc.Doc}.
+     */
+    public static final String DOCUMENT_FINALIZING_END =
+            "DOCUMENT_FINALIZING_END";
+
     //    /**
     //     * A document was saved.
     //     */
@@ -161,6 +210,11 @@ public class CrawlerEvent extends Event {
      */
     private final transient CrawlEntry crawlEntry;
     private final transient CrawlSession crawlSession;
+    /**
+     * The command class firing a {@link #CRAWLER_COMMAND_BEGIN} or
+     * {@link #CRAWLER_COMMAND_END} event, or {@code null} for all other events.
+     */
+    private final transient Class<? extends Command> commandClass;
     //    private final transient Object subject;
     //TODO keep a reference to actual document?
 

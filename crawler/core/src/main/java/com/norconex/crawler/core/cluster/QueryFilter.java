@@ -22,7 +22,18 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Very simple cache entry expression. Allows filtering on a cache value
- * property name and property value, as well as ordering results.
+ * property name and property value.
+ *
+ * <p><strong>Comparison contract:</strong> all implementations must evaluate
+ * field values by comparing {@code Objects.toString(storedValue)} against
+ * {@code Objects.toString(filter.getFieldValue())}. This means enums,
+ * integers, and other non-String types are compared via their
+ * {@code toString()} representation. Callers should pass field values whose
+ * {@code toString()} output matches what the stored object produces.
+ * For example, use {@code ProcessingStatus.QUEUED.name()} ("{@code QUEUED}")
+ * rather than the enum constant itself, unless the enum’s name() is known
+ * to match.
+ * </p>
  */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Data

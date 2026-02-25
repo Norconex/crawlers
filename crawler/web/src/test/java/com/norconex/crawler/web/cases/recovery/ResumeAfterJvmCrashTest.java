@@ -52,7 +52,7 @@ class ResumeAfterJvmCrashTest {
 
         cfg.setStartReferences(
                 List.of(serverUrl(client, path + "/0000")));
-        cfg.setNumThreads(1);
+        cfg.setNumThreadsPerNode(1);
         cfg.setMaxDepth(-1);
         cfg.setMaxDocuments(10);
         cfg.setMetadataChecksummer(null);

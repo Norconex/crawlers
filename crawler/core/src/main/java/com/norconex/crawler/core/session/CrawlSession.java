@@ -18,26 +18,19 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import com.norconex.commons.lang.event.Event;
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.cluster.Cluster;
-import com.norconex.crawler.core.cluster.ClusterNode;
-import com.norconex.crawler.core.cluster.SerializedRecord;
 import com.norconex.crawler.core.cluster.admin.ClusterAdminServer;
 import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.util.ExceptionSwallower;
-import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.Accessors;
@@ -54,74 +47,29 @@ import lombok.extern.slf4j.Slf4j;
 @ToString(onlyExplicitlyIncluded = true)
 public class CrawlSession implements Closeable {
 
-    private static final String SESSION_STATE_KEY = "session.state";
-    private static final String START_REFS_QUEUED_KEY =
-            "session.startRefsQueuingComplete";
-
-    // Storage markers for oncePerCacheAndGet encoded values.
-    // - #NULL#: explicit null
-    // - #B64#: Java-Serializable value, Base64 encoded
-    // - #SSO#: JSON-wrapped {className, serializedJson}
-    private static final String MARKER_NULL = "#NULL#";
-    //    private static final String MARKER_B64 = "#B64#";
-    private static final String MARKER_WRAPPED_JSON = "#SSO#";
-
-    //    private static final long SESSION_HEARTBEAT_INTERVAL =
-    //            Duration.ofMinutes(2).toMillis();
-
-    // <address, ...>
-    private static final Map<String, CrawlSession> SESSIONS =
-            new ConcurrentHashMap<>();
-
-    // Shall we have such a class that has the Cluster instance and the crawl
-    // CrawlContext instance and pass that accross as opposed to have a circular
-    // reference in both crawlcontext and cluster?
-
-    // It could also have key elements on it, like QueueInitialized... and
-    // interfaces to add features should ...
-
     @Getter
     private final Cluster cluster;
     private ClusterAdminServer adminServer;
     @Getter
     private final CrawlContext crawlContext;
 
-    private CacheMap<String> sessionCache;
-    private CrawlAttributes sessionAttributes;
+    /** Coordinates task deduplication across session and run scopes. */
+    @Getter
+    private CrawlRunCoordinator runCoordinator;
 
-    private CacheMap<String> crawlRunCache;
-    private CrawlAttributes crawlRunAttributes;
+    /** Manages persistent crawl state and session-scoped attributes. */
+    @Getter
+    private CrawlStateStore stateStore;
+
+    /** Fires events through the underlying event manager. */
+    @Getter
+    private CrawlEventBus eventBus;
 
     private CrawlAttributes crawlerAttributes;
 
     private CrawlRunInfo crawlRunInfo;
-    private State state;
-    //    private ScheduledExecutorService heartbeatScheduler =
-    //            Executors.newScheduledThreadPool(1, r -> {
-    //                var t = new Thread(r, "heartbeat-scheduler");
-    //                t.setDaemon(true);
-    //                return t;
-    //            });
-    //    private java.util.concurrent.ScheduledFuture<?> heartbeatFuture;
     private boolean closed;
     private Runnable postCloseCleanup;
-
-    /**
-     * Gets the crawl session associated with the given cluster node.
-     * Throws an {@link IllegalStateException} if no crawl session
-     * was created and initialized for the node.
-     * @param clusterNode the cluster node
-     * @return the crawl session
-     */
-    public static CrawlSession get(@NonNull ClusterNode clusterNode) {
-        var session = SESSIONS.get(clusterNode.getNodeName());
-        if (session == null) {
-            throw new IllegalStateException("Crawl session not created or "
-                    + "initialized for node '%s'"
-                            .formatted(clusterNode.getNodeName()));
-        }
-        return session;
-    }
 
     /**
      * The crawler unique identifier, for a specific crawler setup
@@ -135,19 +83,19 @@ public class CrawlSession implements Closeable {
     }
 
     public void oncePerSession(String taskId, Runnable runnable) {
-        oncePerCache(sessionCache, taskId, runnable);
+        runCoordinator.oncePerSession(taskId, runnable);
     }
 
     public <T> T oncePerSessionAndGet(String taskId, Supplier<T> supplier) {
-        return oncePerCacheAndGet(sessionCache, taskId, supplier);
+        return runCoordinator.oncePerSessionAndGet(taskId, supplier);
     }
 
     public void oncePerRun(String taskId, Runnable runnable) {
-        oncePerCache(crawlRunCache, taskId, runnable);
+        runCoordinator.oncePerRun(taskId, runnable);
     }
 
     public <T> T oncePerRunAndGet(String taskId, Supplier<T> supplier) {
-        return oncePerCacheAndGet(crawlRunCache, taskId, supplier);
+        return runCoordinator.oncePerRunAndGet(taskId, supplier);
     }
 
     /**
@@ -185,9 +133,7 @@ public class CrawlSession implements Closeable {
 
     @ToString.Include(name = "crawlState")
     public CrawlState getCrawlState() {
-        // always get it fresh when requesting it explicitly
-        state = loadState();
-        return state != null ? state.crawlState : null;
+        return stateStore.getCrawlState();
     }
 
     @ToString.Include
@@ -196,17 +142,17 @@ public class CrawlSession implements Closeable {
     }
 
     public CrawlAttributes getSessionAttributes() {
-        if (sessionAttributes == null) {
+        if (stateStore == null) {
             throw new IllegalStateException("CrawlSession not initialized.");
         }
-        return sessionAttributes;
+        return stateStore.getSessionAttributes();
     }
 
     public CrawlAttributes getCrawlRunAttributes() {
-        if (crawlRunAttributes == null) {
+        if (runCoordinator == null) {
             throw new IllegalStateException("CrawlSession not initialized.");
         }
-        return crawlRunAttributes;
+        return runCoordinator.getCrawlRunAttributes();
     }
 
     public CrawlAttributes getCrawlerAttributes() {
@@ -230,16 +176,20 @@ public class CrawlSession implements Closeable {
         cluster.init(crawlContext.getWorkDir(), clusterConfig.isClustered());
 
         LOG.info("CrawlSession.init() - Getting cache managers...");
-        sessionCache = cluster.getCacheManager().getCrawlSessionCache();
-        sessionAttributes = new CrawlAttributes(sessionCache);
-        crawlRunCache = cluster.getCacheManager().getCrawlRunCache();
-        crawlRunAttributes = new CrawlAttributes(crawlRunCache);
-        crawlerAttributes = new CrawlAttributes(
-                cluster.getCacheManager().getCrawlerCache());
+        var cacheManager = cluster.getCacheManager();
+        var sessionCache = cacheManager.getCrawlSessionCache();
+        var runCache = cacheManager.getCrawlRunCache();
+        stateStore = new CrawlStateStore(
+                sessionCache, new CrawlAttributes(sessionCache));
+        runCoordinator = new CrawlRunCoordinator(
+                sessionCache, runCache, new CrawlAttributes(runCache));
+        eventBus = new CrawlEventBus(crawlContext.getEventManager());
+        crawlerAttributes = new CrawlAttributes(cacheManager.getCrawlerCache());
 
         var nodeName = cluster.getLocalNode().getNodeName();
-        LOG.info("CrawlSession.init() - Registering node: {}", nodeName);
-        SESSIONS.put(nodeName, this);
+        LOG.info("CrawlSession.init() - Binding session to cluster node: {}",
+                nodeName);
+        cluster.bindSession(this);
 
         try {
             //NOTE: this resolver will also clear the session cache if needed.
@@ -283,7 +233,7 @@ public class CrawlSession implements Closeable {
             LOG.info("CrawlSession.init() - Initialization complete!");
         } catch (RuntimeException e) {
             LOG.error("CrawlSession.init() - Initialization failed!", e);
-            SESSIONS.remove(cluster.getLocalNode().getNodeName());
+            cluster.bindSession(null);
             throw e;
         }
     }
@@ -302,12 +252,7 @@ public class CrawlSession implements Closeable {
             ExceptionSwallower.close(crawlContext, cluster);
         });
 
-        if (cluster.getLocalNode() != null) {
-            var nodeName = cluster.getLocalNode().getNodeName();
-            if (nodeName != null) {
-                SESSIONS.remove(nodeName);
-            }
-        }
+        cluster.bindSession(null);
 
         if (adminServer != null) {
             adminServer.close();
@@ -339,16 +284,15 @@ public class CrawlSession implements Closeable {
     }
 
     public boolean isStartRefsQueueingComplete() {
-        return sessionAttributes.getBoolean(START_REFS_QUEUED_KEY);
+        return stateStore.isStartRefsQueueingComplete();
     }
 
     public void setStartRefsQueueingComplete(boolean isComplete) {
-        sessionAttributes.setBoolean(START_REFS_QUEUED_KEY, isComplete);
+        stateStore.setStartRefsQueueingComplete(isComplete);
     }
 
     public void updateCrawlState(CrawlState state) {
-        saveCrawlState(new State().setCrawlState(state)
-                .setLastUpdated(System.currentTimeMillis()));
+        stateStore.updateCrawlState(state);
     }
 
     /**
@@ -357,7 +301,7 @@ public class CrawlSession implements Closeable {
      * @param event the event to fire
      */
     public void fire(Event event) {
-        crawlContext.getEventManager().fire(event);
+        eventBus.fire(event);
     }
 
     /**
@@ -380,9 +324,7 @@ public class CrawlSession implements Closeable {
 
     //TODO make package private
     public State loadState() {
-        return SerialUtil.fromJson(
-                sessionCache.getOrDefault(SESSION_STATE_KEY, null),
-                State.class);
+        return stateStore.loadState();
     }
 
     private void createDir(Path dir) {
@@ -391,63 +333,6 @@ public class CrawlSession implements Closeable {
         } catch (IOException e) {
             throw new CrawlerException("Could not create directory: " + dir, e);
         }
-    }
-
-    private void saveCrawlState(State state) {
-        sessionCache.put(SESSION_STATE_KEY,
-                SerialUtil.toJsonString(state));
-    }
-
-    private void oncePerCache(
-            CacheMap<String> cache, String taskId, Runnable runnable) {
-        var key = "once-" + taskId;
-        cache.computeIfAbsent(key, k -> {
-            runnable.run();
-            return "1";
-        });
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> T oncePerCacheAndGet(
-            CacheMap<String> cache, String taskId, Supplier<T> supplier) {
-        var key = "once-get-" + taskId;
-        var stored = cache.computeIfAbsent(key, k -> {
-            var value = supplier.get();
-            if (value == null) {
-                return MARKER_NULL; // explicit null marker
-            }
-            //            if (value instanceof Serializable serializable) {
-            //                return MARKER_B64 + SerialUtil.toBase64String(serializable);
-            //            }
-            // Fallback: use neutral envelope for JSON payload + class name
-            var env = SerializedRecord.wrap(value);
-            return MARKER_WRAPPED_JSON + SerialUtil.toJsonString(env);
-        });
-        if (stored == null || MARKER_NULL.equals(stored)) {
-            return null;
-        }
-        //        if (stored.startsWith(MARKER_B64)) {
-        //            return (T) SerialUtil.fromBase64String(
-        //                    stored.substring(MARKER_B64.length()));
-        //        }
-        if (stored.startsWith(MARKER_WRAPPED_JSON)) {
-            var json = stored.substring(MARKER_WRAPPED_JSON.length());
-            var env = SerialUtil.fromJson(json, SerializedRecord.class);
-            if (env == null) {
-                return null;
-            }
-            try {
-                return (T) env.unwrap();
-            } catch (CrawlerException e) {
-                LOG.warn(
-                        "Could not resolve class for JSON-wrapped value of key '{}': {}. Returning null.",
-                        key, e.getMessage());
-                return null;
-            }
-        }
-        throw new CrawlerException(
-                ("Unknown encoding for oncePerCacheAndGet key '%s'.")
-                        .formatted(key));
     }
 
     @Data
