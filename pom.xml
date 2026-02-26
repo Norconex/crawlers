@@ -50,46 +50,46 @@
     <norconex-commons-lang.version>3.0.0-SNAPSHOT</norconex-commons-lang.version>
 
     <!-- Apache Commons dependencies -->
-    <commons-cli.version>1.8.0</commons-cli.version>
-    <commons-codec.version>1.17.0</commons-codec.version>
-    <commons-collections4.version>4.4</commons-collections4.version>
-    <commons-compress.version>1.26.2</commons-compress.version>
-    <commons-csv.version>1.11.0</commons-csv.version>
-    <commons-io.version>2.16.1</commons-io.version>
-    <commons-lang3.version>3.14.0</commons-lang3.version>
-    <commons-logging.version>1.3.2</commons-logging.version>
-    <commons-text.version>1.12.0</commons-text.version>
+    <commons-cli.version>1.11.0</commons-cli.version>
+    <commons-codec.version>1.21.0</commons-codec.version>
+    <commons-collections4.version>4.5.0</commons-collections4.version>
+    <commons-compress.version>1.28.0</commons-compress.version>
+    <commons-csv.version>1.14.1</commons-csv.version>
+    <commons-io.version>2.21.0</commons-io.version>
+    <commons-lang3.version>3.20.0</commons-lang3.version>
+    <commons-logging.version>1.3.5</commons-logging.version>
+    <commons-text.version>1.15.0</commons-text.version>
     
     <!-- Other dependencies -->
-    <aws-java-sdk.version>1.12.750</aws-java-sdk.version>
-    <ant.version>1.10.14</ant.version>
-    <httpclient5.version>5.2.1</httpclient5.version>
+    <aws-java-sdk.version>1.12.797</aws-java-sdk.version>
+    <ant.version>1.10.15</ant.version>
+    <httpclient5.version>5.6</httpclient5.version>
     <jackson.version>2.17.2</jackson.version>
     <jakarta-activation.version>2.1.3</jakarta-activation.version>
     <jakarta-el-api.version>6.0.1</jakarta-el-api.version>
     <jaxb-runtime.version>2.3.5</jaxb-runtime.version>
     <java-cup.version>10k</java-cup.version>
-    <jetty.version>11.0.15</jetty.version>
+    <jetty.version>11.0.25</jetty.version>
     <json.version>1.8</json.version>
     <!-- 1.17.1+ required by Tika 3.x JSoupParser (TagSet class) -->
     <jsoup.version>1.21.1</jsoup.version>
     <log4j.version>2.24.3</log4j.version>
-    <picocli.version>4.7.6</picocli.version>
+    <picocli.version>4.7.7</picocli.version>
     <slf4j.version>2.0.17</slf4j.version>
-    <velocity-engine.version>2.3</velocity-engine.version>
+    <velocity-engine.version>2.4.1</velocity-engine.version>
     <xerces.version>2.12.2</xerces.version>
-    <xml-bind-api.version>4.0.2</xml-bind-api.version>
+    <xml-bind-api.version>4.0.5</xml-bind-api.version>
     <xpath2.version>2.1.100</xpath2.version>
 
     <!-- Compile-time annotation processors -->
-    <lombok.version>1.18.34</lombok.version>
+    <lombok.version>1.18.42</lombok.version>
 
     <!-- Test/Provided dependencies -->
     <assertj.version>3.24.2</assertj.version>
     <easy-random.version>5.0.0</easy-random.version>
     <junit-jupiter.version>5.12.0</junit-jupiter.version>
     <junit-platform.version>1.12.0</junit-platform.version>
-    <mockito.version>5.12.0</mockito.version>
+    <mockito.version>5.21.0</mockito.version>
     <mockserver.version>5.15.0</mockserver.version>
     <testcontainers.version>2.0.3</testcontainers.version>
     <!--
@@ -98,28 +98,28 @@
     
     <!-- === Maven plugins ================================================= -->
 
-    <editorconfig-maven-plugin.version>0.1.3</editorconfig-maven-plugin.version>
+    <editorconfig-maven-plugin.version>0.2.0</editorconfig-maven-plugin.version>
     <formatter-maven-plugin.version>2.24.1</formatter-maven-plugin.version>
-    <gmavenplus-plugin.version>4.2.0</gmavenplus-plugin.version>
+    <gmavenplus-plugin.version>4.3.1</gmavenplus-plugin.version>
     <groovy.version>4.0.26</groovy.version>
-    <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
-    <license-maven-plugin.version>2.5.0</license-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
+    <license-maven-plugin.version>2.7.1</license-maven-plugin.version>
     <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
-    <maven-assembly-plugin.version>3.6.0</maven-assembly-plugin.version>
-    <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+    <maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
+    <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
     <maven-dependency-plugin.version>3.7.1</maven-dependency-plugin.version>
-    <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version>
-    <maven-enforcer-plugin.version>3.3.0</maven-enforcer-plugin.version>
-    <maven-gpg-plugin.version>3.2.4</maven-gpg-plugin.version>
-    <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
-    <maven-javadoc-plugin.version>3.10.0</maven-javadoc-plugin.version>
+    <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
+    <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
+    <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
+    <maven-jar-plugin.version>3.5.0</maven-jar-plugin.version>
+    <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
     <maven-remote-resources-plugin.version>3.2.0</maven-remote-resources-plugin.version>
     <maven-site-plugin.version>4.0.0-M14</maven-site-plugin.version>
-    <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
-    <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
+    <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
+    <maven-surefire-plugin.version>3.5.5</maven-surefire-plugin.version>
     <therapi.version>0.15.0</therapi.version>
-    <versions-maven-plugin.version>2.16.2</versions-maven-plugin.version>
+    <versions-maven-plugin.version>2.21.0</versions-maven-plugin.version>
     <wagon-ssh.version>3.5.3</wagon-ssh.version>
 
     <!-- Empty by default, see "jacoco" profile-->
