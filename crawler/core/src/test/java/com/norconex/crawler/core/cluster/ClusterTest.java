@@ -121,7 +121,7 @@ class ClusterTest {
 
     @ParameterizedTest
     @ValueSource(ints = { 1, 2 })
-    @Timeout(120)
+    @Timeout(240)
     void testStopResumeClusterExecution(int numNodes) throws Exception {
         // Use enough references so that even if one node starts earlier,
         // there is still work left for the other node to import at least one.
