@@ -291,6 +291,12 @@ public class CrawlTestHarness implements Closeable {
             connConfig.setConfigFile(
                     "classpath:cache/hazelcast-clustered-test.yaml");
 
+            // Reduce nodeExpiryTimeout so the coordinator marks orphaned
+            // workers (e.g., from a crash) as EXPIRED within 10 seconds
+            // instead of the 30-second default. This is safe for tests
+            // because the heartbeat YAML is also set to 1-second intervals.
+            connConfig.setNodeExpiryTimeout(java.time.Duration.ofSeconds(10));
+
             // Ensure this harness run forms its own cluster.
             connConfig.setClusterName(hazelcastClusterName);
 

@@ -249,7 +249,9 @@ class ClusterTest {
                             CrawlerEvent.DOCUMENT_IMPORTED);
             harness.crashNode("node-2");
 
-            var firstResult = futureResult.get(120,
+            // Allow up to 180s: ~10s HZ failure detection + ~30s for the
+            // surviving node to finish processing remaining documents.
+            var firstResult = futureResult.get(180,
                     TimeUnit.SECONDS);
             var firstImportTotal = firstResult
                     .getAllNodesEventNameBag()
