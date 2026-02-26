@@ -53,7 +53,8 @@ class LedgerPersistenceTest {
         // First run: processes the references and initializes the store
         assertThatNoException()
                 .as("first run with persistence should succeed")
-                .isThrownBy(() -> new Crawler(driver, config).crawl());
+                .isThrownBy(() -> new Crawler(driver, config)
+                        .crawl());
 
         // Second run: same workDir & crawler id should be able to
         // reuse stores without lock failures.
@@ -61,17 +62,21 @@ class LedgerPersistenceTest {
 
         assertThatNoException()
                 .as("second run with same workDir should also succeed")
-                .isThrownBy(() -> new Crawler(driver, secondConfig).crawl());
+                .isThrownBy(() -> new Crawler(driver,
+                        secondConfig).crawl());
     }
 
     private CrawlConfig baseConfig(Path workDir) {
         return new CrawlConfig()
                 .setId("ledger-persistence-test")
                 .setWorkDir(workDir)
-                .setStartReferences(List.of("ref-1", "ref-2", "ref-3"))
+                .setStartReferences(List.of("ref-1", "ref-2",
+                        "ref-3"))
                 .setFetchers(List.of(Configurable.configure(
-                        new MockFetcher(), cfg -> cfg.setDelay(
-                                Duration.ofMillis(10)))))
+                        new MockFetcher(),
+                        cfg -> cfg.setDelay(
+                                Duration.ofMillis(
+                                        10)))))
                 .setNumThreadsPerNode(1)
                 .setIdleTimeout(Duration.ofMillis(500));
     }
