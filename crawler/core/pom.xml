@@ -160,6 +160,15 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <!-- JUnit 4 API required by Hazelcast TestHazelcastInstanceFactory at
+         class-load time. No junit-vintage-engine is present so JUnit 4 test
+         classes will NOT be auto-discovered or run by Surefire. -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13.2</version>
+      <scope>test</scope>
+    </dependency>
     <!--
     <dependency>
       <groupId>software.xdev</groupId>

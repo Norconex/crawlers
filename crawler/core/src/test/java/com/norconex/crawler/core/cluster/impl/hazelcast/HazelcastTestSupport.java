@@ -17,15 +17,27 @@ package com.norconex.crawler.core.cluster.impl.hazelcast;
 import java.util.UUID;
 
 import com.hazelcast.config.Config;
-import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.test.TestHazelcastInstanceFactory;
 
 /**
  * Factory helpers for building minimal, isolated Hazelcast instances in
  * component-level tests.  Each instance uses a unique cluster name so it
  * will never join an instance from another test class or test run.
+ *
+ * <p>Instances are created via a shared {@link TestHazelcastInstanceFactory}
+ * which uses an in-memory mock-network layer instead of real TCP sockets.
+ * This cuts per-instance startup from ~3–5 s down to ~50 ms.</p>
  */
 public final class HazelcastTestSupport {
+
+    /**
+     * Shared mock-network factory.  All test instances use this factory so
+     * they start on the same mock network; unique cluster names (UUIDs)
+     * prevent accidental cluster formation across unrelated tests.
+     */
+    static final TestHazelcastInstanceFactory FACTORY =
+            new TestHazelcastInstanceFactory();
 
     private HazelcastTestSupport() {
     }
@@ -76,22 +88,52 @@ public final class HazelcastTestSupport {
     /**
      * Convenience: starts a {@link HazelcastInstance} from a random-name
      * config so the instance is guaranteed to be standalone.
+     * Uses the shared {@link TestHazelcastInstanceFactory} mock network.
      *
      * @return running instance
      */
     public static HazelcastInstance startNode() {
-        return Hazelcast.newHazelcastInstance(buildTestConfig());
+        return FACTORY.newHazelcastInstance(buildTestConfig());
     }
 
     /**
      * Convenience: starts a {@link HazelcastInstance} using the supplied
      * cluster name.  Multiple instances started with the same name will
-     * form an in-JVM cluster.
+     * form an in-process cluster via the mock network.
+     * Uses the shared {@link TestHazelcastInstanceFactory} mock network.
      *
      * @param clusterName cluster identifier
      * @return running instance
      */
     public static HazelcastInstance startNode(String clusterName) {
-        return Hazelcast.newHazelcastInstance(buildTestConfig(clusterName));
+        return FACTORY.newHazelcastInstance(buildTestConfig(clusterName));
+    }
+
+    /**
+     * Creates a {@link HazelcastCluster} whose internal
+     * {@link HazelcastInstance} is obtained from the shared
+     * {@link TestHazelcastInstanceFactory} mock network instead of real TCP.
+     * Drop-in replacement for {@code new HazelcastCluster(config)} in tests.
+     *
+     * @param config cluster connector configuration
+     * @return test-friendly HazelcastCluster
+     */
+    public static HazelcastCluster newCluster(
+            HazelcastClusterConnectorConfig config) {
+        return new HazelcastCluster(config) {
+            @Override
+            protected HazelcastInstance createHazelcastInstance(
+                    Config hzConfig) {
+                return FACTORY.newHazelcastInstance(hzConfig);
+            }
+        };
+    }
+
+    /**
+     * Shuts down all {@link HazelcastInstance}s created by the shared
+     * test factory.  Call from {@code @AfterEach} or {@code @AfterAll}.
+     */
+    public static void shutdownAll() {
+        FACTORY.shutdownAll();
     }
 }

@@ -41,9 +41,11 @@ class HazelcastClusterStartupTest {
 
         var config = new HazelcastClusterConnectorConfig()
                 .setClusterName("startup-test-standalone-"
-                        + java.util.UUID.randomUUID().toString().substring(0,
-                                8));
-        var cluster = new HazelcastCluster(config);
+                        + java.util.UUID.randomUUID()
+                                .toString()
+                                .substring(0,
+                                        8));
+        var cluster = HazelcastTestSupport.newCluster(config);
 
         cluster.init(workDir, false);
 
@@ -65,9 +67,11 @@ class HazelcastClusterStartupTest {
 
         var config = new HazelcastClusterConnectorConfig()
                 .setClusterName("startup-coord-test-"
-                        + java.util.UUID.randomUUID().toString().substring(0,
-                                8));
-        var cluster = new HazelcastCluster(config);
+                        + java.util.UUID.randomUUID()
+                                .toString()
+                                .substring(0,
+                                        8));
+        var cluster = HazelcastTestSupport.newCluster(config);
         cluster.init(workDir, false);
 
         // In a single-node cluster, the local node is always the coordinator
@@ -83,9 +87,11 @@ class HazelcastClusterStartupTest {
 
         var config = new HazelcastClusterConnectorConfig()
                 .setClusterName("running-test-"
-                        + java.util.UUID.randomUUID().toString().substring(0,
-                                8));
-        var cluster = new HazelcastCluster(config);
+                        + java.util.UUID.randomUUID()
+                                .toString()
+                                .substring(0,
+                                        8));
+        var cluster = HazelcastTestSupport.newCluster(config);
         cluster.init(workDir, false);
 
         assertThat(HazelcastUtil.isClusterRunning(cluster)).isTrue();

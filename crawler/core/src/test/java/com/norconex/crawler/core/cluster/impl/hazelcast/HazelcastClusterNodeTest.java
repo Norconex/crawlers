@@ -44,7 +44,7 @@ class HazelcastClusterNodeTest {
      */
     @AfterEach
     void tearDownAll() {
-        Hazelcast.shutdownAll();
+        HazelcastTestSupport.shutdownAll();
     }
 
     // -----------------------------------------------------------------
