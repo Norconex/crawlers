@@ -99,6 +99,10 @@ public class StandaloneCliCrawlerLauncher {
                 config.setId(DEFAULT_CRAWLER_ID);
             }
 
+            // Use a shorter idle timeout for tests to avoid 5-second waits
+            // at the end of every crawl. The configModifier can override this.
+            config.setIdleTimeout(java.time.Duration.ofMillis(500));
+
             if (configModifier != null) {
                 configModifier.accept(config);
             }

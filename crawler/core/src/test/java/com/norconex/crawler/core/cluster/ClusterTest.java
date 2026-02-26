@@ -251,7 +251,8 @@ class ClusterTest {
 
             var firstResult = futureResult.get(120,
                     TimeUnit.SECONDS);
-            var firstImportTotal = firstResult.getAllNodesEventNameBag()
+            var firstImportTotal = firstResult
+                    .getAllNodesEventNameBag()
                     .getCount(CrawlerEvent.DOCUMENT_IMPORTED);
             // At least some documents were imported before/after the crash
             assertThat(firstImportTotal).isGreaterThan(0);
@@ -264,7 +265,8 @@ class ClusterTest {
                     .setConfigModifier(cfg -> {
                         configModifier(numOfRefs, 0)
                                 .accept(cfg);
-                        cfg.setId("nx-crash-" + numOfRefs);
+                        cfg.setId("nx-crash-"
+                                + numOfRefs);
                         cfg.setMaxQueueBatchSize(50);
                     });
             var secondResult = harness.launchSync(nodeNames);
@@ -272,14 +274,16 @@ class ClusterTest {
             var coordinatorOutput = secondResult.getNodeOutputs()
                     .values()
                     .stream()
-                    .filter(output -> !output.getCaches().isEmpty()
+                    .filter(output -> !output.getCaches()
+                            .isEmpty()
                             && output.getCaches()
                                     .containsKey(CacheNames.CRAWL_SESSION))
                     .findFirst()
                     .orElseThrow(() -> new IllegalStateException(
                             "No coordinator node found with CRAWL_SESSION cache"));
 
-            var statusCounts = coordinatorOutput.getLedgerStatusCounts();
+            var statusCounts = coordinatorOutput
+                    .getLedgerStatusCounts();
             assertThat(statusCounts.getQueued()).isZero();
             assertThat(statusCounts.getUntracked()).isZero();
             // In a crash scenario, a few items may remain as PROCESSING in the
@@ -287,8 +291,9 @@ class ClusterTest {
             // does not call requeueProcessingEntries(), so they stay.
             // The meaningful guarantee: ALL refs are accounted for.
             assertThat(
-                    statusCounts.getProcessed() + statusCounts.getProcessing())
-                            .isEqualTo(numOfRefs);
+                    statusCounts.getProcessed()
+                            + statusCounts.getProcessing())
+                                    .isEqualTo(numOfRefs);
         }
     }
 
@@ -343,7 +348,8 @@ class ClusterTest {
             assertThat(node2Output).isNotNull();
             assertThat(node2Output.getEventNames())
                     .contains(CrawlerEvent.CRAWLER_CRAWL_END);
-            var firstImportTotal = firstResult.getAllNodesEventNameBag()
+            var firstImportTotal = firstResult
+                    .getAllNodesEventNameBag()
                     .getCount(CrawlerEvent.DOCUMENT_IMPORTED);
             assertThat(firstImportTotal).isGreaterThan(0);
 
@@ -355,7 +361,8 @@ class ClusterTest {
                     .setConfigModifier(cfg -> {
                         configModifier(numOfRefs, 0)
                                 .accept(cfg);
-                        cfg.setId("nx-coord-" + numOfRefs);
+                        cfg.setId("nx-coord-"
+                                + numOfRefs);
                         cfg.setMaxQueueBatchSize(50);
                     });
             var secondResult = harness.launchSync(nodeNames);
@@ -363,14 +370,16 @@ class ClusterTest {
             var coordinatorOutput = secondResult.getNodeOutputs()
                     .values()
                     .stream()
-                    .filter(output -> !output.getCaches().isEmpty()
+                    .filter(output -> !output.getCaches()
+                            .isEmpty()
                             && output.getCaches()
                                     .containsKey(CacheNames.CRAWL_SESSION))
                     .findFirst()
                     .orElseThrow(() -> new IllegalStateException(
                             "No coordinator node found with CRAWL_SESSION cache"));
 
-            var statusCounts = coordinatorOutput.getLedgerStatusCounts();
+            var statusCounts = coordinatorOutput
+                    .getLedgerStatusCounts();
             assertThat(statusCounts.getQueued()).isZero();
             assertThat(statusCounts.getUntracked()).isZero();
             // In a crash scenario, a few items may remain as PROCESSING in the
@@ -378,8 +387,9 @@ class ClusterTest {
             // requeueProcessingEntries() which is the correct recovery path.
             // The meaningful guarantee: ALL refs are accounted for.
             assertThat(
-                    statusCounts.getProcessed() + statusCounts.getProcessing())
-                            .isEqualTo(numOfRefs);
+                    statusCounts.getProcessed()
+                            + statusCounts.getProcessing())
+                                    .isEqualTo(numOfRefs);
         }
     }
 

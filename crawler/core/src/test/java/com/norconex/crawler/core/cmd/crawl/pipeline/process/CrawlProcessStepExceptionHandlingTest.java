@@ -215,7 +215,7 @@ class CrawlProcessStepExceptionHandlingTest {
                 .setRecordEvents(true)
                 .setConfigModifier(cfg -> {
                     cfg.setStartReferences(startRefs);
-                    cfg.setIdleTimeout(Duration.ofSeconds(3));
+                    cfg.setIdleTimeout(Duration.ofMillis(500));
                     cfg.setMaxQueueBatchSize(10);
                     cfgOverride.accept(cfg);
                 })

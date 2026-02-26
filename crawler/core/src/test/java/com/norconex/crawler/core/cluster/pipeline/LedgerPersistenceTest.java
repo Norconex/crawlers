@@ -72,6 +72,7 @@ class LedgerPersistenceTest {
                 .setFetchers(List.of(Configurable.configure(
                         new MockFetcher(), cfg -> cfg.setDelay(
                                 Duration.ofMillis(10)))))
-                .setNumThreadsPerNode(1);
+                .setNumThreadsPerNode(1)
+                .setIdleTimeout(Duration.ofMillis(500));
     }
 }
