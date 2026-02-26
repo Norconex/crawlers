@@ -36,8 +36,6 @@
     <luaj-jse.version>3.0.1</luaj-jse.version>
     <opencsv.version>5.12.0</opencsv.version>
     <tika.version>3.2.3</tika.version>
-    <!-- Tika 3.x JSoupParser requires jsoup 1.17.1+; must override parent mgmt -->
-    <jsoup.version>1.21.1</jsoup.version>
     <ucar-jj2000.version>5.4</ucar-jj2000.version>
     <webp-imageio.version>0.1.6</webp-imageio.version>
     
