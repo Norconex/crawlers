@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.collections4.Bag;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -37,8 +38,6 @@ import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.session.CrawlSession;
-
-import org.apache.commons.collections4.Bag;
 
 /**
  * Tests for uncovered {@link HazelcastCluster} methods: session binding,
@@ -298,5 +297,40 @@ class HazelcastClusterBehaviorTest {
         // Terminal → reset to PENDING with new run id
         assertThat(rec.getStatus()).isSameAs(PipelineStatus.PENDING);
         assertThat(rec.getRunId()).isEqualTo("run-3");
+    }
+
+    // ------------------------------------------------------------------
+    // getNodeCount / getNodeNames
+    // ------------------------------------------------------------------
+
+    @Test
+    void getNodeCount_activeCluster_returnsPositiveCount()
+            throws IOException {
+        startCluster("node-count-active");
+        assertThat(cluster.getNodeCount()).isGreaterThanOrEqualTo(1);
+    }
+
+    @Test
+    void getNodeCount_afterClose_returnsOne() throws IOException {
+        startCluster("node-count-closed");
+        cluster.close();
+        // After shutdown the lifecycle service reports not-running:
+        // the guard branch returns 1 (standalone fallback).
+        assertThat(cluster.getNodeCount()).isEqualTo(1);
+    }
+
+    @Test
+    void getNodeNames_activeCluster_returnsNonEmptyList()
+            throws IOException {
+        startCluster("node-names-active");
+        assertThat(cluster.getNodeNames()).isNotEmpty();
+    }
+
+    @Test
+    void getNodeNames_afterClose_returnsFallbackList() throws IOException {
+        startCluster("node-names-closed");
+        cluster.close();
+        // After shutdown the cluster uses the nodeName-based fallback list.
+        assertThat(cluster.getNodeNames()).isNotNull();
     }
 }
