@@ -396,8 +396,9 @@ public class CrawlTestHarness implements Closeable {
 
     private void createSchema(String schema) {
         try (var conn = java.sql.DriverManager.getConnection(
-                POSTGRES.getJdbcUrl(),
-                adminProps());
+                adminJdbcUrl(),
+                POSTGRES.getUsername(),
+                POSTGRES.getPassword());
                 var stmt = conn.createStatement()) {
             stmt.execute(
                     "CREATE SCHEMA IF NOT EXISTS \"" + schema + "\"");
@@ -410,8 +411,9 @@ public class CrawlTestHarness implements Closeable {
 
     private void dropSchema(String schema) {
         try (var conn = java.sql.DriverManager.getConnection(
-                POSTGRES.getJdbcUrl(),
-                adminProps());
+                adminJdbcUrl(),
+                POSTGRES.getUsername(),
+                POSTGRES.getPassword());
                 var stmt = conn.createStatement()) {
             stmt.execute(
                     "DROP SCHEMA IF EXISTS \"" + schema + "\" CASCADE");
@@ -422,18 +424,16 @@ public class CrawlTestHarness implements Closeable {
     }
 
     /**
-     * JDBC connection properties for schema management. SSL is explicitly
-     * disabled because the Testcontainers Postgres image is not configured
-     * for SSL — without this the JDBC driver attempts SSL negotiation and
-     * fails with an EOFException.
+     * Builds a JDBC URL with {@code sslmode=disable} embedded in the query
+     * string. Embedding it in the URL is the most reliable way to suppress
+     * SSL with the PostgreSQL JDBC driver — passing it only via a
+     * {@link java.util.Properties} object is sometimes ignored when the
+     * driver has already decided to attempt SSL based on the URL alone.
      */
-    private static java.util.Properties adminProps() {
-        var props = new java.util.Properties();
-        props.setProperty("user", POSTGRES.getUsername());
-        props.setProperty("password", POSTGRES.getPassword());
-        props.setProperty("ssl", "false");
-        props.setProperty("sslmode", "disable");
-        return props;
+    private static String adminJdbcUrl() {
+        var base = POSTGRES.getJdbcUrl();
+        var sep = base.contains("?") ? "&" : "?";
+        return base + sep + "sslmode=disable";
     }
 
 }
