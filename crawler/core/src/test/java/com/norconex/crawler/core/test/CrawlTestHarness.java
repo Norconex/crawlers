@@ -67,9 +67,14 @@ public class CrawlTestHarness implements Closeable {
                     // Prefer waiting for the DB to log that it is ready to accept
                     // connections. Waiting only for a listening port can return
                     // before Postgres is fully ready to accept connections.
+                    // Postgres logs "ready to accept connections" TWICE:
+                    // once during its internal init run (before the
+                    // POSTGRES_DB database is created) and again after
+                    // initialisation completes. Waiting for count=2 ensures
+                    // the "test" database actually exists before we proceed.
                     .waitingFor(Wait.forLogMessage(
-                            ".*database system is ready to accept connections.*\\n",
-                            1)
+                            ".*database system is ready to accept connections.*\\\\n",
+                            2)
                             .withStartupTimeout(Duration.ofSeconds(60)));
 
     @NonNull
