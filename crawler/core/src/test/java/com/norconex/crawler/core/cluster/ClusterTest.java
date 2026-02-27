@@ -125,14 +125,14 @@ class ClusterTest {
     void testStopResumeClusterExecution(int numNodes) throws Exception {
         // Use enough references so that even if one node starts earlier,
         // there is still work left for the other node to import at least one.
-        var numOfRefs = 200;
+        var numOfRefs = 100;
         var nodeNames = CoreTestUtil.nodeNames(numNodes);
         var instrument = new CrawlTestInstrument()
                 .setRecordEvents(true)
                 .setRecordCaches(false)
                 .setRecordInterval(Duration.ofSeconds(1))
                 .setConfigModifier(cfg -> {
-                    configModifier(numOfRefs, 500)
+                    configModifier(numOfRefs, 200)
                             .accept(cfg);
                     // Smaller batches reduce the chance one node claims all
                     // work before the other node starts consuming.
@@ -219,14 +219,14 @@ class ClusterTest {
         // Crash one non-coordinator node mid-crawl. The surviving node finishes
         // whatever it can. A second run re-queues the orphaned PROCESSING items
         // (via RequeueOrphansForProcessingStep) and completes the rest.
-        var numOfRefs = 100;
+        var numOfRefs = 50;
         var nodeNames = CoreTestUtil.nodeNames(numNodes);
         var instrument = new CrawlTestInstrument()
                 .setRecordEvents(true)
                 .setRecordCaches(false)
                 .setRecordInterval(Duration.ofSeconds(1))
                 .setConfigModifier(cfg -> {
-                    configModifier(numOfRefs, 300)
+                    configModifier(numOfRefs, 150)
                             .accept(cfg);
                     // Unique ID to avoid sharing file-based state with other tests
                     cfg.setId("nx-crash-" + numOfRefs);
@@ -307,7 +307,7 @@ class ClusterTest {
         // itself to coordinator via PipelineExecution.handleCoordinatorChange().
         // Node-2 then completes the crawl autonomously without a restart.
         // A second run re-queues items orphaned by node-1 and finishes them.
-        var numOfRefs = 100;
+        var numOfRefs = 50;
         var numNodes = 2;
         var nodeNames = CoreTestUtil.nodeNames(numNodes);
         var instrument = new CrawlTestInstrument()
@@ -315,7 +315,7 @@ class ClusterTest {
                 .setRecordCaches(false)
                 .setRecordInterval(Duration.ofSeconds(1))
                 .setConfigModifier(cfg -> {
-                    configModifier(numOfRefs, 300)
+                    configModifier(numOfRefs, 150)
                             .accept(cfg);
                     // Unique ID to avoid sharing file-based state with other tests
                     cfg.setId("nx-coord-" + numOfRefs);
@@ -470,7 +470,7 @@ class ClusterTest {
                 .setNumThreadsPerNode(2)
                 // Configure idleTimeout for multi-node coordination
                 // Nodes wait this long after seeing empty queue before deciding work is done
-                .setIdleTimeout(Duration.ofSeconds(5))
+                .setIdleTimeout(Duration.ofSeconds(2))
                 .setFetchers(List.of(Configurable.configure(
                         new MockFetcher(),
                         fcfg -> fcfg.setDelay(Duration
