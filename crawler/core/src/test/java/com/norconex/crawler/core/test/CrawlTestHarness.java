@@ -408,10 +408,7 @@ public class CrawlTestHarness implements Closeable {
     }
 
     private void createSchema(String schema) {
-        try (var conn = java.sql.DriverManager.getConnection(
-                adminJdbcUrl(),
-                POSTGRES.getUsername(),
-                POSTGRES.getPassword());
+        try (var conn = java.sql.DriverManager.getConnection(adminJdbcUrl());
                 var stmt = conn.createStatement()) {
             stmt.execute(
                     "CREATE SCHEMA IF NOT EXISTS \"" + schema + "\"");
@@ -423,10 +420,7 @@ public class CrawlTestHarness implements Closeable {
     }
 
     private void dropSchema(String schema) {
-        try (var conn = java.sql.DriverManager.getConnection(
-                adminJdbcUrl(),
-                POSTGRES.getUsername(),
-                POSTGRES.getPassword());
+        try (var conn = java.sql.DriverManager.getConnection(adminJdbcUrl());
                 var stmt = conn.createStatement()) {
             stmt.execute(
                     "DROP SCHEMA IF EXISTS \"" + schema + "\" CASCADE");
@@ -437,16 +431,23 @@ public class CrawlTestHarness implements Closeable {
     }
 
     /**
-     * Builds a JDBC URL with {@code sslmode=disable} embedded in the query
-     * string. Embedding it in the URL is the most reliable way to suppress
-     * SSL with the PostgreSQL JDBC driver — passing it only via a
-     * {@link java.util.Properties} object is sometimes ignored when the
-     * driver has already decided to attempt SSL based on the URL alone.
+     * Builds a JDBC URL that embeds all connection parameters — user,
+     * password, and {@code sslmode=disable} — as query parameters.
+     * <p>
+     * Using the single-arg {@link java.sql.DriverManager#getConnection(String)}
+     * overload is the only fully reliable way to suppress SSL with the
+     * PostgreSQL JDBC driver: when credentials are passed as separate
+     * arguments the driver rebuilds the Properties object internally and
+     * may ignore {@code sslmode} set in the URL query string, resulting in
+     * an SSL probe that the Testcontainers Postgres image rejects with EOF.
      */
     private static String adminJdbcUrl() {
         var base = POSTGRES.getJdbcUrl();
         var sep = base.contains("?") ? "&" : "?";
-        return base + sep + "sslmode=disable";
+        return base + sep
+                + "user=" + POSTGRES.getUsername()
+                + "&password=" + POSTGRES.getPassword()
+                + "&sslmode=disable";
     }
 
 }
