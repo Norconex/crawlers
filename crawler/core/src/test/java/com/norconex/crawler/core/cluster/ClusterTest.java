@@ -148,7 +148,9 @@ class ClusterTest {
 
             var futureResult = harness.launchAsync(nodeNames);
             // Wait for both nodes to have actually joined the crawl first.
-            harness.waitFor(Duration.ofSeconds(60))
+            // 120s: JVM spawn + Hazelcast cluster formation can be slow on
+            // Windows CI runners under load.
+            harness.waitFor(Duration.ofSeconds(120))
                     .allNodesToHaveFired(
                             CrawlerEvent.CRAWLER_CRAWL_BEGIN);
             // Then ensure at least one node has started importing documents.
@@ -214,7 +216,7 @@ class ClusterTest {
 
     @ParameterizedTest
     @ValueSource(ints = { 2 })
-    @Timeout(300)
+    @Timeout(450)
     void testNodeCrashAndResume(int numNodes) throws Exception {
         // Crash one non-coordinator node mid-crawl. The surviving node finishes
         // whatever it can. A second run re-queues the orphaned PROCESSING items
@@ -241,7 +243,9 @@ class ClusterTest {
             //--- Phase 1: crash node-2 mid-crawl ---
 
             var futureResult = harness.launchAsync(nodeNames);
-            harness.waitFor(Duration.ofSeconds(60))
+            // 120s: JVM spawn + Hazelcast cluster formation can be slow on
+            // Windows CI runners under load.
+            harness.waitFor(Duration.ofSeconds(120))
                     .allNodesToHaveFired(
                             CrawlerEvent.CRAWLER_CRAWL_BEGIN);
             harness.waitFor(Duration.ofSeconds(30))
@@ -300,7 +304,7 @@ class ClusterTest {
     }
 
     @Test
-    @Timeout(300)
+    @Timeout(450)
     void testCoordinatorCrashAndReelection() throws Exception {
         // Crashes node-1 (oldest HZ member = initial coordinator) mid-crawl.
         // Hazelcast fires CoordinatorChangeListener on node-2, which promotes
@@ -330,7 +334,9 @@ class ClusterTest {
             //--- Phase 1: crash the initial coordinator (node-1) ---
 
             var futureResult = harness.launchAsync(nodeNames);
-            harness.waitFor(Duration.ofSeconds(60))
+            // 120s: JVM spawn + Hazelcast cluster formation can be slow on
+            // Windows CI runners under load.
+            harness.waitFor(Duration.ofSeconds(120))
                     .allNodesToHaveFired(
                             CrawlerEvent.CRAWLER_CRAWL_BEGIN);
             harness.waitFor(Duration.ofSeconds(30))
