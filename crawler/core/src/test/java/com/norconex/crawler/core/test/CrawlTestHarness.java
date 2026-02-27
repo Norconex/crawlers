@@ -55,9 +55,11 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class CrawlTestHarness implements Closeable {
 
-    // Configure container with explicit waiting strategy and credentials so
-    // tests are less likely to race on startup and we can log mapped port.
-    PostgreSQLContainer postgres =
+    // Shared across all harness instances: started once per JVM, never
+    // stopped mid-run (Testcontainers Ryuk / JVM-shutdown hook cleans it
+    // up). Each harness run creates its own PostgreSQL schema for isolation.
+    @SuppressWarnings("rawtypes")
+    private static final PostgreSQLContainer POSTGRES =
             new PostgreSQLContainer("postgres:16-alpine")
                     .withDatabaseName("test")
                     .withUsername("test")
@@ -69,10 +71,6 @@ public class CrawlTestHarness implements Closeable {
                             ".*database system is ready to accept connections.*\\n",
                             1)
                             .withStartupTimeout(Duration.ofSeconds(60)));
-    //                    .waitingFor(Wait.forLogMessage(
-    //                            ".*database system is ready to accept connections.*\\n",
-    //                            1)
-    //                            .withStartupTimeout(Duration.ofSeconds(60)));
 
     @NonNull
     @Getter
@@ -84,6 +82,9 @@ public class CrawlTestHarness implements Closeable {
     private final String hazelcastClusterName = "crawler-test-" + id;
     private volatile Integer hazelcastPortBase;
     private volatile Integer hazelcastPortCount;
+    // Unique PostgreSQL schema for this harness run — keeps DB tables isolated
+    // across concurrent or sequential test invocations.
+    private volatile String schemaName;
 
     private final OrderedMap<String, TestCrawler> nodeCrawlers =
             new ListOrderedMap<>();
@@ -100,26 +101,22 @@ public class CrawlTestHarness implements Closeable {
 
         var isClustered = instrumentTemplate.isClustered();
         if (isClustered) {
-            // TestCrawler will know to grab the right HZ cfg when clustered
-            postgres.start();
+            // Start the shared container on first use; near-zero cost if
+            // already running.
+            ensurePostgresStarted();
+            // Each harness run gets its own schema so parallel or sequential
+            // tests never share tables.
+            schemaName = "crawltest_" + id;
+            createSchema(schemaName);
 
             // Pick an isolated port range for this harness instance so repeated
             // invocations (e.g., parameterized tests) don't collide on 5701+.
             hazelcastPortCount = Math.max(3, nodeNames.length + 1);
             hazelcastPortBase = findFreeLocalPortRangeBase(hazelcastPortCount);
 
-            // Log actual connection info so we can diagnose refused connections
-            try {
-                LOG.info("Postgres container started: id='{}', jdbcUrl='{}'",
-                        //                        , "
-                        //                        + "host='{}', mappedPort={}",
-                        postgres.getContainerId(), postgres.getJdbcUrl());
-                //                        postgres.getHost(),
-                //                        postgres.getMappedPort(5432));
-            } catch (Exception e) {
-                LOG.warn("Could not determine mapped Postgres port: {}",
-                        e.getMessage());
-            }
+            LOG.info("Postgres ready: id='{}', schema='{}', jdbcUrl='{}'",
+                    POSTGRES.getContainerId(), schemaName,
+                    POSTGRES.getJdbcUrl());
         }
 
         Map<String, CompletableFuture<CrawlTestNodeOutput>> futures =
@@ -261,11 +258,10 @@ public class CrawlTestHarness implements Closeable {
         });
         executor.shutdownNow();
         LOG.info("ExecutorService shutdown.");
-        if (postgres.isRunning()) {
-            postgres.stop();
-            LOG.info("PostgreSQL container stopped.");
-        } else {
-            LOG.info("PostgreSQL container already stopped.");
+        // Drop this run's schema; the shared container keeps running for
+        // other tests in the same JVM (Ryuk handles final cleanup).
+        if (schemaName != null) {
+            dropSchema(schemaName);
         }
         LOG.info("CrawlTestHarness.close() cleanup complete.");
     }
@@ -301,11 +297,16 @@ public class CrawlTestHarness implements Closeable {
             connConfig.setClusterName(hazelcastClusterName);
 
             var props = connConfig.getProperties();
+            // Append currentSchema so Hibernate/JDBC uses the harness-specific
+            // schema and test runs never share or pollute each other's tables.
+            var baseJdbcUrl = POSTGRES.getJdbcUrl();
+            var sep = baseJdbcUrl.contains("?") ? "&" : "?";
             // matches variables in HZ yaml configuration
-            props.setProperty("JDBC_URL", postgres.getJdbcUrl());
-            props.setProperty("JDBC_USERNAME", postgres.getUsername());
-            props.setProperty("JDBC_PASSWORD", postgres.getPassword());
-            props.setProperty("JDBC_DRIVER", postgres.getDriverClassName());
+            props.setProperty("JDBC_URL",
+                    baseJdbcUrl + sep + "currentSchema=" + schemaName);
+            props.setProperty("JDBC_USERNAME", POSTGRES.getUsername());
+            props.setProperty("JDBC_PASSWORD", POSTGRES.getPassword());
+            props.setProperty("JDBC_DRIVER", POSTGRES.getDriverClassName());
 
             // Set TCP members for cluster discovery using the per-harness port
             // range chosen in launchAsync(). HazelcastCluster will apply this
@@ -382,6 +383,44 @@ public class CrawlTestHarness implements Closeable {
             instrument.setCrawlConfig(cfg);
         }
         return instrument;
+    }
+
+    private static synchronized void ensurePostgresStarted() {
+        if (!POSTGRES.isRunning()) {
+            LOG.info("Starting shared PostgreSQL container...");
+            POSTGRES.start();
+            LOG.info("Shared PostgreSQL container started: jdbcUrl='{}'",
+                    POSTGRES.getJdbcUrl());
+        }
+    }
+
+    private void createSchema(String schema) {
+        try (var conn = java.sql.DriverManager.getConnection(
+                POSTGRES.getJdbcUrl(),
+                POSTGRES.getUsername(),
+                POSTGRES.getPassword());
+                var stmt = conn.createStatement()) {
+            stmt.execute(
+                    "CREATE SCHEMA IF NOT EXISTS \"" + schema + "\"");
+            LOG.info("Created isolated PostgreSQL schema: {}", schema);
+        } catch (java.sql.SQLException e) {
+            throw new RuntimeException(
+                    "Failed to create schema: " + schema, e);
+        }
+    }
+
+    private void dropSchema(String schema) {
+        try (var conn = java.sql.DriverManager.getConnection(
+                POSTGRES.getJdbcUrl(),
+                POSTGRES.getUsername(),
+                POSTGRES.getPassword());
+                var stmt = conn.createStatement()) {
+            stmt.execute(
+                    "DROP SCHEMA IF EXISTS \"" + schema + "\" CASCADE");
+            LOG.info("Dropped PostgreSQL schema: {}", schema);
+        } catch (java.sql.SQLException e) {
+            LOG.warn("Failed to drop schema: {}", schema, e);
+        }
     }
 
 }
