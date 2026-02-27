@@ -28,6 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.support.InMemoryCacheManager;
+import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.util.SerialUtil;
 
 /**
@@ -38,6 +39,7 @@ import com.norconex.crawler.core.util.SerialUtil;
  * in isolation, covering every branch of the state-machine.
  */
 @ExtendWith(MockitoExtension.class)
+@WithTestWatcherLogging
 class CrawlRunInfoResolverTest {
 
     @Mock(lenient = true)
