@@ -64,11 +64,6 @@ public class CrawlTestHarness implements Closeable {
                     .withDatabaseName("test")
                     .withUsername("test")
                     .withPassword("test")
-                    // Raise the connection limit so that connections left
-                    // dangling by forcibly-killed child JVMs (crash tests)
-                    // don't exhaust the default 100-connection ceiling before
-                    // the OS TCP keepalive timeout reclaims them.
-                    .withCommand("postgres", "-c", "max_connections=500")
                     // Prefer waiting for the DB to log that it is ready to accept
                     // connections. Waiting only for a listening port can return
                     // before Postgres is fully ready to accept connections.
@@ -408,46 +403,43 @@ public class CrawlTestHarness implements Closeable {
     }
 
     private void createSchema(String schema) {
-        try (var conn = java.sql.DriverManager.getConnection(adminJdbcUrl());
-                var stmt = conn.createStatement()) {
-            stmt.execute(
-                    "CREATE SCHEMA IF NOT EXISTS \"" + schema + "\"");
-            LOG.info("Created isolated PostgreSQL schema: {}", schema);
-        } catch (java.sql.SQLException e) {
-            throw new RuntimeException(
-                    "Failed to create schema: " + schema, e);
-        }
+        execPsql("CREATE SCHEMA IF NOT EXISTS \"" + schema + "\"");
+        LOG.info("Created isolated PostgreSQL schema: {}", schema);
     }
 
     private void dropSchema(String schema) {
-        try (var conn = java.sql.DriverManager.getConnection(adminJdbcUrl());
-                var stmt = conn.createStatement()) {
-            stmt.execute(
-                    "DROP SCHEMA IF EXISTS \"" + schema + "\" CASCADE");
+        try {
+            execPsql("DROP SCHEMA IF EXISTS \"" + schema + "\" CASCADE");
             LOG.info("Dropped PostgreSQL schema: {}", schema);
-        } catch (java.sql.SQLException e) {
+        } catch (RuntimeException e) {
             LOG.warn("Failed to drop schema: {}", schema, e);
         }
     }
 
     /**
-     * Builds a JDBC URL that embeds all connection parameters — user,
-     * password, and {@code sslmode=disable} — as query parameters.
-     * <p>
-     * Using the single-arg {@link java.sql.DriverManager#getConnection(String)}
-     * overload is the only fully reliable way to suppress SSL with the
-     * PostgreSQL JDBC driver: when credentials are passed as separate
-     * arguments the driver rebuilds the Properties object internally and
-     * may ignore {@code sslmode} set in the URL query string, resulting in
-     * an SSL probe that the Testcontainers Postgres image rejects with EOF.
+     * Runs a single SQL statement inside the Postgres Docker container via
+     * {@code psql}. This avoids any TCP connection to the mapped port so
+     * schema lifecycle (create/drop) is immune to connection-limit exhaustion
+     * and SSL negotiation issues caused by crash-test dangling connections.
      */
-    private static String adminJdbcUrl() {
-        var base = POSTGRES.getJdbcUrl();
-        var sep = base.contains("?") ? "&" : "?";
-        return base + sep
-                + "user=" + POSTGRES.getUsername()
-                + "&password=" + POSTGRES.getPassword()
-                + "&sslmode=disable";
+    private static void execPsql(String sql) {
+        try {
+            var result = POSTGRES.execInContainer(
+                    "psql",
+                    "-U", POSTGRES.getUsername(),
+                    "-d", POSTGRES.getDatabaseName(),
+                    "-c", sql);
+            if (result.getExitCode() != 0) {
+                throw new RuntimeException(
+                        "psql exited " + result.getExitCode()
+                                + ": " + result.getStderr());
+            }
+        } catch (IOException | InterruptedException e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            throw new RuntimeException("execInContainer(psql) failed", e);
+        }
     }
 
 }
