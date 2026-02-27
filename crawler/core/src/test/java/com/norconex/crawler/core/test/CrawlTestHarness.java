@@ -36,7 +36,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.apache.commons.collections4.OrderedMap;
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.StringUtils;
-import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import com.norconex.commons.lang.ClassUtil;
@@ -63,19 +62,7 @@ public class CrawlTestHarness implements Closeable {
             new PostgreSQLContainer("postgres:16-alpine")
                     .withDatabaseName("test")
                     .withUsername("test")
-                    .withPassword("test")
-                    // Prefer waiting for the DB to log that it is ready to accept
-                    // connections. Waiting only for a listening port can return
-                    // before Postgres is fully ready to accept connections.
-                    // Postgres logs "ready to accept connections" TWICE:
-                    // once during its internal init run (before the
-                    // POSTGRES_DB database is created) and again after
-                    // initialisation completes. Waiting for count=2 ensures
-                    // the "test" database actually exists before we proceed.
-                    .waitingFor(Wait.forLogMessage(
-                            ".*database system is ready to accept connections.*\\\\n",
-                            2)
-                            .withStartupTimeout(Duration.ofSeconds(60)));
+                    .withPassword("test");
 
     @NonNull
     @Getter
