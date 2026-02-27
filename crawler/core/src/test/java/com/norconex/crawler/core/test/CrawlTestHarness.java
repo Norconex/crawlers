@@ -64,6 +64,11 @@ public class CrawlTestHarness implements Closeable {
                     .withDatabaseName("test")
                     .withUsername("test")
                     .withPassword("test")
+                    // Raise the connection limit so that connections left
+                    // dangling by forcibly-killed child JVMs (crash tests)
+                    // don't exhaust the default 100-connection ceiling before
+                    // the OS TCP keepalive timeout reclaims them.
+                    .withCommand("postgres", "-c", "max_connections=500")
                     // Prefer waiting for the DB to log that it is ready to accept
                     // connections. Waiting only for a listening port can return
                     // before Postgres is fully ready to accept connections.
@@ -104,10 +109,14 @@ public class CrawlTestHarness implements Closeable {
             // Start the shared container on first use; near-zero cost if
             // already running.
             ensurePostgresStarted();
-            // Each harness run gets its own schema so parallel or sequential
-            // tests never share tables.
-            schemaName = "crawltest_" + id;
-            createSchema(schemaName);
+            // Create the schema only on the first launchAsync call for this
+            // harness. Crash/resume tests call launchAsync twice on the same
+            // harness instance and need to share the same schema across both
+            // runs so that the second run can see the first run's ledger data.
+            if (schemaName == null) {
+                schemaName = "crawltest_" + id;
+                createSchema(schemaName);
+            }
 
             // Pick an isolated port range for this harness instance so repeated
             // invocations (e.g., parameterized tests) don't collide on 5701+.
@@ -302,8 +311,12 @@ public class CrawlTestHarness implements Closeable {
             var baseJdbcUrl = POSTGRES.getJdbcUrl();
             var sep = baseJdbcUrl.contains("?") ? "&" : "?";
             // matches variables in HZ yaml configuration
+            // Include currentSchema for table isolation and sslmode=disable
+            // because the Testcontainers Postgres image has no SSL configured.
             props.setProperty("JDBC_URL",
-                    baseJdbcUrl + sep + "currentSchema=" + schemaName);
+                    baseJdbcUrl + sep
+                            + "currentSchema=" + schemaName
+                            + "&sslmode=disable");
             props.setProperty("JDBC_USERNAME", POSTGRES.getUsername());
             props.setProperty("JDBC_PASSWORD", POSTGRES.getPassword());
             props.setProperty("JDBC_DRIVER", POSTGRES.getDriverClassName());
