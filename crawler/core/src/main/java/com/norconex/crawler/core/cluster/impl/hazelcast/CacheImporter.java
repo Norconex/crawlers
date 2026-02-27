@@ -133,6 +133,12 @@ class CacheImporter {
         for (SerializedEntry entry : serialCache) {
             var val = deserializeValue(entry.getJson(), targetClass,
                     serialCache.getCacheName());
+            // Hazelcast IMap does not permit null values; skip null entries.
+            if (val == null) {
+                LOG.debug("Skipping null value for key '{}' in cache '{}'",
+                        entry.getKey(), serialCache.getCacheName());
+                continue;
+            }
             batch.put(entry.getKey(), val);
             if (batch.size() >= HazelcastCacheManager.BATCH_SIZE) {
                 imap.putAll(batch);

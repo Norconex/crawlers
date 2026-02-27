@@ -397,8 +397,7 @@ public class CrawlTestHarness implements Closeable {
     private void createSchema(String schema) {
         try (var conn = java.sql.DriverManager.getConnection(
                 POSTGRES.getJdbcUrl(),
-                POSTGRES.getUsername(),
-                POSTGRES.getPassword());
+                adminProps());
                 var stmt = conn.createStatement()) {
             stmt.execute(
                     "CREATE SCHEMA IF NOT EXISTS \"" + schema + "\"");
@@ -412,8 +411,7 @@ public class CrawlTestHarness implements Closeable {
     private void dropSchema(String schema) {
         try (var conn = java.sql.DriverManager.getConnection(
                 POSTGRES.getJdbcUrl(),
-                POSTGRES.getUsername(),
-                POSTGRES.getPassword());
+                adminProps());
                 var stmt = conn.createStatement()) {
             stmt.execute(
                     "DROP SCHEMA IF EXISTS \"" + schema + "\" CASCADE");
@@ -421,6 +419,21 @@ public class CrawlTestHarness implements Closeable {
         } catch (java.sql.SQLException e) {
             LOG.warn("Failed to drop schema: {}", schema, e);
         }
+    }
+
+    /**
+     * JDBC connection properties for schema management. SSL is explicitly
+     * disabled because the Testcontainers Postgres image is not configured
+     * for SSL — without this the JDBC driver attempts SSL negotiation and
+     * fails with an EOFException.
+     */
+    private static java.util.Properties adminProps() {
+        var props = new java.util.Properties();
+        props.setProperty("user", POSTGRES.getUsername());
+        props.setProperty("password", POSTGRES.getPassword());
+        props.setProperty("ssl", "false");
+        props.setProperty("sslmode", "disable");
+        return props;
     }
 
 }
