@@ -18,11 +18,14 @@
     "maven.view": "flat",
     "java.dependency.syncWithFolderExplorer": true,
     "powershell.cwd": "crawlers-v4",
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 500,
     "chat.tools.terminal.autoApprove": {
       "mvn dependency:resolve": true,
       "mvn dependency:tree": true,
       "mvn test": true,
-      "Test-Path": true
+      "Test-Path": true,
+      "mvn clean": true
     }
   }
 }

@@ -90,7 +90,7 @@ public @interface WithTestWatcherLogging {
                     .map(Class::getSimpleName).orElse("???");
             var top = done ? DONE_TOP : START_TOP;
             var bottom = done ? DONE_BOTTOM : START_BOTTOM;
-            return "\n%s\n %s %s | %s#%s\n%s".formatted(
+            return "\n%s\n| %s %s | %s#%s\n%s".formatted(
                     top, icon, state, className, testName, bottom);
         }
     }
