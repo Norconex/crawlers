@@ -14,8 +14,8 @@
  */
 package com.norconex.crawler.fs.fetch;
 
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.fetch.FetchRequest;
+import com.norconex.importer.doc.Doc;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -28,5 +28,5 @@ import lombok.NonNull;
 public class FolderPathsFetchRequest implements FetchRequest {
 
     @NonNull
-    private final CrawlDoc doc;
+    private final Doc doc;
 }

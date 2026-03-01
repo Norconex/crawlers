@@ -139,7 +139,7 @@
       <url>https://maven.pkg.github.com/Norconex/crawlers</url>
     </snapshotRepository>
   </distributionManagement>
-  
+
   <profiles>
     <profile>
       <id>github-snapshots</id>
