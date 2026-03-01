@@ -6,7 +6,7 @@
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,23 +26,19 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.apache.commons.vfs2.provider.AbstractFileSystem;
 
-import lombok.Generated;
-
 /**
  * An SMB file system.
  */
-@Generated // to exclude from code coverage
 public class SmbFileSystem extends AbstractFileSystem {
-    protected SmbFileSystem(final FileName rootName, final FileSystemOptions fileSystemOptions) {
-        super(rootName, null, fileSystemOptions);
-    }
 
     /**
-     * Creates a file object.
+     * Constructs a new instance.
+     *
+     * @param rootName The root file name of this file system.
+     * @param fileSystemOptions Options to build this file system.
      */
-    @Override
-    protected FileObject createFile(final AbstractFileName name) throws FileSystemException {
-        return new SmbFileObject(name, this);
+    protected SmbFileSystem(final FileName rootName, final FileSystemOptions fileSystemOptions) {
+        super(rootName, null, fileSystemOptions);
     }
 
     /**
@@ -51,5 +47,13 @@ public class SmbFileSystem extends AbstractFileSystem {
     @Override
     protected void addCapabilities(final Collection<Capability> caps) {
         caps.addAll(SmbFileProvider.capabilities);
+    }
+
+    /**
+     * Creates a file object.
+     */
+    @Override
+    protected FileObject createFile(final AbstractFileName name) throws FileSystemException {
+        return new SmbFileObject(name, this);
     }
 }

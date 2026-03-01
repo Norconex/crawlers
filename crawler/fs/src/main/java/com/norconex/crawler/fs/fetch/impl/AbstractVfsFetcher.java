@@ -28,15 +28,15 @@ import org.apache.commons.vfs2.impl.StandardFileSystemManager;
 import org.apache.commons.vfs2.provider.local.LocalFile;
 
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.BaseFetcherConfig;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.FetchResponse;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.importer.doc.Doc;
 import com.norconex.crawler.fs.doc.FsDocMetadata;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.FileFetchResponse;
@@ -74,7 +74,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
     private FileSystemOptions fsOptions;
 
     @Override
-    protected void fetcherStartup(CrawlContext crawler) {
+    protected void fetcherStartup(CrawlSession crawler) {
         try {
             fsManager = new StandardFileSystemManager();
             fsManager.setClassLoader(getClass().getClassLoader());
@@ -89,7 +89,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
     }
 
     @Override
-    protected void fetcherShutdown(CrawlContext crawler) {
+    protected void fetcherShutdown(CrawlSession crawler) {
         if (fsManager != null) {
             fsManager.close();
         }
@@ -128,7 +128,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
 
             if (fileObject == null || !fileObject.exists()) {
                 return GenericFileFetchResponse.builder()
-                        .resolutionStatus(CrawlDocStatus.NOT_FOUND)
+                        .processingOutcome(ProcessingOutcome.NOT_FOUND)
                         .build();
             }
 
@@ -144,7 +144,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
             //TODO set status if not found or whatever bad state
 
             return GenericFileFetchResponse.builder()
-                    .resolutionStatus(CrawlDocStatus.NEW)
+                    .processingOutcome(ProcessingOutcome.NEW)
                     .file(fileObject.isFile())
                     .folder(fileObject.isFolder())
                     .build();
@@ -180,7 +180,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
             }
             return GenericFolderPathsFetchResponse.builder()
                     //TODO shall we care to put a real state here?
-                    .resolutionStatus(CrawlDocStatus.NEW)
+                    .processingOutcome(ProcessingOutcome.NEW)
                     .childPaths(childPaths)
                     .build();
         } catch (FileSystemException e) {
@@ -195,7 +195,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
      */
     protected abstract void applyFileSystemOptions(FileSystemOptions opts);
 
-    protected void fetchMetadata(CrawlDoc doc, @NonNull FileObject fileObject)
+    protected void fetchMetadata(Doc doc, @NonNull FileObject fileObject)
             throws FileSystemException {
 
         var content = fileObject.getContent();
@@ -222,7 +222,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
         meta.set(PREFIX + "writable", fileObject.isWriteable());
     }
 
-    protected boolean fetchContent(CrawlDoc doc, @NonNull FileObject fileObject)
+    protected boolean fetchContent(Doc doc, @NonNull FileObject fileObject)
             throws IOException {
         var content = fileObject.getContent();
         if (content == null) {

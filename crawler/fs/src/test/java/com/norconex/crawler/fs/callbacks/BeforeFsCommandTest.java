@@ -16,15 +16,25 @@ package com.norconex.crawler.fs.callbacks;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.core.session.CrawlContext;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Answers;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.session.CrawlSession;
+
+@ExtendWith(MockitoExtension.class)
 class BeforeFsCommandTest {
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testAccept(CrawlContext ctx) {
+    @Test
+    void testAccept() {
+        var session =
+                Mockito.mock(CrawlSession.class, Answers.RETURNS_DEEP_STUBS);
+        Mockito.when(session.getCrawlContext().getCrawlConfig())
+                .thenReturn(new CrawlConfig());
         assertThatNoException()
-                .isThrownBy(() -> new BeforeFsCommand().accept(ctx));
+                .isThrownBy(() -> new BeforeFsCommand().accept(session));
     }
 }

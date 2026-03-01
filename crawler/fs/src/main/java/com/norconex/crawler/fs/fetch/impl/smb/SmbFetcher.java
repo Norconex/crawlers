@@ -31,10 +31,10 @@ import org.apache.commons.vfs2.provider.smb.SmbFileProvider;
 import org.apache.commons.vfs2.util.UserAuthenticatorUtils;
 
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.fs.doc.FsDocMetadata;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher;
+import com.norconex.importer.doc.Doc;
 
 import jcifs.smb.ACE;
 import jcifs.smb.NtlmPasswordAuthentication;
@@ -77,7 +77,7 @@ public class SmbFetcher extends AbstractAuthVfsFetcher<SmbFetcherConfig> {
     private static final String ACCOUNT_NAME = ".accountName";
 
     @Override
-    protected void fetchMetadata(CrawlDoc doc, @NonNull FileObject fileObject)
+    protected void fetchMetadata(Doc doc, @NonNull FileObject fileObject)
             throws FileSystemException {
         super.fetchMetadata(doc, fileObject);
 

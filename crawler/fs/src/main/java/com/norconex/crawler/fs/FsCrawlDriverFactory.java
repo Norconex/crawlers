@@ -20,7 +20,7 @@ import com.norconex.crawler.core.CrawlCallbacks;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.CrawlDriver.FetchDriver;
 import com.norconex.crawler.fs.callbacks.BeforeFsCommand;
-import com.norconex.crawler.fs.doc.FsCrawlDocContext;
+import com.norconex.crawler.fs.doc.FsCrawlEntry;
 import com.norconex.crawler.fs.doc.pipelines.FsPipelines;
 import com.norconex.crawler.fs.fetch.AggregatedFileFetchResponse;
 import com.norconex.crawler.fs.fetch.AggregatedFolderPathsResponse;
@@ -41,7 +41,7 @@ public class FsCrawlDriverFactory implements Supplier<CrawlDriver> {
                         .beforeCommand(new BeforeFsCommand())
                         .build())
                 .docPipelines(FsPipelines.create())
-                .docContextType(FsCrawlDocContext.class)
+                .crawlEntryType(FsCrawlEntry.class)
                 .build();
     }
 
@@ -49,12 +49,15 @@ public class FsCrawlDriverFactory implements Supplier<CrawlDriver> {
         return new FetchDriver()
                 .responseAggregator(
                         (req, resps) -> (req instanceof FileFetchRequest
-                                ? new AggregatedFileFetchResponse(resps)
-                                : new AggregatedFolderPathsResponse(resps)))
+                                ? new AggregatedFileFetchResponse(
+                                        resps)
+                                : new AggregatedFolderPathsResponse(
+                                        resps)))
                 .unsuccesfulResponseFactory(
                         (state, msg, e) -> GenericFileFetchResponse
                                 .builder()
-                                .resolutionStatus(state)
+                                .processingOutcome(
+                                        state)
                                 .reasonPhrase(msg)
                                 .exception(e)
                                 .build());

@@ -6,7 +6,7 @@
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,11 +18,8 @@ package org.apache.commons.vfs2.provider.mime;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-
-import javax.mail.MessagingException;
-import javax.mail.Part;
-import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,32 +32,31 @@ import org.apache.commons.vfs2.provider.AbstractFileName;
 import org.apache.commons.vfs2.provider.AbstractFileSystem;
 import org.apache.commons.vfs2.util.SharedRandomContentInputStream;
 
-import lombok.Generated;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Part;
+import jakarta.mail.internet.MimeMessage;
 
 /**
  * An MIME file system.
  */
-@Generated // to exclude from code coverage
 public class MimeFileSystem extends AbstractFileSystem {
     static final String NULL_BP_NAME = "_body_part_";
     static final String CONTENT_NAME = "_content";
-    static final String PREAMBLE_CHARSET = "UTF-8";
+    static final String PREAMBLE_CHARSET = StandardCharsets.UTF_8.name();
 
     private final Log log = LogFactory.getLog(MimeFileSystem.class);
 
-    private InputStream mimeStream = null;
-
-    protected MimeFileSystem(final FileName rootName, final FileObject parentLayer,
-            final FileSystemOptions fileSystemOptions) {
-        super(rootName, parentLayer, fileSystemOptions);
-    }
+    private InputStream mimeStream;
 
     /**
-     * Creates a file object.
+     * Constructs a new instance.
+     *
+     * @param rootName The root file name of this file system.
+     * @param parentLayer The parent layer of this file system.
+     * @param fileSystemOptions Options to build this file system.
      */
-    @Override
-    protected FileObject createFile(final AbstractFileName name) throws FileSystemException {
-        return new MimeFileObject(name, null, this);
+    protected MimeFileSystem(final FileName rootName, final FileObject parentLayer, final FileSystemOptions fileSystemOptions) {
+        super(rootName, parentLayer, fileSystemOptions);
     }
 
     /**
@@ -69,20 +65,6 @@ public class MimeFileSystem extends AbstractFileSystem {
     @Override
     protected void addCapabilities(final Collection<Capability> caps) {
         caps.addAll(MimeFileProvider.capabilities);
-    }
-
-    @Override
-    protected void doCloseCommunicationLink() {
-        try {
-            if (mimeStream == null) {
-                return;
-            }
-
-            closeMimeStream();
-            mimeStream = null;
-        } catch (final IOException e) {
-            log.warn(e.getLocalizedMessage(), e);
-        }
     }
 
     private void closeMimeStream() throws IOException {
@@ -98,7 +80,7 @@ public class MimeFileSystem extends AbstractFileSystem {
             closeMimeStream();
         }
 
-        final var parentLayer = getParentLayer();
+        final FileObject parentLayer = getParentLayer();
         if (!parentLayer.exists()) {
             return null;
         }
@@ -109,5 +91,27 @@ public class MimeFileSystem extends AbstractFileSystem {
             mimeStream = getParentLayer().getContent().getInputStream();
         }
         return new MimeMessage(null, mimeStream);
+    }
+
+    /**
+     * Creates a file object.
+     */
+    @Override
+    protected FileObject createFile(final AbstractFileName name) throws FileSystemException {
+        return new MimeFileObject(name, null, this);
+    }
+
+    @Override
+    protected void doCloseCommunicationLink() {
+        try {
+            if (mimeStream == null) {
+                return;
+            }
+
+            closeMimeStream();
+            mimeStream = null;
+        } catch (final IOException e) {
+            log.warn(e.getLocalizedMessage(), e);
+        }
     }
 }

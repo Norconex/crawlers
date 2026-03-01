@@ -50,6 +50,7 @@ import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
@@ -66,13 +67,7 @@ import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategize
 import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.junit.CrawlTestCapturer;
-import com.norconex.crawler.core.junit.CrawlTestCapturer.CrawlCaptures;
-import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.fs.doc.operations.checksum.FsMetadataChecksummer;
-import com.norconex.crawler.fs.mock.MockFsCrawlerBuilder;
-import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.GridConnector;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.doc.Doc;
 
@@ -165,8 +160,6 @@ public final class FsTestUtil {
                             DocumentChecksummer.class,
                             Md5DocumentChecksummer::new)
 
-                    .excludeType(Grid.class::equals)
-                    .excludeType(GridConnector.class::equals)
                     .excludeType(StandardFileSystemManager.class::equals)
                     .excludeType(FileSystemOptions.class::equals)
                     .excludeType(ReferencesProvider.class::equals)
@@ -284,30 +277,25 @@ public final class FsTestUtil {
     }
 
     public static MemoryCommitter
-            firstCommitter(@NonNull CrawlContext crawler) {
-        return (MemoryCommitter) crawler.getCrawlConfig()
-                .getCommitters()
-                .get(0);
-    }
-
-    public static MemoryCommitter firstCommitter(@NonNull Crawler crawler) {
+            firstCommitter(@NonNull Crawler crawler) {
         return (MemoryCommitter) crawler
                 .getCrawlConfig()
                 .getCommitters()
                 .get(0);
     }
 
-    public static CrawlCaptures crawlWithFetcher(
+    public static MemoryCommitter crawlWithFetcher(
             Path tempDir, Fetcher fetcher, String... refs)
             throws Exception {
-        return CrawlTestCapturer
-                .capture(new MockFsCrawlerBuilder(tempDir)
-                        .configModifier(cfg -> cfg
-                                .setStartReferences(
-                                        List.of(refs))
-                                .setFetchers(List
-                                        .of(fetcher)))
-                        .crawler(), Crawler::crawl);
+        var mem = new MemoryCommitter();
+        var config = new CrawlConfig()
+                .setId("test-crawler")
+                .setWorkDir(tempDir)
+                .setStartReferences(List.of(refs))
+                .setFetchers(List.of(fetcher))
+                .setCommitters(List.of(mem));
+        new Crawler(FsCrawlDriverFactory.create(), config).crawl();
+        return mem;
     }
 
     public static int freePort() {

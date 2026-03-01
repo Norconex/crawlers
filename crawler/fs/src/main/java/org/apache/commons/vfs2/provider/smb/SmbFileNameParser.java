@@ -6,7 +6,7 @@
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,28 +18,19 @@ package org.apache.commons.vfs2.provider.smb;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.provider.FileNameParser;
-import org.apache.commons.vfs2.provider.GenericURLFileNameParser;
+import org.apache.commons.vfs2.provider.URLFileNameParser;
 import org.apache.commons.vfs2.provider.UriParser;
 import org.apache.commons.vfs2.provider.VfsComponentContext;
-
-import lombok.Generated;
 
 /**
  * Implementation for sftp. set default port to 139
  */
-@Generated // to exclude from code coverage
-public class SmbFileNameParser extends GenericURLFileNameParser {
+public class SmbFileNameParser extends URLFileNameParser {
 
     private static final SmbFileNameParser INSTANCE = new SmbFileNameParser();
     private static final int SMB_PORT = 139;
-
-    /**
-     * Creates a new instance with the default port 139.
-     */
-    public SmbFileNameParser() {
-        super(SMB_PORT);
-    }
 
     /**
      * Gets the singleton instance.
@@ -50,17 +41,38 @@ public class SmbFileNameParser extends GenericURLFileNameParser {
         return INSTANCE;
     }
 
+    /**
+     * Constructs a new instance with the default port 139.
+     */
+    public SmbFileNameParser() {
+        super(SMB_PORT);
+    }
+
+    private String extractDomain(final String username) {
+        if (username == null) {
+            return null;
+        }
+
+        for (int i = 0; i < username.length(); i++) {
+            if (username.charAt(i) == '\\') {
+                return username.substring(0, i);
+            }
+        }
+
+        return null;
+    }
+
     @Override
-    public FileName parseUri(final VfsComponentContext context, final FileName base, final String filename)
+    public FileName parseUri(final VfsComponentContext context, final FileName base, final String fileName)
             throws FileSystemException {
-        final var name = new StringBuilder();
+        final StringBuilder name = new StringBuilder();
 
         // Extract the scheme and authority parts
-        final var auth = extractToPath(context, filename, name);
+        final Authority auth = extractToPath(context, fileName, name);
 
         // extract domain
-        var username = auth.getUserName();
-        final var domain = extractDomain(username);
+        String username = auth.getUserName();
+        final String domain = extractDomain(username);
         if (domain != null) {
             username = username.substring(domain.length() + 1);
         }
@@ -70,31 +82,17 @@ public class SmbFileNameParser extends GenericURLFileNameParser {
         UriParser.fixSeparators(name);
 
         // Extract the share
-        final var share = UriParser.extractFirstElement(name);
+        final String share = UriParser.extractFirstElement(name);
         if (share == null || share.isEmpty()) {
-            throw new FileSystemException("vfs.provider.smb/missing-share-name.error", filename);
+            throw new FileSystemException("vfs.provider.smb/missing-share-name.error", fileName);
         }
 
         // Normalise the path. Do this after extracting the share name,
-        // to deal with things like smb://hostname/share/..
-        final var fileType = UriParser.normalisePath(name);
-        final var path = name.toString();
+        // to deal with things like {@code smb://hostname/share/..}
+        final FileType fileType = UriParser.normalisePath(name);
+        final String path = name.toString();
 
         return new SmbFileName(auth.getScheme(), auth.getHostName(), auth.getPort(), username, auth.getPassword(),
                 domain, share, path, fileType);
-    }
-
-    private String extractDomain(final String username) {
-        if (username == null) {
-            return null;
-        }
-
-        for (var i = 0; i < username.length(); i++) {
-            if (username.charAt(i) == '\\') {
-                return username.substring(0, i);
-            }
-        }
-
-        return null;
     }
 }

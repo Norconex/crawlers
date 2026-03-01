@@ -58,9 +58,8 @@ class CmisAtomFileSystemTest {
 
     void testCmisFileSystem(String path, int expectedQty) throws Exception {
         var ref = cmisEndpointUrl(path);
-        var captures = FsTestUtil.crawlWithFetcher(
+        var mem = FsTestUtil.crawlWithFetcher(
                 tempDir, new CmisFetcher(), ref);
-        var mem = captures.getCommitter();
         assertThat(mem.getUpsertCount()).isEqualTo(expectedQty);
     }
 

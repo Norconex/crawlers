@@ -64,18 +64,18 @@ public class CmisTestServer {
 
         webappContext.addEventListener(new CmisRepositoryContextListener());
 
-        var servlet = new ServletHolder(new CmisWebServicesServlet());
+        var servlet = createServletHolder(CmisWebServicesServlet.class.getName());
 
         servlet.setInitParameter("cmisVersion", "1.0");
         webappContext.addServlet(servlet, "/services/*");
 
         // CMIS Web Service 1.1
-        servlet = new ServletHolder(new CmisWebServicesServlet());
+        servlet = createServletHolder(CmisWebServicesServlet.class.getName());
         servlet.setInitParameter("cmisVersion", "1.1");
         webappContext.addServlet(servlet, "/services11/*");
 
         // CMIS Atom 1.0
-        servlet = new ServletHolder(new CmisAtomPubServlet());
+        servlet = createServletHolder(CmisAtomPubServlet.class.getName());
         servlet.setInitParameter("cmisVersion", "1.0");
         servlet.setInitParameter(
                 "callContextHandler", "org.apache.chemistry."
@@ -83,7 +83,7 @@ public class CmisTestServer {
         webappContext.addServlet(servlet, "/atom/*");
 
         // CMIS Atom 1.1
-        servlet = new ServletHolder(new CmisAtomPubServlet());
+        servlet = createServletHolder(CmisAtomPubServlet.class.getName());
         servlet.setInitParameter("cmisVersion", "1.1");
         servlet.setInitParameter(
                 "callContextHandler", "org.apache.chemistry."
@@ -91,17 +91,23 @@ public class CmisTestServer {
         webappContext.addServlet(servlet, "/atom11/*");
 
         // CMIS Browser
-        servlet = new ServletHolder(new CmisBrowserBindingServlet());
+        servlet = createServletHolder(CmisBrowserBindingServlet.class.getName());
         servlet.setInitParameter("cmisVersion", "1.1");
         servlet.setInitParameter("callContextHandler", "org.apache.chemistry."
                 + "opencmis.server.impl.browser.token.TokenCallContextHandler");
         webappContext.addServlet(servlet, "/browser/*");
 
         // CMIS Endpoints
-        servlet = new ServletHolder(new CmisEndpointsDocumentServlet());
+        servlet = createServletHolder(CmisEndpointsDocumentServlet.class.getName());
         webappContext.addServlet(servlet, "/cmis-endpoints.json");
 
         return webappContext;
+    }
+
+    private ServletHolder createServletHolder(String servletClassName) {
+        var servlet = new ServletHolder();
+        servlet.setClassName(servletClassName);
+        return servlet;
     }
 
     private ResourceHandler buildStaticResourcesHandler() {
@@ -179,7 +185,7 @@ public class CmisTestServer {
     }
 
     // Adapted from org.apache.chemistry...SimpleCmisEndpointsDocumentServlet
-    private class CmisEndpointsDocumentServlet
+    public static class CmisEndpointsDocumentServlet
             extends AbstractCmisEndpointsDocumentServlet {
         private static final long serialVersionUID = 1L;
         private static final String EP_LOC = "cmis/webapp/cmis-endpoints.json";

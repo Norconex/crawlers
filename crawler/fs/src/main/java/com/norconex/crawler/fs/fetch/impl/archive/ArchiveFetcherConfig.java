@@ -12,25 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.fs.fetch.impl;
+package com.norconex.crawler.fs.fetch.impl.archive;
 
-import com.norconex.crawler.core.fetch.FetchResponse;
-import com.norconex.crawler.core.ledger.ProcessingOutcome;
-import com.norconex.crawler.fs.fetch.FileFetchResponse;
+import com.norconex.crawler.fs.fetch.impl.BaseAuthVfsFetcherConfig;
 
-import lombok.Builder;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
-//TODO move to crawler-core as a generic implementation?
-@Builder
+/**
+ * Configuration for {@link ArchiveFetcher}.
+ */
 @Data
-public class GenericFileFetchResponse implements FileFetchResponse {
-    private ProcessingOutcome processingOutcome;
-    boolean file;
-    boolean folder;
-
-    //TODO Used? Remove from core interface maybe?
-    private int statusCode;
-    private String reasonPhrase;
-    private Exception exception;
+@Accessors(chain = true)
+public class ArchiveFetcherConfig extends BaseAuthVfsFetcherConfig {
+    // No extra config beyond inherited auth (credentials + domain).
+    // If the inner file system (e.g. FTP, SFTP) requires authentication,
+    // set the credentials here; they will be forwarded automatically by VFS
+    // when resolving the inner scheme.
 }

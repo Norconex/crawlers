@@ -22,7 +22,7 @@ import com.norconex.crawler.core.doc.pipelines.importer.stages.AbstractImporterS
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
-import com.norconex.crawler.fs.doc.FsCrawlDocContext;
+import com.norconex.crawler.fs.doc.FsCrawlEntry;
 import com.norconex.crawler.fs.fetch.FolderPathsFetchRequest;
 import com.norconex.crawler.fs.fetch.FolderPathsFetchResponse;
 import com.norconex.crawler.fs.fetch.FsPath;
@@ -41,45 +41,38 @@ public class FolderPathsExtractorStage extends AbstractImporterStage {
             return true;
         }
 
-        var fetcher = ctx.getCrawlContext().getFetcher();
+        var crawlSession = ctx.getCrawlSession();
+        var crawlContext = crawlSession.getCrawlContext();
+        var fetcher = crawlContext.getFetcher();
 
-        var docContext = (FsCrawlDocContext) ctx.getDoc().getDocContext();
-        if (docContext.isFolder()) {
+        var fsEntry = (FsCrawlEntry) ctx.getDocContext().getCurrentCrawlEntry();
+        if (fsEntry.isFolder()) {
             Set<FsPath> paths;
             try {
-
-                //***************************************************************************************
-
-                //TODO in driver, make the aggregator return something
-                // that support/return the different type of responses;
-
-                //***************************************************************************************
-
                 var resp = (FolderPathsFetchResponse) fetcher
-                        .fetch(new FolderPathsFetchRequest(ctx.getDoc()));
-                //TODO check for response exception, provided we are setting
-                // any
+                        .fetch(new FolderPathsFetchRequest(
+                                ctx.getDocContext().getDoc()));
                 paths = resp.getChildPaths();
             } catch (FetchException e) {
                 throw new CrawlerException("Could not fetch child paths of: "
-                        + docContext.getReference(), e);
+                        + ctx.getDocContext().getReference(), e);
             }
             for (FsPath fsPath : paths) {
-                var newPath = new FsCrawlDocContext(
-                        fsPath.getUri(), docContext.getDepth() + 1);
-                newPath.setFile(fsPath.isFile());
-                newPath.setFolder(fsPath.isFolder());
-                ctx.getCrawlContext()
+                var newEntry = (FsCrawlEntry) crawlContext
+                        .createCrawlEntry(fsPath.getUri());
+                newEntry.setDepth(fsEntry.getDepth() + 1);
+                newEntry.setFile(fsPath.isFile());
+                newEntry.setFolder(fsPath.isFolder());
+                crawlContext
                         .getDocPipelines()
                         .getQueuePipeline()
-                        .accept(
-                                new QueuePipelineContext(
-                                        ctx.getCrawlContext(), newPath));
+                        .accept(new QueuePipelineContext(
+                                crawlSession, newEntry));
             }
         }
 
-        // On some file system, a folder could also be a file, so we
+        // On some file systems, a folder could also be a file, so we
         // continue if it is a file, regardless of folder logic above.
-        return docContext.isFile();
+        return fsEntry.isFile();
     }
 }

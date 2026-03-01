@@ -22,14 +22,13 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.io.CachedInputStream;
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.fetch.BaseFetcherConfig;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.FolderPathsFetchRequest;
 import com.norconex.crawler.fs.stubs.CrawlDocStubs;
-import com.norconex.importer.doc.DocContext;
+import com.norconex.importer.doc.Doc;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -69,7 +68,7 @@ class AbstractVfsFetcherTest {
         assertThatExceptionOfType(FetchException.class).isThrownBy( //NOSONAR
                 () -> {
                     fetcher.fetch(new FolderPathsFetchRequest(
-                            new CrawlDoc(new DocContext("i/dont/exist"))));
+                            new Doc("i/dont/exist")));
                 }).withMessageContaining("Could not fetch child paths of:");
     }
 
@@ -98,8 +97,9 @@ class AbstractVfsFetcherTest {
 
     private FileFetchRequest mockFailingRequest() {
         return new FileFetchRequest(
-                new CrawlDoc(new DocContext("ref"),
-                        CachedInputStream.cache(BrokenInputStream.INSTANCE)),
+                new Doc("ref")
+                        .setInputStream(CachedInputStream.cache(
+                                BrokenInputStream.INSTANCE)),
                 FetchDirective.DOCUMENT);
     }
 

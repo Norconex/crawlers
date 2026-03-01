@@ -19,8 +19,8 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.fetch.FetchRequest;
+import com.norconex.importer.doc.Doc;
 
 public final class FileFetchUtil {
 
@@ -40,7 +40,7 @@ public final class FileFetchUtil {
 
         return Optional.ofNullable(req)
                 .map(FetchRequest::getDoc)
-                .map(CrawlDoc::getReference)
+                .map(Doc::getReference)
                 .map(String::toLowerCase)
                 .filter(ref -> StringUtils.startsWithAny(ref, prefixes))
                 .isPresent();
