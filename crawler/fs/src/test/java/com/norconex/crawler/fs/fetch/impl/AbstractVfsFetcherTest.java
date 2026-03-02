@@ -95,6 +95,7 @@ class AbstractVfsFetcherTest {
                 FetchDirective.DOCUMENT);
     }
 
+    @SuppressWarnings("resource")
     private FileFetchRequest mockFailingRequest() {
         return new FileFetchRequest(
                 new Doc("ref")

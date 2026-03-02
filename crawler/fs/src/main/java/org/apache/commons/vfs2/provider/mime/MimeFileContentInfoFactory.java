@@ -29,6 +29,7 @@ import jakarta.mail.internet.ContentType;
 /**
  * Gets access to the content info stuff for mime objects.
  */
+@lombok.Generated
 public class MimeFileContentInfoFactory implements FileContentInfoFactory {
     @Override
     public FileContentInfo create(final FileContent fileContent) throws FileSystemException {

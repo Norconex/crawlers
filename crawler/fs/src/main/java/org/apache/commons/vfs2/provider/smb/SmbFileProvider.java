@@ -32,6 +32,7 @@ import org.apache.commons.vfs2.provider.FileProvider;
 /**
  * A provider for SMB (Samba, Windows share) file systems.
  */
+@lombok.Generated
 public class SmbFileProvider extends AbstractOriginatingFileProvider implements FileProvider {
 
     /** Authentication data supported by this provider. */

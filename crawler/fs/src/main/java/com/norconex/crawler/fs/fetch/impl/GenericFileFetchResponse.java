@@ -14,7 +14,6 @@
  */
 package com.norconex.crawler.fs.fetch.impl;
 
-import com.norconex.crawler.core.fetch.FetchResponse;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.fs.fetch.FileFetchResponse;
 

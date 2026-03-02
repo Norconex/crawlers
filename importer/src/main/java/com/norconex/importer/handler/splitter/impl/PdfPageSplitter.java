@@ -85,85 +85,85 @@ import lombok.Data;
 @SuppressWarnings("javadoc")
 @Data
 public class PdfPageSplitter
-                extends AbstractDocumentSplitter<PdfPageSplitterConfig> {
+        extends AbstractDocumentSplitter<PdfPageSplitterConfig> {
 
-        public static final String DOC_PDF_PAGE_NO = "document.pdf.pageNumber";
-        public static final String DOC_PDF_TOTAL_PAGES =
-                        "document.pdf.numberOfPages";
+    public static final String DOC_PDF_PAGE_NO = "document.pdf.pageNumber";
+    public static final String DOC_PDF_TOTAL_PAGES =
+            "document.pdf.numberOfPages";
 
-        public static final String DEFAULT_REFERENCE_PAGE_PREFIX = "#";
+    public static final String DEFAULT_REFERENCE_PAGE_PREFIX = "#";
 
-        private final PdfPageSplitterConfig configuration =
-                        new PdfPageSplitterConfig();
+    private final PdfPageSplitterConfig configuration =
+            new PdfPageSplitterConfig();
 
-        @Override
-        public void split(DocHandlerContext docCtx) throws DocHandlerException {
+    @Override
+    public void split(DocHandlerContext docCtx) throws DocHandlerException {
 
-                // Make sure we are not splitting a page that was already split
-                if (!MatchUtil.matchesContentType(
-                                configuration.getContentTypeMatcher(),
-                                docCtx.contentType())
-                                || (docCtx.metadata().getInteger(
-                                                DOC_PDF_PAGE_NO, 0) > 0)) {
-                        return;
-                }
-
-                try (var document = Loader.loadPDF(
-                                docCtx.input().asInputStream()
-                                                .readAllBytes())) {
-
-                        // Make sure we are not splitting single pages.
-                        if (document.getNumberOfPages() <= 1) {
-                                docCtx.metadata().set(DOC_PDF_PAGE_NO, 1);
-                                docCtx.metadata().set(DOC_PDF_TOTAL_PAGES, 1);
-                                return;
-                        }
-                        var pageDocs = docCtx.childDocs();
-
-                        var splitter = new Splitter();
-                        var splittedDocuments = splitter.split(document);
-                        var pageNo = 0;
-                        for (PDDocument page : splittedDocuments) {
-                                pageNo++;
-
-                                var pageRef = docCtx.reference()
-                                                + trimToEmpty(configuration
-                                                                .getReferencePagePrefix())
-                                                + pageNo;
-
-                                // metadata
-                                var pageMeta = new Properties();
-                                pageMeta.loadFromMap(docCtx.metadata());
-
-                                var pageDoc = new Doc(pageRef);
-
-                                pageMeta.set(
-                                                DocMetaConstants.EMBEDDED_REFERENCE,
-                                                Integer.toString(pageNo));
-
-                                pageDoc.addParentReference(docCtx.reference());
-
-                                pageMeta.set(DOC_PDF_PAGE_NO, pageNo);
-                                pageMeta.set(DOC_PDF_TOTAL_PAGES,
-                                                document.getNumberOfPages());
-
-                                // a single page should not be too big to store in memory
-                                var os = new ByteArrayOutputStream();
-                                try (page) {
-                                        page.save(os);
-                                }
-                                pageDoc.setInputStream(
-                                                docCtx.streamFactory()
-                                                                .newInputStream(os
-                                                                                .toInputStream()))
-                                                .setMetadata(pageMeta);
-                                pageDocs.add(pageDoc);
-                        }
-                } catch (IOException e) {
-                        throw new DocHandlerException(
-                                        "Could not split PDF: "
-                                                        + docCtx.reference(),
-                                        e);
-                }
+        // Make sure we are not splitting a page that was already split
+        if (!MatchUtil.matchesContentType(
+                configuration.getContentTypeMatcher(),
+                docCtx.contentType())
+                || (docCtx.metadata().getInteger(
+                        DOC_PDF_PAGE_NO, 0) > 0)) {
+            return;
         }
+
+        try (var document = Loader.loadPDF(
+                docCtx.input().asInputStream()
+                        .readAllBytes())) {
+
+            // Make sure we are not splitting single pages.
+            if (document.getNumberOfPages() <= 1) {
+                docCtx.metadata().set(DOC_PDF_PAGE_NO, 1);
+                docCtx.metadata().set(DOC_PDF_TOTAL_PAGES, 1);
+                return;
+            }
+            var pageDocs = docCtx.childDocs();
+
+            var splitter = new Splitter();
+            var splittedDocuments = splitter.split(document);
+            var pageNo = 0;
+            for (PDDocument page : splittedDocuments) {
+                pageNo++;
+
+                var pageRef = docCtx.reference()
+                        + trimToEmpty(configuration
+                                .getReferencePagePrefix())
+                        + pageNo;
+
+                // metadata
+                var pageMeta = new Properties();
+                pageMeta.loadFromMap(docCtx.metadata());
+
+                var pageDoc = new Doc(pageRef);
+
+                pageMeta.set(
+                        DocMetaConstants.EMBEDDED_REFERENCE,
+                        Integer.toString(pageNo));
+
+                pageDoc.addParentReference(docCtx.reference());
+
+                pageMeta.set(DOC_PDF_PAGE_NO, pageNo);
+                pageMeta.set(DOC_PDF_TOTAL_PAGES,
+                        document.getNumberOfPages());
+
+                // a single page should not be too big to store in memory
+                var os = new ByteArrayOutputStream();
+                try (page) {
+                    page.save(os);
+                }
+                pageDoc.setInputStream(
+                        docCtx.streamFactory()
+                                .newInputStream(os
+                                        .toInputStream()))
+                        .setMetadata(pageMeta);
+                pageDocs.add(pageDoc);
+            }
+        } catch (IOException e) {
+            throw new DocHandlerException(
+                    "Could not split PDF: "
+                            + docCtx.reference(),
+                    e);
+        }
+    }
 }

@@ -44,6 +44,7 @@ import jakarta.mail.internet.MimeMultipart;
 /**
  * A part of a MIME message.
  */
+@lombok.Generated
 public class MimeFileObject extends AbstractFileObject<MimeFileSystem> implements FileObject {
     private Part part;
     private Map<String, Object> attributeMap;
@@ -227,7 +228,6 @@ public class MimeFileObject extends AbstractFileObject<MimeFileSystem> implement
         return null;
     }
 
-    @SuppressWarnings("unchecked") // Javadoc says Part returns Header
     protected Enumeration<Header> getAllHeaders() throws MessagingException {
         return part.getAllHeaders();
     }

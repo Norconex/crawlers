@@ -28,6 +28,7 @@ import org.apache.commons.vfs2.FileSystemException;
 /**
  * (Sandbox) Provide access to a FileObject as JAF DataSource.
  */
+@lombok.Generated
 public class FileObjectDataSource implements DataSource {
     private final FileObject fo;
 

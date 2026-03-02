@@ -36,13 +36,13 @@ import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.FetchResponse;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.importer.doc.Doc;
 import com.norconex.crawler.fs.doc.FsDocMetadata;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.FileFetchResponse;
 import com.norconex.crawler.fs.fetch.FolderPathsFetchRequest;
 import com.norconex.crawler.fs.fetch.FolderPathsFetchResponse;
 import com.norconex.crawler.fs.fetch.FsPath;
+import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetaConstants;
 
 import lombok.AccessLevel;
@@ -122,9 +122,10 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
         // obtained from having both META and BODY request types)
 
         var ref = doc.getReference();
+        var vfsRef = normalizeReferenceForVfs(ref);
         try {
             var fileObject = fsManager.resolveFile(
-                    FileFetchUtil.uriEncodeLocalPath(ref), fsOptions);
+                    FileFetchUtil.uriEncodeLocalPath(vfsRef), fsOptions);
 
             if (fileObject == null || !fileObject.exists()) {
                 return GenericFileFetchResponse.builder()
@@ -160,9 +161,10 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
     protected FolderPathsFetchResponse fetchChildPaths(
             FolderPathsFetchRequest req) throws FetchException {
         var parentPath = req.getDoc().getReference();
+        var vfsParentPath = normalizeReferenceForVfs(parentPath);
         try {
             var fileObject = fsManager.resolveFile(
-                    FileFetchUtil.uriEncodeLocalPath(parentPath), fsOptions);
+                    FileFetchUtil.uriEncodeLocalPath(vfsParentPath), fsOptions);
             Set<FsPath> childPaths = new HashSet<>();
             for (var childPath : fileObject.getChildren()) {
 
@@ -187,6 +189,17 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
             throw new FetchException(
                     "Could not fetch child paths of: " + parentPath, e);
         }
+    }
+
+    private String normalizeReferenceForVfs(String reference) {
+        if (reference == null) {
+            return null;
+        }
+        if (reference.regionMatches(true, 0, "cmis:", 0, 5)
+                && !reference.contains("!")) {
+            return reference + "!/";
+        }
+        return reference;
     }
 
     /**

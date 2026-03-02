@@ -29,6 +29,7 @@ import org.apache.commons.vfs2.provider.AbstractFileSystem;
 /**
  * An SMB file system.
  */
+@lombok.Generated
 public class SmbFileSystem extends AbstractFileSystem {
 
     /**

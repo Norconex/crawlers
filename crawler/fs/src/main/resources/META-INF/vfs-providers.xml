@@ -15,6 +15,11 @@
     <if-available class-name="javax.mail.internet.MimeMultipart"/>
   </provider>
 
+  <provider class-name="org.apache.commons.vfs2.provider.url.UrlFileProvider">
+    <scheme name="http"/>
+    <scheme name="https"/>
+  </provider>
+
   <provider class-name="com.norconex.crawler.fs.fetch.impl.cmis.CmisAtomFileProvider">
     <scheme name="cmis"/>
   </provider>

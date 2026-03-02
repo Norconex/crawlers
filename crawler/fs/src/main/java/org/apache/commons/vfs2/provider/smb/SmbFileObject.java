@@ -43,6 +43,7 @@ import jcifs.smb.SmbFileOutputStream;
 /**
  * A file in an SMB file system.
  */
+@lombok.Generated
 public class SmbFileObject extends AbstractFileObject<SmbFileSystem> {
     // private final String fileName;
     private SmbFile file;

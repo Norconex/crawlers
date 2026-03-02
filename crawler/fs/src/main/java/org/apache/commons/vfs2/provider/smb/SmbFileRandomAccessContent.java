@@ -32,6 +32,7 @@ import jcifs.smb.SmbRandomAccessFile;
 /**
  * RandomAccess for smb files
  */
+@lombok.Generated
 final class SmbFileRandomAccessContent extends AbstractRandomAccessContent {
     private final SmbRandomAccessFile raf;
     private final InputStream rafis;

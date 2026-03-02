@@ -144,7 +144,9 @@ public class CmisAtomFileProvider extends AbstractLayeredFileProvider {
             throws FileSystemException {
         var cmis =
                 CmisAtomFileSystemConfigBuilder.getInstance();
-        var atomURL = StringUtils.substringBefore(file.toString(), "!");
+        var rawFileString = file.getName().getURI();
+        var atomURL = StringUtils.substringBefore(rawFileString, "!")
+                .replaceFirst("^cmis(?:-atom)?:", "");
         session.setEndpointURL(atomURL);
         LOG.info("CMIS Atom endpoint URL: " + atomURL);
 

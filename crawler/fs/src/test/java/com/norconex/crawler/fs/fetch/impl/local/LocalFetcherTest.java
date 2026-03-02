@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Path;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.crawler.core.fetch.FetchDirective;
@@ -41,7 +41,7 @@ class LocalFetcherTest extends AbstractFileFetcherTest {
 
     @Override
     protected String getStartPath() {
-        return StringUtils.removeEnd(
+        return Strings.CS.removeEnd(
                 Path.of(FsTestUtil.TEST_FS_PATH)
                         .toAbsolutePath().toUri().toString(),
                 "/");

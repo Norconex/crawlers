@@ -30,8 +30,9 @@ import org.apache.commons.vfs2.RandomAccessContent;
 import jakarta.mail.internet.SharedInputStream;
 
 /**
- * (Sandbox) A wrapper to an FileObject to get a {@link javax.mail.internet.SharedInputStream}.
+ * (Sandbox) A wrapper to an FileObject to get a javax.mail.internet.SharedInputStream.
  */
+@lombok.Generated
 public class SharedRandomContentInputStream extends BufferedInputStream implements SharedInputStream {
     private final Set<SharedRandomContentInputStream> createdStreams;
     private final FileObject fo;

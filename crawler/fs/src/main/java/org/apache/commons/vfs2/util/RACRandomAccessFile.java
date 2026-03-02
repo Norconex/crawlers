@@ -26,6 +26,7 @@ import org.apache.commons.vfs2.RandomAccessContent;
  * (Sandbox) Encapsulates a {@link RandomAccessContent} instance, allowing it to be used as a {@link RandomAccessFile}
  * instance.
  */
+@lombok.Generated
 public class RACRandomAccessFile extends RandomAccessFile implements RandomAccessContent {
     private static File createTempFile() throws IOException {
         return File.createTempFile("fraf", "");

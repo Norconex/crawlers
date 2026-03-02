@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.importer.doc.Doc;
@@ -42,7 +43,7 @@ public final class FileFetchUtil {
                 .map(FetchRequest::getDoc)
                 .map(Doc::getReference)
                 .map(String::toLowerCase)
-                .filter(ref -> StringUtils.startsWithAny(ref, prefixes))
+                .filter(ref -> Strings.CS.startsWithAny(ref, prefixes))
                 .isPresent();
     }
 

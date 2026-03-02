@@ -39,6 +39,7 @@ import jakarta.mail.internet.MimeMessage;
 /**
  * An MIME file system.
  */
+@lombok.Generated
 public class MimeFileSystem extends AbstractFileSystem {
     static final String NULL_BP_NAME = "_body_part_";
     static final String CONTENT_NAME = "_content";

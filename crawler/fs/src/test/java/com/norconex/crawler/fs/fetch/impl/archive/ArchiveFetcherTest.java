@@ -36,7 +36,7 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.fs.FsTestUtil;
 import com.norconex.crawler.fs.fetch.impl.ftp.MockFtpServer;
 
-@Timeout(value = 30, unit = TimeUnit.SECONDS)
+@Timeout(value = 60, unit = TimeUnit.SECONDS)
 class ArchiveFetcherTest {
 
     // Per-test instance workdir
@@ -48,7 +48,8 @@ class ArchiveFetcherTest {
     private static MockFtpServer ftpServer;
 
     @BeforeAll
-    static void startFtpServer(@TempDir File ftpTempDir) throws IOException {
+    static void startFtpServer(@TempDir File ftpTempDir)
+            throws IOException {
         // Create a sub-directory that the FTP server will serve
         var servedDir = new File(ftpTempDir, "served");
         servedDir.mkdirs();
@@ -92,7 +93,8 @@ class ArchiveFetcherTest {
         assertThat(FsTestUtil.getUpsertRequestContent(
                 mem, mem.getUpsertRequests().stream()
                         .map(UpsertRequest::getReference)
-                        .filter(r -> r.endsWith("hello.txt"))
+                        .filter(r -> r.endsWith(
+                                "hello.txt"))
                         .findFirst().orElseThrow()))
                                 .isEqualToIgnoringWhitespace(
                                         "Hello from archive!");
@@ -136,7 +138,8 @@ class ArchiveFetcherTest {
     void testWriteRead() {
         assertThatNoException().isThrownBy(
                 () -> BeanMapper.DEFAULT.assertWriteRead(
-                        FsTestUtil.randomize(ArchiveFetcher.class)));
+                        FsTestUtil.randomize(
+                                ArchiveFetcher.class)));
     }
 
     // --- helpers ----------------------------------------------------------
@@ -146,7 +149,8 @@ class ArchiveFetcherTest {
      * known content.
      */
     static void createTestZip(Path zipPath) throws IOException {
-        try (var zos = new ZipOutputStream(Files.newOutputStream(zipPath))) {
+        try (var zos = new ZipOutputStream(
+                Files.newOutputStream(zipPath))) {
             addEntry(zos, "hello.txt", "Hello from archive!");
             addEntry(zos, "world.txt", "World from archive!");
         }

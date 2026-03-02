@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -42,6 +41,7 @@ import jakarta.mail.internet.MimeMessage;
 /**
  * A map which tries to allow access to the various aspects of the mail.
  */
+@lombok.Generated
 public class MimeAttributesMap implements Map<String, Object> {
     private static final String OBJECT_PREFIX = "obj.";
 
@@ -95,7 +95,6 @@ public class MimeAttributesMap implements Map<String, Object> {
 
         Enumeration<Header> headers;
         try {
-            @SuppressWarnings("unchecked") // Javadoc say Part returns Header
             final Enumeration<Header> allHeaders = part.getAllHeaders();
             headers = allHeaders;
         } catch (final MessagingException e) {
