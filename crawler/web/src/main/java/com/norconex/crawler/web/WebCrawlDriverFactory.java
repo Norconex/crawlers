@@ -25,7 +25,7 @@ import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.RefFileEnque
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.RefListEnqueuer;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.RefProviderEnqueuer;
 import com.norconex.crawler.web.callbacks.WebCrawlerCallbacks;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.pipelines.WebDocPipelines;
 import com.norconex.crawler.web.doc.pipelines.queue.SitemapEnqueuer;
 import com.norconex.crawler.web.fetch.AggregatedWebFetchResponse;
@@ -51,18 +51,20 @@ public class WebCrawlDriverFactory implements Supplier<CrawlDriver> {
                 .crawlerConfigClass(WebCrawlerConfig.class)
                 .callbacks(WebCrawlerCallbacks.get())
                 .docPipelines(WebDocPipelines.create())
-                .crawlEntryType(WebCrawlDocContext.class)
+                .crawlEntryType(WebCrawlEntry.class)
                 .build();
     }
 
     private static FetchDriver createFetchDriver() {
         return new FetchDriver()
                 .responseAggregator(
-                        (req, resps) -> new AggregatedWebFetchResponse(resps))
+                        (req, resps) -> new AggregatedWebFetchResponse(
+                                resps))
                 .unsuccesfulResponseFactory(
                         (state, msg, e) -> HttpClientFetchResponse
                                 .builder()
-                                .resolutionStatus(state)
+                                .processingOutcome(
+                                        state)
                                 .reasonPhrase(msg)
                                 .exception(e)
                                 .statusCode(-1)

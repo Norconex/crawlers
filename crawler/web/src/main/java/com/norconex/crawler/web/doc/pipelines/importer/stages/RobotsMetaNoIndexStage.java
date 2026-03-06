@@ -14,10 +14,11 @@
  */
 package com.norconex.crawler.web.doc.pipelines.importer.stages;
 
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.doc.pipelines.importer.stages.AbstractImporterStage;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
+import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.pipelines.importer.WebImporterPipelineContext;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
 
@@ -32,14 +33,17 @@ public class RobotsMetaNoIndexStage extends AbstractImporterStage {
         var canIndex = ctx.getRobotsMeta() == null
                 || !ctx.getRobotsMeta().isNoindex();
         if (!canIndex) {
-            ctx.getCrawlContext().fire(
+            var crawlSession = ctx.getCrawlSession();
+            var docEntry = (WebCrawlEntry) ctx.getDocContext()
+                    .getCurrentCrawlEntry();
+            crawlSession.fire(
                     CrawlerEvent.builder()
                             .name(WebCrawlerEvent.REJECTED_ROBOTS_META_NOINDEX)
-                            .source(ctx.getCrawlContext())
-                            .subject(ctx.getRobotsMeta())
-                            .docContext(ctx.getDoc().getDocContext())
+                            .source(crawlSession)
+                            .crawlSession(crawlSession)
+                            .crawlEntry(docEntry)
                             .build());
-            ctx.getDoc().getDocContext().setState(CrawlDocStatus.REJECTED);
+            docEntry.setProcessingOutcome(ProcessingOutcome.REJECTED);
             return false;
         }
         return canIndex;

@@ -14,6 +14,7 @@ import com.hazelcast.map.IMap;
 import com.norconex.crawler.core.cluster.SerializedCache;
 import com.norconex.crawler.core.cluster.SerializedCache.CacheType;
 import com.norconex.crawler.core.cluster.SerializedCache.SerializedEntry;
+
 import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.AccessLevel;
@@ -26,11 +27,10 @@ class CacheExporter {
 
     static void export(HazelcastCacheManager manager,
             Consumer<SerializedCache> c) {
-        var cacheTypes = manager.getCacheTypes();
         var hazelcast = manager.getHazelcastInstance();
 
         getCacheObjects(hazelcast).forEach(obj -> {
-            var serialCache = createSerializedCache(obj, cacheTypes, hazelcast);
+            var serialCache = createSerializedCache(obj, hazelcast);
             c.accept(serialCache);
         });
     }
@@ -39,20 +39,17 @@ class CacheExporter {
             getCacheObjects(HazelcastInstance hazelcast) {
         return hazelcast.getDistributedObjects().stream()
                 .filter(HazelcastUtil::isSupportedCacheType)
-                .filter(obj -> !HazelcastCacheManager.TYPE_REGISTRY_MAP
-                        .equals(obj.getName()))
                 .toList();
     }
 
     private static SerializedCache createSerializedCache(DistributedObject obj,
-            com.norconex.crawler.core.cluster.CacheMap<String> cacheTypes,
             HazelcastInstance hazelcast) {
         var serialCache = new SerializedCache();
         serialCache.setPersistent(HazelcastUtil.isPersistent(
                 hazelcast, obj.getName()));
         serialCache.setCacheName(obj.getName());
         serialCache.setClassName(
-                cacheTypes.get(obj.getName()).orElse(null));
+                resolveValueClassName(hazelcast, obj.getName()));
 
         if (obj instanceof IMap) {
             @SuppressWarnings("unchecked")
@@ -66,6 +63,24 @@ class CacheExporter {
         }
 
         return serialCache;
+    }
+
+    /**
+     * Reads the {@code value-class-name} property from the Hazelcast map-store
+     * configuration for {@code cacheName}. Returns {@code null} if not set or
+     * if the map has no persistent store.
+     */
+    private static String resolveValueClassName(
+            HazelcastInstance hazelcast, String cacheName) {
+        var mapConfig = hazelcast.getConfig().getMapConfig(cacheName);
+        if (mapConfig != null) {
+            var storeConfig = mapConfig.getMapStoreConfig();
+            if (storeConfig != null && storeConfig.isEnabled()) {
+                return storeConfig.getProperties()
+                        .getProperty("value-class-name");
+            }
+        }
+        return null;
     }
 
     private static Iterator<SerializedEntry>

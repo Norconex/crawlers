@@ -20,6 +20,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -31,14 +32,16 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.UncheckedIOException;
+
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
-import com.norconex.crawler.core.cluster.impl.hazelcast.HzUtil;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 
 import lombok.Getter;
@@ -90,14 +93,48 @@ public class TestCrawler implements Closeable {
     private TestCrawler(
             @NonNull CrawlTestInstrument instrument, boolean remoteInstance) {
         Objects.requireNonNull(instrument.getWorkDir(), "workDir is required");
-        crawlConfig = ofNullable(instrument.getCrawlConfig())
+        var cfg = ofNullable(instrument.getCrawlConfig())
                 .orElseGet(CrawlConfig::new);
-        crawlConfig.setWorkDir(instrument.getWorkDir());
-        instrument.setCrawlConfig(crawlConfig);
+        cfg.setWorkDir(instrument.getWorkDir());
+        instrument.setCrawlConfig(cfg);
         this.instrument = instrument;
         client = instrument.isNewJvm() && !remoteInstance;
         crawlDriver = ClassUtil.newInstance(
                 instrument.getDriverSupplierClass()).get();
+
+        // When running in a forked JVM the config was serialized/deserialized
+        // as the base CrawlConfig type (no @JsonTypeInfo on CrawlConfig).
+        // Re-hydrate it as the concrete driver type so driver-specific
+        // callbacks (e.g. BeforeWebCommand) can safely cast the config.
+        if (remoteInstance) {
+            var metadataChecksummer = cfg.getMetadataChecksummer();
+            var documentChecksummer = cfg.getDocumentChecksummer();
+            var configClass = crawlDriver.crawlerConfigClass();
+            if (configClass != null && !configClass.isInstance(cfg)) {
+                try (var sw = new java.io.StringWriter()) {
+                    BeanMapper.DEFAULT.write(cfg, sw, Format.YAML);
+                    try (var sr = new java.io.StringReader(sw.toString())) {
+                        cfg = BeanMapper.DEFAULT.read(
+                                configClass, sr, Format.YAML);
+                        if (metadataChecksummer == null) {
+                            cfg.setMetadataChecksummer(null);
+                        }
+                        if (documentChecksummer == null) {
+                            cfg.setDocumentChecksummer(null);
+                        }
+                        cfg.setWorkDir(instrument.getWorkDir());
+                        instrument.setCrawlConfig(cfg);
+                    }
+                } catch (IOException e) {
+                    throw new UncheckedIOException(
+                            "Failed to re-hydrate crawlConfig as "
+                                    + configClass.getSimpleName(),
+                            e);
+                }
+            }
+        }
+
+        crawlConfig = cfg;
 
         //NOTE: the config modifier will only exist in the local JVM instance.
         // so we apply it right away here and config changes will be serialized
@@ -135,13 +172,16 @@ public class TestCrawler implements Closeable {
                 .map(EventNameRecorder::getNames)
                 .orElse(List.of());
 
+        var afterCmd = crawlDriver.callbacks().getAfterCommand();
+        Map<String, Map<String, String>> caches = new HashMap<>();
+        if (afterCmd instanceof CachesRecorder rec) {
+            caches = rec.getCaches();
+        }
+
         return CrawlTestNodeOutput.builder()
                 .eventNames(eventNames)
                 .logLines(logAppender.getMessages())
-                .caches(((CachesRecorder) crawlDriver
-                        .callbacks()
-                        .getAfterCommand())
-                                .getCaches())
+                .caches(caches)
                 .build();
     }
 
@@ -326,8 +366,8 @@ public class TestCrawler implements Closeable {
 
         instrumentCrawl();
 
-        LOG.info("TestCrawl database properties: {}",
-                HzUtil.connectorConfig(crawlConfig).getProperties());
+        LOG.info("TestCrawl starting on node '{}' ...",
+                instrument.getNodeName());
 
         CrawlTestNodeOutput result = null;
         try {
@@ -378,18 +418,6 @@ public class TestCrawler implements Closeable {
 
         // Clustering
         crawlConfig.getClusterConfig().setClustered(instrument.isClustered());
-        if (instrument.isClustered()) {
-            var hzConnector = (HazelcastClusterConnector) crawlConfig
-                    .getClusterConfig().getConnector();
-            // Respect any config file already chosen by the test harness.
-            // Only set a default if none was provided.
-            if (StringUtils
-                    .isBlank(hzConnector.getConfiguration().getConfigFile())) {
-                hzConnector.getConfiguration()
-                        .setConfigFile(
-                                "classpath:cache/hazelcast-clustered.yaml");
-            }
-        }
     }
 
     private CrawlTestNodeOutput launchNewJvm() {

@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,22 +81,36 @@ class AmazonCloudSearchCommitterTest {
     @SuppressWarnings("resource")
     @Container
     static DockerComposeContainer<?> container = new DockerComposeContainer<>(
-            new File("src/test/resources/nozama-cloudsearch.yaml"))
-                    .withExposedService(
-                            CLOUDSEARCH_NAME,
-                            CLOUDSEARCH_PORT,
-                            /*
-                             * Ensure nozama container gets into a state where
-                             * it will accept HTTP DELETE requests
-                             */
-                            Wait
-                                    .forHttp(API_DEV_DOCUMENTS)
-                                    .withMethod("DELETE")
-                                    .forStatusCode(200)
-                                    .withStartupTimeout(
-                                            Duration.ofSeconds(60)));
+            resolvePath("src/test/resources/nozama-cloudsearch.yaml")
+                    .toFile())
+                            .withExposedService(
+                                    CLOUDSEARCH_NAME,
+                                    CLOUDSEARCH_PORT,
+                                    /*
+                                     * Ensure nozama container gets into a state where
+                                     * it will accept HTTP DELETE requests
+                                     */
+                                    Wait
+                                            .forHttp(API_DEV_DOCUMENTS)
+                                            .withMethod("DELETE")
+                                            .forStatusCode(200)
+                                            .withStartupTimeout(
+                                                    Duration.ofSeconds(60)));
 
     private static String cloudSearchEndpoint;
+
+    private static Path resolvePath(String relativePath) {
+        var path = Path.of(relativePath);
+        if (Files.exists(path)) {
+            return path;
+        }
+        var modulePath =
+                Path.of("committer", "amazoncloudsearch").resolve(relativePath);
+        if (Files.exists(modulePath)) {
+            return modulePath;
+        }
+        return path;
+    }
 
     @TempDir
     static File tempDir;

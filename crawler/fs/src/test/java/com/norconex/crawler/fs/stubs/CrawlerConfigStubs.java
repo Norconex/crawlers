@@ -40,7 +40,7 @@ public final class CrawlerConfigStubs {
     public static CrawlConfig memoryCrawlerConfig(Path workDir) {
         return new CrawlConfig()
                 .setId(CRAWLER_ID)
-                .setNumThreadsPerNode(1)
+                .setNumThreads(1)
                 .setWorkDir(workDir)
                 .setCommitters(List.of(new MemoryCommitter()));
     }

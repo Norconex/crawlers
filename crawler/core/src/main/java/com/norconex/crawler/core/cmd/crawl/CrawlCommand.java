@@ -53,18 +53,6 @@ public class CrawlCommand implements Command {
     public void execute(CrawlSession session) {
         var ctx = session.getCrawlContext();
 
-        //XXX START TEST
-
-        if (CollectionUtils.isNotEmpty(ctx.getBootstrappers())) {
-            session.oncePerRun("crawl-bootstrappers", () -> {
-                LOG.info("Running bootstrappers...");
-                //TODO XXX rename getCrawlBootstrappers() or crawlRunBootstrappers
-                ctx.getBootstrappers().forEach(boot -> boot.bootstrap(session));
-            });
-
-        }
-        //XXX END TEST
-
         pendingLoggerStopped.set(false); // just in case
         if (Boolean.getBoolean(SYS_PROP_ENABLE_JMX)) {
             CrawlerMetricsJMX.register(ctx);
@@ -76,6 +64,18 @@ public class CrawlCommand implements Command {
 
         Thread.currentThread().setName(ctx.getId() + "/CRAWL");
         session.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN, session);
+
+        //XXX START TEST
+
+        if (CollectionUtils.isNotEmpty(ctx.getBootstrappers())) {
+            session.oncePerRun("crawl-bootstrappers", () -> {
+                LOG.info("Running bootstrappers...");
+                //TODO XXX rename getCrawlBootstrappers() or crawlRunBootstrappers
+                ctx.getBootstrappers().forEach(boot -> boot.bootstrap(session));
+            });
+
+        }
+        //XXX END TEST
 
         // Start monitoring for stop signals (crawl nodes only)
         session.getCluster().startStopMonitoring();

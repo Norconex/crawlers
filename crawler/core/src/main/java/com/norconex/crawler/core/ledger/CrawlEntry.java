@@ -15,6 +15,7 @@
 package com.norconex.crawler.core.ledger;
 
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,6 +23,7 @@ import java.util.List;
 
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.commons.lang.collection.CollectionUtil;
+import com.norconex.commons.lang.file.ContentType;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -59,6 +61,12 @@ public class CrawlEntry implements Serializable {
     private ZonedDateTime processingAt;
     @ToString.Exclude
     private ZonedDateTime processedAt;
+    @ToString.Exclude
+    private ZonedDateTime lastModified;
+    @ToString.Exclude
+    private ContentType contentType;
+    @ToString.Exclude
+    private Charset charset;
     private boolean orphan;
     private boolean deleted;
     private String reference;

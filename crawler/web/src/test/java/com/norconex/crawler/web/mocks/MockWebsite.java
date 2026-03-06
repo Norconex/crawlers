@@ -48,7 +48,16 @@ public final class MockWebsite {
     public static void whenInfiniteDepth(ClientAndServer client) {
         client
                 .when(request())
-                .respond(MockWebsite.responseWithInfiniteDepth());
+                .respond(MockWebsite
+                        .responseWithInfiniteDepth());
+    }
+
+    public static void whenBoundedDepth(
+            ClientAndServer client, int maxDepthInclusive) {
+        client
+                .when(request())
+                .respond(MockWebsite.responseWithBoundedDepth(
+                        maxDepthInclusive));
     }
 
     public static void whenJsRenderedWebsite(ClientAndServer client) {
@@ -74,16 +83,19 @@ public final class MockWebsite {
         private final ClientAndServer client;
 
         private ResourceWebSite(
-                ClientAndServer client, String resourceBasePath) {
+                ClientAndServer client,
+                String resourceBasePath) {
             this.client = client;
-            this.resourceBasePath = removeEnd(resourceBasePath, "/");
+            this.resourceBasePath =
+                    removeEnd(resourceBasePath, "/");
         }
 
         public ResourceWebSite whenHtml(String path) {
             var p = prependIfMissing(path, "/");
             MockWebsite.whenHtml(
                     client, p,
-                    new TestResource(resourceBasePath + p).asString());
+                    new TestResource(resourceBasePath + p)
+                            .asString());
             return this;
         }
 
@@ -113,7 +125,8 @@ public final class MockWebsite {
     public static ExpectationResponseCallback responseWithInfiniteDepth() {
         return req -> {
             var reqPath = req.getPath().toString();
-            var numStr = StringUtils.substringAfterLast(reqPath, "/");
+            var numStr = StringUtils.substringAfterLast(reqPath,
+                    "/");
             var basePath = appendIfMissing(
                     substringBeforeLast(reqPath, "/"), "/");
             var curDepth = 0;
@@ -123,11 +136,15 @@ public final class MockWebsite {
 
             var prevLink = "";
             if (curDepth > 0) {
-                var beforeNum = leftPad(Integer.toString(curDepth - 1), 4, '0');
+                var beforeNum = leftPad(
+                        Integer.toString(curDepth - 1),
+                        4, '0');
                 prevLink = "<a href=\"%s\">Previous</a> | "
-                        .formatted(basePath + beforeNum);
+                        .formatted(basePath
+                                + beforeNum);
             }
-            var afterNum = leftPad(Integer.toString(curDepth + 1), 4, '0');
+            var afterNum = leftPad(Integer.toString(curDepth + 1),
+                    4, '0');
             var nextLink = " | <a href=\"%s\">Next</a>"
                     .formatted(basePath + afterNum);
             return response().withBody(
@@ -137,7 +154,57 @@ public final class MockWebsite {
                                     %s Current page depth: %s %s
                                     """
                                     .formatted(
-                                            reqPath, prevLink, curDepth,
+                                            reqPath,
+                                            prevLink,
+                                            curDepth,
+                                            nextLink))
+                            .build(),
+                    HTML_UTF_8);
+        };
+    }
+
+    public static ExpectationResponseCallback responseWithBoundedDepth(
+            int maxDepthInclusive) {
+        return req -> {
+            var reqPath = req.getPath().toString();
+            var numStr = StringUtils.substringAfterLast(reqPath,
+                    "/");
+            var basePath = appendIfMissing(
+                    substringBeforeLast(reqPath, "/"), "/");
+            var curDepth = 0;
+            if (NumberUtils.isDigits(numStr)) {
+                curDepth = Integer.parseInt(numStr);
+            }
+
+            var prevLink = "";
+            if (curDepth > 0) {
+                var beforeNum = leftPad(
+                        Integer.toString(curDepth - 1),
+                        4, '0');
+                prevLink = "<a href=\"%s\">Previous</a> | "
+                        .formatted(basePath
+                                + beforeNum);
+            }
+
+            var nextLink = "";
+            if (curDepth < maxDepthInclusive) {
+                var afterNum = leftPad(
+                        Integer.toString(curDepth + 1),
+                        4, '0');
+                nextLink = " | <a href=\"%s\">Next</a>"
+                        .formatted(basePath + afterNum);
+            }
+
+            return response().withBody(
+                    MockWebsite.htmlPage().body(
+                            """
+                                    <h1>%s test page</h1>
+                                    %s Current page depth: %s %s
+                                    """
+                                    .formatted(
+                                            reqPath,
+                                            prevLink,
+                                            curDepth,
                                             nextLink))
                             .build(),
                     HTML_UTF_8);
@@ -146,7 +213,8 @@ public final class MockWebsite {
 
     public static String secureServerUrl(
             ClientAndServer client, String urlPath) {
-        return serverUrl(client, urlPath).replace("http://", "https://");
+        return serverUrl(client, urlPath).replace("http://",
+                "https://");
     }
 
     public static String serverUrl(ClientAndServer client, String urlPath) {
@@ -157,7 +225,8 @@ public final class MockWebsite {
 
     public static String serverUrl(HttpRequest request, String urlPath) {
         return "http://localhost:%s%s".formatted(
-                StringUtils.substringAfterLast(request.getLocalAddress(), ":"),
+                StringUtils.substringAfterLast(
+                        request.getLocalAddress(), ":"),
                 StringUtils.prependIfMissing(urlPath, "/"));
     }
 
@@ -167,45 +236,56 @@ public final class MockWebsite {
                 .when(request().withPath(urlPath))
                 .respond(
                         response().withBody(
-                                MockWebsite.htmlPage().body(body).build(),
+                                MockWebsite.htmlPage()
+                                        .body(body)
+                                        .build(),
                                 HTML_UTF_8));
     }
 
     public static Expectation[] whenHtml(
-            ClientAndServer client, String urlPath, TestResource resource) {
+            ClientAndServer client, String urlPath,
+            TestResource resource) {
         return client
                 .when(request().withPath(urlPath))
-                .respond(response().withBody(resource.asString(), HTML_UTF_8));
+                .respond(response().withBody(
+                        resource.asString(),
+                        HTML_UTF_8));
     }
 
     public static Expectation[] whenPNG(
-            ClientAndServer client, String urlPath, TestResource resource) {
+            ClientAndServer client, String urlPath,
+            TestResource resource) {
         return client
                 .when(request().withPath(urlPath))
                 .respond(
                         response().withBody(
                                 BinaryBody.binary(
-                                        resource.asBytes(), MediaType.PNG)));
+                                        resource.asBytes(),
+                                        MediaType.PNG)));
     }
 
     public static Expectation[] whenJPG(
-            ClientAndServer client, String urlPath, TestResource resource) {
+            ClientAndServer client, String urlPath,
+            TestResource resource) {
         return client
                 .when(request().withPath(urlPath))
                 .respond(
                         response().withBody(
                                 BinaryBody.binary(
-                                        resource.asBytes(), MediaType.JPEG)));
+                                        resource.asBytes(),
+                                        MediaType.JPEG)));
     }
 
     public static Expectation[] whenPDF(
-            ClientAndServer client, String urlPath, TestResource resource) {
+            ClientAndServer client, String urlPath,
+            TestResource resource) {
         return client
                 .when(request().withPath(urlPath))
                 .respond(
                         response().withBody(
                                 BinaryBody.binary(
-                                        resource.asBytes(), MediaType.PDF)));
+                                        resource.asBytes(),
+                                        MediaType.PDF)));
     }
 
     public static String htmlWithBody(String body) {

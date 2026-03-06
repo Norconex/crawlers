@@ -24,7 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.util.Web;
 
@@ -40,20 +40,21 @@ public class PostImportLinksStage
 
     @Override
     public boolean test(CommitterPipelineContext ctx) {
-        var cfg = Web.config(ctx.getCrawlContext());
+        var cfg = Web.config(ctx.getCrawlSession().getCrawlContext());
 
         var fieldMatcher = cfg.getPostImportLinks();
         if (StringUtils.isBlank(fieldMatcher.getPattern())) {
             return true;
         }
 
-        var doc = ctx.getDoc();
+        var doc = ctx.getDocContext().getDoc();
         var fieldsWithLinks = doc.getMetadata().matchKeys(fieldMatcher);
         if (fieldsWithLinks.isEmpty()) {
             return true;
         }
 
-        var docRecord = (WebCrawlDocContext) ctx.getDoc().getDocContext();
+        var docRecord =
+                (WebCrawlEntry) ctx.getDocContext().getCurrentCrawlEntry();
 
         // Previously extracted URLs.
         Set<String> extractedURLs =
@@ -77,12 +78,11 @@ public class PostImportLinksStage
         extractedURLs.addAll(inScopeUrls);
         docRecord.setReferencedUrls(new ArrayList<>(extractedURLs));
 
-        ctx.getCrawlContext().fire(
+        ctx.getCrawlSession().fire(
                 CrawlerEvent.builder()
                         .name(WebCrawlerEvent.URLS_POST_IMPORTED)
-                        .source(ctx.getCrawlContext())
-                        .subject(inScopeUrls)
-                        .docContext(ctx.getDoc().getDocContext())
+                        .source(ctx.getCrawlSession())
+                        .crawlEntry(ctx.getDocContext().getCurrentCrawlEntry())
                         .build());
         return true;
     }
@@ -90,29 +90,30 @@ public class PostImportLinksStage
     private void handlePostImportLink(
             CommitterPipelineContext ctx, Set<String> inScopeUrls, String url) {
 
-        var cfg = Web.config(ctx.getCrawlContext());
-        var doc = ctx.getDoc();
-        var docRecord = (WebCrawlDocContext) ctx.getDoc().getDocContext();
+        var cfg = Web.config(ctx.getCrawlSession().getCrawlContext());
+        var doc = ctx.getDocContext().getDoc();
+        var docRecord =
+                (WebCrawlEntry) ctx.getDocContext().getCurrentCrawlEntry();
 
         try {
-            var scopedUrlCtx = new WebCrawlDocContext(url);
+            var scopedUrlCtx = new WebCrawlEntry(url);
             var urlScope = cfg.getUrlScopeResolver().resolve(
                     doc.getReference(), scopedUrlCtx);
-            Web.fireIfUrlOutOfScope(ctx.getCrawlContext(), scopedUrlCtx,
+            Web.fireIfUrlOutOfScope(ctx.getCrawlSession(), scopedUrlCtx,
                     urlScope);
             if (urlScope.isInScope()) {
                 LOG.trace("Post-import URL in crawl scope: {}", url);
                 // only queue if not queued already for this doc
                 if (inScopeUrls.add(url)) {
-                    var newDocRec = new WebCrawlDocContext(
+                    var newDocRec = new WebCrawlEntry(
                             url, docRecord.getDepth() + 1);
                     newDocRec.setReferrerReference(doc.getReference());
-                    ctx.getCrawlContext()
+                    ctx.getCrawlSession().getCrawlContext()
                             .getDocPipelines()
                             .getQueuePipeline()
                             .accept(new QueuePipelineContext(
-                                    ctx.getCrawlContext(),
-                                    docRecord));
+                                    ctx.getCrawlSession(),
+                                    newDocRec));
                     String afterQueueURL = newDocRec.getReference();
                     if (!url.equals(afterQueueURL)) {
                         LOG.debug(

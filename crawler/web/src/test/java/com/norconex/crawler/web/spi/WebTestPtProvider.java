@@ -14,12 +14,9 @@
  */
 package com.norconex.crawler.web.spi;
 
-import com.norconex.committer.core.Committer;
 import com.norconex.commons.lang.bean.spi.BasePolymorphicTypeProvider;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
-import com.norconex.crawler.web.cases.recovery.JVMCrasher;
-import com.norconex.crawler.web.cases.recovery.TestCommitter;
 import com.norconex.crawler.web.cases.recovery.ThrowingEventListener;
 import com.norconex.crawler.web.mocks.MockStartURLsProvider;
 
@@ -27,10 +24,8 @@ public class WebTestPtProvider extends BasePolymorphicTypeProvider {
 
     @Override
     protected void register(Registry r) {
-        r.add(EventListener.class,
-                JVMCrasher.class, ThrowingEventListener.class);
+        r.add(EventListener.class, ThrowingEventListener.class);
         r.add(ReferencesProvider.class, MockStartURLsProvider.class);
-        r.add(Committer.class, TestCommitter.class);
 
     }
 }

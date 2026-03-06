@@ -16,6 +16,8 @@ package com.norconex.committer.solr;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.solr.client.solrj.SolrClient;
@@ -73,7 +75,7 @@ public abstract class AbstractSolrTest {
                 new File(solrHome, "solr-test.log").getAbsolutePath());
 
         FileUtils.copyDirectory(
-                new File("./src/test/resources/solr-server"),
+                resolvePath("src/test/resources/solr-server").toFile(),
                 solrHome);
 
         solrServer = new JettySolrRunner(
@@ -177,5 +179,17 @@ public abstract class AbstractSolrTest {
     @FunctionalInterface
     protected interface CommitterConsumer {
         void accept(SolrCommitter c) throws Exception;
+    }
+
+    private static Path resolvePath(String relativePath) {
+        var path = Path.of(relativePath);
+        if (Files.exists(path)) {
+            return path;
+        }
+        var modulePath = Path.of("committer", "solr").resolve(relativePath);
+        if (Files.exists(modulePath)) {
+            return modulePath;
+        }
+        return path;
     }
 }

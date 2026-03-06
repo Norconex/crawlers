@@ -28,6 +28,8 @@
   <properties>
     <sonar.skip>false</sonar.skip>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
+
+    <httpclient5-win.version>5.2.3</httpclient5-win.version>
   </properties>
   <inceptionYear>2017</inceptionYear>
 
@@ -54,7 +56,7 @@
     <dependency>
       <groupId>org.apache.httpcomponents.client5</groupId>
       <artifactId>httpclient5-win</artifactId>
-      <version>${httpclient5.version}</version>
+      <version>${httpclient5-win.version}</version>
     </dependency>
     <dependency>
         <groupId>commons-codec</groupId>

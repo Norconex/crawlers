@@ -88,17 +88,17 @@ import org.apache.hc.core5.util.Timeout;
 
 import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.operations.url.impl.GenericUrlNormalizerConfig.Normalization;
+import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.WebFetchRequest;
 import com.norconex.crawler.web.fetch.WebFetchResponse;
-import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.util.ApacheHttpUtil;
 import com.norconex.crawler.web.fetch.util.ApacheRedirectCaptureStrategy;
 import com.norconex.crawler.web.fetch.util.HstsResolver;
@@ -222,6 +222,8 @@ public class HttpClientFetcher
         var req = (WebFetchRequest) fetchRequest;
 
         var doc = req.getDoc();
+        var effectiveDoc = doc;
+        var requestReference = doc.getReference();
         var httpMethod = req.getMethod();
 
         if (httpClient == null) {
@@ -235,17 +237,29 @@ public class HttpClientFetcher
 
             //--- HSTS Policy --------------------------------------------------
             if (!configuration.isHstsDisabled()) {
-                HstsResolver.resolve(
-                        httpClient, (WebCrawlDocContext) doc.getDocContext());
+                var docCtx = req.getCrawlDocContext();
+                if (docCtx != null) {
+                    var crawlEntry = (WebCrawlEntry) docCtx
+                            .getCurrentCrawlEntry();
+                    HstsResolver.resolve(httpClient, crawlEntry);
+                    requestReference = crawlEntry.getReference();
+                    if (!StringUtils.equals(doc.getReference(),
+                            requestReference)) {
+                        effectiveDoc = doc.withReference(requestReference);
+                        docCtx.setDoc(effectiveDoc);
+                    }
+                }
             }
+
+            final var responseDoc = effectiveDoc;
 
             //--- Prepare the request ------------------------------------------
 
-            LOG.debug("Fetching: {}", doc.getReference());
+            LOG.debug("Fetching: {}", requestReference);
 
             var method = ofNullable(httpMethod).orElse(GET);
             request = ApacheHttpUtil.createUriRequest(
-                    doc.getReference(), method);
+                    requestReference, method);
 
             var ctx = HttpClientContext.create();
             // auth cache
@@ -256,10 +270,12 @@ public class HttpClientFetcher
             }
 
             if (!configuration.isETagDisabled()) {
-                ApacheHttpUtil.setRequestIfNoneMatch(request, doc);
+                ApacheHttpUtil.setRequestIfNoneMatch(
+                        request, req.getCrawlDocContext());
             }
             if (!configuration.isIfModifiedSinceDisabled()) {
-                ApacheHttpUtil.setRequestIfModifiedSince(request, doc);
+                ApacheHttpUtil.setRequestIfModifiedSince(
+                        request, req.getCrawlDocContext());
             }
 
             // Execute the method.
@@ -271,7 +287,7 @@ public class HttpClientFetcher
 
                 LOG.debug(
                         "Fetch status for: \"{}\": {} - {}",
-                        doc.getReference(), statusCode, reason);
+                        responseDoc.getReference(), statusCode, reason);
 
                 var responseBuilder = HttpClientFetchResponse.builder()
                         .statusCode(statusCode)
@@ -282,17 +298,24 @@ public class HttpClientFetcher
                                         .getRedirectTarget(ctx));
 
                 //--- Extract headers ---
+                var docCtxForHeaders = req.getCrawlDocContext();
+                var webEntryForHeaders = docCtxForHeaders != null
+                        ? (WebCrawlEntry) docCtxForHeaders
+                                .getCurrentCrawlEntry()
+                        : null;
                 ApacheHttpUtil.applyResponseHeaders(
-                        response, configuration.getHeadersPrefix(), doc);
+                        response, configuration.getHeadersPrefix(), responseDoc,
+                        webEntryForHeaders);
 
                 //--- Extract body ---
                 if (HttpMethod.GET.is(method) || HttpMethod.POST.is(method)) {
-                    if (ApacheHttpUtil.applyResponseContent(response, doc)) {
-                        performDetection(doc);
+                    if (ApacheHttpUtil.applyResponseContent(response,
+                            responseDoc)) {
+                        performDetection(responseDoc);
                     } else {
                         LOG.debug(
                                 "No content returned for: {}",
-                                doc.getReference());
+                                responseDoc.getReference());
                     }
                 }
 
@@ -301,14 +324,14 @@ public class HttpClientFetcher
                     userToken = ctx.getUserToken();
 
                     return responseBuilder
-                            .resolutionStatus(CrawlDocStatus.NEW)
+                            .processingOutcome(ProcessingOutcome.NEW)
                             .build();
                 }
 
                 // UNMODIFIED
                 if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
                     return responseBuilder
-                            .resolutionStatus(CrawlDocStatus.UNMODIFIED)
+                            .processingOutcome(ProcessingOutcome.UNMODIFIED)
                             .build();
                 }
 
@@ -318,7 +341,7 @@ public class HttpClientFetcher
                 if (configuration.getNotFoundStatusCodes()
                         .contains(statusCode)) {
                     return responseBuilder
-                            .resolutionStatus(CrawlDocStatus.NOT_FOUND)
+                            .processingOutcome(ProcessingOutcome.NOT_FOUND)
                             .build();
                 }
 
@@ -327,7 +350,7 @@ public class HttpClientFetcher
                         "Unsupported HTTP Response: {}",
                         response.getReasonPhrase());
                 return responseBuilder
-                        .resolutionStatus(CrawlDocStatus.BAD_STATUS)
+                        .processingOutcome(ProcessingOutcome.BAD_STATUS)
                         .build();
             });
 
@@ -350,7 +373,7 @@ public class HttpClientFetcher
     }
 
     @Override
-    protected void fetcherStartup(CrawlContext crawler) {
+    protected void fetcherStartup(CrawlSession crawler) {
         httpClient = createHttpClient();
         var userAgent = configuration.getUserAgent();
         if (StringUtils.isBlank(userAgent)) {
@@ -371,7 +394,7 @@ public class HttpClientFetcher
     }
 
     @Override
-    protected void fetcherShutdown(CrawlContext c) {
+    protected void fetcherShutdown(CrawlSession c) {
         if (httpClient instanceof CloseableHttpClient hc) {
             try {
                 hc.close();
@@ -390,11 +413,10 @@ public class HttpClientFetcher
     // getting those values from HTTP headers or other fetcher-specific
     // ways of doing it.
     private void performDetection(Doc doc) {
-        var docRecord = doc.getDocContext();
         try {
             if (configuration.isForceContentTypeDetection()
-                    || docRecord.getContentType() == null) {
-                docRecord.setContentType(
+                    || doc.getContentType() == null) {
+                doc.setContentType(
                         ContentTypeDetector.detect(
                                 doc.getInputStream(), doc.getReference()));
             }
@@ -403,8 +425,8 @@ public class HttpClientFetcher
         }
         try {
             if (configuration.isForceCharsetDetection()
-                    || docRecord.getCharset() == null) {
-                docRecord.setCharset(
+                    || doc.getCharset() == null) {
+                doc.setCharset(
                         CharsetDetector.builder()
                                 .build().detect(doc.getInputStream()));
             }

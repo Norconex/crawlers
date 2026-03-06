@@ -35,8 +35,6 @@ class CacheImporter {
             SerializedCache serialCache, HazelcastInstance hazelcast) {
         Class<?> targetClass = determineTargetClass(serialCache);
 
-        registerCacheType(manager, serialCache, targetClass);
-
         if (CacheType.QUEUE.equals(serialCache.getCacheType())) {
             configureQueueStore(hazelcast, serialCache.getCacheName(),
                     targetClass);
@@ -62,16 +60,6 @@ class CacheImporter {
             }
         }
         return targetClass;
-    }
-
-    private static void registerCacheType(HazelcastCacheManager manager,
-            SerializedCache serialCache, Class<?> targetClass) {
-        try {
-            manager.registerCacheType(serialCache.getCacheName(), targetClass);
-        } catch (Exception e) {
-            LOG.debug("Could not register cache type for '{}': {}",
-                    serialCache.getCacheName(), e.toString());
-        }
     }
 
     private static void configureQueueStore(HazelcastInstance hazelcast,

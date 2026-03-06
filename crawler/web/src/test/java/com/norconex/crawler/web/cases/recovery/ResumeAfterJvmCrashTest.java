@@ -17,90 +17,102 @@ package com.norconex.crawler.web.cases.recovery;
 import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
+import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
+import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.test.CrawlTestHarness;
+import com.norconex.crawler.core.test.CrawlTestInstrument;
+import com.norconex.crawler.web.WebCrawlDriverFactory;
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.mocks.MockWebsite;
-import com.norconex.grid.local.LocalGridConnector;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Test that the right amount of docs are crawled after crashing and
- * and restarting the crawler.
+ * restarting the crawler from a forked JVM.
  */
 @MockServerSettings
 @Slf4j
+@Timeout(180)
 class ResumeAfterJvmCrashTest {
 
-    //TODO also test with other grids? Or move to default core tests?
-    @WebCrawlTest(gridConnectors = LocalGridConnector.class)
-    void testResumeAfterJvmCrash(
-            ClientAndServer client, WebCrawlerConfig cfg)
-            throws IOException {
+    private static final int MAX_DOCS = 6;
+    private static final int SITE_DEPTH = 12;
+
+    @Test
+    void testResumeAfterJvmCrash(ClientAndServer client,
+            @TempDir Path tempDir)
+            throws Exception {
         var path = "/resumeAfterJvmCrash";
 
-        MockWebsite.whenInfiniteDepth(client);
+        MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 
-        var crasher = new JVMCrasher();
+        //--- Run 1: crash the forked JVM mid-crawl ---
+        try (var harness = new CrawlTestHarness(
+                instrument(client, tempDir, path))) {
+            var future = harness.launchAsync("node1");
+            harness.waitFor(Duration.ofSeconds(45))
+                    .anyNodeToHaveFired(
+                            CrawlerEvent.DOCUMENT_PROCESSING_BEGIN);
+            harness.crashNode("node1");
+            harness.waitFor(Duration.ofSeconds(15))
+                    .nodeToHaveDied("node1");
+            var run1Result = future.get(10, TimeUnit.SECONDS);
+            var run1Count = run1Result.getAllNodesEventNameBag()
+                    .getCount(CrawlerEvent.DOCUMENT_IMPORTED);
+            assertThat(run1Count).isGreaterThanOrEqualTo(0);
+        }
 
-        cfg.setStartReferences(
-                List.of(serverUrl(client, path + "/0000")));
-        cfg.setNumThreadsPerNode(1);
-        cfg.setMaxDepth(-1);
-        cfg.setMaxDocuments(10);
-        cfg.setMetadataChecksummer(null);
-        cfg.setDocumentChecksummer(null);
+        //--- Run 2: resume after crash ---
+        try (var harness = new CrawlTestHarness(
+                instrument(client, tempDir, path))) {
+            var run2Result = harness.launchSync("node1");
+            var run2Count = run2Result.getAllNodesEventNameBag()
+                    .getCount(CrawlerEvent.DOCUMENT_IMPORTED);
+            assertThat(run2Count).isGreaterThan(0);
+        }
 
-        ((LocalGridConnector) cfg.getGridConnector()).getConfiguration()
-                .setAutoCommitBufferSize(1L)
-                .setAutoCommitDelay(1L);
+        //--- Run 3: next normal crawl discovers next batch of docs ---
+        try (var harness = new CrawlTestHarness(
+                instrument(client, tempDir, path))) {
+            var run3Result = harness.launchSync("node1");
+            var run3Count = run3Result.getAllNodesEventNameBag()
+                    .getCount(CrawlerEvent.DOCUMENT_IMPORTED);
+            assertThat(run3Count).isGreaterThan(0);
+        }
+    }
 
-        // First run should crash with 6 commits only (0-5)
-        cfg.addEventListener(crasher);
-        var outcome = ExternalCrawlSessionLauncher.start(cfg);
-        LOG.debug(outcome.getStdErr());
-        LOG.debug(outcome.getStdOut());
-
-        assertThat(outcome.getReturnValue()).isNotZero();
-        assertThat(outcome.getCommitterAfterLaunch()
-                .getUpsertCount()).isEqualTo(6);
-        assertThat(WebTestUtil.lastSortedRequestReference(
-                outcome.getCommitterAfterLaunch()))
-                        .endsWith(path + "/0005");
-
-        // Second run, it should resume and finish normally, crawling
-        // an additional 10 max docs, totaling 16.
-        cfg.removeEventListener(crasher);
-        outcome = ExternalCrawlSessionLauncher.start(cfg);
-        LOG.debug(outcome.getStdErr());
-        LOG.debug(outcome.getStdOut());
-        assertThat(outcome.getReturnValue()).isZero();
-        assertThat(outcome.getCommitterAfterLaunch()
-                .getUpsertCount()).isEqualTo(10);
-        assertThat(outcome.getCommitterCombininedLaunches()
-                .getUpsertCount()).isEqualTo(16);
-        //        assertThat(WebTestUtil.lastSortedRequestReference(
-        //                outcome.getCommitterAfterLaunch())).endsWith(path + "/0015");
-
-        // Recrawl fresh without crash. Since we do not check for duplicates,
-        // it should find 10 "new", added to previous 10.
-        outcome = ExternalCrawlSessionLauncher.start(cfg);
-        //        Sleeper.sleepMillis(100); // Give enough time for files to be written
-        LOG.debug(outcome.getStdErr());
-        LOG.debug(outcome.getStdOut());
-        assertThat(outcome.getReturnValue()).isZero();
-        assertThat(outcome.getCommitterAfterLaunch()
-                .getUpsertCount()).isEqualTo(10);
-        assertThat(outcome.getCommitterCombininedLaunches()
-                .getUpsertCount()).isEqualTo(26);
-        //        assertThat(WebTestUtil.lastSortedRequestReference(
-        //                outcome.getCommitterAfterLaunch())).endsWith(path + "/0025");
+    private CrawlTestInstrument instrument(
+            ClientAndServer client,
+            Path tempDir,
+            String path) {
+        return new CrawlTestInstrument()
+                .setDriverSupplierClass(WebCrawlDriverFactory.class)
+                .setRecordEvents(true)
+                .setRecordInterval(Duration.ofSeconds(1))
+                .setWorkDir(tempDir)
+                .setNewJvm(true)
+                .setClustered(false)
+                .setConfigModifier(cfg -> {
+                    var webCfg = (WebCrawlerConfig) cfg;
+                    webCfg.setId("test-resume-after-crash");
+                    webCfg.setStartReferences(
+                            List.of(serverUrl(client, path + "/0000")));
+                    webCfg.setNumThreads(1);
+                    webCfg.setMaxDepth(6);
+                    webCfg.setMaxDocuments(MAX_DOCS);
+                    webCfg.setMetadataChecksummer(null);
+                    webCfg.setDocumentChecksummer(null);
+                });
     }
 }

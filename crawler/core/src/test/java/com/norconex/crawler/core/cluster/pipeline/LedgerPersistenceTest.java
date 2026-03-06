@@ -77,7 +77,7 @@ class LedgerPersistenceTest {
                         cfg -> cfg.setDelay(
                                 Duration.ofMillis(
                                         10)))))
-                .setNumThreadsPerNode(1)
+                .setNumThreads(1)
                 .setIdleTimeout(Duration.ofMillis(500));
     }
 }

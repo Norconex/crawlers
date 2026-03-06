@@ -27,6 +27,7 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.impl.StandardFileSystemManager;
 import org.apache.commons.vfs2.provider.local.LocalFile;
 
+import com.norconex.commons.lang.file.ContentType;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.BaseFetcherConfig;
@@ -221,6 +222,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
             meta.set(DocMetaConstants.CONTENT_ENCODING,
                     info.getContentEncoding());
             meta.set(DocMetaConstants.CONTENT_TYPE, info.getContentType());
+            doc.setContentType(ContentType.valueOf(info.getContentType()));
         }
         content.getAttributes().forEach((k, v) -> {
             if (v != null) {

@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.fs.doc.pipelines.importer.stages;
 
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
 import com.norconex.crawler.core.CrawlerException;
@@ -25,6 +27,7 @@ import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchUtil;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.fs.doc.FsCrawlEntry;
+import com.norconex.crawler.fs.doc.FsDocMetadata;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.FileFetchResponse;
 import com.norconex.importer.doc.DocMetaConstants;
@@ -72,10 +75,31 @@ public class FileFetchStage extends AbstractImporterStage {
                     + docContext.getReference(), e);
         }
         var originalOutcome = fsEntry.getProcessingOutcome();
+        var previousEntry = docContext.getPreviousCrawlEntry();
 
         fsEntry.setProcessedAt(ZonedDateTime.now());
         fsEntry.setFile(response.isFile());
         fsEntry.setFolder(response.isFolder());
+
+        var lastModifiedMillis = doc.getMetadata()
+                .getLong(FsDocMetadata.LAST_MODIFIED);
+        fsEntry.setLastModified(lastModifiedMillis != null
+                ? ZonedDateTime.ofInstant(
+                        Instant.ofEpochMilli(lastModifiedMillis),
+                        ZoneOffset.UTC)
+                : previousEntry != null
+                        ? previousEntry.getLastModified()
+                : null);
+        fsEntry.setContentType(doc.getContentType() != null
+                ? doc.getContentType()
+                : previousEntry != null
+                        ? previousEntry.getContentType()
+                : null);
+        fsEntry.setCharset(doc.getCharset() != null
+                ? doc.getCharset()
+                : previousEntry != null
+                        ? previousEntry.getCharset()
+                : null);
 
         //--- Add collector-specific metadata ---
         var meta = doc.getMetadata();

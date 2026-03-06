@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -55,11 +54,10 @@ class HazelcastStandalonePersistenceTest {
     }
 
     private HazelcastInstance newInstance() {
-        var workDir = tempDir.toAbsolutePath().toString().replace("\\", "/");
+        var ctx =
+                new HazelcastConfigurerContext(tempDir, false, "test-cluster");
         return Hazelcast.newHazelcastInstance(
-                HazelcastConfigLoader.load(
-                        HazelcastClusterConnectorConfig.DEFAULT_CONFIG_FILE,
-                        Map.of("workDir", workDir)));
+                new JdbcHazelcastConfigurer().buildConfig(ctx));
     }
 
     @Test

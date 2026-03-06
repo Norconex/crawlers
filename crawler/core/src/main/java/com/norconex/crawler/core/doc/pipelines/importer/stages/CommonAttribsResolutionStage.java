@@ -42,7 +42,21 @@ public class CommonAttribsResolutionStage
 
     @Override
     public boolean test(ImporterPipelineContext ctx) {
-        CommonAttributesResolver.resolve(ctx.getDocContext().getDoc());
+        var docContext = ctx.getDocContext();
+        CommonAttributesResolver.resolve(docContext.getDoc());
+
+        var current = docContext.getCurrentCrawlEntry();
+        var previous = docContext.getPreviousCrawlEntry();
+        current.setContentType(docContext.getDoc().getContentType() != null
+                ? docContext.getDoc().getContentType()
+                : previous != null
+                        ? previous.getContentType()
+                : null);
+        current.setCharset(docContext.getDoc().getCharset() != null
+                ? docContext.getDoc().getCharset()
+                : previous != null
+                        ? previous.getCharset()
+                : null);
         return true;
     }
 }

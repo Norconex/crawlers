@@ -31,10 +31,10 @@ import org.xml.sax.helpers.DefaultHandler;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.xml.XmlUtil;
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.operations.link.Link;
 import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
+import com.norconex.importer.doc.Doc;
 import com.norconex.importer.handler.CommonMatchers;
 
 import lombok.EqualsAndHashCode;
@@ -81,11 +81,11 @@ public class XmlFeedLinkExtractor
             new XmlFeedLinkExtractorConfig();
 
     @Override
-    public Set<Link> extractLinks(CrawlDoc doc) throws IOException {
+    public Set<Link> extractLinks(Doc doc) throws IOException {
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(
-                doc.getDocContext().getContentType().toString())) {
+                doc.getContentType().toString())) {
             return Set.of();
         }
 

@@ -38,28 +38,28 @@ import com.norconex.commons.lang.ResourceLoader;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.img.MutableImage;
-import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.Quality;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.Storage;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.StorageDiskStructure;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
+import com.norconex.importer.doc.Doc;
 
 @MockServerSettings
 class FeaturedImageResolverTest {
 
     private @TempDir Path tempDir;
 
-    @WebCrawlTest(focus = Focus.CONTEXT)
+    @WebCrawlTest
     void testProcessFeaturedImage(
             ClientAndServer client, CrawlContext ctx)
             throws IOException {
         MockWebsite.whenPNG(client, "/640x480.png", IMG_640X480_PNG);
-        MockWebsite.whenPNG(client, "/page/320x240.png", IMG_320X240_PNG);
+        MockWebsite.whenPNG(client, "/page/320x240.png",
+                IMG_320X240_PNG);
         MockWebsite.whenPNG(client, "160x120.png", IMG_160X120_PNG);
 
         var baseUrl = "http://localhost:" + client.getLocalPort();
@@ -70,7 +70,8 @@ class FeaturedImageResolverTest {
         var fip = new FeaturedImageResolver();
         fip.getConfiguration()
                 .setStorages(List.of(INLINE, URL, DISK))
-                .setStorageDiskDir(tempDir.resolve("imageStorage"))
+                .setStorageDiskDir(
+                        tempDir.resolve("imageStorage"))
                 .setImageCacheDir(tempDir.resolve("imageCache"))
                 .setStorageInlineField("image-inline")
                 .setStorageUrlField("image-url")
@@ -88,10 +89,12 @@ class FeaturedImageResolverTest {
         var doc = newDoc(docUrl);
         fip.accept(fetcher, doc);
         var img = new MutableImage(
-                Paths.get(doc.getMetadata().getString("image-path")));
+                Paths.get(doc.getMetadata()
+                        .getString("image-path")));
         assertThat(doc.getMetadata().getString("image-url")).isEqualTo(
                 baseUrl + "/640x480.png");
-        assertThat(img.getDimension()).isEqualTo(new Dimension(640, 480));
+        assertThat(img.getDimension())
+                .isEqualTo(new Dimension(640, 480));
 
         // first over 200x200, scaled 50% down
         doc = newDoc(docUrl);
@@ -103,8 +106,10 @@ class FeaturedImageResolverTest {
         assertThat(doc.getMetadata().getString("image-url")).isEqualTo(
                 baseUrl + "/page/320x240.png");
         img = new MutableImage(
-                Paths.get(doc.getMetadata().getString("image-path")));
-        assertThat(img.getDimension()).isEqualTo(new Dimension(160, 120));
+                Paths.get(doc.getMetadata()
+                        .getString("image-path")));
+        assertThat(img.getDimension())
+                .isEqualTo(new Dimension(160, 120));
 
         // Can fail due to cache... set to memory when testing
 
@@ -117,7 +122,8 @@ class FeaturedImageResolverTest {
                 .setScaleDimensions(null);
         fip.accept(fetcher, doc);
         img = new MutableImage(
-                Paths.get(doc.getMetadata().getString("image-path")));
+                Paths.get(doc.getMetadata()
+                        .getString("image-path")));
         assertThat(img.getDimension()).isEqualTo(new Dimension(5, 5));
     }
 
@@ -137,9 +143,12 @@ class FeaturedImageResolverTest {
                 .setScaleQuality(Quality.LOW)
                 .setScaleDimensions(new Dimension(50, 50))
                 .setScaleStretch(true)
-                .setStorages(List.of(Storage.URL, Storage.INLINE, Storage.DISK))
-                .setStorageDiskDir(Paths.get("c:\\someotherdir"))
-                .setStorageDiskStructure(StorageDiskStructure.DATETIME)
+                .setStorages(List.of(Storage.URL,
+                        Storage.INLINE, Storage.DISK))
+                .setStorageDiskDir(
+                        Paths.get("c:\\someotherdir"))
+                .setStorageDiskStructure(
+                        StorageDiskStructure.DATETIME)
                 .setStorageDiskField("diskField")
                 .setStorageInlineField("inlineField")
                 .setStorageUrlField("urlField");
@@ -178,9 +187,10 @@ class FeaturedImageResolverTest {
         ////                () -> BeanMapper.DEFAULT.assertWriteRead(p));
     }
 
-    private CrawlDoc newDoc(String docUrl) {
+    private Doc newDoc(String docUrl) {
         return CrawlDocStubs.crawlDoc(
                 docUrl,
-                ContentType.HTML, ResourceLoader.getHtmlStream(getClass()));
+                ContentType.HTML,
+                ResourceLoader.getHtmlStream(getClass()));
     }
 }

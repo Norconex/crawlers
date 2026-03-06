@@ -15,7 +15,9 @@
 package com.norconex.crawler.core;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.event.EventManager;
@@ -56,7 +58,8 @@ public class CrawlDriver {
 
     private final CrawlDocPipelines docPipelines;
     @Default
-    private final CrawlCallbacks callbacks = CrawlCallbacks.builder().build();
+    private final CrawlCallbacks callbacks =
+            CrawlCallbacks.builder().build();
     @Default
     private final BeanMapper beanMapper = BeanMapper.DEFAULT;
     @Default
@@ -74,6 +77,17 @@ public class CrawlDriver {
     @Default
     private final Class<? extends CrawlEntry> crawlEntryType =
             CrawlEntry.class;
+
+    /**
+     * Optional map of Hazelcast map-config-name (or wildcard pattern as
+     * declared in the YAML, e.g. {@code "ledger_*"}) to the concrete Java
+     * type that should be (de)serialized for values in that map.
+     * The framework automatically adds the {@code ledger_*} mapping using
+     * {@link #crawlEntryType}. Extensions that persist their own types should
+     * add their entries here.
+     */
+    @Default
+    private final Map<String, Class<?>> cacheTypes = new HashMap<>();
 
     @Accessors(fluent = true)
     @Data

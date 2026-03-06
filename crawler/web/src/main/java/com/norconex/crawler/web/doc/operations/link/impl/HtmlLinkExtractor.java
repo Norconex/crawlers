@@ -44,12 +44,12 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.operations.link.Link;
 import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
 import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractorConfig.RegexPair;
 import com.norconex.crawler.web.doc.operations.url.impl.GenericUrlNormalizer;
+import com.norconex.importer.doc.Doc;
 import com.norconex.crawler.web.util.Web;
 import com.norconex.importer.handler.CommonMatchers;
 
@@ -297,11 +297,11 @@ public class HtmlLinkExtractor
     // @formatter:on
 
     @Override
-    public Set<Link> extractLinks(CrawlDoc doc) throws IOException {
+    public Set<Link> extractLinks(Doc doc) throws IOException {
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(
-                doc.getDocContext().getContentType().toString())) {
+                doc.getContentType().toString())) {
             return Set.of();
         }
 

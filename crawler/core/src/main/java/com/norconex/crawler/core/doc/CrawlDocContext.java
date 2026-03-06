@@ -32,6 +32,10 @@ public class CrawlDocContext {
     private @NonNull CrawlEntry currentCrawlEntry;
     private CrawlEntry previousCrawlEntry;
 
+    public void setDoc(@NonNull Doc doc) {
+        this.doc = doc;
+    }
+
     public String getReference() {
         return doc.getReference();
     }

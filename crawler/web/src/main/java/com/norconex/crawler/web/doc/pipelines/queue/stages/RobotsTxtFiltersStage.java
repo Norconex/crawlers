@@ -16,9 +16,9 @@ package com.norconex.crawler.web.doc.pipelines.queue.stages;
 
 import java.util.function.Predicate;
 
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxtFilter;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.util.Web;
@@ -42,7 +42,7 @@ public class RobotsTxtFiltersStage implements Predicate<QueuePipelineContext> {
 
     @Override
     public boolean test(QueuePipelineContext ctx) {
-        var cfg = Web.config(ctx.getCrawlContext());
+        var cfg = Web.config(ctx.getCrawlSession().getCrawlContext());
 
         if (cfg.getRobotsTxtProvider() == null) {
             return true;
@@ -50,16 +50,18 @@ public class RobotsTxtFiltersStage implements Predicate<QueuePipelineContext> {
 
         var filter = findRejectingRobotsFilter(ctx);
         if (filter != null) {
-            ctx.getDocContext().setState(CrawlDocStatus.REJECTED);
-            ctx.getCrawlContext().fire(
+            var crawlSession = ctx.getCrawlSession();
+            ctx.getCrawlEntry()
+                    .setProcessingOutcome(ProcessingOutcome.REJECTED);
+            crawlSession.fire(
                     CrawlerEvent.builder()
                             .name(WebCrawlerEvent.REJECTED_ROBOTS_TXT)
-                            .source(ctx.getCrawlContext())
-                            .subject(filter)
-                            .docContext(ctx.getDocContext())
+                            .source(crawlSession)
+                            .crawlSession(crawlSession)
+                            .crawlEntry(ctx.getCrawlEntry())
                             .build());
             LOG.debug("REJECTED by robots.txt. Reference={} Filter={}",
-                    ctx.getDocContext().getReference(), filter);
+                    ctx.getCrawlEntry().getReference(), filter);
             return false;
         }
         return true;
@@ -74,13 +76,14 @@ public class RobotsTxtFiltersStage implements Predicate<QueuePipelineContext> {
             QueuePipelineContext ctx) {
 
         var robotsTxt = Web.robotsTxt(
-                ctx.getCrawlContext(), ctx.getDocContext().getReference());
+                ctx.getCrawlSession().getCrawlContext(),
+                ctx.getCrawlEntry().getReference());
         if (robotsTxt == null) {
             return null;
         }
         var disallowFilters = robotsTxt.getDisallowFilters();
         var allowFilters = robotsTxt.getAllowFilters();
-        String url = ctx.getDocContext().getReference();
+        String url = ctx.getCrawlEntry().getReference();
 
         for (RobotsTxtFilter df : disallowFilters) {
             if (!df.acceptReference(url)) {

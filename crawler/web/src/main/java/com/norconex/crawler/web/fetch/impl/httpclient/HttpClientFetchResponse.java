@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.fetch.impl.httpclient;
 
-import com.norconex.crawler.core.doc.CrawlDocStatus;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.web.fetch.WebFetchResponse;
 
 import lombok.Builder;
@@ -27,7 +27,7 @@ import lombok.Data;
 @Builder
 @Data
 public class HttpClientFetchResponse implements WebFetchResponse {
-    private CrawlDocStatus resolutionStatus;
+    private ProcessingOutcome processingOutcome;
     private int statusCode;
     private String reasonPhrase;
     private Exception exception;

@@ -18,7 +18,6 @@ import java.io.Closeable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import com.hazelcast.collection.IQueue;
@@ -42,9 +41,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class HazelcastCacheManager implements CacheManager, Closeable {
 
-    static final String TYPE_REGISTRY_MAP = "__cache_types";
-    private static final Map<HazelcastInstance, AtomicInteger> REF_COUNTS =
-            new ConcurrentHashMap<>();
     static final int BATCH_SIZE = 1000;
 
     final HazelcastInstance hazelcast;
@@ -54,8 +50,6 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
 
     public HazelcastCacheManager(HazelcastInstance hazelcastInstance) {
         hazelcast = hazelcastInstance;
-        REF_COUNTS.computeIfAbsent(hazelcast, k -> new AtomicInteger(0))
-                .incrementAndGet();
     }
 
     /**
@@ -69,10 +63,6 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
 
     @Override
     public <T> CacheMap<T> getCacheMap(String name, Class<T> valueType) {
-        // Register cache type so typed stores can resolve it from
-        // the durable type registry before any data is loaded.
-        registerCacheType(name, valueType);
-
         return new HazelcastMapAdapter<>(
                 getHazelcastMap(name),
                 hazelcast,
@@ -87,13 +77,7 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
     // Adapter for queue operations (to be used in CrawlEntryLedger)
     @Override
     public <T> CacheQueue<T> getCacheQueue(String name, Class<T> valueType) {
-        // Same rationale as maps: record the type up-front so JDBC queue
-        // stores (de)serialize consistently across nodes.
-        registerCacheType(name, valueType);
-
         // Use a Hazelcast IQueue so items are FIFO and distributable.
-        // The queue will store Strings or JSON-serialized objects
-        // depending on the valueType.
         return new HazelcastQueueAdapter<>(
                 getHazelcastQueue(name),
                 hazelcast,
@@ -128,24 +112,9 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
     @Override
     public void close() {
         LOG.info("HazelcastCacheManager.close() called for cleanup.");
-        var counter = REF_COUNTS.get(hazelcast);
-        if (counter == null) {
-            LOG.info("Shutting down Hazelcast instance (unknown ref count)");
-            hazelcast.shutdown();
-            LOG.info("Hazelcast instance shutdown complete.");
-            return;
-        }
-        var remaining = counter.decrementAndGet();
-        if (remaining <= 0) {
-            REF_COUNTS.remove(hazelcast);
-            LOG.info("Shutting down Hazelcast instance (last reference)");
-            hazelcast.shutdown();
-            LOG.info("Hazelcast instance shutdown complete.");
-        } else {
-            LOG.info(
-                    "Hazelcast instance still in use by {} manager(s); skipping shutdown.",
-                    remaining);
-        }
+        LOG.info("Shutting down Hazelcast instance...");
+        hazelcast.shutdown();
+        LOG.info("Hazelcast instance shutdown complete.");
         LOG.info("HazelcastCacheManager.close() cleanup complete.");
     }
 
@@ -218,39 +187,6 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
     }
 
     //--- Private methods ------------------------------------------------------
-
-    CacheMap<String> getCacheTypes() {
-        return getCacheMap(TYPE_REGISTRY_MAP, String.class);
-    }
-
-    <T> void registerCacheType(String name, Class<T> valueType) {
-        if (TYPE_REGISTRY_MAP.equals(name)) {
-            return;
-        }
-        try {
-            // Only register cache types for maps that have an active
-            // MapStore configured. Ephemeral maps (eph-*) are explicitly
-            // disabled in the YAML and should not trigger DB-backed
-            // initialization of the type registry map.
-            var cfg = hazelcast.getConfig();
-            var mapConfig = cfg.getMapConfig(name);
-            if (mapConfig == null) {
-                LOG.debug("No map config for '{}'; skipping type registration",
-                        name);
-                return;
-            }
-            var storeConfig = mapConfig.getMapStoreConfig();
-            if (storeConfig == null || !storeConfig.isEnabled()) {
-                LOG.debug("Map '{}' has no active MapStore; skipping type "
-                        + "registration", name);
-                return;
-            }
-            getCacheTypes().putIfAbsent(name, valueType.getName());
-        } catch (Exception e) {
-            LOG.debug("Could not register cache type for '{}': {}",
-                    name, e.toString());
-        }
-    }
 
     <T> IQueue<T> getHazelcastQueue(String queueName) {
         var lifecycle = hazelcast.getLifecycleService();

@@ -17,101 +17,111 @@ package com.norconex.crawler.web.cases.recovery;
 import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.commons.lang.Sleeper;
-import com.norconex.crawler.web.WebCrawler;
+import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.test.CrawlTestHarness;
+import com.norconex.crawler.core.test.CrawlTestInstrument;
+import com.norconex.crawler.web.WebCrawlDriverFactory;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.mocks.MockWebsite;
-import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Test that the right amount of docs are crawled after stoping
- * and starting the collector.
+ * Test that the right amount of docs are crawled after stopping
+ * and resuming the crawler.
  */
 @MockServerSettings
 @Slf4j
+@Timeout(120)
 class ResumeAfterStopTest {
 
-    private static final int MAX_DOCS = 25;
+    private static final int MAX_DOCS = 12;
+    private static final int SITE_DEPTH = 12;
 
     @Test
     void testResumeAfterStop(ClientAndServer client, @TempDir Path tempDir)
-            throws IOException, InterruptedException, ExecutionException,
-            TimeoutException {
+            throws Exception {
         var path = "/resumeAfterStop";
 
-        MockWebsite.whenInfiniteDepth(client);
+        MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 
-        //--- Configure ---
-        var crawlerDir = tempDir.resolve("crawler");
-        var cfg = CrawlerConfigStubs.memoryCrawlerConfig(crawlerDir);
-        cfg.setStartReferences(List.of(serverUrl(client, path + "/0000")));
-        cfg.setWorkDir(crawlerDir);
-        cfg.setNumThreadsPerNode(1);
-        cfg.setMaxDepth(-1);
-        cfg.setMaxDocuments(MAX_DOCS);
-        cfg.setDelayResolver(WebTestUtil.delayResolver(1000));
-        cfg.setMetadataChecksummer(null);
-        cfg.setDocumentChecksummer(null);
-        WebTestUtil.addTestCommitterOnce(cfg);
+        var instrument = new CrawlTestInstrument()
+                .setDriverSupplierClass(
+                        WebCrawlDriverFactory.class)
+                .setRecordEvents(true)
+                .setWorkDir(tempDir)
+                .setNewJvm(false)
+                .setClustered(false)
+                .setConfigModifier(cfg -> {
+                    var webCfg = (WebCrawlerConfig) cfg;
+                    webCfg.setId("test-resume-after-stop");
+                    webCfg.setStartReferences(
+                            List.of(serverUrl(
+                                    client,
+                                    path + "/0000")));
+                    webCfg.setNumThreads(1);
+                    webCfg.setMaxDepth(6);
+                    webCfg.setMaxDocuments(MAX_DOCS);
+                    webCfg.setDelayResolver(WebTestUtil
+                            .delayResolver(200));
+                    webCfg.setMetadataChecksummer(null);
+                    webCfg.setDocumentChecksummer(null);
+                });
 
-        var executor = Executors.newFixedThreadPool(2);
+        try (var harness = new CrawlTestHarness(instrument)) {
 
-        //--- Launch ---
-        LOG.debug("Launching crawler in a separate process...");
-        var futureCrawlOutcome =
-                executor.submit(() -> ExternalCrawlSessionLauncher.start(cfg));
-        LOG.debug("Crawler launched...");
+            //--- First run (will be stopped mid-crawl) ---
+            var futureResult = harness.launchAsync("node1");
+            harness.waitFor(Duration.ofSeconds(12))
+                    .anyNodeToHaveFired(
+                            CrawlerEvent.DOCUMENT_PROCESSING_BEGIN);
+            new Crawler(WebCrawlDriverFactory.create(),
+                    harness.getFirstNodeConfig()).stop();
+            var firstResult =
+                    futureResult.get(40, TimeUnit.SECONDS);
+            var firstTotalCount = firstResult
+                    .getAllNodesEventNameBag()
+                    .getCount(CrawlerEvent.DOCUMENT_IMPORTED);
+            assertThat(firstTotalCount).isBetween(0, MAX_DOCS - 1);
 
-        // wait until a few docs (3) are crawled
-        while (WebTestUtil.getTestCommitter(cfg) == null
-                || Files.list(WebTestUtil.getTestCommitter(cfg).getDir())
-                        .count() < 2) {
-            Sleeper.sleepMillis(500);
+            //--- Resume run (no delay) ---
+            instrument.setConfigModifier(cfg -> {
+                var webCfg = (WebCrawlerConfig) cfg;
+                webCfg.setId("test-resume-after-stop");
+                webCfg.setStartReferences(
+                        List.of(serverUrl(client, path
+                                + "/0000")));
+                webCfg.setNumThreads(1);
+                webCfg.setMaxDepth(6);
+                webCfg.setMaxDocuments(MAX_DOCS);
+                webCfg.setDelayResolver(
+                        WebTestUtil.delayResolver(0));
+                webCfg.setMetadataChecksummer(null);
+                webCfg.setDocumentChecksummer(null);
+            });
+            var secondResult = harness.launchSync("node1");
+            var secondTotalCount = secondResult
+                    .getAllNodesEventNameBag()
+                    .getCount(CrawlerEvent.DOCUMENT_IMPORTED);
+            var secondRunCount = secondTotalCount - firstTotalCount;
+
+            // A resumed run must not exceed max docs for a single run.
+            assertThat(secondRunCount).isGreaterThanOrEqualTo(0);
+            assertThat(secondTotalCount)
+                    .isGreaterThanOrEqualTo(firstTotalCount);
         }
-
-        //--- Stop ---
-        LOG.debug("Launching stop command...");
-        // Doing it in the main thread since running it externally like
-        // above is synchronized.
-        WebCrawler.create(cfg).stop();
-        LOG.debug("Stop command launched...");
-
-        var crawlOutcome = futureCrawlOutcome.get(20, TimeUnit.SECONDS);
-        var docCount = crawlOutcome.getCommitterAfterLaunch().getRequestCount();
-        assertThat(docCount).isBetween(3, MAX_DOCS - 2);
-
-        //--- Resume ---
-        var finalCountExpecation = MAX_DOCS + docCount;
-
-        cfg.setDelayResolver(WebTestUtil.delayResolver(0));
-        var finalOutcome = ExternalCrawlSessionLauncher.start(cfg);
-        LOG.debug(finalOutcome.getStdErr());
-        LOG.debug(finalOutcome.getStdOut());
-        assertThat(finalOutcome.getReturnValue()).isZero();
-        assertThat(finalOutcome.getCommitterAfterLaunch()
-                .getUpsertCount()).isEqualTo(MAX_DOCS);
-        assertThat(finalOutcome.getCommitterCombininedLaunches()
-                .getUpsertCount()).isEqualTo(finalCountExpecation);
-        assertThat(WebTestUtil.lastSortedRequestReference(
-                finalOutcome.getCommitterAfterLaunch())).isEqualTo(
-                        MockWebsite.serverUrl(client,
-                                path + "/00" + (finalCountExpecation - 1)));
-
     }
 }

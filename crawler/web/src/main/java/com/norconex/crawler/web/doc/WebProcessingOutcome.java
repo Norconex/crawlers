@@ -14,23 +14,23 @@
  */
 package com.norconex.crawler.web.doc;
 
-import com.norconex.crawler.core.doc.CrawlDocStatus;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 /**
  * Represents a URL crawling status.
- * @see CrawlDocStatus
+ * @see ProcessingOutcome
  */
-public class WebCrawlDocStatus extends CrawlDocStatus {
+public class WebProcessingOutcome extends ProcessingOutcome {
 
     private static final long serialVersionUID = 1L;
 
     /**
      * @since 2.3.0
      */
-    public static final WebCrawlDocStatus REDIRECT =
-            new WebCrawlDocStatus("REDIRECT");
+    public static final WebProcessingOutcome REDIRECT =
+            new WebProcessingOutcome("REDIRECT");
 
-    protected WebCrawlDocStatus(String state) {
+    protected WebProcessingOutcome(String state) {
         super(state);
     }
 }

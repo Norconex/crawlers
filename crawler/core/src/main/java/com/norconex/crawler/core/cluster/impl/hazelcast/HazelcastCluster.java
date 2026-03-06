@@ -15,15 +15,10 @@
 package com.norconex.crawler.core.cluster.impl.hazelcast;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
-
-import org.apache.commons.lang3.StringUtils;
 
 import com.hazelcast.cluster.Member;
 import com.hazelcast.cluster.MembershipEvent;
@@ -100,33 +95,26 @@ public class HazelcastCluster implements Cluster {
     }
 
     @Override
-    public void init(Path workDir, boolean clustered) {
+    public void init(Path workDir, boolean clustered,
+            Map<String, Class<?>> cacheTypes) {
         this.workDir = workDir;
         this.clustered = clustered;
 
         LOG.info("Initializing Hazelcast cluster node...");
 
-        Map<String, Object> variables = new HashMap<>();
-        variables.put("workDir", workDir.toAbsolutePath().toString());
-        configuration.getProperties()
-                .forEach((k, v) -> variables.put(Objects.toString(k, null), v));
-        var hzConfig = HazelcastConfigLoader.load(
-                configuration.getConfigFile(), variables);
+        var ctx = new HazelcastConfigurerContext(
+                workDir, clustered, configuration.getClusterName());
+        var hzConfig = configuration.getConfigurer().buildConfig(ctx);
 
         hzConfig.setProperty("hazelcast.logging.type", "slf4j");
 
         try {
 
-            if (StringUtils.isNotBlank(configuration.getClusterName())) {
-                hzConfig.setClusterName(configuration.getClusterName());
-            }
+            validateClusterMode(hzConfig, clustered);
 
-            // Test/driver override: allow explicit TCP/IP member list to be
-            // injected via configuration (e.g., for isolated tests running
-            // multiple clusters on the same machine).
-            applyTcpMembersOverride(hzConfig, clustered);
-
-            validateClusterMode(hzConfig, configuration, clustered);
+            // Bake concrete value types into map-store configs before starting
+            // Hazelcast so EAGER loading always uses the right class.
+            applyCacheTypes(hzConfig, cacheTypes);
 
             LOG.info("Creating HazelcastInstance with cluster name: {}",
                     hzConfig.getClusterName());
@@ -176,75 +164,30 @@ public class HazelcastCluster implements Cluster {
         }
     }
 
-    private void applyTcpMembersOverride(Config hzConfig, boolean clustered) {
-        if (!clustered) {
+    /**
+     * Applies concrete value types to map-store properties in the Hazelcast
+     * config <em>before</em> {@code newHazelcastInstance()} is called, so
+     * EAGER loading always deserializes values with the right class.
+     */
+    private void applyCacheTypes(
+            Config hzConfig, Map<String, Class<?>> cacheTypes) {
+        if (cacheTypes == null || cacheTypes.isEmpty()) {
             return;
         }
-
-        var tcpMembersRaw =
-                StringUtils.trimToNull(configuration.getTcpMembers());
-        if (tcpMembersRaw == null) {
-            return;
-        }
-
-        // Accept comma-separated list; ignore blanks.
-        var members = new ArrayList<String>();
-        for (String part : StringUtils.split(tcpMembersRaw, ',')) {
-            var member = StringUtils.trimToNull(part);
-            if (member != null) {
-                members.add(member);
+        for (var entry : cacheTypes.entrySet()) {
+            var mapCfg = hzConfig.getMapConfigs().get(entry.getKey());
+            if (mapCfg == null) {
+                LOG.debug("No map config found for cache-type key '{}'; "
+                        + "skipping.", entry.getKey());
+                continue;
             }
-        }
-        if (members.isEmpty()) {
-            return;
-        }
-
-        try {
-            var net = hzConfig.getNetworkConfig();
-            var join = net.getJoin();
-
-            // Ensure we only use TCP/IP discovery for this run.
-            if (join.getMulticastConfig() != null) {
-                join.getMulticastConfig().setEnabled(false);
+            var storeCfg = mapCfg.getMapStoreConfig();
+            if (storeCfg != null && storeCfg.isEnabled()) {
+                storeCfg.getProperties().setProperty(
+                        "value-class-name", entry.getValue().getName());
+                LOG.debug("Set value-class-name={} for map config '{}'",
+                        entry.getValue().getName(), entry.getKey());
             }
-            if (join.getAutoDetectionConfig() != null) {
-                join.getAutoDetectionConfig().setEnabled(false);
-            }
-
-            var tcp = join.getTcpIpConfig();
-            tcp.setEnabled(true);
-            tcp.setMembers(members);
-
-            // If ports are present in the member list, also align the bind port
-            // range to that list so nodes auto-increment within the same range.
-            int minPort = Integer.MAX_VALUE;
-            int maxPort = Integer.MIN_VALUE;
-            boolean sawPort = false;
-            for (String m : members) {
-                int idx = m.lastIndexOf(':');
-                if (idx <= 0 || idx >= m.length() - 1) {
-                    continue;
-                }
-                try {
-                    int p = Integer.parseInt(m.substring(idx + 1));
-                    sawPort = true;
-                    minPort = Math.min(minPort, p);
-                    maxPort = Math.max(maxPort, p);
-                } catch (NumberFormatException e) {
-                    // ignore
-                }
-            }
-            if (sawPort && minPort >= 0 && maxPort >= minPort) {
-                net.setPort(minPort);
-                net.setPortAutoIncrement(true);
-                net.setPortCount(Math.max(1, (maxPort - minPort) + 1));
-            }
-
-            LOG.info("Applied Hazelcast TCP/IP member override (count={}): {}",
-                    members.size(), members);
-        } catch (Exception e) {
-            LOG.warn("Failed applying tcpMembers override '{}': {}",
-                    tcpMembersRaw, e.getMessage());
         }
     }
 
@@ -346,10 +289,9 @@ public class HazelcastCluster implements Cluster {
         return clustered;
     }
 
-    //TODO move this logic to
+    //TODO move this logic to the configurer
     private static void validateClusterMode(
-            Config hzConfig, HazelcastClusterConnectorConfig hzClusterConfig,
-            boolean isClustered) {
+            Config hzConfig, boolean isClustered) {
         var configAnalyzedClustered = false;
         var join = hzConfig.getNetworkConfig().getJoin();
         // Consider clustered if multicast or tcp-ip join is enabled

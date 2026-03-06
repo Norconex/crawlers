@@ -20,7 +20,6 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -85,10 +84,9 @@ class HazelcastUtilTest {
     void testIsPersistent_withJdbcMapStore_returnsTrue() throws IOException {
         var workDir = Files.createTempDirectory("hz-persist-map-test-");
         hz = Hazelcast.newHazelcastInstance(
-                HazelcastConfigLoader.load(
-                        HazelcastClusterConnectorConfig.DEFAULT_CONFIG_FILE,
-                        Map.of("workDir", workDir.toAbsolutePath()
-                                .toString().replace("\\", "/"))));
+                new JdbcHazelcastConfigurer().buildConfig(
+                        new HazelcastConfigurerContext(
+                                workDir, false, "test-cluster")));
         // default map config has MapStore enabled → isPersistent returns true
         assertThat(HazelcastUtil.isPersistent(hz, "any-named-map")).isTrue();
     }
@@ -97,10 +95,9 @@ class HazelcastUtilTest {
     void testIsPersistent_withJdbcQueueStore_returnsTrue() throws IOException {
         var workDir = Files.createTempDirectory("hz-persist-queue-test-");
         hz = Hazelcast.newHazelcastInstance(
-                HazelcastConfigLoader.load(
-                        HazelcastClusterConnectorConfig.DEFAULT_CONFIG_FILE,
-                        Map.of("workDir", workDir.toAbsolutePath()
-                                .toString().replace("\\", "/"))));
+                new JdbcHazelcastConfigurer().buildConfig(
+                        new HazelcastConfigurerContext(
+                                workDir, false, "test-cluster")));
         // queue-* pattern matches queue store config → isPersistent returns true
         assertThat(HazelcastUtil.isPersistent(hz, "queue-test")).isTrue();
     }

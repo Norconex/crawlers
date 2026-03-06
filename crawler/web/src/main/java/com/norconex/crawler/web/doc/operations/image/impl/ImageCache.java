@@ -15,7 +15,6 @@
 package com.norconex.crawler.web.doc.operations.image.impl;
 
 import java.awt.Dimension;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
@@ -30,8 +29,6 @@ import org.apache.commons.collections4.map.LRUMap;
 
 import com.norconex.crawler.core.CrawlerException;
 
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -82,6 +79,10 @@ public class ImageCache {
 
     public Path getCacheDirectory() {
         return cacheDir;
+    }
+
+    public int getCacheSize() {
+        return lru.size();
     }
 
     public FeaturedImage getImage(String ref) throws IOException {

@@ -15,7 +15,6 @@
 package com.norconex.crawler.core.cluster.impl.hazelcast;
 
 import java.time.Duration;
-import java.util.Properties;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -24,31 +23,23 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class HazelcastClusterConnectorConfig {
 
-    public static final String DEFAULT_CONFIG_FILE =
-            "classpath:cache/hazelcast-standalone.yaml";
-
     /**
-     * Hazelcast configuration file path. Can be a local file-system
-     * file or a classpath resource when prefixed with "classpath:".
-     * Default is {@value HazelcastClusterConnectorConfig#DEFAULT_CONFIG_FILE}.
+     * The configurer responsible for building the Hazelcast {@link Config}.
+     * Defaults to {@link JdbcHazelcastConfigurer}, which uses JDBC persistence
+     * with an embedded H2 database in standalone mode and requires an external
+     * JDBC URL in clustered mode.
+     * <p>
+     * Advanced users can supply a custom {@link HazelcastConfigurer}
+     * implementation, or use
+     * {@link com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastConfigLoader}
+     * inside one to retain YAML/XML file-based configuration.
+     * </p>
      */
-    private String configFile = DEFAULT_CONFIG_FILE;
-
-    /**
-     * Any variables replacing matching ones specified in hazelcast
-     * configuration file. Syntax is: <code>${variableName|defaultValue}</code>
-     * where the default value is optional. The following variables are
-     * automatically set so you do not need to add them:
-     * <ul>
-     *   <li>workDir</li>
-     * </ul>
-     *
-     */
-    private final Properties properties = new Properties();
+    private HazelcastConfigurer configurer = new JdbcHazelcastConfigurer();
 
     /**
      * Cluster name for Hazelcast instance. All nodes with the same cluster
-     * name will form a cluster. Defaults to "crawler-cluster".
+     * name will form a cluster. Defaults to {@code "crawler-cluster"}.
      */
     private String clusterName = "crawler-cluster";
 
@@ -77,11 +68,4 @@ public class HazelcastClusterConnectorConfig {
      * </p>
      */
     private Duration workerHeartbeatInterval = Duration.ofSeconds(1);
-
-    /**
-     * TCP/IP members list for cluster discovery. Comma-separated list
-     * of member addresses in format "host:port" or "host".
-     * Only used in CLUSTER preset when no custom config file is specified.
-     */
-    private String tcpMembers;
 }

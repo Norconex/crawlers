@@ -27,14 +27,14 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
 
 class SitemapParserTest {
 
     @Test
     void testParse() throws IOException {
-        List<WebCrawlDocContext> extractedLinks = new ArrayList<>();
+        List<WebCrawlEntry> extractedLinks = new ArrayList<>();
         var p = new SitemapParser(false, new MutableBoolean(false));
 
         try (var is = getClass().getResourceAsStream("sitemap.xml")) {
@@ -58,7 +58,7 @@ class SitemapParserTest {
                         "https://example.com/linkC",
                         "https://example.com/linkD"),
                 extractedLinks.stream()
-                        .map(WebCrawlDocContext::getReference)
+                        .map(WebCrawlEntry::getReference)
                         .collect(Collectors.toList()));
 
         // test second one:

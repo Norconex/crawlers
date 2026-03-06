@@ -75,7 +75,7 @@ class CliConfigCommandsTest {
     void testConfigCheckConstraintViolationShowsError() throws IOException {
         var invalidConfigFile = tempDir.resolve("invalid.xml");
         Files.writeString(invalidConfigFile,
-                "<crawler numThreadsPerNode=\"0\"></crawler>");
+                "<crawler numThreads=\"0\"></crawler>");
         var captured = StandaloneCliCrawlerLauncher.capture(
                 "configcheck", "-config=" + invalidConfigFile);
 

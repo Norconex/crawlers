@@ -24,18 +24,24 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.core.stubs.CrawlDocStubs;
+import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.operations.robot.RobotsMeta;
 import com.norconex.crawler.web.doc.pipelines.importer.WebImporterPipelineContext;
+import com.norconex.crawler.web.stubs.CrawlDocStubs;
 
 class RobotsMetaNoIndexStageTest {
 
     @Test
     void testExecuteStage(@TempDir Path tempDir) {
-        var crawlCtx = mock(CrawlContext.class);
-        var pipeCtx = spy(new WebImporterPipelineContext(
-                crawlCtx, CrawlDocStubs.crawlDoc("someRef")));
+        var crawlSession = mock(CrawlSession.class);
+        var entry = new WebCrawlEntry("someRef");
+        var docCtx = CrawlDocContext.builder()
+                .doc(CrawlDocStubs.crawlDoc("someRef"))
+                .currentCrawlEntry(entry)
+                .build();
+        var pipeCtx = spy(new WebImporterPipelineContext(crawlSession, docCtx));
         var stage = new RobotsMetaNoIndexStage();
 
         when(pipeCtx.getRobotsMeta()).thenReturn(null);
@@ -45,7 +51,6 @@ class RobotsMetaNoIndexStageTest {
         assertThat(stage.executeStage(pipeCtx)).isTrue();
 
         when(pipeCtx.getRobotsMeta()).thenReturn(new RobotsMeta(false, true));
-        when(pipeCtx.getCrawlContext()).thenReturn(crawlCtx);
         assertThat(stage.executeStage(pipeCtx)).isFalse();
     }
 }

@@ -17,6 +17,7 @@ package com.norconex.crawler.core.cluster;
 import java.io.Closeable;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
 import com.norconex.crawler.core.session.CrawlSession;
@@ -55,7 +56,18 @@ public interface Cluster extends Closeable {
      */
     void bindSession(CrawlSession session);
 
-    void init(Path crawlerWorkDir, boolean isClustered);
+    void init(Path crawlerWorkDir, boolean isClustered,
+            Map<String, Class<?>> cacheTypes);
+
+    /**
+     * Convenience overload for tests and simple scenarios that do not
+     * need to pre-register cache value types.
+     * @param crawlerWorkDir working directory
+     * @param isClustered whether running in clustered mode
+     */
+    default void init(Path crawlerWorkDir, boolean isClustered) {
+        init(crawlerWorkDir, isClustered, Map.of());
+    }
 
     /**
      * Starts monitoring for stop signals. Should only be called by commands

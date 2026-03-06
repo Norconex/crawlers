@@ -33,11 +33,11 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.img.MutableImage;
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.TestResource;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.DirStructure;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
+import com.norconex.importer.doc.Doc;
 
 class DocImageHandlerTest {
 
@@ -128,7 +128,7 @@ class DocImageHandlerTest {
         return h;
     }
 
-    private CrawlDoc crawlDoc() {
+    private Doc crawlDoc() {
         return CrawlDocStubs.crawlDoc(
                 "http://site.com/page.html",
                 ContentType.HTML,

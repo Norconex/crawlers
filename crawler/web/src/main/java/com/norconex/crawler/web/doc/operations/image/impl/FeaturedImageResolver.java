@@ -53,16 +53,15 @@ import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.operations.DocumentConsumer;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.Storage;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.StorageDiskStructure;
-import com.norconex.crawler.web.fetch.WebFetchRequest;
 import com.norconex.crawler.web.fetch.HttpMethod;
+import com.norconex.crawler.web.fetch.WebFetchRequest;
 import com.norconex.importer.doc.Doc;
 
 import lombok.EqualsAndHashCode;
@@ -134,7 +133,8 @@ public class FeaturedImageResolver
 
     @Override
     protected void onCrawlerCrawlBegin(CrawlerEvent event) {
-        var workDir = event.getSource().getWorkDir();
+        var workDir = ((CrawlSession) event.getSource())
+                .getCrawlContext().getWorkDir();
 
         // Initialize image cache directory
         if (configuration.getImageCacheSize() > 0) {
@@ -177,11 +177,11 @@ public class FeaturedImageResolver
     //--- Process Document -----------------------------------------------------
 
     @Override
-    public void accept(Fetcher fetcher, CrawlDoc doc) {
+    public void accept(Fetcher fetcher, Doc doc) {
 
         // Return if not valid content type
         if (StringUtils.isNotBlank(configuration.getPageContentTypePattern())
-                && !Objects.toString(doc.getDocContext().getContentType())
+                && !Objects.toString(doc.getContentType())
                         .matches(configuration.getPageContentTypePattern())) {
             return;
         }
@@ -190,7 +190,7 @@ public class FeaturedImageResolver
             // Obtain the image
             var dom = Jsoup.parse(
                     doc.getInputStream(),
-                    ofNullable(doc.getDocContext().getCharset())
+                    ofNullable(doc.getCharset())
                             .map(Charset::toString)
                             .orElse(null),
                     doc.getReference());
@@ -398,20 +398,20 @@ public class FeaturedImageResolver
     private BufferedImage fetchImage(Fetcher fetcher, String url) {
         try {
             var uri = HttpURL.toURI(url);
-            var doc = new CrawlDoc(new WebCrawlDocContext(uri.toString()));
+            var doc = new Doc(uri.toString());
 
             var resp = fetcher.fetch(new WebFetchRequest(doc, HttpMethod.GET));
             if (resp != null
-                    && resp.getResolutionStatus() != null
-                    && resp.getResolutionStatus().isGoodState()) {
+                    && resp.getProcessingOutcome() != null
+                    && resp.getProcessingOutcome().isGoodState()) {
                 var bufImage = ImageIO.read(doc.getInputStream());
-                doc.dispose();
+                doc.close();
                 if (bufImage == null) {
                     LOG.debug(
                             "Image could not be read: '{}.' "
                                     + "Detected format: '{}'.",
                             url,
-                            doc.getDocContext().getContentType());
+                            doc.getContentType());
                 }
                 return bufImage;
             }

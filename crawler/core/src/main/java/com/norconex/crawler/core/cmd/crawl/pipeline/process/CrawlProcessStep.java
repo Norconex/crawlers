@@ -29,6 +29,7 @@ import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.ledger.CrawlEntry;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlState;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 import com.norconex.crawler.core.util.LogUtil;
 import com.norconex.importer.doc.Doc;
@@ -73,7 +74,7 @@ public class CrawlProcessStep extends BaseStep {
         LOG.info("Processing crawler queue...");
         var cfg = ctx.getCrawlConfig();
 
-        var numThreads = cfg.getNumThreadsPerNode();
+        var numThreads = cfg.getNumThreads();
 
         batchDispatcher = BatchDispatcher.builder()
                 .maxBatchSize(cfg.getMaxQueueBatchSize())
@@ -279,6 +280,21 @@ public class CrawlProcessStep extends BaseStep {
         } catch (Exception e) {
             if (e instanceof InterruptedException) {
                 Thread.currentThread().interrupt();
+            }
+            // If stop was requested while a document was being processed,
+            // leave it in PROCESSING state rather than finalizing it as
+            // PROCESSED-ERROR. This allows requeueProcessingEntries() to
+            // correctly restore it to QUEUED on the next resume.
+            var stopInProgress = isStopRequested()
+                    || session.getCrawlState() == CrawlState.STOPPED;
+            if (stopInProgress
+                    && docProcessCtx.docContext() != null) {
+                LOG.info("Stop requested during processing of '{}'; "
+                        + "leaving in PROCESSING state for resume.",
+                        docProcessCtx.docContext()
+                                .getReference());
+                docProcessCtx.finalized(true);
+                return false;
             }
             if (handleExceptionAndCheckIfStopCrawler(
                     session, docProcessCtx, e)) {

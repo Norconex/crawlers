@@ -151,7 +151,7 @@ class EventListenersTest {
                         new MockFetcher(),
                         cfg -> cfg.setDelay(
                                 Duration.ZERO))))
-                .setNumThreadsPerNode(1)
+                .setNumThreads(1)
                 .setIdleTimeout(Duration.ofMillis(500))
                 .setEventListeners(List.of(stopListener));
 
@@ -223,7 +223,7 @@ class EventListenersTest {
                         new MockFetcher(),
                         cfg -> cfg.setDelay(
                                 Duration.ZERO))))
-                .setNumThreadsPerNode(1)
+                .setNumThreads(1)
                 .setIdleTimeout(Duration.ofMillis(500))
                 .setEventListeners(List.of(listener));
 

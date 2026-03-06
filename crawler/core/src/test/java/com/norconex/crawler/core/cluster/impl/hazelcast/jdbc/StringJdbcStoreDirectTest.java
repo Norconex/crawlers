@@ -33,8 +33,8 @@ import org.junit.jupiter.api.Timeout;
 
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnectorConfig;
-import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastConfigLoader;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastConfigurerContext;
+import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
 
 /**
  * Direct (Hazelcast-bypassing) unit tests for
@@ -267,11 +267,10 @@ class StringJdbcStoreDirectTest {
     }
 
     private HazelcastInstance newInstance() {
-        var workDir = tempDir.toAbsolutePath().toString().replace("\\", "/");
+        var ctx =
+                new HazelcastConfigurerContext(tempDir, false, "test-cluster");
         return Hazelcast.newHazelcastInstance(
-                HazelcastConfigLoader.load(
-                        HazelcastClusterConnectorConfig.DEFAULT_CONFIG_FILE,
-                        Map.of("workDir", workDir)));
+                new JdbcHazelcastConfigurer().buildConfig(ctx));
     }
 
     private static String uniqueSuffix() {

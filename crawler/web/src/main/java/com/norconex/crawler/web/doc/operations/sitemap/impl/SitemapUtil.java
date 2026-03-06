@@ -26,10 +26,9 @@ import java.util.zip.GZIPInputStream;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapRecord;
-import com.norconex.crawler.web.util.Web;
+import com.norconex.importer.doc.Doc;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -73,21 +72,20 @@ final class SitemapUtil {
                 || cacheModifDate.isBefore(newRec.getLastModified());
     }
 
-    static SitemapRecord toSitemapRecord(CrawlDoc doc) {
+    static SitemapRecord toSitemapRecord(Doc doc,
+            WebCrawlEntry sitemapEntry) {
         var indexRec = new SitemapRecord();
-        var docRec = Web.docContext(doc);
-        indexRec.setLastModified(docRec.getLastModified());
+        indexRec.setLastModified(sitemapEntry.getLastModified());
         indexRec.setCrawlDate(ZonedDateTime.now(ZoneOffset.UTC));
         indexRec.setLocation(doc.getReference());
         return indexRec;
     }
 
-    static InputStream uncompressedSitemapStream(CrawlDoc doc)
+    static InputStream uncompressedSitemapStream(Doc doc)
             throws IOException {
         InputStream is = doc.getInputStream();
         Optional<String> contentType = Optional
-                .ofNullable(doc.getDocContext())
-                .map(CrawlDocContext::getContentType)
+                .ofNullable(doc.getContentType())
                 .map(ContentType::toString);
         if (contentType.isPresent() && (contentType.get().endsWith("gzip")
                 || doc.getReference().endsWith(".gz"))) {

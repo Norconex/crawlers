@@ -32,15 +32,16 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.operations.scope.impl.GenericUrlScopeResolver;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapLocator;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapResolver;
+import com.norconex.crawler.web.fetch.WebFetchRequest;
 import com.norconex.crawler.web.fetch.WebFetchResponse;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
-import com.norconex.crawler.web.util.Web;
 
 /**
  * Test that crawling does not go being current sitemap. That is, it should
@@ -85,14 +86,21 @@ class StayOnSitemapTest {
                 // and referrers
                 .setFetchers(List.of(new HttpClientFetcher() {
                     @Override
-                    public WebFetchResponse fetch(FetchRequest req)
+                    public WebFetchResponse fetch(
+                            FetchRequest req)
                             throws FetchException {
                         try {
-                            Optional.ofNullable(Web.docContext(req.getDoc())
-                                    .getReferrerReference())
-                                    .ifPresent(referrers::add);
+                            if (req instanceof WebFetchRequest webReq
+                                    && webReq.getCrawlDocContext() != null
+                                    && webReq.getCrawlDocContext()
+                                            .getCurrentCrawlEntry() instanceof WebCrawlEntry wdc) {
+                                Optional.ofNullable(
+                                        wdc.getReferrerReference())
+                                        .ifPresent(referrers::add);
+                            }
                             return super.fetch(req);
-                        } catch (FetchException | RuntimeException e) {
+                        } catch (FetchException
+                                | RuntimeException e) {
                             exception.setValue(e);
                             throw e;
                         }
@@ -103,7 +111,8 @@ class StayOnSitemapTest {
 
         mockServer(client);
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+                .getCommitter();
 
         // There should be no exception, else, it likely means it tried
         // to fetch an external URL.
@@ -122,7 +131,8 @@ class StayOnSitemapTest {
         mem.getUpsertRequests().forEach(req -> {
             assertThat(
                     req.getMetadata().getInteger(
-                            "crawler.depth")).isZero();
+                            "crawler.depth"))
+                                    .isZero();
             assertThat(req.getReference()).containsAnyOf(
                     page1Path,
                     page2Path,
@@ -143,11 +153,16 @@ class StayOnSitemapTest {
                 .respond(response()
                         .withBody(
                                 SITEMAP_XML.formatted(
-                                        serverUrl(client, page1Path),
-                                        serverUrl(client, page2Path),
-                                        serverUrl(client, page3Path),
-                                        serverUrl(client, page4Path),
-                                        serverUrl(client, page5Path)),
+                                        serverUrl(client,
+                                                page1Path),
+                                        serverUrl(client,
+                                                page2Path),
+                                        serverUrl(client,
+                                                page3Path),
+                                        serverUrl(client,
+                                                page4Path),
+                                        serverUrl(client,
+                                                page5Path)),
                                 MediaType.XML_UTF_8));
 
         // The links in ALL following pages should not be followed when

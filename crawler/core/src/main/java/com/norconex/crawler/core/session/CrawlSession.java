@@ -18,6 +18,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.function.Supplier;
 
 import com.norconex.commons.lang.event.Event;
@@ -173,7 +174,13 @@ public class CrawlSession implements Closeable {
         createDir(crawlContext.getTempDir()); // also creates workDir
 
         LOG.info("CrawlSession.init() - Initializing cluster...");
-        cluster.init(crawlContext.getWorkDir(), clusterConfig.isClustered());
+        // Build cache types: framework adds ledger_* -> concrete entry type;
+        // driver extensions may add their own map/type mappings.
+        var cacheTypes =
+                new HashMap<String, Class<?>>(crawlContext.getCacheTypes());
+        cacheTypes.put("ledger_*", crawlContext.getCrawlEntryType());
+        cluster.init(crawlContext.getWorkDir(), clusterConfig.isClustered(),
+                cacheTypes);
 
         LOG.info("CrawlSession.init() - Getting cache managers...");
         var cacheManager = cluster.getCacheManager();

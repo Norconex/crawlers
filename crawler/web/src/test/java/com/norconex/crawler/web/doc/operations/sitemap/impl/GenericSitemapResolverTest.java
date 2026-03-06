@@ -32,8 +32,7 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapContext;
 import com.norconex.crawler.web.junit.WebCrawlTest;
@@ -44,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 @MockServerSettings
 class GenericSitemapResolverTest {
 
-    @WebCrawlTest(focus = Focus.CONTEXT)
+    @WebCrawlTest
     void testResolveSitemaps(
             ClientAndServer client, CrawlContext ctx)
             throws IOException {
@@ -71,13 +70,18 @@ class GenericSitemapResolverTest {
                         .withStatusCode(302)
                         .withHeader(
                                 "Location",
-                                serverUrl(client, "/sitemap-new")));
+                                serverUrl(client,
+                                        "/sitemap-new")));
 
         client.when(request().withPath("/sitemap-new"))
                 .respond(response()
-                        .withHeader("Content-Encoding", "gzip")
-                        .withHeader("Content-type", "text/xml; charset=utf-8")
-                        .withBody(compressSitemap(serverUrl(client, ""))));
+                        .withHeader("Content-Encoding",
+                                "gzip")
+                        .withHeader("Content-type",
+                                "text/xml; charset=utf-8")
+                        .withBody(compressSitemap(
+                                serverUrl(client,
+                                        ""))));
 
         List<String> urls = new ArrayList<>();
         var resolver = ((WebCrawlerConfig) ctx.getCrawlConfig())
@@ -86,8 +90,10 @@ class GenericSitemapResolverTest {
                 SitemapContext
                         .builder()
                         .fetcher(ctx.getFetcher())
-                        .location(serverUrl(client, "sitemap-index"))
-                        .urlConsumer(rec -> urls.add(rec.getReference()))
+                        .location(serverUrl(client,
+                                "sitemap-index"))
+                        .urlConsumer(rec -> urls.add(rec
+                                .getReference()))
                         .build());
 
         assertThat(urls).containsExactly(

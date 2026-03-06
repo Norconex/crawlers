@@ -34,7 +34,6 @@ import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
-import com.norconex.grid.local.LocalGridConnector;
 
 /**
  * Test detection of duplicate files within crawling session.
@@ -108,10 +107,6 @@ class DeduplicationTest {
         cfg.setStartReferences(List.of(serverUrl(client, homePath)));
         cfg.setMetadataDeduplicate(true);
         cfg.setDocumentDeduplicate(true);
-
-        ((LocalGridConnector) cfg.getGridConnector()).getConfiguration()
-                .setAutoCommitBufferSize(1L)
-                .setAutoCommitDelay(1L);
 
         var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 

@@ -19,10 +19,11 @@ import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.url.HttpURL;
+import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
-import com.norconex.grid.core.storage.GridMap;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.operations.scope.UrlScope;
 import com.norconex.crawler.web.doc.operations.scope.UrlScopeResolver;
 import com.norconex.crawler.web.util.Web;
@@ -59,7 +60,7 @@ public class GenericUrlScopeResolver
     @JsonIgnore
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private GridMap<SitemapPresence> resolvedSites;
+    private CacheMap<SitemapPresence> resolvedSites;
 
     @Getter
     private GenericUrlScopeResolverConfig configuration =
@@ -73,7 +74,7 @@ public class GenericUrlScopeResolver
     @Override
     protected void onCrawlerCrawlBegin(CrawlerEvent event) {
         resolvedSites = Web.gridCache(
-                event.getSource(),
+                (CrawlSession) event.getSource(),
                 RESOLVED_SITES_CACHE_NAME,
                 SitemapPresence.class);
         LOG.debug(RESOLVED_SITES_CACHE_NAME + " cache initialized.");
@@ -83,7 +84,7 @@ public class GenericUrlScopeResolver
 
     @Override
     public UrlScope resolve(
-            String inScopeURL, WebCrawlDocContext candidateDocContext) {
+            String inScopeURL, WebCrawlEntry candidateDocContext) {
         // if not specifying any scope, candidate URL is good
         if (!configuration.isStayOnProtocol()
                 && !configuration.isStayOnDomain()
@@ -151,7 +152,7 @@ public class GenericUrlScopeResolver
 
     private boolean siteHasSitemap(String inScope) {
         var urlRoot = HttpURL.getRoot(inScope);
-        var sitemapPresence = resolvedSites.get(urlRoot);
+        var sitemapPresence = resolvedSites.get(urlRoot).orElse(null);
         //        var sitemapPresence = crawlerContext.getResolvedWebsites().get(urlRoot);
         // At this point, the sitemap should never be "RESOLVING".
         return sitemapPresence == SitemapPresence.PRESENT;

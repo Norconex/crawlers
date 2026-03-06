@@ -73,6 +73,10 @@ public class QueueBootstrapper implements CrawlBootstrapper {
         var crawlContext = session.getCrawlContext();
         if (session.isResumed()) {
             LOG.info("Unfinished previous crawl detected. Resuming...");
+            LOG.info("Skipping start reference queueing on resumed run. "
+                    + "Will continue with entries restored from ledger.");
+            session.setStartRefsQueueingComplete(true);
+            return;
         } else {
             LOG.info("Queueing start references ({})...",
                     crawlContext.getCrawlConfig().isStartReferencesAsync()

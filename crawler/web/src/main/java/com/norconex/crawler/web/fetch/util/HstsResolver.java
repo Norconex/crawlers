@@ -27,7 +27,7 @@ import org.apache.hc.client5.http.classic.methods.HttpHead;
 
 import com.google.common.net.InternetDomainName;
 import com.norconex.commons.lang.url.UrlNormalizer;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.doc.WebCrawlEntry;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -68,7 +68,7 @@ public final class HstsResolver {
 
     public static void resolve(
             HttpClient httpClient,
-            WebCrawlDocContext docRecord) {
+            WebCrawlEntry docRecord) {
 
         // The idea: "public" suffixes are "effective" top-level domains
         // under which new domains can be registered. When considering a root
@@ -107,7 +107,7 @@ public final class HstsResolver {
     }
 
     private static synchronized void applyHstsSupport(
-            WebCrawlDocContext docRecord, String domain, boolean isSubdomain) {
+            WebCrawlEntry docRecord, String domain, boolean isSubdomain) {
         var support = DOMAIN_HSTS.getOrDefault(domain, HstsSupport.NO);
         if (support == HstsSupport.INCLUDE_SUBDOMAINS
                 || (support == HstsSupport.DOMAIN_ONLY && !isSubdomain)) {
@@ -116,7 +116,7 @@ public final class HstsResolver {
                     domain Strict-Transport-Security (HSTS) settings\s\
                     for effective top-level domain: {}
                     """, domain);
-            docRecord.setOriginalReference(docRecord.getReference());
+            docRecord.addToReferenceTrail(docRecord.getReference());
             docRecord.setReference(
                     docRecord.getReference().replaceFirst(
                             "(?i)^http://", "https://"));

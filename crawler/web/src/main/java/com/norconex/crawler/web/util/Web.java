@@ -22,15 +22,15 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.cluster.CacheMap;
+import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxt;
 import com.norconex.crawler.web.doc.operations.scope.UrlScope;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
-import com.norconex.grid.core.storage.GridMap;
 
 import lombok.NonNull;
 
@@ -39,24 +39,25 @@ public final class Web {
     private Web() {
     }
 
-    public static <T> GridMap<T> gridCache(
-            @NonNull CrawlContext crawlContext,
+    public static <T> CacheMap<T> gridCache(
+            @NonNull CrawlSession crawlSession,
             @NonNull String name,
             @NonNull Class<? extends T> type) {
-        return crawlContext.getGrid().getStorage().getMap(name, type);
+        return crawlSession.getCluster().getCacheManager().getCacheMap(
+                name, (Class<T>) type);
     }
 
     public static void fireIfUrlOutOfScope(
-            CrawlContext crawler,
-            WebCrawlDocContext docContext,
+            CrawlSession crawlSession,
+            WebCrawlEntry docContext,
             UrlScope urlScope) {
         if (!urlScope.isInScope()) {
-            crawler.fire(CrawlerEvent
+            crawlSession.fire(CrawlerEvent
                     .builder()
                     .name(WebCrawlerEvent.REJECTED_OUT_OF_SCOPE)
-                    .source(crawler)
-                    .subject(Web.config(crawler).getUrlScopeResolver())
-                    .docContext(docContext)
+                    .source(crawlSession)
+                    .crawlSession(crawlSession)
+                    .crawlEntry(docContext)
                     .message(urlScope.outOfScopeReason())
                     .build());
         }
@@ -64,15 +65,6 @@ public final class Web {
 
     public static WebCrawlerConfig config(CrawlContext crawlContext) {
         return (WebCrawlerConfig) crawlContext.getCrawlConfig();
-    }
-
-    public static WebCrawlDocContext docContext(@NonNull CrawlDoc crawlDoc) {
-        return (WebCrawlDocContext) crawlDoc.getDocContext();
-    }
-
-    public static WebCrawlDocContext cachedDocContext(
-            @NonNull CrawlDoc crawlDoc) {
-        return (WebCrawlDocContext) crawlDoc.getCachedDocContext();
     }
 
     public static RobotsTxt robotsTxt(CrawlContext crawler, String reference) {

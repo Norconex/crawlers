@@ -17,7 +17,6 @@ package com.norconex.crawler.core.cluster.impl.hazelcast.jdbc;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -48,8 +47,8 @@ final class TypedJdbcMapStore
             stringStore.delete(key);
             return;
         }
-        if (valueClass == String.class || value instanceof String) {
-            stringStore.store(key, Objects.toString(value, null));
+        if (value instanceof String str) {
+            stringStore.store(key, str);
             return;
         }
         stringStore.store(key, SerialUtil.toJsonString(value));
@@ -66,8 +65,8 @@ final class TypedJdbcMapStore
             var v = e.getValue();
             if (v == null) {
                 batch.put(k, null);
-            } else if (valueClass == String.class || v instanceof String) {
-                batch.put(k, Objects.toString(v, null));
+            } else if (v instanceof String str) {
+                batch.put(k, str);
             } else {
                 batch.put(k, SerialUtil.toJsonString(v));
             }

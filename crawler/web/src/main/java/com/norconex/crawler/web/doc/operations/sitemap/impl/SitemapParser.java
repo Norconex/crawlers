@@ -27,9 +27,9 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import com.norconex.commons.lang.xml.Xml;
 import com.norconex.commons.lang.xml.XmlException;
-import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapRecord;
+import com.norconex.importer.doc.Doc;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +44,7 @@ class SitemapParser {
     private final MutableBoolean stopping;
 
     List<SitemapRecord> parse(
-            CrawlDoc sitemapDoc, Consumer<WebCrawlDocContext> urlConsumer) {
+            Doc sitemapDoc, Consumer<WebCrawlEntry> urlConsumer) {
 
         var location = sitemapDoc.getReference();
         List<SitemapRecord> children = new ArrayList<>();
@@ -94,7 +94,7 @@ class SitemapParser {
         return Optional.ofNullable(rec);
     }
 
-    private Optional<WebCrawlDocContext> toDocRecord(
+    private Optional<WebCrawlEntry> toDocRecord(
             Xml xml, String sitemapLocationDir) {
         var url = xml.getString("loc");
 
@@ -107,7 +107,7 @@ class SitemapParser {
             return Optional.empty();
         }
 
-        var doc = new WebCrawlDocContext(url);
+        var doc = new WebCrawlEntry(url);
         doc.setSitemapLastMod(SitemapUtil.toDateTime(xml.getString("lastmod")));
         doc.setSitemapChangeFreq(xml.getString("changefreq"));
         var priority = xml.getString("priority");

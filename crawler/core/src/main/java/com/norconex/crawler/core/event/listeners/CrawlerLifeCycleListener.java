@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.core.event.listeners;
 
+import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.event.CrawlerEvent;
 
@@ -25,28 +26,28 @@ import lombok.Data;
  */
 @Data
 public abstract class CrawlerLifeCycleListener
-        implements EventListener<CrawlerEvent> {
+        implements EventListener<Event> {
 
     @Override
-    public final void accept(CrawlerEvent event) {
-        if (event == null) {
+    public final void accept(Event event) {
+        if (!(event instanceof CrawlerEvent crawlerEvent)) {
             return;
         }
-        onCrawlerEvent(event);
-        if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
-            onCrawlerCrawlBegin(event);
-        } else if (event.is(CrawlerEvent.CRAWLER_CRAWL_END)) {
-            onCrawlerCrawlEnd(event);
-        } else if (event.is(CrawlerEvent.CRAWLER_STOP_REQUEST_BEGIN)) {
-            onCrawlerStopBegin(event);
-        } else if (event.is(CrawlerEvent.CRAWLER_STOP_REQUEST_END)) {
-            onCrawlerStopEnd(event);
-        } else if (event.is(CrawlerEvent.CRAWLER_CLEAN_BEGIN)) {
-            onCrawlerCleanBegin(event);
-        } else if (event.is(CrawlerEvent.CRAWLER_CLEAN_END)) {
-            onCrawlerCleanEnd(event);
-        } else if (event.is(CrawlerEvent.CRAWLER_ERROR)) {
-            onCrawlerError(event);
+        onCrawlerEvent(crawlerEvent);
+        if (crawlerEvent.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
+            onCrawlerCrawlBegin(crawlerEvent);
+        } else if (crawlerEvent.is(CrawlerEvent.CRAWLER_CRAWL_END)) {
+            onCrawlerCrawlEnd(crawlerEvent);
+        } else if (crawlerEvent.is(CrawlerEvent.CRAWLER_STOP_REQUEST_BEGIN)) {
+            onCrawlerStopBegin(crawlerEvent);
+        } else if (crawlerEvent.is(CrawlerEvent.CRAWLER_STOP_REQUEST_END)) {
+            onCrawlerStopEnd(crawlerEvent);
+        } else if (crawlerEvent.is(CrawlerEvent.CRAWLER_CLEAN_BEGIN)) {
+            onCrawlerCleanBegin(crawlerEvent);
+        } else if (crawlerEvent.is(CrawlerEvent.CRAWLER_CLEAN_END)) {
+            onCrawlerCleanEnd(crawlerEvent);
+        } else if (crawlerEvent.is(CrawlerEvent.CRAWLER_ERROR)) {
+            onCrawlerError(crawlerEvent);
         }
     }
 

@@ -291,7 +291,7 @@ class CliLifecycleCommandsTest {
 
     private CrawlConfig oneDocConfig() {
         var config = new CrawlConfig();
-        config.setNumThreadsPerNode(1);
+        config.setNumThreads(1);
         config.setStartReferences(List.of(
                 "http://example.com/test1"));
         config.setMaxDocuments(1);

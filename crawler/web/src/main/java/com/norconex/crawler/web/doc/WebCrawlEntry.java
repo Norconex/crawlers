@@ -21,8 +21,7 @@ import java.util.List;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.importer.doc.DocContext;
+import com.norconex.crawler.core.ledger.CrawlEntry;
 
 import lombok.Data;
 import lombok.ToString;
@@ -31,7 +30,7 @@ import lombok.ToString;
  * A URL being crawled holding relevant crawl information.
  */
 @Data
-public class WebCrawlDocContext extends CrawlDocContext {
+public class WebCrawlEntry extends CrawlEntry {
 
     private static final long serialVersionUID = 1L;
 
@@ -73,11 +72,51 @@ public class WebCrawlDocContext extends CrawlDocContext {
     private final List<String> redirectTrail = new ArrayList<>();
     private String redirectTarget;
 
-    public WebCrawlDocContext() {
+    /**
+     * HTTP status code from the last fetch response.
+     */
+    private int httpStatusCode;
+    /**
+     * HTTP reason phrase from the last fetch response.
+     */
+    private String httpReasonPhrase;
+
+    public WebCrawlEntry() {
     }
 
-    public WebCrawlDocContext(String reference) {
-        super(reference);
+    /**
+     * Copy constructor.
+     * @param src the source to copy from
+     */
+    public WebCrawlEntry(WebCrawlEntry src) {
+        setReference(src.getReference());
+        setDepth(src.getDepth());
+        setProcessingStatus(src.getProcessingStatus());
+        setProcessingOutcome(src.getProcessingOutcome());
+        setReferenceTrail(new ArrayList<>(src.getReferenceTrail()));
+        setMetaChecksum(src.getMetaChecksum());
+        setContentChecksum(src.getContentChecksum());
+        setQueuedAt(src.getQueuedAt());
+        setProcessingAt(src.getProcessingAt());
+        setProcessedAt(src.getProcessedAt());
+        setOrphan(src.isOrphan());
+        setDeleted(src.isDeleted());
+        fromSitemap = src.fromSitemap;
+        sitemapLastMod = src.sitemapLastMod;
+        sitemapChangeFreq = src.sitemapChangeFreq;
+        sitemapPriority = src.sitemapPriority;
+        referrerReference = src.referrerReference;
+        referrerLinkMetadata = src.referrerLinkMetadata;
+        etag = src.etag;
+        httpStatusCode = src.httpStatusCode;
+        httpReasonPhrase = src.httpReasonPhrase;
+        setReferencedUrls(new ArrayList<>(src.referencedUrls));
+        setRedirectTrail(new ArrayList<>(src.redirectTrail));
+        redirectTarget = src.redirectTarget;
+    }
+
+    public WebCrawlEntry(String reference) {
+        setReference(reference);
     }
 
     /**
@@ -85,17 +124,9 @@ public class WebCrawlDocContext extends CrawlDocContext {
      * @param url URL being crawled
      * @param depth URL depth
      */
-    public WebCrawlDocContext(String url, int depth) {
-        super(url);
+    public WebCrawlEntry(String url, int depth) {
+        setReference(url);
         setDepth(depth);
-    }
-
-    /**
-     * Copy constructor.
-     * @param docDetails document details to copy
-     */
-    public WebCrawlDocContext(DocContext docDetails) {
-        super(docDetails);
     }
 
     @Override

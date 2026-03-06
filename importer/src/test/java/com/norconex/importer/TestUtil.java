@@ -82,23 +82,35 @@ public final class TestUtil {
     }
 
     public static File getAlicePdfFile() {
-        return new File(BASE_PATH + ".pdf");
+        return resolvePath(BASE_PATH + ".pdf").toFile();
     }
 
     public static File getAliceDocxFile() {
-        return new File(BASE_PATH + ".docx");
+        return resolvePath(BASE_PATH + ".docx").toFile();
     }
 
     public static File getAliceZipFile() {
-        return new File(BASE_PATH + ".zip");
+        return resolvePath(BASE_PATH + ".zip").toFile();
     }
 
     public static File getAliceHtmlFile() {
-        return new File(BASE_PATH + ".html");
+        return resolvePath(BASE_PATH + ".html").toFile();
     }
 
     public static File getAliceTextFile() {
-        return new File(BASE_PATH + ".txt");
+        return resolvePath(BASE_PATH + ".txt").toFile();
+    }
+
+    public static Path resolvePath(String relativePath) {
+        var path = Path.of(relativePath);
+        if (Files.exists(path)) {
+            return path;
+        }
+        var modulePath = Path.of("importer").resolve(relativePath);
+        if (Files.exists(modulePath)) {
+            return modulePath;
+        }
+        return path;
     }
 
     public static Doc getAlicePdfDoc() {
@@ -162,9 +174,14 @@ public final class TestUtil {
     @SuppressWarnings("resource")
     public static Doc newDoc(File file) {
         try {
-            return new Doc(file.getAbsolutePath())
+            var path = file.toPath();
+            if (!Files.exists(path) && !path.isAbsolute()) {
+                path = resolvePath(file.getPath());
+            }
+            return new Doc(path.toAbsolutePath().toString())
                     .setInputStream(
-                            CachedInputStream.cache(new FileInputStream(file)));
+                            CachedInputStream.cache(
+                                    new FileInputStream(path.toFile())));
         } catch (FileNotFoundException e) {
             throw new UncheckedException(e);
         }

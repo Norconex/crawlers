@@ -95,6 +95,7 @@ public final class CrawlContextFactory {
                 .crawlConfig(config)
                 .dedupService(new DedupService())
                 .crawlEntryType(driver.crawlEntryType())
+                .cacheTypes(driver.cacheTypes())
                 .docPipelines(driver.docPipelines())
                 .crawlEntryLedger(new CrawlEntryLedger())
                 .eventManager(eventManager)
@@ -119,7 +120,8 @@ public final class CrawlContextFactory {
                         tempDir))
                 .tempDir(tempDir)
                 .threadFactoryCreator(
-                        new ScopedThreadFactoryCreator("crawl"))
+                        new ScopedThreadFactoryCreator(
+                                "crawl"))
                 .workDir(workDir)
                 .build();
     }
@@ -128,7 +130,9 @@ public final class CrawlContextFactory {
         try {
             Files.createDirectories(dir);
         } catch (IOException e) {
-            throw new CrawlerException("Could not create directory: " + dir, e);
+            throw new CrawlerException(
+                    "Could not create directory: " + dir,
+                    e);
         }
     }
 }

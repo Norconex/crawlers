@@ -31,17 +31,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxt;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxtFilter;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxtProvider;
@@ -49,6 +47,7 @@ import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.fetch.WebFetchRequest;
 import com.norconex.crawler.web.fetch.WebFetchResponse;
 import com.norconex.crawler.web.fetch.HttpMethod;
+import com.norconex.importer.doc.Doc;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -74,11 +73,11 @@ public class StandardRobotsTxtProvider
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @JsonIgnore
-    private CrawlContext crawler;
+    private CrawlSession crawler;
 
     @Override
     protected void onCrawlerCrawlBegin(CrawlerEvent event) {
-        crawler = event.getSource();
+        crawler = (CrawlSession) event.getSource();
     }
 
     @Override
@@ -92,12 +91,10 @@ public class StandardRobotsTxtProvider
         }
 
         var robotsURL = baseURL + "/robots.txt";
-        CrawlDoc doc = null;
+        Doc doc = null;
         try {
             // Try once
-            doc = new CrawlDoc(
-                    new WebCrawlDocContext(robotsURL),
-                    CachedInputStream.nullInputStream());
+            doc = new Doc(robotsURL);
             var response = (WebFetchResponse) fetcher.fetch(
                     new WebFetchRequest(doc, HttpMethod.GET));
 
@@ -110,9 +107,7 @@ public class StandardRobotsTxtProvider
                 LOG.debug(
                         "Fetching 'robots.txt' from redirect URL: {}",
                         redirURL);
-                doc = new CrawlDoc(
-                        new WebCrawlDocContext(redirURL),
-                        CachedInputStream.nullInputStream());
+                doc = new Doc(redirURL);
                 response = (WebFetchResponse) fetcher.fetch(
                         new WebFetchRequest(doc, HttpMethod.GET));
             }
@@ -126,9 +121,8 @@ public class StandardRobotsTxtProvider
                     crawler.fire(
                             CrawlerEvent.builder()
                                     .name(WebCrawlerEvent.FETCHED_ROBOTS_TXT)
-                                    .docContext(doc.getDocContext())
                                     .source(crawler)
-                                    .subject(robotsTxt)
+                                    .crawlSession(crawler)
                                     .build());
                 }
             } else {

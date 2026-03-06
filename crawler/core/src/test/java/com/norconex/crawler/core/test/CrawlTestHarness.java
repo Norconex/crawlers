@@ -38,11 +38,13 @@ import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
+import com.hazelcast.config.MapStoreConfig.InitialLoadMode;
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
+import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 
 import lombok.Getter;
@@ -276,41 +278,42 @@ public class CrawlTestHarness implements Closeable {
                     .getConnector())
                             .getConfiguration();
 
-            // Use a test-tuned Hazelcast config to keep clustered tests
-            // (especially stop/resume) deterministic and fast on Windows.
-            // This avoids long startup delays from eager map-store loading
-            // and default partition migrations.
-            connConfig.setConfigFile(
-                    "classpath:cache/hazelcast-clustered-test.yaml");
-
             // Reduce nodeExpiryTimeout so the coordinator marks orphaned
             // workers (e.g., from a crash) as EXPIRED within 10 seconds
-            // instead of the 30-second default. This is safe for tests
-            // because the heartbeat YAML is also set to 1-second intervals.
+            // instead of the 30-second default.
             connConfig.setNodeExpiryTimeout(java.time.Duration.ofSeconds(10));
 
             // Ensure this harness run forms its own cluster.
             connConfig.setClusterName(hazelcastClusterName);
 
-            var props = connConfig.getProperties();
-            // Append currentSchema so Hibernate/JDBC uses the harness-specific
-            // schema and test runs never share or pollute each other's tables.
+            // Configure the JDBC configurer directly — no YAML file needed.
+            var configurer =
+                    (JdbcHazelcastConfigurer) connConfig.getConfigurer();
             var baseJdbcUrl = POSTGRES.getJdbcUrl();
             var sep = baseJdbcUrl.contains("?") ? "&" : "?";
-            // matches variables in HZ yaml configuration
             // Include currentSchema for table isolation and sslmode=disable
             // because the Testcontainers Postgres image has no SSL configured.
-            props.setProperty("JDBC_URL",
-                    baseJdbcUrl + sep
+            configurer
+                    .setJdbcUrl(baseJdbcUrl + sep
                             + "currentSchema=" + schemaName
-                            + "&sslmode=disable");
-            props.setProperty("JDBC_USERNAME", POSTGRES.getUsername());
-            props.setProperty("JDBC_PASSWORD", POSTGRES.getPassword());
-            props.setProperty("JDBC_DRIVER", POSTGRES.getDriverClassName());
+                            + "&sslmode=disable")
+                    .setJdbcUsername(POSTGRES.getUsername())
+                    .setJdbcPassword(POSTGRES.getPassword())
+                    .setJdbcDriver(POSTGRES.getDriverClassName())
+                    // LAZY loading avoids long startup delays on CI/Windows.
+                    .setInitialLoadMode(InitialLoadMode.LAZY);
+
+            // Apply test-specific Hazelcast tuning: fewer partitions and
+            // faster failure detection for crash tests.
+            configurer.getHazelcastProperties()
+                    .put("hazelcast.partition.count", "17");
+            configurer.getHazelcastProperties()
+                    .put("hazelcast.heartbeat.interval.seconds", "1");
+            configurer.getHazelcastProperties()
+                    .put("hazelcast.max.no.heartbeat.seconds", "10");
 
             // Set TCP members for cluster discovery using the per-harness port
-            // range chosen in launchAsync(). HazelcastCluster will apply this
-            // list to the loaded Config before instance creation.
+            // range chosen in launchAsync().
             var base = hazelcastPortBase;
             var count = hazelcastPortCount;
             if (base == null || count == null) {
@@ -326,10 +329,10 @@ public class CrawlTestHarness implements Closeable {
                 }
                 tcpMembers.append("127.0.0.1:").append(base + i);
             }
-            connConfig.setTcpMembers(tcpMembers.toString());
+            configurer.setTcpMembers(tcpMembers.toString());
 
-            LOG.info("CrawlTestHarness instrumented database properties: {}",
-                    props);
+            LOG.info("CrawlTestHarness configured JDBC URL: {}",
+                    configurer.getJdbcUrl());
         }
         return instrument;
     }

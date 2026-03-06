@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import org.junit.jupiter.api.AfterAll;
@@ -33,8 +32,8 @@ import org.junit.jupiter.api.Timeout;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.norconex.crawler.core.cluster.ClusterException;
-import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnectorConfig;
-import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastConfigLoader;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastConfigurerContext;
+import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
 
 /**
  * Direct unit tests for {@link JdbcClient} covering
@@ -227,10 +226,9 @@ class JdbcClientDirectTest {
     // -----------------------------------------------------------------------
 
     private HazelcastInstance newInstance() {
-        var workDir = tempDir.toAbsolutePath().toString().replace("\\", "/");
+        var ctx =
+                new HazelcastConfigurerContext(tempDir, false, "test-cluster");
         return Hazelcast.newHazelcastInstance(
-                HazelcastConfigLoader.load(
-                        HazelcastClusterConnectorConfig.DEFAULT_CONFIG_FILE,
-                        Map.of("workDir", workDir)));
+                new JdbcHazelcastConfigurer().buildConfig(ctx));
     }
 }

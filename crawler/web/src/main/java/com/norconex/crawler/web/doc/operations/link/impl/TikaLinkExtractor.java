@@ -30,15 +30,15 @@ import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.html.DefaultHtmlMapper;
 import org.apache.tika.parser.html.HtmlMapper;
-import org.apache.tika.parser.html.HtmlParser;
+import org.apache.tika.parser.html.JSoupParser;
 import org.apache.tika.sax.Link;
 import org.apache.tika.sax.LinkContentHandler;
 import org.xml.sax.SAXException;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
+import com.norconex.importer.doc.Doc;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -76,12 +76,12 @@ public class TikaLinkExtractor
     @Override
     public Set<com.norconex.crawler.web.doc.operations.link.Link>
             extractLinks(
-                    CrawlDoc doc)
+                    Doc doc)
                     throws IOException {
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(
-                doc.getDocContext().getContentType().toString())) {
+                doc.getContentType().toString())) {
             return Set.of();
         }
 
@@ -120,7 +120,7 @@ public class TikaLinkExtractor
         var parseContext = new ParseContext();
         parseContext.set(HtmlMapper.class, fixedHtmlMapper);
 
-        var parser = new HtmlParser();
+        var parser = new JSoupParser();
         try (is) {
             parser.parse(is, linkHandler, metadata, parseContext);
             var tikaLinks = linkHandler.getLinks();

@@ -33,9 +33,11 @@ import com.norconex.crawler.web.mocks.MockWebsite;
 @MockServerSettings
 class MaxDepthTest {
 
+    private static final int SITE_DEPTH = 20;
+
     @WebCrawlTest
     void testMaxDepth(ClientAndServer client, WebCrawlerConfig cfg) {
-        MockWebsite.whenInfiniteDepth(client);
+        MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 
         cfg.setStartReferences(
                 List.of(serverUrl(client, "/maxDepth/0000")));

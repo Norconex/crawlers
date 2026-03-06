@@ -19,18 +19,19 @@ import java.time.ZonedDateTime;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.doc.pipelines.importer.stages.AbstractImporterStage;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchUtil;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
+import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.pipelines.importer.WebImporterPipelineUtil;
+import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.WebFetchRequest;
 import com.norconex.crawler.web.fetch.WebFetchResponse;
-import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.importer.doc.DocMetaConstants;
 
 import lombok.NonNull;
@@ -54,14 +55,18 @@ public class HttpFetchStage extends AbstractImporterStage {
      * @return <code>true</code> if we continue processing.
      */
     @Override
-    protected boolean executeStage(ImporterPipelineContext ctx) {
+    protected boolean executeStage(ImporterPipelineContext pipeCtx) {
         // If stage is for a method that was disabled, skip
-        if (!ctx.isFetchDirectiveEnabled(getFetchDirective())) {
+        if (!pipeCtx.isFetchDirectiveEnabled(getFetchDirective())) {
             return true;
         }
 
-        var docRecord = ctx.getDoc().getDocContext();
-        var fetcher = ctx.getCrawlContext().getFetcher();
+        var docContext = pipeCtx.getDocContext();
+        var webEntry = (WebCrawlEntry) docContext.getCurrentCrawlEntry();
+        var doc = docContext.getDoc();
+        var crawlSession = pipeCtx.getCrawlSession();
+        var crawlContext = crawlSession.getCrawlContext();
+        var fetcher = crawlContext.getFetcher();
 
         var httpMethod = FetchDirective.METADATA.is(getFetchDirective())
                 ? HttpMethod.HEAD
@@ -69,79 +74,104 @@ public class HttpFetchStage extends AbstractImporterStage {
 
         WebFetchResponse response;
         try {
-            response = (WebFetchResponse) fetcher.fetch(
-                    new WebFetchRequest(ctx.getDoc(), httpMethod));
+            var request = new WebFetchRequest(doc, httpMethod);
+            request.setCrawlDocContext(pipeCtx.getDocContext());
+            response = (WebFetchResponse) fetcher.fetch(request);
         } catch (FetchException e) {
             throw new CrawlerException("Could not fetch URL: "
-                    + ctx.getDoc().getDocContext().getReference(), e);
+                    + docContext.getReference(), e);
         }
-        var originalCrawlDocState = docRecord.getState();
+        var originalOutcome = webEntry.getProcessingOutcome();
+        var previousEntry =
+                docContext.getPreviousCrawlEntry() instanceof WebCrawlEntry e
+                        ? e
+                        : null;
 
-        docRecord.setCrawlDate(ZonedDateTime.now());
+        webEntry.setProcessedAt(ZonedDateTime.now());
+        webEntry.setLastModified(webEntry.getLastModified() != null
+                ? webEntry.getLastModified()
+                : previousEntry != null
+                        ? previousEntry.getLastModified()
+                : null);
+        webEntry.setContentType(doc.getContentType() != null
+                ? doc.getContentType()
+                : previousEntry != null
+                        ? previousEntry.getContentType()
+                : null);
+        webEntry.setCharset(doc.getCharset() != null
+                ? doc.getCharset()
+                : previousEntry != null
+                        ? previousEntry.getCharset()
+                : null);
 
         //--- Add collector-specific metadata ---
-        var meta = ctx.getDoc().getMetadata();
-        meta.set(DocMetaConstants.CONTENT_TYPE, docRecord.getContentType());
-        meta.set(DocMetaConstants.CONTENT_ENCODING, docRecord.getCharset());
+        var meta = doc.getMetadata();
+        meta.set(DocMetaConstants.CONTENT_TYPE, doc.getContentType());
+        meta.set(DocMetaConstants.CONTENT_ENCODING, doc.getCharset());
         meta.set(
                 WebDocMetadata.ORIGINAL_REFERENCE,
-                docRecord.getOriginalReference());
+                webEntry.getReferenceTrail().isEmpty() ? null
+                        : webEntry.getReferenceTrail().get(0));
+
+        // Store HTTP status code/phrase for event listeners
+        webEntry.setHttpStatusCode(response.getStatusCode());
+        webEntry.setHttpReasonPhrase(response.getReasonPhrase());
 
         //-- Deal with redirects ---
         var redirectURL = response.getRedirectTarget();
 
         if (StringUtils.isNotBlank(redirectURL)) {
             WebImporterPipelineUtil.queueRedirectURL(
-                    ctx, response, redirectURL);
+                    pipeCtx, response, redirectURL);
             return false;
         }
 
-        var state = response.getResolutionStatus();
-        //TODO really do here??  or just do it if different than response?
-        docRecord.setState(state);
-        if (CrawlDocStatus.UNMODIFIED.equals(state)) {
-            ctx.getCrawlContext().fire(
+        var outcome = response.getProcessingOutcome();
+        webEntry.setProcessingOutcome(outcome);
+
+        if (ProcessingOutcome.UNMODIFIED.equals(outcome)) {
+            crawlSession.fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.REJECTED_UNMODIFIED)
-                            .source(ctx.getCrawlContext())
-                            .subject(response)
-                            .docContext(docRecord)
+                            .source(crawlSession)
+                            .crawlSession(crawlSession)
+                            .crawlEntry(webEntry)
                             .build());
             return false;
         }
-        if (state.isGoodState()) {
-            ctx.getCrawlContext().fire(CrawlerEvent.builder()
+        if (outcome != null && outcome.isGoodState()) {
+            crawlSession.fire(CrawlerEvent.builder()
                     .name(FetchDirective.METADATA.is(
                             getFetchDirective())
                                     ? CrawlerEvent.DOCUMENT_METADATA_FETCHED
                                     : CrawlerEvent.DOCUMENT_FETCHED)
-                    .source(ctx.getCrawlContext())
-                    .subject(response)
-                    .docContext(docRecord)
+                    .source(crawlSession)
+                    .crawlSession(crawlSession)
+                    .crawlEntry(webEntry)
                     .build());
             return true;
         }
 
-        String eventType = null;
-        if (state.isOneOf(CrawlDocStatus.NOT_FOUND)) {
+        String eventType;
+        if (outcome != null && outcome.isOneOf(ProcessingOutcome.NOT_FOUND)) {
             eventType = CrawlerEvent.REJECTED_NOTFOUND;
         } else {
             eventType = CrawlerEvent.REJECTED_BAD_STATUS;
         }
 
-        ctx.getCrawlContext().fire(
+        crawlSession.fire(
                 CrawlerEvent.builder()
                         .name(eventType)
-                        .source(ctx.getCrawlContext())
-                        .subject(response)
-                        .docContext(docRecord)
+                        .source(crawlSession)
+                        .crawlSession(crawlSession)
+                        .crawlEntry(webEntry)
                         .build());
 
         // At this stage, the URL is either unsupported or with a bad status.
         // In either case, whether we break the pipeline or not (returning
         // false or true) depends on the fetch directives supported.
         return FetchUtil.shouldContinueOnBadStatus(
-                ctx.getCrawlContext(), originalCrawlDocState,
+                crawlContext, originalOutcome,
                 getFetchDirective());
     }
 }

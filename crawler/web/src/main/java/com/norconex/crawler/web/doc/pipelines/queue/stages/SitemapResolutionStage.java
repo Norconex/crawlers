@@ -27,16 +27,17 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.mutable.MutableObject;
 
 import com.norconex.commons.lang.url.HttpURL;
+import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
+
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.operations.scope.UrlScopeResolver;
 import com.norconex.crawler.web.doc.operations.scope.UrlScopeResolver.SitemapPresence;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapContext;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.util.Web;
-import com.norconex.grid.core.storage.GridMap;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,12 +48,12 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
     private static final Map<String, Object> lockTable =
             new ConcurrentHashMap<>();
 
-    private GridMap<SitemapPresence> resolvedSites;
+    private CacheMap<SitemapPresence> resolvedSites;
 
     private synchronized void ensureCache(QueuePipelineContext ctx) {
         if (resolvedSites == null) {
             resolvedSites = Web.gridCache(
-                    ctx.getCrawlContext(),
+                    ctx.getCrawlSession(),
                     UrlScopeResolver.RESOLVED_SITES_CACHE_NAME,
                     SitemapPresence.class);
         }
@@ -61,8 +62,8 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
     @Override
     public boolean test(QueuePipelineContext ctx) { //NOSONAR
         ensureCache(ctx);
-        var cfg = Web.config(ctx.getCrawlContext());
-        var docRec = (WebCrawlDocContext) ctx.getDocContext();
+        var cfg = Web.config(ctx.getCrawlSession().getCrawlContext());
+        var docRec = (WebCrawlEntry) ctx.getCrawlEntry();
 
         // Both a sitemap resolver and locator must be set (which they are
         // by default) to attempt sitemap discovery and processing for a
@@ -90,7 +91,7 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
         // sitemap URL or not (we treat empty sitemaps as having no sitemaps).
 
         var presenceRef = new MutableObject<SitemapPresence>();
-        resolvedSites.update(urlRoot, pres -> {
+        resolvedSites.compute(urlRoot, (k, pres) -> {
             presenceRef.setValue(
                     ofNullable(pres).orElse(SitemapPresence.RESOLVING));
             return presenceRef.getValue();
@@ -110,7 +111,7 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
         }
 
         // Now that we processed the sitemap, refresh its presence status
-        presence = resolvedSites.get(urlRoot);
+        presence = resolvedSites.get(urlRoot).orElse(null);
 
         // If sitemap presence is NONE, it has been resolved and we ignore
         // "stayOnSitemap". We return right away, accepting the URL.
@@ -122,7 +123,7 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
         // check regardless, even if we know most checks are likely to pass.
         if (presence == SitemapPresence.PRESENT && !docRec.isFromSitemap()) {
             var urlScope = cfg.getUrlScopeResolver().resolve(docUrl, docRec);
-            Web.fireIfUrlOutOfScope(ctx.getCrawlContext(), docRec, urlScope);
+            Web.fireIfUrlOutOfScope(ctx.getCrawlSession(), docRec, urlScope);
             return urlScope.isInScope();
         }
         return true;
@@ -131,20 +132,21 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
     private void resolveSitemap(String urlRoot, QueuePipelineContext ctx) {
         // check again here in case it was resolved by another thread while
         // waiting.
-        if (resolvedSites.get(urlRoot) != SitemapPresence.RESOLVING) {
+        if (resolvedSites.get(urlRoot)
+                .orElse(null) != SitemapPresence.RESOLVING) {
             return;
         }
 
-        var docRec = (WebCrawlDocContext) ctx.getDocContext();
+        var docRec = (WebCrawlEntry) ctx.getCrawlEntry();
 
         // Sitemap never processed, so do it
         final var urlCount = new MutableInt();
-        ctx.getCrawlContext().fire(
+        ctx.getCrawlSession().fire(
                 CrawlerEvent
                         .builder()
                         .name(WebCrawlerEvent.SITEMAP_RESOLVE_BEGIN)
-                        .docContext(docRec)
-                        .source(ctx.getCrawlContext())
+                        .crawlEntry(docRec)
+                        .source(ctx.getCrawlSession())
                         .build());
 
         // To make sure the initial doc is not rejected just because
@@ -153,23 +155,25 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
         var isDocFoundInSitemap = new MutableBoolean(false);
 
         // Prepare URL consumer
-        Consumer<WebCrawlDocContext> urlConsumer = rec -> {
+        Consumer<WebCrawlEntry> urlConsumer = rec -> {
             var actualRec = rec;
             if (isDocFoundInSitemap.isFalse() && StringUtils.equalsAny(
                     rec.getReference(),
                     docRec.getReference(),
-                    docRec.getOriginalReference())) {
+                    docRec.getRedirectTrail().isEmpty()
+                            ? null
+                            : docRec.getRedirectTrail().get(0))) {
                 actualRec = docRec;
             }
 
             actualRec.setFromSitemap(true);
             isDocFoundInSitemap.setTrue();
-            ctx.getCrawlContext()
+            ctx.getCrawlSession().getCrawlContext()
                     .getDocPipelines()
                     .getQueuePipeline()
                     .accept(
                             new QueuePipelineContext(
-                                    ctx.getCrawlContext(),
+                                    ctx.getCrawlSession(),
                                     actualRec));
 
             var cnt = urlCount.getAndIncrement();
@@ -180,13 +184,14 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
 
         // Locate & resolve sitemaps
         String docUrl = docRec.getReference();
-        var cfg = Web.config(ctx.getCrawlContext());
+        var cfg = Web.config(ctx.getCrawlSession().getCrawlContext());
         var foundLocation = new MutableObject<String>();
         for (String location : cfg.getSitemapLocator().locations(
-                docUrl, ctx.getCrawlContext())) {
+                docUrl, ctx.getCrawlSession())) {
 
             var sitemapCtx = SitemapContext.builder()
-                    .fetcher(ctx.getCrawlContext().getFetcher())
+                    .fetcher(ctx.getCrawlSession().getCrawlContext()
+                            .getFetcher())
                     .location(location)
                     .urlConsumer(urlConsumer)
                     .build();
@@ -215,12 +220,12 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
                     + foundLocation.getValue();
         }
 
-        ctx.getCrawlContext().fire(
+        ctx.getCrawlSession().fire(
                 CrawlerEvent
                         .builder()
                         .name(WebCrawlerEvent.SITEMAP_RESOLVE_END)
-                        .source(ctx.getCrawlContext())
-                        .subject(urlCount.toInteger())
+                        .source(ctx.getCrawlSession())
+                        .crawlSession(ctx.getCrawlSession())
                         .message(eventMsg)
                         .build());
     }

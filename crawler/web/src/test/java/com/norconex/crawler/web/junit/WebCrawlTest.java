@@ -22,41 +22,17 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.time.Duration;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
-import org.jeasy.random.EasyRandom;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.web.WebCrawlDriverFactory;
 import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.doc.operations.delay.impl.GenericDelayResolver;
-import com.norconex.crawler.web.junit.WebCrawlTest.WebConfigRandomizer;
-import com.norconex.grid.core.GridConnector;
-import com.norconex.grid.local.LocalGridConnector;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.TYPE, ElementType.ANNOTATION_TYPE })
-@CrawlTest(
-    driverFactory = WebCrawlDriverFactory.class,
-    randomizer = WebConfigRandomizer.class
-)
-//NOTE: Attributes copied from @CrawlTest
+@ExtendWith(WebCrawlExtension.class)
 public @interface WebCrawlTest {
-
-    /**
-     * Whether to run the crawler, initialize the crawler context, or
-     * simply construct the configuration.
-     */
-    Focus focus() default Focus.CONFIG;
-
-    Class<? extends GridConnector>[] gridConnectors() default {
-            LocalGridConnector.class,
-            //            IgniteGridTestConnector.class
-            //            IgniteGridConnector.class
-    };
 
     boolean randomConfig() default false;
 
@@ -66,14 +42,6 @@ public @interface WebCrawlTest {
 
     Class<? extends Consumer<
             ? extends CrawlConfig>> configModifier() default DefaultWebCrawlerConfigModifier.class;
-
-    public static final class WebConfigRandomizer
-            implements Supplier<EasyRandom> {
-        @Override
-        public EasyRandom get() {
-            return WebTestUtil.RANDOMIZER;
-        }
-    }
 
     public static final class DefaultWebCrawlerConfigModifier
             implements Consumer<WebCrawlerConfig> {

@@ -18,7 +18,7 @@ package com.norconex.crawler.web.doc.operations.sitemap;
 import java.util.function.Consumer;
 
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.doc.WebCrawlEntry;
 
 import lombok.Builder;
 import lombok.Data;
@@ -31,5 +31,5 @@ public class SitemapContext {
     @With
     private final String location;
     private final Fetcher fetcher;
-    private final Consumer<WebCrawlDocContext> urlConsumer;
+    private final Consumer<WebCrawlEntry> urlConsumer;
 }

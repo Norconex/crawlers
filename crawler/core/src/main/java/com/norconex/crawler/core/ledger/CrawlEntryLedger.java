@@ -110,9 +110,12 @@ public final class CrawlEntryLedger {
             var previousAlias = LEDGER_A.equals(currentAlias)
                     ? LEDGER_B
                     : LEDGER_A;
-            baselineLedger = cacheManager.cacheExists(previousAlias)
-                    ? cacheManager.getCacheMap(previousAlias, CrawlEntry.class)
-                    : null;
+            if (cacheManager.cacheExists(previousAlias)) {
+                baselineLedger = cacheManager.getCacheMap(
+                        previousAlias, CrawlEntry.class);
+            } else {
+                baselineLedger = null;
+            }
             LOG.debug("Lazy-initialized baseline ledger to: {}",
                     previousAlias);
         }
@@ -266,6 +269,15 @@ public final class CrawlEntryLedger {
         return getCurrentLedger().get(ref)
                 .map(CrawlEntry::getProcessingStatus)
                 .orElse(ProcessingStatus.UNTRACKED);
+    }
+
+    /**
+     * Gets the current ledger entry for the given reference, if it exists.
+     * @param ref document reference
+     * @return the current crawl entry, or empty if not found
+     */
+    public Optional<CrawlEntry> getEntry(String ref) {
+        return getCurrentLedger().get(ref);
     }
 
     //--- Queue ---
@@ -505,10 +517,11 @@ public final class CrawlEntryLedger {
         // Update cached references if they were already initialized
         // (this only matters for coordinator which calls this method)
         if (!newAlias.equals(currentAlias)) {
+            var entryType = CrawlEntry.class;
             currentLedger =
-                    cacheManager.getCacheMap(newAlias, CrawlEntry.class);
+                    cacheManager.getCacheMap(newAlias, entryType);
             baselineLedger = cacheManager.cacheExists(previousAlias)
-                    ? cacheManager.getCacheMap(previousAlias, CrawlEntry.class)
+                    ? cacheManager.getCacheMap(previousAlias, entryType)
                     : null;
             try {
                 currentLedger.clear(); // Use bulk clear for efficiency

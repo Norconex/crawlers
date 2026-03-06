@@ -40,12 +40,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchRequest;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.WebFetchRequest;
@@ -55,6 +54,7 @@ import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.fetch.impl.webdriver.HttpSniffer.SniffedResponseHeaders;
 import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverFetcherConfig.WaitElementType;
 import com.norconex.crawler.web.fetch.util.ApacheHttpUtil;
+import com.norconex.importer.doc.Doc;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -124,7 +124,7 @@ public class WebDriverFetcher
     private WebDriverManager webDriverManager;
 
     @Override
-    protected void fetcherStartup(CrawlContext c) {
+    protected void fetcherStartup(CrawlSession c) {
         LOG.info("Starting WebDriver HTTP fetcher...");
         if (configuration.getHttpSniffer() != null) {
             httpSniffer = configuration.getHttpSniffer();
@@ -140,7 +140,7 @@ public class WebDriverFetcher
     }
 
     @Override
-    protected void fetcherShutdown(CrawlContext c) {
+    protected void fetcherShutdown(CrawlSession c) {
         if (httpSniffer != null) {
             LOG.info("Shutting down {} HTTP sniffer...",
                     configuration.getBrowser());
@@ -169,7 +169,7 @@ public class WebDriverFetcher
                 reason += " To obtain headers, use GET with the HttpSniffer.";
             }
             return HttpClientFetchResponse.builder()
-                    .resolutionStatus(CrawlDocStatus.UNSUPPORTED)
+                    .processingOutcome(ProcessingOutcome.UNSUPPORTED)
                     .reasonPhrase(reason)
                     .statusCode(-1)
                     .build();
@@ -189,23 +189,23 @@ public class WebDriverFetcher
         });
     }
 
-    private WebFetchResponse withoutSniffer(WebDriver driver, CrawlDoc doc) {
+    private WebFetchResponse withoutSniffer(WebDriver driver, Doc doc) {
         doc.setInputStream(fetchDocumentContent(driver, doc.getReference()));
         // We assume text/html until maybe WebDriver expands its
         // API to obtain different types of files.
-        if (doc.getDocContext().getContentType() == null) {
-            doc.getDocContext().setContentType(ContentType.HTML);
+        if (doc.getContentType() == null) {
+            doc.setContentType(ContentType.HTML);
         }
         return HttpClientFetchResponse
                 .builder()
-                .resolutionStatus(CrawlDocStatus.NEW)
+                .processingOutcome(ProcessingOutcome.NEW)
                 .statusCode(200)
                 .reasonPhrase("Real status code unknown. Use HTTP Sniffer "
                         + "to capture real status code.")
                 .build();
     }
 
-    private WebFetchResponse withSniffer(WebDriver driver, CrawlDoc doc) {
+    private WebFetchResponse withSniffer(WebDriver driver, Doc doc) {
         var url = doc.getReference();
         var sniffer = configuration.getHttpSniffer();
         var crawlRequestId = UUID.randomUUID().toString();
@@ -233,7 +233,7 @@ public class WebDriverFetcher
             if (HttpHeaders.CONTENT_TYPE.equalsIgnoreCase(name)
                     && !values.isEmpty()) {
                 ApacheHttpUtil.applyContentTypeAndCharset(
-                        values.get(0), doc.getDocContext());
+                        values.get(0), doc);
             }
             doc.getMetadata().addList(name, values);
         }
@@ -254,10 +254,10 @@ public class WebDriverFetcher
                 .reasonPhrase(status.reasonPhrase())
                 .userAgent(userAgent);
         if (status.code() >= 200 && status.code() < 300) {
-            fetchResponse = b.resolutionStatus(CrawlDocStatus.NEW).build();
+            fetchResponse = b.processingOutcome(ProcessingOutcome.NEW).build();
         } else {
-            fetchResponse = b.resolutionStatus(
-                    CrawlDocStatus.BAD_STATUS).build();
+            fetchResponse = b.processingOutcome(
+                    ProcessingOutcome.BAD_STATUS).build();
         }
         return fetchResponse;
     }
@@ -267,7 +267,7 @@ public class WebDriverFetcher
             Exception e) {
         if (e != null) {
             b.exception(e);
-            b.resolutionStatus(CrawlDocStatus.ERROR);
+            b.processingOutcome(ProcessingOutcome.ERROR);
             b.userAgent(getUserAgent());
             if (e instanceof TimeoutException) {
                 b.statusCode(HttpStatus.SC_GATEWAY_TIMEOUT);

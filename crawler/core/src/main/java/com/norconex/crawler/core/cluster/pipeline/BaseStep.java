@@ -35,7 +35,7 @@ public abstract class BaseStep implements Step {
     private boolean distributed;
     @Setter(value = AccessLevel.NONE)
     @Getter
-    private boolean stopRequested;
+    private volatile boolean stopRequested;
 
     @Override
     public void stop(CrawlSession session) {

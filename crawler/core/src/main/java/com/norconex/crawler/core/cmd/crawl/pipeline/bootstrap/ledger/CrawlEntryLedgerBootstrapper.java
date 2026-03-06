@@ -136,6 +136,60 @@ public final class CrawlEntryLedgerBootstrapper implements CrawlBootstrapper {
             LOG.info(
                     "NOT resuming - queueCount={}, will check if should preserve queue",
                     ledger.getQueueCount());
+            // Incremental + NEW usually means the previous run completed
+            // successfully and we should start a new run lifecycle.
+            // However, there are edge cases where resume detection can miss
+            // an unfinished previous run, leaving queued items to continue.
+            if (session.isIncremental()) {
+                var queueCount = ledger.getQueueCount();
+                var processedCount = ledger.getProcessedCount();
+                var maxDocs = crawlContext.getCrawlConfig().getMaxDocuments();
+
+                var looksLikeUnfinishedRun = queueCount > 0
+                        && maxDocs > -1
+                        && processedCount < maxDocs;
+
+                if (looksLikeUnfinishedRun) {
+                    LOG.warn("Incremental new run detected with {} queued "
+                            + "item(s) and processedCount={} (< maxDocs={}). "
+                            + "Treating as resume-detection fallback and "
+                            + "preserving queue.",
+                            queueCount, processedCount, maxDocs);
+
+                    var requeuedCount = ledger.requeueProcessingEntries();
+                    if (requeuedCount > 0) {
+                        LOG.info("Re-queued {} entries that were PROCESSING "
+                                + "from previous run.", requeuedCount);
+                    }
+                    LOG.info("Continuing from previous state: {} queued, {} "
+                            + "processed", ledger.getQueueCount(),
+                            ledger.getProcessedCount());
+                    return;
+                }
+
+                if (queueCount > 0) {
+                    LOG.warn("Incremental new run detected with {} queued "
+                            + "item(s) and processedCount={} (maxDocs={}). "
+                            + "Clearing queue and rotating ledger for a clean "
+                            + "new run.",
+                            queueCount, processedCount, maxDocs);
+                }
+                ledger.clearQueue();
+                LOG.info("Caching any valid references from previous run.");
+                ledger.archiveCurrentLedger();
+
+                if (LOG.isInfoEnabled()) {
+                    var cacheCount = ledger.getBaselineCount();
+                    if (cacheCount > 0) {
+                        LOG.info("STARTING an incremental crawl from "
+                                + "previous {} valid references.",
+                                cacheCount);
+                    } else {
+                        LOG.info("STARTING a fresh crawl.");
+                    }
+                }
+                return;
+            }
             // Only clear the queue if it's truly empty or this is a fresh start.
             // If the queue already has items (e.g., from a previous run where
             // resume detection failed due to Hazelcast cache partition issues),

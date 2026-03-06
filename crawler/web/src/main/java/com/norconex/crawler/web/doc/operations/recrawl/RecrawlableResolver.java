@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.doc.operations.recrawl;
 
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.doc.WebCrawlEntry;
 
 /**
  * Indicates whether a document that was successfully crawled on a previous
@@ -30,5 +30,5 @@ public interface RecrawlableResolver {
      * @param prevDocRecord data about previously crawled document (if any)
      * @return <code>true</code> if recrawlable
      */
-    boolean isRecrawlable(WebCrawlDocContext prevDocRecord);
+    boolean isRecrawlable(WebCrawlEntry prevDocRecord);
 }

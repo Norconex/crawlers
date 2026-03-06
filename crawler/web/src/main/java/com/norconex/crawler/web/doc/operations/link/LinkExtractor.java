@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.Set;
 
 import com.norconex.commons.lang.xml.XmlConfigurable;
-import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.importer.doc.Doc;
 
 /**
  * Responsible for finding links in documents.  Links are URLs to be followed
@@ -35,5 +35,5 @@ public interface LinkExtractor {
     //MAYBE have ability to return any number of extra info with a link
     //that could be added to target URL as extra metadata. Store as JSON?
 
-    Set<Link> extractLinks(CrawlDoc doc) throws IOException;
+    Set<Link> extractLinks(Doc doc) throws IOException;
 }

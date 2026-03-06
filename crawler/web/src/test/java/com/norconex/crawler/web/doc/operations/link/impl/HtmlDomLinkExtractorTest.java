@@ -35,16 +35,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.map.PropertyMatchers;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.link.Link;
 import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
-import com.norconex.importer.doc.DocMetaConstants;
+import com.norconex.importer.doc.Doc;
 
 /**
  * Tests {@link LinkExtractor} implementations that are common
@@ -114,14 +111,16 @@ class HtmlDomLinkExtractorTest {
             htmlEx.getConfiguration().addLinkTag("link", "href");
             if ("fromField".equals(from)) {
                 htmlEx.getConfiguration()
-                        .setFieldMatcher(TextMatcher.basic("myfield"));
+                        .setFieldMatcher(TextMatcher
+                                .basic("myfield"));
             }
             extractor = htmlEx;
         } else {
             var domEx = new DomLinkExtractor();
             if ("fromField".equals(from)) {
                 domEx.getConfiguration()
-                        .setFieldMatcher(TextMatcher.basic("myfield"));
+                        .setFieldMatcher(TextMatcher
+                                .basic("myfield"));
             }
             extractor = domEx;
         }
@@ -168,30 +167,29 @@ class HtmlDomLinkExtractorTest {
         Set<Link> links;
         try (var is = getClass().getResourceAsStream(
                 "LinkAttributesExtractorTest.html")) {
-            var docRecord = new WebCrawlDocContext();
-            docRecord.setReference(
-                    baseURL + "LinkAttributesExtractorTest.html");
-            docRecord.setContentType(ContentType.HTML);
-            CrawlDoc doc;
+            Doc doc;
             if ("fromBody".equals(from)) {
-                doc = new CrawlDoc(docRecord, CachedInputStream.cache(is));
-                doc.getMetadata().set(DocMetaConstants.CONTENT_TYPE,
-                        ContentType.HTML);
+                doc = CrawlDocStubs.crawlDoc(pageURL,
+                        ContentType.HTML, is);
             } else {
-                doc = new CrawlDoc(docRecord,
-                        CachedInputStream.cache(InputStream.nullInputStream()));
-                doc.getMetadata().set("myfield", IOUtils.toString(is, UTF_8));
+                doc = CrawlDocStubs.crawlDoc(
+                        pageURL, ContentType.HTML,
+                        InputStream.nullInputStream());
+                doc.getMetadata().set("myfield",
+                        IOUtils.toString(is, UTF_8));
             }
 
             links = extractor.extractLinks(doc);
         }
-        assertThat(links).containsExactlyInAnyOrderElementsOf(expectedLinks);
+        assertThat(links).containsExactlyInAnyOrderElementsOf(
+                expectedLinks);
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("testExtractorProvider")
     void testRestrictions(LinkExtractor extractor)
-            throws IOException, NoSuchMethodException, IllegalAccessException,
+            throws IOException, NoSuchMethodException,
+            IllegalAccessException,
             InvocationTargetException {
         // with restrictions, it shall skip extractions and not even attempt
         // to read the input stream (thus, shall not fail)
@@ -223,23 +221,27 @@ class HtmlDomLinkExtractorTest {
         htmlExtractor
                 .getConfiguration()
                 .getRestrictions()
-                .add(new PropertyMatcher(TextMatcher.basic("NOMATCH")));
+                .add(new PropertyMatcher(
+                        TextMatcher.basic("NOMATCH")));
 
         var domExtractor = new DomLinkExtractor();
         domExtractor.getConfiguration()
                 .getRestrictions()
-                .add(new PropertyMatcher(TextMatcher.basic("NOMATCH")));
+                .add(new PropertyMatcher(
+                        TextMatcher.basic("NOMATCH")));
 
         var tikaExtractor = new TikaLinkExtractor();
         tikaExtractor.getConfiguration()
                 .getRestrictions()
-                .add(new PropertyMatcher(TextMatcher.basic("NOMATCH")));
+                .add(new PropertyMatcher(
+                        TextMatcher.basic("NOMATCH")));
 
         var feedExtractor = new XmlFeedLinkExtractor();
         feedExtractor
                 .getConfiguration()
                 .getRestrictions()
-                .add(new PropertyMatcher(TextMatcher.basic("NOMATCH")));
+                .add(new PropertyMatcher(
+                        TextMatcher.basic("NOMATCH")));
         feedExtractor
                 .getConfiguration()
                 .setContentTypeMatcher(TextMatcher.regex(".*"));

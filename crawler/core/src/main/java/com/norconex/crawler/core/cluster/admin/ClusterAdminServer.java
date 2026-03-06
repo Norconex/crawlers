@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.net.BindException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.nio.file.Files;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -56,13 +57,34 @@ public class ClusterAdminServer {
     }
 
     /**
+     * File name written to the crawler work directory containing the actual
+     * admin server port. Used by the stop command to locate the server.
+     */
+    public static final String ADMIN_PORT_FILE = "admin.port";
+
+    /**
      * Starts the HTTP server on an available port starting from
      * {@value ClusterConfig#DEFAULT_ADMIN_PORT}.
      * @return the server port
      */
     public int start() {
         port = doStart();
+        writePortFile(port);
         return port;
+    }
+
+    private void writePortFile(int port) {
+        var workDir = session.getCrawlContext().getWorkDir();
+        if (workDir != null) {
+            try {
+                Files.createDirectories(workDir);
+                Files.writeString(
+                        workDir.resolve(ADMIN_PORT_FILE),
+                        String.valueOf(port));
+            } catch (IOException e) {
+                LOG.warn("Could not write admin port file.", e);
+            }
+        }
     }
 
     public int doStart() {
@@ -125,6 +147,14 @@ public class ClusterAdminServer {
         if (httpServer != null) {
             httpServer.stop(0);
             LOG.info("Cluster admin HTTP server stopped.");
+        }
+        var workDir = session.getCrawlContext().getWorkDir();
+        if (workDir != null) {
+            try {
+                Files.deleteIfExists(workDir.resolve(ADMIN_PORT_FILE));
+            } catch (IOException e) {
+                LOG.warn("Could not delete admin port file.", e);
+            }
         }
     }
 

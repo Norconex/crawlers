@@ -75,7 +75,7 @@ class CrawlProcessStepExceptionHandlingTest {
 
         try (var harness = harness(allRefs, cfg -> {
             cfg.setId("test-no-stop");
-            cfg.setNumThreadsPerNode(1);
+            cfg.setNumThreads(1);
             cfg.setFetchers(List.of(Configurable.configure(
                     new MockFetcher(),
                     fcfg -> fcfg.setThrowOnAcceptRefs(throwRefs))));
@@ -101,7 +101,7 @@ class CrawlProcessStepExceptionHandlingTest {
 
         try (var harness = harness(allRefs, cfg -> {
             cfg.setId("test-non-match");
-            cfg.setNumThreadsPerNode(1);
+            cfg.setNumThreads(1);
             // IOException does NOT match RuntimeException thrown by the fetcher
             cfg.setStopOnExceptions(List.of(java.io.IOException.class));
             cfg.setFetchers(List.of(Configurable.configure(
@@ -131,7 +131,7 @@ class CrawlProcessStepExceptionHandlingTest {
             throws IOException {
         try (var harness = harness(buildRefs(10), cfg -> {
             cfg.setId("test-stop-on-ex");
-            cfg.setNumThreadsPerNode(1); // single thread → deterministic
+            cfg.setNumThreads(1); // single thread → deterministic
             cfg.setStopOnExceptions(List.of(RuntimeException.class));
             cfg.setFetchers(List.of(Configurable.configure(
                     new MockFetcher(),
@@ -156,7 +156,7 @@ class CrawlProcessStepExceptionHandlingTest {
             throws IOException {
         try (var harness = harness(buildRefs(5), cfg -> {
             cfg.setId("test-supertype-stop");
-            cfg.setNumThreadsPerNode(1);
+            cfg.setNumThreads(1);
             cfg.setStopOnExceptions(List.of(Exception.class));
             cfg.setFetchers(List.of(Configurable.configure(
                     new MockFetcher(),
@@ -185,7 +185,7 @@ class CrawlProcessStepExceptionHandlingTest {
         int numRefs = 5;
         try (var harness = harness(buildRefs(numRefs), cfg -> {
             cfg.setId("test-all-rejected");
-            cfg.setNumThreadsPerNode(1);
+            cfg.setNumThreads(1);
             cfg.setFetchers(List.of(Configurable.configure(
                     new MockFetcher(),
                     fcfg -> fcfg.setThrowOnAccept(true))));

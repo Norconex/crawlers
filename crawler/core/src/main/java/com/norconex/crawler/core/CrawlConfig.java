@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -192,11 +193,16 @@ public class CrawlConfig {
     private boolean startReferencesAsync;
 
     /**
-     * The maximum number of threads a crawler can use per cluster node.
+     * The maximum number of threads a crawler can use.
      * Default is 2.
+     * <p>
+     * When running in a cluster, this value applies <em>per node</em>.
+     * For example, setting {@code numThreads} to 4 on a 3-node cluster
+     * results in up to 12 concurrent processing threads across the cluster.
+     * </p>
      */
     @Min(1)
-    private int numThreadsPerNode = 2;
+    private int numThreads = 2;
 
     /**
      * <p>
@@ -231,7 +237,51 @@ public class CrawlConfig {
      * Default is -1 (unlimited).
      * </p>
      */
+    @JsonAlias({ "maxDocumentsPerRun", "maxRunDocuments" })
     private int maxDocuments = -1;
+
+    /**
+     * Preferred alias for {@link #getMaxDocuments()} to emphasize that the
+     * cap applies to a single run.
+     *
+     * @return maximum documents processed per run, or {@code -1} for unlimited
+     */
+    public int getMaxDocumentsPerRun() {
+        return maxDocuments;
+    }
+
+    /**
+     * Preferred alias for {@link #setMaxDocuments(int)} to emphasize that the
+     * cap applies to a single run.
+     *
+     * @param maxDocumentsPerRun maximum documents processed per run,
+     * {@code -1} for unlimited
+     * @return this config
+     */
+    public CrawlConfig setMaxDocumentsPerRun(int maxDocumentsPerRun) {
+        this.maxDocuments = maxDocumentsPerRun;
+        return this;
+    }
+
+    /**
+     * Backward-compatible alias of {@link #getMaxDocumentsPerRun()}.
+     *
+     * @return maximum documents processed per run, or {@code -1} for unlimited
+     */
+    public int getMaxRunDocuments() {
+        return getMaxDocumentsPerRun();
+    }
+
+    /**
+     * Backward-compatible alias of {@link #setMaxDocumentsPerRun(int)}.
+     *
+     * @param maxRunDocuments maximum documents processed per run,
+     * {@code -1} for unlimited
+     * @return this config
+     */
+    public CrawlConfig setMaxRunDocuments(int maxRunDocuments) {
+        return setMaxDocumentsPerRun(maxRunDocuments);
+    }
 
     /**
      * The maximum number of references a node will read at once from the queue,

@@ -40,7 +40,9 @@ import com.norconex.crawler.web.mocks.MockWebsite;
 @MockServerSettings()
 class SitemapResolutionStageTest {
 
-    private static final String SITEMAP_XML = """
+        private static final int SITE_DEPTH = 20;
+
+        private static final String SITEMAP_XML = """
             <urlset>
               <url>
                 <loc>%s</loc>
@@ -63,68 +65,74 @@ class SitemapResolutionStageTest {
             </urlset>
             """;
 
-    // Should only crawl URLs in sitemap. Start URL not in sitemap.
-    @WebCrawlTest
-    void testStayOnSitemap(ClientAndServer client, WebCrawlerConfig cfg) {
-        client.reset();
-        var baseUrl = serverUrl(client, "");
-        var sitemap = SITEMAP_XML.formatted(
-                baseUrl + "0001",
-                baseUrl + "0002",
-                baseUrl + "0003");
-        client.when(request().withPath("/sitemap.xml"))
-                .respond(response().withBody(sitemap, MediaType.XML_UTF_8));
-        MockWebsite.whenInfiniteDepth(client);
+        // Should only crawl URLs in sitemap. Start URL not in sitemap.
+        @WebCrawlTest
+        void testStayOnSitemap(ClientAndServer client, WebCrawlerConfig cfg) {
+                client.reset();
+                var baseUrl = serverUrl(client, "");
+                var sitemap = SITEMAP_XML.formatted(
+                                baseUrl + "0001",
+                                baseUrl + "0002",
+                                baseUrl + "0003");
+                client.when(request().withPath("/sitemap.xml"))
+                                .respond(response().withBody(sitemap,
+                                                MediaType.XML_UTF_8));
+                MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 
-        cfg.setSitemapLocator(new GenericSitemapLocator())
-                .setSitemapResolver(new GenericSitemapResolver())
-                .setStartReferences(
-                        List.of(serverUrl(client, "/stayOnSitemap")))
-                .setNumThreadsPerNode(1)
-                .setMaxDocuments(10);
-        ((GenericUrlScopeResolver) cfg.getUrlScopeResolver())
-                .getConfiguration().setStayOnSitemap(true);
+                cfg.setSitemapLocator(new GenericSitemapLocator())
+                                .setSitemapResolver(
+                                                new GenericSitemapResolver())
+                                .setStartReferences(
+                                                List.of(serverUrl(client,
+                                                                "/stayOnSitemap")))
+                                .setNumThreads(1)
+                                .setMaxDocuments(10);
+                ((GenericUrlScopeResolver) cfg.getUrlScopeResolver())
+                                .getConfiguration().setStayOnSitemap(true);
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+                var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+                                .getCommitter();
 
-        assertThat(mem.getRequestCount()).isEqualTo(3);
-        assertThat(mem.getUpsertRequests())
-                .map(req -> substringAfterLast(
-                        req.getReference(), "/"))
-                .containsExactly("0001", "0002", "0003");
-    }
+                assertThat(mem.getRequestCount()).isEqualTo(3);
+                assertThat(mem.getUpsertRequests())
+                                .map(req -> substringAfterLast(
+                                                req.getReference(), "/"))
+                                .containsExactly("0001", "0002", "0003");
+        }
 
-    // Should only crawl URLs in sitemap. Start URL included in sitemap.
-    @WebCrawlTest
-    void testStayOnSitemapStartInSitemap(
-            ClientAndServer client, WebCrawlerConfig cfg) {
-        client.reset();
-        var baseUrl = serverUrl(client, "");
-        var sitemap = SITEMAP_XML.formatted(
-                baseUrl + "0001",
-                baseUrl + "0002",
-                baseUrl + "0003");
-        client
-                .when(request().withPath("/sitemap.xml"))
-                .respond(response().withBody(sitemap,
-                        MediaType.XML_UTF_8));
-        MockWebsite.whenInfiniteDepth(client);
+        // Should only crawl URLs in sitemap. Start URL included in sitemap.
+        @WebCrawlTest
+        void testStayOnSitemapStartInSitemap(
+                        ClientAndServer client, WebCrawlerConfig cfg) {
+                client.reset();
+                var baseUrl = serverUrl(client, "");
+                var sitemap = SITEMAP_XML.formatted(
+                                baseUrl + "0001",
+                                baseUrl + "0002",
+                                baseUrl + "0003");
+                client
+                                .when(request().withPath("/sitemap.xml"))
+                                .respond(response().withBody(sitemap,
+                                                MediaType.XML_UTF_8));
+                MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 
-        cfg.setSitemapLocator(new GenericSitemapLocator())
-                .setSitemapResolver(new GenericSitemapResolver())
-                .setNumThreadsPerNode(1)
-                .setMaxDocuments(10)
-                .setStartReferences(List.of(serverUrl(client, "/0002")));
-        ((GenericUrlScopeResolver) cfg.getUrlScopeResolver())
-                .getConfiguration().setStayOnSitemap(true);
+                cfg.setSitemapLocator(new GenericSitemapLocator())
+                                .setSitemapResolver(
+                                                new GenericSitemapResolver())
+                                .setNumThreads(1)
+                                .setMaxDocuments(10)
+                                .setStartReferences(List.of(
+                                                serverUrl(client, "/0002")));
+                ((GenericUrlScopeResolver) cfg.getUrlScopeResolver())
+                                .getConfiguration().setStayOnSitemap(true);
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
-                .getCommitter();
+                var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+                                .getCommitter();
 
-        assertThat(mem.getRequestCount()).isEqualTo(3);
-        assertThat(mem.getUpsertRequests())
-                .map(req -> substringAfterLast(
-                        req.getReference(), "/"))
-                .containsExactly("0001", "0002", "0003");
-    }
+                assertThat(mem.getRequestCount()).isEqualTo(3);
+                assertThat(mem.getUpsertRequests())
+                                .map(req -> substringAfterLast(
+                                                req.getReference(), "/"))
+                                .containsExactly("0001", "0002", "0003");
+        }
 }

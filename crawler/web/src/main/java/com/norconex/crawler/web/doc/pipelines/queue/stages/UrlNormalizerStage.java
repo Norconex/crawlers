@@ -17,8 +17,8 @@ package com.norconex.crawler.web.doc.pipelines.queue.stages;
 import java.util.function.Predicate;
 
 import com.google.common.base.Objects;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.web.doc.operations.url.WebUrlNormalizer;
 import com.norconex.crawler.web.util.Web;
 
@@ -26,17 +26,19 @@ public class UrlNormalizerStage implements Predicate<QueuePipelineContext> {
     @Override
     public boolean test(QueuePipelineContext ctx) {
         var normalizers =
-                Web.config(ctx.getCrawlContext()).getUrlNormalizers();
+                Web.config(ctx.getCrawlSession().getCrawlContext())
+                        .getUrlNormalizers();
         if (!normalizers.isEmpty()) {
-            String originalRef = ctx.getDocContext().getReference();
+            String originalRef = ctx.getCrawlEntry().getReference();
             var url = WebUrlNormalizer.normalizeURL(originalRef, normalizers);
             if (url == null) {
-                ctx.getDocContext().setState(CrawlDocStatus.REJECTED);
+                ctx.getCrawlEntry()
+                        .setProcessingOutcome(ProcessingOutcome.REJECTED);
                 return false;
             }
             if (!Objects.equal(originalRef, url)) {
-                ctx.getDocContext().setReference(url);
-                ctx.getDocContext().setOriginalReference(originalRef);
+                ctx.getCrawlEntry().setReference(url);
+                ctx.getCrawlEntry().addToReferenceTrail(originalRef);
             }
         }
         return true;

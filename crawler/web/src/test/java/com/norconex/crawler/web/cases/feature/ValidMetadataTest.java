@@ -36,28 +36,38 @@ import com.norconex.importer.doc.DocMetaConstants;
 @MockServerSettings
 class ValidMetadataTest {
 
-    @WebCrawlTest
-    void testValidMetadata(ClientAndServer client, WebCrawlerConfig cfg) {
+        private static final int SITE_DEPTH = 20;
 
-        MockWebsite.whenInfiniteDepth(client);
+        @WebCrawlTest
+        void testValidMetadata(ClientAndServer client, WebCrawlerConfig cfg) {
 
-        cfg.setStartReferences(
-                List.of(MockWebsite.serverUrl(client, "/validMetadata/0000")));
-        cfg.setMaxDepth(10);
+                MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+                cfg.setStartReferences(
+                                List.of(MockWebsite.serverUrl(client,
+                                                "/validMetadata/0000")));
+                cfg.setMaxDepth(10);
 
-        // 0-depth + 10 others == 11 expected files
-        assertThat(mem.getRequestCount()).isEqualTo(11);
+                var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+                                .getCommitter();
 
-        for (UpsertRequest doc : mem.getUpsertRequests()) {
-            var meta = doc.getMetadata();
-            assertThat(meta.getStrings(HttpHeaders.CONTENT_TYPE))
-                    .containsExactly("text/html; charset=UTF-8");
-            assertThat(meta.getStrings(DocMetaConstants.CONTENT_TYPE))
-                    .containsExactly("text/html");
-            assertThat(meta.getStrings(DocMetaConstants.CONTENT_ENCODING))
-                    .containsExactly(StandardCharsets.UTF_8.toString());
+                // 0-depth + 10 others == 11 expected files
+                assertThat(mem.getRequestCount()).isEqualTo(11);
+
+                for (UpsertRequest doc : mem.getUpsertRequests()) {
+                        var meta = doc.getMetadata();
+                        assertThat(meta.getStrings(HttpHeaders.CONTENT_TYPE))
+                                        .containsExactly(
+                                                        "text/html; charset=UTF-8");
+                        assertThat(meta.getStrings(
+                                        DocMetaConstants.CONTENT_TYPE))
+                                                        .containsExactly(
+                                                                        "text/html");
+                        assertThat(meta.getStrings(
+                                        DocMetaConstants.CONTENT_ENCODING))
+                                                        .containsExactly(
+                                                                        StandardCharsets.UTF_8
+                                                                                        .toString());
+                }
         }
-    }
 }

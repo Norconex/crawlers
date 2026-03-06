@@ -93,7 +93,9 @@ hazelcast:
         write-delay-seconds: 0
         factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
         properties:
-          # Avoid remote type registry lookups from partition-operation threads.
+          # Base type for the ledger value. If a more specific subtype is
+          # registered in the runtime type registry, that subtype takes
+          # precedence (see TypedJdbcMapStoreFactory.resolveValueClass).
           value-class-name: com.norconex.crawler.core.ledger.CrawlEntry
           data-connection-ref: jdbc-datasource
           column-key-type: VARCHAR(4096)

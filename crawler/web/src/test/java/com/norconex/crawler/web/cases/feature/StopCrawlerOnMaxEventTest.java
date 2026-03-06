@@ -43,34 +43,40 @@ import com.norconex.crawler.web.mocks.MockWebsite;
 @MockServerSettings
 class StopCrawlerOnMaxEventTest {
 
-    @WebCrawlTest
-    void testStopCrawlerOnMaxEvent(
-            ClientAndServer client, WebCrawlerConfig cfg) {
+        private static final int SITE_DEPTH = 50;
 
-        MockWebsite.whenInfiniteDepth(client);
+        @WebCrawlTest
+        void testStopCrawlerOnMaxEvent(
+                        ClientAndServer client, WebCrawlerConfig cfg) {
 
-        cfg.setStartReferences(List.of(
-                MockWebsite.serverUrl(client, "/stopCrawlerOnMaxEvent")));
-        var lis = new StopCrawlerOnMaxEventListener();
-        lis.getConfiguration().setEventMatcher(
-                TextMatcher.csv(CommitterEvent.COMMITTER_UPSERT_END
-                        + "," + CrawlerEvent.REJECTED_FILTER));
-        lis.getConfiguration().setMaximum(10);
-        lis.getConfiguration().setOnMultiple(OnMultiple.SUM);
-        cfg.addEventListeners(List.of(lis));
-        cfg.setNumThreadsPerNode(1);
-        cfg.setMaxDocuments(-1);
+                MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 
-        // reject references with odd depth number
-        cfg.setDocumentFilters(List.of(Configurable.configure(
-                new GenericReferenceFilter(), c -> c
-                        .setValueMatcher(TextMatcher.regex(".*[13579]$"))
-                        .setOnMatch(OnMatch.EXCLUDE))));
+                cfg.setStartReferences(List.of(
+                                MockWebsite.serverUrl(client,
+                                                "/stopCrawlerOnMaxEvent")));
+                var lis = new StopCrawlerOnMaxEventListener();
+                lis.getConfiguration().setEventMatcher(
+                                TextMatcher.csv(CommitterEvent.COMMITTER_UPSERT_END
+                                                + ","
+                                                + CrawlerEvent.REJECTED_FILTER));
+                lis.getConfiguration().setMaximum(10);
+                lis.getConfiguration().setOnMultiple(OnMultiple.SUM);
+                cfg.addEventListeners(List.of(lis));
+                cfg.setNumThreads(1);
+                cfg.setMaxDocuments(-1);
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+                // reject references with odd depth number
+                cfg.setDocumentFilters(List.of(Configurable.configure(
+                                new GenericReferenceFilter(), c -> c
+                                                .setValueMatcher(TextMatcher
+                                                                .regex(".*[13579]$"))
+                                                .setOnMatch(OnMatch.EXCLUDE))));
 
-        // Expected: 6 upserts, 0 deletes
-        assertThat(mem.getUpsertCount()).isEqualTo(6);
-        assertThat(mem.getDeleteCount()).isZero();
-    }
+                var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+                                .getCommitter();
+
+                // Expected: 6 upserts, 0 deletes
+                assertThat(mem.getUpsertCount()).isEqualTo(6);
+                assertThat(mem.getDeleteCount()).isZero();
+        }
 }
