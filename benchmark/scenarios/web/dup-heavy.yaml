@@ -1,0 +1,31 @@
+name: dup-heavy
+seed: 1337
+fixture:
+  mode: synthetic-web
+  rootPath: /site/dup-heavy/seed/1337/root
+  topology:
+    depth: 5
+    branchingFactor: 10
+    cyclesPct: 0.05
+  urls:
+    canonicalNoisePct: 0.20
+    queryVariantPct: 0.30
+  content:
+    avgHtmlBytes: 24576
+    htmlPct: 0.95
+    pdfPct: 0.03
+    binaryPct: 0.02
+    duplicatePct: 0.35
+    nearDuplicatePct: 0.25
+  behavior:
+    redirectPct: 0.08
+    errorPct: 0.02
+    delayedResponsePct: 0.04
+    delayMsP95: 200
+crawler:
+  mode: standalone
+  maxDuration: PT30M
+  targetDocs: 15000
+metrics:
+  collectProcessStats: true
+  sampleIntervalMs: 1000

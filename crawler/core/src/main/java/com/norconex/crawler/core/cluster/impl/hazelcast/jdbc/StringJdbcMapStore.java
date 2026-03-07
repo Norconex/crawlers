@@ -1,6 +1,7 @@
 package com.norconex.crawler.core.cluster.impl.hazelcast.jdbc;
 
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,6 +33,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class StringJdbcMapStore
         implements MapStore<String, String>, MapLoaderLifecycleSupport {
+
+    private static final int TABLE_RECOVERY_MAX_ATTEMPTS = 3;
+    private static final Duration TABLE_RECOVERY_RETRY_DELAY =
+            Duration.ofMillis(250);
 
     @FunctionalInterface
     private interface SqlSupplier<T> {
@@ -232,26 +237,54 @@ public class StringJdbcMapStore
                         firstError);
             }
 
-            LOG.warn("Table '{}' appears missing while trying to {}. "
-                    + "Attempting one-time table bootstrap and retry.",
-                    tableName, action);
-            try {
-                db.ensureTableExists(tableName, tableColumns);
-            } catch (SQLException ensureError) {
-                throw new ClusterException(
-                        "Failed to initialize missing table '%s' while trying to %s."
-                                .formatted(tableName, action),
-                        ensureError);
+            SQLException latestError = firstError;
+            for (int attempt = 1; attempt <= TABLE_RECOVERY_MAX_ATTEMPTS;
+                    attempt++) {
+                LOG.warn("Table '{}' appears missing while trying to {}. "
+                        + "Recovery attempt {}/{}.",
+                        tableName, action, attempt,
+                        TABLE_RECOVERY_MAX_ATTEMPTS);
+                try {
+                    db.ensureTableExists(tableName, tableColumns);
+                } catch (SQLException ensureError) {
+                    latestError = ensureError;
+                    if (attempt == TABLE_RECOVERY_MAX_ATTEMPTS) {
+                        throw new ClusterException(
+                                "Failed to initialize missing table '%s' while trying to %s."
+                                        .formatted(tableName, action),
+                                ensureError);
+                    }
+                    sleepBeforeRetry();
+                    continue;
+                }
+
+                try {
+                    return op.get();
+                } catch (SQLException retryError) {
+                    latestError = retryError;
+                    if (!isMissingTableError(retryError)
+                            || attempt == TABLE_RECOVERY_MAX_ATTEMPTS) {
+                        throw new ClusterException(
+                                "Failed to %s after table recovery attempts."
+                                        .formatted(action),
+                                retryError);
+                    }
+                    sleepBeforeRetry();
+                }
             }
 
-            try {
-                return op.get();
-            } catch (SQLException retryError) {
-                throw new ClusterException(
-                        "Failed to %s after table recovery attempt."
-                                .formatted(action),
-                        retryError);
-            }
+            throw new ClusterException(
+                    "Failed to %s after table recovery attempts."
+                            .formatted(action),
+                    latestError);
+        }
+    }
+
+    private static void sleepBeforeRetry() {
+        try {
+            Thread.sleep(TABLE_RECOVERY_RETRY_DELAY.toMillis());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 

@@ -181,6 +181,16 @@ public class JdbcHazelcastConfigurer implements HazelcastConfigurer {
     private String tcpMembers;
 
     /**
+     * Whether to use Hazelcast auto-discovery in clustered mode.
+     * <p>
+     * Default is {@code false} to keep deterministic TCP member discovery.
+     * When set to {@code true}, auto-detection is enabled and explicit
+     * TCP-member discovery is disabled.
+     * </p>
+     */
+    private boolean autoDiscoveryEnabled;
+
+    /**
      * Whether Hazelcast Jet engine should be enabled.
      * <p>
      * {@code null} (default) means enabled for backward compatibility.
@@ -289,15 +299,23 @@ public class JdbcHazelcastConfigurer implements HazelcastConfigurer {
         var net = cfg.getNetworkConfig();
         var join = net.getJoin();
 
-        // Disable multicast; we either use TCP/IP for clustered or nothing for
-        // standalone.
+        // Keep multicast disabled by default. Discovery is either explicit TCP
+        // members or Hazelcast auto-detection when enabled.
         join.getMulticastConfig().setEnabled(false);
         if (join.getAutoDetectionConfig() != null) {
             join.getAutoDetectionConfig().setEnabled(false);
         }
+        join.getTcpIpConfig().setEnabled(false);
 
         if (!clustered) {
-            join.getTcpIpConfig().setEnabled(false);
+            net.setPortAutoIncrement(true);
+            return;
+        }
+
+        if (autoDiscoveryEnabled) {
+            if (join.getAutoDetectionConfig() != null) {
+                join.getAutoDetectionConfig().setEnabled(true);
+            }
             net.setPortAutoIncrement(true);
             return;
         }

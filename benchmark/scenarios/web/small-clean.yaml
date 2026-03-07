@@ -1,0 +1,31 @@
+name: small-clean
+seed: 42
+fixture:
+  mode: synthetic-web
+  rootPath: /site/small-clean/seed/42/root
+  topology:
+    depth: 4
+    branchingFactor: 8
+    cyclesPct: 0.01
+  urls:
+    canonicalNoisePct: 0.02
+    queryVariantPct: 0.01
+  content:
+    avgHtmlBytes: 32768
+    htmlPct: 1.0
+    pdfPct: 0.0
+    binaryPct: 0.0
+    duplicatePct: 0.01
+    nearDuplicatePct: 0.02
+  behavior:
+    redirectPct: 0.01
+    errorPct: 0.005
+    delayedResponsePct: 0.01
+    delayMsP95: 80
+crawler:
+  mode: standalone
+  maxDuration: PT20M
+  targetDocs: 5000
+metrics:
+  collectProcessStats: true
+  sampleIntervalMs: 1000

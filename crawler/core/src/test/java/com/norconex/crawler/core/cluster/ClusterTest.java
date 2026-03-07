@@ -34,6 +34,8 @@ import com.norconex.committer.core.service.CommitterServiceEvent;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
+import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
@@ -44,6 +46,7 @@ import com.norconex.crawler.core.test.CrawlTestDriver;
 import com.norconex.crawler.core.test.CrawlTestHarness;
 import com.norconex.crawler.core.test.CrawlTestInstrument;
 import com.norconex.crawler.core.test.CrawlTestNodeOutput;
+import com.norconex.crawler.core.util.ConcurrentUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -400,6 +403,77 @@ class ClusterTest {
                     statusCounts.getProcessed()
                             + statusCounts.getProcessing())
                                     .isEqualTo(numOfRefs);
+        }
+    }
+
+    @Test
+    @Timeout(240)
+    void testLateJoiningNodeParticipatesFromCurrentPipelineStep()
+            throws Exception {
+        var numOfRefs = 900;
+        var initialNodeNames = new String[] { "node-1" };
+        var lateNodeName = "node-2";
+
+        var instrument = new CrawlTestInstrument()
+                .setRecordEvents(true)
+                .setRecordCaches(false)
+                .setRecordInterval(Duration.ofMillis(250))
+                .setConfigModifier(cfg -> {
+                    configModifier(numOfRefs, 120).accept(cfg);
+                    cfg.setId("nx-late-join-" + numOfRefs);
+                    cfg.setMaxQueueBatchSize(1);
+
+                    var connector = (HazelcastClusterConnector) cfg
+                            .getClusterConfig().getConnector();
+                    var hzConfig = connector.getConfiguration();
+                    var configurer = (JdbcHazelcastConfigurer) hzConfig
+                            .getConfigurer();
+                    configurer.setAutoDiscoveryEnabled(true);
+                })
+                .setWorkDir(tempDir)
+                .setNewJvm(true)
+                .setClustered(true);
+
+        try (var harness = new CrawlTestHarness(instrument)) {
+
+            var initialFuture = harness.launchAsync(initialNodeNames);
+            harness.waitFor(CLUSTER_JOIN_WAIT)
+                    .anyNodeToHaveFired(
+                            CrawlerEvent.DOCUMENT_PROCESSING_BEGIN);
+
+            var lateFuture = harness.launchAsync(lateNodeName);
+
+            var lateNodeStartedProcessing = ConcurrentUtil.waitUntil(
+                    () -> harness.getNodeOutput(lateNodeName)
+                            .map(output -> output.getEventNames().contains(
+                                    CrawlerEvent.DOCUMENT_PROCESSING_BEGIN))
+                            .orElse(false),
+                    CLUSTER_JOIN_WAIT,
+                    Duration.ofMillis(100));
+            assertThat(lateNodeStartedProcessing)
+                    .as("Late-joining node should enter processing while crawl is in progress")
+                    .isTrue();
+
+            var initialResult = initialFuture.get(200, TimeUnit.SECONDS);
+            var lateResult = lateFuture.get(200, TimeUnit.SECONDS);
+
+            var lateOutput = lateResult.getNodeOutput(lateNodeName);
+            assertThat(lateOutput).isNotNull();
+
+            // A late joiner should attach to in-progress processing and do
+            // useful work without restarting bootstrap queuing.
+            assertThat(lateOutput.getEventNames())
+                    .contains(CrawlerEvent.DOCUMENT_PROCESSING_BEGIN);
+            assertThat(
+                    lateOutput.getEventNameBag()
+                            .getCount(CrawlerEvent.DOCUMENT_IMPORTED))
+                                    .isGreaterThan(0);
+            assertThat(lateOutput.getEventNames())
+                    .doesNotContain(CrawlerEvent.DOCUMENT_QUEUED);
+
+            assertThat(initialResult.getAllNodesEventNameBag()
+                    .getCount(CrawlerEvent.DOCUMENT_IMPORTED))
+                            .isGreaterThan(0);
         }
     }
 

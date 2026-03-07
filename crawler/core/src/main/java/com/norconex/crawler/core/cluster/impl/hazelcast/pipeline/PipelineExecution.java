@@ -63,6 +63,7 @@ public class PipelineExecution implements AutoCloseable {
     private final ExecutorService executor =
             Executors.newCachedThreadPool(createThreadFactory());
     private final CoordinatorChangeListener coordChangeListener;
+    private final boolean coordinatorListenerRegistered;
 
     private boolean isCoordinator;
 
@@ -71,7 +72,10 @@ public class PipelineExecution implements AutoCloseable {
         this.cluster = cluster;
         this.pipeline = pipeline;
         coordChangeListener = this::handleCoordinatorChange;
-        cluster.addCoordinatorChangeListener(coordChangeListener);
+        coordinatorListenerRegistered = cluster.isClustered();
+        if (coordinatorListenerRegistered) {
+            cluster.addCoordinatorChangeListener(coordChangeListener);
+        }
     }
 
     public CompletableFuture<PipelineResult> execute() {
@@ -157,7 +161,9 @@ public class PipelineExecution implements AutoCloseable {
 
     @Override
     public void close() {
-        cluster.removeCoordinatorChangeListener(coordChangeListener);
+        if (coordinatorListenerRegistered) {
+            cluster.removeCoordinatorChangeListener(coordChangeListener);
+        }
         executor.shutdown(); // disable new tasks, let running complete
         try {
             if (!executor.awaitTermination(SHUTDOWN_AWAIT_SECONDS,

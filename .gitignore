@@ -37,3 +37,8 @@ crawler/core/.factorypath
 crawler/core/.factorypath
 /.mvn/
 /crawlers-v4.code-workspace
+
+# Benchmark generated outputs
+/benchmark/results/*
+!/benchmark/results/.gitkeep
+/benchmark/**/target/

@@ -135,6 +135,11 @@ public class PipelineWorkerState implements AutoCloseable {
         }
 
         final var iterCount = new AtomicInteger();
+        if (cluster.isStandalone()) {
+            workerStatusFuture = null;
+            return;
+        }
+
         workerStatusFuture = statusUpdater.scheduleAtFixedRate(() -> {
             if (closed.get()) {
                 return;

@@ -1,3 +1,4 @@
+
 To document
 --------------
 - by default crawler looks for other nodes.
@@ -114,6 +115,11 @@ TODO: Investigate connection pooling strategy for larger Hazelcast clusters
 - Current JDBC map store pool size is per-node; with N nodes, total connections = N * maximumPoolSize
 - For indefinite scaling, consider centralized connection pooling or optimizing concurrent DB operations during startup/shutdown
 - Monitor connection usage in multi-node tests and production to avoid database overload
+
+TODO: Consider optional CP/lock-based coordinator election (future)
+- Keep current membership-based coordinator logic as default for backward compatibility
+- Add opt-in leader election using Hazelcast CP/distributed lock for deterministic failover behavior
+- Evaluate consistency vs availability trade-offs under network partitions before enabling by default
 
 TODO: Make Hazelcast map-store initial-mode configurable
 - Use LAZY for fresh (initial) crawls to improve startup performance

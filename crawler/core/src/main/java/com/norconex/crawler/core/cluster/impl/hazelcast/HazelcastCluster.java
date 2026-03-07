@@ -29,6 +29,7 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.cluster.CacheManager;
+import com.norconex.crawler.core.cluster.CacheNames;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.ClusterException;
 import com.norconex.crawler.core.cluster.ClusterNode;
@@ -51,6 +52,8 @@ public class HazelcastCluster implements Cluster {
 
     private static final Duration CACHE_READY_TIMEOUT =
             Duration.ofSeconds(30);
+    private static final Duration CLUSTERED_CACHE_READY_TIMEOUT =
+            Duration.ofSeconds(60);
     private static final Duration CACHE_READY_POLL_INTERVAL =
             Duration.ofMillis(250);
 
@@ -149,12 +152,7 @@ public class HazelcastCluster implements Cluster {
                     .addMembershipListener(new ClusterMembershipListener());
 
             cacheManager = new HazelcastCacheManager(hazelcastInstance);
-            if (!clustered) {
-                awaitCriticalCachesReady();
-            } else {
-                LOG.debug("Skipping critical cache readiness probe in "
-                        + "clustered mode.");
-            }
+            awaitCriticalCachesReady();
 
             // Seed the tracked coordinator state so that the first membership
             // event does not fire a spurious transition (Fix D).
@@ -211,15 +209,20 @@ public class HazelcastCluster implements Cluster {
     }
 
     private void awaitCriticalCachesReady() {
+        var timeout = clustered
+                ? CLUSTERED_CACHE_READY_TIMEOUT
+                : CACHE_READY_TIMEOUT;
         var probeKey = "__hz-cache-ready__" + UUID.randomUUID();
         var startedAt = System.nanoTime();
         Throwable lastFailure = null;
 
         while (Duration.ofNanos(System.nanoTime() - startedAt)
-                .compareTo(CACHE_READY_TIMEOUT) < 0) {
+                .compareTo(timeout) < 0) {
             try {
                 var sessionCache = cacheManager.getCrawlSessionCache();
                 var runCache = cacheManager.getCrawlRunCache();
+                var referenceQueue = cacheManager.getCacheQueue(
+                        CacheNames.REFERENCE_QUEUE, String.class);
 
                 sessionCache.put(probeKey, "ready");
                 runCache.put(probeKey, "ready");
@@ -228,7 +231,9 @@ public class HazelcastCluster implements Cluster {
                 sessionCache.remove(probeKey);
                 runCache.remove(probeKey);
 
-                LOG.debug("Critical Hazelcast caches are ready.");
+                referenceQueue.size();
+
+                LOG.debug("Critical Hazelcast caches/queues are ready.");
                 return;
             } catch (Exception e) {
                 lastFailure = e;
@@ -237,12 +242,17 @@ public class HazelcastCluster implements Cluster {
         }
 
         throw new ClusterException(
-                "Timed out waiting for critical Hazelcast caches to become ready.",
+                "Timed out waiting for critical Hazelcast caches/queues to become ready.",
                 lastFailure);
     }
 
     @Override
     public void startStopMonitoring() {
+        if (isStandalone()) {
+            LOG.debug(
+                    "Standalone mode: skipping stop signal monitoring poller.");
+            return;
+        }
         if (stopController != null) {
             LOG.info("Starting stop signal monitoring for this node...");
             stopController.init();
@@ -268,7 +278,12 @@ public class HazelcastCluster implements Cluster {
         if (stopController != null) {
             var session = getCrawlSession();
             session.fire(CrawlerEvent.CRAWLER_STOP_REQUEST_BEGIN, session);
-            stopController.sendClusterStopSignal();
+            if (isStandalone()) {
+                LOG.info("Standalone mode: stopping local pipeline directly.");
+                pipelineManager.stop();
+            } else {
+                stopController.sendClusterStopSignal();
+            }
             session.fire(CrawlerEvent.CRAWLER_STOP_REQUEST_END, session);
             LOG.info("Stopping cluster...");
         }
