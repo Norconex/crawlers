@@ -15,8 +15,10 @@
 package com.norconex.crawler.core.cluster.impl.hazelcast.jdbc;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 
 import javax.sql.DataSource;
@@ -48,7 +50,6 @@ public class JdbcClient {
     private final DataSource dataSource;
 
     public JdbcClient(HazelcastInstance hz, Properties storeProps) {
-        LOG.info("XXX NEW JDBC CLIENT");
         dataSource = createOrGetDataSource(hz, storeProps);
     }
 
@@ -121,11 +122,11 @@ public class JdbcClient {
     public Connection getConnection() throws SQLException {
         try {
             if (dataSource instanceof HikariDataSource hds) {
-                LOG.info(
+                LOG.debug(
                         "Getting connection from HikariDataSource: jdbcUrl='{}', driver='{}'",
                         hds.getJdbcUrl(), hds.getDriverClassName());
             } else {
-                LOG.info("Getting connection from DataSource of type: {}",
+                LOG.debug("Getting connection from DataSource of type: {}",
                         dataSource.getClass().getName());
             }
             return dataSource.getConnection();
@@ -182,7 +183,7 @@ public class JdbcClient {
 
         var hzConf = hz.getConfig();
         var dbRef = storeProps.getProperty(PROP_DATA_CONN_REF);
-        LOG.info("XXX dbRef: " + dbRef);
+        LOG.debug("Using Hazelcast data connection ref: {}", dbRef);
         DataConnectionConfig dbConf = null;
         if (StringUtils.isNotBlank(dbRef)) {
             dbConf = hzConf.getDataConnectionConfig(dbRef);
@@ -211,9 +212,9 @@ public class JdbcClient {
         return (DataSource) hz.getUserContext().computeIfAbsent(dbRef, k -> {
             var hikariConfig = new HikariConfig(dbProps);
 
-            LOG.info("XXX hikari config jdbcUrl: " +
-                    hikariConfig.getJdbcUrl());
-            LOG.info("XXX hikari config driver: " +
+            LOG.debug("Creating Hikari data source for jdbcUrl='{}', "
+                    + "driver='{}'",
+                    hikariConfig.getJdbcUrl(),
                     hikariConfig.getDriverClassName());
             return new HikariDataSource(hikariConfig);
         });
@@ -221,8 +222,49 @@ public class JdbcClient {
 
     private static boolean doTableExists(Connection conn, String tableName)
             throws SQLException {
+        if (StringUtils.isBlank(tableName)) {
+            return false;
+        }
+
         var meta = conn.getMetaData();
-        try (var rs = meta.getTables(null, null, tableName, null)) {
+        var normalizedTableName = tableName.trim();
+        var schema = StringUtils.trimToNull(conn.getSchema());
+
+        // Prefer current schema to avoid false positives from tables with
+        // identical names in other schemas.
+        if (schema != null) {
+            if (tableExists(meta, schema, normalizedTableName)) {
+                return true;
+            }
+            if (tableExists(meta, schema,
+                    normalizedTableName.toLowerCase(Locale.ROOT))) {
+                return true;
+            }
+            if (tableExists(meta, schema,
+                    normalizedTableName.toUpperCase(Locale.ROOT))) {
+                return true;
+            }
+            return false;
+        }
+
+        return tableExists(meta, null, normalizedTableName)
+                || tableExists(meta, null,
+                        normalizedTableName.toLowerCase(Locale.ROOT))
+                || tableExists(meta, null,
+                        normalizedTableName.toUpperCase(Locale.ROOT));
+    }
+
+    private static boolean tableExists(DatabaseMetaData meta,
+            String schemaPattern, String tableName)
+            throws SQLException {
+        if (StringUtils.isBlank(tableName)) {
+            return false;
+        }
+        try (var rs = meta.getTables(
+                null,
+                schemaPattern,
+                tableName,
+                new String[] { "TABLE" })) {
             return rs.next();
         }
     }

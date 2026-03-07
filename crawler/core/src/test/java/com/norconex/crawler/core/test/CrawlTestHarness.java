@@ -76,6 +76,7 @@ public class CrawlTestHarness implements Closeable {
     private final String hazelcastClusterName = "crawler-test-" + id;
     private volatile Integer hazelcastPortBase;
     private volatile Integer hazelcastPortCount;
+    private volatile String sharedCrawlerId;
     // Unique PostgreSQL schema for this harness run — keeps DB tables isolated
     // across concurrent or sequential test invocations.
     private volatile String schemaName;
@@ -109,7 +110,7 @@ public class CrawlTestHarness implements Closeable {
 
             // Pick an isolated port range for this harness instance so repeated
             // invocations (e.g., parameterized tests) don't collide on 5701+.
-            hazelcastPortCount = Math.max(3, nodeNames.length + 1);
+            hazelcastPortCount = Math.max(2, nodeNames.length);
             hazelcastPortBase = findFreeLocalPortRangeBase(hazelcastPortCount);
 
             LOG.info("Postgres ready: id='{}', schema='{}', jdbcUrl='{}'",
@@ -271,6 +272,16 @@ public class CrawlTestHarness implements Closeable {
         if (instrument.getCrawlConfig().getId() == null) {
             instrument.getCrawlConfig().setId(id);
         }
+        var crawlerId = instrument.getCrawlConfig().getId();
+        if (sharedCrawlerId == null) {
+            sharedCrawlerId = crawlerId;
+        } else if (!StringUtils.equals(sharedCrawlerId, crawlerId)) {
+            throw new IllegalStateException(
+                    "All nodes in a crawl session must share the same "
+                            + "crawler ID. Expected '" + sharedCrawlerId
+                            + "' but got '" + crawlerId + "' for node '"
+                            + nodeName + "'.");
+        }
         if (instrument.isClustered()) {
             var connConfig = ((HazelcastClusterConnector) instrument
                     .getCrawlConfig()
@@ -300,17 +311,28 @@ public class CrawlTestHarness implements Closeable {
                     .setJdbcUsername(POSTGRES.getUsername())
                     .setJdbcPassword(POSTGRES.getPassword())
                     .setJdbcDriver(POSTGRES.getDriverClassName())
-                    // LAZY loading avoids long startup delays on CI/Windows.
-                    .setInitialLoadMode(InitialLoadMode.LAZY);
+                    // Jet is not used by crawler core tests and can add
+                    // partition-safe-state waits in small transient clusters.
+                    .setJetEnabled(false)
+                    // Keep clustered tests deterministic on Windows by relying
+                    // on JDBC persistence rather than asynchronous partition
+                    // backup migration.
+                    .setBackupCount(0)
+                    // EAGER loading avoids first-operation stalls in
+                    // clustered tests where both nodes begin processing at
+                    // nearly the same time.
+                    .setInitialLoadMode(InitialLoadMode.EAGER);
 
-            // Apply test-specific Hazelcast tuning: fewer partitions and
-            // faster failure detection for crash tests.
+            // Apply test-specific Hazelcast tuning for faster failure
+            // detection in crash tests.
             configurer.getHazelcastProperties()
                     .put("hazelcast.partition.count", "17");
             configurer.getHazelcastProperties()
                     .put("hazelcast.heartbeat.interval.seconds", "1");
             configurer.getHazelcastProperties()
-                    .put("hazelcast.max.no.heartbeat.seconds", "10");
+                    .put("hazelcast.max.no.heartbeat.seconds", "60");
+            configurer.getHazelcastProperties()
+                    .put("hazelcast.operation.call.timeout.millis", "120000");
 
             // Set TCP members for cluster discovery using the per-harness port
             // range chosen in launchAsync().
@@ -319,7 +341,7 @@ public class CrawlTestHarness implements Closeable {
             if (base == null || count == null) {
                 // Fallback (should not normally happen)
                 base = 5701;
-                count = Math.max(3, totalNodes + 1);
+                count = Math.max(2, totalNodes);
             }
 
             var tcpMembers = new StringBuilder();

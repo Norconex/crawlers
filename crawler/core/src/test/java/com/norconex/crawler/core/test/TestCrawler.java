@@ -18,6 +18,7 @@ import static java.util.Optional.ofNullable;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -31,8 +32,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
-
-import java.io.UncheckedIOException;
 
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.TimeIdGenerator;
@@ -58,7 +57,9 @@ public class TestCrawler implements Closeable {
     // of terminal crawl events in the periodically-written result file as
     // completion, then give the process a short grace period to exit.
     private static final long RESULT_POLL_INTERVAL_MS = 250;
-    private static final long EXIT_GRACE_PERIOD_MS = 10_000;
+    private static final long EXIT_GRACE_PERIOD_MS = 3_000;
+    private static final String STREAM_CHILD_LOGS_PROP =
+            "norconex.tests.streamChildLogs";
     private static final List<Process> ALL_CHILD_PROCESSES =
             new CopyOnWriteArrayList<>();
 
@@ -259,7 +260,6 @@ public class TestCrawler implements Closeable {
                     CrawlTestInstrument.class);
             var resultPath = instrument.getCrawlConfig().getWorkDir()
                     .resolve(TEST_RESULT_FILE_NAME);
-            System.err.println("XXX INSTRUMENT in MAIN: " + instrument);
             LOG.info("TestCrawler main() starting. PID: {}",
                     ProcessHandle.current().pid());
 
@@ -268,10 +268,17 @@ public class TestCrawler implements Closeable {
                 if (instrument.getRecordInterval() != null) {
                     final var resultHolder =
                             new AtomicReference<CrawlTestNodeOutput>();
+                    final var crawlFailure =
+                            new AtomicReference<Throwable>();
                     var crawlThread = new Thread(() -> {
                         LOG.info("crawlThread started. Thread: {}",
                                 Thread.currentThread().getName());
-                        resultHolder.set(crawler.doCrawl());
+                        try {
+                            resultHolder.set(crawler.doCrawl());
+                        } catch (Throwable t) {
+                            crawlFailure.set(t);
+                            LOG.error("crawlThread failed.", t);
+                        }
                         LOG.info("crawlThread finished. Thread: {}",
                                 Thread.currentThread().getName());
                     });
@@ -324,11 +331,24 @@ public class TestCrawler implements Closeable {
                             .filter(t -> t.isAlive() && !t.isDaemon())
                             .forEach(t -> LOG.info("Thread: {} (id={})",
                                     t.getName(), t.getId()));
-                    Thread.currentThread().interrupt();
+
+                    if (crawlFailure.get() != null) {
+                        throw new RuntimeException(
+                                "Crawler thread failed unexpectedly.",
+                                crawlFailure.get());
+                    }
+
                     finalResult = resultHolder.get();
                 } else {
                     finalResult = crawler.doCrawl();
                 }
+
+                if (finalResult == null) {
+                    LOG.warn("Final crawl result was null; using fallback "
+                            + "snapshot from crawler state.");
+                    finalResult = crawler.getResult();
+                }
+
                 CoreTestUtil.writeToFile(finalResult, resultPath);
                 LOG.info("TestCrawler main() finishing. PID: {}",
                         ProcessHandle.current().pid());
@@ -443,15 +463,23 @@ public class TestCrawler implements Closeable {
         }
 
         final long processStartMillis = System.currentTimeMillis();
+        var streamChildLogs = Boolean.getBoolean(STREAM_CHILD_LOGS_PROP);
 
-        var process = JvmLauncher.builder()
+        var launcher = JvmLauncher.builder()
                 .mainClass(TestCrawler.class)
                 .workDir(workDir)
-                .appArg(instrumentPath.toAbsolutePath().toString())
-                .stdoutListener(
-                        line -> LOG.info("[{}-stdout] {}", nodeName, line))
-                .stderrListener(
-                        line -> LOG.error("[{}-stderr] {}", nodeName, line))
+                .appArg(instrumentPath.toAbsolutePath().toString());
+        if (streamChildLogs) {
+            launcher
+                    .stdoutListener(
+                            line -> LOG.info("[{}-stdout] {}", nodeName,
+                                    line))
+                    .stderrListener(
+                            line -> LOG.error("[{}-stderr] {}", nodeName,
+                                    line));
+        }
+
+        var process = launcher
                 .build()
                 .start();
 

@@ -180,6 +180,16 @@ public class JdbcHazelcastConfigurer implements HazelcastConfigurer {
      */
     private String tcpMembers;
 
+    /**
+     * Whether Hazelcast Jet engine should be enabled.
+     * <p>
+     * {@code null} (default) means enabled for backward compatibility.
+     * Set to {@code false} when Jet is not used and a leaner cluster runtime
+     * is preferred (e.g., deterministic integration tests).
+     * </p>
+     */
+    private Boolean jetEnabled;
+
     // -----------------------------------------------------------------
     // Advanced / escape-hatch
     // -----------------------------------------------------------------
@@ -263,8 +273,13 @@ public class JdbcHazelcastConfigurer implements HazelcastConfigurer {
     }
 
     private void configureJet(Config cfg, boolean clustered, int backups) {
+        var effectiveJetEnabled = jetEnabled == null
+                || jetEnabled.booleanValue();
         var jet = cfg.getJetConfig();
-        jet.setEnabled(true);
+        jet.setEnabled(effectiveJetEnabled);
+        if (!effectiveJetEnabled) {
+            return;
+        }
         if (clustered && backups > 0) {
             jet.setBackupCount(backups);
         }
@@ -378,6 +393,7 @@ public class JdbcHazelcastConfigurer implements HazelcastConfigurer {
 
         var storeConfig = new MapStoreConfig();
         storeConfig.setEnabled(true);
+        storeConfig.setOffload(true);
         storeConfig.setInitialLoadMode(initialLoadMode);
         storeConfig.setWriteDelaySeconds(writeDelaySeconds);
         storeConfig.setFactoryClassName(MAP_STORE_FACTORY_CLASS);

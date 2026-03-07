@@ -14,6 +14,9 @@
  */
 package com.norconex.crawler.core.ledger;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.time.ZonedDateTime;
@@ -66,7 +69,7 @@ public class CrawlEntry implements Serializable {
     @ToString.Exclude
     private ContentType contentType;
     @ToString.Exclude
-    private Charset charset;
+    private transient Charset charset;
     private boolean orphan;
     private boolean deleted;
     private String reference;
@@ -147,5 +150,17 @@ public class CrawlEntry implements Serializable {
      */
     public void setQueuedAt(ZonedDateTime queuedAt) {
         this.queuedAt = queuedAt;
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeObject(charset != null ? charset.name() : null);
+    }
+
+    private void readObject(ObjectInputStream in)
+            throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        var charsetName = (String) in.readObject();
+        charset = charsetName != null ? Charset.forName(charsetName) : null;
     }
 }

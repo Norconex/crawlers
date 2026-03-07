@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 
@@ -31,6 +32,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class StringJdbcMapStore
         implements MapStore<String, String>, MapLoaderLifecycleSupport {
+
+    @FunctionalInterface
+    private interface SqlSupplier<T> {
+        T get() throws SQLException;
+    }
 
     private static class Sqls {
         private String store;
@@ -68,6 +74,7 @@ public class StringJdbcMapStore
     private JdbcClient db;
     private Sqls sqls;
     private String tableName;
+    private List<String> tableColumns;
 
     @Override
     public final void init(
@@ -79,16 +86,17 @@ public class StringJdbcMapStore
         tableName = storeProps.getProperty(
                 JdbcClient.PROP_TABLE_NAME, storeName);
         sqls = new Sqls(tableName, storeProps.getProperty("sql-merge"));
+        tableColumns = List.of(
+                "k " + storeProps.getProperty(
+                        "column-key-type", "VARCHAR(4096)")
+                        + " PRIMARY KEY",
+                "v " + storeProps.getProperty("column-value-type",
+                        "CLOB"));
 
         LOG.info("Initializing Jdbc map store '{}' with table '{}'.",
                 storeName, tableName);
         try {
-            db.ensureTableExists(tableName, List.of(
-                    "k " + storeProps.getProperty(
-                            "column-key-type", "VARCHAR(4096)")
-                            + " PRIMARY KEY",
-                    "v " + storeProps.getProperty("column-value-type",
-                            "CLOB")));
+            db.ensureTableExists(tableName, tableColumns);
         } catch (SQLException e) {
             throw new ClusterException("Can't initialize JDBC map store.", e);
         }
@@ -101,15 +109,15 @@ public class StringJdbcMapStore
 
     @Override
     public void store(@NonNull String key, @NonNull String value) {
-        try (var conn = db.getConnection();
-                var stmt = conn.prepareStatement(sqls.store)) {
-            stmt.setString(1, key);
-            stmt.setString(2, value);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new ClusterException(
-                    "Failed to store record (key=%s)".formatted(key), e);
-        }
+        withTableRecovery("store record (key=%s)".formatted(key), () -> {
+            try (var conn = db.getConnection();
+                    var stmt = conn.prepareStatement(sqls.store)) {
+                stmt.setString(1, key);
+                stmt.setString(2, value);
+                stmt.executeUpdate();
+            }
+            return null;
+        });
     }
 
     @Override
@@ -131,14 +139,14 @@ public class StringJdbcMapStore
 
     @Override
     public void delete(String key) {
-        try (var conn = db.getConnection();
-                var stmt = conn.prepareStatement(sqls.delete)) {
-            stmt.setString(1, key);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new ClusterException("Failed to delete record (key=%s)"
-                    .formatted(key), e);
-        }
+        withTableRecovery("delete record (key=%s)".formatted(key), () -> {
+            try (var conn = db.getConnection();
+                    var stmt = conn.prepareStatement(sqls.delete)) {
+                stmt.setString(1, key);
+                stmt.executeUpdate();
+            }
+            return null;
+        });
     }
 
     @Override
@@ -159,59 +167,110 @@ public class StringJdbcMapStore
 
     @Override
     public String load(String key) {
-        try (var conn = db.getConnection();
-                var stmt = conn.prepareStatement(sqls.load)) {
-            stmt.setString(1, key);
-            try (var rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getString(1);
+        return withTableRecovery("load record (key=%s)".formatted(key), () -> {
+            try (var conn = db.getConnection();
+                    var stmt = conn.prepareStatement(sqls.load)) {
+                stmt.setString(1, key);
+                try (var rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getString(1);
+                    }
                 }
             }
-        } catch (SQLException e) {
-            throw new ClusterException("Failed to load record (key=%s)"
-                    .formatted(key), e);
-        }
-        return null;
+            return null;
+        });
     }
 
     @Override
     public Map<String, String> loadAll(Collection<String> keys) {
-        Map<String, String> result = new HashMap<>();
         if (keys == null || keys.isEmpty()) {
-            return result;
+            return new HashMap<>();
         }
-        var sql = "SELECT k, v FROM \"%s\" WHERE k IN (%s)".formatted(
-                tableName,
-                String.join(",", Collections.nCopies(keys.size(), "?")));
-        try (var conn = db.getConnection();
-                var stmt = conn.prepareStatement(sql)) {
-            var i = 1;
-            for (String key : keys) {
-                stmt.setString(i++, key);
-            }
-            try (var rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    result.put(rs.getString(1), rs.getString(2));
+
+        return withTableRecovery("load all records", () -> {
+            Map<String, String> result = new HashMap<>();
+            var sql = "SELECT k, v FROM \"%s\" WHERE k IN (%s)".formatted(
+                    tableName,
+                    String.join(",", Collections.nCopies(keys.size(), "?")));
+            try (var conn = db.getConnection();
+                    var stmt = conn.prepareStatement(sql)) {
+                var i = 1;
+                for (String key : keys) {
+                    stmt.setString(i++, key);
+                }
+                try (var rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        result.put(rs.getString(1), rs.getString(2));
+                    }
                 }
             }
-        } catch (SQLException e) {
-            throw new ClusterException("Failed to load all records", e);
-        }
-        return result;
+            return result;
+        });
     }
 
     @Override
     public Iterable<String> loadAllKeys() {
-        List<String> keys = new ArrayList<>();
-        try (var conn = db.getConnection();
-                var stmt = conn.prepareStatement(sqls.loadAllKeys);
-                var rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                keys.add(rs.getString(1));
+        return withTableRecovery("load all keys", () -> {
+            List<String> keys = new ArrayList<>();
+            try (var conn = db.getConnection();
+                    var stmt = conn.prepareStatement(sqls.loadAllKeys);
+                    var rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    keys.add(rs.getString(1));
+                }
             }
-        } catch (Exception e) {
-            throw new ClusterException("Failed to load all keys.", e);
+            return keys;
+        });
+    }
+
+    private <T> T withTableRecovery(String action, SqlSupplier<T> op) {
+        try {
+            return op.get();
+        } catch (SQLException firstError) {
+            if (!isMissingTableError(firstError)) {
+                throw new ClusterException("Failed to %s.".formatted(action),
+                        firstError);
+            }
+
+            LOG.warn("Table '{}' appears missing while trying to {}. "
+                    + "Attempting one-time table bootstrap and retry.",
+                    tableName, action);
+            try {
+                db.ensureTableExists(tableName, tableColumns);
+            } catch (SQLException ensureError) {
+                throw new ClusterException(
+                        "Failed to initialize missing table '%s' while trying to %s."
+                                .formatted(tableName, action),
+                        ensureError);
+            }
+
+            try {
+                return op.get();
+            } catch (SQLException retryError) {
+                throw new ClusterException(
+                        "Failed to %s after table recovery attempt."
+                                .formatted(action),
+                        retryError);
+            }
         }
-        return keys;
+    }
+
+    private boolean isMissingTableError(SQLException error) {
+        SQLException sqlError = error;
+        while (sqlError != null) {
+            var sqlState = StringUtils.trimToEmpty(sqlError.getSQLState());
+            var message = StringUtils
+                    .trimToEmpty(sqlError.getMessage())
+                    .toLowerCase(Locale.ROOT);
+            if ("42P01".equals(sqlState)
+                    || (message.contains("relation")
+                            && message.contains("does not exist"))
+                    || (message.contains("table")
+                            && message.contains("not found"))) {
+                return true;
+            }
+            sqlError = sqlError.getNextException();
+        }
+        return false;
     }
 }

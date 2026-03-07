@@ -15,6 +15,7 @@
 package com.norconex.crawler.core.cluster.impl.hazelcast;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -29,6 +30,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.crawler.core.cluster.CacheManager;
 import com.norconex.crawler.core.cluster.Cluster;
+import com.norconex.crawler.core.cluster.ClusterException;
 import com.norconex.crawler.core.cluster.ClusterNode;
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CoordinatorChangeListener;
 import com.norconex.crawler.core.cluster.impl.hazelcast.pipeline.HazelcastPipelineManager;
@@ -46,6 +48,11 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode(exclude = { "pipelineManager", "coordinatorListeners" })
 @Slf4j
 public class HazelcastCluster implements Cluster {
+
+    private static final Duration CACHE_READY_TIMEOUT =
+            Duration.ofSeconds(30);
+    private static final Duration CACHE_READY_POLL_INTERVAL =
+            Duration.ofMillis(250);
 
     private HazelcastClusterNode localNode;
     private HazelcastCacheManager cacheManager;
@@ -133,14 +140,22 @@ public class HazelcastCluster implements Cluster {
                 }
             }
 
-            // Add membership listener for coordinator changes
+            localNode = new HazelcastClusterNode(hazelcastInstance,
+                    !clustered);
+            // Add membership listener for coordinator changes only after the
+            // local node wrapper is available, since membership events can be
+            // emitted immediately during startup.
             membershipListenerId = hazelcastInstance.getCluster()
                     .addMembershipListener(new ClusterMembershipListener());
 
             cacheManager = new HazelcastCacheManager(hazelcastInstance);
+            if (!clustered) {
+                awaitCriticalCachesReady();
+            } else {
+                LOG.debug("Skipping critical cache readiness probe in "
+                        + "clustered mode.");
+            }
 
-            localNode = new HazelcastClusterNode(hazelcastInstance,
-                    !clustered);
             // Seed the tracked coordinator state so that the first membership
             // event does not fire a spurious transition (Fix D).
             lastCoordinatorState = localNode.isCoordinator();
@@ -193,6 +208,37 @@ public class HazelcastCluster implements Cluster {
 
     protected HazelcastInstance createHazelcastInstance(Config hzConfig) {
         return Hazelcast.newHazelcastInstance(hzConfig);
+    }
+
+    private void awaitCriticalCachesReady() {
+        var probeKey = "__hz-cache-ready__" + UUID.randomUUID();
+        var startedAt = System.nanoTime();
+        Throwable lastFailure = null;
+
+        while (Duration.ofNanos(System.nanoTime() - startedAt)
+                .compareTo(CACHE_READY_TIMEOUT) < 0) {
+            try {
+                var sessionCache = cacheManager.getCrawlSessionCache();
+                var runCache = cacheManager.getCrawlRunCache();
+
+                sessionCache.put(probeKey, "ready");
+                runCache.put(probeKey, "ready");
+                sessionCache.get(probeKey);
+                runCache.get(probeKey);
+                sessionCache.remove(probeKey);
+                runCache.remove(probeKey);
+
+                LOG.debug("Critical Hazelcast caches are ready.");
+                return;
+            } catch (Exception e) {
+                lastFailure = e;
+                Sleeper.sleepMillis(CACHE_READY_POLL_INTERVAL.toMillis());
+            }
+        }
+
+        throw new ClusterException(
+                "Timed out waiting for critical Hazelcast caches to become ready.",
+                lastFailure);
     }
 
     @Override
@@ -360,6 +406,11 @@ public class HazelcastCluster implements Cluster {
         }
 
         private void checkCoordinatorStatus() {
+            if (localNode == null) {
+                LOG.debug(
+                        "Skipping coordinator status check: localNode not initialized yet.");
+                return;
+            }
             var isCoordinator = localNode.isCoordinator();
             if (isCoordinator != lastCoordinatorState) {
                 lastCoordinatorState = isCoordinator;
