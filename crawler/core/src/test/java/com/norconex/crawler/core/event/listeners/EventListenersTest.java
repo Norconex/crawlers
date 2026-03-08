@@ -31,6 +31,7 @@ import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListenerConfig.OnMultiple;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 import com.norconex.crawler.core.test.CrawlTestDriver;
 
@@ -39,6 +40,7 @@ import com.norconex.crawler.core.test.CrawlTestDriver;
  * StopCrawlerOnMaxEventListener, DeleteRejectedEventListener.
  */
 @Timeout(60)
+@SlowTest
 class EventListenersTest {
 
     @TempDir

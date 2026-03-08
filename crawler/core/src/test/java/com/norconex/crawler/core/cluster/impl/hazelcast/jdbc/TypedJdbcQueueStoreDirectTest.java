@@ -36,6 +36,7 @@ import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastConfigurerConte
 import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 /**
  * Direct unit tests for {@link TypedJdbcQueueStore} covering
@@ -43,6 +44,7 @@ import com.norconex.crawler.core.cluster.pipeline.StepRecord;
  * with JSON serialization/deserialization of typed objects.
  */
 @Timeout(60)
+@SlowTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TypedJdbcQueueStoreDirectTest {
 

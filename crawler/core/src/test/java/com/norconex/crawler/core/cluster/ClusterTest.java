@@ -37,6 +37,7 @@ import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
 import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 import com.norconex.crawler.core.session.CrawlMode;
@@ -50,8 +51,8 @@ import com.norconex.crawler.core.util.ConcurrentUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
-//@SlowTest
 // Run single node in JVM
+@SlowTest
 @Slf4j
 @WithTestWatcherLogging
 class ClusterTest {

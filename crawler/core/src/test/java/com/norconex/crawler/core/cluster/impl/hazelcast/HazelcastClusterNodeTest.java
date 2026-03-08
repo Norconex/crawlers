@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Timeout;
 
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 /**
  * Component tests for {@link HazelcastClusterNode}.
@@ -36,6 +37,7 @@ import com.hazelcast.core.HazelcastInstance;
  * <p>Tests that spin up multi-node clusters wait for cluster formation using
  * a simple polling loop (Awaitility is not a project dependency).</p>
  */
+@SlowTest
 class HazelcastClusterNodeTest {
 
     /**

@@ -30,7 +30,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
+import com.norconex.crawler.core.junit.annotations.SlowTest;
+
 @Timeout(30)
+@SlowTest
 class ConcurrentUtilTest {
 
     // -----------------------------------------------------------------

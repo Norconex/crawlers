@@ -29,6 +29,7 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.test.CrawlTestHarness;
 import com.norconex.crawler.core.test.CrawlTestInstrument;
 import com.norconex.crawler.web.WebCrawlDriverFactory;
@@ -44,6 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 @MockServerSettings
 @Slf4j
 @Timeout(180)
+@SlowTest
 class ResumeAfterJvmCrashTest {
 
     private static final int MAX_DOCS = 6;

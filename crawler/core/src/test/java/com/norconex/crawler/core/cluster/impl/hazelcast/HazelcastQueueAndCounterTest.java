@@ -27,8 +27,10 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.Timeout;
 
 import com.hazelcast.core.HazelcastInstance;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 @Timeout(30)
+@SlowTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class HazelcastQueueAndCounterTest {
 

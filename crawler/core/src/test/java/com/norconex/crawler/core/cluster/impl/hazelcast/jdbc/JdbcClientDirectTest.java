@@ -34,6 +34,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.norconex.crawler.core.cluster.ClusterException;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastConfigurerContext;
 import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 /**
  * Direct unit tests for {@link JdbcClient} covering
@@ -43,6 +44,7 @@ import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
  * <p>Uses the standalone Hazelcast/H2 configuration (no containers).</p>
  */
 @Timeout(60)
+@SlowTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class JdbcClientDirectTest {
 

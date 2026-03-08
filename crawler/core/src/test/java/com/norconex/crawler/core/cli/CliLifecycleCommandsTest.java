@@ -32,6 +32,7 @@ import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.CrawlerExecutionAssertions;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.test.standalone.StandaloneCliCrawlerLauncher;
 import com.norconex.importer.ImporterEvent;
 
@@ -41,6 +42,7 @@ import com.norconex.importer.ImporterEvent;
  * the crawler infrastructure.
  */
 @Timeout(value = 120, unit = TimeUnit.SECONDS)
+@SlowTest
 @WithTestWatcherLogging
 class CliLifecycleCommandsTest {
 

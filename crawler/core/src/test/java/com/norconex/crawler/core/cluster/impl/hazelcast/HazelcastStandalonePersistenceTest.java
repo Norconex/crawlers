@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Timeout;
 
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
 
@@ -35,6 +36,7 @@ import com.norconex.crawler.core.cluster.pipeline.StepRecord;
  * Smoke-tests JDBC persistence via the real hazelcast-standalone.yaml config.
  */
 @Timeout(60)
+@SlowTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class HazelcastStandalonePersistenceTest {
 

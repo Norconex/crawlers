@@ -34,6 +34,7 @@ import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastConfigurerConte
 import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 /**
  * Tests batch and bulk JDBC store operations via Hazelcast maps/queues
@@ -41,6 +42,7 @@ import com.norconex.crawler.core.cluster.pipeline.StepRecord;
  * deleteAll, loadAllKeys, and queue persistence.
  */
 @Timeout(120)
+@SlowTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class JdbcStoreOperationsTest {
 

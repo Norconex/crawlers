@@ -37,6 +37,7 @@ import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.session.CrawlSession;
 
 /**
@@ -46,6 +47,7 @@ import com.norconex.crawler.core.session.CrawlSession;
  * {@link HazelcastUtil#waitForClusterWarmUp}.
  */
 @Timeout(60)
+@SlowTest
 @WithTestWatcherLogging
 class HazelcastClusterBehaviorTest {
 

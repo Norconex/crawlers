@@ -27,6 +27,7 @@ import com.norconex.crawler.core.cluster.SerializedCache;
 import com.norconex.crawler.core.cluster.SerializedCache.CacheType;
 import com.norconex.crawler.core.cluster.SerializedCache.SerializedEntry;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.ledger.CrawlEntry;
 import com.norconex.crawler.core.util.SerialUtil;
 
@@ -36,6 +37,7 @@ import com.norconex.crawler.core.util.SerialUtil;
  * fall-backs, MAP batch logic, and QUEUE population.
  */
 @Timeout(30)
+@SlowTest
 @WithTestWatcherLogging
 class CacheImporterTest {
 

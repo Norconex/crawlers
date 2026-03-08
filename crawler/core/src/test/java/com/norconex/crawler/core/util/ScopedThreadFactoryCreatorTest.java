@@ -25,11 +25,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.junit.WithLogLevel;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 /**
  * Tests for {@link ScopedThreadFactoryCreator}.
  */
 @Timeout(10)
+@SlowTest
 class ScopedThreadFactoryCreatorTest {
 
     @Test

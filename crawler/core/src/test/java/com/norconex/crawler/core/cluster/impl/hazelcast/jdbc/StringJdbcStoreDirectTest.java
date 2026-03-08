@@ -35,6 +35,7 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastConfigurerContext;
 import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 /**
  * Direct (Hazelcast-bypassing) unit tests for
@@ -47,6 +48,7 @@ import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
  * {@code write-delay-seconds: 0} maps).</p>
  */
 @Timeout(60)
+@SlowTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class StringJdbcStoreDirectTest {
 

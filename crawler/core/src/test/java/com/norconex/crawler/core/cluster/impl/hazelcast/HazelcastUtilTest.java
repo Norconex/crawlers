@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Timeout;
 import com.hazelcast.collection.IQueue;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.hazelcast.map.IMap;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
@@ -35,6 +36,7 @@ import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
 
 @Timeout(30)
+@SlowTest
 class HazelcastUtilTest {
 
     private HazelcastInstance hz;

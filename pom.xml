@@ -779,10 +779,10 @@
               -Djava.net.preferIPv4Stack=true
               -Dio.netty.tryReflectionSetAccessible=true
             </argLine>
-            <!-- By default, exclude slow and cluster tests for fast development feedback.
-                 Developers can run: mvn test -Dgroups=cluster,slow to run all tests.
-                 CI/CD pipelines can override this with specific -Dgroups or -DexcludedGroups. -->
-            <excludedGroups>cluster,slow</excludedGroups>
+              <!-- By default, exclude slow tests for fast development feedback.
+                Developers can run: mvn test -Dgroups=slow to run slow tests.
+                CI/CD pipelines can override this with specific -Dgroups or -DexcludedGroups. -->
+              <excludedGroups>slow</excludedGroups>
           </configuration>
           <inherited>true</inherited>
         </plugin>

@@ -31,6 +31,7 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 import com.norconex.crawler.core.test.CrawlTestHarness;
 import com.norconex.crawler.core.test.CrawlTestInstrument;
@@ -53,6 +54,7 @@ import com.norconex.crawler.core.test.CrawlTestInstrument;
  * <p>All tests run in standalone (single-node, in-JVM, H2) mode for speed.</p>
  */
 @Timeout(60)
+@SlowTest
 @WithTestWatcherLogging
 class CrawlProcessStepExceptionHandlingTest {
 

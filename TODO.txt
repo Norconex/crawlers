@@ -1,4 +1,9 @@
 
+* To formalize:
+  Run normal tests (slow excluded by default): mvn test
+  Run slow tests too: mvn test -DexcludedGroups=
+  Run only slow tests: mvn test -Dgroups=slow -DexcludedGroups=
+
 * Make sure that if there is a default value for a class that it is used
   when none is provided (when reading).
    
