@@ -88,6 +88,9 @@ import lombok.extern.slf4j.Slf4j;
 public class AmazonCloudSearchCommitter
         extends AbstractBatchCommitter<AmazonCloudSearchCommitterConfig> {
 
+    private static final String AWS_V1_DISABLE_ANNOUNCEMENT_PROPERTY =
+            "aws.java.v1.disableDeprecationAnnouncement";
+
     /**
      * CouldSearch mandatory field pattern. Characters not matching
      * the pattern will be replaced by an underscore.
@@ -109,6 +112,7 @@ public class AmazonCloudSearchCommitter
 
     @Override
     protected void initBatchCommitter() throws CommitterException {
+        System.setProperty(AWS_V1_DISABLE_ANNOUNCEMENT_PROPERTY, "true");
         // Build AWS Client
 
         if (StringUtils.isBlank(configuration.getServiceEndpoint())) {

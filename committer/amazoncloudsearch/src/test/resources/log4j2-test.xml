@@ -13,6 +13,9 @@
     <Logger name="org.apache" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
+    <Logger name="org.testcontainers.dockerclient.DockerClientProviderStrategy" level="ERROR" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
     <Root level="INFO">
       <AppenderRef ref="Console"/>
     </Root>

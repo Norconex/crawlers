@@ -29,6 +29,10 @@
 
   <inceptionYear>2009</inceptionYear>
 
+  <properties>
+    <aws-java-sdk.version>1.12.797</aws-java-sdk.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.norconex.commons</groupId>
@@ -64,7 +68,6 @@
 		<dependency>
 		  <groupId>org.testcontainers</groupId>
 		  <artifactId>testcontainers</artifactId>
-		  <version>${testcontainers.version}</version>
 		  <scope>test</scope>
 		</dependency>
     <dependency>

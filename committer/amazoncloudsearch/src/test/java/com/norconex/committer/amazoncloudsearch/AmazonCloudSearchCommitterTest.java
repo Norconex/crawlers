@@ -43,10 +43,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.DockerComposeContainer;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.CommitterException;
@@ -75,44 +77,52 @@ class AmazonCloudSearchCommitterTest {
     //TODO test source + target mappings + other mappings
 
     private static final int CLOUDSEARCH_PORT = 15808;
-    private static final String CLOUDSEARCH_NAME = "nozama-cloudsearch";
     private static final String API_DEV_DOCUMENTS = "/dev/documents";
     private static final String TEST_ID = "3";
     private static final String TEST_CONTENT = "This is test content.";
+    private static final Network NETWORK = Network.newNetwork();
 
     @SuppressWarnings("resource")
     @Container
-    static DockerComposeContainer<?> container = new DockerComposeContainer<>(
-            resolvePath("src/test/resources/nozama-cloudsearch.yaml")
-                    .toFile())
-                            .withExposedService(
-                                    CLOUDSEARCH_NAME,
-                                    CLOUDSEARCH_PORT,
-                                    /*
-                                     * Ensure nozama container gets into a state where
-                                     * it will accept HTTP DELETE requests
-                                     */
-                                    Wait
-                                            .forHttp(API_DEV_DOCUMENTS)
-                                            .withMethod("DELETE")
-                                            .forStatusCode(200)
-                                            .withStartupTimeout(
-                                                    Duration.ofSeconds(60)));
+    static GenericContainer<?> mongoContainer = new GenericContainer<>(
+            DockerImageName.parse("mongo:3.4"))
+                    .withNetwork(NETWORK)
+                    .withNetworkAliases("mongo");
+
+    @SuppressWarnings("resource")
+    @Container
+    static GenericContainer<?> elasticsearchContainer = new GenericContainer<>(
+            DockerImageName.parse("elasticsearch:7.1.0"))
+                    .withNetwork(NETWORK)
+                    .withNetworkAliases("elasticsearch")
+                    .withEnv("discovery.type", "single-node")
+                    .withExposedPorts(9200)
+                    .waitingFor(Wait.forHttp("/")
+                            .forStatusCode(200)
+                            .withStartupTimeout(Duration.ofSeconds(60)));
+
+    @SuppressWarnings("resource")
+    @Container
+    static GenericContainer<?> cloudSearchContainer = new GenericContainer<>(
+            DockerImageName.parse("oisinmulvihill/nozama-cloudsearch"))
+                    .withNetwork(NETWORK)
+                    .withNetworkAliases("nozama-cloudsearch")
+                    .dependsOn(mongoContainer, elasticsearchContainer)
+                    .withEnv("MONGO_HOST", "mongo")
+                    .withEnv("ELASTICSEARCH_HOST", "elasticsearch")
+                    .withExposedPorts(CLOUDSEARCH_PORT)
+                    .waitingFor(
+                            /*
+                             * Ensure nozama container gets into a state where
+                             * it will accept HTTP DELETE requests.
+                             */
+                            Wait.forHttp(API_DEV_DOCUMENTS)
+                                    .withMethod("DELETE")
+                                    .forStatusCode(200)
+                                    .withStartupTimeout(
+                                            Duration.ofSeconds(60)));
 
     private static String cloudSearchEndpoint;
-
-    private static Path resolvePath(String relativePath) {
-        var path = Path.of(relativePath);
-        if (Files.exists(path)) {
-            return path;
-        }
-        var modulePath =
-                Path.of("committer", "amazoncloudsearch").resolve(relativePath);
-        if (Files.exists(modulePath)) {
-            return modulePath;
-        }
-        return path;
-    }
 
     @TempDir
     static File tempDir;
@@ -121,12 +131,9 @@ class AmazonCloudSearchCommitterTest {
     static void setCloudSearchEndpoint() {
         cloudSearchEndpoint =
                 "http://"
-                        + container.getServiceHost(
-                                CLOUDSEARCH_NAME,
-                                CLOUDSEARCH_PORT)
+                        + cloudSearchContainer.getHost()
                         + ":"
-                        + container.getServicePort(
-                                CLOUDSEARCH_NAME,
+                        + cloudSearchContainer.getMappedPort(
                                 CLOUDSEARCH_PORT)
                         + "/";
     }
