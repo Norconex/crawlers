@@ -45,6 +45,7 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.img.MutableImage;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;
@@ -57,6 +58,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @MockServerSettings
 @TestInstance(Lifecycle.PER_CLASS)
+@SlowTest
 @org.testcontainers.junit.jupiter.Testcontainers(disabledWithoutDocker = true)
 public abstract class AbstractWebDriverHttpFetcherTest
         implements ExecutionCondition {

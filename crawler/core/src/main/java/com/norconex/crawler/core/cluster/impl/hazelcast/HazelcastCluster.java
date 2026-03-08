@@ -117,6 +117,8 @@ public class HazelcastCluster implements Cluster {
         var hzConfig = configuration.getConfigurer().buildConfig(ctx);
 
         hzConfig.setProperty("hazelcast.logging.type", "slf4j");
+        hzConfig.setProperty("hazelcast.logging.details.enabled", "false");
+        hzConfig.setProperty("hazelcast.phone.home.enabled", "false");
 
         try {
 

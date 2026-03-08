@@ -38,6 +38,7 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
@@ -64,6 +65,7 @@ import com.norconex.commons.lang.url.UrlStreamer;
  */
 
 @Testcontainers(disabledWithoutDocker = true)
+@Tag("slow")
 class AmazonCloudSearchCommitterTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(

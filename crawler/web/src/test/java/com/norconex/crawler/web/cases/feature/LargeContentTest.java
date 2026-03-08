@@ -31,6 +31,7 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
@@ -40,33 +41,38 @@ import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
  * Test that large files are processed properly (&gt; 2MB).
  */
 @MockServerSettings
+@SlowTest
 @Disabled("Need to find out why it now fails on GitHub Actions.")
 class LargeContentTest {
 
-    @WebCrawlTest
-    void testLargeContent(ClientAndServer client, WebCrawlerConfig cfg)
-            throws IOException {
+        @WebCrawlTest
+        void testLargeContent(ClientAndServer client, WebCrawlerConfig cfg)
+                        throws IOException {
 
-        Awaitility.await().atMost(10, TimeUnit.SECONDS)
-                .until(client::isRunning);
+                Awaitility.await().atMost(10, TimeUnit.SECONDS)
+                                .until(client::isRunning);
 
-        var minSize = 3 * 1024 * 1024;
-        var path = "/largeContent";
+                var minSize = 3 * 1024 * 1024;
+                var path = "/largeContent";
 
-        whenHtml(client, path, RandomStringUtils.randomAlphanumeric(minSize));
+                whenHtml(client, path,
+                                RandomStringUtils.randomAlphanumeric(minSize));
 
-        cfg.setStartReferences(List.of(serverUrl(client, path)));
-        var fetcherCfg = ((HttpClientFetcher) cfg.getFetchers().get(0))
-                .getConfiguration();
-        fetcherCfg.setSocketTimeout(Duration.ofSeconds(60))
-                .setConnectionTimeout(Duration.ofSeconds(60))
-                .setConnectionRequestTimeout(Duration.ofSeconds(60));
+                cfg.setStartReferences(List.of(serverUrl(client, path)));
+                var fetcherCfg = ((HttpClientFetcher) cfg.getFetchers().get(0))
+                                .getConfiguration();
+                fetcherCfg.setSocketTimeout(Duration.ofSeconds(60))
+                                .setConnectionTimeout(Duration.ofSeconds(60))
+                                .setConnectionRequestTimeout(
+                                                Duration.ofSeconds(60));
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+                var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+                                .getCommitter();
 
-        var txt = IOUtils.toString(
-                mem.getUpsertRequests().get(0).getContent(), UTF_8);
+                var txt = IOUtils.toString(
+                                mem.getUpsertRequests().get(0).getContent(),
+                                UTF_8);
 
-        assertThat(txt).hasSizeGreaterThanOrEqualTo(minSize);
-    }
+                assertThat(txt).hasSizeGreaterThanOrEqualTo(minSize);
+        }
 }

@@ -25,10 +25,12 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.norconex.crawler.core.fetch.Fetcher;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.fs.FsTestUtil;
 import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 
 @Testcontainers(disabledWithoutDocker = true)
+@SlowTest
 class SftpFetcherTest extends AbstractFileFetcherTest {
 
     @SuppressWarnings("resource")

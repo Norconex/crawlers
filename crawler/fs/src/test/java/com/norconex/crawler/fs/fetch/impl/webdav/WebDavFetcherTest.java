@@ -32,10 +32,12 @@ import org.testcontainers.utility.DockerImageName;
 import com.norconex.commons.lang.net.Host;
 import com.norconex.commons.lang.security.Credentials;
 import com.norconex.crawler.core.fetch.Fetcher;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.fs.FsTestUtil;
 import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 
 @Testcontainers(disabledWithoutDocker = true)
+@SlowTest
 class WebDavFetcherTest extends AbstractFileFetcherTest {
 
     @SuppressWarnings("resource")
