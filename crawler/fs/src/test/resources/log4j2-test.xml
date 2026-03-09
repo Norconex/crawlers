@@ -32,6 +32,9 @@
   </Appenders>
   <Loggers>
 
+    <!-- Suppress Hazelcast logo -->
+    <Logger name="com.hazelcast.system.logo" level="OFF" additivity="false"/>
+
     <!-- Disable logging for specific tests for reduced verbosity 
       (e.g., testing failures)
       -->

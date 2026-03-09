@@ -31,6 +31,9 @@
   </Appenders>
   <Loggers>
 
+    <!-- Suppress Hazelcast logo -->
+    <Logger name="com.hazelcast.system.logo" level="OFF" additivity="false"/>
+
     <Logger name="com.norconex" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>

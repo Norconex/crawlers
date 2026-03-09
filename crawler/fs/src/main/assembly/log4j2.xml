@@ -18,6 +18,9 @@
   </Appenders>
   <Loggers>
 
+    <!-- Suppress Hazelcast logo -->
+    <Logger name="com.hazelcast.system.logo" level="OFF" additivity="false"/>
+
     <!-- 
       NOTE: Most events are typically fired as INFO, but setting the logger 
       levels here at DEBUG sometimes will log extra information.
