@@ -61,7 +61,7 @@ class ApacheKafkaCommitterTest {
 
     @Container
     static ConfluentKafkaContainer kafka = new ConfluentKafkaContainer(
-            DockerImageName.parse("confluentinc/cp-kafka:7.4.0"));
+            DockerImageName.parse("confluentinc/cp-kafka:8.2.0"));
 
     @BeforeAll
     static void setUpBeforeClass() {

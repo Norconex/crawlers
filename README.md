@@ -19,7 +19,7 @@ Until v4 is officially released, this branch should not be considered stable.
 
 ## Projects
 
-[![Java CI with Maven](https://github.com/Norconex/crawlers/actions/workflows/ci.yml/badge.svg)](https://github.com/Norconex/crawlers/actions/workflows/ci.yml)
+[![Java CI with Maven](https://github.com/Norconex/crawlers/actions/workflows/maven-ci-cd.yaml/badge.svg)](https://github.com/Norconex/crawlers/actions/workflows/maven-ci-cd.yaml)
 
 | Folder                       | Artifact Id                    | Build         |
 | ---------------------------- | ------------------------------ | ------------- |
@@ -27,7 +27,6 @@ Until v4 is officially released, this branch should not be considered stable.
 | crawler/fs/                  | nx-crawler-fs                  | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=com.norconex.crawler%3Anx-crawler-fs&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=com.norconex.crawler%3Anx-crawler-fs) |
 | crawler/web/                 | nx-crawler-web                 | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=com.norconex.crawler%3Anx-crawler-web&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=com.norconex.crawler%3Anx-crawler-web) |
 | importer/                    | nx-importer                    | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=com.norconex.crawler%3Anx-importer&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=com.norconex.crawler%3Anx-importer) |
-| committer/amazoncloudsearch/ | nx-committer-amazoncloudsearch | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=com.norconex.crawler%3Anx-committer-amazoncloudsearch&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=com.norconex.crawler%3Anx-committer-amazoncloudsearch) |
 | committer/apachekafka/       | nx-committer-apachekafka       | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=com.norconex.crawler%3Anx-committer-apachekafka&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=com.norconex.crawler%3Anx-committer-apachekafka) |
 | committer/azurecognitivesearch/ | nx-committer-azurecognitivesearch | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=com.norconex.crawler%3Anx-committer-azurecognitivesearch&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=com.norconex.crawler%3Anx-committer-azurecognitivesearch) |
 | committer/core/              | nx-committer-core              | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=com.norconex.crawler%3Anx-committer-core&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=com.norconex.crawler%3Anx-committer-core) |
@@ -36,6 +35,7 @@ Until v4 is officially released, this branch should not be considered stable.
 | committer/neo4j/              | nx-committer-neo4j            | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=com.norconex.crawler%3Anx-committer-neo4j&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=com.norconex.crawler%3Anx-committer-neo4j) |
 | committer/solr/              | nx-committer-solr              | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=com.norconex.crawler%3Anx-committer-solr&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=com.norconex.crawler%3Anx-committer-solr) |
 | committer/sql/               | nx-committer-sql               | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=com.norconex.crawler%3Anx-committer-sql&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=com.norconex.crawler%3Anx-committer-sql) |
+| 🪦 committer/amazoncloudsearch/ | nx-committer-amazoncloudsearch | [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=com.norconex.crawler%3Anx-committer-amazoncloudsearch&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=com.norconex.crawler%3Anx-committer-amazoncloudsearch) |
 
 
 All projects in this repository share the same Maven group id:
