@@ -70,7 +70,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 class ElasticsearchCommitterTest {
 
-    private static final String TEST_ES_VERSION = "8.7.1";
+    private static final String TEST_ES_VERSION = "9.3.1";
     private static final String TEST_INDEX = "tests";
     private static final String TEST_ID = "1";
     private static final String TEST_CONTENT = "This is test content.";

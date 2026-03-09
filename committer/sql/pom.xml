@@ -30,9 +30,8 @@
     <sonar.skip>false</sonar.skip>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
     
-    <commons-dbcp2.version>2.9.0</commons-dbcp2.version>
+    <commons-dbcp2.version>2.14.0</commons-dbcp2.version>
     <commons-dbutils.version>1.8.1</commons-dbutils.version>    
-    <h2.version>2.2.224</h2.version>    
   </properties>
   <inceptionYear>2017</inceptionYear>
 
@@ -51,11 +50,9 @@
       <artifactId>commons-dbutils</artifactId>
       <version>${commons-dbutils.version}</version>
     </dependency>
-    
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
-      <version>${h2.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

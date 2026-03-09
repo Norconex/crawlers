@@ -29,7 +29,7 @@
   <properties>
     <sonar.skip>false</sonar.skip>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>    
-    <neo4j.driver.version>5.17.0</neo4j.driver.version>
+    <neo4j.driver.version>6.0.3</neo4j.driver.version>
   </properties>
   <inceptionYear>2018</inceptionYear>
 

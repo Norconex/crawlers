@@ -1,3 +1,4 @@
-# TODO
+Norconex Committer Core 
+==============
 
-Placeholder file for now...
+Base library being the fondation of every committer.

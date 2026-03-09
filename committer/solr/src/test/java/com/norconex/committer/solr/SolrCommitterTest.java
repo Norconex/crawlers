@@ -39,13 +39,6 @@ class SolrCommitterTest extends AbstractSolrTest {
 
     //TODO test update/delete URL params
 
-    static {
-        System.setProperty("solr.allow.unsafe.resourceloading", "true");
-        var loader = SolrCommitterTest.class.getClassLoader();
-        loader.setPackageAssertionStatus("org.apache.solr", true);
-        loader.setPackageAssertionStatus("org.apache.lucene", true);
-    }
-
     @Test
     void testCommitAdd() throws Exception {
 

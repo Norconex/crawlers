@@ -15,16 +15,14 @@
 package com.norconex.committer.solr;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.io.IOException;
 
-import org.apache.solr.client.solrj.impl.ConcurrentUpdateHttp2SolrClient;
-import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
-import org.apache.solr.client.solrj.impl.Http2SolrClient;
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
-import org.apache.solr.client.solrj.impl.LBHttp2SolrClient;
-import org.apache.solr.client.solrj.impl.LBHttpSolrClient;
+import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.impl.HttpJdkSolrClient;
+import org.apache.solr.client.solrj.jetty.ConcurrentUpdateJettySolrClient;
+import org.apache.solr.client.solrj.jetty.HttpJettySolrClient;
+import org.apache.solr.client.solrj.jetty.LBJettySolrClient;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("deprecation")
@@ -35,32 +33,35 @@ class SolrClientTypeTest {
         var url = "http://solr/base-url";
 
         var solr = SolrClientType.HTTP.create(url);
-        assertThat(solr).isInstanceOf(HttpSolrClient.class);
-        assertThat(((HttpSolrClient) solr).getBaseURL()).isEqualTo(url);
+        assertThat(solr).isInstanceOf(HttpJettySolrClient.class);
 
         solr = SolrClientType.CONCURRENT_UPDATE.create(url);
-        assertThat(solr).isInstanceOf(ConcurrentUpdateSolrClient.class);
+        assertThat(solr).isInstanceOf(ConcurrentUpdateJettySolrClient.class);
 
         solr = SolrClientType.LB_HTTP.create(url);
-        assertThat(solr).isInstanceOf(LBHttpSolrClient.class);
+        assertThat(solr).isInstanceOf(LBJettySolrClient.class);
 
         solr = SolrClientType.HTTP2.create(url);
-        assertThat(solr).isInstanceOf(Http2SolrClient.class);
-        assertThat(SolrClientType.of("Http2SolrClient").create(url))
-                .isInstanceOf(Http2SolrClient.class);
+        assertThat(solr).isInstanceOf(HttpJettySolrClient.class);
+        assertThat(SolrClientType.of("HttpJettySolrClient").create(url))
+                .isInstanceOf(HttpJettySolrClient.class);
 
         solr = SolrClientType.CONCURRENT_UPDATE_HTTP2.create(url);
-        assertThat(solr).isInstanceOf(ConcurrentUpdateHttp2SolrClient.class);
+        assertThat(solr).isInstanceOf(ConcurrentUpdateJettySolrClient.class);
 
         solr = SolrClientType.LB_HTTP2.create(url);
-        assertThat(solr).isInstanceOf(LBHttp2SolrClient.class);
-        assertThat(SolrClientType.LB_HTTP2).hasToString("LBHttp2SolrClient");
+        assertThat(solr).isInstanceOf(LBJettySolrClient.class);
+        assertThat(SolrClientType.LB_HTTP2).hasToString("LBJettySolrClient");
+
+        solr = SolrClientType.HTTP_JDK.create(url);
+        assertThat(solr).isInstanceOf(HttpJdkSolrClient.class);
 
         assertThat(SolrClientType.of(null)).isNull();
 
-        // needs a real cluster to be initialized, we don't have on in this
-        // test, so should fail.
-        assertThatExceptionOfType(RuntimeException.class).isThrownBy(
-                () -> SolrClientType.CLOUD.create(url));
+        // In SolrJ 10, CloudSolrClient construction is lazy — no exception
+        // is thrown at build time; connection errors only surface on use.
+        solr = SolrClientType.CLOUD.create(url);
+        assertThat(solr).isInstanceOf(CloudSolrClient.class);
+        solr.close();
     }
 }
