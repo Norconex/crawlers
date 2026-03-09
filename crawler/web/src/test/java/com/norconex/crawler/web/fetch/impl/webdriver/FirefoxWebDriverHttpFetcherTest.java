@@ -1,4 +1,3 @@
-import org.junit.jupiter.api.Timeout;
 /* Copyright 2018-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +13,8 @@ import org.junit.jupiter.api.Timeout;
  * limitations under the License.
  */
 package com.norconex.crawler.web.fetch.impl.webdriver;
+
+import org.junit.jupiter.api.Timeout;
 
 @Timeout(30)
 class FirefoxWebDriverHttpFetcherTest extends AbstractWebDriverHttpFetcherTest {
