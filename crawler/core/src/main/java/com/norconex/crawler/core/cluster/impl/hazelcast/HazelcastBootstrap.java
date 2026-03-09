@@ -14,28 +14,24 @@
  */
 package com.norconex.crawler.core.cluster.impl.hazelcast;
 
-import com.norconex.commons.lang.config.Configurable;
-import com.norconex.crawler.core.cluster.Cluster;
-import com.norconex.crawler.core.cluster.ClusterConnector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+final class HazelcastBootstrap {
 
-@EqualsAndHashCode
-@Getter
-public class HazelcastClusterConnector
-        implements ClusterConnector,
-        Configurable<HazelcastClusterConnectorConfig> {
+    private static final String HAZELCAST_LOGO_LOGGER =
+            "com.hazelcast.system.logo";
 
-    static {
-        HazelcastBootstrap.configure();
+    private HazelcastBootstrap() {
     }
 
-    private final HazelcastClusterConnectorConfig configuration =
-            new HazelcastClusterConnectorConfig();
+    static void configure() {
+        System.setProperty("hazelcast.logging.type", "slf4j");
+        System.setProperty("hazelcast.logging.details.enabled", "false");
+        System.setProperty("hazelcast.phone.home.enabled", "false");
 
-    @Override
-    public Cluster connect() {
-        return new HazelcastCluster(configuration);
+        var julLogger = Logger.getLogger(HAZELCAST_LOGO_LOGGER);
+        julLogger.setUseParentHandlers(false);
+        julLogger.setLevel(Level.OFF);
     }
 }

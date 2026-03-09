@@ -206,9 +206,13 @@ jobs:
       - name: Build, Test, and Deploy (Snapshot or Release)
         run: |
           TEST_GROUP_OVERRIDES=""
+          COVERAGE_ARGS=""
           if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.base.ref }}" == "main" ]]; then
-            echo "PR to main detected: including slow tests in CI run"
+            echo "PR to main detected: enabling coverage and including slow tests in CI run"
             TEST_GROUP_OVERRIDES="-DexcludedGroups="
+            COVERAGE_ARGS="-Pjacoco"
+          else
+            echo "Coverage disabled for this event; running fast feedback suite only"
           fi
 
           if [[ "${{ github.ref }}" == "refs/heads/main" && "${{ steps.get_version.outputs.version }}" == *-SNAPSHOT ]]; then
@@ -220,7 +224,7 @@ jobs:
               -Dlog4j.configurationFile=${{ github.workspace }}/.github/log4j2-ci.xml \
               -Dorg.apache.logging.log4j.debug=true \
               -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-              -Pjacoco \
+              $COVERAGE_ARGS \
               $TEST_GROUP_OVERRIDES \
               -C \
               -Dsonar.host.url=https://sonarcloud.io \
@@ -236,7 +240,7 @@ jobs:
               -Dlog4j.configurationFile=${{ github.workspace }}/.github/log4j2-ci.xml \
               -Dorg.apache.logging.log4j.debug=true \
               -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-              -Pjacoco \
+              $COVERAGE_ARGS \
               $TEST_GROUP_OVERRIDES \
               -C \
               -Dsonar.host.url=https://sonarcloud.io \
@@ -252,7 +256,7 @@ jobs:
               -Dlog4j.configurationFile=${{ github.workspace }}/.github/log4j2-ci.xml \
               -Dorg.apache.logging.log4j.debug=true \
               -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-              -Pjacoco \
+              $COVERAGE_ARGS \
               $TEST_GROUP_OVERRIDES \
               -C \
               -Dsonar.host.url=https://sonarcloud.io \

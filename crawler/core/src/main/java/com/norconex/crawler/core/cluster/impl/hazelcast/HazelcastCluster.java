@@ -107,6 +107,8 @@ public class HazelcastCluster implements Cluster {
     @Override
     public void init(Path workDir, boolean clustered,
             Map<String, Class<?>> cacheTypes) {
+        HazelcastBootstrap.configure();
+
         this.workDir = workDir;
         this.clustered = clustered;
 
@@ -116,7 +118,6 @@ public class HazelcastCluster implements Cluster {
                 workDir, clustered, configuration.getClusterName());
         var hzConfig = configuration.getConfigurer().buildConfig(ctx);
 
-        hzConfig.setProperty("hazelcast.logging.type", "slf4j");
         hzConfig.setProperty("hazelcast.logging.details.enabled", "false");
         hzConfig.setProperty("hazelcast.phone.home.enabled", "false");
 

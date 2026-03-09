@@ -31,6 +31,10 @@ import com.hazelcast.test.TestHazelcastInstanceFactory;
  */
 public final class HazelcastTestSupport {
 
+    static {
+        HazelcastBootstrap.configure();
+    }
+
     /**
      * Shared mock-network factory.  All test instances use this factory so
      * they start on the same mock network; unique cluster names (UUIDs)
@@ -73,7 +77,6 @@ public final class HazelcastTestSupport {
     public static Config buildTestConfig(String clusterName) {
         var cfg = new Config();
         cfg.setClusterName(clusterName);
-        cfg.setProperty("hazelcast.logging.type", "slf4j");
         cfg.setProperty("hazelcast.phone.home.enabled", "false");
         cfg.setProperty("hazelcast.max.join.seconds", "10");
 

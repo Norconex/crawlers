@@ -217,6 +217,8 @@ public class JdbcHazelcastConfigurer implements HazelcastConfigurer {
 
     @Override
     public Config buildConfig(HazelcastConfigurerContext ctx) {
+        HazelcastBootstrap.configure();
+
         var config = new Config();
         config.setClusterName(ctx.clusterName());
 

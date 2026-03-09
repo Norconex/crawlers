@@ -619,7 +619,7 @@ public class TestCrawler implements Closeable {
                 return new CrawlTestNodeOutput(List.of(), List.of(), Map.of());
             }
         }
-        LOG.debug("No node test resutls at : {}", resultPath);
+        LOG.trace("No node test results at: {}", resultPath);
         return new CrawlTestNodeOutput(List.of(), List.of(), Map.of());
     }
 }

@@ -31,14 +31,12 @@ import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.cluster.pipeline.PipelineProgress;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.context.CrawlContext;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.metrics.CrawlerMetrics;
 
 /**
  * Tests for {@link CrawlProgressLogger}.
  */
 @Timeout(15)
-@SlowTest
 class CrawlProgressLoggerTest {
 
     private CrawlContext buildContext(Duration minLoggingInterval) {
