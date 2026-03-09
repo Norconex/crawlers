@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
@@ -33,6 +34,7 @@ import com.norconex.crawler.web.doc.operations.robot.impl.StandardRobotsTxtProvi
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.util.Web;
 
+@Timeout(30)
 class RobotsTxtFiltersStageTest {
 
     @WebCrawlTest

@@ -21,9 +21,11 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.web.TestResource;
 
+@Timeout(30)
 class ImageCacheTest {
 
     @TempDir

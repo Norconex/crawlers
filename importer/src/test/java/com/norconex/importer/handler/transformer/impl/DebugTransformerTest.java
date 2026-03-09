@@ -21,11 +21,13 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
 
+@Timeout(30)
 class DebugTransformerTest {
 
     @Test

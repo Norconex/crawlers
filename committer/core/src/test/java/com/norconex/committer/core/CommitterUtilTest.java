@@ -19,7 +19,9 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import org.apache.commons.io.input.BrokenInputStream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
+@Timeout(30)
 class CommitterUtilTest {
 
     @Test

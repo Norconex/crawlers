@@ -26,11 +26,13 @@ import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test that MaxDepth setting is respected.
  */
 @MockServerSettings
+@Timeout(30)
 class ClusterTest {
 
     private static final int SITE_DEPTH = 20;

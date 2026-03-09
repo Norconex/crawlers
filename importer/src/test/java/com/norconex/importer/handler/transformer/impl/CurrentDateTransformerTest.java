@@ -19,6 +19,7 @@ import java.util.Locale;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.bean.BeanMapper;
@@ -29,6 +30,7 @@ import com.norconex.importer.doc.DocMetaConstants;
 import java.io.IOException;
 import com.norconex.importer.handler.parser.ParseState;
 
+@Timeout(30)
 class CurrentDateTransformerTest {
 
     @Test

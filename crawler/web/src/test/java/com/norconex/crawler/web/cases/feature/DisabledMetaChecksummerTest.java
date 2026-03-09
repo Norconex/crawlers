@@ -31,6 +31,7 @@ import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Tests that the page does not produce any Committer addition on subsequent
@@ -39,6 +40,7 @@ import com.norconex.crawler.web.mocks.MockWebsite;
 */
 //Test for https://github.com/Norconex/collector-http/issues/544
 @MockServerSettings
+@Timeout(30)
 class DisabledMetaChecksummerTest {
 
     private final String path = "/disabledMetaChecksummer";

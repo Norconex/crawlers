@@ -21,7 +21,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
+@Timeout(30)
 class ExceptionSwallowerTest {
 
     // -------------------------------------------------------------------------

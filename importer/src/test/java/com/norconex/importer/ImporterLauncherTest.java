@@ -23,9 +23,11 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.SystemUtil;
 
+@Timeout(30)
 class ImporterLauncherTest {
 
         private static final String TEST_CONFIG =

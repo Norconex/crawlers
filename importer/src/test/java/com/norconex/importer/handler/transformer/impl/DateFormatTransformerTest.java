@@ -20,6 +20,7 @@ import java.util.Locale;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
@@ -28,6 +29,7 @@ import com.norconex.importer.TestUtil;
 import java.io.IOException;
 import com.norconex.importer.handler.parser.ParseState;
 
+@Timeout(30)
 class DateFormatTransformerTest {
 
     @Test

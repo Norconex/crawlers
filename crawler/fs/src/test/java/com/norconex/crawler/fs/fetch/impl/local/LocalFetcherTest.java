@@ -20,6 +20,7 @@ import java.nio.file.Path;
 
 import org.apache.commons.lang3.Strings;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.Fetcher;
@@ -28,6 +29,7 @@ import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 import com.norconex.crawler.fs.stubs.CrawlDocStubs;
 
+@Timeout(30)
 class LocalFetcherTest extends AbstractFileFetcherTest {
 
     public static LocalFetcher fetcherClient() {

@@ -17,6 +17,7 @@ package com.norconex.crawler.fs.spi;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.fs.doc.operations.checksum.FsMetadataChecksummer;
@@ -28,6 +29,7 @@ import com.norconex.crawler.fs.fetch.impl.sftp.SftpFetcher;
 import com.norconex.crawler.fs.fetch.impl.smb.SmbFetcher;
 import com.norconex.crawler.fs.fetch.impl.webdav.WebDavFetcher;
 
+@Timeout(30)
 class CrawlerFsPtProviderTest {
 
     @Test

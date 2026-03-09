@@ -26,7 +26,9 @@ import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.util.Web;
+import org.junit.jupiter.api.Timeout;
 
+@Timeout(30)
 class GenericSitemapLocatorTest {
 
     @WebCrawlTest

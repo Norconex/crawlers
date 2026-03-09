@@ -17,6 +17,7 @@ package com.norconex.committer.core.impl;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.TestUtil;
@@ -27,6 +28,7 @@ import com.norconex.commons.lang.text.TextMatcher;
 /**
  * <p>LogCommitter tests.</p>
  */
+@Timeout(30)
 class LogCommitterTest {
 
     @Test

@@ -29,6 +29,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
@@ -38,6 +39,7 @@ import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.parser.ParseState;
 
+@Timeout(30)
 class LanguageTransformerTest {
 
     private static Map<String, String> sampleTexts;

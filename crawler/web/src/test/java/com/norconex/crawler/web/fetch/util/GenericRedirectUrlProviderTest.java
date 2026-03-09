@@ -25,9 +25,11 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 
+@Timeout(30)
 class GenericRedirectUrlProviderTest {
 
     @Test

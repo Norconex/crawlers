@@ -26,11 +26,13 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.provider.hdfs.HdfsFileSystemConfigBuilder;
 import org.apache.hadoop.fs.Path;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.importer.doc.Doc;
 
+@Timeout(30)
 class HdfsFetcherTest {
 
     //TODO find a way to unit test HDFS.

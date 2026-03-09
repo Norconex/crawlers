@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.crawler.core.cluster.CacheManager;
@@ -36,6 +37,7 @@ import com.norconex.crawler.core.session.CrawlSession;
 /**
  * Tests for {@link CrawlerMetricsImpl}.
  */
+@Timeout(30)
 class CrawlerMetricsImplTest {
 
     // ------------------------------------------------------------------

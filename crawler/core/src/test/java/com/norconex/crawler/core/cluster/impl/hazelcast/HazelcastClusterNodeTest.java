@@ -38,6 +38,7 @@ import com.norconex.crawler.core.junit.annotations.SlowTest;
  * a simple polling loop (Awaitility is not a project dependency).</p>
  */
 @SlowTest
+@Timeout(30)
 class HazelcastClusterNodeTest {
 
     /**

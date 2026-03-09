@@ -21,7 +21,9 @@ import java.net.Socket;
 import javax.net.ssl.SSLEngine;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
+@Timeout(30)
 class TrustAllX509TrustManagerTest {
 
     @Test

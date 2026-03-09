@@ -19,8 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 // TODO: Rename this file to FsCrawlEntryTest once FsCrawlDocContext is deleted.
+@Timeout(30)
 class FsCrawlDocContextTest {
 
     @Test

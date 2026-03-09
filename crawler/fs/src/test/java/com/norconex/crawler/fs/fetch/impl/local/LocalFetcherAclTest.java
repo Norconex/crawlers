@@ -32,6 +32,7 @@ import java.util.List;
 import org.apache.commons.vfs2.provider.local.LocalFile;
 import org.apache.commons.vfs2.provider.local.LocalFileName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -41,6 +42,7 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.fs.doc.FsDocMetadata;
 
 @MockitoSettings
+@Timeout(30)
 class LocalFetcherAclTest {
 
     @Mock

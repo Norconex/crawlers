@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.Importer;
@@ -36,6 +37,7 @@ import com.norconex.importer.ImporterRequest;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.response.ImporterResponse;
 
+@Timeout(30)
 class DefaultParserEmbeddedTest {
 
     private static final String ZIP = "application/zip";

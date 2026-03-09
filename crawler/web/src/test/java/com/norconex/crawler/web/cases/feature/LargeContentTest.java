@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
@@ -43,6 +44,7 @@ import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 @MockServerSettings
 @SlowTest
 @Disabled("Need to find out why it now fails on GitHub Actions.")
+@Timeout(30)
 class LargeContentTest {
 
         @WebCrawlTest

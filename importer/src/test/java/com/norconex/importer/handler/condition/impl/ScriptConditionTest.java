@@ -30,6 +30,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.config.Configurable;
@@ -38,6 +39,7 @@ import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.ScriptRunner;
 
+@Timeout(30)
 class ScriptConditionTest {
 
     @ParameterizedTest

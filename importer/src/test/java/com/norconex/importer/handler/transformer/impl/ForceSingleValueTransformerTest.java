@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
@@ -27,6 +28,7 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.TestUtil;
 import java.io.IOException;
 
+@Timeout(30)
 class ForceSingleValueTransformerTest {
 
     @Test

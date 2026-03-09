@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.context.CrawlContext;
@@ -30,6 +31,7 @@ import com.norconex.crawler.core.ledger.ProcessingOutcome;
  *
  * Tests cover all branches of {@link FetchUtil#shouldContinueOnBadStatus}.
  */
+@Timeout(30)
 class FetchUtilTest {
 
     private CrawlContext crawler;

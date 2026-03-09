@@ -31,6 +31,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
@@ -49,6 +50,7 @@ import com.norconex.crawler.web.stubs.CrawlDocStubs;
 import com.norconex.importer.doc.Doc;
 
 @MockServerSettings
+@Timeout(30)
 class FeaturedImageResolverTest {
 
     private @TempDir Path tempDir;

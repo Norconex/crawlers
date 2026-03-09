@@ -28,6 +28,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
@@ -37,6 +38,7 @@ import com.norconex.committer.core.TestUtil;
  * <p>CSV File Committer tests.</p>
  *
  */
+@Timeout(30)
 class CsvFileCommitterTest {
 
     @TempDir

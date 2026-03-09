@@ -27,12 +27,14 @@ import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test that blank files are committed.
  */
 // Test case for https://github.com/Norconex/collector-http/issues/313
 @MockServerSettings
+@Timeout(30)
 class ZeroLengthTest {
 
     @WebCrawlTest

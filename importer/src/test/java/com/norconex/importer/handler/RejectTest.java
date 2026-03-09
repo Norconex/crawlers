@@ -17,10 +17,12 @@ package com.norconex.importer.handler;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.importer.TestUtil;
 
+@Timeout(30)
 class RejectTest {
 
     @Test

@@ -20,6 +20,7 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.batch.queue.impl.FsQueue;
 import com.norconex.commons.lang.ResourceLoader;
@@ -29,6 +30,7 @@ import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.text.TextMatcher;
 
+@Timeout(30)
 class Neo4jCommitterConfigTest {
     @Test
     void testWriteRead() throws Exception {

@@ -18,7 +18,9 @@ import static org.assertj.core.api.Assertions.assertThatException;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
+@Timeout(30)
 class DefTikaConfigurerTest {
 
     @Test

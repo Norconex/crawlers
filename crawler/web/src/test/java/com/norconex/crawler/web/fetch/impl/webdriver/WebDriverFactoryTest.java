@@ -17,8 +17,10 @@ package com.norconex.crawler.web.fetch.impl.webdriver;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.openqa.selenium.firefox.FirefoxDriver;
 
+@Timeout(30)
 class WebDriverFactoryTest {
 
     @Test

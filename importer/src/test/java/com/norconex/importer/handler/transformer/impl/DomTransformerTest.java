@@ -36,6 +36,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.ResourceLoader;
 import com.norconex.commons.lang.bean.BeanMapper;
@@ -47,6 +48,7 @@ import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.util.DomUtil;
 
+@Timeout(30)
 class DomTransformerTest {
 
     //--- Field tests ----------------------------------------------------------

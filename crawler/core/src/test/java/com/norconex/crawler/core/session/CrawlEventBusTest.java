@@ -20,12 +20,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.event.CrawlerEvent;
 
+@Timeout(30)
 class CrawlEventBusTest {
 
     @Test

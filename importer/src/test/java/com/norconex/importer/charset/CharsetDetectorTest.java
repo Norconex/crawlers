@@ -23,10 +23,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.Doc;
 
+@Timeout(30)
 class CharsetDetectorTest {
 
     @Test

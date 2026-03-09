@@ -27,6 +27,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlerException;
@@ -37,6 +38,7 @@ import com.norconex.crawler.core.session.CrawlSession;
 /**
  * Tests for {@link RefFileEnqueuer}.
  */
+@Timeout(30)
 class RefFileEnqueuerTest {
 
     @TempDir

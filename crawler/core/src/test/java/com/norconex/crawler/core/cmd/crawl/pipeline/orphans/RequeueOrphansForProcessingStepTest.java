@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
@@ -38,6 +39,7 @@ import com.norconex.crawler.core.session.CrawlSession;
 /**
  * Tests for {@link RequeueOrphansForProcessingStep}.
  */
+@Timeout(30)
 class RequeueOrphansForProcessingStepTest {
 
     private CrawlSession buildSession(

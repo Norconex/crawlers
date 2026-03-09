@@ -27,6 +27,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.Timeout;
 
 import com.hazelcast.core.HazelcastInstance;
 import com.norconex.crawler.core.cluster.QueryFilter;
@@ -41,6 +42,7 @@ import com.norconex.crawler.core.ledger.ProcessingStatus;
  * without requiring an instance restart.</p>
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Timeout(30)
 class HazelcastMapAdapterTest {
 
     private HazelcastInstance hz;

@@ -23,10 +23,12 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.xml.ErrorHandlerCapturer;
 import com.norconex.commons.lang.xml.Xml;
 
+@Timeout(30)
 class CommitterTest {
     @Test
     void testValidation() throws IOException {

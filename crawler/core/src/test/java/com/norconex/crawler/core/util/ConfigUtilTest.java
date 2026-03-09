@@ -20,9 +20,11 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.CrawlConfig;
 
+@Timeout(30)
 class ConfigUtilTest {
 
     @TempDir

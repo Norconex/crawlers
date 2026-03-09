@@ -27,6 +27,7 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.service.CommitterService;
 import com.norconex.crawler.core.CrawlConfig;
@@ -46,6 +47,7 @@ import com.norconex.importer.response.ImporterResponse.Status;
 /**
  * Tests for {@link ProcessUpsert}.
  */
+@Timeout(30)
 class ProcessUpsertTest {
 
     private CrawlSession session;

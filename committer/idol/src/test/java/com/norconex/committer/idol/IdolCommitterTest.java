@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.HttpRequest;
@@ -50,6 +51,7 @@ import com.norconex.commons.lang.map.Properties;
  */
 @MockServerSettings
 @TestInstance(Lifecycle.PER_CLASS)
+@Timeout(30)
 class IdolCommitterTest {
 
     private static final String IDOL_DB_NAME = "test";

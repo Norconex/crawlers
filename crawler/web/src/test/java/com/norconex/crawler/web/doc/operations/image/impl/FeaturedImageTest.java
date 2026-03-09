@@ -21,9 +21,11 @@ import java.awt.Dimension;
 import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.web.TestResource;
 
+@Timeout(30)
 class FeaturedImageTest {
 
     @Test

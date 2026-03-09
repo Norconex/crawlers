@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.context.CrawlContext;
@@ -38,6 +39,7 @@ import com.norconex.importer.doc.Doc;
 /**
  * Tests for {@link MetadataChecksumStage}.
  */
+@Timeout(30)
 class MetadataChecksumStageTest {
 
     // Helper: create a full ImporterPipelineContext for a given config

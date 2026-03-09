@@ -23,9 +23,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.map.Properties;
 
+@Timeout(30)
 class ImportHandlerTest {
 
     private Importer importer;

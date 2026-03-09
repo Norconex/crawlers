@@ -19,6 +19,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.hazelcast.core.HazelcastInstance;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
@@ -28,6 +29,7 @@ import com.norconex.crawler.core.cluster.pipeline.StepRecord;
  * {@code getValueClass}, {@code setValueClass}, and
  * {@code setHazelcastInstance}.
  */
+@Timeout(30)
 class TypedJdbcMapStoreFactoryTest {
 
     @Test

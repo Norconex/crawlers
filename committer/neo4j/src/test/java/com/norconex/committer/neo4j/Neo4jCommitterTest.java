@@ -36,6 +36,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
@@ -59,6 +60,7 @@ import com.norconex.commons.lang.security.Credentials;
 
 @Testcontainers(disabledWithoutDocker = true)
 @Tag("slow")
+@Timeout(30)
 class Neo4jCommitterTest {
 
     private static final String NEO4J_VERSION = "5.26.0";

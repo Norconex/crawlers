@@ -20,7 +20,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
+@Timeout(30)
 class DelayReferencePatternTest {
 
     @Test

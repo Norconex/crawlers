@@ -17,10 +17,12 @@ package com.norconex.crawler.core.doc.operations.spoil.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategy;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
+@Timeout(30)
 class GenericSpoiledReferenceStrategizerTest {
 
     @Test

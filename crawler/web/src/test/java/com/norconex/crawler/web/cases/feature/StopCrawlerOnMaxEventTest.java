@@ -34,6 +34,7 @@ import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test the stopping of a crawler upon reaching configured maximum number of
@@ -41,6 +42,7 @@ import com.norconex.crawler.web.mocks.MockWebsite;
  * {@link DeleteRejectedEventListener}.
  */
 @MockServerSettings
+@Timeout(30)
 class StopCrawlerOnMaxEventTest {
 
         private static final int SITE_DEPTH = 50;

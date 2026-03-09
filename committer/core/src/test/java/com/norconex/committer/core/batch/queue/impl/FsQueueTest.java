@@ -28,11 +28,13 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.TestUtil;
 
+@Timeout(30)
 class FsQueueTest {
 
     @TempDir

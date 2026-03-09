@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.context.CrawlContext;
@@ -32,6 +33,7 @@ import com.norconex.crawler.core.mocks.fetch.MockFetchResponseImpl;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 import com.norconex.crawler.core.session.CrawlSession;
 
+@Timeout(30)
 class FetchTest {
 
     // -----------------------------------------------------------------

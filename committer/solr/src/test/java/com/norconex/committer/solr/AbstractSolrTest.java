@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.solr.SolrContainer;
@@ -45,6 +46,7 @@ import com.norconex.commons.lang.TimeIdGenerator;
 @Testcontainers(disabledWithoutDocker = true)
 @Tag("slow")
 @TestInstance(Lifecycle.PER_CLASS)
+@Timeout(30)
 public abstract class AbstractSolrTest {
 
     private static final String SOLR_VERSION = "10.0.0";

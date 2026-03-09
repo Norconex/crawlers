@@ -25,11 +25,13 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
 
+@Timeout(30)
 class SitemapParserTest {
 
     @Test

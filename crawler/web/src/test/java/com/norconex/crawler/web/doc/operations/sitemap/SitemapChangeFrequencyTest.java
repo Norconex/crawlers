@@ -18,7 +18,9 @@ import static com.norconex.crawler.web.doc.operations.sitemap.SitemapChangeFrequ
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
+@Timeout(30)
 class SitemapChangeFrequencyTest {
 
     @Test

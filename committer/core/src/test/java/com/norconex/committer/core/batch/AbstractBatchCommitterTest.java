@@ -18,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.CommitterException;
@@ -25,6 +26,7 @@ import com.norconex.committer.core.TestBatchCommitter;
 import com.norconex.committer.core.TestMemoryQueue;
 import com.norconex.committer.core.TestUtil;
 
+@Timeout(30)
 class AbstractBatchCommitterTest {
 
     @Test

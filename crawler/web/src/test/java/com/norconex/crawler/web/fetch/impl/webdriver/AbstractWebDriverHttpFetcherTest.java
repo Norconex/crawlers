@@ -34,6 +34,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.openqa.selenium.Capabilities;
@@ -60,6 +61,7 @@ import lombok.extern.slf4j.Slf4j;
 @TestInstance(Lifecycle.PER_CLASS)
 @SlowTest
 @org.testcontainers.junit.jupiter.Testcontainers(disabledWithoutDocker = true)
+@Timeout(30)
 public abstract class AbstractWebDriverHttpFetcherTest
         implements ExecutionCondition {
 

@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlerException;
@@ -41,6 +42,7 @@ import com.norconex.crawler.fs.fetch.FolderPathsFetchResponse;
 import com.norconex.crawler.fs.fetch.FsPath;
 import com.norconex.importer.doc.Doc;
 
+@Timeout(30)
 class FolderPathsExtractorStageTest {
 
     /**

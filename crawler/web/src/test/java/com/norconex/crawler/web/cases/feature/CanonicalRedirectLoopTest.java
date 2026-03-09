@@ -33,6 +33,7 @@ import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.operations.canon.impl.GenericCanonicalLinkDetector;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * The tail of redirects should be kept as metadata so implementors
@@ -40,6 +41,7 @@ import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
  * with canonical to redirect, then redirect to canonical.
  */
 @MockServerSettings
+@Timeout(30)
 class CanonicalRedirectLoopTest {
 
     private static final String CANONICAL_PATH = "/canonical";

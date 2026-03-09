@@ -19,10 +19,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.nio.file.Paths;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 
+@Timeout(30)
 class CommitterContextTest {
 
     @Test

@@ -38,12 +38,14 @@ import com.norconex.crawler.core.event.listeners.DeleteRejectedEventListener;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test the deletion of rejected references with
  * {@link DeleteRejectedEventListener}.
  */
 @MockServerSettings
+@Timeout(30)
 class RejectedRefsDeletionTest {
     private static final String PATH = "/rejectedRefsDeletion";
 

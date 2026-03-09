@@ -17,8 +17,10 @@ package com.norconex.crawler.core.util;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.slf4j.MDC;
 
+@Timeout(30)
 class LogUtilTest {
 
     @Test

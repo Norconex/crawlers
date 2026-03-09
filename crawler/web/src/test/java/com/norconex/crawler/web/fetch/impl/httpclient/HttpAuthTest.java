@@ -36,8 +36,10 @@ import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
+import org.junit.jupiter.api.Timeout;
 
 @MockServerSettings
+@Timeout(30)
 class HttpAuthTest {
 
     private final String loginFormPath = "/loginForm.html";

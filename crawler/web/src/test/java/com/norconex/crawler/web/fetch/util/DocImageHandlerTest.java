@@ -29,6 +29,7 @@ import javax.imageio.ImageIO;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
@@ -39,6 +40,7 @@ import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
 import com.norconex.importer.doc.Doc;
 
+@Timeout(30)
 class DocImageHandlerTest {
 
     @Test

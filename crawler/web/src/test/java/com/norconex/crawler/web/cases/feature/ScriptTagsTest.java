@@ -30,6 +30,7 @@ import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractor;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Content of &lt;script&gt; tags must be stripped by GenericLinkExtractor
@@ -37,6 +38,7 @@ import com.norconex.crawler.web.mocks.MockWebsite;
  */
 // Test case for https://github.com/Norconex/collector-http/issues/232
 @MockServerSettings
+@Timeout(30)
 class ScriptTagsTest {
 
     @WebCrawlTest

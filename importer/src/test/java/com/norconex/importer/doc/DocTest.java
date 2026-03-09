@@ -26,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
@@ -33,6 +34,7 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.ImporterRuntimeException;
 import com.norconex.importer.TestUtil;
 
+@Timeout(30)
 class DocTest {
 
     @Test

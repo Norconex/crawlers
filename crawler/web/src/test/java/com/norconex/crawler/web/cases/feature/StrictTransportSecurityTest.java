@@ -26,6 +26,7 @@ import java.util.List;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
@@ -43,6 +44,7 @@ import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
  */
 //Related to https://github.com/Norconex/collector-http/issues/694
 @MockServerSettings
+@Timeout(30)
 class StrictTransportSecurityTest {
     @TempDir
     private Path tempDir;

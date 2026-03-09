@@ -24,6 +24,7 @@ import java.util.Set;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
@@ -32,6 +33,7 @@ import com.norconex.crawler.web.stubs.CrawlDocStubs;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
 
+@Timeout(30)
 class XmlFeedLinkExtractorTest {
 
     @Test

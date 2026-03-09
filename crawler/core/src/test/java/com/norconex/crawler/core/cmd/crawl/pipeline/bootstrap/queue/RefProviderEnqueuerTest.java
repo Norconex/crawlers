@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.context.CrawlContext;
@@ -34,6 +35,7 @@ import com.norconex.crawler.core.session.CrawlSession;
 /**
  * Tests for {@link RefProviderEnqueuer}.
  */
+@Timeout(30)
 class RefProviderEnqueuerTest {
 
     private QueueBootstrapContext buildCtx(

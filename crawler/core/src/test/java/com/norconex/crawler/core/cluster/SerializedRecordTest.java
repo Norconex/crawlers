@@ -18,10 +18,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.ledger.CrawlEntry;
 
+@Timeout(30)
 class SerializedRecordTest {
 
     @Test

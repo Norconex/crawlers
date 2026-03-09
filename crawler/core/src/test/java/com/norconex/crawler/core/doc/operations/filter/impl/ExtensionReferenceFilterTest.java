@@ -19,9 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 
+@Timeout(30)
 class ExtensionReferenceFilterTest {
 
     @Test

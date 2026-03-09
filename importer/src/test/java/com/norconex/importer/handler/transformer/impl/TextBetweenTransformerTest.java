@@ -28,6 +28,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
@@ -37,6 +38,7 @@ import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.parser.ParseState;
 
+@Timeout(30)
 class TextBetweenTransformerTest {
 
     @Test

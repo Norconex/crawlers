@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.service.CommitterService;
 import com.norconex.crawler.core.context.CrawlContext;
@@ -33,6 +34,7 @@ import com.norconex.importer.doc.Doc;
 /**
  * Tests for {@link ProcessDelete}.
  */
+@Timeout(30)
 class ProcessDeleteTest {
 
     @SuppressWarnings("unchecked")

@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
@@ -33,6 +34,7 @@ import com.norconex.crawler.web.doc.operations.url.impl.GenericUrlNormalizerConf
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Timeout(30)
 class GenericUrlNormallizerTest {
 
     private String s;

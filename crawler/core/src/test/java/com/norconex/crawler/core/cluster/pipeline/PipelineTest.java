@@ -21,11 +21,13 @@ import java.util.List;
 
 import org.apache.commons.collections4.Bag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.session.CrawlSession;
 
 @WithTestWatcherLogging
+@Timeout(30)
 class PipelineTest {
 
     private static Step step(String id) {

@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.session.CrawlSession;
@@ -30,6 +31,7 @@ import com.norconex.crawler.core.session.CrawlSession;
 /**
  * Tests for {@link CrawlBootstrapStep}.
  */
+@Timeout(30)
 class CrawlBootstrapStepTest {
 
     @Test

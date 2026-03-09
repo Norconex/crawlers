@@ -19,10 +19,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.apache.commons.lang3.SerializationException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.ledger.CrawlEntry;
 import com.norconex.crawler.core.ledger.ProcessingStatus;
 
+@Timeout(30)
 class SerialUtilTest {
 
     @Test

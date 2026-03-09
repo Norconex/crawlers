@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import org.apache.commons.io.input.BrokenInputStream;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.crawler.core.fetch.BaseFetcherConfig;
@@ -33,6 +34,7 @@ import com.norconex.importer.doc.Doc;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Timeout(30)
 class AbstractVfsFetcherTest {
 
     @Test

@@ -33,12 +33,14 @@ import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * The tail of redirects should be kept as metadata so implementors
  * can know where documents came from.
  */
 @MockServerSettings
+@Timeout(30)
 class RedirectTrailTest {
 
     private static final String PATH = "/redirectTrail";

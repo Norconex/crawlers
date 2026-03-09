@@ -31,11 +31,13 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test detection of page deletion (404 - File Not Found).
  */
 @MockServerSettings
+@Timeout(30)
 class FileNotFoundDeletionTest {
 
     private static final String HOME_PATH = "/notFoundDelete";

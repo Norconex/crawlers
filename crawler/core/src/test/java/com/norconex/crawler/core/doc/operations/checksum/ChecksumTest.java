@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
@@ -30,6 +31,7 @@ import com.norconex.crawler.core.doc.operations.checksum.impl.GenericMetadataChe
 import com.norconex.crawler.core.doc.operations.checksum.impl.Md5DocumentChecksummer;
 import com.norconex.importer.doc.Doc;
 
+@Timeout(30)
 class ChecksumTest {
 
     // --- ChecksumUtil --------------------------------------------------------

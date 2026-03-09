@@ -33,6 +33,7 @@ import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.importer.doc.DocMetaConstants;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test proper charset detection when the declared one does not match
@@ -40,6 +41,7 @@ import com.norconex.importer.doc.DocMetaConstants;
  */
 // Related ticket: https://github.com/Norconex/importer/issues/41
 @MockServerSettings
+@Timeout(30)
 class ContentTypeCharsetTest {
 
     @WebCrawlTest

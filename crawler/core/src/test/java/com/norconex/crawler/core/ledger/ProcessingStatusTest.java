@@ -17,7 +17,9 @@ package com.norconex.crawler.core.ledger;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
+@Timeout(30)
 class ProcessingStatusTest {
 
     @Test

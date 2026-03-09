@@ -25,6 +25,7 @@ import java.time.Duration;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.MapUtil;
@@ -35,6 +36,7 @@ import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverFetcherConfig.Wait
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.DirStructure;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;
 
+@Timeout(30)
 class WebDriverFetcherConfigTest {
 
     @Test

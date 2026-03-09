@@ -24,11 +24,13 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.handler.DocHandlerContext;
 
+@Timeout(30)
 class SaveDocumentTransformerTest {
 
     private static final String FLD_PATH = "file.path";

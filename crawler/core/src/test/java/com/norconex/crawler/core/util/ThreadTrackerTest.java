@@ -17,10 +17,12 @@ package com.norconex.crawler.core.util;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Unit tests for {@link ThreadTracker}.
  */
+@Timeout(30)
 class ThreadTrackerTest {
 
     @Test

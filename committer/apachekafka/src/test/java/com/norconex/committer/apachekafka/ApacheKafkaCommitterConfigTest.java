@@ -18,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.batch.queue.impl.FsQueue;
 import com.norconex.commons.lang.ResourceLoader;
@@ -26,6 +27,7 @@ import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.text.TextMatcher;
 
+@Timeout(30)
 class ApacheKafkaCommitterConfigTest {
 
     @Test

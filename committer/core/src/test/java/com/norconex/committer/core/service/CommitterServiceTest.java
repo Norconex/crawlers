@@ -29,6 +29,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.converter.ConvertWith;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.CommitterEvent;
@@ -46,6 +47,7 @@ import com.norconex.commons.lang.text.TextMatcher;
 
 import lombok.Data;
 
+@Timeout(30)
 class CommitterServiceTest {
 
     private final Map<String, TestContext> testContexes = new HashMap<>();

@@ -17,7 +17,9 @@ package com.norconex.crawler.web.doc.operations.delay.impl;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
+@Timeout(30)
 class SiteDelayTest {
 
     @Test

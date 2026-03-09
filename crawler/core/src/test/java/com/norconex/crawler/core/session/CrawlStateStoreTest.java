@@ -18,9 +18,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.cluster.support.InMemoryCacheMap;
 
+@Timeout(30)
 class CrawlStateStoreTest {
 
     private InMemoryCacheMap<String> sessionCache;

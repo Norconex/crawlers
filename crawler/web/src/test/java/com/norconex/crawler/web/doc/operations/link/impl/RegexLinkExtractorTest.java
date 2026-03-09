@@ -30,6 +30,7 @@ import java.util.Set;
 import org.apache.commons.io.input.NullInputStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
@@ -41,6 +42,7 @@ import com.norconex.crawler.web.doc.operations.link.impl.RegexLinkExtractorConfi
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
 import com.norconex.importer.doc.Doc;
 
+@Timeout(30)
 class RegexLinkExtractorTest {
 
     //TODO add a post import test for PDF with links.

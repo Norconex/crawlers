@@ -18,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.Timeout;
 import org.mockito.Answers;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -26,6 +27,7 @@ import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.session.CrawlSession;
 
 @ExtendWith(MockitoExtension.class)
+@Timeout(30)
 class BeforeFsCommandTest {
 
     @Test

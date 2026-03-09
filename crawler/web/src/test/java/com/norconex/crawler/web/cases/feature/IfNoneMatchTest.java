@@ -33,6 +33,7 @@ import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Tests that the ETag "If-None-Match" is supported properly.
@@ -49,6 +50,7 @@ import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
  */
 //Test for https://github.com/Norconex/collector-http/issues/182
 @MockServerSettings
+@Timeout(30)
 class IfNoneMatchTest {
 
     private String path = "/ifNoneMatch";

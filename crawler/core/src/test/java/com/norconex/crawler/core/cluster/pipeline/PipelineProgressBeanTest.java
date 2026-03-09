@@ -19,9 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListener;
 
+@Timeout(30)
 class PipelineProgressBeanTest {
 
     static class PipeManagerStub implements PipelineManager {

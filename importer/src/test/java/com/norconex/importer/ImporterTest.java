@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
@@ -45,6 +46,7 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.handler.parser.impl.DefaultParser;
 
+@Timeout(30)
 class ImporterTest {
 
     @TempDir

@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
@@ -41,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @MockServerSettings
+@Timeout(30)
 class GenericSitemapResolverTest {
 
     @WebCrawlTest

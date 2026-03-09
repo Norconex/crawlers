@@ -20,11 +20,13 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.event.EventManager;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.handler.DocHandlerContext;
 
+@Timeout(30)
 class ConditionalDocHandlerTest {
 
     @Test

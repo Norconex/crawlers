@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
@@ -38,6 +39,7 @@ import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableRe
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Timeout(30)
 class GenericRecrawlableResolverTest {
 
     @Test

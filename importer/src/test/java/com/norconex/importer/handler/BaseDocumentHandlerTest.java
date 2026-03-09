@@ -1,3 +1,4 @@
+import org.junit.jupiter.api.Timeout;
 /* Copyright 2023-2024 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +15,7 @@
  */
 package com.norconex.importer.handler;
 
+@Timeout(30)
 class BaseDocumentHandlerTest {
 
     //    @Test

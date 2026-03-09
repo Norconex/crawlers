@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.api.Timeout;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -40,6 +41,7 @@ import com.norconex.crawler.core.util.SerialUtil;
  */
 @ExtendWith(MockitoExtension.class)
 @WithTestWatcherLogging
+@Timeout(30)
 class CrawlRunInfoResolverTest {
 
     @Mock(lenient = true)

@@ -33,11 +33,13 @@ import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapResolv
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Tests sitemap resolution.
  */
 @MockServerSettings()
+@Timeout(30)
 class SitemapResolutionStageTest {
 
         private static final int SITE_DEPTH = 20;

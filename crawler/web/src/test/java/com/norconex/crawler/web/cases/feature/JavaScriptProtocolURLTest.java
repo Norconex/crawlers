@@ -28,12 +28,14 @@ import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test that "javascript:" URLs are not extracted.
  */
 // Related issue: https://github.com/Norconex/collector-http/issues/540
 @MockServerSettings
+@Timeout(30)
 class JavaScriptProtocolURLTest {
 
     @WebCrawlTest

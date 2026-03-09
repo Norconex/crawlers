@@ -22,11 +22,13 @@ import java.net.URISyntaxException;
 
 import org.apache.hc.core5.http.HttpHost;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.crawler.web.WebTestUtil;
 
+@Timeout(30)
 class HttpClientFetcherTest {
 
     @Test

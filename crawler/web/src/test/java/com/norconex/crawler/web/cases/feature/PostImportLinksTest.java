@@ -34,11 +34,13 @@ import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import com.norconex.importer.handler.parser.impl.DefaultParser;
 import com.norconex.importer.handler.transformer.impl.UrlExtractorTransformer;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test that links can be specified for crawling after importing.
  */
 @MockServerSettings
+@Timeout(30)
 class PostImportLinksTest {
 
     @WebCrawlTest

@@ -29,11 +29,13 @@ import com.norconex.committer.core.UpsertRequest;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test that special characters in URLs are handled properly.
  */
 @MockServerSettings
+@Timeout(30)
 class SpecialURLsTest {
 
     @WebCrawlTest

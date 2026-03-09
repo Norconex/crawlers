@@ -39,6 +39,7 @@ import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Tests that the "If-Modified-Since" is supported properly.
@@ -57,6 +58,7 @@ import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
  */
 //Related issue: https://github.com/Norconex/collector-http/issues/637
 @MockServerSettings
+@Timeout(30)
 class IfModifiedSinceTest {
 
     private String path = "/ifModifiedSince";

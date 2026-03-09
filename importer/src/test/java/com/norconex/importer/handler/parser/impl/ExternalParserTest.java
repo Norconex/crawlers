@@ -15,7 +15,9 @@
 package com.norconex.importer.handler.parser.impl;
 
 import com.norconex.importer.handler.AbstractExternalTest;
+import org.junit.jupiter.api.Timeout;
 
+@Timeout(30)
 class ExternalParserTest extends AbstractExternalTest {
 
     public ExternalParserTest() {

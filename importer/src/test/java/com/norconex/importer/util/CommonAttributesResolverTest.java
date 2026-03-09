@@ -19,11 +19,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.nio.charset.Charset;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetaConstants;
 
+@Timeout(30)
 class CommonAttributesResolverTest {
 
     @Test

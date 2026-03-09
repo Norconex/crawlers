@@ -18,10 +18,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 
+@Timeout(30)
 class LastModifiedMetadataChecksummerTest {
     @Test
     void testCreateMetadataChecksum() {

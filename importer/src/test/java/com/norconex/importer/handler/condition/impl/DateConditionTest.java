@@ -30,6 +30,7 @@ import java.time.temporal.ChronoUnit;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.Operator;
 import com.norconex.commons.lang.bean.BeanMapper;
@@ -41,6 +42,7 @@ import com.norconex.importer.handler.condition.impl.DateCondition.TimeUnit;
 import com.norconex.importer.handler.condition.impl.DateProviderFactory.DynamicFixedDateTimeProvider;
 import com.norconex.importer.handler.condition.impl.DateProviderFactory.DynamicFloatingDateTimeProvider;
 
+@Timeout(30)
 class DateConditionTest {
 
     @Test

@@ -55,6 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 @SlowTest
 @Slf4j
 @WithTestWatcherLogging
+@Timeout(30)
 class ClusterTest {
     private static final Duration CLUSTER_JOIN_WAIT =
             Duration.ofSeconds(60);

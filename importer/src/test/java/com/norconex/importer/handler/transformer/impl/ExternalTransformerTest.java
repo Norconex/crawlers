@@ -15,7 +15,9 @@
 package com.norconex.importer.handler.transformer.impl;
 
 import com.norconex.importer.handler.AbstractExternalTest;
+import org.junit.jupiter.api.Timeout;
 
+@Timeout(30)
 class ExternalTransformerTest extends AbstractExternalTest {
 
     public ExternalTransformerTest() {

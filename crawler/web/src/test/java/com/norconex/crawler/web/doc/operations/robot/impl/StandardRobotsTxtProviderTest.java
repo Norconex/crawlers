@@ -28,6 +28,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
@@ -39,6 +40,7 @@ import com.norconex.crawler.web.doc.operations.robot.RobotsTxtFilter;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 
 @MockServerSettings
+@Timeout(30)
 class StandardRobotsTxtProviderTest {
 
     @WebCrawlTest

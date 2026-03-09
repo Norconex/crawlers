@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.service.CommitterService;
 import com.norconex.crawler.core.CrawlConfig;
@@ -37,6 +38,7 @@ import com.norconex.importer.doc.Doc;
 /**
  * Tests for {@link ProcessFinalize}.
  */
+@Timeout(30)
 class ProcessFinalizeTest {
 
     @SuppressWarnings("unchecked")

@@ -21,10 +21,12 @@ import java.util.Collection;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Tests for {@link FilterGroupResolver}.
  */
+@Timeout(30)
 class FilterGroupResolverTest {
 
     // A simple OnMatchFilter implementation for testing

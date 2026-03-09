@@ -19,11 +19,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertyMatchers;
 import com.norconex.importer.doc.DocMetaConstants;
 
+@Timeout(30)
 class CommonRestrictionsTest {
 
     @Test

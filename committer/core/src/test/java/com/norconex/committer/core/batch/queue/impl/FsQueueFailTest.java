@@ -19,6 +19,7 @@ import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.TestUtil;
@@ -27,6 +28,7 @@ import com.norconex.committer.core.batch.queue.impl.FsQueue.SplitBatch;
 
 /**
  */
+@Timeout(30)
 class FsQueueFailTest {
 
     // write 8 upserts and 3 deletes.

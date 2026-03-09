@@ -23,12 +23,14 @@ import java.lang.management.ManagementFactory;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.context.CrawlContext;
 
 /**
  * Tests for {@link PipelineProgressJMX} register/unregister operations.
  */
+@Timeout(30)
 class PipelineProgressJMXTest {
 
     // -----------------------------------------------------------------

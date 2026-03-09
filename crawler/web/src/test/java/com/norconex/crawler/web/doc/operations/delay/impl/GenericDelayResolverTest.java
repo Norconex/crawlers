@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.web.doc.operations.delay.impl.BaseDelayResolverConfig.DelayResolverScope;
@@ -32,6 +33,7 @@ import com.norconex.crawler.web.doc.operations.robot.RobotsTxt;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Timeout(30)
 class GenericDelayResolverTest {
 
     @Test

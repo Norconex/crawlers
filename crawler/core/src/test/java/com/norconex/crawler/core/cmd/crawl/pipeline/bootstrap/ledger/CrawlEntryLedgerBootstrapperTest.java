@@ -20,6 +20,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.ledger.CrawlEntryLedger;
@@ -29,6 +30,7 @@ import com.norconex.crawler.core.session.CrawlSession;
 /**
  * Tests for {@link CrawlEntryLedgerBootstrapper}.
  */
+@Timeout(30)
 class CrawlEntryLedgerBootstrapperTest {
 
     /**

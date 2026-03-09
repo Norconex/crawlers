@@ -25,12 +25,14 @@ import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.map.Properties;
 
+@Timeout(30)
 class AzureSearchClientTest {
 
     @Test

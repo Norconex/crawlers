@@ -24,8 +24,10 @@ import org.apache.solr.client.solrj.jetty.ConcurrentUpdateJettySolrClient;
 import org.apache.solr.client.solrj.jetty.HttpJettySolrClient;
 import org.apache.solr.client.solrj.jetty.LBJettySolrClient;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 @SuppressWarnings("deprecation")
+@Timeout(30)
 class SolrClientTypeTest {
 
     @Test

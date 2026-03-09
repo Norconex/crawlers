@@ -21,6 +21,7 @@ import java.io.ByteArrayInputStream;
 import java.util.Set;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.crawler.core.context.CrawlContext;
@@ -37,6 +38,7 @@ import com.norconex.crawler.web.util.Web;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetaConstants;
 
+@Timeout(30)
 class WebImporterPipelineTest {
 
     @WebCrawlTest

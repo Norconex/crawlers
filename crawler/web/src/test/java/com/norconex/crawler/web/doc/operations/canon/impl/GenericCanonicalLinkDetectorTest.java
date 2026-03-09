@@ -22,12 +22,14 @@ import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.DocMetaConstants;
 
+@Timeout(30)
 class GenericCanonicalLinkDetectorTest {
 
     @Test

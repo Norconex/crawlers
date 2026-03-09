@@ -18,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.batch.queue.impl.FsQueue;
 import com.norconex.commons.lang.ResourceLoader;
@@ -32,6 +33,7 @@ import com.norconex.commons.lang.text.TextMatcher;
  *
  * @author Pascal Essiembre
  */
+@Timeout(30)
 class SolrCommitterConfigTest {
 
     @Test

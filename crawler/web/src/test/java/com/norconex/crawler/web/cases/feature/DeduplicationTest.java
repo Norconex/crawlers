@@ -34,11 +34,13 @@ import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test detection of duplicate files within crawling session.
  */
 @MockServerSettings
+@Timeout(30)
 class DeduplicationTest {
 
     @WebCrawlTest

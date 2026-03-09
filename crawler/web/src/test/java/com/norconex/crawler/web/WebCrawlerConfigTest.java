@@ -22,12 +22,14 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
 
+@Timeout(30)
 class WebCrawlerConfigTest {
 
     @TempDir

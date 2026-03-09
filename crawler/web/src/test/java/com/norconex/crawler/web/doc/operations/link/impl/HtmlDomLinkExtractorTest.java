@@ -32,6 +32,7 @@ import org.apache.commons.io.input.BrokenInputStream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.file.ContentType;
@@ -47,6 +48,7 @@ import com.norconex.importer.doc.Doc;
  * Tests {@link LinkExtractor} implementations that are common
  * to HTML and DOM link extractors.
  */
+@Timeout(30)
 class HtmlDomLinkExtractorTest {
 
     @ParameterizedTest(name = "{0}")

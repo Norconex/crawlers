@@ -20,11 +20,13 @@ import java.nio.file.Path;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
 
+@Timeout(30)
 class DefaultParserTest {
 
     @Test

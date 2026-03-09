@@ -31,8 +31,10 @@ import org.apache.tika.sax.RecursiveParserWrapperHandler;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 import org.xml.sax.SAXException;
 
+@Timeout(30)
 class PDFParserTest {
 
     private static final String PDF_FAMILY = "Portable Document Format (PDF)";

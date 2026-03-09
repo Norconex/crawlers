@@ -17,10 +17,12 @@ package com.norconex.crawler.core.doc.operations.filter.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 
+@Timeout(30)
 class GenericReferenceFilterTest {
 
     @Test

@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Timeout;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -31,6 +32,7 @@ import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 
 @Testcontainers(disabledWithoutDocker = true)
 @SlowTest
+@Timeout(30)
 class SftpFetcherTest extends AbstractFileFetcherTest {
 
     @SuppressWarnings("resource")

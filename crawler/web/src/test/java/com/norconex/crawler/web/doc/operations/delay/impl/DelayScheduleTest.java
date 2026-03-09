@@ -23,7 +23,9 @@ import java.time.LocalTime;
 import java.time.Month;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
+@Timeout(30)
 class DelayScheduleTest {
 
     @Test

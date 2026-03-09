@@ -31,11 +31,13 @@ import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test (non)canonical link detection.
  */
 @MockServerSettings
+@Timeout(30)
 class CanonicalLinkTest {
 
     final MutableInt canCount = new MutableInt();

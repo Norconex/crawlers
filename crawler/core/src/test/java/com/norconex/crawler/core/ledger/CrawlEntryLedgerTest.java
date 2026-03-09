@@ -20,6 +20,7 @@ import static org.mockito.Mockito.lenient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.Timeout;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -37,6 +38,7 @@ import com.norconex.crawler.core.session.CrawlSession;
  * Covers the full lifecycle: queue → process → processed → archive → resume.
  */
 @ExtendWith(MockitoExtension.class)
+@Timeout(30)
 class CrawlEntryLedgerTest {
 
     @Mock(lenient = true)

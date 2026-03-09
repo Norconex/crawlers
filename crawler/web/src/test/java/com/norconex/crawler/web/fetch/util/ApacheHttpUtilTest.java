@@ -24,12 +24,14 @@ import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.jsoup.Jsoup;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpAuthConfig;
 import com.norconex.crawler.web.mocks.MockWebsite;
 
+@Timeout(30)
 class ApacheHttpUtilTest {
 
     @Test

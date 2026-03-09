@@ -17,6 +17,7 @@ package com.norconex.crawler.core.doc.operations.filter.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
@@ -27,6 +28,7 @@ import com.norconex.importer.doc.Doc;
  * Tests for {@link GenericMetadataFilter} and
  * {@link GenericMetadataFilterConfig}.
  */
+@Timeout(30)
 class GenericMetadataFilterTest {
 
     // -----------------------------------------------------------------

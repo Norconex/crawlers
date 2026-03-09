@@ -25,6 +25,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.openqa.selenium.OutputType;
 
 import com.norconex.commons.lang.bean.BeanMapper;
@@ -33,6 +34,7 @@ import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;
 import com.norconex.crawler.web.mocks.MockWebDriver;
 import com.norconex.importer.doc.Doc;
 
+@Timeout(30)
 class ScreenshotHandlerTest {
 
     @Test

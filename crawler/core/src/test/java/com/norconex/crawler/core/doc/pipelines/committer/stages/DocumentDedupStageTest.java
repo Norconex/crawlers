@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.doc.CrawlDocContext;
@@ -38,6 +39,7 @@ import com.norconex.importer.doc.Doc;
 /**
  * Tests for {@link DocumentDedupStage}.
  */
+@Timeout(30)
 class DocumentDedupStageTest {
 
     private CommitterPipelineContext buildCtx(CrawlSession session,

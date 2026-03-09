@@ -17,6 +17,7 @@ package com.norconex.crawler.core.cli;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.test.standalone.StandaloneCliCrawlerLauncher;
@@ -28,6 +29,7 @@ import com.norconex.crawler.core.test.standalone.StandaloneCliResult;
  * cluster coordination or crawling.
  */
 @WithTestWatcherLogging
+@Timeout(30)
 class CliArgumentParsingTest {
 
     @Test

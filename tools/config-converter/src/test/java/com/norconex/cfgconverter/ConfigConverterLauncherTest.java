@@ -23,8 +23,10 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 @Disabled
+@Timeout(30)
 class ConfigConverterLauncherTest {
 
     @Test

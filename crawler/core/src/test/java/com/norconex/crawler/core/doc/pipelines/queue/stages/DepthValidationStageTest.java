@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.context.CrawlContext;
@@ -33,6 +34,7 @@ import com.norconex.crawler.core.session.CrawlSession;
 /**
  * Tests for {@link DepthValidationStage}.
  */
+@Timeout(30)
 class DepthValidationStageTest {
 
     // Helper: build a QueuePipelineContext with the given maxDepth and entry

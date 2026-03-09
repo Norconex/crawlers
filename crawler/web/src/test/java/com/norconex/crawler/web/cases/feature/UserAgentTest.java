@@ -29,12 +29,14 @@ import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test that the user agent is sent properly to web servers with the
  * default HTTP Fetcher.
  */
 @MockServerSettings
+@Timeout(30)
 class UserAgentTest {
     @WebCrawlTest
     void testUserAgent(ClientAndServer client, WebCrawlerConfig cfg) {

@@ -17,6 +17,7 @@ package com.norconex.crawler.web.fetch.impl.webdriver;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.core.fetch.FetchException;
@@ -24,6 +25,7 @@ import com.norconex.crawler.web.fetch.WebFetchRequest;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
 
+@Timeout(30)
 class WebDriverFetcherTest {
 
     @Test

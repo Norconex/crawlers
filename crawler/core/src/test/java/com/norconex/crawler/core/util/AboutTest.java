@@ -18,12 +18,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.CrawlConfig;
 
 /**
  * Unit tests for {@link About}.
  */
+@Timeout(30)
 class AboutTest {
 
     @Test

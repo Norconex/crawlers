@@ -35,6 +35,7 @@ import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapResolver;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * The second time the sitemap has 1 less URL and that URL no longer
@@ -42,6 +43,7 @@ import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
  */
 //Test for https://github.com/Norconex/collector-http/issues/390
 @MockServerSettings
+@Timeout(30)
 class SitemapURLDeletionTest {
 
     private final String sitemapPath = "/sitemapUrlDeletion/sitemap.xml";

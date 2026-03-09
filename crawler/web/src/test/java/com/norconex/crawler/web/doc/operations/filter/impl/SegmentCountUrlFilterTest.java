@@ -20,10 +20,12 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 
+@Timeout(30)
 class SegmentCountUrlFilterTest {
 
     private SegmentCountUrlFilter f;

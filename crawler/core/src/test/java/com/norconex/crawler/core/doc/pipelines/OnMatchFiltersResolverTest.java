@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core.doc.operations.filter.OnMatchFilter;
@@ -27,6 +28,7 @@ import com.norconex.crawler.core.doc.operations.filter.OnMatchFilter;
 /**
  * Tests for {@link OnMatchFiltersResolver} logic.
  */
+@Timeout(30)
 class OnMatchFiltersResolverTest {
 
     // ---------------------------------------------------------

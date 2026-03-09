@@ -42,12 +42,14 @@ import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test that crawling does not go being current sitemap. That is, it should
  * not queue URLs from pages, and certainly not follow them.
  */
 @MockServerSettings
+@Timeout(30)
 class StayOnSitemapTest {
 
     private final String sitemapPath = "/sitemap.xml";

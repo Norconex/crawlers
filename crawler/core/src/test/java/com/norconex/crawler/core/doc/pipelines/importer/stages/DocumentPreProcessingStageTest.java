@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.context.CrawlContext;
@@ -40,6 +41,7 @@ import com.norconex.importer.doc.Doc;
 /**
  * Tests for {@link DocumentPreProcessingStage}.
  */
+@Timeout(30)
 class DocumentPreProcessingStageTest {
 
     private ImporterPipelineContext buildCtx(

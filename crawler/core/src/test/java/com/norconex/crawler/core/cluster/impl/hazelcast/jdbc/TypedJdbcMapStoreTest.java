@@ -29,6 +29,7 @@ import java.util.Properties;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.mockito.ArgumentCaptor;
 
 import com.hazelcast.core.HazelcastInstance;
@@ -40,6 +41,7 @@ import com.norconex.crawler.core.util.SerialUtil;
  * Unit tests for {@link TypedJdbcMapStore}. The underlying
  * {@link StringJdbcMapStore} is mocked so no real JDBC connection is needed.
  */
+@Timeout(30)
 class TypedJdbcMapStoreTest {
 
     private StringJdbcMapStore ss;

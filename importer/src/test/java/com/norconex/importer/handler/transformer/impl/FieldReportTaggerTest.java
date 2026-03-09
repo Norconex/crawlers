@@ -25,11 +25,13 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.TestUtil;
 
+@Timeout(30)
 class FieldReportTaggerTest {
 
     @TempDir

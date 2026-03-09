@@ -17,9 +17,11 @@ package com.norconex.committer.sql;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.CommitterException;
 
+@Timeout(30)
 class SqlClientTest {
 
     @Test

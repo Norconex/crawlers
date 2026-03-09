@@ -22,11 +22,13 @@ import java.io.Reader;
 
 import org.apache.http.HttpHeaders;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.DocMetaConstants;
 
+@Timeout(30)
 class StandardRobotsMetaProviderTest {
 
     @Test

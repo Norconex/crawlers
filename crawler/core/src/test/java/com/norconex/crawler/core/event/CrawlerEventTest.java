@@ -17,10 +17,12 @@ package com.norconex.crawler.core.event;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
 
+@Timeout(30)
 class CrawlerEventTest {
 
     @Test

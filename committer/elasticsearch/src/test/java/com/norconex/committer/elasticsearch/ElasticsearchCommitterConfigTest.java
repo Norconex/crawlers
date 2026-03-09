@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.CommitterException;
@@ -38,6 +39,7 @@ import com.norconex.commons.lang.map.PropertyMatcher;
 import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.text.TextMatcher;
 
+@Timeout(30)
 class ElasticsearchCommitterConfigTest {
 
     @Test

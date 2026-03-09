@@ -21,9 +21,11 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.fs.stubs.CrawlerConfigStubs;
 
+@Timeout(30)
 class FsCrawlerTest {
 
     @TempDir

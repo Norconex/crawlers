@@ -30,6 +30,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
@@ -38,6 +39,7 @@ import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.handler.parser.ParseState;
 
+@Timeout(30)
 class ReplaceTransformerTest {
 
     private final String restrictionTestConfig = """

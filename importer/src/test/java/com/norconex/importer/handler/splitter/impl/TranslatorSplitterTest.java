@@ -25,6 +25,7 @@ import java.util.Map;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.language.translate.Translator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.text.TextMatcher;
@@ -32,6 +33,7 @@ import com.norconex.importer.TestUtil;
 import com.norconex.importer.handler.DocHandlerException;
 import com.norconex.importer.handler.splitter.impl.TranslatorSplitter.TranslatorStrategy;
 
+@Timeout(30)
 class TranslatorSplitterTest {
 
     private static final List<String> APIS = List.of(

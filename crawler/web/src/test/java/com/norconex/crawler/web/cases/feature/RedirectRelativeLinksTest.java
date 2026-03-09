@@ -31,12 +31,14 @@ import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.importer.doc.DocMetaConstants;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * The final URL of a redirect should be stored so relative links in it
  * are relative to final URL, not the first.  Github issue #17.
  */
 @MockServerSettings
+@Timeout(30)
 class RedirectRelativeLinksTest {
 
     @WebCrawlTest

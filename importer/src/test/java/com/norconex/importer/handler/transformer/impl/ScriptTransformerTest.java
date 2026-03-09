@@ -33,6 +33,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
@@ -41,6 +42,7 @@ import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.ScriptRunner;
 import com.norconex.importer.handler.parser.ParseState;
 
+@Timeout(30)
 class ScriptTransformerTest {
 
     //--- Simple Transform Test ------------------------------------------------

@@ -32,11 +32,13 @@ import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test detection of modified files.
  */
 @MockServerSettings
+@Timeout(30)
 class ModifiedFileDetectionTest {
 
     private static final ZonedDateTime twentyDaysAgo =

@@ -20,10 +20,12 @@ import java.io.IOException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 
+@Timeout(30)
 class FtpsFetcherTest extends AbstractFileFetcherTest {
 
     private static MockFtpServer server;

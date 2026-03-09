@@ -32,12 +32,14 @@ import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test proper handling of page timeouts.
  */
 // Test for https://github.com/Norconex/collector-http/issues/316
 @MockServerSettings
+@Timeout(30)
 class TimeoutTest {
 
     private final String basePath = "/timeout";

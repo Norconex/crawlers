@@ -17,10 +17,12 @@ package com.norconex.crawler.core.session;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Unit tests for {@link CrawlRunInfo}.
  */
+@Timeout(30)
 class CrawlRunInfoTest {
 
     @Test

@@ -29,11 +29,13 @@ import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import com.norconex.importer.doc.DocMetaConstants;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test that metadata is extracted properly.
  */
 @MockServerSettings
+@Timeout(30)
 class ValidMetadataTest {
 
         private static final int SITE_DEPTH = 20;

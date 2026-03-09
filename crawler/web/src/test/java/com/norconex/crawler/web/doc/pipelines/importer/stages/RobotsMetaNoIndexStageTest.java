@@ -23,6 +23,7 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.session.CrawlSession;
@@ -31,6 +32,7 @@ import com.norconex.crawler.web.doc.operations.robot.RobotsMeta;
 import com.norconex.crawler.web.doc.pipelines.importer.WebImporterPipelineContext;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
 
+@Timeout(30)
 class RobotsMetaNoIndexStageTest {
 
     @Test

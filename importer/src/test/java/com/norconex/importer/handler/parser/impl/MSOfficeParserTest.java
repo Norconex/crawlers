@@ -20,8 +20,10 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 //TODO create a CSV file with all the test data?
+@Timeout(30)
 class MSOfficeParserTest {
 
     private static final String CONTENT = "Hey Norconex, this is a test.";

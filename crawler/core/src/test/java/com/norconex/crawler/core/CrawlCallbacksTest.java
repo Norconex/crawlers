@@ -22,12 +22,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.event.Event;
 import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
 
+@Timeout(30)
 class CrawlCallbacksTest {
 
     private CrawlConfig mockConfig() {

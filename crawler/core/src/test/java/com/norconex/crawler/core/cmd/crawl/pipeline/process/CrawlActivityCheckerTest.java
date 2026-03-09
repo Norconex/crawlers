@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.context.CrawlContext;
@@ -30,6 +31,7 @@ import com.norconex.crawler.core.session.CrawlSession;
 /**
  * Tests for {@link CrawlActivityChecker}.
  */
+@Timeout(30)
 class CrawlActivityCheckerTest {
 
     private CrawlSession buildSession(boolean queueEmpty,
