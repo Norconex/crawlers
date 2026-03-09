@@ -110,69 +110,70 @@ class PipelineTerminationTrackerTest {
         }
     }
 
-        @Test
-        void await_returnsCompletedWhenStopWasRequestedAfterTerminalStep() {
+    @Test
+    void await_returnsCompletedWhenStopWasRequestedAfterTerminalStep() {
         var record = new StepRecord()
-            .setPipelineId("pipe-1")
-            .setStepId("step-1")
-            .setStatus(PipelineStatus.COMPLETED)
-            .setUpdatedAt(System.currentTimeMillis());
+                .setPipelineId("pipe-1")
+                .setStepId("step-1")
+                .setStatus(PipelineStatus.COMPLETED)
+                .setUpdatedAt(System.currentTimeMillis());
         var tracker = new PipelineTerminationTracker(
-            cluster(true), pipeline("step-1", "step-2"),
-            state(record, true, 123L));
+                cluster(true), pipeline("step-1", "step-2"),
+                state(record, true, 123L));
 
         var result = tracker.await(5_000);
 
         assertThat(result.getStatus()).isEqualTo(PipelineStatus.COMPLETED);
         assertThat(result.getLastStepId()).isEqualTo("step-1");
-        }
+    }
 
-        @Test
-        void await_returnsFailedForTerminalNonCompletedIntermediateStep() {
+    @Test
+    void await_returnsFailedForTerminalNonCompletedIntermediateStep() {
         var record = new StepRecord()
-            .setPipelineId("pipe-1")
-            .setStepId("step-1")
-            .setStatus(PipelineStatus.FAILED)
-            .setUpdatedAt(System.currentTimeMillis());
+                .setPipelineId("pipe-1")
+                .setStepId("step-1")
+                .setStatus(PipelineStatus.FAILED)
+                .setUpdatedAt(System.currentTimeMillis());
         var tracker = new PipelineTerminationTracker(
-            cluster(true), pipeline("step-1", "step-2"),
-            state(record, false, 123L));
+                cluster(true), pipeline("step-1", "step-2"),
+                state(record, false, 123L));
 
         var result = tracker.await(5_000);
 
         assertThat(result.getStatus()).isEqualTo(PipelineStatus.FAILED);
         assertThat(result.isTimedOut()).isFalse();
-        }
+    }
 
-        @Test
-        void await_handlesStaleTerminalRecordThenExpires() {
+    @Test
+    void await_handlesStaleTerminalRecordThenExpires() {
         var record = new StepRecord()
-            .setPipelineId("pipe-1")
-            .setStepId("step-1")
-            .setStatus(PipelineStatus.COMPLETED)
-            .setUpdatedAt(100L);
+                .setPipelineId("pipe-1")
+                .setStepId("step-1")
+                .setStatus(PipelineStatus.COMPLETED)
+                .setUpdatedAt(100L);
         var tracker = new PipelineTerminationTracker(
-            cluster(true), pipeline("step-1", "step-2"),
-            state(record, false, 200L));
+                cluster(true), pipeline("step-1", "step-2"),
+                state(record, false, 200L));
 
         var result = tracker.await(1);
 
         assertThat(result.getStatus()).isEqualTo(PipelineStatus.COMPLETED);
         assertThat(result.isTimedOut()).isTrue();
-        }
+    }
 
-        @Test
-        void await_marksFailedWhenInterruptedDuringSleep() throws Exception {
+    @Test
+    void await_marksFailedWhenInterruptedDuringSleep() throws Exception {
         var record = new StepRecord()
-            .setPipelineId("pipe-1")
-            .setStepId("step-1")
-            .setStatus(PipelineStatus.RUNNING)
-            .setUpdatedAt(System.currentTimeMillis());
+                .setPipelineId("pipe-1")
+                .setStepId("step-1")
+                .setStatus(PipelineStatus.RUNNING)
+                .setUpdatedAt(System.currentTimeMillis());
         var tracker = new PipelineTerminationTracker(
-            cluster(true), pipeline("step-1", "step-2"),
-            state(record, false, 123L));
+                cluster(true), pipeline("step-1", "step-2"),
+                state(record, false, 123L));
         var started = new CountDownLatch(1);
-        var resultRef = new AtomicReference<com.norconex.crawler.core.cluster.pipeline.PipelineResult>();
+        var resultRef = new AtomicReference<
+                com.norconex.crawler.core.cluster.pipeline.PipelineResult>();
 
         var thread = new Thread(() -> {
             started.countDown();
@@ -187,9 +188,10 @@ class PipelineTerminationTrackerTest {
 
         assertThat(thread.isAlive()).isFalse();
         assertThat(resultRef.get()).isNotNull();
-        assertThat(resultRef.get().getStatus()).isEqualTo(PipelineStatus.FAILED);
+        assertThat(resultRef.get().getStatus())
+                .isEqualTo(PipelineStatus.FAILED);
         assertThat(resultRef.get().isTimedOut()).isFalse();
-        }
+    }
 
     private HazelcastCluster cluster(boolean running) {
         var cluster = mock(HazelcastCluster.class);

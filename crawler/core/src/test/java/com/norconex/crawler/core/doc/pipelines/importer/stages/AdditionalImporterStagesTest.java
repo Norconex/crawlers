@@ -274,38 +274,39 @@ class AdditionalImporterStagesTest {
         return new ImporterPipelineContext(session, docContext);
     }
 
-        private static final class NonDetectingDoc extends Doc {
+    private static final class NonDetectingDoc extends Doc {
 
-                private final AtomicBoolean blockDetectedValues = new AtomicBoolean(true);
+        private final AtomicBoolean blockDetectedValues =
+                new AtomicBoolean(true);
 
-                private NonDetectingDoc(String reference) {
-                        super(reference);
-                }
-
-                @Override
-                public ContentType getContentType() {
-                        return blockDetectedValues.get() ? null : super.getContentType();
-                }
-
-                @Override
-                public java.nio.charset.Charset getCharset() {
-                        return blockDetectedValues.get() ? null : super.getCharset();
-                }
-
-                @Override
-                public Doc setContentType(ContentType contentType) {
-                        if (!blockDetectedValues.get()) {
-                                super.setContentType(contentType);
-                        }
-                        return this;
-                }
-
-                @Override
-                public Doc setCharset(java.nio.charset.Charset charset) {
-                        if (!blockDetectedValues.get()) {
-                                super.setCharset(charset);
-                        }
-                        return this;
-                }
+        private NonDetectingDoc(String reference) {
+            super(reference);
         }
+
+        @Override
+        public ContentType getContentType() {
+            return blockDetectedValues.get() ? null : super.getContentType();
+        }
+
+        @Override
+        public java.nio.charset.Charset getCharset() {
+            return blockDetectedValues.get() ? null : super.getCharset();
+        }
+
+        @Override
+        public Doc setContentType(ContentType contentType) {
+            if (!blockDetectedValues.get()) {
+                super.setContentType(contentType);
+            }
+            return this;
+        }
+
+        @Override
+        public Doc setCharset(java.nio.charset.Charset charset) {
+            if (!blockDetectedValues.get()) {
+                super.setCharset(charset);
+            }
+            return this;
+        }
+    }
 }
