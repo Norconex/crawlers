@@ -66,6 +66,77 @@ public final class HazelcastUtil {
     }
 
     /**
+     * Resolves a HazelcastInstance for use by a store factory, with
+     * deterministic fallback behavior to handle EAGER store initialization
+     * timing while preventing accidental binding to stale clusters.
+     * <p>
+     * Resolution order:
+     * <ol>
+     *   <li>Use the already-resolved instance if available</li>
+     *   <li>Look up by instance name if provided</li>
+     *   <li>Fall back to the single JVM-local instance if exactly one exists
+     *       (handles EAGER loading before instance injection)</li>
+     *   <li>Fail fast if ambiguous (multiple instances) or none available</li>
+     * </ol>
+     *
+     * @param hazelcastInstance the already-resolved instance (may be null)
+     * @param hazelcastInstanceName the instance name to look up (may be null)
+     * @param storeName the name of the store/cache requesting the instance
+     * @param storeType the type of store (e.g., "map", "queue") for error messages
+     * @return the resolved HazelcastInstance, never null
+     * @throws IllegalStateException if no instance can be resolved or if ambiguous
+     */
+    public static HazelcastInstance resolveStoreInstance(
+            HazelcastInstance hazelcastInstance,
+            String hazelcastInstanceName,
+            String storeName,
+            String storeType) {
+
+        HazelcastInstance hz = hazelcastInstance;
+        if (hz == null && hazelcastInstanceName != null) {
+            hz = HazelcastCacheManager
+                    .getHazelcastInstance(hazelcastInstanceName);
+        }
+
+        // Safe fallback: allow using the single JVM-local instance if that's the only
+        // one running. This handles EAGER store loading during initialization when
+        // the factory hasn't yet been injected with the instance reference.
+        if (hz == null) {
+            var instances =
+                    com.hazelcast.core.Hazelcast.getAllHazelcastInstances();
+            if (instances.size() == 1) {
+                hz = instances.iterator().next();
+                LOG.debug(
+                        "Using single JVM-local HazelcastInstance for {} store '{}' "
+                                + "(instance name: '{}')",
+                        storeType, storeName, hz.getName());
+            } else if (instances.size() > 1) {
+                throw new IllegalStateException(
+                        "Cannot resolve HazelcastInstance for " + storeType
+                                + " store '"
+                                + storeName + "': "
+                                + instances.size()
+                                + " instances running in JVM. "
+                                + "Expected instance name: '"
+                                + hazelcastInstanceName + "'. "
+                                + "Refusing ambiguous fallback to prevent binding to wrong cluster.");
+            }
+        }
+
+        if (hz == null) {
+            throw new IllegalStateException(
+                    "HazelcastInstance is not available for " + storeType
+                            + " store '"
+                            + storeName + "'. "
+                            + "Expected instance name: '"
+                            + hazelcastInstanceName + "'. "
+                            + "No Hazelcast instances found in JVM.");
+        }
+
+        return hz;
+    }
+
+    /**
      * Whether a pipeline should be considered "terminated", either by
      * completing all steps (success), or having a non-COMPLETED terminal
      * status on any of the steps (aborting the pipeline), or, having

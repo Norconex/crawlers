@@ -67,31 +67,14 @@ public class TypedJdbcMapStoreFactory
     @Override
     public MapStore<String, Object> newMapStore(
             String mapName, Properties properties) {
-        // Get HazelcastInstance - either from injection or from registry
-        HazelcastInstance hz = hazelcastInstance;
-        if (hz == null && hazelcastInstanceName != null) {
-            hz = com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastCacheManager
-                    .getHazelcastInstance(hazelcastInstanceName);
-        }
-        if (hz == null) {
-            // Fallback: try to get any available instance
-            var instances =
-                    com.hazelcast.core.Hazelcast.getAllHazelcastInstances();
-            if (!instances.isEmpty()) {
-                hz = instances.iterator().next();
-                LOG.debug("Using fallback HazelcastInstance for map '{}'",
-                        mapName);
-            }
-        }
+        HazelcastInstance hz =
+                com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastUtil
+                        .resolveStoreInstance(
+                                hazelcastInstance,
+                                hazelcastInstanceName,
+                                mapName,
+                                "map");
 
-        // Defensive: fail fast if hazelcastInstance is not available
-        if (hz == null) {
-            throw new IllegalStateException(
-                    "HazelcastInstance is not available for TypedJdbcMapStoreFactory "
-                            +
-                            "for map '" + mapName + "'. " +
-                            "Ensure HazelcastCacheManager is properly initialized.");
-        }
         // Determine the value class for this specific map.
         // IMPORTANT: Hazelcast may reuse the same factory instance for
         // multiple maps (e.g., via the "default" map config). Therefore,

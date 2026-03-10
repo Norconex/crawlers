@@ -64,23 +64,13 @@ public class TypedJdbcQueueStoreFactory
     @Override
     public QueueStore<Object> newQueueStore(
             String queueName, Properties properties) {
-        HazelcastInstance hz = hazelcastInstance;
-        if (hz == null && hazelcastInstanceName != null) {
-            hz = com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastCacheManager
-                    .getHazelcastInstance(hazelcastInstanceName);
-        }
-        if (hz == null) {
-            var instances =
-                    com.hazelcast.core.Hazelcast.getAllHazelcastInstances();
-            if (!instances.isEmpty()) {
-                hz = instances.iterator().next();
-            }
-        }
-        if (hz == null) {
-            throw new IllegalStateException(
-                    "HazelcastInstance is not available for TypedJdbcQueueStoreFactory "
-                            + "for queue '" + queueName + "'.");
-        }
+        HazelcastInstance hz =
+                com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastUtil
+                        .resolveStoreInstance(
+                                hazelcastInstance,
+                                hazelcastInstanceName,
+                                queueName,
+                                "queue");
 
         Class<?> vc = resolveValueClass(hz, queueName);
         return new TypedJdbcQueueStore<>(

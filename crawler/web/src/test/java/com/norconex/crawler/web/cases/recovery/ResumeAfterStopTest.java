@@ -22,12 +22,14 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
+import com.hazelcast.core.Hazelcast;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.annotations.SlowTest;
@@ -50,8 +52,44 @@ import lombok.extern.slf4j.Slf4j;
 @SlowTest
 class ResumeAfterStopTest {
 
+    @AfterEach
+    void tearDown() {
+        // Ensure all Hazelcast instances are shut down to prevent resource accumulation
+        Hazelcast.shutdownAll();
+        try {
+            Thread.sleep(500); // Give Hazelcast time to fully shut down
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
     private static final int MAX_DOCS = 12;
     private static final int SITE_DEPTH = 12;
+
+    /**
+     * Waits until the MockServer has expectations registered, or times out after 2 seconds.
+     */
+    private void waitForMockServerReady(ClientAndServer client) {
+        long deadline = System.currentTimeMillis() + 2000;
+        boolean ready = false;
+        while (System.currentTimeMillis() < deadline && !ready) {
+            try {
+                var expectations = client
+                        .retrieveActiveExpectations(
+                                null);
+                if (expectations != null
+                        && expectations.length > 0) {
+                    ready = true;
+                    break;
+                }
+            } catch (Exception ignored) {
+            }
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException ignored) {
+            }
+        }
+    }
 
     @Test
     void testResumeAfterStop(ClientAndServer client, @TempDir Path tempDir)
@@ -59,6 +97,8 @@ class ResumeAfterStopTest {
         var path = "/resumeAfterStop";
 
         MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
+        // Wait for MockServer to register expectations before crawling
+        waitForMockServerReady(client);
 
         var instrument = new CrawlTestInstrument()
                 .setDriverSupplierClass(
@@ -87,9 +127,11 @@ class ResumeAfterStopTest {
 
             //--- First run (will be stopped mid-crawl) ---
             var futureResult = harness.launchAsync("node1");
-            harness.waitFor(Duration.ofSeconds(12))
+            // Wait for at least one document to be fully imported before stopping
+            // to ensure there's recoverable state for the resume run
+            harness.waitFor(Duration.ofSeconds(30))
                     .anyNodeToHaveFired(
-                            CrawlerEvent.DOCUMENT_PROCESSING_BEGIN);
+                            CrawlerEvent.DOCUMENT_IMPORTED);
             new Crawler(WebCrawlDriverFactory.create(),
                     harness.getFirstNodeConfig()).stop();
             var firstResult =
@@ -97,7 +139,7 @@ class ResumeAfterStopTest {
             var firstTotalCount = firstResult
                     .getAllNodesEventNameBag()
                     .getCount(CrawlerEvent.DOCUMENT_IMPORTED);
-            assertThat(firstTotalCount).isBetween(0, MAX_DOCS - 1);
+            assertThat(firstTotalCount).isBetween(1, MAX_DOCS - 1);
 
             //--- Resume run (no delay) ---
             instrument.setConfigModifier(cfg -> {
@@ -118,12 +160,15 @@ class ResumeAfterStopTest {
             var secondTotalCount = secondResult
                     .getAllNodesEventNameBag()
                     .getCount(CrawlerEvent.DOCUMENT_IMPORTED);
-            var secondRunCount = secondTotalCount - firstTotalCount;
+            var combinedTotalCount = firstTotalCount
+                    + secondTotalCount;
 
-            // A resumed run must not exceed max docs for a single run.
-            assertThat(secondRunCount).isGreaterThanOrEqualTo(0);
-            assertThat(secondTotalCount)
-                    .isGreaterThanOrEqualTo(firstTotalCount);
+            // launchSync() returns per-run events (not cumulative), so
+            // validate each run independently and the combined total.
+            assertThat(secondTotalCount).isGreaterThanOrEqualTo(0);
+            assertThat(combinedTotalCount)
+                    .isGreaterThanOrEqualTo(firstTotalCount)
+                    .isLessThanOrEqualTo(MAX_DOCS);
         }
     }
 }

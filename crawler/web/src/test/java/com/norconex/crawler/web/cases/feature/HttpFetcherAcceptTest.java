@@ -25,14 +25,16 @@ import java.nio.file.Path;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
+import com.hazelcast.core.Hazelcast;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.web.fetch.HttpMethod;
@@ -47,6 +49,46 @@ import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
 @MockServerSettings
 @Timeout(30)
 class HttpFetcherAcceptTest {
+    /**
+     * Waits until the MockServer responds with 200 OK for the given path, or times out after 2 seconds.
+     */
+    private void waitForMockServerReady(ClientAndServer client, String path) {
+        long deadline = System.currentTimeMillis() + 2000;
+        boolean ready = false;
+        Exception last = null;
+        while (System.currentTimeMillis() < deadline && !ready) {
+            try {
+                var response = client
+                        .retrieveActiveExpectations(request().withPath(path));
+                if (response != null && response.length > 0) {
+                    ready = true;
+                    break;
+                }
+            } catch (Exception e) {
+                last = e;
+            }
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException ignored) {
+            }
+        }
+        if (!ready && last != null) {
+            throw new RuntimeException("MockServer not ready for path: " + path,
+                    last);
+        }
+    }
+
+    @AfterEach
+    void tearDown() {
+        // Ensure all Hazelcast instances are shut down after each invocation
+        // to prevent resource accumulation and port conflicts
+        Hazelcast.shutdownAll();
+        try {
+            Thread.sleep(500); // Give Hazelcast time to fully shut down
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
 
     private static final String HOME_PATH = "/fetchAccept";
 
@@ -102,6 +144,9 @@ class HttpFetcherAcceptTest {
 
         whenHttpMethod(client, HttpMethod.HEAD);
         whenHttpMethod(client, HttpMethod.GET);
+
+        // Wait for MockServer to register expectations before crawling
+        waitForMockServerReady(client, HOME_PATH);
 
         var cfg = CrawlerConfigStubs.memoryCrawlerConfig(tempDir);
         cfg.setStartReferences(List.of(serverUrl(client, HOME_PATH)));

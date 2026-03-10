@@ -23,14 +23,16 @@ import static org.mockserver.model.HttpResponse.response;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
+import com.hazelcast.core.Hazelcast;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.web.WebTestUtil;
@@ -48,6 +50,47 @@ import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
 class StrictTransportSecurityTest {
     @TempDir
     private Path tempDir;
+
+    @AfterEach
+    void tearDown() {
+        // Ensure all Hazelcast instances are shut down after each invocation
+        // to prevent resource accumulation and port conflicts
+        Hazelcast.shutdownAll();
+        try {
+            Thread.sleep(500); // Give Hazelcast time to fully shut down
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    /**
+     * Waits until the MockServer responds with expectations for the given path, or times out after 2 seconds.
+     */
+    private void waitForMockServerReady(ClientAndServer client, String path) {
+        long deadline = System.currentTimeMillis() + 2000;
+        boolean ready = false;
+        Exception last = null;
+        while (System.currentTimeMillis() < deadline && !ready) {
+            try {
+                var response = client
+                        .retrieveActiveExpectations(request().withPath(path));
+                if (response != null && response.length > 0) {
+                    ready = true;
+                    break;
+                }
+            } catch (Exception e) {
+                last = e;
+            }
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException ignored) {
+            }
+        }
+        if (!ready && last != null) {
+            throw new RuntimeException("MockServer not ready for path: " + path,
+                    last);
+        }
+    }
 
     // CSV: clientSupport, serverSupport, expectsSecureUrl
     @CsvSource(textBlock = """
@@ -101,6 +144,9 @@ class StrictTransportSecurityTest {
             .respond(response()
                 .withBody("I am NOT secure"));
         // @formatter:on
+
+        // Wait for MockServer to register expectations before crawling
+        waitForMockServerReady(client, securePath);
 
         var cfg = CrawlerConfigStubs.memoryCrawlerConfig(tempDir);
 
