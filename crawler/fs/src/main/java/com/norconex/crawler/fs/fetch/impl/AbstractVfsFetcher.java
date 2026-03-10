@@ -196,11 +196,24 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
         if (reference == null) {
             return null;
         }
-        if (reference.regionMatches(true, 0, "cmis:", 0, 5)
-                && !reference.contains("!")) {
+        if (requiresVirtualRootSuffix(reference) && !reference.contains("!")) {
             return reference + "!/";
         }
         return reference;
+    }
+
+    private boolean requiresVirtualRootSuffix(String reference) {
+        return reference.regionMatches(true, 0, "cmis:", 0, 5)
+                || reference.regionMatches(true, 0, "bzip2:", 0, 6)
+                || reference.regionMatches(true, 0, "bz2:", 0, 4)
+                || reference.regionMatches(true, 0, "gzip:", 0, 5)
+                || reference.regionMatches(true, 0, "gz:", 0, 3)
+                || reference.regionMatches(true, 0, "jar:", 0, 4)
+                || reference.regionMatches(true, 0, "mime:", 0, 5)
+                || reference.regionMatches(true, 0, "tar:", 0, 4)
+                || reference.regionMatches(true, 0, "tgz:", 0, 4)
+                || reference.regionMatches(true, 0, "tbz2:", 0, 5)
+                || reference.regionMatches(true, 0, "zip:", 0, 4);
     }
 
     /**

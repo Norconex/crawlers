@@ -30,179 +30,179 @@ import com.norconex.commons.lang.SystemUtil;
 @Timeout(30)
 class ImporterLauncherTest {
 
-        private static final String TEST_CONFIG =
-                        TestUtil.resolvePath(
-                                        "src/test/java/com/norconex/importer/test-config.xml")
-                                        .toString();
-        private static final String TEST_PDF =
-                        TestUtil.resolvePath(
-                                        "src/test/resources/parser/pdf/plain.pdf")
-                                        .toString();
+    private static final String TEST_CONFIG =
+            TestUtil.resolvePath(
+                    "src/test/java/com/norconex/importer/test-config.xml")
+                    .toString();
+    private static final String TEST_PDF =
+            TestUtil.resolvePath(
+                    "src/test/resources/parser/pdf/plain.pdf")
+                    .toString();
 
-        @TempDir
-        private Path tempDir;
+    @TempDir
+    private Path tempDir;
 
-        @Test
-        void testLaunch() {
-                System.setProperty("tempDir", tempDir.toString());
-                assertThatNoException()
-                                .isThrownBy(() -> ImporterLauncher
-                                                .launch(new String[] {
-                                                                "--config",
-                                                                TEST_CONFIG,
-                                                                "-i", TEST_PDF,
-                                                                "-o",
-                                                                tempDir + "/output.txt"
-                                                }));
-        }
+    @Test
+    void testLaunch() {
+        System.setProperty("tempDir", tempDir.toString());
+        assertThatNoException()
+                .isThrownBy(() -> ImporterLauncher
+                        .launch(new String[] {
+                                "--config",
+                                TEST_CONFIG,
+                                "-i", TEST_PDF,
+                                "-o",
+                                tempDir + "/output.txt"
+                        }));
+    }
 
-        @Test
-        void testLaunchWithVariables() throws IOException {
-                System.setProperty("tempDir", tempDir.toString());
-                var varFile = tempDir.resolve("variables.properties");
-                Files.writeString(varFile, "key=value");
-                assertThatNoException()
-                                .isThrownBy(() -> ImporterLauncher
-                                                .launch(new String[] {
-                                                                "--config",
-                                                                TEST_CONFIG,
-                                                                "--variables",
-                                                                varFile.toAbsolutePath()
-                                                                                .toString(),
-                                                                "-i", TEST_PDF,
-                                                                "-o",
-                                                                tempDir + "/output.txt"
-                                                }));
-        }
+    @Test
+    void testLaunchWithVariables() throws IOException {
+        System.setProperty("tempDir", tempDir.toString());
+        var varFile = tempDir.resolve("variables.properties");
+        Files.writeString(varFile, "key=value");
+        assertThatNoException()
+                .isThrownBy(() -> ImporterLauncher
+                        .launch(new String[] {
+                                "--config",
+                                TEST_CONFIG,
+                                "--variables",
+                                varFile.toAbsolutePath()
+                                        .toString(),
+                                "-i", TEST_PDF,
+                                "-o",
+                                tempDir + "/output.txt"
+                        }));
+    }
 
-        @Test
-        void testInvalidVarFileArg() {
-                // use folder as a file to make it fail
-                System.setProperty("tempDir", tempDir.toString());
-                var varFile = tempDir;
-                var exit = SystemUtil.callAndCaptureOutput(
-                                () -> ImporterLauncher.launch(new String[] {
-                                                "--config", TEST_CONFIG,
-                                                "--variables",
-                                                varFile.toAbsolutePath()
-                                                                .toString(),
-                                                "-i", TEST_PDF,
-                                                "-o", tempDir + "/output.txt"
-                                }));
-                assertThat(exit.getReturnValue()).isNotZero();
-                assertThat(exit.getStdErr())
-                                .contains("Invalid variable file path:");
-        }
+    @Test
+    void testInvalidVarFileArg() {
+        // use folder as a file to make it fail
+        System.setProperty("tempDir", tempDir.toString());
+        var varFile = tempDir;
+        var exit = SystemUtil.callAndCaptureOutput(
+                () -> ImporterLauncher.launch(new String[] {
+                        "--config", TEST_CONFIG,
+                        "--variables",
+                        varFile.toAbsolutePath()
+                                .toString(),
+                        "-i", TEST_PDF,
+                        "-o", tempDir + "/output.txt"
+                }));
+        assertThat(exit.getReturnValue()).isNotZero();
+        assertThat(exit.getStdErr())
+                .contains("Invalid variable file path:");
+    }
 
-        @Test
-        void testInvalidConfigFileArg() {
-                // use folder as a file to make it fail
-                System.setProperty("tempDir", tempDir.toString());
-                var cfgFile = tempDir;
-                var exit = SystemUtil.callAndCaptureOutput(
-                                () -> ImporterLauncher.launch(new String[] {
-                                                "--config",
-                                                cfgFile.toAbsolutePath()
-                                                                .toString(),
-                                                "-i", TEST_PDF,
-                                                "-o", tempDir + "/output.txt"
-                                }));
-                assertThat(exit.getReturnValue()).isNotZero();
-                assertThat(exit.getStdErr()).contains(
-                                "Invalid configuration file path:");
-        }
+    @Test
+    void testInvalidConfigFileArg() {
+        // use folder as a file to make it fail
+        System.setProperty("tempDir", tempDir.toString());
+        var cfgFile = tempDir;
+        var exit = SystemUtil.callAndCaptureOutput(
+                () -> ImporterLauncher.launch(new String[] {
+                        "--config",
+                        cfgFile.toAbsolutePath()
+                                .toString(),
+                        "-i", TEST_PDF,
+                        "-o", tempDir + "/output.txt"
+                }));
+        assertThat(exit.getReturnValue()).isNotZero();
+        assertThat(exit.getStdErr()).contains(
+                "Invalid configuration file path:");
+    }
 
-        @Test
-        void testCheckConfig() {
-                System.setProperty("tempDir", tempDir.toString());
-                var exit = SystemUtil.callAndCaptureOutput(
-                                () -> ImporterLauncher.launch(new String[] {
-                                                "--config", TEST_CONFIG,
-                                                "--checkcfg",
-                                }));
-                assertThat(exit.getReturnValue()).isZero();
-        }
+    @Test
+    void testCheckConfig() {
+        System.setProperty("tempDir", tempDir.toString());
+        var exit = SystemUtil.callAndCaptureOutput(
+                () -> ImporterLauncher.launch(new String[] {
+                        "--config", TEST_CONFIG,
+                        "--checkcfg",
+                }));
+        assertThat(exit.getReturnValue()).isZero();
+    }
 
-        @Test
-        void testCheckConfigBadConfig() throws IOException {
-                System.setProperty("tempDir", tempDir.toString());
-                var cfgFile = tempDir.resolve("config.xml");
-                Files.writeString(cfgFile, "<*&bad>1 i< 2</*&bad>");
-                var exit = SystemUtil.callAndCaptureOutput(
-                                () -> ImporterLauncher.launch(new String[] {
-                                                "--config", cfgFile.toString(),
-                                                "--checkcfg",
-                                }));
-                assertThat(exit.getReturnValue()).isNotZero();
-                System.err.println("ERROR: " + exit.getStdErr());
-                assertThat(exit.getStdErr()).contains(
-                                "Could not parse configuration file.");
+    @Test
+    void testCheckConfigBadConfig() throws IOException {
+        System.setProperty("tempDir", tempDir.toString());
+        var cfgFile = tempDir.resolve("config.xml");
+        Files.writeString(cfgFile, "<*&bad>1 i< 2</*&bad>");
+        var exit = SystemUtil.callAndCaptureOutput(
+                () -> ImporterLauncher.launch(new String[] {
+                        "--config", cfgFile.toString(),
+                        "--checkcfg",
+                }));
+        assertThat(exit.getReturnValue()).isNotZero();
+        System.err.println("ERROR: " + exit.getStdErr());
+        assertThat(exit.getStdErr()).contains(
+                "Could not parse configuration file.");
 
-        }
+    }
 
-        @Test
-        void testNoOutputFile() throws IOException {
-                System.setProperty("tempDir", tempDir.toString());
-                var pdfFile = tempDir.resolve("file.pdf");
-                Files.copy(Path.of(TEST_PDF), pdfFile);
-                var exit = SystemUtil.callAndCaptureOutput(
-                                () -> ImporterLauncher.launch(new String[] {
-                                                "--config", TEST_CONFIG,
-                                                "-i", pdfFile.toString(),
-                                }));
-                assertThat(exit.getReturnValue()).isZero();
-        }
+    @Test
+    void testNoOutputFile() throws IOException {
+        System.setProperty("tempDir", tempDir.toString());
+        var pdfFile = tempDir.resolve("file.pdf");
+        Files.copy(Path.of(TEST_PDF), pdfFile);
+        var exit = SystemUtil.callAndCaptureOutput(
+                () -> ImporterLauncher.launch(new String[] {
+                        "--config", TEST_CONFIG,
+                        "-i", pdfFile.toString(),
+                }));
+        assertThat(exit.getReturnValue()).isZero();
+    }
 
-        @Test
-        void testCliParseError() {
-                System.setProperty("tempDir", tempDir.toString());
-                var exit = SystemUtil.callAndCaptureOutput(
-                                () -> ImporterLauncher.launch(new String[] {
-                                                "--config" // missing file
-                                }));
+    @Test
+    void testCliParseError() {
+        System.setProperty("tempDir", tempDir.toString());
+        var exit = SystemUtil.callAndCaptureOutput(
+                () -> ImporterLauncher.launch(new String[] {
+                        "--config" // missing file
+                }));
 
-                assertThat(exit.getReturnValue()).isNotZero();
-                assertThat(exit.getStdErr()).contains(
-                                "A problem occured while parsing arguments.");
-        }
+        assertThat(exit.getReturnValue()).isNotZero();
+        assertThat(exit.getStdErr()).contains(
+                "A problem occured while parsing arguments.");
+    }
 
-        @Test
-        void testBadConfig() throws IOException {
-                System.setProperty("tempDir", tempDir.toString());
-                var cfgFile = tempDir.resolve("config.xml");
-                Files.writeString(cfgFile, "<bad><bad></bad></bad>");
-                var exit = SystemUtil.callAndCaptureOutput(
-                                () -> ImporterLauncher.launch(new String[] {
-                                                "--config", cfgFile.toString(),
-                                                "-i", TEST_PDF,
-                                                "-o", tempDir + "/output.txt"
-                                }));
-                assertThat(exit.getStdErr()).contains(
-                                "A problem occured loading configuration.");
-        }
+    @Test
+    void testBadConfig() throws IOException {
+        System.setProperty("tempDir", tempDir.toString());
+        var cfgFile = tempDir.resolve("config.xml");
+        Files.writeString(cfgFile, "<bad><bad></bad></bad>");
+        var exit = SystemUtil.callAndCaptureOutput(
+                () -> ImporterLauncher.launch(new String[] {
+                        "--config", cfgFile.toString(),
+                        "-i", TEST_PDF,
+                        "-o", tempDir + "/output.txt"
+                }));
+        assertThat(exit.getStdErr()).contains(
+                "A problem occured loading configuration.");
+    }
 
-        @Test
-        void testBadConfigSyntax() throws IOException {
-                System.setProperty("tempDir", tempDir.toString());
-                var cfgFile = tempDir.resolve("config.xml");
-                Files.writeString(cfgFile, "<*&bad>1 i< 2</*&bad>");
-                var exit = SystemUtil.callAndCaptureOutput(
-                                () -> ImporterLauncher.launch(new String[] {
-                                                "--config", cfgFile.toString(),
-                                                "-i", TEST_PDF,
-                                                "-o", tempDir + "/output.txt"
-                                }));
-                System.err.println("ERROR: " + exit.getStdErr());
-                assertThat(exit.getStdErr()).contains(
-                                "A problem occured loading configuration.");
-        }
+    @Test
+    void testBadConfigSyntax() throws IOException {
+        System.setProperty("tempDir", tempDir.toString());
+        var cfgFile = tempDir.resolve("config.xml");
+        Files.writeString(cfgFile, "<*&bad>1 i< 2</*&bad>");
+        var exit = SystemUtil.callAndCaptureOutput(
+                () -> ImporterLauncher.launch(new String[] {
+                        "--config", cfgFile.toString(),
+                        "-i", TEST_PDF,
+                        "-o", tempDir + "/output.txt"
+                }));
+        System.err.println("ERROR: " + exit.getStdErr());
+        assertThat(exit.getStdErr()).contains(
+                "A problem occured loading configuration.");
+    }
 
-        @Test
-        void testNoArgs() {
-                System.setProperty("tempDir", tempDir.toString());
-                var exit = SystemUtil.callAndCaptureOutput(
-                                () -> ImporterLauncher.launch(new String[] {}));
-                assertThat(exit.getReturnValue()).isNotZero();
-                assertThat(exit.getStdOut()).contains("importer[.bat|.sh]");
-        }
+    @Test
+    void testNoArgs() {
+        System.setProperty("tempDir", tempDir.toString());
+        var exit = SystemUtil.callAndCaptureOutput(
+                () -> ImporterLauncher.launch(new String[] {}));
+        assertThat(exit.getReturnValue()).isNotZero();
+        assertThat(exit.getStdOut()).contains("importer[.bat|.sh]");
+    }
 }

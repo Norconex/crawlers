@@ -37,81 +37,81 @@ import com.norconex.crawler.fs.FsTestUtil;
 @Timeout(30)
 public abstract class AbstractFileFetcherTest {
 
-        @TempDir
-        private Path tempDir;
+    @TempDir
+    private Path tempDir;
 
-        protected abstract Fetcher fetcher();
+    protected abstract Fetcher fetcher();
 
-        @Test
-        void testFetchFiles() throws Exception {
-                var fetcher = fetcher();
-                var basePath = getStartPath();
+    @Test
+    void testFetchFiles() throws Exception {
+        var fetcher = fetcher();
+        var basePath = getStartPath();
 
-                var mem = FsTestUtil
-                                .crawlWithFetcher(tempDir, fetcher, basePath);
+        var mem = FsTestUtil
+                .crawlWithFetcher(tempDir, fetcher, basePath);
 
-                assertThat(mem.getUpsertCount()).isEqualTo(8);
-                assertThat(mem.getUpsertRequests())
-                                .map(UpsertRequest::getReference)
-                                .containsExactlyInAnyOrder(
-                                                basePath + "/bye.txt",
-                                                basePath + "/embedded.zip",
-                                                basePath + "/hello.txt",
-                                                basePath + "/UTF-8.txt",
-                                                basePath + "/windows-1252.txt",
-                                                basePath + "/imgs/160x120.png",
-                                                basePath + "/imgs/320x240.png",
-                                                basePath + "/pdfs/plain.pdf");
+        assertThat(mem.getUpsertCount()).isEqualTo(8);
+        assertThat(mem.getUpsertRequests())
+                .map(UpsertRequest::getReference)
+                .containsExactlyInAnyOrder(
+                        basePath + "/bye.txt",
+                        basePath + "/embedded.zip",
+                        basePath + "/hello.txt",
+                        basePath + "/UTF-8.txt",
+                        basePath + "/windows-1252.txt",
+                        basePath + "/imgs/160x120.png",
+                        basePath + "/imgs/320x240.png",
+                        basePath + "/pdfs/plain.pdf");
 
-                // Assert content
-                assertThat(getUpsertRequestContent(
-                                mem, basePath + "/bye.txt"))
-                                                .contains("Bye World!");
-                assertThat(getUpsertRequestContent(
-                                mem, basePath + "/pdfs/plain.pdf"))
-                                                .contains("Hey Norconex, this is a test.");
+        // Assert content
+        assertThat(getUpsertRequestContent(
+                mem, basePath + "/bye.txt"))
+                        .contains("Bye World!");
+        assertThat(getUpsertRequestContent(
+                mem, basePath + "/pdfs/plain.pdf"))
+                        .contains("Hey Norconex, this is a test.");
 
-                // Assert char encoding
-                assertThat(getUpsertRequestMeta(
-                                mem, basePath + "/UTF-8.txt", CONTENT_ENCODING))
-                                                .isEqualTo("UTF-8");
-                assertThat(getUpsertRequestMeta(
-                                mem, basePath + "/windows-1252.txt",
-                                CONTENT_ENCODING))
-                                                .isEqualTo("windows-1252");
+        // Assert char encoding
+        assertThat(getUpsertRequestMeta(
+                mem, basePath + "/UTF-8.txt", CONTENT_ENCODING))
+                        .isEqualTo("UTF-8");
+        assertThat(getUpsertRequestMeta(
+                mem, basePath + "/windows-1252.txt",
+                CONTENT_ENCODING))
+                        .isEqualTo("windows-1252");
 
-                // Assert content type
-                assertThat(getUpsertRequestMeta(
-                                mem, basePath + "/UTF-8.txt", CONTENT_TYPE))
-                                                .startsWith(ContentType.TEXT
-                                                                .toString());
-                assertThat(getUpsertRequestMeta(
-                                mem, basePath + "/pdfs/plain.pdf",
-                                CONTENT_TYPE))
-                                                .isEqualTo(ContentType.PDF
-                                                                .toString());
+        // Assert content type
+        assertThat(getUpsertRequestMeta(
+                mem, basePath + "/UTF-8.txt", CONTENT_TYPE))
+                        .startsWith(ContentType.TEXT
+                                .toString());
+        assertThat(getUpsertRequestMeta(
+                mem, basePath + "/pdfs/plain.pdf",
+                CONTENT_TYPE))
+                        .isEqualTo(ContentType.PDF
+                                .toString());
 
-                // Assert file size
-                assertThat(getUpsertRequestMeta(
-                                mem, basePath + "/imgs/320x240.png", FILE_SIZE))
-                                                .isEqualTo("1853");
-                assertThat(getUpsertRequestMeta(
-                                mem, basePath + "/pdfs/plain.pdf", FILE_SIZE))
-                                                .isEqualTo("15987");
+        // Assert file size
+        assertThat(getUpsertRequestMeta(
+                mem, basePath + "/imgs/320x240.png", FILE_SIZE))
+                        .isEqualTo("1853");
+        assertThat(getUpsertRequestMeta(
+                mem, basePath + "/pdfs/plain.pdf", FILE_SIZE))
+                        .isEqualTo("15987");
 
-                // Assert last modified (UTC)
-                //TODO reliably test dates. Probably best to create new files
+        // Assert last modified (UTC)
+        //TODO reliably test dates. Probably best to create new files
 
-                assertThatNoException()
-                                .isThrownBy(
-                                                () -> BeanMapper.DEFAULT
-                                                                .assertWriteRead(
-                                                                                FsTestUtil.randomize(
-                                                                                                fetcher.getClass())));
-                // Assert ACLs
+        assertThatNoException()
+                .isThrownBy(
+                        () -> BeanMapper.DEFAULT
+                                .assertWriteRead(
+                                        FsTestUtil.randomize(
+                                                fetcher.getClass())));
+        // Assert ACLs
 
-                //TODO extract ACL, possibly making it a flag if costly?
-        }
+        //TODO extract ACL, possibly making it a flag if costly?
+    }
 
-        protected abstract String getStartPath();
+    protected abstract String getStartPath();
 }
