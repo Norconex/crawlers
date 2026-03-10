@@ -18,8 +18,8 @@ import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterEach;
@@ -99,6 +99,7 @@ class ResumeAfterStopTest {
         MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
         // Wait for MockServer to register expectations before crawling
         waitForMockServerReady(client);
+        var firstImportedLatch = new CountDownLatch(1);
 
         var instrument = new CrawlTestInstrument()
                 .setDriverSupplierClass(
@@ -109,6 +110,11 @@ class ResumeAfterStopTest {
                 .setClustered(false)
                 .setConfigModifier(cfg -> {
                     var webCfg = (WebCrawlerConfig) cfg;
+                    cfg.addEventListener(event -> {
+                        if (event.is(CrawlerEvent.DOCUMENT_IMPORTED)) {
+                            firstImportedLatch.countDown();
+                        }
+                    });
                     webCfg.setId("test-resume-after-stop");
                     webCfg.setStartReferences(
                             List.of(serverUrl(
@@ -129,9 +135,9 @@ class ResumeAfterStopTest {
             var futureResult = harness.launchAsync("node1");
             // Wait for at least one document to be fully imported before stopping
             // to ensure there's recoverable state for the resume run
-            harness.waitFor(Duration.ofSeconds(30))
-                    .anyNodeToHaveFired(
-                            CrawlerEvent.DOCUMENT_IMPORTED);
+            assertThat(firstImportedLatch.await(45, TimeUnit.SECONDS))
+                    .as("No DOCUMENT_IMPORTED event fired during first run")
+                    .isTrue();
             new Crawler(WebCrawlDriverFactory.create(),
                     harness.getFirstNodeConfig()).stop();
             var firstResult =
