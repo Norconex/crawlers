@@ -26,6 +26,7 @@ import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockserver.integration.ClientAndServer;
@@ -46,7 +47,8 @@ import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
  */
 //Related to https://github.com/Norconex/collector-http/issues/694
 @MockServerSettings
-@Timeout(30)
+@Timeout(60)
+@Isolated
 class StrictTransportSecurityTest {
     @TempDir
     private Path tempDir;
@@ -149,6 +151,10 @@ class StrictTransportSecurityTest {
         waitForMockServerReady(client, securePath);
 
         var cfg = CrawlerConfigStubs.memoryCrawlerConfig(tempDir);
+        cfg.setId("test-hsts-"
+                + clientSupportsHSTS + '-'
+                + serverSupportsHSTS + '-'
+                + expectsSecureUrl);
 
         cfg.setStartReferences(List.of(secureUrl));
         cfg.setMaxDocuments(2);

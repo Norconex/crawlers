@@ -64,11 +64,17 @@ public class TypedJdbcQueueStoreFactory
     @Override
     public QueueStore<Object> newQueueStore(
             String queueName, Properties properties) {
+        // When Hazelcast creates this factory from the class name (rather than
+        // a wired implementation), hazelcastInstanceName is not set yet.
+        // Fall back to the name injected into store properties before startup.
+        var effectiveInstanceName = hazelcastInstanceName != null
+                ? hazelcastInstanceName
+                : properties.getProperty("hz-instance-name");
         HazelcastInstance hz =
                 com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastUtil
                         .resolveStoreInstance(
                                 hazelcastInstance,
-                                hazelcastInstanceName,
+                                effectiveInstanceName,
                                 queueName,
                                 "queue");
 

@@ -129,6 +129,36 @@ public class HazelcastCluster implements Cluster {
             // Hazelcast so EAGER loading always uses the right class.
             applyCacheTypes(hzConfig, cacheTypes);
 
+            // Ensure the Hazelcast config has an instance name so store
+            // factories can locate the right HazelcastInstance by name when
+            // multiple instances co-exist in the same JVM (e.g., parallel
+            // tests). Honour any name already set by a custom HazelcastConfigurer
+            // (or loaded from XML/YAML) and only generate a UUID as a fallback.
+            var instanceName = hzConfig.getInstanceName();
+            if (instanceName == null || instanceName.isBlank()) {
+                instanceName = UUID.randomUUID().toString();
+                hzConfig.setInstanceName(instanceName);
+            }
+            // Inject the instance name into store factory properties so that
+            // freshly class-instantiated factories (created by Hazelcast from
+            // the factory class name rather than a factory implementation
+            // object) can resolve the correct instance when hazelcastInstanceName
+            // has not yet been set via the LazyTypedStoreFactory wire-up.
+            for (var mapCfg : hzConfig.getMapConfigs().values()) {
+                var storeCfg = mapCfg.getMapStoreConfig();
+                if (storeCfg != null && storeCfg.isEnabled()) {
+                    storeCfg.getProperties().setProperty(
+                            "hz-instance-name", instanceName);
+                }
+            }
+            for (var qCfg : hzConfig.getQueueConfigs().values()) {
+                var storeCfg = qCfg.getQueueStoreConfig();
+                if (storeCfg != null && storeCfg.isEnabled()) {
+                    storeCfg.getProperties().setProperty(
+                            "hz-instance-name", instanceName);
+                }
+            }
+
             LOG.info("Creating HazelcastInstance with cluster name: {}",
                     hzConfig.getClusterName());
             hazelcastInstance = createHazelcastInstance(hzConfig);
@@ -163,11 +193,6 @@ public class HazelcastCluster implements Cluster {
             pipelineManager = new HazelcastPipelineManager(this);
 
             stopController = new CacheStopController(this);
-
-            //            // Set instance name
-            //       hazelcastConfig.setInstanceName(nodeName);
-            //
-            //
 
             LOG.info("HazelcastCluster initialized on node: {}",
                     localNode.getNodeName() != null ? localNode.getNodeName()

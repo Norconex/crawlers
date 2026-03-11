@@ -45,40 +45,40 @@ import org.junit.jupiter.api.Timeout;
 @Timeout(30)
 class StopCrawlerOnMaxEventTest {
 
-        private static final int SITE_DEPTH = 50;
+    private static final int SITE_DEPTH = 50;
 
-        @WebCrawlTest
-        void testStopCrawlerOnMaxEvent(
-                        ClientAndServer client, WebCrawlerConfig cfg) {
+    @WebCrawlTest
+    void testStopCrawlerOnMaxEvent(
+            ClientAndServer client, WebCrawlerConfig cfg) {
 
-                MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
+        MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 
-                cfg.setStartReferences(List.of(
-                                MockWebsite.serverUrl(client,
-                                                "/stopCrawlerOnMaxEvent")));
-                var lis = new StopCrawlerOnMaxEventListener();
-                lis.getConfiguration().setEventMatcher(
-                                TextMatcher.csv(CommitterEvent.COMMITTER_UPSERT_END
-                                                + ","
-                                                + CrawlerEvent.REJECTED_FILTER));
-                lis.getConfiguration().setMaximum(10);
-                lis.getConfiguration().setOnMultiple(OnMultiple.SUM);
-                cfg.addEventListeners(List.of(lis));
-                cfg.setNumThreads(1);
-                cfg.setMaxDocuments(-1);
+        cfg.setStartReferences(List.of(
+                MockWebsite.serverUrl(client,
+                        "/stopCrawlerOnMaxEvent")));
+        var lis = new StopCrawlerOnMaxEventListener();
+        lis.getConfiguration().setEventMatcher(
+                TextMatcher.csv(CommitterEvent.COMMITTER_UPSERT_END
+                        + ","
+                        + CrawlerEvent.REJECTED_FILTER));
+        lis.getConfiguration().setMaximum(10);
+        lis.getConfiguration().setOnMultiple(OnMultiple.SUM);
+        cfg.addEventListeners(List.of(lis));
+        cfg.setNumThreads(1);
+        cfg.setMaxDocuments(-1);
 
-                // reject references with odd depth number
-                cfg.setDocumentFilters(List.of(Configurable.configure(
-                                new GenericReferenceFilter(), c -> c
-                                                .setValueMatcher(TextMatcher
-                                                                .regex(".*[13579]$"))
-                                                .setOnMatch(OnMatch.EXCLUDE))));
+        // reject references with odd depth number
+        cfg.setDocumentFilters(List.of(Configurable.configure(
+                new GenericReferenceFilter(), c -> c
+                        .setValueMatcher(TextMatcher
+                                .regex(".*[13579]$"))
+                        .setOnMatch(OnMatch.EXCLUDE))));
 
-                var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
-                                .getCommitter();
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+                .getCommitter();
 
-                // Expected: 6 upserts, 0 deletes
-                assertThat(mem.getUpsertCount()).isEqualTo(6);
-                assertThat(mem.getDeleteCount()).isZero();
-        }
+        // Expected: 6 upserts, 0 deletes
+        assertThat(mem.getUpsertCount()).isEqualTo(6);
+        assertThat(mem.getDeleteCount()).isZero();
+    }
 }

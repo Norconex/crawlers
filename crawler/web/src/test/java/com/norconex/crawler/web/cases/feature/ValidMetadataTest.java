@@ -38,38 +38,38 @@ import org.junit.jupiter.api.Timeout;
 @Timeout(30)
 class ValidMetadataTest {
 
-        private static final int SITE_DEPTH = 20;
+    private static final int SITE_DEPTH = 20;
 
-        @WebCrawlTest
-        void testValidMetadata(ClientAndServer client, WebCrawlerConfig cfg) {
+    @WebCrawlTest
+    void testValidMetadata(ClientAndServer client, WebCrawlerConfig cfg) {
 
-                MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
+        MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 
-                cfg.setStartReferences(
-                                List.of(MockWebsite.serverUrl(client,
-                                                "/validMetadata/0000")));
-                cfg.setMaxDepth(10);
+        cfg.setStartReferences(
+                List.of(MockWebsite.serverUrl(client,
+                        "/validMetadata/0000")));
+        cfg.setMaxDepth(10);
 
-                var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
-                                .getCommitter();
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+                .getCommitter();
 
-                // 0-depth + 10 others == 11 expected files
-                assertThat(mem.getRequestCount()).isEqualTo(11);
+        // 0-depth + 10 others == 11 expected files
+        assertThat(mem.getRequestCount()).isEqualTo(11);
 
-                for (UpsertRequest doc : mem.getUpsertRequests()) {
-                        var meta = doc.getMetadata();
-                        assertThat(meta.getStrings(HttpHeaders.CONTENT_TYPE))
-                                        .containsExactly(
-                                                        "text/html; charset=UTF-8");
-                        assertThat(meta.getStrings(
-                                        DocMetaConstants.CONTENT_TYPE))
-                                                        .containsExactly(
-                                                                        "text/html");
-                        assertThat(meta.getStrings(
-                                        DocMetaConstants.CONTENT_ENCODING))
-                                                        .containsExactly(
-                                                                        StandardCharsets.UTF_8
-                                                                                        .toString());
-                }
+        for (UpsertRequest doc : mem.getUpsertRequests()) {
+            var meta = doc.getMetadata();
+            assertThat(meta.getStrings(HttpHeaders.CONTENT_TYPE))
+                    .containsExactly(
+                            "text/html; charset=UTF-8");
+            assertThat(meta.getStrings(
+                    DocMetaConstants.CONTENT_TYPE))
+                            .containsExactly(
+                                    "text/html");
+            assertThat(meta.getStrings(
+                    DocMetaConstants.CONTENT_ENCODING))
+                            .containsExactly(
+                                    StandardCharsets.UTF_8
+                                            .toString());
         }
+    }
 }

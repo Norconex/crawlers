@@ -67,11 +67,17 @@ public class TypedJdbcMapStoreFactory
     @Override
     public MapStore<String, Object> newMapStore(
             String mapName, Properties properties) {
+        // When Hazelcast creates this factory from the class name (rather than
+        // a wired implementation), hazelcastInstanceName is not set yet.
+        // Fall back to the name injected into store properties before startup.
+        var effectiveInstanceName = hazelcastInstanceName != null
+                ? hazelcastInstanceName
+                : properties.getProperty("hz-instance-name");
         HazelcastInstance hz =
                 com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastUtil
                         .resolveStoreInstance(
                                 hazelcastInstance,
-                                hazelcastInstanceName,
+                                effectiveInstanceName,
                                 mapName,
                                 "map");
 
