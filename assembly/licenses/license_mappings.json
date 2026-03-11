@@ -20,6 +20,7 @@
       "spdx_id": "BSD-2-Clause",
       "full_name": "BSD 2-Clause \"Simplified\" License",
       "patterns": [
+        "^BSD-2-Clause$",
         "^BSD 2-Clause \"Simplified\" License$",
         "^The BSD 2-Clause License$"
       ]
@@ -31,6 +32,7 @@
         "^BSD$",
         "^BSD License$",
         "^BSD Licence$",
+        "^BSD License 3$",
         "^BSD 3-Clause \"New\" or \"Revised\" License$",
         "^BSD-3-Clause: BSD 3-Clause \"New\" or \"Revised\" License$",
         "^BSD-3-Clause$",
@@ -90,6 +92,7 @@
       "full_name": "Eclipse Public License 2.0",
       "patterns": [
         "^Eclipse Public License 2\\.0$",
+        "^Eclipse Public License - Version 2\\.0$",
         "^Eclipse Public License v\\. 2\\.0$",
         "^Eclipse Public License v2\\.0$",
         "^EPL 2\\.0$",
@@ -146,7 +149,8 @@
       "spdx_id": "LGPL-3.0-only",
       "full_name": "GNU Lesser General Public License v3.0 only",
       "patterns": [
-        "^GNU LESSER GENERAL PUBLIC LICENSE, version 3 \\(LGPL-3\\.0\\)$"
+        "^GNU LESSER GENERAL PUBLIC LICENSE, version 3 \\(LGPL-3\\.0\\)$",
+        "^GNU Lesser General Public License v3 \\(LGPL\\)$"
       ]
     },
     {

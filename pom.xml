@@ -803,6 +803,39 @@
           <inherited>true</inherited>
         </plugin>
 
+        <!--
+          Delete stale THIRD-PARTY.txt before add-third-party regenerates it.
+          Without this, changing a transitive dependency's POM (e.g. removing a
+          dep from crawler/core) would leave the file stale when building with
+          "mvn package" instead of "mvn clean package", because the plugin's
+          incremental check only looks at the current module's own POM timestamp.
+          Activated in distribution modules (crawler/web, crawler/fs, importer).
+        -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-clean-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>clean-license-output</id>
+              <phase>initialize</phase>
+              <goals>
+                <goal>clean</goal>
+              </goals>
+              <configuration>
+                <excludeDefaultDirectories>true</excludeDefaultDirectories>
+                <filesets>
+                  <fileset>
+                    <directory>
+                      ${project.build.directory}/generated-sources/license
+                    </directory>
+                  </fileset>
+                </filesets>
+              </configuration>
+            </execution>
+          </executions>
+          <inherited>true</inherited>
+        </plugin>
+
         <plugin>
           <groupId>org.codehaus.gmavenplus</groupId>
           <artifactId>gmavenplus-plugin</artifactId>
