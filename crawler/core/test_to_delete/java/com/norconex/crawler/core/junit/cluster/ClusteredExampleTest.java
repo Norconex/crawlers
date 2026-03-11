@@ -28,20 +28,7 @@ class ClusteredExampleTest {
                 .as("all cluster nodes should exit successfully")
                 .isNotEmpty()
                 .allMatch(code -> code == 0);
-
-        //        StateDbClient.get().getStdoutForAllNodes().forEach(rec -> {
-        //            LOG.info("XXX MSG ENTRY: {}", rec);
-        //        });
-
         StateDbClient.get().printStreamsOrderedByNode();
-
-        //        StateDbClient.get().getStdoutForAllNodes().forEach(rec -> {
-        //            LOG.info("XXX MSG ENTRY: {}", rec);
-        //        });
-        //        StateDbClient.get().getStderrForAllNodes().forEach(rec -> {
-        //            LOG.error("XXX MSG ENTRY: {}", rec);
-        //        });
-
     }
 
     @Test

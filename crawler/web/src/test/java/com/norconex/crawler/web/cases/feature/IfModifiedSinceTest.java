@@ -34,7 +34,7 @@ import org.mockserver.model.HttpResponse;
 import org.mockserver.model.HttpStatusCode;
 
 import com.norconex.committer.core.CommitterException;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
@@ -69,7 +69,7 @@ class IfModifiedSinceTest {
     private static ZonedDateTime serverDate = null;
 
     @WebCrawlTest
-    void testIfModifiedSince(ClientAndServer client, WebCrawlerConfig cfg)
+    void testIfModifiedSince(ClientAndServer client, WebCrawlConfig cfg)
             throws CommitterException {
         serverDate = fiveDaysAgo;
 

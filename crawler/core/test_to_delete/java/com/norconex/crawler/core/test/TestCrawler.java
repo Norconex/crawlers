@@ -196,7 +196,6 @@ public class TestCrawler implements Closeable {
                     CrawlTestInstrument.class);
             var resultPath = instrument.getCrawlConfig().getWorkDir()
                     .resolve(TEST_RESULT_FILE_NAME);
-            System.err.println("XXX INSTRUMENT in MAIN: " + instrument);
             LOG.info("TestCrawler main() starting. PID: {}",
                     ProcessHandle.current().pid());
 

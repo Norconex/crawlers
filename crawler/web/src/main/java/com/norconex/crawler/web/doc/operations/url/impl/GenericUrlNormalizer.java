@@ -20,7 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.url.UrlNormalizer;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.doc.operations.url.WebUrlNormalizer;
 import com.norconex.crawler.web.doc.operations.url.impl.GenericUrlNormalizerConfig.Normalization;
 import com.norconex.crawler.web.doc.operations.url.impl.GenericUrlNormalizerConfig.NormalizationReplace;
@@ -39,7 +39,7 @@ import lombok.ToString;
  * <p>
  * This class is in effect by default. To skip its usage, you
  * can explicitly set the URL Normalizer to {@code null} in the
- * {@link WebCrawlerConfig}.
+ * {@link WebCrawlConfig}.
  * </p>
  * <p>
  * By default, this class removes the URL fragment and applies these

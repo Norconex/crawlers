@@ -61,7 +61,7 @@ public final class WebCrawler {
      * @param crawlerConfig Web Crawler configuration
      * @return crawler
      */
-    public static Crawler create(WebCrawlerConfig crawlerConfig) {
+    public static Crawler create(WebCrawlConfig crawlerConfig) {
         return new Crawler(WebCrawlDriverFactory.create(), crawlerConfig);
     }
 }

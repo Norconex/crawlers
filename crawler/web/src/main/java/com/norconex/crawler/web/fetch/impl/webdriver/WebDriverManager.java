@@ -36,6 +36,7 @@ public class WebDriverManager {
     private final WebDriverFetcherConfig config;
     private final Map<Thread, DriverEntry> drivers = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler;
+    private final Thread shutdownHook;
 
     private final AtomicInteger createdCount = new AtomicInteger(0);
     private final AtomicInteger cleanedCount = new AtomicInteger(0);
@@ -52,6 +53,9 @@ public class WebDriverManager {
                 config.getCleanupInterval().toMillis(),
                 config.getCleanupInterval().toMillis(),
                 TimeUnit.MILLISECONDS);
+        shutdownHook = new Thread(
+                this::quitAllDrivers, "WebDriverManager-ShutdownHook");
+        Runtime.getRuntime().addShutdownHook(shutdownHook);
     }
 
     /**
@@ -132,18 +136,16 @@ public class WebDriverManager {
         }
     }
 
-    // FIX: Add shutdown method to clean up all drivers
     public void shutdown() {
         LOG.info("Shutting down WebDriverManager...");
-        scheduler.shutdown();
-
-        // Clean up all remaining drivers
-        for (var entry : drivers.values()) {
-            entry.quit();
-            cleanedCount.incrementAndGet();
+        // Deregister the hook — we are doing a controlled shutdown already.
+        try {
+            Runtime.getRuntime().removeShutdownHook(shutdownHook);
+        } catch (IllegalStateException e) {
+            // JVM is already shutting down; hook may be running concurrently.
         }
-        drivers.clear();
-
+        scheduler.shutdown();
+        quitAllDrivers();
         try {
             if (!scheduler.awaitTermination(2, TimeUnit.SECONDS)) {
                 scheduler.shutdownNow();
@@ -152,11 +154,18 @@ public class WebDriverManager {
             scheduler.shutdownNow();
             Thread.currentThread().interrupt();
         }
-
         LOG.info(
                 "WebDriverManager shutdown complete. "
                         + "Total created: {}, total cleaned: {}",
                 createdCount.get(), cleanedCount.get());
+    }
+
+    private void quitAllDrivers() {
+        for (var entry : drivers.values()) {
+            entry.quit();
+            cleanedCount.incrementAndGet();
+        }
+        drivers.clear();
     }
 
     private DriverEntry createAndRegisterDriver() {

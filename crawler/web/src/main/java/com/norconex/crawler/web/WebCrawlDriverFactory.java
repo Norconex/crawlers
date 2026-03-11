@@ -48,7 +48,7 @@ public class WebCrawlDriverFactory implements Supplier<CrawlDriver> {
                                 new RefListEnqueuer(),
                                 new RefFileEnqueuer(),
                                 new RefProviderEnqueuer()))))
-                .crawlerConfigClass(WebCrawlerConfig.class)
+                .crawlerConfigClass(WebCrawlConfig.class)
                 .callbacks(WebCrawlerCallbacks.get())
                 .docPipelines(WebDocPipelines.create())
                 .crawlEntryType(WebCrawlEntry.class)

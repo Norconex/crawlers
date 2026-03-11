@@ -24,7 +24,7 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractor;
 import com.norconex.crawler.web.junit.WebCrawlTest;
@@ -42,7 +42,7 @@ import org.junit.jupiter.api.Timeout;
 class ScriptTagsTest {
 
     @WebCrawlTest
-    void testScriptTags(ClientAndServer client, WebCrawlerConfig cfg)
+    void testScriptTags(ClientAndServer client, WebCrawlConfig cfg)
             throws CommitterException {
 
         var homePath = "/scriptTags/index.html";

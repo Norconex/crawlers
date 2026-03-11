@@ -50,7 +50,7 @@ class WebCrawlerConfigTest {
             try (Reader r = new InputStreamReader(
                     getClass().getResourceAsStream(
                             "/validation/web-crawl-config-large.xml"))) {
-                var cfg = new WebCrawlerConfig();
+                var cfg = new WebCrawlConfig();
                 BeanMapper.DEFAULT.read(cfg, r, Format.XML);
                 BeanMapper.DEFAULT.assertWriteRead(cfg);
             } catch (Exception e) {

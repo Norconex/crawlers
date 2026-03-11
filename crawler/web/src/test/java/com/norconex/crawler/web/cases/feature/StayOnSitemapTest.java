@@ -31,7 +31,7 @@ import org.mockserver.model.MediaType;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchRequest;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.operations.scope.impl.GenericUrlScopeResolver;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapLocator;
@@ -75,7 +75,7 @@ class StayOnSitemapTest {
             """;
 
     @WebCrawlTest
-    void testStayOnSitemap(ClientAndServer client, WebCrawlerConfig cfg)
+    void testStayOnSitemap(ClientAndServer client, WebCrawlConfig cfg)
             throws CommitterException {
         var exception = new MutableObject<Exception>();
         var referrers = new ArrayList<String>();

@@ -22,7 +22,7 @@ import java.util.List;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
@@ -42,7 +42,7 @@ class ClusterTest {
             maxDepth: 10
             """
     )
-    void testMaxDepth(ClientAndServer client, WebCrawlerConfig config)
+    void testMaxDepth(ClientAndServer client, WebCrawlConfig config)
             throws Exception {
 
         MockWebsite.whenBoundedDepth(client, SITE_DEPTH);

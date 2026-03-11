@@ -27,8 +27,11 @@ class WebDriverFactoryTest {
     void testCreate() {
         var driver = WebDriverFactory.create(
                 new WebDriverFetcherConfig().setBrowser(Browser.FIREFOX));
-
-        assertThat(driver).isInstanceOf(FirefoxDriver.class);
+        try {
+            assertThat(driver).isInstanceOf(FirefoxDriver.class);
+        } finally {
+            driver.quit();
+        }
     }
 
 }

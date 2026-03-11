@@ -29,7 +29,7 @@ import org.mockserver.matchers.Times;
 import org.mockserver.model.HttpStatusCode;
 
 import com.norconex.committer.core.CommitterException;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
@@ -56,7 +56,7 @@ class IfNoneMatchTest {
     private String path = "/ifNoneMatch";
 
     @WebCrawlTest
-    void testIfNoneMatch(ClientAndServer client, WebCrawlerConfig cfg)
+    void testIfNoneMatch(ClientAndServer client, WebCrawlConfig cfg)
             throws CommitterException {
 
         cfg.setStartReferences(List.of(serverUrl(client, path)));

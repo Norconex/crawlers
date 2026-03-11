@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.web.doc.pipelines.importer;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -26,13 +27,18 @@ import org.junit.jupiter.api.Timeout;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
+import com.norconex.crawler.core.doc.pipelines.queue.QueuePipeline;
 import com.norconex.crawler.core.fetch.FetchDirective;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.WebCrawlerConfig.ReferencedLinkType;
+import com.norconex.crawler.web.WebCrawlConfig.ReferencedLinkType;
 import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.WebDocMetadata;
+import com.norconex.crawler.web.doc.operations.scope.UrlScope;
 import com.norconex.crawler.web.doc.pipelines.importer.stages.CanonicalStage;
 import com.norconex.crawler.web.doc.pipelines.importer.stages.LinkExtractorStage;
+import com.norconex.crawler.web.doc.pipelines.importer.stages.RecrawlableResolverStage;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.util.Web;
 import com.norconex.importer.doc.Doc;
@@ -131,5 +137,252 @@ class WebImporterPipelineTest {
                 1, doc.getMetadata().getStrings(
                         WebDocMetadata.REFERENCED_URLS)
                         .size());
+    }
+
+    // -----------------------------------------------------------------------
+    // CanonicalStage – additional cases
+    // -----------------------------------------------------------------------
+
+    @WebCrawlTest
+    void testCanonicalStageNullDetector(CrawlContext crawlerCtx) {
+        // null detector → always pass (return true)
+        Web.config(crawlerCtx).setCanonicalLinkDetector(null);
+
+        var reference = "http://www.example.com/page.html";
+        var docEntry = new WebCrawlEntry(reference, 0);
+        var doc = new Doc(reference).setInputStream(
+                new CachedStreamFactory(1, 1).newInputStream());
+        var docCtx = CrawlDocContext.builder()
+                .doc(doc)
+                .currentCrawlEntry(docEntry)
+                .build();
+        var session = mock(CrawlSession.class);
+        when(session.getCrawlContext()).thenReturn(crawlerCtx);
+        var ctx = new WebImporterPipelineContext(session, docCtx);
+
+        assertThat(new CanonicalStage(FetchDirective.DOCUMENT).test(ctx))
+                .isTrue();
+    }
+
+    @WebCrawlTest
+    void testCanonicalStageDifferentCanonicalUrl(CrawlContext crawlerCtx) {
+        // Canonical URL is different from current URL → reject current, queue canonical
+        var canonical = "http://www.example.com/canonical.html";
+        var current = "http://www.example.com/dup.html";
+        var content = "<html><head>"
+                + "<link rel=\"canonical\" href=\"" + canonical + "\" />"
+                + "</head><body>Duplicate</body></html>";
+
+        var docEntry = new WebCrawlEntry(current, 0);
+        var doc = new Doc(current).setInputStream(
+                new CachedStreamFactory(1000, 1000)
+                        .newInputStream(
+                                new ByteArrayInputStream(content.getBytes())));
+        var docCtx = CrawlDocContext.builder()
+                .doc(doc)
+                .currentCrawlEntry(docEntry)
+                .build();
+
+        // Mock doc pipelines so the queue pipeline accept doesn't NPE
+        var pipelines = mock(CrawlDocPipelines.class);
+        when(crawlerCtx.getDocPipelines()).thenReturn(pipelines);
+        when(pipelines.getQueuePipeline())
+                .thenReturn(mock(QueuePipeline.class));
+
+        var session = mock(CrawlSession.class);
+        when(session.getCrawlContext()).thenReturn(crawlerCtx);
+        var ctx = new WebImporterPipelineContext(session, docCtx);
+
+        assertThat(new CanonicalStage(FetchDirective.DOCUMENT).test(ctx))
+                .isFalse();
+        assertThat(docEntry.getProcessingOutcome())
+                .isEqualTo(ProcessingOutcome.REJECTED);
+    }
+
+    @WebCrawlTest
+    void testCanonicalStageCircularRedirectTrail(CrawlContext crawlerCtx) {
+        // Canonical URL already in redirect trail → process normally (return true)
+        var canonical = "http://www.example.com/canonical.html";
+        var current = "http://www.example.com/page.html";
+        var content = "<html><head>"
+                + "<link rel=\"canonical\" href=\"" + canonical + "\" />"
+                + "</head><body>Content</body></html>";
+
+        var docEntry = new WebCrawlEntry(current, 0);
+        docEntry.addRedirectURL(canonical); // seed the trail so canonical is "already seen"
+        var doc = new Doc(current).setInputStream(
+                new CachedStreamFactory(1000, 1000)
+                        .newInputStream(
+                                new ByteArrayInputStream(content.getBytes())));
+        var docCtx = CrawlDocContext.builder()
+                .doc(doc)
+                .currentCrawlEntry(docEntry)
+                .build();
+
+        var session = mock(CrawlSession.class);
+        when(session.getCrawlContext()).thenReturn(crawlerCtx);
+        var ctx = new WebImporterPipelineContext(session, docCtx);
+
+        // Circular reference → returns true (process the current page)
+        assertThat(new CanonicalStage(FetchDirective.DOCUMENT).test(ctx))
+                .isTrue();
+    }
+
+    @WebCrawlTest
+    void testCanonicalStageDifferentUrlFromHeaders(CrawlContext crawlerCtx) {
+        // Canonical URL in HTTP Link header is different from current → REJECTED
+        var canonical = "http://www.example.com/canonical.html";
+        var current = "http://www.example.com/dup.html";
+
+        var docEntry = new WebCrawlEntry(current, 0);
+        var doc = new Doc(current).setInputStream(
+                new CachedStreamFactory(1, 1).newInputStream());
+        // Set Link header so detectFromMetadata returns the canonical URL
+        doc.getMetadata().set("Link",
+                "<" + canonical + ">; rel=\"canonical\"");
+        var docCtx = CrawlDocContext.builder()
+                .doc(doc)
+                .currentCrawlEntry(docEntry)
+                .build();
+
+        var pipelines = mock(CrawlDocPipelines.class);
+        when(crawlerCtx.getDocPipelines()).thenReturn(pipelines);
+        when(pipelines.getQueuePipeline())
+                .thenReturn(mock(QueuePipeline.class));
+
+        var session = mock(CrawlSession.class);
+        when(session.getCrawlContext()).thenReturn(crawlerCtx);
+        var ctx = new WebImporterPipelineContext(session, docCtx);
+
+        // METADATA directive → only checks headers, not content
+        assertThat(new CanonicalStage(FetchDirective.METADATA).test(ctx))
+                .isFalse();
+        assertThat(docEntry.getProcessingOutcome())
+                .isEqualTo(ProcessingOutcome.REJECTED);
+    }
+
+    @WebCrawlTest
+    void testCanonicalStageCanonicalOutOfScope(CrawlContext crawlerCtx) {
+        // Canonical URL detected but is out of crawl scope → process current URL normally
+        var canonical = "http://out-of-scope.com/canonical.html";
+        var current = "http://www.example.com/page.html";
+        var content = "<html><head>"
+                + "<link rel=\"canonical\" href=\"" + canonical + "\" />"
+                + "</head><body>Content</body></html>";
+
+        // Reject every URL that goes through the scope resolver
+        Web.config(crawlerCtx).setUrlScopeResolver(
+                (sourceUrl, targetEntry) -> UrlScope
+                        .out("test: all out of scope"));
+
+        var docEntry = new WebCrawlEntry(current, 0);
+        var doc = new Doc(current).setInputStream(
+                new CachedStreamFactory(1000, 1000)
+                        .newInputStream(
+                                new ByteArrayInputStream(content.getBytes())));
+        var docCtx = CrawlDocContext.builder()
+                .doc(doc)
+                .currentCrawlEntry(docEntry)
+                .build();
+
+        var session = mock(CrawlSession.class);
+        when(session.getCrawlContext()).thenReturn(crawlerCtx);
+        var ctx = new WebImporterPipelineContext(session, docCtx);
+
+        // Canonical is out of scope → ignore it and process this URL normally
+        assertThat(new CanonicalStage(FetchDirective.DOCUMENT).test(ctx))
+                .isTrue();
+    }
+
+    // -----------------------------------------------------------------------
+    // RecrawlableResolverStage – all branches
+    // -----------------------------------------------------------------------
+
+    @WebCrawlTest
+    void testRecrawlableResolverStageOrphan(CrawlContext crawlerCtx) {
+        // Orphan docs are never skipped by the recrawl resolver
+        var docEntry =
+                new WebCrawlEntry("http://www.example.com/orphan.html", 0);
+        docEntry.setOrphan(true);
+
+        var doc = new Doc(docEntry.getReference()).setInputStream(
+                new CachedStreamFactory(1, 1).newInputStream());
+        var docCtx = CrawlDocContext.builder()
+                .doc(doc)
+                .currentCrawlEntry(docEntry)
+                .build();
+
+        var session = mock(CrawlSession.class);
+        when(session.getCrawlContext()).thenReturn(crawlerCtx);
+        var ctx = new WebImporterPipelineContext(session, docCtx);
+
+        assertThat(new RecrawlableResolverStage().test(ctx)).isTrue();
+    }
+
+    @WebCrawlTest
+    void testRecrawlableResolverStageNoResolver(CrawlContext crawlerCtx) {
+        // null resolver → always recrawlable
+        Web.config(crawlerCtx).setRecrawlableResolver(null);
+
+        var docEntry = new WebCrawlEntry("http://www.example.com/page.html", 0);
+        var doc = new Doc(docEntry.getReference()).setInputStream(
+                new CachedStreamFactory(1, 1).newInputStream());
+        var docCtx = CrawlDocContext.builder()
+                .doc(doc)
+                .currentCrawlEntry(docEntry)
+                .build();
+
+        var session = mock(CrawlSession.class);
+        when(session.getCrawlContext()).thenReturn(crawlerCtx);
+        var ctx = new WebImporterPipelineContext(session, docCtx);
+
+        assertThat(new RecrawlableResolverStage().test(ctx)).isTrue();
+    }
+
+    @WebCrawlTest
+    void testRecrawlableResolverStageNoPreviousEntry(CrawlContext crawlerCtx) {
+        // No previous crawl entry (first crawl) → always recrawlable
+        Web.config(crawlerCtx).setRecrawlableResolver(prev -> false); // always not-recrawlable
+
+        var docEntry = new WebCrawlEntry("http://www.example.com/page.html", 0);
+        var doc = new Doc(docEntry.getReference()).setInputStream(
+                new CachedStreamFactory(1, 1).newInputStream());
+        var docCtx = CrawlDocContext.builder()
+                .doc(doc)
+                .currentCrawlEntry(docEntry)
+                // No previousCrawlEntry → stage should pass through
+                .build();
+
+        var session = mock(CrawlSession.class);
+        when(session.getCrawlContext()).thenReturn(crawlerCtx);
+        var ctx = new WebImporterPipelineContext(session, docCtx);
+
+        assertThat(new RecrawlableResolverStage().test(ctx)).isTrue();
+    }
+
+    @WebCrawlTest
+    void testRecrawlableResolverStageNotRecrawlable(CrawlContext crawlerCtx) {
+        // Resolver says "not recrawlable" → reject, set PREMATURE outcome
+        Web.config(crawlerCtx).setRecrawlableResolver(prev -> false);
+
+        var prevEntry =
+                new WebCrawlEntry("http://www.example.com/page.html", 0);
+        var currentEntry =
+                new WebCrawlEntry("http://www.example.com/page.html", 0);
+        var doc = new Doc(currentEntry.getReference()).setInputStream(
+                new CachedStreamFactory(1, 1).newInputStream());
+        var docCtx = CrawlDocContext.builder()
+                .doc(doc)
+                .currentCrawlEntry(currentEntry)
+                .previousCrawlEntry(prevEntry)
+                .build();
+
+        var session = mock(CrawlSession.class);
+        when(session.getCrawlContext()).thenReturn(crawlerCtx);
+        var ctx = new WebImporterPipelineContext(session, docCtx);
+
+        assertThat(new RecrawlableResolverStage().test(ctx)).isFalse();
+        assertThat(currentEntry.getProcessingOutcome())
+                .isEqualTo(ProcessingOutcome.PREMATURE);
     }
 }

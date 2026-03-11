@@ -35,7 +35,7 @@ import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.DeleteRejectedEventListener;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import org.junit.jupiter.api.Timeout;
@@ -51,7 +51,7 @@ class RejectedRefsDeletionTest {
 
     @WebCrawlTest
     void testRejectedRefsDeletionTest(
-            ClientAndServer client, WebCrawlerConfig cfg) {
+            ClientAndServer client, WebCrawlConfig cfg) {
         client
                 .when(request())
                 .respond(HttpClassCallback.callback(Callback.class));

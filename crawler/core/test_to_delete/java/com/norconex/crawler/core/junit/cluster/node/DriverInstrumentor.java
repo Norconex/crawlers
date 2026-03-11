@@ -87,17 +87,6 @@ public final class DriverInstrumentor {
             // Node working directory
             cfg.setWorkDir(nodeWorkDir);
 
-            System.err.println("XXX [%s] workdir: %s".formatted(
-                    Thread.currentThread().getName(),
-                    cfg.getWorkDir()));
-
-            // Cluster connector.
-            // Defaults to cluster with persistence if no connector specified.
-            //YYY     if (cfg.getClusterConnector() == null) {
-            //            cfg.setClusterConnector(
-            //                    new TestClusterConnector.ClusterWithPersistence());
-            //YYY            }
-
             // Call original if present
             if (bs != null) {
                 bs.accept(cfg);

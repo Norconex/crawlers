@@ -99,8 +99,6 @@ class ClusterResumeTest {
                 Sleeper.sleepMillis(1000);
             }
 
-            System.err.println("XXX latch count is : " + latch.getCount());
-
             latch.await(30, TimeUnit.SECONDS);
 
             // Give a moment for any in-flight queue operations to complete

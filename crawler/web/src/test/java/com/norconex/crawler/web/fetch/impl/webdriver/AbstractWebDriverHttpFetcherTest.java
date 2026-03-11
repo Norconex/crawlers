@@ -47,7 +47,7 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.crawler.core.junit.annotations.SlowTest;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;
 import com.norconex.crawler.web.junit.WebCrawlTest;
@@ -125,7 +125,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
 
     @WebCrawlTest
     void testFetchingJsGeneratedContent(
-            ClientAndServer client, WebCrawlerConfig cfg) {
+            ClientAndServer client, WebCrawlConfig cfg) {
         MockWebsite.whenJsRenderedWebsite(client);
 
         WebTestUtil.ignoreAllIgnorables(cfg);
@@ -141,7 +141,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
 
     @WebCrawlTest
     //    @Disabled("Does not work under GitHub actions.")
-    void testTakeScreenshots(ClientAndServer client, WebCrawlerConfig cfg)
+    void testTakeScreenshots(ClientAndServer client, WebCrawlConfig cfg)
             throws IOException {
 
         MockWebsite.whenJsRenderedWebsite(client);
@@ -177,7 +177,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
     // using sniffer with large content (test case for:
     // https://github.com/Norconex/collector-http/issues/751)
     @WebCrawlTest
-    void testHttpSniffer(ClientAndServer client, WebCrawlerConfig cfg) {
+    void testHttpSniffer(ClientAndServer client, WebCrawlConfig cfg) {
         var path = "/sniffHeaders.html";
 
         // @formatter:off
@@ -220,7 +220,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
     }
 
     @WebCrawlTest
-    void testPageScript(ClientAndServer client, WebCrawlerConfig cfg) {
+    void testPageScript(ClientAndServer client, WebCrawlConfig cfg) {
         var path = "/pageScript.html";
 
         // @formatter:off
@@ -262,7 +262,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
 
     @WebCrawlTest
     void testResolvingUserAgent(
-            ClientAndServer client, WebCrawlerConfig cfg) {
+            ClientAndServer client, WebCrawlConfig cfg) {
         var path = "/userAgent.html";
 
         // @formatter:off

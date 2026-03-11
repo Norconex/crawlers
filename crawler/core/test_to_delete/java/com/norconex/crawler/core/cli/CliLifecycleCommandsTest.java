@@ -182,7 +182,6 @@ class CliLifecycleCommandsTest {
                 .printErrors(true)
                 .build()
                 .launch(twoDocsConfig());
-        System.err.println("XXX TEMP DIR: " + tempDir);
         assertThat(exit.isOK()).isTrue();
 
         CrawlerExecutionAssertions.assertEventSequence(

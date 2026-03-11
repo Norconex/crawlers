@@ -26,7 +26,7 @@ import java.util.function.Consumer;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.doc.operations.delay.impl.GenericDelayResolver;
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -44,9 +44,9 @@ public @interface WebCrawlTest {
             ? extends CrawlConfig>> configModifier() default DefaultWebCrawlerConfigModifier.class;
 
     public static final class DefaultWebCrawlerConfigModifier
-            implements Consumer<WebCrawlerConfig> {
+            implements Consumer<WebCrawlConfig> {
         @Override
-        public void accept(WebCrawlerConfig cfg) {
+        public void accept(WebCrawlConfig cfg) {
             cfg.setDelayResolver(configure(new GenericDelayResolver(),
                     dr -> dr.setDefaultDelay(Duration.ofMillis(0))));
         }

@@ -26,7 +26,7 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import org.junit.jupiter.api.Timeout;
@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Timeout;
 class SpecialURLsTest {
 
     @WebCrawlTest
-    void testSpecialURLs(ClientAndServer client, WebCrawlerConfig cfg) {
+    void testSpecialURLs(ClientAndServer client, WebCrawlConfig cfg) {
 
         var basePath = "/specialUrls";
         var baseUrl = serverUrl(client, basePath);

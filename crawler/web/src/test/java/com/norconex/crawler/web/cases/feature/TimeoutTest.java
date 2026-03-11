@@ -28,7 +28,7 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
@@ -46,7 +46,7 @@ class TimeoutTest {
     private final String homePath = basePath + "/index.html";
 
     @WebCrawlTest
-    void testTimeout(ClientAndServer client, WebCrawlerConfig cfg)
+    void testTimeout(ClientAndServer client, WebCrawlConfig cfg)
             throws CommitterException {
 
         cfg.setStartReferences(List.of(serverUrl(client, homePath)));

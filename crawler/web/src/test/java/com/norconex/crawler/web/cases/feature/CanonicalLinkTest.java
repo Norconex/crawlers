@@ -26,7 +26,7 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
@@ -43,7 +43,7 @@ class CanonicalLinkTest {
     final MutableInt canCount = new MutableInt();
 
     @WebCrawlTest
-    void testCanonicalLink(ClientAndServer client, WebCrawlerConfig config) {
+    void testCanonicalLink(ClientAndServer client, WebCrawlConfig config) {
         var canonicalPath = "/canonical";
         var canonicalUrl = serverUrl(client, canonicalPath);
         var httpHeaderPath = "/httpHeader";

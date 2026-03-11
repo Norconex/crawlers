@@ -34,7 +34,7 @@ import org.mockserver.model.MediaType;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.core.context.CrawlContext;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapContext;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 
@@ -86,7 +86,7 @@ class GenericSitemapResolverTest {
                                         ""))));
 
         List<String> urls = new ArrayList<>();
-        var resolver = ((WebCrawlerConfig) ctx.getCrawlConfig())
+        var resolver = ((WebCrawlConfig) ctx.getCrawlConfig())
                 .getSitemapResolver();
         resolver.resolve(
                 SitemapContext

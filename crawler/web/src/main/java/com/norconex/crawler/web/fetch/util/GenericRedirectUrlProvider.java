@@ -21,6 +21,7 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -158,7 +159,9 @@ public class GenericRedirectUrlProvider implements
                 Will try to fix. Redirect URL: {}""", redirectURL);
 
         // try to fix if non ascii charset is non UTF8.
-        return new String(url.getBytes(resolveCharset(response, redirectURL)));
+        return new String(
+                url.getBytes(resolveCharset(response, redirectURL)),
+                StandardCharsets.UTF_8);
     }
 
     // Detect charset from response header or use fallback

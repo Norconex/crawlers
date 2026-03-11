@@ -26,7 +26,7 @@ import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxt;
 import com.norconex.crawler.web.doc.operations.scope.UrlScope;
@@ -63,8 +63,8 @@ public final class Web {
         }
     }
 
-    public static WebCrawlerConfig config(CrawlContext crawlContext) {
-        return (WebCrawlerConfig) crawlContext.getCrawlConfig();
+    public static WebCrawlConfig config(CrawlContext crawlContext) {
+        return (WebCrawlConfig) crawlContext.getCrawlConfig();
     }
 
     public static RobotsTxt robotsTxt(CrawlContext crawler, String reference) {

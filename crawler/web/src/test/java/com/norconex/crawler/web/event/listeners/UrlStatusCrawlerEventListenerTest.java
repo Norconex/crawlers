@@ -32,7 +32,7 @@ import org.mockserver.model.HttpResponse;
 import org.mockserver.model.HttpStatusCode;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
@@ -43,7 +43,7 @@ import org.junit.jupiter.api.Timeout;
 class UrlStatusCrawlerEventListenerTest {
     @WebCrawlTest
     void testURLStatusCrawlerEventListener(
-            ClientAndServer client, WebCrawlerConfig cfg) throws IOException {
+            ClientAndServer client, WebCrawlConfig cfg) throws IOException {
 
         var urlStatusListener = new UrlStatusCrawlerEventListener();
         urlStatusListener.getConfiguration()

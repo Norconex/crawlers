@@ -27,7 +27,7 @@ import org.apache.commons.io.IOUtils;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.operations.canon.impl.GenericCanonicalLinkDetector;
@@ -49,20 +49,20 @@ class CanonicalRedirectLoopTest {
 
     @WebCrawlTest
     void testStartWithCanonical(
-            ClientAndServer client, WebCrawlerConfig cfg) throws IOException {
+            ClientAndServer client, WebCrawlConfig cfg) throws IOException {
         testLoop(CANONICAL_PATH, client, cfg);
     }
 
     @WebCrawlTest
     void testStartWithRedirect(
-            ClientAndServer client, WebCrawlerConfig cfg) throws IOException {
+            ClientAndServer client, WebCrawlConfig cfg) throws IOException {
         testLoop(REDIRECT_PATH, client, cfg);
     }
 
     void testLoop(
             String startUrlPath,
             ClientAndServer client,
-            WebCrawlerConfig config) throws IOException {
+            WebCrawlConfig config) throws IOException {
 
         //--- Web site ---
 

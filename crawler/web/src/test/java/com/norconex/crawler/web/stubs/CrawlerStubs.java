@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.web.WebCrawler;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 
 public final class CrawlerStubs {
 
@@ -33,7 +33,7 @@ public final class CrawlerStubs {
     }
 
     public static Crawler memoryCrawler(
-            Path workDir, Consumer<WebCrawlerConfig> c) {
+            Path workDir, Consumer<WebCrawlConfig> c) {
         var webCrawlerConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
         if (c != null) {
             c.accept(webCrawlerConfig);

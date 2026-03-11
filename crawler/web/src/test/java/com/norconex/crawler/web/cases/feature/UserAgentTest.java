@@ -24,7 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Timeout;
 @Timeout(30)
 class UserAgentTest {
     @WebCrawlTest
-    void testUserAgent(ClientAndServer client, WebCrawlerConfig cfg) {
+    void testUserAgent(ClientAndServer client, WebCrawlConfig cfg) {
 
         var path = "/userAgent";
         client

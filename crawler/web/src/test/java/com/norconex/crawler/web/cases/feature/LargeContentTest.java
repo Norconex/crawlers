@@ -33,7 +33,7 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 
 import com.norconex.crawler.core.junit.annotations.SlowTest;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
@@ -48,7 +48,7 @@ import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 class LargeContentTest {
 
     @WebCrawlTest
-    void testLargeContent(ClientAndServer client, WebCrawlerConfig cfg)
+    void testLargeContent(ClientAndServer client, WebCrawlConfig cfg)
             throws IOException {
 
         Awaitility.await().atMost(10, TimeUnit.SECONDS)

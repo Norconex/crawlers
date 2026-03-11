@@ -456,7 +456,7 @@ import lombok.experimental.FieldNameConstants;
 @Accessors(chain = true)
 @FieldNameConstants
 //@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME)
-public class WebCrawlerConfig extends CrawlConfig {
+public class WebCrawlConfig extends CrawlConfig {
 
     /**
      * Flags for storing as metadata a page referenced links.
@@ -553,7 +553,7 @@ public class WebCrawlerConfig extends CrawlConfig {
     private RecrawlableResolver recrawlableResolver =
             new GenericRecrawlableResolver();
 
-    public WebCrawlerConfig() {
+    public WebCrawlConfig() {
         setMetadataChecksummer(new LastModifiedMetadataChecksummer());
         setFetchers(List.of(new HttpClientFetcher()));
     }
@@ -575,7 +575,7 @@ public class WebCrawlerConfig extends CrawlConfig {
      * @return this
      * @since 3.0.0
      */
-    public WebCrawlerConfig setStartReferencesSitemaps(
+    public WebCrawlConfig setStartReferencesSitemaps(
             List<String> startReferencesSitemaps) {
         CollectionUtil.setAll(
                 this.startReferencesSitemaps, startReferencesSitemaps);
@@ -602,7 +602,7 @@ public class WebCrawlerConfig extends CrawlConfig {
      * @return this
      * @since 3.0.0
      */
-    public WebCrawlerConfig setKeepReferencedLinks(
+    public WebCrawlConfig setKeepReferencedLinks(
             Set<ReferencedLinkType> keepReferencedLinks) {
         CollectionUtil.setAll(this.keepReferencedLinks, keepReferencedLinks);
         return this;
@@ -622,7 +622,7 @@ public class WebCrawlerConfig extends CrawlConfig {
      * @return this
      * @since 3.0.0
      */
-    public WebCrawlerConfig setLinkExtractors(
+    public WebCrawlConfig setLinkExtractors(
             List<LinkExtractor> linkExtractors) {
         CollectionUtil.setAll(this.linkExtractors, linkExtractors);
         return this;
@@ -645,7 +645,7 @@ public class WebCrawlerConfig extends CrawlConfig {
      * @return this
      * @since 3.0.0
      */
-    public WebCrawlerConfig setPostImportLinks(TextMatcher fieldMatcher) {
+    public WebCrawlConfig setPostImportLinks(TextMatcher fieldMatcher) {
         postImportLinks.copyFrom(fieldMatcher);
         return this;
     }
@@ -667,7 +667,7 @@ public class WebCrawlerConfig extends CrawlConfig {
      * @param urlNormalizers URL normalizers
      * @return this
      */
-    public WebCrawlerConfig setUrlNormalizers(
+    public WebCrawlConfig setUrlNormalizers(
             List<WebUrlNormalizer> urlNormalizers) {
         CollectionUtil.setAll(this.urlNormalizers, urlNormalizers);
         return this;

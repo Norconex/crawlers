@@ -31,7 +31,7 @@ import org.mockserver.model.HttpResponse;
 import org.mockserver.model.HttpStatusCode;
 
 import com.norconex.commons.lang.security.Credentials;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
@@ -49,7 +49,7 @@ class HttpAuthTest {
 
     @WebCrawlTest
     void testBasicAuthentication(
-            ClientAndServer client, WebCrawlerConfig cfg) {
+            ClientAndServer client, WebCrawlConfig cfg) {
         client.reset();
         var protectedUrl = serverUrl(client, protectedPath);
 
@@ -108,7 +108,7 @@ class HttpAuthTest {
 
     @WebCrawlTest
     void testFormAuthentication(
-            ClientAndServer client, WebCrawlerConfig cfg) {
+            ClientAndServer client, WebCrawlConfig cfg) {
         client.reset();
         var loginFormUrl = serverUrl(client, loginFormPath);
         var loginFormActionUrl = serverUrl(client, loginFormActionPath);

@@ -159,7 +159,6 @@ public class CrawlProcessStep extends BaseStep {
             var activityChecker = new CrawlActivityChecker(
                     session,
                     queueAction == ProcessQueueAction.DELETE_ALL);
-            LOG.trace("XXX ---> CrawlProcessStep - 1");
             while (!isStopRequested()) {
                 if (!activityChecker.canContinue()) {
                     LOG.trace("[{}] processQueue(threadIndex={}) "
@@ -189,7 +188,6 @@ public class CrawlProcessStep extends BaseStep {
                                 .getCrawlEntryLedger()
                                 .getProcessedCount());
             }
-            LOG.trace("XXX ---> CrawlProcessStep - 2");
         } catch (com.hazelcast.core.HazelcastInstanceNotActiveException e) {
             LOG.info("Hazelcast instance became inactive while processing "
                     + "queue on node {}. Treating as graceful stop.",

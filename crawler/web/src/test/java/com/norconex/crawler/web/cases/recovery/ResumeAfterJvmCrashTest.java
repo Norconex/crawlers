@@ -35,7 +35,7 @@ import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.test.CrawlTestHarness;
 import com.norconex.crawler.core.test.CrawlTestInstrument;
 import com.norconex.crawler.web.WebCrawlDriverFactory;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.mocks.MockWebsite;
 
 import lombok.extern.slf4j.Slf4j;
@@ -149,7 +149,7 @@ class ResumeAfterJvmCrashTest {
                 .setNewJvm(true)
                 .setClustered(false)
                 .setConfigModifier(cfg -> {
-                    var webCfg = (WebCrawlerConfig) cfg;
+                    var webCfg = (WebCrawlConfig) cfg;
                     webCfg.setId("test-resume-after-crash");
                     webCfg.setStartReferences(
                             List.of(serverUrl(

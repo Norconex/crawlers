@@ -27,13 +27,13 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest.DefaultWebCrawlerConfigModifier;
 
 /**
  * JUnit 5 extension backing the {@link WebCrawlTest} annotation.
- * Resolves {@link WebCrawlerConfig} and {@link CrawlContext} parameters
+ * Resolves {@link WebCrawlConfig} and {@link CrawlContext} parameters
  * for test methods.
  */
 public class WebCrawlExtension implements ParameterResolver {
@@ -43,7 +43,7 @@ public class WebCrawlExtension implements ParameterResolver {
             ParameterContext paramCtx, ExtensionContext extCtx)
             throws ParameterResolutionException {
         var type = paramCtx.getParameter().getType();
-        return type == WebCrawlerConfig.class || type == CrawlContext.class;
+        return type == WebCrawlConfig.class || type == CrawlContext.class;
     }
 
     @Override
@@ -53,7 +53,7 @@ public class WebCrawlExtension implements ParameterResolver {
         var config = buildConfig(extCtx);
         var type = paramCtx.getParameter().getType();
 
-        if (type == WebCrawlerConfig.class) {
+        if (type == WebCrawlConfig.class) {
             return config;
         }
         if (type == CrawlContext.class) {
@@ -63,16 +63,16 @@ public class WebCrawlExtension implements ParameterResolver {
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    private WebCrawlerConfig buildConfig(ExtensionContext extCtx) {
+    private WebCrawlConfig buildConfig(ExtensionContext extCtx) {
         var annotation = findAnnotation(extCtx);
-        var config = new WebCrawlerConfig();
+        var config = new WebCrawlConfig();
         // Apply modifier (default = DefaultWebCrawlerConfigModifier sets delay=0)
         Class<? extends Consumer> modifierClass =
                 annotation != null
                         ? annotation.configModifier()
                         : DefaultWebCrawlerConfigModifier.class;
         try {
-            ((Consumer<WebCrawlerConfig>) modifierClass
+            ((Consumer<WebCrawlConfig>) modifierClass
                     .getDeclaredConstructor().newInstance()).accept(config);
         } catch (Exception e) {
             throw new ParameterResolutionException(
@@ -96,7 +96,7 @@ public class WebCrawlExtension implements ParameterResolver {
      * given config from {@code getCrawlConfig()} and an initialized
      * {@link HttpClientFetcher} from {@code getFetcher()}.
      */
-    private CrawlContext mockCrawlContext(WebCrawlerConfig config) {
+    private CrawlContext mockCrawlContext(WebCrawlConfig config) {
         var ctx = mock(CrawlContext.class);
         when(ctx.getCrawlConfig()).thenReturn(config);
 

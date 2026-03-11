@@ -34,7 +34,7 @@ import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.test.CrawlTestHarness;
 import com.norconex.crawler.core.test.CrawlTestInstrument;
 import com.norconex.crawler.web.WebCrawlDriverFactory;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.mocks.MockWebsite;
 
@@ -69,7 +69,7 @@ class StartCleanAfterStopTest {
                 .setNewJvm(false)
                 .setClustered(false)
                 .setConfigModifier(cfg -> {
-                    var webCfg = (WebCrawlerConfig) cfg;
+                    var webCfg = (WebCrawlConfig) cfg;
                     webCfg.setId("test-startclean-after-stop");
                     webCfg.setStartReferences(
                             List.of(serverUrl(
@@ -106,7 +106,7 @@ class StartCleanAfterStopTest {
 
             //--- Fresh start (clean state, should process MAX_DOCS from scratch) ---
             instrument.setConfigModifier(cfg -> {
-                var webCfg = (WebCrawlerConfig) cfg;
+                var webCfg = (WebCrawlConfig) cfg;
                 webCfg.setId("test-startclean-after-stop");
                 webCfg.setStartReferences(
                         List.of(serverUrl(client, path

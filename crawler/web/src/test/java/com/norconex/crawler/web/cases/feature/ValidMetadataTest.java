@@ -24,7 +24,7 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
@@ -41,7 +41,7 @@ class ValidMetadataTest {
     private static final int SITE_DEPTH = 20;
 
     @WebCrawlTest
-    void testValidMetadata(ClientAndServer client, WebCrawlerConfig cfg) {
+    void testValidMetadata(ClientAndServer client, WebCrawlConfig cfg) {
 
         MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 

@@ -26,7 +26,7 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.doc.operations.scope.impl.GenericUrlScopeResolver;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapLocator;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapResolver;
@@ -69,7 +69,7 @@ class SitemapResolutionStageTest {
 
     // Should only crawl URLs in sitemap. Start URL not in sitemap.
     @WebCrawlTest
-    void testStayOnSitemap(ClientAndServer client, WebCrawlerConfig cfg) {
+    void testStayOnSitemap(ClientAndServer client, WebCrawlConfig cfg) {
         client.reset();
         var baseUrl = serverUrl(client, "");
         var sitemap = SITEMAP_XML.formatted(
@@ -105,7 +105,7 @@ class SitemapResolutionStageTest {
     // Should only crawl URLs in sitemap. Start URL included in sitemap.
     @WebCrawlTest
     void testStayOnSitemapStartInSitemap(
-            ClientAndServer client, WebCrawlerConfig cfg) {
+            ClientAndServer client, WebCrawlConfig cfg) {
         client.reset();
         var baseUrl = serverUrl(client, "");
         var sitemap = SITEMAP_XML.formatted(

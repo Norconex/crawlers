@@ -25,8 +25,8 @@ import java.util.Set;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.WebCrawlerConfig.ReferencedLinkType;
+import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlConfig.ReferencedLinkType;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
@@ -43,7 +43,7 @@ class RedirectRelativeLinksTest {
 
     @WebCrawlTest
     void testRedirectRelativeLinks(
-            ClientAndServer client, WebCrawlerConfig cfg) {
+            ClientAndServer client, WebCrawlConfig cfg) {
         var basePath = "/redirectRelativeLinks";
         var homePath = basePath + "/home.html";
         var finalPath = basePath + "/final/target.html";

@@ -208,10 +208,10 @@ public final class WebTestUtil {
 
     public static void ignoreAllIgnorables(Crawler crawler) {
         ignoreAllIgnorables(
-                (WebCrawlerConfig) crawler.getCrawlConfig());
+                (WebCrawlConfig) crawler.getCrawlConfig());
     }
 
-    public static void ignoreAllIgnorables(WebCrawlerConfig config) {
+    public static void ignoreAllIgnorables(WebCrawlConfig config) {
         config.setCanonicalLinkDetector(null)
                 .setRobotsMetaProvider(null)
                 .setRobotsTxtProvider(null)

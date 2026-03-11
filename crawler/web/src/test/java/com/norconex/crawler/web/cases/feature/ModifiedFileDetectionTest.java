@@ -28,7 +28,7 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.committer.core.CommitterException;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
@@ -51,7 +51,7 @@ class ModifiedFileDetectionTest {
 
     @WebCrawlTest
     void testModifiedFileDetection(
-            ClientAndServer client, WebCrawlerConfig cfg)
+            ClientAndServer client, WebCrawlConfig cfg)
             throws CommitterException {
 
         // relies on default checksummers

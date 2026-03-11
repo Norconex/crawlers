@@ -31,7 +31,7 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.crawler.core.CrawlConfig.OrphansStrategy;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapResolver;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
@@ -82,7 +82,7 @@ class SitemapURLDeletionTest {
               class: GenericRecrawlableResolver
               sitemapSupport: NEVER
             """)
-    void testSitemapURLDeletion(ClientAndServer client, WebCrawlerConfig cfg)
+    void testSitemapURLDeletion(ClientAndServer client, WebCrawlConfig cfg)
             throws CommitterException {
 
         cfg.setSitemapResolver(new GenericSitemapResolver())
@@ -118,7 +118,7 @@ class SitemapURLDeletionTest {
     // recrawl.
     @WebCrawlTest
     void testSitemapURLDeletionNotReadyForRecrawl(
-            ClientAndServer client, WebCrawlerConfig cfg)
+            ClientAndServer client, WebCrawlConfig cfg)
             throws CommitterException {
 
         cfg.setSitemapResolver(new GenericSitemapResolver())

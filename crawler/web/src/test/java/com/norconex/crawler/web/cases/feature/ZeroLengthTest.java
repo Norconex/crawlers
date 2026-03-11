@@ -23,7 +23,7 @@ import java.util.List;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
@@ -38,7 +38,7 @@ import org.junit.jupiter.api.Timeout;
 class ZeroLengthTest {
 
     @WebCrawlTest
-    void testZeroLength(ClientAndServer client, WebCrawlerConfig cfg) {
+    void testZeroLength(ClientAndServer client, WebCrawlConfig cfg) {
         var path = "/zeroLength";
 
         client

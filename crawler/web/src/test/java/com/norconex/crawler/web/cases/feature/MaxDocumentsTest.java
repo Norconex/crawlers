@@ -22,7 +22,7 @@ import java.util.List;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
@@ -38,7 +38,7 @@ class MaxDocumentsTest {
     private static final int SITE_DEPTH = 40;
 
     @WebCrawlTest
-    void testMaxDocuments(ClientAndServer client, WebCrawlerConfig cfg) {
+    void testMaxDocuments(ClientAndServer client, WebCrawlConfig cfg) {
         MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 
         cfg.setStartReferences(

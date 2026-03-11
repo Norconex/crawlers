@@ -28,7 +28,7 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.matchers.Times;
 
 import com.norconex.committer.core.CommitterException;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import org.junit.jupiter.api.Timeout;
@@ -45,7 +45,7 @@ class FileNotFoundDeletionTest {
 
     @WebCrawlTest
     void testFileNotFoundDeletion(
-            ClientAndServer client, WebCrawlerConfig cfg)
+            ClientAndServer client, WebCrawlConfig cfg)
             throws CommitterException {
 
         // @formatter:off
