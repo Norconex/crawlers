@@ -23,6 +23,7 @@ import java.lang.annotation.Target;
 import java.time.Duration;
 import java.util.function.Consumer;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.norconex.crawler.core.CrawlConfig;
@@ -31,6 +32,7 @@ import com.norconex.crawler.web.doc.operations.delay.impl.GenericDelayResolver;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.TYPE, ElementType.ANNOTATION_TYPE })
+@Test
 @ExtendWith(WebCrawlExtension.class)
 public @interface WebCrawlTest {
 

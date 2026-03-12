@@ -28,7 +28,6 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.tika.utils.CharsetUtils;
 
 import com.norconex.commons.lang.config.Configurable;
@@ -102,11 +101,9 @@ public class GenericRedirectUrlProvider implements
     public String provideRedirectURL(
             HttpRequest request,
             HttpResponse response, HttpContext context) {
-        var currentReq = (HttpRequest) context.getAttribute(
-                HttpCoreContext.HTTP_REQUEST);
         String originalURL = null;
         try {
-            originalURL = currentReq.getUri().toString();
+            originalURL = request.getUri().toString();
         } catch (URISyntaxException e) {
             LOG.error("Could not provide redirect URL.", e);
             return null;

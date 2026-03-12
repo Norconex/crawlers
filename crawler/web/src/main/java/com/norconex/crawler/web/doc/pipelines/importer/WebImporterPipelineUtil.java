@@ -85,6 +85,9 @@ public final class WebImporterPipelineUtil {
         var redirectUrlTargetStatus =
                 crawlEntryLedger.getProcessingStatus(
                         redirectTargetURL);
+        var existingRedirectTarget =
+                crawlEntryLedger.getEntry(redirectTargetURL)
+                        .orElse(null);
 
         //TODO throw an event if already active/processed(ing)?
         if (ProcessingStatus.QUEUED.is(redirectUrlTargetStatus)) {
@@ -92,9 +95,12 @@ public final class WebImporterPipelineUtil {
                     redirectTargetURL);
             return;
         }
-        if (ProcessingStatus.PROCESSED.is(redirectUrlTargetStatus)
-                || ProcessingStatus.PROCESSING
-                        .is(redirectUrlTargetStatus)) {
+        if (ProcessingStatus.PROCESSING.is(redirectUrlTargetStatus)) {
+            rejectRedirectDup("processing", sourceURL,
+                    redirectTargetURL);
+            return;
+        }
+        if (ProcessingStatus.PROCESSED.is(redirectUrlTargetStatus)) {
             // If part of redirect trail, allow a second queueing
             // but not more.  This in case redirecting back to self is
             // part of a normal flow (e.g. weird login).
@@ -115,7 +121,8 @@ public final class WebImporterPipelineUtil {
             // XXX getting performance issues.  We can't rely on pre-loaded
             // XXX cached instance, since it is pre-loaded with the source
             // XXX URL, and not the redirect URL. So we load it here.
-            var op = crawlEntryLedger.getEntry(redirectTargetURL);
+            var op = java.util.Optional
+                    .ofNullable(existingRedirectTarget);
             if (op.isPresent()) {
                 var outcome = op.get().getProcessingOutcome();
                 if (outcome != null && outcome.isGoodState()) {
@@ -151,7 +158,9 @@ public final class WebImporterPipelineUtil {
         newRec.setRedirectTrail(docContext.getRedirectTrail());
         newRec.addRedirectURL(sourceURL);
         if (requeue) {
-            crawlEntryLedger.queue(newRec);
+            if (!crawlEntryLedger.requeueEntry(newRec)) {
+                crawlEntryLedger.queue(newRec);
+            }
             return;
         }
 

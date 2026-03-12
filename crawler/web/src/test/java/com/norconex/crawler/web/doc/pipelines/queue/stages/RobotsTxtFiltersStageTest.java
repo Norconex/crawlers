@@ -95,9 +95,9 @@ class RobotsTxtFiltersStageTest {
     }
 
     @WebCrawlTest
-    void testDisallowNotOverruledByEqualLengthAllow(CrawlContext ctx) {
-        // Allow path length must be STRICTLY LONGER than Disallow to overrule;
-        // equal length does NOT overrule → URL should still be rejected.
+    void testEqualLengthAllowTakesPrecedenceOverDisallow(CrawlContext ctx) {
+        // Per RFC 9309: when two rules match with equal path length,
+        // the less restrictive rule (Allow) takes precedence.
         Web.config(ctx).setRobotsTxtProvider(new StandardRobotsTxtProvider() {
             @Override
             public synchronized RobotsTxt getRobotsTxt(
@@ -118,9 +118,9 @@ class RobotsTxtFiltersStageTest {
                 }
             }
         });
-        Assertions.assertFalse(
+        Assertions.assertTrue(
                 testAllowUrl(ctx, "http://example.com/section/page.html"),
-                "Equal-length Allow must NOT overrule Disallow");
+                "Equal-length Allow takes precedence over Disallow per RFC 9309");
     }
 
     private boolean testAllowUrl(CrawlContext crawlerCtx, final String url) {

@@ -130,7 +130,7 @@ public class CrawlCommand implements Command {
                     ? ConcurrentUtil.get(pipeFuture, 5, TimeUnit.MINUTES)
                     : ConcurrentUtil.get(pipeFuture);
 
-            finalState = session.oncePerSessionAndGet("final-status-task",
+            finalState = session.oncePerRunAndGet("final-status-task",
                     () -> storeFinalCrawlState(session, result));
         } catch (Exception e) {
             finalState = handleException(e, session, logger);

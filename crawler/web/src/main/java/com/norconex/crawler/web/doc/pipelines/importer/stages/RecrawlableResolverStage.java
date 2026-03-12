@@ -80,9 +80,12 @@ public class RecrawlableResolverStage extends AbstractImporterStage {
             // re-queue the redirect URL target or it may be wrongfully
             // considered orphan if not referenced somewhere else during the
             // crawl.
-            if (StringUtils.isNotBlank(cachedDocContext.getRedirectTarget())) {
+            var redirectTarget = cachedDocContext.getRedirectTarget();
+            if (StringUtils.isNotBlank(redirectTarget)
+                    && !crawlContext.getCrawlEntryLedger()
+                            .exists(redirectTarget)) {
                 crawlContext.getCrawlEntryLedger()
-                        .getBaselineEntry(cachedDocContext.getRedirectTarget())
+                        .getBaselineEntry(redirectTarget)
                         .ifPresent(targetDocInfo -> crawlContext
                                 .getDocPipelines()
                                 .getQueuePipeline()

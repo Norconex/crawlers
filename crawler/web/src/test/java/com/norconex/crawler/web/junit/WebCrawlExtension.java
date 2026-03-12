@@ -17,19 +17,28 @@ package com.norconex.crawler.web.junit;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.function.Consumer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
+import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest.DefaultWebCrawlerConfigModifier;
+import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
 
 /**
  * JUnit 5 extension backing the {@link WebCrawlTest} annotation.
@@ -37,6 +46,10 @@ import com.norconex.crawler.web.junit.WebCrawlTest.DefaultWebCrawlerConfigModifi
  * for test methods.
  */
 public class WebCrawlExtension implements ParameterResolver {
+
+    private static final ExtensionContext.Namespace NAMESPACE =
+            ExtensionContext.Namespace.create(WebCrawlExtension.class);
+    private static final String CONFIG_KEY = "web-crawl-config";
 
     @Override
     public boolean supportsParameter(
@@ -50,7 +63,8 @@ public class WebCrawlExtension implements ParameterResolver {
     public Object resolveParameter(
             ParameterContext paramCtx, ExtensionContext extCtx)
             throws ParameterResolutionException {
-        var config = buildConfig(extCtx);
+        var config = extCtx.getStore(NAMESPACE).getOrComputeIfAbsent(
+                CONFIG_KEY, k -> buildConfig(extCtx), WebCrawlConfig.class);
         var type = paramCtx.getParameter().getType();
 
         if (type == WebCrawlConfig.class) {
@@ -65,7 +79,28 @@ public class WebCrawlExtension implements ParameterResolver {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private WebCrawlConfig buildConfig(ExtensionContext extCtx) {
         var annotation = findAnnotation(extCtx);
-        var config = new WebCrawlConfig();
+
+        Path tempDir;
+        try {
+            tempDir = Files.createTempDirectory("nx-webcrawl-test-");
+        } catch (IOException e) {
+            throw new ParameterResolutionException(
+                    "Cannot create temp directory for test", e);
+        }
+        // Register temp directory cleanup after the test method completes
+        extCtx.getStore(NAMESPACE).put(
+                CONFIG_KEY + ".workDir",
+                (ExtensionContext.Store.CloseableResource) () -> {
+                    try (var walk = Files.walk(tempDir)) {
+                        walk.sorted(Comparator.reverseOrder())
+                                .forEach(p -> p.toFile().delete());
+                    } catch (IOException e) {
+                        // ignore cleanup errors
+                    }
+                });
+
+        var config = CrawlerConfigStubs.memoryCrawlerConfig(tempDir);
+
         // Apply modifier (default = DefaultWebCrawlerConfigModifier sets delay=0)
         Class<? extends Consumer> modifierClass =
                 annotation != null
@@ -78,6 +113,13 @@ public class WebCrawlExtension implements ParameterResolver {
             throw new ParameterResolutionException(
                     "Cannot instantiate configModifier: " + modifierClass, e);
         }
+
+        // Apply YAML config string from annotation if provided
+        if (annotation != null && StringUtils.isNotBlank(annotation.config())) {
+            BeanMapper.DEFAULT.read(
+                    config, new StringReader(annotation.config()), Format.YAML);
+        }
+
         return config;
     }
 

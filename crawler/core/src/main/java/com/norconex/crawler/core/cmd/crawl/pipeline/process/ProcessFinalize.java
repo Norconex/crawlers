@@ -84,7 +84,8 @@ final class ProcessFinalize {
                     && docCtx.getPreviousCrawlEntry() != null) {
                 //TODO maybe new CrawlData instances should be initialized with
                 // some of cache data available instead?
-                BeanUtil.copyPropertiesOverNulls(docCtx,
+                BeanUtil.copyPropertiesOverNulls(
+                        docCtx.getCurrentCrawlEntry(),
                         docCtx.getPreviousCrawlEntry());
             }
 

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import com.norconex.commons.lang.bean.BeanUtil;
 import com.norconex.crawler.core.cluster.CacheManager;
 import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.cluster.CacheNames;
@@ -66,6 +67,8 @@ public final class CrawlEntryLedger {
 
     private CacheMap<CrawlEntry> currentLedger;
     private CacheMap<CrawlEntry> baselineLedger;
+    private String currentLedgerAlias;
+    private String baselineLedgerAlias;
     // The queue owns FIFO ordering; the map owns authoritative entry state.
     // These two structures are intentionally separate: one provides ordering,
     // the other provides status-based queries and key-value access.
@@ -87,12 +90,12 @@ public final class CrawlEntryLedger {
      * Lazily initializes on first access - happens after bootstrap completes.
      */
     private CacheMap<CrawlEntry> getCurrentLedger() {
-        if (currentLedger == null) {
-            var sessionCache = cacheManager.getCrawlSessionCache();
-            var currentAlias = sessionCache.get(CURRENT_LEDGER_ALIAS_KEY)
-                    .orElse(LEDGER_A);
+        var currentAlias = resolveCurrentLedgerAlias();
+        if (currentLedger == null
+                || !currentAlias.equals(currentLedgerAlias)) {
             currentLedger = cacheManager.getCacheMap(
                     currentAlias, CrawlEntry.class);
+            currentLedgerAlias = currentAlias;
             LOG.debug("Lazy-initialized current ledger to: {}", currentAlias);
         }
         return currentLedger;
@@ -103,23 +106,28 @@ public final class CrawlEntryLedger {
      * Lazily initializes on first access.
      */
     private CacheMap<CrawlEntry> getBaselineLedger() {
-        if (baselineLedger == null) {
-            var sessionCache = cacheManager.getCrawlSessionCache();
-            var currentAlias = sessionCache.get(CURRENT_LEDGER_ALIAS_KEY)
-                    .orElse(LEDGER_A);
-            var previousAlias = LEDGER_A.equals(currentAlias)
-                    ? LEDGER_B
-                    : LEDGER_A;
+        var currentAlias = resolveCurrentLedgerAlias();
+        var previousAlias = LEDGER_A.equals(currentAlias) ? LEDGER_B : LEDGER_A;
+        if (baselineLedger == null
+                || !previousAlias.equals(baselineLedgerAlias)) {
             if (cacheManager.cacheExists(previousAlias)) {
                 baselineLedger = cacheManager.getCacheMap(
                         previousAlias, CrawlEntry.class);
+                baselineLedgerAlias = previousAlias;
             } else {
                 baselineLedger = null;
+                baselineLedgerAlias = null;
             }
             LOG.debug("Lazy-initialized baseline ledger to: {}",
                     previousAlias);
         }
         return baselineLedger;
+    }
+
+    private String resolveCurrentLedgerAlias() {
+        return cacheManager.getCrawlSessionCache()
+                .get(CURRENT_LEDGER_ALIAS_KEY)
+                .orElse(LEDGER_A);
     }
 
     /**
@@ -232,6 +240,12 @@ public final class CrawlEntryLedger {
         var current = getCurrentLedger();
         var previous = current.get(reference);
         current.put(reference, entry);
+        if (ProcessingStatus.PROCESSED.is(entry.getProcessingStatus())) {
+            var baseline = getBaselineLedger();
+            if (baseline != null) {
+                baseline.remove(reference);
+            }
+        }
         return previous;
     }
 
@@ -307,13 +321,56 @@ public final class CrawlEntryLedger {
             return;
         }
 
+        var queuedEntry = BeanUtil.clone(crawlEntry);
+
         // Store the full entry in the ledger and only the reference
         // in the queue
-        crawlEntry.setProcessingStatus(ProcessingStatus.QUEUED);
-        current.put(crawlEntry.getReference(), crawlEntry);
-        queue.add(crawlEntry.getReference());
-        LOG.debug("Queued for processing: {}", crawlEntry.getReference());
-        onQueued.accept(crawlEntry);
+        queuedEntry.setProcessingStatus(ProcessingStatus.QUEUED);
+        current.put(queuedEntry.getReference(), queuedEntry);
+        queue.add(queuedEntry.getReference());
+        LOG.debug("Queued for processing: {}", queuedEntry.getReference());
+        onQueued.accept(queuedEntry);
+    }
+
+    public boolean requeueEntry(@NonNull String reference) {
+        return getEntry(reference)
+                .map(this::requeueEntry)
+                .orElseGet(() -> {
+                    LOG.debug("Cannot requeue missing reference: {}",
+                            reference);
+                    return false;
+                });
+    }
+
+    public boolean requeueEntry(@NonNull CrawlEntry crawlEntry) {
+        var reference = crawlEntry.getReference();
+        var current = getCurrentLedger();
+        var entryOpt = current.get(reference);
+        if (entryOpt.isEmpty()) {
+            LOG.debug("Cannot requeue missing reference: {}", reference);
+            return false;
+        }
+
+        var existingEntry = entryOpt.get();
+        if (ProcessingStatus.QUEUED.is(existingEntry.getProcessingStatus())) {
+            LOG.debug("Reference already queued for processing: {}",
+                    reference);
+            return false;
+        }
+        if (ProcessingStatus.PROCESSING
+                .is(existingEntry.getProcessingStatus())) {
+            LOG.debug("Reference already processing: {}", reference);
+            return false;
+        }
+
+        var queuedEntry = BeanUtil.clone(crawlEntry);
+        queuedEntry.setProcessingStatus(ProcessingStatus.QUEUED);
+        current.put(reference, queuedEntry);
+        queue.add(reference);
+        LOG.debug("Re-queued tracked reference for processing: {}",
+                reference);
+        onQueued.accept(queuedEntry);
+        return true;
     }
 
     public List<CrawlEntry> nextQueuedBatch(int batchSize) {
@@ -495,15 +552,7 @@ public final class CrawlEntryLedger {
         // Clear previous baseline ledger (old current run) if it was initialized
         var baseline = getBaselineLedger();
         if (baseline != null) {
-            try {
-                baseline.clear(); // Use bulk clear for efficiency
-                LOG.info("Cleared previous baseline ledger using clear().");
-            } catch (Exception e) {
-                LOG.warn("Failed to clear baseline ledger with clear(), "
-                        + "falling back to per-entry removal: {}",
-                        e.toString());
-                baseline.forEach((key, value) -> baseline.remove(key));
-            }
+            clearLedgerEntries(baseline, "previous baseline");
         }
 
         // Flip alias for current ledger in session cache
@@ -520,19 +569,12 @@ public final class CrawlEntryLedger {
             var entryType = CrawlEntry.class;
             currentLedger =
                     cacheManager.getCacheMap(newAlias, entryType);
+            currentLedgerAlias = newAlias;
             baselineLedger = cacheManager.cacheExists(previousAlias)
                     ? cacheManager.getCacheMap(previousAlias, entryType)
                     : null;
-            try {
-                currentLedger.clear(); // Use bulk clear for efficiency
-                LOG.info("Cleared new current ledger using clear().");
-            } catch (Exception e) {
-                LOG.warn("Failed to clear current ledger with clear(), "
-                        + "falling back to per-entry removal: {}",
-                        e.toString());
-                currentLedger
-                        .forEach((key, value) -> currentLedger.remove(key));
-            }
+            baselineLedgerAlias = baselineLedger == null ? null : previousAlias;
+            clearLedgerEntries(currentLedger, "new current");
         } else {
             LOG.info("Alias unchanged; caches not recreated.");
         }
@@ -556,6 +598,19 @@ public final class CrawlEntryLedger {
     }
 
     //--- Private methods ------------------------------------------------------
+
+    private void clearLedgerEntries(
+            CacheMap<CrawlEntry> ledger, String ledgerLabel) {
+        var keys = new java.util.ArrayList<String>();
+        ledger.forEach((key, value) -> keys.add(key));
+        if (keys.isEmpty()) {
+            LOG.info("Cleared {} ledger: already empty.", ledgerLabel);
+            return;
+        }
+        keys.forEach(ledger::remove);
+        LOG.info("Cleared {} ledger by removing {} entries.",
+                ledgerLabel, keys.size());
+    }
 
     //    /**
     //     * Atomically claims a QUEUED entry for processing, updating its status

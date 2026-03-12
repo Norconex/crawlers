@@ -45,6 +45,7 @@ public final class CrawlerConfigStubs {
                 .setId(CRAWLER_ID)
                 .setNumThreads(1)
                 .setWorkDir(workDir)
+                .setIdleTimeout(Duration.ofMillis(500))
                 .setCommitters(List.of(new MemoryCommitter()));
         ((GenericDelayResolver) cfg.getDelayResolver())
                 .getConfiguration().setDefaultDelay(Duration.ZERO);

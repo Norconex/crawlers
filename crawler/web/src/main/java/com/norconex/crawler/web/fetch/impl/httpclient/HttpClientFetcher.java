@@ -604,14 +604,12 @@ public class HttpClientFetcher
                 d -> builder.setConnectionRequestTimeout(
                         d.toMillis(), TimeUnit.MILLISECONDS));
         builder.setMaxRedirects(configuration.getMaxRedirects())
+                .setRedirectsEnabled(configuration.getMaxRedirects() > 0)
                 .setExpectContinueEnabled(
                         configuration.isExpectContinueEnabled())
                 .setCookieSpec(
                         Objects.toString(
                                 configuration.getCookieSpec(), null));
-        if (configuration.getMaxRedirects() <= 0) {
-            builder.setRedirectsEnabled(false);
-        }
         return builder.build();
     }
 

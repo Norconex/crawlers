@@ -19,8 +19,8 @@ import static org.mockito.Mockito.lenient;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -190,6 +190,66 @@ class CrawlEntryLedgerTest {
         assertThat(ledger.getProcessingStatus("ref-1"))
                 .isEqualTo(ProcessingStatus.PROCESSED);
         assertThat(ledger.getProcessedCount()).isEqualTo(1);
+    }
+
+    @Test
+    void testUpdateEntry_processedEntryRemovesMatchingBaselineEntry() {
+        ledger.queue(entry("ref-1"));
+        ledger.queue(entry("ref-2"));
+        ledger.archiveCurrentLedger();
+
+        ledger.queue(entry("ref-1"));
+        var entry = ledger.nextQueuedBatch(1).get(0);
+        entry.setProcessingStatus(ProcessingStatus.PROCESSED);
+        entry.setProcessingOutcome(ProcessingOutcome.UNMODIFIED);
+
+        ledger.updateEntry(entry);
+
+        assertThat(ledger.getBaselineCount()).isEqualTo(1);
+        assertThat(ledger.getBaselineEntry("ref-1")).isEmpty();
+        assertThat(ledger.getBaselineEntry("ref-2")).isPresent();
+    }
+
+    @Test
+    void testRequeueEntry_requeuesExistingProcessedEntry() {
+        ledger.queue(entry("ref-1"));
+        var entry = ledger.nextQueuedBatch(1).get(0);
+        entry.setProcessingStatus(ProcessingStatus.PROCESSED);
+        entry.setProcessingOutcome(ProcessingOutcome.REJECTED);
+        ledger.updateEntry(entry);
+
+        var requeued = ledger.requeueEntry("ref-1");
+
+        assertThat(requeued).isTrue();
+        assertThat(ledger.getProcessingStatus("ref-1"))
+                .isEqualTo(ProcessingStatus.QUEUED);
+        assertThat(ledger.getQueueCount()).isEqualTo(1);
+    }
+
+    @Test
+    void testRequeueEntry_replacesTrackedEntryState() {
+        ledger.queue(entry("ref-1"));
+        var existing = ledger.nextQueuedBatch(1).get(0);
+        existing.setProcessingStatus(ProcessingStatus.PROCESSED);
+        existing.setProcessingOutcome(ProcessingOutcome.REJECTED);
+        ledger.updateEntry(existing);
+
+        var replacement = entry("ref-1");
+        replacement.setProcessingOutcome(ProcessingOutcome.NEW);
+        replacement.setDepth(5);
+
+        var requeued = ledger.requeueEntry(replacement);
+
+        assertThat(requeued).isTrue();
+        assertThat(ledger.getQueueCount()).isEqualTo(1);
+        assertThat(ledger.getEntry("ref-1")).get()
+                .extracting(CrawlEntry::getProcessingStatus,
+                        CrawlEntry::getProcessingOutcome,
+                        CrawlEntry::getDepth)
+                .containsExactly(
+                        ProcessingStatus.QUEUED,
+                        ProcessingOutcome.NEW,
+                        5);
     }
 
     @Test
