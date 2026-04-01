@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.cluster;
 
-import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
+import com.norconex.crawler.core.cluster.impl.standalone.StandaloneClusterConnector;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -30,11 +30,12 @@ public class ClusterConfig {
 
     /**
      * The connector to the cluster implementation used to run the crawler.
-     * Default (Hazelcast) handles both running the crawler on single and
-     * multiple nodes.
+     * Default is a standalone in-memory connector with no external
+     * infrastructure. For clustered mode, set this to a
+     * {@link com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector}.
      */
     private ClusterConnector connector =
-            new HazelcastClusterConnector();
+            new StandaloneClusterConnector();
     /**
      * Disable launching the crawler administrative server endpoints.
      */

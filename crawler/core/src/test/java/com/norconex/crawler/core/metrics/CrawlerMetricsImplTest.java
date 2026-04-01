@@ -183,7 +183,7 @@ class CrawlerMetricsImplTest {
     @Test
     void getQueuedCount_delegatesToLedger() {
         var ledger = mock(CrawlEntryLedger.class);
-        when(ledger.getQueueCount()).thenReturn(12L);
+        when(ledger.getQueuedEntryCount()).thenReturn(12L);
 
         @SuppressWarnings("unchecked")
         var metrics = buildInitialized(ledger, mock(CacheMap.class));
@@ -229,7 +229,7 @@ class CrawlerMetricsImplTest {
     @Test
     void close_withInitedStore_syncsAndCloses() {
         var ledger = mock(CrawlEntryLedger.class);
-        when(ledger.getQueueCount()).thenReturn(3L);
+        when(ledger.getQueuedEntryCount()).thenReturn(3L);
         when(ledger.getProcessingCount()).thenReturn(1L);
         when(ledger.getProcessedCount()).thenReturn(99L);
         when(ledger.getBaselineCount()).thenReturn(50L);

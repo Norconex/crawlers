@@ -120,7 +120,7 @@ public class CrawlProcessStep extends BaseStep {
         }
         var ledger = s.getCrawlContext().getCrawlEntryLedger();
         var processed = ledger.getProcessedCount();
-        var queued = ledger.getQueueCount();
+        var queued = ledger.getQueuedEntryCount();
         var denom = processed + queued;
         var progress =
                 denom <= 0 ? 0.0f
@@ -144,7 +144,7 @@ public class CrawlProcessStep extends BaseStep {
                 + "processedCount= {}.",
                 nodeName,
                 session.getCrawlContext().getCrawlEntryLedger()
-                        .getQueueCount(),
+                        .getQueuedEntryCount(),
                 session.getCrawlContext().getCrawlEntryLedger()
                         .getProcessingCount(),
                 session.getCrawlContext().getCrawlEntryLedger()
@@ -180,7 +180,7 @@ public class CrawlProcessStep extends BaseStep {
                         nodeName, threadIndex,
                         session.getCrawlContext()
                                 .getCrawlEntryLedger()
-                                .getQueueCount(),
+                                .getQueuedEntryCount(),
                         session.getCrawlContext()
                                 .getCrawlEntryLedger()
                                 .getProcessingCount(),

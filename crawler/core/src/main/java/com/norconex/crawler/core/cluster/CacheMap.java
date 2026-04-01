@@ -42,13 +42,16 @@ public interface CacheMap<T> {
             Function<String, ? extends T> mappingFunction);
 
     Optional<T> computeIfPresent(String key,
-            BiFunction<String, ? super T, ? extends T> remappingFunction);
+            BiFunction<String, ? super T,
+                    ? extends T> remappingFunction);
 
     Optional<T> compute(String key,
-            BiFunction<String, ? super T, ? extends T> remappingFunction);
+            BiFunction<String, ? super T,
+                    ? extends T> remappingFunction);
 
     T merge(String key, T value,
-            BiFunction<? super T, ? super T, ? extends T> remappingFunction);
+            BiFunction<? super T, ? super T,
+                    ? extends T> remappingFunction);
 
     boolean containsKey(String key);
 
@@ -115,7 +118,7 @@ public interface CacheMap<T> {
      */
     /*
     void queryStream(QueryFilter filter, Consumer<T> consumer,
-            int batchSize);
+        int batchSize);
     */
 
     /**
@@ -145,6 +148,17 @@ public interface CacheMap<T> {
      * @return a list of all keys in the cache
      */
     List<String> keys();
+
+    /**
+     * Eagerly loads all entries from the backing store (e.g., JDBC) into
+     * this cache. For caches configured with {@code LAZY} initial load mode,
+     * this ensures sub­sequent {@link #size()}, {@link #forEach}, and
+     * {@link #keys()} calls return correct results. If the cache already
+     * has its data loaded (e.g., {@code EAGER} mode), this is a no-op.
+     */
+    default void loadAll() {
+        // no-op by default — implementations override when backed by a store
+    }
 
     /**
      * Returns whether this cache persists data across restarts.

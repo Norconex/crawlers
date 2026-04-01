@@ -69,6 +69,26 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class JdbcHazelcastConfigurer implements HazelcastConfigurer {
 
+    private static final Map<String, String> STANDALONE_HAZELCAST_DEFAULTS =
+            Map.ofEntries(
+                    Map.entry("hazelcast.operation.thread.count", "2"),
+                    Map.entry(
+                            "hazelcast.operation.generic.thread.count",
+                            "2"),
+                    Map.entry(
+                            "hazelcast.operation.priority.generic.thread.count",
+                            "1"),
+                    Map.entry(
+                            "hazelcast.operation.response.thread.count",
+                            "1"),
+                    Map.entry("hazelcast.event.thread.count", "2"),
+                    Map.entry("hazelcast.io.input.thread.count", "1"),
+                    Map.entry("hazelcast.io.output.thread.count", "1"),
+                    Map.entry("hazelcast.metrics.enabled", "false"),
+                    Map.entry(
+                            "hazelcast.slow.operation.detector.enabled",
+                            "false"));
+
     /** Factory class for JDBC-backed map stores. */
     public static final String MAP_STORE_FACTORY_CLASS =
             TypedJdbcMapStoreFactory.class.getName();
@@ -125,10 +145,28 @@ public class JdbcHazelcastConfigurer implements HazelcastConfigurer {
     // -----------------------------------------------------------------
 
     /**
-     * Write-behind delay in seconds.
-     * {@code 0} (default) makes writes synchronous (write-through).
+     * Write-behind delay in seconds for data maps (ledger, session, etc.).
+     * {@code 0} makes writes synchronous (write-through).
+     * Default is {@code 5}, which batches writes for significantly better
+     * throughput. Pipeline coordination maps always use write-through
+     * regardless of this setting.
      */
-    private int writeDelaySeconds;
+    private int writeDelaySeconds = 5;
+
+    /**
+     * Maximum number of entries per write-behind batch.
+     * Only effective when {@link #writeDelaySeconds} &gt; 0.
+     * Default is {@code 100}.
+     */
+    private int writeBatchSize = 100;
+
+    /**
+     * Whether to coalesce write-behind updates so that only the latest
+     * value for each key is persisted per batch.
+     * Only effective when {@link #writeDelaySeconds} &gt; 0.
+     * Default is {@code true}.
+     */
+    private boolean writeCoalescing = true;
 
     /**
      * SQL column type for map/queue keys. Defaults to
@@ -154,11 +192,14 @@ public class JdbcHazelcastConfigurer implements HazelcastConfigurer {
 
     /**
      * Hazelcast map-store initial load mode.
-     * {@link InitialLoadMode#EAGER} (default) loads all entries as soon as the
-     * cluster member starts. {@link InitialLoadMode#LAZY} defers loading until
-     * a key is accessed, which can significantly speed up test startup.
+     * {@link InitialLoadMode#LAZY} (default) defers loading until an entry
+     * is accessed, which speeds up startup. Critical maps such as the crawl
+     * ledger call {@code loadAll()} explicitly when they are first used so
+     * that operations like {@code size()} and iteration return correct
+     * results. {@link InitialLoadMode#EAGER} loads all entries as soon as
+     * the cluster member starts.
      */
-    private InitialLoadMode initialLoadMode = InitialLoadMode.EAGER;
+    private InitialLoadMode initialLoadMode = InitialLoadMode.LAZY;
 
     // -----------------------------------------------------------------
     // Cluster settings
@@ -200,6 +241,15 @@ public class JdbcHazelcastConfigurer implements HazelcastConfigurer {
      */
     private Boolean jetEnabled;
 
+    /**
+     * Whether queue-store persistence should be enabled for Hazelcast queues.
+     * <p>
+     * Defaults to {@code true}. Set to {@code false} for tests that do not
+     * require persistent queue recovery and prioritize startup/runtime speed.
+     * </p>
+     */
+    private boolean queueStoreEnabled = true;
+
     // -----------------------------------------------------------------
     // Advanced / escape-hatch
     // -----------------------------------------------------------------
@@ -232,6 +282,7 @@ public class JdbcHazelcastConfigurer implements HazelcastConfigurer {
         configureNetwork(config, ctx.clustered());
         addMapConfigs(config, effectiveBackupCount, effectiveSqlMerge);
         addQueueConfigs(config, effectiveBackupCount);
+        applyStandaloneDefaults(config, ctx.clustered());
         applyHazelcastProperties(config);
 
         return config;
@@ -371,24 +422,25 @@ public class JdbcHazelcastConfigurer implements HazelcastConfigurer {
 
     private void addMapConfigs(Config cfg, int backups,
             String effectiveSqlMerge) {
-        // Default / catch-all map config.
+        // Default / catch-all map config (write-behind).
         cfg.addMapConfig(buildMapConfig("default", backups, null,
-                effectiveSqlMerge));
+                effectiveSqlMerge, false));
 
-        // Pipe maps with explicit value type.
+        // Pipe maps: write-through (synchronous) because they coordinate
+        // pipeline steps across nodes and must never be stale.
         var stepClass = StepRecord.class.getName();
         cfg.addMapConfig(
                 buildMapConfig("pipeCurrentStep", backups, stepClass,
-                        effectiveSqlMerge));
+                        effectiveSqlMerge, true));
         cfg.addMapConfig(
                 buildMapConfig("pipeWorkerStatuses", backups, stepClass,
-                        effectiveSqlMerge));
+                        effectiveSqlMerge, true));
 
         // Ledger wildcard: value-class-name is the base type here, but it is
         // overridden at startup by HazelcastCluster.applyCacheTypes() with the
         // concrete CrawlEntry subclass registered by the driver.
         cfg.addMapConfig(buildMapConfig("ledger_*", backups,
-                CrawlEntry.class.getName(), effectiveSqlMerge));
+                CrawlEntry.class.getName(), effectiveSqlMerge, false));
 
         // Ephemeral maps — in-memory only, no persistence.
         var ephStore = new MapStoreConfig();
@@ -401,7 +453,8 @@ public class JdbcHazelcastConfigurer implements HazelcastConfigurer {
 
     private MapConfig buildMapConfig(
             String name, int backups,
-            String valueClassName, String effectiveSqlMerge) {
+            String valueClassName, String effectiveSqlMerge,
+            boolean writeThrough) {
         var props = new Properties();
         if (StringUtils.isNotBlank(valueClassName)) {
             props.setProperty("value-class-name", valueClassName);
@@ -415,9 +468,18 @@ public class JdbcHazelcastConfigurer implements HazelcastConfigurer {
         storeConfig.setEnabled(true);
         storeConfig.setOffload(true);
         storeConfig.setInitialLoadMode(initialLoadMode);
-        storeConfig.setWriteDelaySeconds(writeDelaySeconds);
         storeConfig.setFactoryClassName(MAP_STORE_FACTORY_CLASS);
         storeConfig.setProperties(props);
+
+        if (writeThrough) {
+            storeConfig.setWriteDelaySeconds(0);
+        } else {
+            storeConfig.setWriteDelaySeconds(writeDelaySeconds);
+            if (writeDelaySeconds > 0) {
+                storeConfig.setWriteBatchSize(writeBatchSize);
+                storeConfig.setWriteCoalescing(writeCoalescing);
+            }
+        }
 
         var mapConfig = new MapConfig(name);
         mapConfig.setBackupCount(backups);
@@ -429,9 +491,10 @@ public class JdbcHazelcastConfigurer implements HazelcastConfigurer {
         var storeProps = new Properties();
         storeProps.setProperty("data-connection-ref", DATA_CONNECTION_REF);
         storeProps.setProperty("column-value-type", "VARCHAR(4096)");
+        storeProps.setProperty("value-class-name", String.class.getName());
 
         var storeConfig = new QueueStoreConfig();
-        storeConfig.setEnabled(true);
+        storeConfig.setEnabled(queueStoreEnabled);
         storeConfig.setFactoryClassName(QUEUE_STORE_FACTORY_CLASS);
         storeConfig.setProperties(storeProps);
 
@@ -439,6 +502,17 @@ public class JdbcHazelcastConfigurer implements HazelcastConfigurer {
         queueConfig.setBackupCount(backups);
         queueConfig.setQueueStoreConfig(storeConfig);
         cfg.addQueueConfig(queueConfig);
+    }
+
+    private void applyStandaloneDefaults(Config cfg, boolean clustered) {
+        if (clustered) {
+            return;
+        }
+        for (var entry : STANDALONE_HAZELCAST_DEFAULTS.entrySet()) {
+            if (cfg.getProperty(entry.getKey()) == null) {
+                cfg.setProperty(entry.getKey(), entry.getValue());
+            }
+        }
     }
 
     private void applyHazelcastProperties(Config cfg) {

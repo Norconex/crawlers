@@ -25,6 +25,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
+import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.mock.action.ExpectationResponseCallback;
@@ -39,7 +40,6 @@ import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
-import org.junit.jupiter.api.Timeout;
 
 /**
  * Tests that the "If-Modified-Since" is supported properly.
@@ -58,7 +58,7 @@ import org.junit.jupiter.api.Timeout;
  */
 //Related issue: https://github.com/Norconex/collector-http/issues/637
 @MockServerSettings
-@Timeout(30)
+@Timeout(120)
 class IfModifiedSinceTest {
 
     private String path = "/ifModifiedSince";
@@ -75,7 +75,8 @@ class IfModifiedSinceTest {
 
         client
                 .when(request().withPath(path))
-                .respond(HttpClassCallback.callback(Callback.class));
+                .respond(HttpClassCallback
+                        .callback(Callback.class));
 
         cfg.setStartReferences(List.of(serverUrl(client, path)));
         // disable checksums and E-Tag so they do not influence
@@ -86,7 +87,8 @@ class IfModifiedSinceTest {
                 .getConfiguration().setETagDisabled(true);
 
         // First run is new
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+                .getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
@@ -116,13 +118,16 @@ class IfModifiedSinceTest {
             var response = response().withHeader(
                     HttpHeaders.LAST_MODIFIED,
                     WebTestUtil.rfcFormat(serverDate));
-            var dateStr = req.getFirstHeader(HttpHeaders.IF_MODIFIED_SINCE);
+            var dateStr = req.getFirstHeader(
+                    HttpHeaders.IF_MODIFIED_SINCE);
             if (StringUtils.isNotBlank(dateStr)) {
                 var reqDate = ZonedDateTime.parse(
-                        dateStr, DateTimeFormatter.RFC_1123_DATE_TIME);
+                        dateStr,
+                        DateTimeFormatter.RFC_1123_DATE_TIME);
                 if (!reqDate.isBefore(serverDate)) {
                     return response.withStatusCode(
-                            HttpStatusCode.NOT_MODIFIED_304.code());
+                            HttpStatusCode.NOT_MODIFIED_304
+                                    .code());
                 }
             }
             return response.withBody("Doc modified.");

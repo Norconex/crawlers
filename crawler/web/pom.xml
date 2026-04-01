@@ -356,6 +356,21 @@
         <artifactId>gmavenplus-plugin</artifactId>
       </plugin>
 
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>
+            ${jacocoArgLine}
+            -Xms512m
+            -Xmx1024m
+            -Djava.net.preferIPv4Stack=true
+            -Dio.netty.tryReflectionSetAccessible=true
+          </argLine>
+          <excludedGroups>${surefire.excludedGroups}</excludedGroups>
+        </configuration>
+      </plugin>
+
     </plugins>
   </build>
   

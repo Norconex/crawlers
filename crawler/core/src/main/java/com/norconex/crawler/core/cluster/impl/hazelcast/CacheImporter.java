@@ -68,6 +68,8 @@ class CacheImporter {
         var queueConfig = cfg.getQueueConfig(cacheName);
         var storeConfig = queueConfig.getQueueStoreConfig();
         if (storeConfig != null) {
+            storeConfig.getProperties().setProperty(
+                    "value-class-name", targetClass.getName());
             var factory = storeConfig.getFactoryImplementation();
             if (factory == null) {
                 factory = new TypedJdbcQueueStoreFactory();

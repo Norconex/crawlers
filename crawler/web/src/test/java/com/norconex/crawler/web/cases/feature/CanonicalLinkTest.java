@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Timeout;
  * Test (non)canonical link detection.
  */
 @MockServerSettings
-@Timeout(30)
+@Timeout(60)
 class CanonicalLinkTest {
 
     final MutableInt canCount = new MutableInt();

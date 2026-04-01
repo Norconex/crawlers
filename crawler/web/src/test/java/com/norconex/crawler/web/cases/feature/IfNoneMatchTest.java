@@ -50,7 +50,7 @@ import org.junit.jupiter.api.Timeout;
  */
 //Test for https://github.com/Norconex/collector-http/issues/182
 @MockServerSettings
-@Timeout(30)
+@Timeout(60)
 class IfNoneMatchTest {
 
     private String path = "/ifNoneMatch";

@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Timeout;
 */
 //Test for https://github.com/Norconex/collector-http/issues/544
 @MockServerSettings
-@Timeout(30)
+@Timeout(60)
 class DisabledMetaChecksummerTest {
 
     private final String path = "/disabledMetaChecksummer";

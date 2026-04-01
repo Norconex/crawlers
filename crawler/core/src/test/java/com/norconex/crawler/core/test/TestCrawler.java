@@ -19,7 +19,9 @@ import static java.util.Optional.ofNullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -51,12 +53,22 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TestCrawler implements Closeable {
 
+    private record ChildProcessCleanupResult(
+            Long pid,
+            String outcome,
+            Throwable failure) {
+    }
+
     private static final String TEST_RESULT_FILE_NAME = "testResults.json";
     // Some clustered crawls finish but the child JVM can linger (e.g., Hazelcast
     // shutdown/repartition on Windows). For test determinism, treat the presence
     // of terminal crawl events in the periodically-written result file as
     // completion, then give the process a short grace period to exit.
     private static final long RESULT_POLL_INTERVAL_MS = 250;
+    private static final int RESULT_READ_RETRY_COUNT = 4;
+    private static final long RESULT_READ_RETRY_DELAY_MS = 50;
+    private static final int RESULT_DELETE_RETRY_COUNT = 4;
+    private static final long RESULT_DELETE_RETRY_DELAY_MS = 50;
     private static final long EXIT_GRACE_PERIOD_MS = 3_000;
     private static final String STREAM_CHILD_LOGS_PROP =
             "norconex.tests.streamChildLogs";
@@ -143,6 +155,10 @@ public class TestCrawler implements Closeable {
         if (instrument.getConfigModifier() != null) {
             instrument.getConfigModifier().accept(crawlConfig);
         }
+        if (instrument.getNodeConfigModifier() != null) {
+            instrument.getNodeConfigModifier().accept(
+                    instrument.getNodeName(), crawlConfig);
+        }
     }
 
     public CrawlTestNodeOutput crawl() {
@@ -194,6 +210,7 @@ public class TestCrawler implements Closeable {
     @Override
     public void close() throws IOException {
         LOG.info("TestCrawler.close() called for cleanup.");
+        ChildProcessCleanupResult childProcessCleanupResult = null;
         if (instrument.isRecordEvents()) {
             crawlConfig.removeEventListener(eventNameRecorder);
             LOG.info("EventNameRecorder removed.");
@@ -205,27 +222,50 @@ public class TestCrawler implements Closeable {
 
         // Destroy child process if still running
         var process = childProcess.get();
-        if (process != null && process.isAlive()) {
-            LOG.info("Destroying child JVM process forcibly.");
-            process.destroyForcibly();
-            ALL_CHILD_PROCESSES.remove(process);
-            try {
-                // Wait a bit for the process to terminate
-                if (process.waitFor(5, TimeUnit.SECONDS)) {
-                    LOG.info("Child JVM process terminated gracefully.");
-                } else {
-                    LOG.warn(
-                            "Child JVM process did not terminate within timeout.");
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+        if (process != null) {
+            childProcessCleanupResult = cleanupChildProcess(process);
+            if (childProcessCleanupResult.failure() == null) {
+                LOG.info(
+                        "Child process cleanup summary: node='{}', pid={}, outcome='{}'",
+                        instrument.getNodeName(),
+                        childProcessCleanupResult.pid(),
+                        childProcessCleanupResult.outcome());
+            } else {
                 LOG.warn(
-                        "Interrupted while waiting for child process to terminate.");
+                        "Child process cleanup summary: node='{}', pid={}, outcome='{}'",
+                        instrument.getNodeName(),
+                        childProcessCleanupResult.pid(),
+                        childProcessCleanupResult.outcome(),
+                        childProcessCleanupResult.failure());
             }
         }
 
         // No explicit Hazelcast or CacheManager shutdown here; handled by underlying Crawler.
         LOG.info("TestCrawler.close() cleanup complete.");
+    }
+
+    private ChildProcessCleanupResult cleanupChildProcess(Process process) {
+        var pid = process.pid();
+        if (!process.isAlive()) {
+            ALL_CHILD_PROCESSES.remove(process);
+            return new ChildProcessCleanupResult(pid, "already-exited", null);
+        }
+
+        LOG.info("Destroying child JVM process forcibly.");
+        process.destroyForcibly();
+        ALL_CHILD_PROCESSES.remove(process);
+        try {
+            if (process.waitFor(5, TimeUnit.SECONDS)) {
+                return new ChildProcessCleanupResult(pid,
+                        "terminated-after-destroy", null);
+            }
+            return new ChildProcessCleanupResult(pid,
+                    "still-alive-after-timeout", null);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return new ChildProcessCleanupResult(pid,
+                    "wait-interrupted", e);
+        }
     }
 
     /**
@@ -455,12 +495,7 @@ public class TestCrawler implements Closeable {
         // result file so terminal result detection does not pick up stale data.
         var resultPath = instrument.getCrawlConfig().getWorkDir()
                 .resolve(TEST_RESULT_FILE_NAME);
-        try {
-            Files.deleteIfExists(resultPath);
-        } catch (IOException e) {
-            LOG.warn("Could not delete stale {} for node {} at {}",
-                    TEST_RESULT_FILE_NAME, nodeName, resultPath, e);
-        }
+        deleteStaleResultFile(nodeName, resultPath);
 
         final long processStartMillis = System.currentTimeMillis();
         var streamChildLogs = Boolean.getBoolean(STREAM_CHILD_LOGS_PROP);
@@ -468,6 +503,7 @@ public class TestCrawler implements Closeable {
         var launcher = JvmLauncher.builder()
                 .mainClass(TestCrawler.class)
                 .workDir(workDir)
+                .jvmArg("-Dnorconex.tests.nodeName=" + nodeName)
                 .appArg(instrumentPath.toAbsolutePath().toString());
         if (streamChildLogs) {
             launcher
@@ -607,19 +643,92 @@ public class TestCrawler implements Closeable {
     private CrawlTestNodeOutput deserializeNodeTestResults() {
         var resultPath = instrument.getCrawlConfig().getWorkDir()
                 .resolve(TEST_RESULT_FILE_NAME);
-        if (Files.exists(resultPath)) {
+        for (int attempt = 1; attempt <= RESULT_READ_RETRY_COUNT; attempt++) {
+            if (!Files.isRegularFile(resultPath)) {
+                if (attempt == 1) {
+                    LOG.trace("No node test results at: {}", resultPath);
+                }
+                return new CrawlTestNodeOutput(List.of(), List.of(), Map.of());
+            }
             try {
                 return CoreTestUtil.readFromFile(resultPath,
                         CrawlTestNodeOutput.class);
             } catch (Exception e) {
-                // File exists but is empty or invalid (e.g., node was stopped
-                // prematurely before writing results)
-                LOG.debug("Could not read node test results from {}: {}",
-                        resultPath, e.getMessage());
+                if (attempt < RESULT_READ_RETRY_COUNT
+                        && isTransientResultReadFailure(e)) {
+                    sleepQuietly(RESULT_READ_RETRY_DELAY_MS);
+                    continue;
+                }
+
+                // File may still be empty/invalid when a node stops early,
+                // but only surface that after a few retries so Windows file
+                // replace races do not spam debug logs.
+                LOG.debug(
+                        "Could not read node test results from {} after {} attempts: {}",
+                        resultPath,
+                        attempt,
+                        e.getMessage());
                 return new CrawlTestNodeOutput(List.of(), List.of(), Map.of());
             }
         }
-        LOG.trace("No node test results at: {}", resultPath);
         return new CrawlTestNodeOutput(List.of(), List.of(), Map.of());
+    }
+
+    private void deleteStaleResultFile(String nodeName, Path resultPath) {
+        IOException lastFailure = null;
+        for (int attempt = 1; attempt <= RESULT_DELETE_RETRY_COUNT; attempt++) {
+            try {
+                Files.deleteIfExists(resultPath);
+                return;
+            } catch (IOException e) {
+                lastFailure = e;
+                if (attempt < RESULT_DELETE_RETRY_COUNT
+                        && isTransientResultReadFailure(e)) {
+                    LOG.debug(
+                            "Transient stale result cleanup failure for node {} at {} on attempt {}/{}; retrying in {} ms.",
+                            nodeName,
+                            resultPath,
+                            attempt,
+                            RESULT_DELETE_RETRY_COUNT,
+                            RESULT_DELETE_RETRY_DELAY_MS,
+                            e);
+                    sleepQuietly(RESULT_DELETE_RETRY_DELAY_MS);
+                    continue;
+                }
+                break;
+            }
+        }
+        LOG.warn(
+                "Could not delete stale {} for node {} at {} after {} attempts",
+                TEST_RESULT_FILE_NAME,
+                nodeName,
+                resultPath,
+                RESULT_DELETE_RETRY_COUNT,
+                lastFailure);
+    }
+
+    private static boolean isTransientResultReadFailure(Throwable throwable) {
+        var cause = throwable;
+        while (cause != null) {
+            if (cause instanceof AccessDeniedException
+                    || cause instanceof NoSuchFileException) {
+                return true;
+            }
+            if (cause instanceof UncheckedIOException unchecked
+                    && unchecked.getCause() != null) {
+                cause = unchecked.getCause();
+                continue;
+            }
+            cause = cause.getCause();
+        }
+        return false;
+    }
+
+    private static void sleepQuietly(long delayMs) {
+        try {
+            Thread.sleep(delayMs);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 }

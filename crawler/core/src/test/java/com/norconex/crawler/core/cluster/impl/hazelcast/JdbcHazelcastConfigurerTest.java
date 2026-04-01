@@ -90,5 +90,70 @@ class JdbcHazelcastConfigurerTest {
         assertThat(join.getAutoDetectionConfig()).isNotNull();
         assertThat(join.getAutoDetectionConfig().isEnabled()).isFalse();
         assertThat(join.getTcpIpConfig().isEnabled()).isFalse();
+
+        assertThat(hzConfig.getProperty(
+                "hazelcast.operation.thread.count"))
+                        .isEqualTo("2");
+        assertThat(hzConfig.getProperty(
+                "hazelcast.operation.generic.thread.count"))
+                        .isEqualTo("2");
+        assertThat(hzConfig.getProperty(
+                "hazelcast.operation.priority.generic.thread.count"))
+                        .isEqualTo("1");
+        assertThat(hzConfig.getProperty(
+                "hazelcast.operation.response.thread.count"))
+                        .isEqualTo("1");
+        assertThat(hzConfig.getProperty("hazelcast.event.thread.count"))
+                .isEqualTo("2");
+        assertThat(hzConfig
+                .getProperty("hazelcast.io.input.thread.count"))
+                        .isEqualTo("1");
+        assertThat(hzConfig.getProperty(
+                "hazelcast.io.output.thread.count"))
+                        .isEqualTo("1");
+        assertThat(hzConfig.getProperty("hazelcast.metrics.enabled"))
+                .isEqualTo("false");
+        assertThat(hzConfig.getProperty(
+                "hazelcast.slow.operation.detector.enabled"))
+                        .isEqualTo("false");
+    }
+
+    @Test
+    void buildConfig_standalone_allowsExplicitHazelcastOverrides()
+            throws IOException {
+        var cfg = new JdbcHazelcastConfigurer();
+        cfg.getHazelcastProperties()
+                .put("hazelcast.event.thread.count", "7");
+        cfg.getHazelcastProperties()
+                .put("hazelcast.metrics.enabled", "true");
+
+        var hzConfig = cfg.buildConfig(new HazelcastConfigurerContext(
+                tempDir.resolve("standalone-overrides"),
+                false,
+                "cfg-test-standalone-overrides"));
+
+        assertThat(hzConfig.getProperty("hazelcast.event.thread.count"))
+                .isEqualTo("7");
+        assertThat(hzConfig.getProperty("hazelcast.metrics.enabled"))
+                .isEqualTo("true");
+    }
+
+    @Test
+    void buildConfig_clustered_doesNotForceStandaloneThreadDefaults()
+            throws IOException {
+        var cfg = new JdbcHazelcastConfigurer();
+
+        var hzConfig = cfg.buildConfig(new HazelcastConfigurerContext(
+                tempDir.resolve("clustered-thread-defaults"),
+                true,
+                "cfg-test-clustered-thread-defaults"));
+
+        assertThat(hzConfig.getProperty(
+                "hazelcast.operation.thread.count"))
+                        .isNull();
+        assertThat(hzConfig.getProperty("hazelcast.event.thread.count"))
+                .isNull();
+        assertThat(hzConfig.getProperty("hazelcast.metrics.enabled"))
+                .isNull();
     }
 }

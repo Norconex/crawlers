@@ -16,6 +16,9 @@ package com.norconex.crawler.core.cli;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -35,6 +38,7 @@ import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.test.standalone.StandaloneCliCrawlerLauncher;
 import com.norconex.importer.ImporterEvent;
+import com.sun.net.httpserver.HttpServer;
 
 /**
  * CLI commands that execute full lifecycle except for actual crawling.
@@ -269,17 +273,68 @@ class CliLifecycleCommandsTest {
         // stopped, which is tested somewhere else.
         var exit = StandaloneCliCrawlerLauncher
                 .builder()
-                .args(List.of("stop"))
+                .args(List.of("stop", "-url", unavailableAdminUrl()))
                 .workDir(tempDir)
                 .printErrors(false)
                 .build()
                 .launch(twoDocsConfig());
 
-        // must fail as we have not started a crawler yet (nothing to stop)
+        // Must fail because we target an explicit unreachable admin endpoint
+        // rather than the default port-scan, which may find an unrelated local
+        // crawler when tests run in a busy developer environment.
         assertThat(exit.isOK()).isFalse();
 
         assertThat(exit.getStdErr())
                 .contains("Could not connect to crawler endpoint");
+    }
+
+    @Test
+    void testStopCommandUsesDefaultPortScanWhenAdminServerExists()
+            throws IOException {
+        var server = startStopAdminServer();
+        try {
+            var config = twoDocsConfig();
+            config.getClusterConfig().setAdminPort(server.getAddress()
+                    .getPort());
+
+            var exit = StandaloneCliCrawlerLauncher
+                    .builder()
+                    .args(List.of("stop"))
+                    .workDir(tempDir)
+                    .printErrors(false)
+                    .build()
+                    .launch(config);
+
+            assertThat(exit.isOK()).isTrue();
+            assertThat(exit.getStdErr())
+                    .doesNotContain("Could not connect to crawler endpoint");
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    private String unavailableAdminUrl() {
+        try (var socket = new ServerSocket(0)) {
+            return "http://localhost:" + socket.getLocalPort();
+        } catch (IOException e) {
+            throw new IllegalStateException(
+                    "Could not allocate a temporary free port for test.", e);
+        }
+    }
+
+    private HttpServer startStopAdminServer() throws IOException {
+        var server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.createContext("/cluster/stop", exchange -> {
+            try {
+                var body = "ok".getBytes();
+                exchange.sendResponseHeaders(200, body.length);
+                exchange.getResponseBody().write(body);
+            } finally {
+                exchange.close();
+            }
+        });
+        server.start();
+        return server;
     }
 
     private CrawlConfig twoDocsConfig() {

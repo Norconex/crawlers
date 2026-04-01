@@ -18,13 +18,11 @@ import lombok.extern.slf4j.Slf4j;
 public class TypedJdbcQueueStoreFactory
         implements QueueStoreFactory<Object>, LazyTypedStoreFactory {
 
+    private static final String PROP_VALUE_CLASS_NAME = "value-class-name";
+
     private transient HazelcastInstance hazelcastInstance;
     private String hazelcastInstanceName;
     private String valueClassName;
-
-    private static final String TYPE_REGISTRY_MAP = "__cache_types";
-    private static final long TYPE_LOOKUP_TIMEOUT_MS = 2_000;
-    private static final long TYPE_LOOKUP_POLL_MS = 50;
 
     public TypedJdbcQueueStoreFactory() {
         // hz will be set via setHazelcastInstance
@@ -78,46 +76,32 @@ public class TypedJdbcQueueStoreFactory
                                 queueName,
                                 "queue");
 
-        Class<?> vc = resolveValueClass(hz, queueName);
+        Class<?> vc = resolveValueClass(queueName, properties);
         return new TypedJdbcQueueStore<>(
                 hz, queueName, properties, (Class<Object>) vc);
         //        return (QueueStore<Object>) (QueueStore<?>) new StringJdbcQueueStore(
         //                hz, queueName, properties);
     }
 
-    private Class<?> resolveValueClass(HazelcastInstance hz, String queueName) {
-        String typeName = null;
-        try {
-            var typeRegistry = hz.getMap(TYPE_REGISTRY_MAP);
-            var deadline = System.currentTimeMillis() + TYPE_LOOKUP_TIMEOUT_MS;
-            while (typeName == null && System.currentTimeMillis() <= deadline) {
-                typeName = (String) typeRegistry.get(queueName);
-                if (typeName != null) {
-                    break;
-                }
+    private Class<?> resolveValueClass(
+            String queueName, Properties properties) {
+        if (properties != null) {
+            var explicitType = properties.getProperty(PROP_VALUE_CLASS_NAME);
+            if (explicitType != null && !explicitType.isBlank()) {
                 try {
-                    Thread.sleep(TYPE_LOOKUP_POLL_MS);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
+                    var cls = Class.forName(explicitType.trim());
+                    LOG.debug(
+                            "Loaded valueClass {} for queue '{}' from QueueStore property '{}'",
+                            cls.getName(), queueName, PROP_VALUE_CLASS_NAME);
+                    return cls;
+                } catch (Exception e) {
+                    LOG.warn(
+                            "Invalid '{}' property '{}' for queue '{}'; falling back to String: {}",
+                            PROP_VALUE_CLASS_NAME,
+                            explicitType,
+                            queueName,
+                            e.getMessage());
                 }
-            }
-        } catch (Exception e) {
-            LOG.debug("Could not read type registry for queue '{}': {}",
-                    queueName, e.toString());
-        }
-
-        if (typeName != null) {
-            try {
-                var cls = Class.forName(typeName);
-                LOG.debug(
-                        "Loaded valueClass {} for queue '{}' from type registry",
-                        cls.getName(), queueName);
-                return cls;
-            } catch (Exception e) {
-                LOG.warn(
-                        "Invalid valueClass '{}' in type registry for queue '{}'; falling back: {}",
-                        typeName, queueName, e.getMessage());
             }
         }
 
@@ -125,7 +109,7 @@ public class TypedJdbcQueueStoreFactory
             try {
                 var cls = Class.forName(valueClassName);
                 LOG.debug(
-                        "Using injected valueClass {} for queue '{}' (type registry missing)",
+                        "Using injected valueClass {} for queue '{}'",
                         cls.getName(), queueName);
                 return cls;
             } catch (Exception e) {
@@ -135,7 +119,9 @@ public class TypedJdbcQueueStoreFactory
             }
         }
 
-        LOG.debug("Defaulting valueClass to String for queue '{}'", queueName);
+        LOG.warn(
+                "valueClass not configured for queue '{}'; defaulting to String",
+                queueName);
         return String.class;
     }
 }

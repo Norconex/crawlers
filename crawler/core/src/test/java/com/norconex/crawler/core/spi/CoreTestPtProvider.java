@@ -15,6 +15,7 @@
 package com.norconex.crawler.core.spi;
 
 import com.norconex.commons.lang.bean.spi.BasePolymorphicTypeProvider;
+import com.norconex.crawler.core.cluster.ClusterJoinGateFetcher;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 
@@ -24,6 +25,7 @@ public class CoreTestPtProvider extends BasePolymorphicTypeProvider {
     protected void register(Registry registry) {
         registry
                 .add(Fetcher.class,
-                        MockFetcher.class);
+                        MockFetcher.class,
+                        ClusterJoinGateFetcher.class);
     }
 }

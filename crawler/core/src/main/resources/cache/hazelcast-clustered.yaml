@@ -72,7 +72,7 @@ hazelcast:
       read-backup-data: false
       map-store:
         enabled: true
-        initial-mode: EAGER
+        initial-mode: LAZY
         write-delay-seconds: 0
         factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
         properties:
@@ -90,7 +90,7 @@ hazelcast:
       read-backup-data: false
       map-store:
         enabled: true
-        initial-mode: EAGER
+        initial-mode: LAZY
         write-delay-seconds: 0
         factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
         properties:
@@ -110,7 +110,7 @@ hazelcast:
       read-backup-data: false
       map-store:
         enabled: true
-        initial-mode: EAGER
+        initial-mode: LAZY
         write-delay-seconds: 0
         factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
         properties:
@@ -130,7 +130,7 @@ hazelcast:
       read-backup-data: false
       map-store:
         enabled: true
-        initial-mode: EAGER
+        initial-mode: LAZY
         write-delay-seconds: 0
         factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
         properties:

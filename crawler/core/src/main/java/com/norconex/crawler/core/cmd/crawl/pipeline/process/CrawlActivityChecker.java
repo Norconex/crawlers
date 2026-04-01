@@ -77,6 +77,7 @@ class CrawlActivityChecker {
     }
 
     private boolean doIsActive() {
+        var queuedEntryCount = queuedEntryCount();
         if (LOG.isTraceEnabled()) {
             LOG.trace("""
                 doIsActive(): canContinue={} queueInitialized={} \
@@ -84,7 +85,7 @@ class CrawlActivityChecker {
                 nowMs={}.""",
                     canContinue.get(),
                     session.isStartRefsQueueingComplete(),
-                    isQueueEmpty(),
+                    queuedEntryCount == 0,
                     deleting,
                     expireAt,
                     System.currentTimeMillis());
@@ -159,7 +160,7 @@ class CrawlActivityChecker {
     }
 
     private boolean isQueueInitializedAndEmpty() {
-        var queueEmpty = isQueueEmpty();
+        var queueEmpty = isQueuedEntryEmpty();
         if (LOG.isTraceEnabled()) {
             LOG.trace("isQueueInitializedAndEmpty(): start queueEmpty={} "
                     + "startRefsQueuedComplete={}",
@@ -174,8 +175,8 @@ class CrawlActivityChecker {
                     Waiting for new references or initial queuing \
                     to be over...""");
                 do {
-                    Sleeper.sleepSeconds(1);
-                    queueEmpty = isQueueEmpty();
+                    Sleeper.sleepMillis(200);
+                    queueEmpty = isQueuedEntryEmpty();
                     queueInitialized =
                             session.isStartRefsQueueingComplete();
                     if (LOG.isTraceEnabled()) {
@@ -213,8 +214,8 @@ class CrawlActivityChecker {
         var timeout = duration.toMillis();
         var then = System.currentTimeMillis();
         while (System.currentTimeMillis() - then < timeout) {
-            Sleeper.sleepSeconds(1);
-            var empty = isQueueEmpty();
+            Sleeper.sleepMillis(200);
+            var empty = isQueuedEntryEmpty();
             if (LOG.isTraceEnabled()) {
                 LOG.trace("isQueueStillEmptyAfterIdleTimeout(): polled "
                         + "queueEmpty={} after {} ms (timeout={} ms).",
@@ -231,14 +232,14 @@ class CrawlActivityChecker {
         return true;
     }
 
-    private boolean isQueueEmpty() {
-        var queueEmpty = session.getCrawlContext()
+    private boolean isQueuedEntryEmpty() {
+        return queuedEntryCount() == 0;
+    }
+
+    private long queuedEntryCount() {
+        return session.getCrawlContext()
                 .getCrawlEntryLedger()
-                .isQueueEmpty();
-        if (LOG.isTraceEnabled()) {
-            LOG.trace("isQueueEmpty(): {}", queueEmpty);
-        }
-        return queueEmpty;
+                .getQueuedEntryCount();
     }
 
     private String idleTimeoutAsText() {

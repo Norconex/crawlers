@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.SocketException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.apache.commons.collections4.OrderedMap;
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.StringUtils;
+import org.opentest4j.TestAbortedException;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import com.hazelcast.config.MapStoreConfig.InitialLoadMode;
@@ -55,6 +57,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class CrawlTestHarness implements Closeable {
+
+    private record SchemaDropResult(
+            boolean dropped,
+            int attempts,
+            boolean retried,
+            RuntimeException failure) {
+    }
+
+    private static final int SCHEMA_DROP_RETRY_COUNT = 4;
+    private static final Duration SCHEMA_DROP_RETRY_DELAY =
+            Duration.ofMillis(250);
 
     // Shared across all harness instances: started once per JVM, never
     // stopped mid-run (Testcontainers Ryuk / JVM-shutdown hook cleans it
@@ -96,6 +109,7 @@ public class CrawlTestHarness implements Closeable {
 
         var isClustered = instrumentTemplate.isClustered();
         if (isClustered) {
+            var clusterSetupStart = System.nanoTime();
             // Start the shared container on first use; near-zero cost if
             // already running.
             ensurePostgresStarted();
@@ -116,6 +130,11 @@ public class CrawlTestHarness implements Closeable {
             LOG.info("Postgres ready: id='{}', schema='{}', jdbcUrl='{}'",
                     POSTGRES.getContainerId(), schemaName,
                     POSTGRES.getJdbcUrl());
+            LOG.info(
+                    "[TIMING] CrawlTestHarness id={} phase=cluster-setup elapsedMs={}",
+                    id,
+                    Duration.ofNanos(System.nanoTime() - clusterSetupStart)
+                            .toMillis());
         }
 
         Map<String, CompletableFuture<CrawlTestNodeOutput>> futures =
@@ -250,6 +269,8 @@ public class CrawlTestHarness implements Closeable {
     @Override
     public void close() throws IOException {
         LOG.info("CrawlTestHarness.close() called for cleanup.");
+        var closeStart = System.nanoTime();
+        SchemaDropResult schemaDropResult = null;
         nodeCrawlers.forEach((name, crawler) -> {
             LOG.info("Closing TestCrawler node: {}", name);
             // Crawlers may already be closed from whenComplete() callback
@@ -260,8 +281,26 @@ public class CrawlTestHarness implements Closeable {
         // Drop this run's schema; the shared container keeps running for
         // other tests in the same JVM (Ryuk handles final cleanup).
         if (schemaName != null) {
-            dropSchema(schemaName);
+            schemaDropResult = dropSchema(schemaName);
+            if (schemaDropResult.dropped()) {
+                LOG.info(
+                        "Schema cleanup summary: schema='{}', outcome='{}', attempts={}",
+                        schemaName,
+                        schemaDropResult.retried()
+                                ? "dropped-after-retry"
+                                : "dropped",
+                        schemaDropResult.attempts());
+            } else {
+                LOG.warn(
+                        "Schema cleanup summary: schema='{}', outcome='drop-failed', attempts={}",
+                        schemaName,
+                        schemaDropResult.attempts(),
+                        schemaDropResult.failure());
+            }
         }
+        LOG.info("[TIMING] CrawlTestHarness id={} phase=close elapsedMs={}",
+                id,
+                Duration.ofNanos(System.nanoTime() - closeStart).toMillis());
         LOG.info("CrawlTestHarness.close() cleanup complete.");
     }
 
@@ -330,9 +369,9 @@ public class CrawlTestHarness implements Closeable {
             configurer.getHazelcastProperties()
                     .put("hazelcast.heartbeat.interval.seconds", "1");
             configurer.getHazelcastProperties()
-                    .put("hazelcast.max.no.heartbeat.seconds", "60");
+                    .put("hazelcast.max.no.heartbeat.seconds", "10");
             configurer.getHazelcastProperties()
-                    .put("hazelcast.operation.call.timeout.millis", "120000");
+                    .put("hazelcast.operation.call.timeout.millis", "15000");
 
             // Set TCP members for cluster discovery using the per-harness port
             // range chosen in launchAsync().
@@ -413,24 +452,90 @@ public class CrawlTestHarness implements Closeable {
     private static synchronized void ensurePostgresStarted() {
         if (!POSTGRES.isRunning()) {
             LOG.info("Starting shared PostgreSQL container...");
-            POSTGRES.start();
+            var start = System.nanoTime();
+            try {
+                POSTGRES.start();
+            } catch (Exception e) {
+                abortIfDockerUnavailable(e);
+                throw e;
+            }
             LOG.info("Shared PostgreSQL container started: jdbcUrl='{}'",
                     POSTGRES.getJdbcUrl());
+            LOG.info(
+                    "[TIMING] CrawlTestHarness phase=postgres-container-start elapsedMs={}",
+                    Duration.ofNanos(System.nanoTime() - start).toMillis());
+        } else {
+            LOG.info(
+                    "[TIMING] CrawlTestHarness phase=postgres-container-start elapsedMs=0 reused=true");
+        }
+    }
+
+    private static void abortIfDockerUnavailable(Throwable error) {
+        var current = error;
+        while (current != null) {
+            var message = current.getMessage();
+            if (message != null
+                    && (message.contains(
+                            "Could not find a valid Docker environment")
+                            || message.contains(
+                                    "Previous attempts to find a Docker environment failed"))) {
+                throw new TestAbortedException(
+                        "Docker is unavailable for CrawlTestHarness-based tests",
+                        error);
+            }
+            current = current.getCause();
         }
     }
 
     private void createSchema(String schema) {
+        var start = System.nanoTime();
         execPsql("CREATE SCHEMA IF NOT EXISTS \"" + schema + "\"");
         LOG.info("Created isolated PostgreSQL schema: {}", schema);
+        LOG.info(
+                "[TIMING] CrawlTestHarness id={} phase=create-schema elapsedMs={} schema={}",
+                id,
+                Duration.ofNanos(System.nanoTime() - start).toMillis(),
+                schema);
     }
 
-    private void dropSchema(String schema) {
-        try {
-            execPsql("DROP SCHEMA IF EXISTS \"" + schema + "\" CASCADE");
-            LOG.info("Dropped PostgreSQL schema: {}", schema);
-        } catch (RuntimeException e) {
-            LOG.warn("Failed to drop schema: {}", schema, e);
+    private SchemaDropResult dropSchema(String schema) {
+        var start = System.nanoTime();
+        int attempts = 0;
+        RuntimeException lastFailure = null;
+        for (int attempt = 1; attempt <= SCHEMA_DROP_RETRY_COUNT; attempt++) {
+            attempts = attempt;
+            try {
+                execPsql("DROP SCHEMA IF EXISTS \"" + schema
+                        + "\" CASCADE");
+                LOG.info("Dropped PostgreSQL schema: {}", schema);
+                LOG.info(
+                        "[TIMING] CrawlTestHarness id={} phase=drop-schema elapsedMs={} schema={} attempts={}",
+                        id,
+                        Duration.ofNanos(System.nanoTime() - start).toMillis(),
+                        schema,
+                        attempt);
+                return new SchemaDropResult(true, attempt, attempt > 1, null);
+            } catch (RuntimeException e) {
+                lastFailure = e;
+                if (attempt < SCHEMA_DROP_RETRY_COUNT
+                        && isTransientDockerExecFailure(e)) {
+                    LOG.debug(
+                            "Transient schema drop failure for '{}' on attempt {}/{}; retrying in {} ms.",
+                            schema,
+                            attempt,
+                            SCHEMA_DROP_RETRY_COUNT,
+                            SCHEMA_DROP_RETRY_DELAY.toMillis(),
+                            e);
+                    sleepQuietly(SCHEMA_DROP_RETRY_DELAY);
+                    continue;
+                }
+                break;
+            }
         }
+        return new SchemaDropResult(false, attempts,
+                lastFailure != null
+                        && isTransientDockerExecFailure(lastFailure),
+                lastFailure);
     }
 
     /**
@@ -456,6 +561,32 @@ public class CrawlTestHarness implements Closeable {
                 Thread.currentThread().interrupt();
             }
             throw new RuntimeException("execInContainer(psql) failed", e);
+        }
+    }
+
+    private static boolean isTransientDockerExecFailure(Throwable throwable) {
+        var current = throwable;
+        while (current != null) {
+            if (current instanceof SocketException) {
+                return true;
+            }
+            var message = current.getMessage();
+            if (message != null
+                    && (message.contains("connection was aborted")
+                            || message.contains("Connection reset")
+                            || message.contains("Broken pipe"))) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    private static void sleepQuietly(Duration delay) {
+        try {
+            Thread.sleep(delay.toMillis());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 

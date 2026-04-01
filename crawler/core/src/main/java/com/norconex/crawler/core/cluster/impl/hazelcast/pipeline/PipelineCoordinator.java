@@ -15,7 +15,9 @@
 package com.norconex.crawler.core.cluster.impl.hazelcast.pipeline;
 
 import java.time.Duration;
+import java.util.stream.Collectors;
 
+import com.hazelcast.core.HazelcastInstance;
 import com.norconex.commons.lang.SleeperException;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastCluster;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastUtil;
@@ -91,18 +93,57 @@ public class PipelineCoordinator implements AutoCloseable {
                 + "daemon={}, non-daemon={}",
                 liveCount, daemonCount, nonDaemonCount);
 
-        // Get non-daemon threads (these prevent JVM exit)
         var nonDaemonThreads =
                 com.norconex.crawler.core.util.ThreadTracker.allThreadInfos(
                         t -> !t.isDaemon());
 
-        if (!nonDaemonThreads.isEmpty()) {
-            LOG.info("Non-daemon threads ({}): ", nonDaemonThreads.size());
-            for (var thread : nonDaemonThreads) {
-                LOG.info("  - Thread[{}]: name='{}', state={}",
+        var hazelcast = cluster.getCacheManager() != null
+                ? (HazelcastInstance) cluster.getCacheManager().vendor()
+                : null;
+        var instanceName = hazelcast != null ? hazelcast.getName() : null;
+        var hazelcastPrefix = instanceName == null ? null
+                : "hz." + instanceName + ".";
+
+        var currentMemberThreads = hazelcastPrefix == null
+                ? java.util.List.<java.lang.management.ThreadInfo>of()
+                : nonDaemonThreads.stream()
+                        .filter(t -> t.getThreadName() != null
+                                && t.getThreadName().startsWith(
+                                        hazelcastPrefix))
+                        .toList();
+
+        LOG.info("Current Hazelcast member non-daemon threads: {}{}",
+                currentMemberThreads.size(),
+                hazelcastPrefix == null ? ""
+                        : " (prefix='" + hazelcastPrefix + "')");
+
+        if (!currentMemberThreads.isEmpty()) {
+            for (var thread : currentMemberThreads) {
+                LOG.info("  - Hazelcast Thread[{}]: name='{}', state={}",
                         thread.getThreadId(),
                         thread.getThreadName(),
                         thread.getThreadState());
+            }
+        }
+
+        var currentMemberThreadIds = currentMemberThreads.stream()
+                .map(java.lang.management.ThreadInfo::getThreadId)
+                .collect(Collectors.toSet());
+        var otherNonDaemonThreads = nonDaemonThreads.stream()
+                .filter(t -> !currentMemberThreadIds.contains(t.getThreadId()))
+                .toList();
+
+        if (!otherNonDaemonThreads.isEmpty()) {
+            LOG.info(
+                    "Other JVM non-daemon threads outside current Hazelcast member: {}",
+                    otherNonDaemonThreads.size());
+            if (LOG.isDebugEnabled()) {
+                for (var thread : otherNonDaemonThreads) {
+                    LOG.debug("  - Other Thread[{}]: name='{}', state={}",
+                            thread.getThreadId(),
+                            thread.getThreadName(),
+                            thread.getThreadState());
+                }
             }
         }
     }
@@ -137,12 +178,12 @@ public class PipelineCoordinator implements AutoCloseable {
                     if (ConcurrentUtil.waitUntil(
                             () -> state.isStatusOfAllWorkers(
                                     PipelineStatus.STOPPED),
-                            Duration.ofMinutes(1),
-                            Duration.ofSeconds(1))) {
+                            Duration.ofSeconds(15),
+                            Duration.ofMillis(250))) {
                         LOG.info("App pipeline workers stopped.");
                     } else {
                         LOG.warn("Not all pipeline workers stopped "
-                                + "within a minute.");
+                                + "within 15 seconds.");
                     }
                 } catch (SleeperException e) {
                     if (!(e.getCause() instanceof InterruptedException)) {
@@ -227,18 +268,18 @@ public class PipelineCoordinator implements AutoCloseable {
             LOG.info("All pipeline steps completed. Waiting for workers to "
                     + "acknowledge completion...");
             try {
-                // Wait up to 30 seconds for all workers to reach terminal status
+                // Wait up to 10 seconds for all workers to reach terminal status
                 if (ConcurrentUtil.waitUntil(
                         () -> state
                                 .isStatusOfAllWorkers(PipelineStatus.COMPLETED)
                                 || state.isStatusOfAllWorkers(
                                         PipelineStatus.STOPPED),
-                        Duration.ofSeconds(30),
-                        Duration.ofMillis(500))) {
+                        Duration.ofSeconds(10),
+                        Duration.ofMillis(200))) {
                     LOG.info("All workers acknowledged pipeline completion.");
                 } else {
                     LOG.warn("Not all workers acknowledged completion within "
-                            + "30 seconds. Proceeding with shutdown.");
+                            + "10 seconds. Proceeding with shutdown.");
                 }
             } catch (SleeperException e) {
                 if (!(e.getCause() instanceof InterruptedException)) {

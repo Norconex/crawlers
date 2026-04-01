@@ -54,20 +54,21 @@ class BeforeWebCrawlDocFinalizing
                 .getBaselineEntry(doc.getReference())
                 .orElse(null);
 
-        // If never crawled before, URLs were extracted already, or cached
-        // version has no extracted, URLs, abort now.
+        // If never crawled before, or cached version has no extracted URLs,
+        // abort now.
         if (httpCachedData == null
-                || !httpData.getReferencedUrls().isEmpty()
                 || httpCachedData.getReferencedUrls().isEmpty()) {
             return;
         }
 
-        // Only continue if the document could not have extracted URLs because
-        // it was skipped, or in a temporary invalid state that prevents
-        // accessing child links normally.
+        // Keep cached child URL re-queueing for skipped outcomes
+        // (e.g., UNMODIFIED/PREMATURE) and temporary invalid states.
+        // Only skip re-queueing for normal fresh/modified processing flows.
         var state = httpData.getProcessingOutcome();
-        if (!state.isSkipped() && !state.isOneOf(
-                ProcessingOutcome.BAD_STATUS, ProcessingOutcome.ERROR)) {
+        if (state != null
+                && !state.isSkipped() && !state.isOneOf(
+                        ProcessingOutcome.BAD_STATUS,
+                        ProcessingOutcome.ERROR)) {
             return;
         }
 

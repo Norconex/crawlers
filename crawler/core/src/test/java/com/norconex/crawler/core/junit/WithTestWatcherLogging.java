@@ -48,21 +48,18 @@ public @interface WithTestWatcherLogging {
         public void beforeTestExecution(ExtensionContext context) {
             var msg = print(false, "🧪", "STARTED", context);
             LOG.info(msg);
-            System.out.println(msg);
         }
 
         @Override
         public void testSuccessful(ExtensionContext context) {
             var msg = print(true, "✅", "PASSED", context);
             LOG.info(msg);
-            System.out.println(msg);
         }
 
         @Override
         public void testFailed(ExtensionContext context, Throwable cause) {
             var msg = print(true, "❌", "FAILED", context);
             LOG.warn(msg, cause);
-            System.out.println(msg);
         }
 
         @Override
@@ -71,7 +68,6 @@ public @interface WithTestWatcherLogging {
             var msg = print(true, "🚫", "DISABLED", context)
                     + " - Reason: " + reason.orElse("None given.");
             LOG.info(msg);
-            System.out.println(msg);
         }
 
         @Override
@@ -79,7 +75,6 @@ public @interface WithTestWatcherLogging {
             var msg = print(true, "⏹️", "ABORTED", context)
                     + " - Cause: " + cause.getLocalizedMessage();
             LOG.warn(msg);
-            System.out.println(msg);
         }
 
         private static String print(

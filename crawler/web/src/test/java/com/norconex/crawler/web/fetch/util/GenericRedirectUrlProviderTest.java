@@ -70,7 +70,8 @@ class GenericRedirectUrlProviderTest {
         var req = SimpleHttpRequest.create("GET", "http://xyz.com/original");
         var resp = SimpleHttpResponse.create(200, "content");
         resp.setHeader(HttpHeaders.LOCATION, new String("/redirigé"
-                .getBytes(), StandardCharsets.ISO_8859_1));
+                .getBytes(StandardCharsets.UTF_8),
+                StandardCharsets.ISO_8859_1));
         resp.setHeader(
                 HttpHeaders.CONTENT_TYPE, "text/html;charset=ISO-8859-1");
         var ctx = new BasicHttpContext();

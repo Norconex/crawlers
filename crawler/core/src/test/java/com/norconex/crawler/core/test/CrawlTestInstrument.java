@@ -17,6 +17,7 @@ package com.norconex.crawler.core.test;
 import java.io.Serializable;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -47,4 +48,6 @@ public class CrawlTestInstrument implements Serializable {
             CrawlTestDriver.class;
     @JsonIgnore
     private Consumer<CrawlConfig> configModifier;
+    @JsonIgnore
+    private BiConsumer<String, CrawlConfig> nodeConfigModifier;
 }

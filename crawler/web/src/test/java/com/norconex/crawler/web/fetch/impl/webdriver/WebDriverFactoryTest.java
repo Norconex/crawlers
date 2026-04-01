@@ -18,19 +18,35 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.remote.RemoteWebDriver;
 
-@Timeout(30)
+@org.testcontainers.junit.jupiter.Testcontainers(disabledWithoutDocker = true)
+@Timeout(300)
 class WebDriverFactoryTest {
 
     @Test
     void testCreate() {
-        var driver = WebDriverFactory.create(
-                new WebDriverFetcherConfig().setBrowser(Browser.FIREFOX));
+        var browserContainer =
+                AbstractWebDriverHttpFetcherTest.createWebDriverContainer(
+                        WebDriverTestUtil.firefoxTestOptions());
+        browserContainer.start();
         try {
-            assertThat(driver).isInstanceOf(FirefoxDriver.class);
+            var driver = WebDriverFactory.create(
+                    new WebDriverFetcherConfig()
+                            .setBrowser(Browser.FIREFOX)
+                            .setRemoteURL(
+                                    browserContainer.getSeleniumAddress()));
+            try {
+                assertThat(driver).isInstanceOf(RemoteWebDriver.class);
+                var remoteDriver = (RemoteWebDriver) driver;
+                assertThat(remoteDriver.getSessionId()).isNotNull();
+                assertThat(remoteDriver.getCapabilities().getBrowserName())
+                        .containsIgnoringCase("firefox");
+            } finally {
+                driver.quit();
+            }
         } finally {
-            driver.quit();
+            browserContainer.stop();
         }
     }
 

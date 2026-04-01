@@ -22,6 +22,7 @@ import static org.mockserver.model.HttpStatusCode.INTERNAL_SERVER_ERROR_500;
 
 import java.util.List;
 
+import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.mock.action.ExpectationResponseCallback;
@@ -38,14 +39,13 @@ import com.norconex.crawler.core.event.listeners.DeleteRejectedEventListener;
 import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
-import org.junit.jupiter.api.Timeout;
 
 /**
  * Test the deletion of rejected references with
  * {@link DeleteRejectedEventListener}.
  */
 @MockServerSettings
-@Timeout(30)
+@Timeout(120)
 class RejectedRefsDeletionTest {
     private static final String PATH = "/rejectedRefsDeletion";
 

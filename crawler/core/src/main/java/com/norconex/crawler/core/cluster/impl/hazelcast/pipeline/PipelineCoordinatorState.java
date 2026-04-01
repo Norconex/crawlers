@@ -139,7 +139,7 @@ public class PipelineCoordinatorState implements AutoCloseable {
                 if (Thread.currentThread().isInterrupted()) {
                     return reducedStatus;
                 }
-                Sleeper.sleepMillis(250);
+                Sleeper.sleepMillis(100);
                 continue;
             }
 
@@ -158,7 +158,7 @@ public class PipelineCoordinatorState implements AutoCloseable {
                 if (Thread.currentThread().isInterrupted()) {
                     return reducedStatus;
                 }
-                Sleeper.sleepMillis(250);
+                Sleeper.sleepMillis(100);
             }
         }
         return reducedStatus;

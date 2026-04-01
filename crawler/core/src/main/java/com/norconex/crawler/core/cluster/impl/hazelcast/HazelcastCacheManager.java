@@ -112,9 +112,27 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
     @Override
     public void close() {
         LOG.info("HazelcastCacheManager.close() called for cleanup.");
+
+        // Capture user context resources before shutdown so we can close
+        // them afterwards. We must shut down Hazelcast first to let
+        // write-behind flush pending MapStore writes (which need the
+        // DataSource). Only then do we close the DataSource to release
+        // H2 databases (which use DB_CLOSE_DELAY=-1) and free their heap.
+        var userCtxValues = List.copyOf(hazelcast.getUserContext().values());
+
         LOG.info("Shutting down Hazelcast instance...");
         hazelcast.shutdown();
         LOG.info("Hazelcast instance shutdown complete.");
+
+        for (var value : userCtxValues) {
+            if (value instanceof AutoCloseable closeable) {
+                try {
+                    closeable.close();
+                } catch (Exception e) {
+                    LOG.debug("Error closing user context resource", e);
+                }
+            }
+        }
         LOG.info("HazelcastCacheManager.close() cleanup complete.");
     }
 

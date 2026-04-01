@@ -39,6 +39,7 @@ import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.util.ExceptionSwallower;
+import com.norconex.crawler.core.util.ThreadTracker;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -51,11 +52,11 @@ import lombok.extern.slf4j.Slf4j;
 public class HazelcastCluster implements Cluster {
 
     private static final Duration CACHE_READY_TIMEOUT =
-            Duration.ofSeconds(30);
+            Duration.ofSeconds(10);
     private static final Duration CLUSTERED_CACHE_READY_TIMEOUT =
-            Duration.ofSeconds(60);
+            Duration.ofSeconds(30);
     private static final Duration CACHE_READY_POLL_INTERVAL =
-            Duration.ofMillis(250);
+            Duration.ofMillis(50);
 
     private HazelcastClusterNode localNode;
     private HazelcastCacheManager cacheManager;
@@ -128,6 +129,10 @@ public class HazelcastCluster implements Cluster {
             // Bake concrete value types into map-store configs before starting
             // Hazelcast so EAGER loading always uses the right class.
             applyCacheTypes(hzConfig, cacheTypes);
+
+            // Register Compact serializers so Hazelcast uses efficient
+            // schema-based serialization instead of Java Serializable.
+            registerCompactSerializers(hzConfig, cacheTypes);
 
             // Ensure the Hazelcast config has an instance name so store
             // factories can locate the right HazelcastInstance by name when
@@ -206,7 +211,7 @@ public class HazelcastCluster implements Cluster {
     }
 
     /**
-     * Applies concrete value types to map-store properties in the Hazelcast
+     * Applies concrete value types to store properties in the Hazelcast
      * config <em>before</em> {@code newHazelcastInstance()} is called, so
      * EAGER loading always deserializes values with the right class.
      */
@@ -217,19 +222,50 @@ public class HazelcastCluster implements Cluster {
         }
         for (var entry : cacheTypes.entrySet()) {
             var mapCfg = hzConfig.getMapConfigs().get(entry.getKey());
-            if (mapCfg == null) {
-                LOG.debug("No map config found for cache-type key '{}'; "
-                        + "skipping.", entry.getKey());
+            if (mapCfg != null) {
+                var storeCfg = mapCfg.getMapStoreConfig();
+                if (storeCfg != null && storeCfg.isEnabled()) {
+                    storeCfg.getProperties().setProperty(
+                            "value-class-name", entry.getValue().getName());
+                    LOG.debug("Set value-class-name={} for map config '{}'",
+                            entry.getValue().getName(), entry.getKey());
+                }
                 continue;
             }
-            var storeCfg = mapCfg.getMapStoreConfig();
-            if (storeCfg != null && storeCfg.isEnabled()) {
-                storeCfg.getProperties().setProperty(
-                        "value-class-name", entry.getValue().getName());
-                LOG.debug("Set value-class-name={} for map config '{}'",
-                        entry.getValue().getName(), entry.getKey());
+
+            var queueCfg = hzConfig.getQueueConfigs().get(entry.getKey());
+            if (queueCfg != null) {
+                var storeCfg = queueCfg.getQueueStoreConfig();
+                if (storeCfg != null && storeCfg.isEnabled()) {
+                    storeCfg.getProperties().setProperty(
+                            "value-class-name", entry.getValue().getName());
+                    LOG.debug("Set value-class-name={} for queue config '{}'",
+                            entry.getValue().getName(), entry.getKey());
+                }
+                continue;
             }
+
+            LOG.debug("No map/queue config found for cache-type key '{}'; "
+                    + "skipping.", entry.getKey());
         }
+    }
+
+    private void registerCompactSerializers(
+            Config hzConfig, Map<String, Class<?>> cacheTypes) {
+        var compactCfg = hzConfig.getSerializationConfig()
+                .getCompactSerializationConfig();
+
+        // StepRecord: field-by-field binary Compact (safe — not queried
+        // with Hazelcast predicates).
+        compactCfg.addSerializer(new StepRecordCompactSerializer());
+
+        // NOTE: CrawlEntry types are intentionally NOT registered here.
+        // JacksonCompactSerializer stores the entire object as a single
+        // "json" string field, which prevents Hazelcast Predicates (e.g.,
+        // Predicates.equal("processingStatus", ...)) from reading
+        // individual fields.  Ledger queries rely on these predicates
+        // for maxDocuments enforcement and status-based filtering, so
+        // CrawlEntry must use the default serialization path.
     }
 
     protected HazelcastInstance createHazelcastInstance(Config hzConfig) {
@@ -249,8 +285,8 @@ public class HazelcastCluster implements Cluster {
             try {
                 var sessionCache = cacheManager.getCrawlSessionCache();
                 var runCache = cacheManager.getCrawlRunCache();
-                var referenceQueue = cacheManager.getCacheQueue(
-                        CacheNames.REFERENCE_QUEUE, String.class);
+                cacheManager.getCacheQueue(CacheNames.REFERENCE_QUEUE,
+                        String.class);
 
                 sessionCache.put(probeKey, "ready");
                 runCache.put(probeKey, "ready");
@@ -258,8 +294,6 @@ public class HazelcastCluster implements Cluster {
                 runCache.get(probeKey);
                 sessionCache.remove(probeKey);
                 runCache.remove(probeKey);
-
-                referenceQueue.size();
 
                 LOG.debug("Critical Hazelcast caches/queues are ready.");
                 return;
@@ -320,6 +354,21 @@ public class HazelcastCluster implements Cluster {
     @Override
     public void close() {
         LOG.info("Disconnecting HazelcastCluster node ...");
+        var instanceName = hazelcastInstance != null
+                ? hazelcastInstance.getName()
+                : null;
+
+        // Remove membership listener early to prevent spurious coordinator
+        // change events during shutdown.
+        if (membershipListenerId != null && hazelcastInstance != null
+                && hazelcastInstance.getLifecycleService().isRunning()) {
+            try {
+                hazelcastInstance.getCluster()
+                        .removeMembershipListener(membershipListenerId);
+            } catch (Exception e) {
+                LOG.debug("Could not remove membership listener", e);
+            }
+        }
 
         try {
             if (stopController != null) {
@@ -332,8 +381,6 @@ public class HazelcastCluster implements Cluster {
             ExceptionSwallower.close(pipelineManager);
             LOG.info("Pipeline manager closed.");
 
-            Thread.sleep(100);
-
         } catch (Exception e) {
             LOG.warn("Error during initial cleanup", e);
             if (e instanceof InterruptedException) {
@@ -341,11 +388,40 @@ public class HazelcastCluster implements Cluster {
             }
         }
 
-        LOG.info("Closing local node...");
-        ExceptionSwallower.close(localNode);
+        // Close cache manager before shutting down Hazelcast so that
+        // map/queue references are released while the instance is still
+        // alive, allowing write-behind buffers to flush.
         LOG.info("Closing cache manager...");
         ExceptionSwallower.close(cacheManager);
+        LOG.info("Closing local node...");
+        ExceptionSwallower.close(localNode);
+        logRemainingHazelcastThreads(instanceName);
         LOG.info("HazelcastCluster node disconnected.");
+    }
+
+    private void logRemainingHazelcastThreads(String instanceName) {
+        if (instanceName == null || instanceName.isBlank()) {
+            return;
+        }
+
+        var prefix = "hz." + instanceName + ".";
+        var remainingThreads = ThreadTracker.allThreadInfos(
+                t -> !t.isDaemon()
+                        && t.getThreadName() != null
+                        && t.getThreadName().startsWith(prefix));
+
+        LOG.info(
+                "Hazelcast member threads remaining after shutdown: {} (prefix='{}')",
+                remainingThreads.size(), prefix);
+        if (LOG.isDebugEnabled()) {
+            for (var thread : remainingThreads) {
+                LOG.debug(
+                        "  - Remaining Hazelcast Thread[{}]: name='{}', state={}",
+                        thread.getThreadId(),
+                        thread.getThreadName(),
+                        thread.getThreadState());
+            }
+        }
     }
 
     @Override
@@ -416,17 +492,6 @@ public class HazelcastCluster implements Cluster {
         public void memberAdded(MembershipEvent membershipEvent) {
             LOG.info("Member added to cluster: {}",
                     membershipEvent.getMember().getUuid());
-            // Allow state to settle, but never fail membership handling
-            // because a shutdown/interruption occurred.
-            try {
-                Sleeper.sleepMillis(100);
-            } catch (RuntimeException e) {
-                if (Thread.currentThread().isInterrupted()) {
-                    Thread.currentThread().interrupt();
-                } else {
-                    throw e;
-                }
-            }
             checkCoordinatorStatus();
         }
 
@@ -434,17 +499,6 @@ public class HazelcastCluster implements Cluster {
         public void memberRemoved(MembershipEvent membershipEvent) {
             LOG.info("Member removed from cluster: {}",
                     membershipEvent.getMember().getUuid());
-            // Allow state to settle, but never fail membership handling
-            // because a shutdown/interruption occurred.
-            try {
-                Sleeper.sleepMillis(100);
-            } catch (RuntimeException e) {
-                if (Thread.currentThread().isInterrupted()) {
-                    Thread.currentThread().interrupt();
-                } else {
-                    throw e;
-                }
-            }
             checkCoordinatorStatus();
         }
 

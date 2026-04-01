@@ -170,7 +170,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
     @Override
     public long getQueuedCount() {
         if (!isClosed()) {
-            memCache.queuedCount.set(ledger.getQueueCount());
+            memCache.queuedCount.set(ledger.getQueuedEntryCount());
         }
         return memCache.queuedCount.get();
     }
@@ -187,11 +187,12 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
         return closed;
     }
 
+    private static final int ATOMIC_INCREMENT_MAX_ATTEMPTS = 10;
+
     private static void atomicIncrement(
             CacheMap<Long> store, String key, long increment) {
-        var updated = false;
-        var attempts = 0;
-        while (!updated && attempts < 3) {
+        for (var attempt = 0; attempt < ATOMIC_INCREMENT_MAX_ATTEMPTS;
+                attempt++) {
             var currentValue = store.get(key);
             Long currentLongValue = 0L;
             if (!currentValue.isEmpty()) {
@@ -208,15 +209,19 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
             }
             Long newValue = currentLongValue + increment;
 
+            boolean updated;
             if (currentValue.isEmpty()) {
-                var result = store.putIfAbsent(key, newValue);
-                updated = (result == null);
+                updated = (store.putIfAbsent(key, newValue) == null);
             } else {
                 updated = store.replace(key, currentLongValue, newValue);
             }
-
-            attempts++;
+            if (updated) {
+                return;
+            }
         }
+        LOG.warn("Failed to atomically increment metric '{}' after {} "
+                + "attempts; increment of {} was dropped.",
+                key, ATOMIC_INCREMENT_MAX_ATTEMPTS, increment);
     }
 
     @Override
@@ -258,7 +263,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
 
         try {
             if (ledger != null) {
-                memCache.queuedCount.set(ledger.getQueueCount());
+                memCache.queuedCount.set(ledger.getQueuedEntryCount());
                 memCache.processingCount.set(ledger.getProcessingCount());
                 memCache.processedCount.set(ledger.getProcessedCount());
                 memCache.baselineCount.set(ledger.getBaselineCount());

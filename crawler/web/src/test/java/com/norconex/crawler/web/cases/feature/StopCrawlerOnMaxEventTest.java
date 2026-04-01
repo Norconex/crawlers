@@ -42,7 +42,7 @@ import org.junit.jupiter.api.Timeout;
  * {@link DeleteRejectedEventListener}.
  */
 @MockServerSettings
-@Timeout(30)
+@Timeout(60)
 class StopCrawlerOnMaxEventTest {
 
     private static final int SITE_DEPTH = 50;

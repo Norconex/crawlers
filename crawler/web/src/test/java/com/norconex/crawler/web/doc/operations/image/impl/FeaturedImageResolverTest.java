@@ -22,6 +22,8 @@ import static com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageRe
 import static com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.Storage.URL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.awt.Dimension;
 import java.io.IOException;
@@ -41,6 +43,7 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.Quality;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.Storage;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.StorageDiskStructure;
@@ -81,10 +84,13 @@ class FeaturedImageResolverTest {
                 .setLargest(true)
                 .setImageCacheSize(0)
                 .setScaleDimensions(null);
+        var session = mock(CrawlSession.class);
+        when(session.getCrawlContext()).thenReturn(ctx);
         fip.onCrawlerCrawlBegin(
                 CrawlerEvent.builder()
                         .name("test")
-                        .source(ctx)
+                        .source(session)
+                        .crawlSession(session)
                         .build());
 
         // biggest

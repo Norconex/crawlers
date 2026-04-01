@@ -198,7 +198,7 @@ class CrawlCommandTest {
             @SuppressWarnings("unchecked")
             var supplier = (Supplier<CrawlState>) invocation.getArgument(1);
             return supplier.get();
-        }).when(session).oncePerSessionAndGet(anyString(), any());
+        }).when(session).oncePerRunAndGet(anyString(), any(Supplier.class));
 
         return new Fixture(command, session, context, cluster, localNode,
                 pipelineManager, pipeline);

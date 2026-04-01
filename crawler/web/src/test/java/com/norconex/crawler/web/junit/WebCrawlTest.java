@@ -26,7 +26,10 @@ import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import com.hazelcast.config.MapStoreConfig.InitialLoadMode;
 import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
+import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
 import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.doc.operations.delay.impl.GenericDelayResolver;
 
@@ -49,8 +52,21 @@ public @interface WebCrawlTest {
             implements Consumer<WebCrawlConfig> {
         @Override
         public void accept(WebCrawlConfig cfg) {
-            cfg.setDelayResolver(configure(new GenericDelayResolver(),
-                    dr -> dr.setDefaultDelay(Duration.ofMillis(0))));
+            cfg.setDelayResolver(configure(
+                    new GenericDelayResolver(),
+                    dr -> dr.setDefaultDelay(
+                            Duration.ofMillis(0))));
+
+            var connector = cfg.getClusterConfig().getConnector();
+            if (connector instanceof HazelcastClusterConnector hzConnector
+                    && hzConnector.getConfiguration()
+                            .getConfigurer() instanceof JdbcHazelcastConfigurer jdbcConfigurer) {
+                jdbcConfigurer
+                        .setJetEnabled(false)
+                        .setBackupCount(0)
+                        .setInitialLoadMode(
+                                InitialLoadMode.EAGER);
+            }
         }
     }
 

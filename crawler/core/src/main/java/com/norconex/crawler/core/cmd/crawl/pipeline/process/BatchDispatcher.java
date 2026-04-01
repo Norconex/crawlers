@@ -58,7 +58,7 @@ public class BatchDispatcher {
             synchronized (refillLock) {
                 if (localQueue.isEmpty()) {
                     var batchSize = computeBatchSize();
-                    var queueCount = ledger.getQueueCount();
+                    var queueCount = ledger.getQueuedEntryCount();
                     LOG.trace("[{}] BatchDispatcher.take() refilling from "
                             + "global queue (batchSize={}, queueCount={}).",
                             nodeName, batchSize, queueCount);
@@ -88,7 +88,7 @@ public class BatchDispatcher {
             synchronized (refillLock) {
                 if (localQueue.size() <= lowWatermark) {
                     var batchSize = computeBatchSize();
-                    var queueCount = ledger.getQueueCount();
+                    var queueCount = ledger.getQueuedEntryCount();
                     LOG.trace("""
                         [{}] BatchDispatcher.maybeRefill() refilling \
                         (batchSize={}, queueCount={}, \
@@ -113,7 +113,7 @@ public class BatchDispatcher {
 
     private int computeBatchSize() {
         var ledger = session.getCrawlContext().getCrawlEntryLedger();
-        var queueCount = ledger.getQueueCount();
+        var queueCount = ledger.getQueuedEntryCount();
         var nodeCount = session.getCluster().getNodeCount();
         var localQueueSize = localQueue.size();
 

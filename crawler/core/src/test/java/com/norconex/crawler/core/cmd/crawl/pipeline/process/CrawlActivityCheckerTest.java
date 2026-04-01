@@ -37,7 +37,7 @@ class CrawlActivityCheckerTest {
     private CrawlSession buildSession(boolean queueEmpty,
             boolean maxDocsReached) {
         var ledger = mock(CrawlEntryLedger.class);
-        when(ledger.isQueueEmpty()).thenReturn(queueEmpty);
+        when(ledger.getQueuedEntryCount()).thenReturn(queueEmpty ? 0L : 1L);
         when(ledger.isMaxDocsProcessedReached()).thenReturn(maxDocsReached);
 
         var config = mock(CrawlConfig.class);
@@ -113,7 +113,7 @@ class CrawlActivityCheckerTest {
     void canContinue_whenMaxDurationExpired_returnsFalse()
             throws InterruptedException {
         var ledger = mock(CrawlEntryLedger.class);
-        when(ledger.isQueueEmpty()).thenReturn(false);
+        when(ledger.getQueuedEntryCount()).thenReturn(1L);
         when(ledger.isMaxDocsProcessedReached()).thenReturn(false);
 
         var config = mock(CrawlConfig.class);
@@ -167,7 +167,7 @@ class CrawlActivityCheckerTest {
     void isActive_withShortIdleTimeout_queueStillEmpty_returnsFalse() {
         // queue initialized + empty + idleTimeout=50ms → wait loop runs ≈1s
         var ledger = mock(CrawlEntryLedger.class);
-        when(ledger.isQueueEmpty()).thenReturn(true);
+        when(ledger.getQueuedEntryCount()).thenReturn(0L);
         when(ledger.isMaxDocsProcessedReached()).thenReturn(false);
 
         var config = mock(CrawlConfig.class);
@@ -194,7 +194,7 @@ class CrawlActivityCheckerTest {
         // Session: queue empty + first call to isStartRefsQueueingComplete
         // returns false, second returns true → tests the do-while wait loop
         var ledger = mock(CrawlEntryLedger.class);
-        when(ledger.isQueueEmpty()).thenReturn(true);
+        when(ledger.getQueuedEntryCount()).thenReturn(0L);
         when(ledger.isMaxDocsProcessedReached()).thenReturn(false);
 
         var config = mock(CrawlConfig.class);

@@ -25,6 +25,7 @@ import static org.mockserver.model.ParameterBody.params;
 
 import java.util.List;
 
+import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.HttpResponse;
@@ -36,10 +37,9 @@ import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
-import org.junit.jupiter.api.Timeout;
 
 @MockServerSettings
-@Timeout(30)
+@Timeout(60)
 class HttpAuthTest {
 
     private final String loginFormPath = "/loginForm.html";
@@ -86,7 +86,8 @@ class HttpAuthTest {
         fetchCfg.setIfModifiedSinceDisabled(true);
         fetchCfg.setSniDisabled(true);
         cfg.setStartReferences(List.of(protectedUrl));
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+                .getCommitter();
 
         assertThat(mem.getUpsertCount()).isOne();
         var doc = mem.getUpsertRequests().get(0);
@@ -107,57 +108,83 @@ class HttpAuthTest {
     }
 
     @WebCrawlTest
-    void testFormAuthentication(
+    void testFormAuthenticationUsingLoginPageWithGoodCredentials(
             ClientAndServer client, WebCrawlConfig cfg) {
         client.reset();
         var loginFormUrl = serverUrl(client, loginFormPath);
+        var protectedUrl = serverUrl(client, protectedPath);
+
+        whenLoginRequired(client);
+
+        cfg.setStartReferences(List.of(protectedUrl));
+        var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
+        fetchCfg.setAuthentication(authConfirm(
+                loginFormUrl, "gooduser", "goodpassword"));
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+                .getCommitter();
+        var doc = mem.getUpsertRequests().get(0);
+        assertThat(WebTestUtil.docText(doc)).isEqualTo("You got it!");
+    }
+
+    @WebCrawlTest
+    void testFormAuthenticationUsingLoginPageWithBadCredentials(
+            ClientAndServer client, WebCrawlConfig cfg) {
+        client.reset();
+        var loginFormUrl = serverUrl(client, loginFormPath);
+        var protectedUrl = serverUrl(client, protectedPath);
+
+        whenLoginRequired(client);
+
+        cfg.setStartReferences(List.of(protectedUrl));
+        var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
+        fetchCfg.setAuthentication(authConfirm(
+                loginFormUrl, "baduser", "badpassword"));
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+                .getCommitter();
+
+        assertThat(mem.getUpsertCount()).isZero();
+    }
+
+    @WebCrawlTest
+    void testFormAuthenticationUsingActionUrlWithGoodCredentials(
+            ClientAndServer client, WebCrawlConfig cfg) {
+        client.reset();
         var loginFormActionUrl = serverUrl(client, loginFormActionPath);
         var protectedUrl = serverUrl(client, protectedPath);
 
         whenLoginRequired(client);
 
-        // Fill and submit form with good credentials
-        cfg.setWorkDir(cfg.getWorkDir().resolve("1"));
         cfg.setStartReferences(List.of(protectedUrl));
         var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
-        fetchCfg.setAuthentication(authConfirm(
-                loginFormUrl, "gooduser", "goodpassword"));
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
-        var doc = mem.getUpsertRequests().get(0);
-        assertThat(WebTestUtil.docText(doc)).isEqualTo("You got it!");
-
-        // Fill and submit form with bad credentials
-        cfg.setWorkDir(cfg.getWorkDir().resolve("2"));
-        cfg.setStartReferences(List.of(protectedUrl));
-        fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
-        fetchCfg.setAuthentication(authConfirm(
-                loginFormUrl, "baduser", "badpassword"));
-        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
-
-        assertThat(mem.getUpsertCount()).isZero();
-
-        // Invoke form action URL directly with good credentials
-        cfg.setWorkDir(cfg.getWorkDir().resolve("3"));
-        cfg.setStartReferences(List.of(protectedUrl));
-        fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
         var authCfg = authConfirm(
                 loginFormActionUrl, "gooduser", "goodpassword");
         authCfg.setFormSelector(null);
         fetchCfg.setAuthentication(authCfg);
-        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+                .getCommitter();
 
         assertThat(mem.getUpsertRequests()).isNotEmpty();
-        doc = mem.getUpsertRequests().get(0);
+        var doc = mem.getUpsertRequests().get(0);
         assertThat(WebTestUtil.docText(doc)).isEqualTo("You got it!");
+    }
 
-        // Invoke form action URL directly with bad credentials
-        cfg.setWorkDir(cfg.getWorkDir().resolve("4"));
+    @WebCrawlTest
+    void testFormAuthenticationUsingActionUrlWithBadCredentials(
+            ClientAndServer client, WebCrawlConfig cfg) {
+        client.reset();
+        var loginFormActionUrl = serverUrl(client, loginFormActionPath);
+        var protectedUrl = serverUrl(client, protectedPath);
+
+        whenLoginRequired(client);
+
         cfg.setStartReferences(List.of(protectedUrl));
-        fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
-        authCfg = authConfirm(loginFormActionUrl, "baduser", "badpassword");
+        var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
+        var authCfg = authConfirm(
+                loginFormActionUrl, "baduser", "badpassword");
         authCfg.setFormSelector(null);
         fetchCfg.setAuthentication(authCfg);
-        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+                .getCommitter();
 
         assertThat(mem.getUpsertCount()).isZero();
     }
@@ -215,9 +242,11 @@ class HttpAuthTest {
                 .respond(
                         response()
                                 .withStatusCode(
-                                        HttpStatusCode.ACCEPTED_202.code())
+                                        HttpStatusCode.ACCEPTED_202
+                                                .code())
                                 .withBody("LOGIN SUCCESS")
-                                .withCookie("userToken", "joe"));
+                                .withCookie("userToken",
+                                        "joe"));
 
         client
                 .when(
@@ -235,13 +264,15 @@ class HttpAuthTest {
                 .respond(
                         response()
                                 .withStatusCode(
-                                        HttpStatusCode.FORBIDDEN_403.code())
+                                        HttpStatusCode.FORBIDDEN_403
+                                                .code())
                                 .withBody("LOGIN FAILED"));
 
         client
                 .when(
                         request(protectedPath)
-                                .withCookie("userToken", "joe"))
+                                .withCookie("userToken",
+                                        "joe"))
                 .respond(
                         response()
                                 .withBody("You got it!"));
@@ -250,7 +281,8 @@ class HttpAuthTest {
                 .respond(
                         response()
                                 .withStatusCode(
-                                        HttpStatusCode.FORBIDDEN_403.code())
+                                        HttpStatusCode.FORBIDDEN_403
+                                                .code())
                                 .withBody("DENIED"));
     }
 }

@@ -240,7 +240,7 @@ public final class HazelcastUtil {
 
         while (System.currentTimeMillis() < deadline) {
             if (!HazelcastUtil.isClusterRunning(cluster)) {
-                Sleeper.sleepMillis(50);
+                Sleeper.sleepMillis(25);
                 continue;
             }
             var currentSize = cluster.getNodeCount();
@@ -257,14 +257,12 @@ public final class HazelcastUtil {
                 LOG.debug("Coordinator election completed");
             }
 
-            // Require more stable ticks (10 instead of 5) and an additional
-            // delay to ensure all nodes have time to register pipeline workers
             if (stableTicks >= 10 && coordinatorElected) {
                 // Give additional time for worker registration
-                Sleeper.sleepMillis(500);
+                Sleeper.sleepMillis(200);
                 return;
             }
-            Sleeper.sleepMillis(100);
+            Sleeper.sleepMillis(50);
         }
         LOG.warn("Cluster warm-up timed out (stable={}, coordinator={}); "
                 + "proceeding anyway.",

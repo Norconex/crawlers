@@ -174,7 +174,7 @@ public final class CrawlEntryLedgerBootstrapper implements CrawlBootstrapper {
                             + "new run.",
                             queueCount, processedCount, maxDocs);
                 }
-                ledger.clearQueue();
+                ledger.clearQueuedEntriesInLedger();
                 LOG.info("Caching any valid references from previous run.");
                 ledger.archiveCurrentLedger();
 
@@ -222,8 +222,9 @@ public final class CrawlEntryLedgerBootstrapper implements CrawlBootstrapper {
                         ledger.getQueueCount(),
                         ledger.getProcessedCount());
             } else {
-                // Queue is empty, safe to clear and start fresh
-                ledger.clearQueue();
+                // Queue is empty, safe to clear ledger queued statuses and
+                // start fresh without forcing a physical queue clear.
+                ledger.clearQueuedEntriesInLedger();
 
                 // Valid Processed -> Cached
                 LOG.info("Caching any valid references from previous run.");

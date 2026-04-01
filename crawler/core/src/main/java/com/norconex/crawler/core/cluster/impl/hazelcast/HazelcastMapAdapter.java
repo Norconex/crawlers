@@ -277,6 +277,15 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
                 new ArrayList<>());
     }
 
+    @Override
+    public void loadAll() {
+        runIfCache(() -> {
+            LOG.debug("Loading all entries for map '{}'...", name);
+            hzMap.loadAll(false);
+            LOG.debug("Loaded all entries for map '{}'.", name);
+        });
+    }
+
     /**
      * Return the underlying Hazelcast IMap as typed view.
      * Use with caution: underlying values are stored as Objects/Strings.

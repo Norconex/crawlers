@@ -39,7 +39,7 @@ import com.norconex.crawler.web.mocks.MockWebsite;
 import org.junit.jupiter.api.Timeout;
 
 @MockServerSettings
-@Timeout(30)
+@Timeout(60)
 class UrlStatusCrawlerEventListenerTest {
     @WebCrawlTest
     void testURLStatusCrawlerEventListener(

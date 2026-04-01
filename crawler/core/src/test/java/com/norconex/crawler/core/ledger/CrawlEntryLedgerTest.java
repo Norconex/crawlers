@@ -166,12 +166,14 @@ class CrawlEntryLedgerTest {
         // Simulate losing the queue (queue cleared externally); ledger still
         // has the QUEUED entries.
         cacheManager.getCacheQueue("queue-refs", String.class).clear();
-        assertThat(ledger.getQueueCount()).isEqualTo(0);
+        assertThat(ledger.getQueueCount()).isEqualTo(1);
+        assertThat(ledger.isQueueEmpty()).isTrue();
 
         var requeued = ledger.requeueQueuedEntries();
 
         assertThat(requeued).isEqualTo(1);
         assertThat(ledger.getQueueCount()).isEqualTo(1);
+        assertThat(ledger.isQueueEmpty()).isFalse();
     }
 
     // -----------------------------------------------------------------
@@ -308,7 +310,8 @@ class CrawlEntryLedgerTest {
 
         // After rotation the current ledger is empty.
         assertThat(ledger.countByStatus(ProcessingStatus.QUEUED)).isZero();
-        assertThat(ledger.getQueueCount()).isEqualTo(2); // queue not cleared
+        assertThat(ledger.getQueueCount()).isZero();
+        assertThat(ledger.isQueueEmpty()).isFalse(); // physical queue not cleared
 
         // The old entries are now in the baseline.
         assertThat(ledger.getBaselineCount()).isEqualTo(2);

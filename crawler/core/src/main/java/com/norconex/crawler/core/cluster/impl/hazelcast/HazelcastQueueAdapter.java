@@ -3,18 +3,22 @@ package com.norconex.crawler.core.cluster.impl.hazelcast;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.SerializationException;
 
 import com.hazelcast.collection.IQueue;
 import com.hazelcast.core.HazelcastInstance;
 import com.norconex.crawler.core.cluster.CacheQueue;
+import com.norconex.crawler.core.cluster.ClusterException;
 import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class HazelcastQueueAdapter<T> implements CacheQueue<T> {
+
+    private static final long OFFER_TIMEOUT_MS = 15000;
 
     private final IQueue<Object> hzQueue;
     private final HazelcastInstance hzInstance;
@@ -52,12 +56,29 @@ public class HazelcastQueueAdapter<T> implements CacheQueue<T> {
                 toStore = item.toString();
             }
         }
-        // Offer to the distributed FIFO queue.
+        // Offer to the distributed FIFO queue with a hard timeout so queue
+        // store/network stalls do not block a crawler thread indefinitely.
         try {
-            hzQueue.offer(toStore);
+            var added = hzQueue.offer(
+                    toStore,
+                    OFFER_TIMEOUT_MS,
+                    TimeUnit.MILLISECONDS);
+            if (!Boolean.TRUE.equals(added)) {
+                throw new ClusterException("Could not add item to queue '%s' "
+                        + "within %d ms."
+                                .formatted(hzQueue.getName(),
+                                        OFFER_TIMEOUT_MS));
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ClusterException(
+                    "Interrupted while adding item to queue '%s'."
+                            .formatted(hzQueue.getName()),
+                    e);
         } catch (Exception e) {
-            LOG.debug("Could not add item to queue '{}': {}",
-                    hzQueue.getName(), e.toString());
+            throw new ClusterException("Could not add item to queue '%s'."
+                    .formatted(hzQueue.getName()),
+                    e);
         }
     }
 

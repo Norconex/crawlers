@@ -24,6 +24,7 @@ import com.norconex.crawler.core.cluster.CacheManager;
 import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.cluster.CacheNames;
 import com.norconex.crawler.core.cluster.CacheQueue;
+import com.norconex.crawler.core.cluster.ClusterException;
 import com.norconex.crawler.core.cluster.QueryFilter;
 import com.norconex.crawler.core.session.CrawlSession;
 
@@ -95,6 +96,7 @@ public final class CrawlEntryLedger {
                 || !currentAlias.equals(currentLedgerAlias)) {
             currentLedger = cacheManager.getCacheMap(
                     currentAlias, CrawlEntry.class);
+            currentLedger.loadAll();
             currentLedgerAlias = currentAlias;
             LOG.debug("Lazy-initialized current ledger to: {}", currentAlias);
         }
@@ -113,6 +115,7 @@ public final class CrawlEntryLedger {
             if (cacheManager.cacheExists(previousAlias)) {
                 baselineLedger = cacheManager.getCacheMap(
                         previousAlias, CrawlEntry.class);
+                baselineLedger.loadAll();
                 baselineLedgerAlias = previousAlias;
             } else {
                 baselineLedger = null;
@@ -182,8 +185,8 @@ public final class CrawlEntryLedger {
                     totalMaxDocsThisRun);
         }
 
-        LOG.info("Done initializing crawl entry ledger. Queue size: {}",
-                queue.size());
+        LOG.info("Done initializing crawl entry ledger. Queued entries: {}",
+                getQueuedEntryCount());
     }
 
     /**
@@ -301,11 +304,43 @@ public final class CrawlEntryLedger {
     }
 
     public long getQueueCount() {
-        return queue.size();
+        // Keep this method for backward compatibility with existing callers,
+        // but avoid queue-store size calls that may block during startup.
+        return getQueuedEntryCount();
+    }
+
+    /**
+     * Returns the number of entries tracked as {@link ProcessingStatus#QUEUED}
+     * in the current ledger.
+     * <p>
+     * Unlike the physical queue size, this value comes from the authoritative
+     * ledger state and avoids expensive queue-store size operations.
+     * </p>
+     * @return queued entry count from the ledger
+     */
+    public long getQueuedEntryCount() {
+        return countByStatus(ProcessingStatus.QUEUED);
+    }
+
+    /**
+     * Returns whether the current ledger has any entries still tracked in
+     * {@link ProcessingStatus#QUEUED} state.
+     * @return {@code true} if no queued entries remain in the ledger
+     */
+    public boolean isQueuedEntryEmpty() {
+        return getQueuedEntryCount() == 0;
     }
 
     public void clearQueue() {
         queue.clear();
+        getCurrentLedger().delete(statusQueryFilter(ProcessingStatus.QUEUED));
+    }
+
+    /**
+     * Clears QUEUED entries from the active ledger without issuing a
+     * physical distributed queue clear.
+     */
+    public void clearQueuedEntriesInLedger() {
         getCurrentLedger().delete(statusQueryFilter(ProcessingStatus.QUEUED));
     }
 
@@ -315,9 +350,10 @@ public final class CrawlEntryLedger {
 
     public void queue(@NonNull CrawlEntry crawlEntry) {
         var current = getCurrentLedger();
-        if (current.containsKey(crawlEntry.getReference())) {
+        var reference = crawlEntry.getReference();
+        if (current.containsKey(reference)) {
             LOG.debug("Reference already accounted for: {}",
-                    crawlEntry.getReference());
+                    reference);
             return;
         }
 
@@ -326,9 +362,18 @@ public final class CrawlEntryLedger {
         // Store the full entry in the ledger and only the reference
         // in the queue
         queuedEntry.setProcessingStatus(ProcessingStatus.QUEUED);
-        current.put(queuedEntry.getReference(), queuedEntry);
-        queue.add(queuedEntry.getReference());
-        LOG.debug("Queued for processing: {}", queuedEntry.getReference());
+        current.put(reference, queuedEntry);
+        try {
+            queue.add(reference);
+        } catch (RuntimeException e) {
+            // Keep ledger and queue consistent when queue store is unavailable.
+            current.remove(reference);
+            throw new ClusterException(
+                    "Failed to queue reference '%s'; ledger update rolled back."
+                            .formatted(reference),
+                    e);
+        }
+        LOG.debug("Queued for processing: {}", reference);
         onQueued.accept(queuedEntry);
     }
 
@@ -366,7 +411,16 @@ public final class CrawlEntryLedger {
         var queuedEntry = BeanUtil.clone(crawlEntry);
         queuedEntry.setProcessingStatus(ProcessingStatus.QUEUED);
         current.put(reference, queuedEntry);
-        queue.add(reference);
+        try {
+            queue.add(reference);
+        } catch (RuntimeException e) {
+            // Restore previous entry status if queue write fails.
+            current.put(reference, existingEntry);
+            throw new ClusterException(
+                    "Failed to re-queue reference '%s'; ledger update rolled back."
+                            .formatted(reference),
+                    e);
+        }
         LOG.debug("Re-queued tracked reference for processing: {}",
                 reference);
         onQueued.accept(queuedEntry);
@@ -430,9 +484,20 @@ public final class CrawlEntryLedger {
         var requeuedCount = 0;
         while (inFlight.hasNext()) {
             var entry = inFlight.next();
+            var reference = entry.getReference();
             entry.setProcessingStatus(ProcessingStatus.QUEUED);
-            current.put(entry.getReference(), entry);
-            queue.add(entry.getReference());
+            current.put(reference, entry);
+            try {
+                queue.add(reference);
+            } catch (RuntimeException e) {
+                // Restore PROCESSING state when queue write fails.
+                entry.setProcessingStatus(ProcessingStatus.PROCESSING);
+                current.put(reference, entry);
+                throw new ClusterException(
+                        "Failed to re-queue PROCESSING reference '%s'; ledger update rolled back."
+                                .formatted(reference),
+                        e);
+            }
             requeuedCount++;
         }
         return requeuedCount;

@@ -77,20 +77,21 @@ class CrawlEntryLedgerBootstrapperTest {
 
         // Bootstrap key check was the early exit; ledger should not be touched
         verify(ledger, never()).ensureCurrentLedgerAliasExists();
-        verify(ledger, never()).clearQueue();
+        verify(ledger, never()).clearQueuedEntriesInLedger();
         verify(ledger, never()).archiveCurrentLedger();
     }
 
     @Test
     void bootstrap_freshCrawl_emptyQueue_archivesLedger() {
-        // Not resumed, queue is empty → should clear queue and archive
+        // Not resumed, queue is empty -> clear queued ledger entries and
+        // archive.
         var session = buildSession(false, 0, true);
         var ledger = session.getCrawlContext().getCrawlEntryLedger();
 
         new CrawlEntryLedgerBootstrapper().bootstrap(session);
 
         verify(ledger).ensureCurrentLedgerAliasExists();
-        verify(ledger).clearQueue();
+        verify(ledger).clearQueuedEntriesInLedger();
         verify(ledger).archiveCurrentLedger();
     }
 
@@ -105,21 +106,21 @@ class CrawlEntryLedgerBootstrapperTest {
         verify(ledger).ensureCurrentLedgerAliasExists();
         verify(ledger).requeueProcessingEntries();
         // Should NOT archive or clear in resume path
-        verify(ledger, never()).clearQueue();
+        verify(ledger, never()).clearQueuedEntriesInLedger();
         verify(ledger, never()).archiveCurrentLedger();
     }
 
     @Test
     void bootstrap_notResumed_nonEmptyQueue_preservesQueue() {
         // Not resumed but queue has items (resume detection issue)
-        // → preserves queue (no clearQueue/archiveCurrentLedger)
+        // -> preserves queue (no clear/archive in this path)
         var session = buildSession(false, 7, true);
         var ledger = session.getCrawlContext().getCrawlEntryLedger();
 
         new CrawlEntryLedgerBootstrapper().bootstrap(session);
 
         verify(ledger).ensureCurrentLedgerAliasExists();
-        verify(ledger, never()).clearQueue();
+        verify(ledger, never()).clearQueuedEntriesInLedger();
         verify(ledger, never()).archiveCurrentLedger();
     }
 
