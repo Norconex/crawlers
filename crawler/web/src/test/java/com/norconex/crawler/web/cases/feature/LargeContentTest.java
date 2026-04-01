@@ -32,7 +32,6 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
@@ -42,7 +41,6 @@ import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
  * Test that large files are processed properly (&gt; 2MB).
  */
 @MockServerSettings
-@SlowTest
 @Disabled("Need to find out why it now fails on GitHub Actions.")
 @Timeout(30)
 class LargeContentTest {

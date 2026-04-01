@@ -17,15 +17,18 @@ package com.norconex.crawler.core.cluster.impl.hazelcast.pipeline;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.UUID;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastCluster;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnectorConfig;
@@ -34,8 +37,9 @@ import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 /**
  * Unit/component tests for the guard paths and query methods of
@@ -43,8 +47,8 @@ import com.norconex.crawler.core.session.CrawlSession;
  * pipeline execution.
  */
 @Timeout(60)
-@SlowTest
 @WithTestWatcherLogging
+@SlowTest
 class HazelcastPipelineManagerTest {
 
     @TempDir

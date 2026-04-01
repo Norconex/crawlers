@@ -46,8 +46,8 @@ import com.sun.net.httpserver.HttpServer;
  * the crawler infrastructure.
  */
 @Timeout(value = 120, unit = TimeUnit.SECONDS)
-@SlowTest
 @WithTestWatcherLogging
+@SlowTest
 class CliLifecycleCommandsTest {
 
     @TempDir

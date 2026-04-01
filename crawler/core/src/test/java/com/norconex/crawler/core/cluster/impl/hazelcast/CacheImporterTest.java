@@ -15,21 +15,25 @@
 package com.norconex.crawler.core.cluster.impl.hazelcast;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import java.util.Collections;
 import java.util.List;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import com.norconex.crawler.core.cluster.SerializedCache;
 import com.norconex.crawler.core.cluster.SerializedCache.CacheType;
 import com.norconex.crawler.core.cluster.SerializedCache.SerializedEntry;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.ledger.CrawlEntry;
 import com.norconex.crawler.core.util.SerialUtil;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 /**
  * Unit tests for {@link CacheImporter} — covers every branch of
@@ -37,8 +41,8 @@ import com.norconex.crawler.core.util.SerialUtil;
  * fall-backs, MAP batch logic, and QUEUE population.
  */
 @Timeout(30)
-@SlowTest
 @WithTestWatcherLogging
+@SlowTest
 class CacheImporterTest {
 
     private HazelcastCacheManager manager;

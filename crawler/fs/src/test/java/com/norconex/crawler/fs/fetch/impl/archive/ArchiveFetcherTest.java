@@ -33,12 +33,10 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.fs.FsTestUtil;
 import com.norconex.crawler.fs.fetch.impl.ftp.MockFtpServer;
 
 @Timeout(value = 60, unit = TimeUnit.SECONDS)
-@SlowTest
 class ArchiveFetcherTest {
 
     // Per-test instance workdir

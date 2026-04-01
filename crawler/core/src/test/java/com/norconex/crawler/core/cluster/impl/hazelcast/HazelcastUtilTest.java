@@ -17,23 +17,27 @@ package com.norconex.crawler.core.cluster.impl.hazelcast;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import com.hazelcast.collection.IQueue;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.hazelcast.map.IMap;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 @Timeout(30)
 @SlowTest

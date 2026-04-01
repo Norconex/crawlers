@@ -18,18 +18,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import org.apache.commons.collections4.Bag;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CoordinatorChangeListener;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
@@ -37,8 +40,9 @@ import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 /**
  * Tests for uncovered {@link HazelcastCluster} methods: session binding,
@@ -47,8 +51,8 @@ import com.norconex.crawler.core.session.CrawlSession;
  * {@link HazelcastUtil#waitForClusterWarmUp}.
  */
 @Timeout(60)
-@SlowTest
 @WithTestWatcherLogging
+@SlowTest
 class HazelcastClusterBehaviorTest {
 
     @TempDir

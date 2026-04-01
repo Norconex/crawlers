@@ -27,7 +27,6 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 import com.norconex.crawler.core.test.CrawlTestDriver;
 
@@ -39,7 +38,6 @@ import com.norconex.crawler.core.test.CrawlTestDriver;
  * without any lock errors.
  */
 @Timeout(60)
-@SlowTest
 class LedgerPersistenceTest {
 
     @TempDir

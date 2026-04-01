@@ -48,9 +48,9 @@ import lombok.extern.slf4j.Slf4j;
  * crawler lifecycle (init → crawl → close) without spawning child JVMs.
  * It uses an in-memory H2 database shared by both nodes.</p>
  */
-@SlowTest
 @Slf4j
 @Timeout(60)
+@SlowTest
 class EmbeddedClusterCrawlTest {
 
     @TempDir
@@ -62,7 +62,6 @@ class EmbeddedClusterCrawlTest {
     }
 
     @Test
-    @SlowTest
     @Timeout(60)
     void twoEmbeddedNodesCrawlAllReferences() throws Exception {
         var numRefs = 8;

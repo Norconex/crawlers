@@ -16,15 +16,19 @@ package com.norconex.crawler.core.cluster.impl.hazelcast;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import java.util.UUID;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 /**
@@ -37,8 +41,8 @@ import com.norconex.crawler.core.junit.annotations.SlowTest;
  * <p>Tests that spin up multi-node clusters wait for cluster formation using
  * a simple polling loop (Awaitility is not a project dependency).</p>
  */
-@SlowTest
 @Timeout(30)
+@SlowTest
 class HazelcastClusterNodeTest {
 
     /**

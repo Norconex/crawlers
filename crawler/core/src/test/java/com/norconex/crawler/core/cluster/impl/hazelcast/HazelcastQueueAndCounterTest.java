@@ -15,9 +15,11 @@
 package com.norconex.crawler.core.cluster.impl.hazelcast;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import java.util.List;
 import java.util.UUID;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -25,13 +27,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.Timeout;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import com.hazelcast.core.HazelcastInstance;
 import com.norconex.crawler.core.junit.annotations.SlowTest;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 @Timeout(30)
-@SlowTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@SlowTest
 class HazelcastQueueAndCounterTest {
 
     private HazelcastInstance hz;

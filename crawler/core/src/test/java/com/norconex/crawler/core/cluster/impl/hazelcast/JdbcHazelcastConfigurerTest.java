@@ -15,14 +15,16 @@
 package com.norconex.crawler.core.cluster.impl.hazelcast;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
-
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 @Timeout(30)

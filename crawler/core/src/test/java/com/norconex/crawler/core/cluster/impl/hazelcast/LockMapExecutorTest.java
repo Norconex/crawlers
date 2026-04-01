@@ -17,24 +17,28 @@ package com.norconex.crawler.core.cluster.impl.hazelcast;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.Timeout;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.norconex.crawler.core.cluster.ClusterException;
 import com.norconex.crawler.core.junit.annotations.SlowTest;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 @Timeout(30)
-@SlowTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@SlowTest
 class LockMapExecutorTest {
 
     private HazelcastInstance hz;

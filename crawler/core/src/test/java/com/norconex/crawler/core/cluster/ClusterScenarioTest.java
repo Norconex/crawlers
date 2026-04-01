@@ -15,6 +15,7 @@
 package com.norconex.crawler.core.cluster;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import java.nio.file.Path;
 import java.time.Duration;
@@ -23,12 +24,14 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import com.norconex.committer.core.service.CommitterServiceEvent;
 import com.norconex.commons.lang.config.Configurable;
@@ -38,7 +41,6 @@ import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnecto
 import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 import com.norconex.crawler.core.session.CrawlMode;
 import com.norconex.crawler.core.session.CrawlResumeState;
@@ -47,13 +49,16 @@ import com.norconex.crawler.core.test.CrawlTestDriver;
 import com.norconex.crawler.core.test.CrawlTestHarness;
 import com.norconex.crawler.core.test.CrawlTestInstrument;
 import com.norconex.crawler.core.util.ConcurrentUtil;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import lombok.extern.slf4j.Slf4j;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 
-@SlowTest
 @Slf4j
 @WithTestWatcherLogging
 @Timeout(30)
+@SlowTest
 class ClusterScenarioTest {
 
     private static final Duration CLUSTER_JOIN_WAIT =
