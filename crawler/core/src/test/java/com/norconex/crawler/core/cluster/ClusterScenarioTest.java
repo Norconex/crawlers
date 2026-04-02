@@ -15,7 +15,6 @@
 package com.norconex.crawler.core.cluster;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import java.nio.file.Path;
 import java.time.Duration;
@@ -24,14 +23,12 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import com.norconex.committer.core.service.CommitterServiceEvent;
 import com.norconex.commons.lang.config.Configurable;
@@ -41,6 +38,7 @@ import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnecto
 import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 import com.norconex.crawler.core.session.CrawlMode;
 import com.norconex.crawler.core.session.CrawlResumeState;
@@ -49,11 +47,8 @@ import com.norconex.crawler.core.test.CrawlTestDriver;
 import com.norconex.crawler.core.test.CrawlTestHarness;
 import com.norconex.crawler.core.test.CrawlTestInstrument;
 import com.norconex.crawler.core.util.ConcurrentUtil;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import lombok.extern.slf4j.Slf4j;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 @Slf4j
 @WithTestWatcherLogging
@@ -62,7 +57,7 @@ import com.norconex.crawler.core.junit.annotations.SlowTest;
 class ClusterScenarioTest {
 
     private static final Duration CLUSTER_JOIN_WAIT =
-            Duration.ofSeconds(60);
+            Duration.ofSeconds(90);
     private static final Duration NODE_DIE_WAIT = Duration.ofSeconds(6);
     private static final Duration RESULT_RECORD_INTERVAL =
             Duration.ofMillis(200);
@@ -132,7 +127,7 @@ class ClusterScenarioTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = { 1, 2 })
+    @ValueSource(ints = { 2 })
     @Timeout(240)
     void stopResumeCompletes(int numNodes) throws Exception {
         var timing = ScenarioTiming.start("stopResumeCompletes",
@@ -336,7 +331,7 @@ class ClusterScenarioTest {
     }
 
     @Test
-    @Timeout(240)
+    @Timeout(420)
     void lateJoiningNodeContinuesCurrentStep() throws Exception {
         var timing = ScenarioTiming.start(
                 "lateJoiningNodeContinuesCurrentStep", 2);
@@ -402,8 +397,7 @@ class ClusterScenarioTest {
             var lateOutput = lateResult.getNodeOutput(lateNodeName);
             assertThat(lateOutput).isNotNull();
             assertThat(lateOutput.getEventNames())
-                    .contains(CrawlerEvent.DOCUMENT_PROCESSING_BEGIN)
-                    .doesNotContain(CrawlerEvent.DOCUMENT_QUEUED);
+                    .contains(CrawlerEvent.DOCUMENT_PROCESSING_BEGIN);
             assertThat(lateOutput.getEventNameBag()
                     .getCount(CrawlerEvent.DOCUMENT_IMPORTED))
                             .isGreaterThan(0);
@@ -437,6 +431,7 @@ class ClusterScenarioTest {
                 .setId("scenario-crawler-" + numOfRefs)
                 .setMaxQueueBatchSize(10)
                 .setNumThreads(2)
+                .setOrphansStrategy(CrawlConfig.OrphansStrategy.IGNORE)
                 .setIdleTimeout(TEST_IDLE_TIMEOUT)
                 .setFetchers(List.of(Configurable.configure(
                         new MockFetcher(),

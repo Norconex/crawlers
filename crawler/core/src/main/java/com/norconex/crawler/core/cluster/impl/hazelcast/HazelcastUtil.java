@@ -257,16 +257,14 @@ public final class HazelcastUtil {
                 LOG.debug("Coordinator election completed");
             }
 
-            if (stableTicks >= 10 && coordinatorElected) {
-                // Give additional time for worker registration
-                Sleeper.sleepMillis(200);
+            if (stableTicks >= 5 && coordinatorElected) {
                 return;
             }
             Sleeper.sleepMillis(50);
         }
         LOG.warn("Cluster warm-up timed out (stable={}, coordinator={}); "
                 + "proceeding anyway.",
-                stableTicks >= 10, coordinatorElected);
+                stableTicks >= 5, coordinatorElected);
     }
 
     /**

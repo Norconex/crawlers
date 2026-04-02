@@ -33,6 +33,13 @@ public class CrawlStateStore {
 
     private final CacheMap<String> sessionCache;
     private final CrawlAttributes sessionAttributes;
+    /**
+     * Ephemeral (non-MapStore-backed) attributes for per-run flags that must
+     * survive partition migration after a node crash. Backed by the
+     * {@code eph-crawlRun} cache so that in-memory backup promotion is used
+     * directly without triggering a LAZY MapStore reload.
+     */
+    private final CrawlAttributes runAttributes;
 
     // Local copy refreshed on each explicit getCrawlState() call
     private CrawlSession.State cachedState;
@@ -72,7 +79,7 @@ public class CrawlStateStore {
      * @return {@code true} when all start references have been queued
      */
     public boolean isStartRefsQueueingComplete() {
-        return sessionAttributes.getBoolean(START_REFS_QUEUED_KEY);
+        return runAttributes.getBoolean(START_REFS_QUEUED_KEY);
     }
 
     /**
@@ -80,7 +87,7 @@ public class CrawlStateStore {
      * @param isComplete {@code true} once all start references are queued
      */
     public void setStartRefsQueueingComplete(boolean isComplete) {
-        sessionAttributes.setBoolean(START_REFS_QUEUED_KEY, isComplete);
+        runAttributes.setBoolean(START_REFS_QUEUED_KEY, isComplete);
     }
 
     /**

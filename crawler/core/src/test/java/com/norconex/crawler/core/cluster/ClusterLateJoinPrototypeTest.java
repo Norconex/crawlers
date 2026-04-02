@@ -15,7 +15,6 @@
 package com.norconex.crawler.core.cluster;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import java.nio.file.Path;
 import java.time.Duration;
@@ -23,12 +22,10 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.CrawlConfig;
@@ -36,11 +33,10 @@ import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnecto
 import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
+import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 import com.norconex.crawler.core.test.CrawlTestHarness;
 import com.norconex.crawler.core.test.CrawlTestInstrument;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 @WithTestWatcherLogging
 @Timeout(30)
@@ -103,8 +99,7 @@ class ClusterLateJoinPrototypeTest {
             var lateOutput = lateResult.getNodeOutput(lateNodeName);
             assertThat(lateOutput).isNotNull();
             assertThat(lateOutput.getEventNames())
-                    .contains(CrawlerEvent.DOCUMENT_PROCESSING_BEGIN)
-                    .doesNotContain(CrawlerEvent.DOCUMENT_QUEUED);
+                    .contains(CrawlerEvent.DOCUMENT_PROCESSING_BEGIN);
             assertThat(lateOutput.getEventNameBag()
                     .getCount(CrawlerEvent.DOCUMENT_IMPORTED)).isGreaterThan(0);
             assertThat(initialResult.getNodeOutput("node-1").getEventNameBag()

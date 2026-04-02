@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.cluster.admin.ClusterAdminClient;
 
 import picocli.CommandLine;
 
@@ -34,11 +33,10 @@ import picocli.CommandLine;
 class CliStopTest {
 
     @Test
-    void parseArgs_usesDefaultNodeUrl() throws Exception {
+    void parseArgs_noUrlProvided_urlsListIsEmpty() throws Exception {
         var cliStop = parseStop("stop", "-config=dummy.xml");
 
-        assertThat(urlsOf(cliStop))
-                .containsExactly(ClusterAdminClient.DEFAULT_NODE_URL);
+        assertThat(urlsOf(cliStop)).isEmpty();
     }
 
     @Test

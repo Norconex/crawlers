@@ -322,16 +322,21 @@ public class CrawlTestHarness implements Closeable {
                             + nodeName + "'.");
         }
         if (instrument.isClustered()) {
-            var connConfig = ((HazelcastClusterConnector) instrument
-                    .getCrawlConfig()
-                    .getClusterConfig()
-                    .getConnector())
-                            .getConfiguration();
+            // Ensure the connector is a HazelcastClusterConnector.
+            // ClusterConfig defaults to StandaloneClusterConnector,
+            // but clustered tests require Hazelcast.
+            var clusterCfg = instrument.getCrawlConfig().getClusterConfig();
+            if (!(clusterCfg
+                    .getConnector() instanceof HazelcastClusterConnector)) {
+                clusterCfg.setConnector(new HazelcastClusterConnector());
+            }
+            var connConfig = ((HazelcastClusterConnector) clusterCfg
+                    .getConnector()).getConfiguration();
 
             // Reduce nodeExpiryTimeout so the coordinator marks orphaned
-            // workers (e.g., from a crash) as EXPIRED within 10 seconds
+            // workers (e.g., from a crash) as EXPIRED within 5 seconds
             // instead of the 30-second default.
-            connConfig.setNodeExpiryTimeout(java.time.Duration.ofSeconds(10));
+            connConfig.setNodeExpiryTimeout(java.time.Duration.ofSeconds(5));
 
             // Ensure this harness run forms its own cluster.
             connConfig.setClusterName(hazelcastClusterName);
@@ -372,6 +377,11 @@ public class CrawlTestHarness implements Closeable {
                     .put("hazelcast.max.no.heartbeat.seconds", "10");
             configurer.getHazelcastProperties()
                     .put("hazelcast.operation.call.timeout.millis", "15000");
+            // Speed up cluster join and merge detection for tests.
+            configurer.getHazelcastProperties()
+                    .put("hazelcast.merge.first.run.delay.seconds", "3");
+            configurer.getHazelcastProperties()
+                    .put("hazelcast.merge.next.run.delay.seconds", "3");
 
             // Set TCP members for cluster discovery using the per-harness port
             // range chosen in launchAsync().

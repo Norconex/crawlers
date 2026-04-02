@@ -16,8 +16,6 @@ package com.norconex.crawler.core.util;
 
 import org.apache.commons.lang3.function.FailableRunnable;
 
-import com.norconex.crawler.core.CrawlerException;
-
 import lombok.extern.slf4j.Slf4j;
 
 //MAYBE: move somewhere more generic
@@ -83,23 +81,8 @@ public final class ExceptionSwallower {
                 LOG.info("Successfully closed resource: {}", resourceName);
             } catch (Exception e) {
                 LOG.error("Failed to close resource: {}", resourceName, e);
-                // For critical resources, escalate or rethrow
-                if (isCriticalResource(closeable)) {
-                    throw new CrawlerException(
-                            "Critical resource failed to close: "
-                                    + resourceName,
-                            e);
-                }
             }
         }
-    }
-
-    /**
-     * Determines if a resource is critical (e.g., cluster or cache manager).
-     */
-    private static boolean isCriticalResource(AutoCloseable closeable) {
-        var name = closeable.getClass().getSimpleName().toLowerCase();
-        return name.contains("cluster") || name.contains("cachemanager");
     }
 
     /**

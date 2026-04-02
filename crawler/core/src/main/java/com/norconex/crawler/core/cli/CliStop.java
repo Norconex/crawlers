@@ -18,13 +18,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.cluster.admin.ClusterAdminClient;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Help.Visibility;
 import picocli.CommandLine.Option;
 
 /**
@@ -42,9 +40,7 @@ public class CliStop extends CliBase {
     @Option(
         names = { "-url" },
         description = "The URL for the node that will receive the stop "
-                + "request (can specify multiple URLs). ",
-        defaultValue = ClusterAdminClient.DEFAULT_NODE_URL,
-        showDefaultValue = Visibility.ALWAYS
+                + "request (can specify multiple URLs). "
     )
     private List<String> urls = new ArrayList<>();
 

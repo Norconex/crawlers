@@ -27,13 +27,17 @@ class CrawlStateStoreTest {
 
     private InMemoryCacheMap<String> sessionCache;
     private CrawlAttributes sessionAttrs;
+    private InMemoryCacheMap<String> runCache;
+    private CrawlAttributes runAttrs;
     private CrawlStateStore store;
 
     @BeforeEach
     void setUp() {
         sessionCache = new InMemoryCacheMap<>("session-cache");
         sessionAttrs = new CrawlAttributes(sessionCache);
-        store = new CrawlStateStore(sessionCache, sessionAttrs);
+        runCache = new InMemoryCacheMap<>("run-cache");
+        runAttrs = new CrawlAttributes(runCache);
+        store = new CrawlStateStore(sessionCache, sessionAttrs, runAttrs);
     }
 
     @Test

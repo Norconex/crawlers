@@ -174,6 +174,8 @@ class CrawlActivityChecker {
                     References are still being queued. \
                     Waiting for new references or initial queuing \
                     to be over...""");
+                var noWorkPollCount = 0;
+                var waitStartMs = System.currentTimeMillis();
                 do {
                     Sleeper.sleepMillis(200);
                     queueEmpty = isQueuedEntryEmpty();
@@ -185,6 +187,36 @@ class CrawlActivityChecker {
                             poll loop queueEmpty={} \
                             queueInitialized={}.""",
                                 queueEmpty, queueInitialized);
+                    }
+                    // Guard against the start-refs-queuing flag becoming
+                    // permanently unavailable (e.g., due to partition
+                    // migration after a coordinator crash). Exit the loop if:
+                    //  (a) Queue and processing have both been empty for ~1s,
+                    //      meaning no more work exists at all; OR
+                    //  (b) We have been waiting >30s, after which even
+                    //      orphaned PROCESSING entries left by a crashed node
+                    //      should not prevent idle timeout from firing.
+                    if (!queueInitialized && queueEmpty) {
+                        var processingCount = session.getCrawlContext()
+                                .getCrawlEntryLedger().getProcessingCount();
+                        if (processingCount == 0) {
+                            noWorkPollCount++;
+                        } else {
+                            noWorkPollCount = 0;
+                        }
+                        var waitedMs =
+                                System.currentTimeMillis() - waitStartMs;
+                        if (noWorkPollCount >= 5 || waitedMs >= 30_000) {
+                            LOG.info("Treating start-refs queuing as "
+                                    + "complete (no-work polls: {}, "
+                                    + "waited: {}ms). The flag may be "
+                                    + "temporarily unavailable due to a "
+                                    + "coordinator crash.",
+                                    noWorkPollCount, waitedMs);
+                            queueInitialized = true;
+                        }
+                    } else {
+                        noWorkPollCount = 0;
                     }
                 } while (queueEmpty && !queueInitialized);
             }

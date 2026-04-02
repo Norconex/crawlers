@@ -187,7 +187,8 @@ public class CrawlSession implements Closeable {
         var sessionCache = cacheManager.getCrawlSessionCache();
         var runCache = cacheManager.getCrawlRunCache();
         stateStore = new CrawlStateStore(
-                sessionCache, new CrawlAttributes(sessionCache));
+                sessionCache, new CrawlAttributes(sessionCache),
+                new CrawlAttributes(runCache));
         runCoordinator = new CrawlRunCoordinator(
                 sessionCache, runCache, new CrawlAttributes(runCache));
         eventBus = new CrawlEventBus(crawlContext.getEventManager());

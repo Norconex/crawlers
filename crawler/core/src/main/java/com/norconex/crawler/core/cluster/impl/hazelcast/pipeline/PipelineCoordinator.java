@@ -205,11 +205,6 @@ public class PipelineCoordinator implements AutoCloseable {
         final var currentStepRecord = state.getCurrentStepRecord();
         if (HazelcastUtil.isPipelineTerminated(
                 pipeline, currentStepRecord, state.getStopRequested().get())) {
-            LOG.debug("Coordinator detected terminal pipeline {} at step {} "
-                    + "with status {}. Exiting.",
-                    pipeline.getId(),
-                    currentStepRecord.getStepId(),
-                    currentStepRecord.getStatus());
             return;
         }
 
@@ -243,11 +238,6 @@ public class PipelineCoordinator implements AutoCloseable {
                     : executeLocally(step);
 
             if (!HazelcastUtil.isClusterRunning(cluster)) {
-                LOG.warn("Cluster reported as no longer running after step {}. "
-                        + "This node {} will no longer execute pipeline {}.",
-                        currentStepRecord.getStepId(),
-                        cluster.getLocalNode().getNodeName(),
-                        pipeline.getId());
                 return;
             }
 

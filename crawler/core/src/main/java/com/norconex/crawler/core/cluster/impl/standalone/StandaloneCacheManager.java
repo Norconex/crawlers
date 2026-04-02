@@ -24,8 +24,11 @@ import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.cluster.CacheQueue;
 import com.norconex.crawler.core.cluster.CacheSet;
 import com.norconex.crawler.core.cluster.SerializedCache;
+import com.norconex.crawler.core.cluster.SerializedCache.CacheType;
+import com.norconex.crawler.core.cluster.SerializedCache.SerializedEntry;
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListener;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
+import com.norconex.crawler.core.util.SerialUtil;
 
 /**
  * In-memory {@link CacheManager} for standalone (non-clustered) mode.
@@ -62,7 +65,23 @@ public class StandaloneCacheManager implements CacheManager {
 
     @Override
     public void exportCaches(Consumer<SerializedCache> c) {
-        // No-op: standalone caches are ephemeral.
+        maps.forEach((name, map) -> {
+            var serialCache = new SerializedCache();
+            serialCache.setCacheName(name);
+            serialCache.setCacheType(CacheType.MAP);
+            serialCache.setPersistent(false);
+            var entries = new java.util.ArrayList<SerializedEntry>();
+            map.forEach((key, value) -> {
+                if (value instanceof String strVal) {
+                    entries.add(new SerializedEntry(key, strVal));
+                } else {
+                    entries.add(new SerializedEntry(
+                            key, SerialUtil.toJsonString(value)));
+                }
+            });
+            serialCache.setEntries(entries.iterator());
+            c.accept(serialCache);
+        });
     }
 
     @Override

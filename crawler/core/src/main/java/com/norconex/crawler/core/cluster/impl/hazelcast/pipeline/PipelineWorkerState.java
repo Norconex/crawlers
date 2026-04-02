@@ -144,12 +144,15 @@ public class PipelineWorkerState implements AutoCloseable {
             if (closed.get()) {
                 return;
             }
-            // Avoid doing work once the cluster is no longer running.
+            // Self-cancel once the cluster is no longer running to
+            // avoid a tight loop of no-op heartbeats that spam logs
+            // and waste CPU after shutdown.
             if (!HazelcastUtil.isClusterRunning(cluster)) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Skipping worker status heartbeat for pipeline "
-                            + "{} because cluster is not running.",
-                            pipeline.getId());
+                LOG.debug("Cancelling worker status heartbeat for "
+                        + "pipeline {} because cluster is not running.",
+                        pipeline.getId());
+                if (workerStatusFuture != null) {
+                    workerStatusFuture.cancel(false);
                 }
                 return;
             }
@@ -356,6 +359,22 @@ public class PipelineWorkerState implements AutoCloseable {
             // if already running, run it if step id has changed
             var stepChanged = (oldStepId == null && newStepId != null)
                     || (oldStepId != null && !oldStepId.equals(newStepId));
+
+            // Reject status downgrade: don't overwrite a terminal status
+            // with a non-terminal one for the same step. This prevents a
+            // race where a new coordinator re-pushes RUNNING for a step
+            // this worker already COMPLETED, which would deadlock.
+            if (!stepChanged
+                    && oldStatus != null && oldStatus.isTerminal()
+                    && newStatus != null && !newStatus.isTerminal()) {
+                LOG.debug(
+                        "Rejecting status downgrade for step {}: "
+                                + "{} -> {}",
+                        newStepId, oldStatus, newStatus);
+                currentStepRecord.setStatus(oldStatus);
+                return;
+            }
+
             shouldRun = newStatus != null && newStatus.isRunning()
                     && (((oldStatus == null) || !oldStatus.isRunning())
                             || stepChanged);
