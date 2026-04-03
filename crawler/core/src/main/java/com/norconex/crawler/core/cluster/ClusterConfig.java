@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.cluster;
 
-import com.norconex.crawler.core.cluster.impl.standalone.StandaloneClusterConnector;
+import com.norconex.crawler.core.cluster.impl.mvstore.MVStoreClusterConnector;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -30,12 +30,14 @@ public class ClusterConfig {
 
     /**
      * The connector to the cluster implementation used to run the crawler.
-     * Default is a standalone in-memory connector with no external
+     * Default is an MVStore file-backed connector with no external
      * infrastructure. For clustered mode, set this to a
      * {@link com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector}.
+     * For a pure in-memory non-persistent alternative, use
+     * {@link com.norconex.crawler.core.cluster.impl.memory.MemoryClusterConnector}.
      */
     private ClusterConnector connector =
-            new StandaloneClusterConnector();
+            new MVStoreClusterConnector();
     /**
      * Disable launching the crawler administrative server endpoints.
      */

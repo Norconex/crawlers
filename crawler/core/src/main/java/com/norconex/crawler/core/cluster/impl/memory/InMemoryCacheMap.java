@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cluster.impl.standalone;
+package com.norconex.crawler.core.cluster.impl.memory;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;

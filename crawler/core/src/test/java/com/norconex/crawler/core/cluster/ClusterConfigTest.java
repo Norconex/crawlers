@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.cluster.impl.standalone.StandaloneClusterConnector;
+import com.norconex.crawler.core.cluster.impl.mvstore.MVStoreClusterConnector;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 
 @WithTestWatcherLogging
@@ -27,10 +27,10 @@ import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 class ClusterConfigTest {
 
     @Test
-    void defaultConnector_isStandalone() {
+    void defaultConnector_isMVStore() {
         var cfg = new ClusterConfig();
         assertThat(cfg.getConnector())
-                .isInstanceOf(StandaloneClusterConnector.class);
+                .isInstanceOf(MVStoreClusterConnector.class);
     }
 
     @Test

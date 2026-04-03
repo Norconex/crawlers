@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cluster.impl.standalone;
+package com.norconex.crawler.core.cluster.impl.memory;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -32,16 +32,17 @@ import lombok.extern.slf4j.Slf4j;
  * structures for caching and runs pipeline steps sequentially on the
  * calling thread.
  *
- * <p>This is used when the crawler is running in standalone (non-clustered)
- * mode, which is the default.</p>
+ * <p><b>No persistence:</b> all data is lost when the JVM exits.
+ * For a file-backed single-node cluster that persists across restarts,
+ * use the MVStore-based cluster instead.</p>
  */
 @Slf4j
-public class StandaloneCluster implements Cluster {
+public class MemoryCluster implements Cluster {
 
     private static final ClusterNode LOCAL_NODE = new ClusterNode() {
         @Override
         public String getNodeName() {
-            return "standalone";
+            return "memory";
         }
 
         @Override
@@ -50,9 +51,9 @@ public class StandaloneCluster implements Cluster {
         }
     };
 
-    private final StandaloneCacheManager cacheManager =
-            new StandaloneCacheManager();
-    private StandalonePipelineManager pipelineManager;
+    private final MemoryCacheManager cacheManager =
+            new MemoryCacheManager();
+    private LocalPipelineManager pipelineManager;
     private CrawlSession session;
     private Path currentWorkDir;
 
@@ -73,15 +74,15 @@ public class StandaloneCluster implements Cluster {
             cacheManager.clearCaches();
         }
         currentWorkDir = crawlerWorkDir;
-        LOG.debug("Standalone cluster initialized (no external "
-                + "infrastructure needed).");
+        LOG.debug("In-memory cluster initialized (no persistence, "
+                + "no external infrastructure).");
     }
 
     @Override
     public void bindSession(CrawlSession session) {
         this.session = session;
         this.pipelineManager = session != null
-                ? new StandalonePipelineManager(session)
+                ? new LocalPipelineManager(session)
                 : null;
     }
 
@@ -134,6 +135,6 @@ public class StandaloneCluster implements Cluster {
         // pipeline caches) must survive for incremental crawling.
         cacheManager.getCrawlRunCache().clear();
         cacheManager.getAdminCache().clear();
-        LOG.debug("Standalone cluster closed.");
+        LOG.debug("In-memory cluster closed.");
     }
 }

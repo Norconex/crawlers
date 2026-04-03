@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cluster.impl.standalone;
+package com.norconex.crawler.core.cluster.impl.memory;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -31,9 +31,12 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Single-node pipeline manager that executes steps sequentially on the
  * calling thread. No distributed coordination overhead.
+ *
+ * <p>Used by both the in-memory and MVStore cluster implementations
+ * since both are single-node.</p>
  */
 @Slf4j
-public class StandalonePipelineManager implements PipelineManager {
+public class LocalPipelineManager implements PipelineManager {
 
     private final CrawlSession session;
     private volatile boolean stopRequested;
@@ -42,7 +45,7 @@ public class StandalonePipelineManager implements PipelineManager {
     private volatile int currentStepIndex;
     private volatile int stepCount;
 
-    public StandalonePipelineManager(CrawlSession session) {
+    public LocalPipelineManager(CrawlSession session) {
         this.session = session;
     }
 
@@ -125,7 +128,7 @@ public class StandalonePipelineManager implements PipelineManager {
     @Override
     public void addStepChangeListener(
             CacheEntryChangeListener<StepRecord> listener) {
-        // No-op: standalone has no distributed events.
+        // No-op: local execution has no distributed events.
     }
 
     @Override

@@ -12,28 +12,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cluster.impl.standalone;
+package com.norconex.crawler.core.cluster.impl.mvstore;
 
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.ClusterConnector;
 
+import lombok.Data;
+import lombok.experimental.Accessors;
+
 /**
- * Connector that creates a lightweight {@link StandaloneCluster} with
- * in-memory caches and no distributed infrastructure. This is the default
- * connector when running in non-clustered mode.
+ * Connector that creates a file-backed {@link MVStoreCluster} using
+ * H2's MVStore engine. This is the default connector for single-node
+ * crawling, providing native file persistence with zero external
+ * infrastructure.
  *
  * <p>The cluster instance is cached so that multiple crawler sessions
- * using the same connector share in-memory state (enabling incremental
- * crawling across sessions).</p>
+ * using the same connector share the same MVStore file.</p>
  */
-public class StandaloneClusterConnector implements ClusterConnector {
+@Data
+@Accessors(chain = true)
+public class MVStoreClusterConnector implements ClusterConnector {
 
-    private StandaloneCluster cluster;
+    private MVStoreClusterConnectorConfig configuration =
+            new MVStoreClusterConnectorConfig();
+
+    private MVStoreCluster cluster;
 
     @Override
     public synchronized Cluster connect() {
         if (cluster == null) {
-            cluster = new StandaloneCluster();
+            cluster = new MVStoreCluster(configuration);
         }
         return cluster;
     }

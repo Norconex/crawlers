@@ -21,7 +21,8 @@ import com.norconex.crawler.core.cluster.ClusterConnector;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastConfigurer;
 import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
-import com.norconex.crawler.core.cluster.impl.standalone.StandaloneClusterConnector;
+import com.norconex.crawler.core.cluster.impl.memory.MemoryClusterConnector;
+import com.norconex.crawler.core.cluster.impl.mvstore.MVStoreClusterConnector;
 import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
@@ -49,7 +50,8 @@ public class CrawlerCorePtProvider extends BasePolymorphicTypeProvider {
                 .addFromScan(ReferenceFilter.class)
                 .addFromScan(SpoiledReferenceStrategizer.class)
                 .add(ClusterConnector.class, HazelcastClusterConnector.class)
-                .add(ClusterConnector.class, StandaloneClusterConnector.class)
+                .add(ClusterConnector.class, MemoryClusterConnector.class)
+                .add(ClusterConnector.class, MVStoreClusterConnector.class)
                 .add(HazelcastConfigurer.class, JdbcHazelcastConfigurer.class);
 
     }

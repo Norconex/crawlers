@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.core.cluster.impl.standalone;
+package com.norconex.crawler.core.cluster.impl.memory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +31,7 @@ import com.norconex.crawler.core.cluster.pipeline.StepRecord;
 import com.norconex.crawler.core.util.SerialUtil;
 
 /**
- * In-memory {@link CacheManager} for standalone (non-clustered) mode.
+ * In-memory {@link CacheManager} for the memory (non-clustered) mode.
  * Uses {@link InMemoryCacheMap} and {@link InMemoryCacheQueue} instances
  * backed by concurrent hash maps/queues. No persistence, no distributed
  * coordination.
@@ -39,7 +39,7 @@ import com.norconex.crawler.core.util.SerialUtil;
  * <p>Multiple calls with the same name return the <em>same</em> instance
  * so callers naturally share state.</p>
  */
-public class StandaloneCacheManager implements CacheManager {
+public class MemoryCacheManager implements CacheManager {
 
     private final Map<String, InMemoryCacheMap<?>> maps = new HashMap<>();
     private final Map<String, InMemoryCacheQueue<?>> queues = new HashMap<>();
@@ -86,7 +86,7 @@ public class StandaloneCacheManager implements CacheManager {
 
     @Override
     public void importCaches(List<SerializedCache> caches) {
-        // No-op: standalone caches are ephemeral.
+        // No-op: in-memory caches are ephemeral.
     }
 
     @Override

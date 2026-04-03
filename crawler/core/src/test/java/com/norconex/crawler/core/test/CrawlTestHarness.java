@@ -323,7 +323,7 @@ public class CrawlTestHarness implements Closeable {
         }
         if (instrument.isClustered()) {
             // Ensure the connector is a HazelcastClusterConnector.
-            // ClusterConfig defaults to StandaloneClusterConnector,
+            // ClusterConfig defaults to MVStoreClusterConnector,
             // but clustered tests require Hazelcast.
             var clusterCfg = instrument.getCrawlConfig().getClusterConfig();
             if (!(clusterCfg
