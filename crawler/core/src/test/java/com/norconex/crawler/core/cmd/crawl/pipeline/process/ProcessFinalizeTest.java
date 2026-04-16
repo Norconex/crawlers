@@ -163,6 +163,7 @@ class ProcessFinalizeTest {
     // dealWithBadState: Previous entry with NULL outcome → legacy warning
     // -----------------------------------------------------------------
 
+    @SuppressWarnings("unchecked")
     @Test
     void execute_badOutcome_previousWithNullOutcome_legacyWarningPath() {
         // Build manually: previous entry with null outcome (legacy case)

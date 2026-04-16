@@ -28,12 +28,12 @@ import com.norconex.crawler.core.doc.pipelines.importer.stages.AbstractImporterS
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.web.WebCrawlConfig.ReferencedLinkType;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.operations.link.Link;
 import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
 import com.norconex.crawler.web.doc.pipelines.importer.WebImporterPipelineContext;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 import com.norconex.crawler.web.util.Web;
 
 import lombok.extern.slf4j.Slf4j;

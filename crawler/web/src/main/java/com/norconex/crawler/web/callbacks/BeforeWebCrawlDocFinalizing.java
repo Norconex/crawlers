@@ -19,7 +19,7 @@ import java.util.function.BiConsumer;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 import com.norconex.importer.doc.Doc;
 
 import lombok.extern.slf4j.Slf4j;

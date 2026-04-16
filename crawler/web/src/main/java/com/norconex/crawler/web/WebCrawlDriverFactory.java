@@ -25,11 +25,11 @@ import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.RefFileEnque
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.RefListEnqueuer;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.RefProviderEnqueuer;
 import com.norconex.crawler.web.callbacks.WebCrawlerCallbacks;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.pipelines.WebDocPipelines;
 import com.norconex.crawler.web.doc.pipelines.queue.SitemapEnqueuer;
 import com.norconex.crawler.web.fetch.AggregatedWebFetchResponse;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetchResponse;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 
 public class WebCrawlDriverFactory implements Supplier<CrawlDriver> {
 

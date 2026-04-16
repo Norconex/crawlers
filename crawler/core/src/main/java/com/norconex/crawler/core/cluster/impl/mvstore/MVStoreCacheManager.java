@@ -153,7 +153,6 @@ public class MVStoreCacheManager implements CacheManager {
         });
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void importCaches(List<SerializedCache> caches) {
         for (var cache : caches) {
@@ -240,15 +239,34 @@ public class MVStoreCacheManager implements CacheManager {
 
     /**
      * Commits pending changes and closes the MVStore.
+     * <p>The background auto-commit thread is stopped first to prevent
+     * it from racing with the manual compact operation.</p>
      */
     public void close() {
-        if (store != null && !store.isClosed()) {
-            LOG.debug("Closing MVStore at: {}", storePath);
+        if (store == null || store.isClosed()) {
+            return;
+        }
+        LOG.debug("Closing MVStore at: {}", storePath);
+        try {
+            // Stop the background auto-commit/compact thread first
+            // so it does not race with our manual compactFile call.
+            store.setAutoCommitDelay(0);
             store.commit();
             store.compactFile(5000);
-            store.close();
-            LOG.debug("MVStore closed.");
+        } catch (Exception | AssertionError e) {
+            LOG.warn(
+                    "Error compacting MVStore (data is safe): {}",
+                    e.getMessage(), e);
+        } finally {
+            try {
+                store.close();
+            } catch (Exception | AssertionError e) {
+                LOG.warn(
+                        "Error closing MVStore: {}",
+                        e.getMessage(), e);
+            }
         }
+        LOG.debug("MVStore closed.");
     }
 
     /**

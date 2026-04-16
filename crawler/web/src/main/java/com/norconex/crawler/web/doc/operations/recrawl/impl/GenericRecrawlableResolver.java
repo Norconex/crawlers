@@ -28,12 +28,12 @@ import org.apache.commons.lang3.math.NumberUtils;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.operations.recrawl.RecrawlableResolver;
 import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableResolverConfig.MinFrequency;
 import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableResolverConfig.MinFrequency.ApplyTo;
 import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableResolverConfig.SitemapSupport;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapChangeFrequency;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

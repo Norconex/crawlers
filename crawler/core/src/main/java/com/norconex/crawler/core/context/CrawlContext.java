@@ -102,8 +102,8 @@ public class CrawlContext implements Closeable {
     private final CachedStreamFactory streamFactory;
     private final Class<? extends CrawlEntry> crawlEntryType;
     /**
-     * Map of Hazelcast map-config name/pattern to concrete value type,
-     * used to bake the correct (de)serialization class into the Hazelcast
+     * Map of map-config name/pattern to concrete value type,
+     * used to bake the correct (de)serialization class into the
      * config before startup. Populated from {@link
      * com.norconex.crawler.core.CrawlDriver#cacheTypes()}; the framework
      * always adds {@code ledger_* -> crawlEntryType} automatically.

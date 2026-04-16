@@ -33,6 +33,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.OperationTimeoutException;
@@ -289,6 +290,7 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
     /**
      * Return the underlying Hazelcast IMap as typed view.
      * Use with caution: underlying values are stored as Objects/Strings.
+     * @return hazelcast IMap
      */
     @SuppressWarnings("unchecked")
     public IMap<String, T> vendor() {
@@ -319,13 +321,13 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
     private boolean isCacheClosed() {
         var lifecycle = hzInstance.getLifecycleService();
         if (!lifecycle.isRunning()) {
-            var name = hzMap.getName();
-            if (CLOSED_LOGGED.add(name)) {
+            var mapName = hzMap.getName();
+            if (CLOSED_LOGGED.add(mapName)) {
                 LOG.warn("Attempted to use cache '{}' after it was closed.",
-                        name);
+                        mapName);
             } else if (LOG.isDebugEnabled()) {
                 LOG.debug("(suppressed) Attempted to use cache '{}' after it "
-                        + "was closed.", name);
+                        + "was closed.", mapName);
             }
             return true;
         }
@@ -359,7 +361,7 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
         }
 
         Throwable lastFailure = null;
-        for (int attempt = 1; attempt <= EPH_GET_RETRIES; attempt++) {
+        for (var attempt = 1; attempt <= EPH_GET_RETRIES; attempt++) {
             try {
                 return hzMap.getAsync(key)
                         .toCompletableFuture()
@@ -395,7 +397,7 @@ public class HazelcastMapAdapter<T> implements CacheMap<T> {
     }
 
     private boolean isEphemeralMap() {
-        return StringUtils.startsWith(name, "eph-");
+        return Strings.CI.startsWith(name, "eph-");
     }
 
     private boolean isTransientHazelcastReadFailure(Throwable t) {

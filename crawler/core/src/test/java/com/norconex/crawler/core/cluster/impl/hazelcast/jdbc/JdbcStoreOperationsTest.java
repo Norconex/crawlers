@@ -15,21 +15,18 @@
 package com.norconex.crawler.core.cluster.impl.hazelcast.jdbc;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.Timeout;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
@@ -37,7 +34,6 @@ import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastConfigurerConte
 import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 /**
@@ -209,7 +205,7 @@ class JdbcStoreOperationsTest {
     void testQueueBatchOperations() {
         var queue = hz.<String>getQueue("queue-batch-ops-test");
         // Add multiple items (triggers storeAll on the queue store)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
             queue.add("batch-item-" + i);
         }
         assertThat(queue.size()).isEqualTo(5);
@@ -248,17 +244,17 @@ class JdbcStoreOperationsTest {
         // Large putAll may trigger storeAll in write-behind scenarios
         var map = hz.<String, String>getMap("storeall-test");
         var entries = new java.util.HashMap<String, String>();
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
             entries.put("sa-key-" + i, "sa-val-" + i);
         }
         map.putAll(entries);
         map.flush(); // flush write-behind to DB
 
         // Evict all to force re-read from DB
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
             map.evict("sa-key-" + i);
         }
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
             assertThat(map.get("sa-key-" + i)).isEqualTo("sa-val-" + i);
         }
     }
@@ -271,7 +267,7 @@ class JdbcStoreOperationsTest {
     void testTypedJdbcMapStore_storeAll_andEvictLoad() {
         var map = hz.<String, StepRecord>getMap("pipeWorkerStatuses");
         var entries = new java.util.HashMap<String, StepRecord>();
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
             var rec = new StepRecord()
                     .setPipelineId("bulk-p" + i)
                     .setStepId("bulk-s" + i)

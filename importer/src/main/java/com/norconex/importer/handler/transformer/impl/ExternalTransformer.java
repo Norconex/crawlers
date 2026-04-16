@@ -35,6 +35,7 @@ import java.util.Iterator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.exec.SystemCommand;
@@ -256,7 +257,6 @@ import lombok.extern.slf4j.Slf4j;
  * number from STDOUT, found as "DocNo:1234" and storing it as "docnumber".
  * </p>
  */
-@SuppressWarnings("javadoc")
 @Data
 @Slf4j
 public class ExternalTransformer
@@ -424,7 +424,7 @@ public class ExternalTransformer
         }
         var newCmd = cmd;
         files.inputFile = createTempFile(is, "input", ".tmp");
-        newCmd = StringUtils.replace(
+        newCmd = Strings.CS.replace(
                 newCmd, TOKEN_INPUT,
                 files.inputFile.toAbsolutePath().toString());
         try {
@@ -447,7 +447,7 @@ public class ExternalTransformer
                 is, "input-meta", "." + StringUtils.defaultIfBlank(
                         configuration.getMetadataInputFormat(),
                         META_FORMAT_JSON));
-        newCmd = StringUtils.replace(
+        newCmd = Strings.CS.replace(
                 newCmd, TOKEN_INPUT_META,
                 files.inputMetaFile.toAbsolutePath().toString());
         try (Writer fw = Files.newBufferedWriter(files.inputMetaFile)) {
@@ -474,7 +474,7 @@ public class ExternalTransformer
         }
         var newCmd = cmd;
         files.outputFile = createTempFile(os, "output", ".tmp");
-        return StringUtils.replace(
+        return Strings.CS.replace(
                 newCmd, TOKEN_OUTPUT,
                 files.outputFile.toAbsolutePath().toString());
     }
@@ -488,7 +488,7 @@ public class ExternalTransformer
         files.outputMetaFile = createTempFile(
                 os, "output-meta", "." + StringUtils.defaultIfBlank(
                         configuration.getMetadataOutputFormat(), ".tmp"));
-        return StringUtils.replace(
+        return Strings.CS.replace(
                 newCmd, TOKEN_OUTPUT_META,
                 files.outputMetaFile.toAbsolutePath().toString());
     }
@@ -497,7 +497,7 @@ public class ExternalTransformer
         if (!cmd.contains(TOKEN_REFERENCE)) {
             return cmd;
         }
-        return StringUtils.replace(cmd, TOKEN_REFERENCE, reference);
+        return Strings.CS.replace(cmd, TOKEN_REFERENCE, reference);
     }
 
     private void validate() throws IOException {

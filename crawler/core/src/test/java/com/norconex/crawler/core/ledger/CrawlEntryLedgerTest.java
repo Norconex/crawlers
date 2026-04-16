@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mock.Strictness;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.norconex.crawler.core.CrawlConfig;
@@ -41,13 +42,13 @@ import com.norconex.crawler.core.session.CrawlSession;
 @Timeout(30)
 class CrawlEntryLedgerTest {
 
-    @Mock(lenient = true)
+    @Mock(strictness = Strictness.LENIENT)
     CrawlSession session;
-    @Mock(lenient = true)
+    @Mock(strictness = Strictness.LENIENT)
     Cluster cluster;
-    @Mock(lenient = true)
+    @Mock(strictness = Strictness.LENIENT)
     ClusterNode localNode;
-    @Mock(lenient = true)
+    @Mock(strictness = Strictness.LENIENT)
     CrawlContext crawlContext;
 
     private InMemoryCacheManager cacheManager;
@@ -101,7 +102,7 @@ class CrawlEntryLedgerTest {
 
     @Test
     void testQueue_multipleEntries_countsAreCorrect() {
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
             ledger.queue(entry("ref-" + i));
         }
 
@@ -125,13 +126,13 @@ class CrawlEntryLedgerTest {
         assertThat(batch.get(0).getReference()).isEqualTo("ref-1");
         assertThat(ledger.getProcessingStatus("ref-1"))
                 .isEqualTo(ProcessingStatus.PROCESSING);
-        assertThat(ledger.getQueueCount()).isEqualTo(0);
+        assertThat(ledger.getQueueCount()).isZero();
         assertThat(ledger.getProcessingCount()).isEqualTo(1);
     }
 
     @Test
     void testNextQueuedBatch_respectsBatchSizeLimit() {
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
             ledger.queue(entry("ref-" + i));
         }
 
@@ -269,7 +270,7 @@ class CrawlEntryLedgerTest {
 
     @Test
     void testIsMaxDocsProcessedReached_notReachedWhenUnlimited() {
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
             ledger.queue(entry("ref-" + i));
         }
         assertThat(ledger.isMaxDocsProcessedReached()).isFalse();
@@ -285,7 +286,7 @@ class CrawlEntryLedgerTest {
         ledger.init(session);
 
         // Queue 3, process 2.
-        for (int i = 0; i < 3; i++) {
+        for (var i = 0; i < 3; i++) {
             ledger.queue(entry("ref-" + i));
         }
         var toProcess = ledger.nextQueuedBatch(2);
@@ -343,7 +344,7 @@ class CrawlEntryLedgerTest {
 
         ledger.clearQueue();
 
-        assertThat(ledger.getQueueCount()).isEqualTo(0);
+        assertThat(ledger.getQueueCount()).isZero();
         assertThat(ledger.isQueueEmpty()).isTrue();
         assertThat(ledger.countByStatus(ProcessingStatus.QUEUED)).isZero();
     }

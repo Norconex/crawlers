@@ -37,6 +37,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.apache.commons.collections4.OrderedMap;
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.opentest4j.TestAbortedException;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
@@ -72,7 +73,7 @@ public class CrawlTestHarness implements Closeable {
     // Shared across all harness instances: started once per JVM, never
     // stopped mid-run (Testcontainers Ryuk / JVM-shutdown hook cleans it
     // up). Each harness run creates its own PostgreSQL schema for isolation.
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings("resource")
     private static final PostgreSQLContainer POSTGRES =
             new PostgreSQLContainer("postgres:16-alpine")
                     .withDatabaseName("test")
@@ -314,7 +315,7 @@ public class CrawlTestHarness implements Closeable {
         var crawlerId = instrument.getCrawlConfig().getId();
         if (sharedCrawlerId == null) {
             sharedCrawlerId = crawlerId;
-        } else if (!StringUtils.equals(sharedCrawlerId, crawlerId)) {
+        } else if (!Strings.CS.equals(sharedCrawlerId, crawlerId)) {
             throw new IllegalStateException(
                     "All nodes in a crawl session must share the same "
                             + "crawler ID. Expected '" + sharedCrawlerId
@@ -374,9 +375,9 @@ public class CrawlTestHarness implements Closeable {
             configurer.getHazelcastProperties()
                     .put("hazelcast.heartbeat.interval.seconds", "1");
             configurer.getHazelcastProperties()
-                    .put("hazelcast.max.no.heartbeat.seconds", "10");
+                    .put("hazelcast.max.no.heartbeat.seconds", "5");
             configurer.getHazelcastProperties()
-                    .put("hazelcast.operation.call.timeout.millis", "15000");
+                    .put("hazelcast.operation.call.timeout.millis", "8000");
             // Speed up cluster join and merge detection for tests.
             configurer.getHazelcastProperties()
                     .put("hazelcast.merge.first.run.delay.seconds", "3");
@@ -394,7 +395,7 @@ public class CrawlTestHarness implements Closeable {
             }
 
             var tcpMembers = new StringBuilder();
-            for (int i = 0; i < count; i++) {
+            for (var i = 0; i < count; i++) {
                 if (i > 0) {
                     tcpMembers.append(",");
                 }
@@ -417,11 +418,11 @@ public class CrawlTestHarness implements Closeable {
         // running past the max port.
         var rnd = ThreadLocalRandom.current();
         var host = InetAddress.getLoopbackAddress();
-        int minBase = 20_000;
-        int maxBase = 60_000 - rangeSize;
+        var minBase = 20_000;
+        var maxBase = 60_000 - rangeSize;
 
-        for (int attempt = 0; attempt < 200; attempt++) {
-            int base = rnd.nextInt(minBase, Math.max(minBase + 1, maxBase));
+        for (var attempt = 0; attempt < 200; attempt++) {
+            var base = rnd.nextInt(minBase, Math.max(minBase + 1, maxBase));
             if (isLocalPortRangeFree(host, base, rangeSize)) {
                 LOG.info("Selected Hazelcast port range base={} (size={})",
                         base, rangeSize);
@@ -436,9 +437,9 @@ public class CrawlTestHarness implements Closeable {
 
     private static boolean isLocalPortRangeFree(
             InetAddress host, int base, int rangeSize) {
-        for (int i = 0; i < rangeSize; i++) {
-            int port = base + i;
-            try (ServerSocket socket = new ServerSocket()) {
+        for (var i = 0; i < rangeSize; i++) {
+            var port = base + i;
+            try (var socket = new ServerSocket()) {
                 socket.setReuseAddress(false);
                 socket.bind(new InetSocketAddress(host, port));
             } catch (IOException e) {
@@ -510,9 +511,9 @@ public class CrawlTestHarness implements Closeable {
 
     private SchemaDropResult dropSchema(String schema) {
         var start = System.nanoTime();
-        int attempts = 0;
+        var attempts = 0;
         RuntimeException lastFailure = null;
-        for (int attempt = 1; attempt <= SCHEMA_DROP_RETRY_COUNT; attempt++) {
+        for (var attempt = 1; attempt <= SCHEMA_DROP_RETRY_COUNT; attempt++) {
             attempts = attempt;
             try {
                 execPsql("DROP SCHEMA IF EXISTS \"" + schema
@@ -592,9 +593,11 @@ public class CrawlTestHarness implements Closeable {
         return false;
     }
 
+    // Not a timing-based test assertion — this is a deliberate retry
+    // back-off for transient Docker exec failures during schema cleanup.
     private static void sleepQuietly(Duration delay) {
         try {
-            Thread.sleep(delay.toMillis());
+            Thread.sleep(delay.toMillis()); //NOSONAR
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }

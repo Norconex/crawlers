@@ -116,7 +116,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.tika</groupId>
-      <artifactId>tika-parser-sqlite3-package</artifactId>
+      <artifactId>tika-parser-sqlite3-module</artifactId>
       <version>${tika.version}</version>
     </dependency>
     
@@ -168,12 +168,12 @@
     </dependency>
     <dependency>
       <groupId>org.apache.tika</groupId>
-      <artifactId>tika-parser-advancedmedia-package</artifactId>
+      <artifactId>tika-parser-advancedmedia-module</artifactId>
       <version>${tika.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.tika</groupId>
-      <artifactId>tika-parser-nlp-package</artifactId>
+      <artifactId>tika-parser-nlp-module</artifactId>
       <version>${tika.version}</version>
     </dependency>
     <dependency>

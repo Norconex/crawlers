@@ -126,6 +126,7 @@ class TypedJdbcMapStoreTest {
         verify(ss, never()).delete(any());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void storeAll_stringValues_storesAll() {
         var store = storeOf(String.class);
@@ -133,12 +134,12 @@ class TypedJdbcMapStoreTest {
 
         store.storeAll(Map.of("a", "1", "b", "2"));
 
-        @SuppressWarnings("unchecked")
         var captor = ArgumentCaptor.forClass(Map.class);
         verify(ss).storeAll(captor.capture());
         assertThat(captor.getValue()).containsKeys("a", "b");
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void storeAll_nullValueEntry_deletesKeyAndStoresRest() {
         var store = storeOf(String.class);
@@ -150,7 +151,6 @@ class TypedJdbcMapStoreTest {
         map.put("nuke", null);
         store.storeAll(map);
 
-        @SuppressWarnings("unchecked")
         var storeCaptor = ArgumentCaptor.forClass(Map.class);
         verify(ss).storeAll(storeCaptor.capture());
         assertThat(storeCaptor.getValue()).containsKey("keep")
@@ -173,6 +173,7 @@ class TypedJdbcMapStoreTest {
         verify(ss).delete("b");
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void storeAll_nonStringValues_storesAsJson() {
         var store = storeOf(StepRecord.class);
@@ -181,7 +182,6 @@ class TypedJdbcMapStoreTest {
         var rec = new StepRecord().setStepId("step-x");
         store.storeAll(Map.of("k", rec));
 
-        @SuppressWarnings("unchecked")
         var captor = ArgumentCaptor.forClass(Map.class);
         verify(ss).storeAll(captor.capture());
         assertThat(captor.getValue().get("k").toString()).contains("step-x");

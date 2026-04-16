@@ -28,10 +28,10 @@ import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxt;
 import com.norconex.crawler.web.doc.operations.robot.impl.StandardRobotsTxtProvider;
 import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 import com.norconex.crawler.web.util.Web;
 
 @Timeout(30)

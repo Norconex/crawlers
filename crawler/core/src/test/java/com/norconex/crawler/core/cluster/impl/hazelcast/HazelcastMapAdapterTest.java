@@ -165,7 +165,7 @@ class HazelcastMapAdapterTest {
         var latch = new CountDownLatch(threads);
         var pool = Executors.newFixedThreadPool(threads);
 
-        for (int i = 0; i < threads; i++) {
+        for (var i = 0; i < threads; i++) {
             pool.submit(() -> {
                 try {
                     map.computeIfAbsent("shared-key", k -> {
@@ -199,7 +199,7 @@ class HazelcastMapAdapterTest {
             return "new-value";
         });
 
-        assertThat(callCount.get()).isEqualTo(0);
+        assertThat(callCount.get()).isZero();
         assertThat(map.get("existing")).contains("original");
     }
 
@@ -459,6 +459,7 @@ class HazelcastMapAdapterTest {
     @Test
     void testOperationsAfterClose_returnDefaults() {
         var localHz = HazelcastTestSupport.startNode();
+        @SuppressWarnings("resource")
         var localMgr = new HazelcastCacheManager(localHz);
         var map = localMgr.getCacheMap("closed-map-" + mapPrefix, String.class);
         map.put("k", "before-close");

@@ -83,9 +83,8 @@ public class DebugTransformer
     @Override
     public boolean handle(DocHandlerContext docCtx) throws IOException {
 
-        var level = Level.valueOf(
-                ObjectUtils.defaultIfNull(
-                        configuration.getLogLevel(), "debug").toUpperCase());
+        var level = Level.valueOf(ObjectUtils.getIfNull(
+                configuration.getLogLevel(), "debug").toUpperCase());
 
         if (configuration.getLogFields().isEmpty()) {
             for (Entry<String, List<String>> entry : docCtx.metadata()
@@ -115,7 +114,7 @@ public class DebugTransformer
             b.append("<null>");
         } else {
             for (String value : values) {
-                if (b.length() > 0) {
+                if (!b.isEmpty()) {
                     b.append(", ");
                 }
                 b.append(value);

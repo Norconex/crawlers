@@ -30,9 +30,9 @@ import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipeline;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.operations.scope.UrlScope;
 import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 import com.norconex.crawler.web.util.Web;
 import com.norconex.importer.doc.Doc;
 

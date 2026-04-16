@@ -93,8 +93,10 @@ class ClusterLateJoinPrototypeTest {
 
             var lateFuture = harness.launchAsync(lateNodeName);
 
-            var initialResult = initialFuture.get(120, TimeUnit.SECONDS);
-            var lateResult = lateFuture.get(120, TimeUnit.SECONDS);
+            var initialResult = initialFuture.get(
+                    CLUSTER_JOIN_WAIT.toSeconds(), TimeUnit.SECONDS);
+            var lateResult = lateFuture.get(
+                    CLUSTER_JOIN_WAIT.toSeconds(), TimeUnit.SECONDS);
 
             var lateOutput = lateResult.getNodeOutput(lateNodeName);
             assertThat(lateOutput).isNotNull();

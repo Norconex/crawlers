@@ -37,9 +37,9 @@ import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.fs.doc.FsCrawlEntry;
 import com.norconex.crawler.fs.fetch.FolderPathsFetchResponse;
 import com.norconex.crawler.fs.fetch.FsPath;
+import com.norconex.crawler.fs.ledger.FsCrawlEntry;
 import com.norconex.importer.doc.Doc;
 
 @Timeout(30)

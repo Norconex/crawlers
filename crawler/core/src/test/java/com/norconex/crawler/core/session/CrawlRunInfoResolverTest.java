@@ -20,11 +20,12 @@ import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.api.Timeout;
 import org.mockito.Mock;
+import org.mockito.Mock.Strictness;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.norconex.crawler.core.cluster.Cluster;
@@ -44,9 +45,9 @@ import com.norconex.crawler.core.util.SerialUtil;
 @Timeout(30)
 class CrawlRunInfoResolverTest {
 
-    @Mock(lenient = true)
+    @Mock(strictness = Strictness.LENIENT)
     CrawlSession session;
-    @Mock(lenient = true)
+    @Mock(strictness = Strictness.LENIENT)
     Cluster cluster;
 
     private InMemoryCacheManager cacheManager;

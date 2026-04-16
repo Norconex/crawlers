@@ -33,13 +33,13 @@ import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapContext;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapRecord;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapResolver;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.WebFetchRequest;
 import com.norconex.crawler.web.fetch.WebFetchResponse;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 import com.norconex.crawler.web.util.Web;
 import com.norconex.importer.doc.Doc;
 

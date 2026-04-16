@@ -82,7 +82,6 @@ class RequeueOrphansForProcessingStepTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void hasOrphans_queuesAll() {
         var ledger = mock(CrawlEntryLedger.class);
         var queuePipeline = mock(QueuePipeline.class);
@@ -102,12 +101,10 @@ class RequeueOrphansForProcessingStepTest {
         var step = new RequeueOrphansForProcessingStep("step-id");
         step.execute(session);
 
-        var accepted = new ArrayList<QueuePipelineContext>();
         verify(queuePipeline, org.mockito.Mockito.times(2)).accept(any());
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void hasOrphans_setsOrphanFlagOnEachEntry() {
         var ledger = mock(CrawlEntryLedger.class);
         var queuePipeline = mock(QueuePipeline.class);

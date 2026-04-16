@@ -22,8 +22,8 @@ import java.util.function.BiConsumer;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.WebDocMetadata;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 import com.norconex.importer.doc.Doc;
 
 /**

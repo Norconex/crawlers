@@ -25,6 +25,7 @@ import java.util.Objects;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.language.translate.Translator;
 import org.apache.tika.language.translate.impl.CachedTranslator;
@@ -436,8 +437,8 @@ public class TranslatorSplitter
         var lines = IOUtils.readLines(new StringReader(txt));
         var index = 0;
         for (String line : lines) {
-            line = StringUtils.removeStart(line, "[");
-            line = StringUtils.removeEnd(line, "]");
+            line = Strings.CS.removeStart(line, "[");
+            line = Strings.CS.removeEnd(line, "]");
             var values = StringUtils.splitByWholeSeparator(line, "][");
             childMeta.set(fieldsToTranslate.get(index), values);
             index++;

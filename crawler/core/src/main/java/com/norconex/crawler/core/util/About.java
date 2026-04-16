@@ -14,8 +14,6 @@
  */
 package com.norconex.crawler.core.util;
 
-import static org.apache.commons.lang3.StringUtils.removeEndIgnoreCase;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -24,6 +22,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.SystemUtils;
 
 import com.norconex.committer.core.Committer;
@@ -79,7 +78,7 @@ public final class About {
 
     private static String committerName(Class<?> cls) {
         return "%s (%s)".formatted(
-                removeEndIgnoreCase(cls.getSimpleName(), "Committer"),
+                Strings.CI.removeEnd(cls.getSimpleName(), "Committer"),
                 PackageManifest.of(cls).getTitle());
     }
 

@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.cluster.impl.hazelcast;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 
@@ -29,7 +29,7 @@ public final class CacheKeys {
         // Given the pipeline id can be human provided, we replace
         // : with _ to avoid splitting issues.
         return cluster.getCrawlSession().getCrawlSessionId()
-                + ":" + StringUtils.replace(pipeline.getId(), ":", "_");
+                + ":" + Strings.CI.replace(pipeline.getId(), ":", "_");
     }
 
     public static String pipelineWorkerNodeKey(

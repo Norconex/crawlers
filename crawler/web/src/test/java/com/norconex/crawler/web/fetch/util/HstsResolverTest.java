@@ -28,7 +28,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 
-import com.norconex.crawler.web.doc.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 
 class HstsResolverTest {
 

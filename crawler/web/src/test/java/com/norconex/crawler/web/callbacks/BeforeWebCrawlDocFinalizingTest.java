@@ -30,7 +30,7 @@ import com.norconex.crawler.core.doc.pipelines.queue.QueuePipeline;
 import com.norconex.crawler.core.ledger.CrawlEntryLedger;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 import com.norconex.importer.doc.Doc;
 
 class BeforeWebCrawlDocFinalizingTest {

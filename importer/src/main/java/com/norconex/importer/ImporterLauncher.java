@@ -28,9 +28,9 @@ import java.util.Arrays;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.help.HelpFormatter;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -271,18 +271,25 @@ public final class ImporterLauncher {
             if (!cmd.hasOption(ARG_INPUTFILE)
                     && (!cmd.hasOption(ARG_CHECKCFG)
                             || !cmd.hasOption(ARG_CONFIG))) {
-                var formatter = new HelpFormatter();
-                formatter.printHelp("importer[.bat|.sh]", options);
+                printHelp(options);
                 return null;
             }
         } catch (ParseException e) {
             err().println("A problem occured while parsing arguments.");
             e.printStackTrace(err());
-            var formatter = new HelpFormatter();
-            formatter.printHelp("importer[.bat|.sh]", options);
+            printHelp(options);
             return null;
         }
         return cmd;
+    }
+
+    private static void printHelp(Options options) {
+        try {
+            HelpFormatter.builder().get().printHelp(
+                    "importer[.bat|.sh]", null, options, null, false);
+        } catch (IOException e) {
+            err().println("Could not print help: " + e.getMessage());
+        }
     }
 
     private enum MetaFileWriter {

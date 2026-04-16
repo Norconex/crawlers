@@ -45,7 +45,6 @@ class CrawlerMetricsImplTest {
     // Uses a mocked session, cluster, cacheManager, ledger,
     // eventManager.
     // ------------------------------------------------------------------
-    @SuppressWarnings("unchecked")
     private CrawlerMetricsImpl buildInitialized(
             CrawlEntryLedger ledger,
             CacheMap<Long> eventCountsStore) {
@@ -76,7 +75,9 @@ class CrawlerMetricsImplTest {
 
     @Test
     void constructor_isNotClosed() {
-        assertThat(new CrawlerMetricsImpl().isClosed()).isFalse();
+        var metricsImpl = new CrawlerMetricsImpl();
+        assertThat(metricsImpl.isClosed()).isFalse();
+        metricsImpl.close();
     }
 
     @Test
@@ -84,6 +85,7 @@ class CrawlerMetricsImplTest {
         var metrics = new CrawlerMetricsImpl();
         // flush() is documented as a no-op; must not throw
         metrics.flush();
+        metrics.close();
     }
 
     // ------------------------------------------------------------------
@@ -96,6 +98,7 @@ class CrawlerMetricsImplTest {
         // Incrementing by 0 must be a no-op: no NPE, no entry
         metrics.incrementCounter("evt", 0L);
         assertThat(metrics.getEventCounts()).doesNotContainKey("evt");
+        metrics.close();
     }
 
     @Test
@@ -105,6 +108,7 @@ class CrawlerMetricsImplTest {
         metrics.incrementCounter("SOME_EVENT", 3L);
         // getEventCounts() will also get an NPE from the null store, swallow it
         assertThat(metrics.getEventCounts()).containsEntry("SOME_EVENT", 3L);
+        metrics.close();
     }
 
     // ------------------------------------------------------------------

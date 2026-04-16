@@ -164,6 +164,7 @@ class CrawlCommandTest {
         verify(fixture.session).updateCrawlState(CrawlState.COMPLETED);
     }
 
+    @SuppressWarnings("unchecked")
     private Fixture newFixture(boolean coordinator,
             List<CrawlBootstrapper> bootstrappers, Duration maxCrawlDuration) {
         var pipelineFactory = mock(CrawlPipelineFactory.class);
@@ -195,7 +196,6 @@ class CrawlCommandTest {
         }).when(session).oncePerRun(anyString(), any(Runnable.class));
 
         doAnswer(invocation -> {
-            @SuppressWarnings("unchecked")
             var supplier = (Supplier<CrawlState>) invocation.getArgument(1);
             return supplier.get();
         }).when(session).oncePerRunAndGet(anyString(), any(Supplier.class));

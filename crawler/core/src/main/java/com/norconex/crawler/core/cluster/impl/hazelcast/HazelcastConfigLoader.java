@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.text.StringSubstitutor;
 
 import com.hazelcast.config.Config;
@@ -40,8 +41,7 @@ public final class HazelcastConfigLoader {
             Map<String, Object> variables) {
         var cfgPath = StringUtils.trimToNull(configFile);
 
-        if (!StringUtils.endsWithAny(
-                cfgPath.toLowerCase(), ".yaml", ".yml", ".xml")) {
+        if (!Strings.CI.endsWithAny(cfgPath, ".yaml", ".yml", ".xml")) {
             throw new IllegalArgumentException(
                     "Unknown Hazelcast config file type: " + cfgPath);
         }
@@ -96,98 +96,4 @@ public final class HazelcastConfigLoader {
                 .replace(content);
 
     }
-    //
-    //    public static Config load2(String configFile, Path workDir) {
-    //
-    //        Config config;
-    //        try {
-    //            config = doLoad2(configFile);
-    //        } catch (IOException e) {
-    //            throw new ClusterException(
-    //                    "Could not load Hazelcast configuration.", e);
-    //        }
-    //
-    //        config.getDataConnectionConfigs().forEach((k, cfg) -> {
-    //            var url = cfg.getProperty("jdbcUrl");
-    //            if (StringUtils.isNotBlank(url)) {
-    //                cfg.setProperty("jdbcUrl",
-    //                        url.replace("{workDir}", workDir.toString()));
-    //            }
-    //        });
-    //
-    //        return config;
-    //    }
-
-    //    static Config doLoad2(String configFile)
-    //            throws FileNotFoundException {
-    //        var cfgPath = StringUtils.trimToNull(configFile);
-    //
-    //        var isClasspath = cfgPath.startsWith("classpath:");
-    //        var resourceName = isClasspath
-    //                ? cfgPath.substring("classpath:".length())
-    //                : cfgPath;
-    //        var lowerName = resourceName.toLowerCase();
-    //        if (lowerName.endsWith(".yaml")
-    //                || lowerName.endsWith(".yml")) {
-    //            if (isClasspath
-    //                    || !Files.exists(Path.of(resourceName))) {
-    //                return new ClasspathYamlConfig(resourceName);
-    //            }
-    //            return new FileSystemYamlConfig(resourceName);
-    //        }
-    //        if (lowerName.endsWith(".xml")) {
-    //            if (isClasspath
-    //                    || !Files.exists(Path.of(resourceName))) {
-    //                return new ClasspathXmlConfig(resourceName);
-    //            }
-    //            return new FileSystemXmlConfig(resourceName);
-    //        }
-    //        throw new IllegalArgumentException(
-    //                "Unknown Hazelcast config file type: " + cfgPath);
-    //    }
-    //
-    //    /**
-    //     * Loads a Hazelcast Config from a YAML file (classpath or filesystem),
-    //     * performs variable expansion using the provided map, and returns the Config.
-    //     * Only supports YAML files.
-    //     *
-    //     * @param configFile path or classpath to YAML config
-    //     * @param variables map of variable names to values for expansion
-    //     * @return Hazelcast Config
-    //     */
-    //    public static Config loadYamlWithExpansion(String configFile,
-    //            Map<String, String> variables) {
-    //        String yamlContent;
-    //        try {
-    //            var resourceName = configFile;
-    //            var isClasspath = resourceName.startsWith("classpath:");
-    //            if (isClasspath) {
-    //                resourceName = resourceName.substring("classpath:".length());
-    //                try (var in = HazelcastConfigLoader.class.getClassLoader()
-    //                        .getResourceAsStream(resourceName)) {
-    //                    if (in == null) {
-    //                        throw new FileNotFoundException(
-    //                                "Classpath resource not found: "
-    //                                        + resourceName);
-    //                    }
-    //                    yamlContent = new String(in.readAllBytes());
-    //                }
-    //            } else {
-    //                yamlContent = Files.readString(Path.of(resourceName));
-    //            }
-    //        } catch (Exception e) {
-    //            throw new ClusterException(
-    //                    "Could not read Hazelcast YAML config for expansion.", e);
-    //        }
-    //        // Perform variable expansion using Apache Commons Text
-    //        yamlContent = StringSubstitutor.replace(yamlContent, variables);
-    //        // Build Hazelcast Config from expanded YAML
-    //        try (var in =
-    //                new java.io.ByteArrayInputStream(yamlContent.getBytes())) {
-    //            return new com.hazelcast.config.YamlConfigBuilder(in).build();
-    //        } catch (Exception e) {
-    //            throw new ClusterException(
-    //                    "Could not build Hazelcast config from expanded YAML.", e);
-    //        }
-    //    }
 }

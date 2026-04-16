@@ -21,7 +21,7 @@ import com.norconex.crawler.core.doc.pipelines.importer.stages.AbstractImporterS
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 import com.norconex.crawler.web.util.Web;
 
 import lombok.extern.slf4j.Slf4j;

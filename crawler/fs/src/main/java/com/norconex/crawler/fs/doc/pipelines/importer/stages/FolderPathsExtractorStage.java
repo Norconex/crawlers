@@ -22,10 +22,10 @@ import com.norconex.crawler.core.doc.pipelines.importer.stages.AbstractImporterS
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
-import com.norconex.crawler.fs.doc.FsCrawlEntry;
 import com.norconex.crawler.fs.fetch.FolderPathsFetchRequest;
 import com.norconex.crawler.fs.fetch.FolderPathsFetchResponse;
 import com.norconex.crawler.fs.fetch.FsPath;
+import com.norconex.crawler.fs.ledger.FsCrawlEntry;
 
 public class FolderPathsExtractorStage extends AbstractImporterStage {
 

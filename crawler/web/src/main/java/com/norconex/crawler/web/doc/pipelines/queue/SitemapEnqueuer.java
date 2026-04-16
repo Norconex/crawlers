@@ -21,8 +21,8 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import com.norconex.commons.lang.config.ConfigurationException;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.QueueBootstrapContext;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.ReferenceEnqueuer;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapContext;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 import com.norconex.crawler.web.util.Web;
 
 import lombok.extern.slf4j.Slf4j;

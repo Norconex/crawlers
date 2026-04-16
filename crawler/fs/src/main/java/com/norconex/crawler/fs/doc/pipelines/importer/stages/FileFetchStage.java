@@ -26,10 +26,10 @@ import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchUtil;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
-import com.norconex.crawler.fs.doc.FsCrawlEntry;
 import com.norconex.crawler.fs.doc.FsDocMetadata;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.FileFetchResponse;
+import com.norconex.crawler.fs.ledger.FsCrawlEntry;
 import com.norconex.importer.doc.DocMetaConstants;
 
 import lombok.NonNull;

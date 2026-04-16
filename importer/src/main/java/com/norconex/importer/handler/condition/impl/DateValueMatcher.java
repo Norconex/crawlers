@@ -15,14 +15,15 @@
 package com.norconex.importer.handler.condition.impl;
 
 import static com.norconex.commons.lang.Operator.EQUALS;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.apache.commons.lang3.StringUtils.startsWithIgnoreCase;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.function.Predicate;
+
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.Strings;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -71,10 +72,10 @@ public class DateValueMatcher implements Predicate<ZonedDateTime> {
         // ensure we are comparing apples to apples. Else, one must ensure
         // the date format matches for proper comparisons.
         var resolvedZdt = zdt;
-        if (startsWithIgnoreCase(dateProvider.toString(), "today")) {
+        if (Strings.CI.startsWith(dateProvider.toString(), "today")) {
             resolvedZdt = resolvedZdt.truncatedTo(ChronoUnit.DAYS);
         }
-        var op = defaultIfNull(operator, EQUALS);
+        var op = ObjectUtils.getIfNull(operator, EQUALS);
         return op.evaluate(
                 resolvedZdt.toInstant(),
                 dateProvider.getDateTime().toInstant());

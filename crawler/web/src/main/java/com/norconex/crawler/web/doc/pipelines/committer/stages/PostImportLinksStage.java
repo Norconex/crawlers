@@ -24,8 +24,8 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 import com.norconex.crawler.web.util.Web;
 
 import lombok.extern.slf4j.Slf4j;

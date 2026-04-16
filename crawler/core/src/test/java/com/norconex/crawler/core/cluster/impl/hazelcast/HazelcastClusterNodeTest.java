@@ -16,19 +16,15 @@ package com.norconex.crawler.core.cluster.impl.hazelcast;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import java.util.UUID;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 /**
@@ -62,10 +58,11 @@ class HazelcastClusterNodeTest {
     @Timeout(15)
     void testStandaloneNode_isAlwaysCoordinator() {
         var hz = HazelcastTestSupport.startNode();
-        var node = new HazelcastClusterNode(hz, /* standalone= */ true);
+        try (var node = new HazelcastClusterNode(hz, /* standalone= */ true)) {
+            assertThat(node.isStandaloneNode()).isTrue();
+            assertThat(node.isCoordinator()).isTrue();
+        }
 
-        assertThat(node.isStandaloneNode()).isTrue();
-        assertThat(node.isCoordinator()).isTrue();
     }
 
     // -----------------------------------------------------------------
@@ -76,23 +73,24 @@ class HazelcastClusterNodeTest {
     @Timeout(15)
     void testSingleClusteredNode_isCoordinator() {
         var hz = HazelcastTestSupport.startNode();
-        var node = new HazelcastClusterNode(hz, /* standalone= */ false);
+        try (var node = new HazelcastClusterNode(hz, /* standalone= */ false)) {
+            // A single-member cluster: the only member must be the oldest
+            assertThat(node.isCoordinator()).isTrue();
+        }
 
-        // A single-member cluster: the only member must be the oldest
-        assertThat(node.isCoordinator()).isTrue();
     }
 
     @Test
     @Timeout(15)
     void testGetNodeName_returnsUuidString() {
         var hz = HazelcastTestSupport.startNode();
-        var node = new HazelcastClusterNode(hz, /* standalone= */ false);
-
-        var name = node.getNodeName();
-        assertThat(name).isNotNull();
-        assertThatCode(() -> UUID.fromString(name))
-                .as("node name should be parseable as UUID")
-                .doesNotThrowAnyException();
+        try (var node = new HazelcastClusterNode(hz, /* standalone= */ false)) {
+            var name = node.getNodeName();
+            assertThat(name).isNotNull();
+            assertThatCode(() -> UUID.fromString(name))
+                    .as("node name should be parseable as UUID")
+                    .doesNotThrowAnyException();
+        }
     }
 
     // -----------------------------------------------------------------
@@ -103,34 +101,32 @@ class HazelcastClusterNodeTest {
     @Timeout(15)
     void testClose_shutsDownHazelcastInstance() {
         var hz = HazelcastTestSupport.startNode();
-        var node = new HazelcastClusterNode(hz, /* standalone= */ false);
-
-        node.close();
-
-        assertThat(hz.getLifecycleService().isRunning()).isFalse();
+        try (var node = new HazelcastClusterNode(hz, /* standalone= */ false)) {
+            node.close();
+            assertThat(hz.getLifecycleService().isRunning()).isFalse();
+        }
     }
 
     @Test
     @Timeout(15)
     void testGetNodeName_afterShutdown_returnsNull() {
         var hz = HazelcastTestSupport.startNode();
-        var node = new HazelcastClusterNode(hz, /* standalone= */ false);
+        try (var node = new HazelcastClusterNode(hz, /* standalone= */ false)) {
 
-        // Shut down the underlying instance directly (simulates external stop)
-        hz.shutdown();
-
-        assertThat(node.getNodeName()).isNull();
+            // Shut down the underlying instance directly (simulates external stop)
+            hz.shutdown();
+            assertThat(node.getNodeName()).isNull();
+        }
     }
 
     @Test
     @Timeout(15)
     void testIsCoordinator_afterShutdown_returnsFalse() {
         var hz = HazelcastTestSupport.startNode();
-        var node = new HazelcastClusterNode(hz, /* standalone= */ false);
-
-        hz.shutdown();
-
-        assertThat(node.isCoordinator()).isFalse();
+        try (var node = new HazelcastClusterNode(hz, /* standalone= */ false)) {
+            hz.shutdown();
+            assertThat(node.isCoordinator()).isFalse();
+        }
     }
 
     // -----------------------------------------------------------------
@@ -154,6 +150,9 @@ class HazelcastClusterNodeTest {
         // The first-started member (oldest) is the coordinator
         assertThat(node0.isCoordinator()).isTrue();
         assertThat(node1.isCoordinator()).isFalse();
+
+        node0.close();
+        node1.close();
     }
 
     @Test
@@ -164,24 +163,26 @@ class HazelcastClusterNodeTest {
         var hz0 = HazelcastTestSupport.startNode(clusterName);
         var hz1 = HazelcastTestSupport.startNode(clusterName);
 
-        var node1 = new HazelcastClusterNode(hz1, /* standalone= */ false);
+        try (var node1 =
+                new HazelcastClusterNode(hz1, /* standalone= */ false)) {
 
-        // Wait for full two-member cluster
-        waitUntilClusterSize(hz0, 2);
-        waitUntilClusterSize(hz1, 2);
+            // Wait for full two-member cluster
+            waitUntilClusterSize(hz0, 2);
+            waitUntilClusterSize(hz1, 2);
 
-        // Sanity: node1 is NOT the coordinator yet
-        assertThat(node1.isCoordinator()).isFalse();
+            // Sanity: node1 is NOT the coordinator yet
+            assertThat(node1.isCoordinator()).isFalse();
 
-        // Remove the oldest member
-        hz0.shutdown();
+            // Remove the oldest member
+            hz0.shutdown();
 
-        // Wait for node1 to see itself as the sole surviving member
-        waitUntilClusterSize(hz1, 1);
-        // Give Hazelcast a moment to elect a new coordinator
-        waitUntil(() -> node1.isCoordinator(), 15_000);
+            // Wait for node1 to see itself as the sole surviving member
+            waitUntilClusterSize(hz1, 1);
+            // Give Hazelcast a moment to elect a new coordinator
+            waitUntil(node1::isCoordinator, 15_000);
 
-        assertThat(node1.isCoordinator()).isTrue();
+            assertThat(node1.isCoordinator()).isTrue();
+        }
     }
 
     // -----------------------------------------------------------------
@@ -211,7 +212,7 @@ class HazelcastClusterNodeTest {
     private static void waitUntil(
             BooleanSupplier condition, long timeoutMs)
             throws Exception {
-        long deadline = System.currentTimeMillis() + timeoutMs;
+        var deadline = System.currentTimeMillis() + timeoutMs;
         while (!condition.getAsBoolean()) {
             if (System.currentTimeMillis() >= deadline) {
                 throw new AssertionError(

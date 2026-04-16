@@ -69,11 +69,10 @@ class ProcessDeleteTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void execute_callsCommitterServiceDelete() {
         var ctx = buildCtx("http://example.com/deleted");
         var committerService =
-                (CommitterService<Doc>) ctx.crawlSession()
+                ctx.crawlSession()
                         .getCrawlContext().getCommitterService();
 
         ProcessDelete.execute(ctx);

@@ -18,7 +18,7 @@ package com.norconex.crawler.web.doc.operations.sitemap;
 import java.util.function.Consumer;
 
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 
 import lombok.Builder;
 import lombok.Data;

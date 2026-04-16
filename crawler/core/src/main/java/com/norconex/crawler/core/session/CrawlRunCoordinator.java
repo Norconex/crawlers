@@ -102,7 +102,6 @@ public class CrawlRunCoordinator {
         });
     }
 
-    @SuppressWarnings("unchecked")
     private <T> T oncePerCacheAndGet(
             CacheMap<String> cache, String taskId, Supplier<T> supplier) {
         var key = "once-get-" + taskId;
@@ -112,12 +111,12 @@ public class CrawlRunCoordinator {
         if (stored == null) {
             return null;
         }
-        var record = SerialUtil.fromJson(stored, SerializedRecord.class);
-        if (record == null) {
+        var rec = SerialUtil.fromJson(stored, SerializedRecord.class);
+        if (rec == null) {
             return null;
         }
         try {
-            return record.unwrap();
+            return rec.unwrap();
         } catch (CrawlerException e) {
             LOG.warn("Could not resolve class for JSON-wrapped value of key"
                     + " '{}': {}. Returning null.", key, e.getMessage());

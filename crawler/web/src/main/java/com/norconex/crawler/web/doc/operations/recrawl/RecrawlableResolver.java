@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.doc.operations.recrawl;
 
-import com.norconex.crawler.web.doc.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 
 /**
  * Indicates whether a document that was successfully crawled on a previous

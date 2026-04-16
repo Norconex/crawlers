@@ -74,7 +74,7 @@ public class PipelineWorkerState implements AutoCloseable {
 
     private final ScheduledExecutorService statusUpdater =
             Executors.newSingleThreadScheduledExecutor(
-                    new BasicThreadFactory.Builder()
+                    BasicThreadFactory.builder()
                             .namingPattern("WORKER-STATUS-UPDATER")
                             .daemon(true)
                             .build());

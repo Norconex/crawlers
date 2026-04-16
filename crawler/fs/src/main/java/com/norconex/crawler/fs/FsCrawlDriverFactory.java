@@ -20,12 +20,12 @@ import com.norconex.crawler.core.CrawlCallbacks;
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.CrawlDriver.FetchDriver;
 import com.norconex.crawler.fs.callbacks.BeforeFsCommand;
-import com.norconex.crawler.fs.doc.FsCrawlEntry;
 import com.norconex.crawler.fs.doc.pipelines.FsPipelines;
 import com.norconex.crawler.fs.fetch.AggregatedFileFetchResponse;
 import com.norconex.crawler.fs.fetch.AggregatedFolderPathsResponse;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.impl.GenericFileFetchResponse;
+import com.norconex.crawler.fs.ledger.FsCrawlEntry;
 
 public class FsCrawlDriverFactory implements Supplier<CrawlDriver> {
 

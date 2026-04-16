@@ -15,11 +15,8 @@
 package com.norconex.crawler.core.cluster.impl.hazelcast;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 
-import java.util.List;
 import java.util.UUID;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -27,10 +24,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.Timeout;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 import com.hazelcast.core.HazelcastInstance;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.junit.annotations.SlowTest;
 
 @Timeout(30)
@@ -78,7 +73,7 @@ class HazelcastQueueAndCounterTest {
         queue.add("a");
         queue.add("b");
         queue.add("c");
-        List<String> batch = queue.pollBatch(2);
+        var batch = queue.pollBatch(2);
         assertThat(batch).containsExactly("a", "b");
         assertThat(queue.poll()).isEqualTo("c");
     }
@@ -128,7 +123,6 @@ class HazelcastQueueAndCounterTest {
 
     @Test
     void testCounterIncrementAndGet() {
-        @SuppressWarnings("unchecked")
         var counterMap = hz.<String, Long>getMap(prefix + "ctr");
         var counter = new HazelcastCounter(counterMap, "c1");
         assertThat(counter.get()).isZero();
@@ -139,7 +133,6 @@ class HazelcastQueueAndCounterTest {
 
     @Test
     void testCounterDecrementAndGet() {
-        @SuppressWarnings("unchecked")
         var counterMap = hz.<String, Long>getMap(prefix + "ctrdec");
         var counter = new HazelcastCounter(counterMap, "c2");
         counter.set(10L);
@@ -150,7 +143,6 @@ class HazelcastQueueAndCounterTest {
 
     @Test
     void testCounterAddAndGet() {
-        @SuppressWarnings("unchecked")
         var counterMap = hz.<String, Long>getMap(prefix + "ctradd");
         var counter = new HazelcastCounter(counterMap, "c3");
         counter.set(5L);
@@ -161,7 +153,6 @@ class HazelcastQueueAndCounterTest {
 
     @Test
     void testCounterReset() {
-        @SuppressWarnings("unchecked")
         var counterMap = hz.<String, Long>getMap(prefix + "ctrreset");
         var counter = new HazelcastCounter(counterMap, "c4");
         counter.set(100L);

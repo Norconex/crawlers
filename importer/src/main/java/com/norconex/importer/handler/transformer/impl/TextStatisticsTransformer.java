@@ -165,7 +165,7 @@ public class TextStatisticsTransformer
         //TODO make this more efficient, by doing all this in one pass.
         var it = IOUtils.lineIterator(input);
         while (it.hasNext()) {
-            var line = it.nextLine().trim();
+            var line = it.next().trim();
             if (StringUtils.isBlank(line)) {
                 continue;
             }

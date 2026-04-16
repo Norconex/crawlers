@@ -27,7 +27,7 @@ import org.apache.hc.client5.http.classic.methods.HttpHead;
 
 import com.google.common.net.InternetDomainName;
 import com.norconex.commons.lang.url.UrlNormalizer;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 
 import lombok.extern.slf4j.Slf4j;
 

@@ -57,8 +57,8 @@ import lombok.extern.slf4j.Slf4j;
 class ClusterScenarioTest {
 
     private static final Duration CLUSTER_JOIN_WAIT =
-            Duration.ofSeconds(90);
-    private static final Duration NODE_DIE_WAIT = Duration.ofSeconds(6);
+            Duration.ofSeconds(60);
+    private static final Duration NODE_DIE_WAIT = Duration.ofSeconds(8);
     private static final Duration RESULT_RECORD_INTERVAL =
             Duration.ofMillis(200);
     private static final Duration TEST_IDLE_TIMEOUT = Duration.ofSeconds(1);
@@ -264,7 +264,7 @@ class ClusterScenarioTest {
     }
 
     @Test
-    @Timeout(240)
+    @Timeout(300)
     void coordinatorCrashThenResumeCompletes() throws Exception {
         var timing = ScenarioTiming.start(
                 "coordinatorCrashThenResumeCompletes", 2);

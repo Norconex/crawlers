@@ -24,7 +24,6 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.h2.mvstore.MVMap;
@@ -209,7 +208,7 @@ public class MVStoreCacheMap<T> implements CacheMap<T> {
 
     @Override
     public List<T> query(QueryFilter filter) {
-        return filterStream(filter).collect(Collectors.toList());
+        return filterStream(filter).toList();
     }
 
     @Override

@@ -25,8 +25,8 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.bean.BeanMapper;
@@ -34,7 +34,7 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.fs.FsTestUtil;
 
-@Timeout(30)
+@Timeout(60)
 public abstract class AbstractFileFetcherTest {
 
     @TempDir

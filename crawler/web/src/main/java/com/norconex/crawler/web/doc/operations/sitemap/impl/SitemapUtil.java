@@ -26,8 +26,8 @@ import java.util.zip.GZIPInputStream;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapRecord;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 import com.norconex.importer.doc.Doc;
 
 import lombok.NonNull;

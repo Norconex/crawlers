@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.web.doc;
+package com.norconex.crawler.web.ledger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,6 +20,8 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 
 class WebCrawlEntryTest {
 

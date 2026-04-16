@@ -38,10 +38,10 @@ import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractor;
 import com.norconex.crawler.web.doc.operations.link.impl.TikaLinkExtractor;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

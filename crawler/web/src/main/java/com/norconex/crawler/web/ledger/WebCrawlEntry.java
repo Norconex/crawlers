@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.web.doc;
+package com.norconex.crawler.web.ledger;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;

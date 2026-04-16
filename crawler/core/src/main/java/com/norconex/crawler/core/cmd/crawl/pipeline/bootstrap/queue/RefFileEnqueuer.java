@@ -43,7 +43,7 @@ public class RefFileEnqueuer implements ReferenceEnqueuer {
             try (var it = IOUtils.lineIterator(Files.newInputStream(refsFile),
                     StandardCharsets.UTF_8)) {
                 while (it.hasNext()) {
-                    var ref = StringUtils.trimToNull(it.nextLine());
+                    var ref = StringUtils.trimToNull(it.next());
                     if (ref != null && !ref.startsWith("#")) {
                         ctx.queue(ref);
                         cnt++;

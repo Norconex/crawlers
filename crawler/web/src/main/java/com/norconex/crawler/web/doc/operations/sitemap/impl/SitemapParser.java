@@ -27,8 +27,8 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import com.norconex.commons.lang.xml.Xml;
 import com.norconex.commons.lang.xml.XmlException;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapRecord;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 import com.norconex.importer.doc.Doc;
 
 import lombok.RequiredArgsConstructor;

@@ -33,7 +33,7 @@ import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -135,7 +135,7 @@ class DomTransformerTest {
 
     // This is a test for: https://github.com/Norconex/collector-http/issues/381
     @Test
-    void testFieldXMLParser() throws IOException, IOException {
+    void testFieldXMLParser() throws IOException {
 
         var t = new DomTransformer();
         t.getConfiguration()
@@ -178,7 +178,7 @@ class DomTransformerTest {
         var url = metadata.getString("TEST_URL");
         var desc = metadata.getString("TEST_DESC");
 
-        Assertions.assertTrue(StringUtils.contains(whole, "</tr>"));
+        Assertions.assertTrue(Strings.CI.contains(whole, "</tr>"));
         Assertions.assertEquals("Sample Title", title);
         Assertions.assertEquals("http://example.org/doc.html", url);
         Assertions.assertEquals("This is a description.", desc);
@@ -186,7 +186,7 @@ class DomTransformerTest {
 
     // This is a test for: https://github.com/Norconex/importer/issues/39
     @Test
-    void testFieldMatchBlanks() throws IOException, IOException {
+    void testFieldMatchBlanks() throws IOException {
 
         var t = new DomTransformer();
         t.getConfiguration().setOperations(
@@ -244,7 +244,7 @@ class DomTransformerTest {
     // where default value should not be trimmed.
     @Test
     void testFieldDefaultValue()
-            throws IOException, IOException {
+            throws IOException {
 
         var cfg =
                 """
@@ -278,7 +278,7 @@ class DomTransformerTest {
     // This is a test for "fromField" and "defaultValue" feature request:
     // https://github.com/Norconex/importer/issues/28
     @Test
-    void testFieldFromField() throws IOException, IOException {
+    void testFieldFromField() throws IOException {
 
         var html = """
                 <html><body>\
@@ -346,7 +346,7 @@ class DomTransformerTest {
     // This is a test for: https://github.com/Norconex/importer/issues/21
     @Test
     void testFieldNotAllSelectorsMatching()
-            throws IOException, IOException {
+            throws IOException {
 
         var t = new DomTransformer();
         t.getConfiguration().setOperations(
@@ -385,7 +385,7 @@ class DomTransformerTest {
 
     @Test
     void testFieldExtractFromDOM()
-            throws IOException, IOException {
+            throws IOException {
         var t = new DomTransformer();
         t.getConfiguration().setOperations(
                 List.of(
@@ -424,7 +424,7 @@ class DomTransformerTest {
 
     @Test
     void testFieldExtractionTypes()
-            throws IOException, IOException {
+            throws IOException {
         var t = new DomTransformer();
         t.getConfiguration().setOperations(
                 List.of(
@@ -471,7 +471,7 @@ class DomTransformerTest {
 
     @Test
     void testFieldAllExtractionTypes()
-            throws IOException, IOException {
+            throws IOException {
 
         var t = new DomTransformer();
         t.getConfiguration().setOperations(
@@ -665,7 +665,7 @@ class DomTransformerTest {
     //--- Body delete tests ----------------------------------------------------
 
     @Test
-    void testBodyDelete() throws IOException, IOException {
+    void testBodyDelete() throws IOException {
 
         var child1 = """
                 <div id="childOneId" class="childClass">\
@@ -703,7 +703,7 @@ class DomTransformerTest {
 
     @Test
     void testBodyNestedDelete()
-            throws IOException, IOException {
+            throws IOException {
 
         var child1 = """
                 <div id="childOneId" class="childClass">\
@@ -772,7 +772,7 @@ class DomTransformerTest {
         return new DomOperation()
                 .setSelector(selector)
                 .setToField(toField)
-                .setOnSet(APPEND)
+                .setOnSet(setter)
                 .setExtract(extract);
     }
 
@@ -784,7 +784,7 @@ class DomTransformerTest {
 
     private void performTransform(
             Properties metadata, DomTransformer t, String html)
-            throws IOException, IOException {
+            throws IOException {
         try (InputStream is = new ByteArrayInputStream(html.getBytes())) {
             metadata.set(DocMetaConstants.CONTENT_TYPE, "text/html");
             t.handle(TestUtil.newHandlerContext("n/a", is, metadata));

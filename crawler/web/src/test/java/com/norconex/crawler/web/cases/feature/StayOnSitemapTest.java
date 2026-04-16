@@ -32,7 +32,6 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.web.WebCrawlConfig;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.operations.scope.impl.GenericUrlScopeResolver;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapLocator;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapResolver;
@@ -41,6 +40,7 @@ import com.norconex.crawler.web.fetch.WebFetchResponse;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import org.junit.jupiter.api.Timeout;
 

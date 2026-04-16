@@ -35,9 +35,9 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpAuthConfig;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
 

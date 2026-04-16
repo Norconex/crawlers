@@ -41,7 +41,6 @@ import com.norconex.crawler.core.ledger.CrawlEntryLedger;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.WebCrawlConfig.ReferencedLinkType;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.operations.canon.CanonicalLinkDetector;
 import com.norconex.crawler.web.doc.operations.scope.UrlScope;
@@ -49,6 +48,7 @@ import com.norconex.crawler.web.doc.pipelines.importer.stages.CanonicalStage;
 import com.norconex.crawler.web.doc.pipelines.importer.stages.LinkExtractorStage;
 import com.norconex.crawler.web.doc.pipelines.importer.stages.RecrawlableResolverStage;
 import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 import com.norconex.crawler.web.util.Web;
 import com.norconex.importer.doc.Doc;
 

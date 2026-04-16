@@ -30,13 +30,13 @@ import java.util.regex.Pattern;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
@@ -75,12 +75,12 @@ class ImporterTest {
                         var txt = ctx.input().asString();
                         txt = pattern.matcher(txt).replaceAll("");
                         txt = txt.replaceAll("DowntheRabbitHole", "");
-                        txt = StringUtils.replace(txt, " ", "");
-                        txt = StringUtils.replace(
+                        txt = Strings.CS.replace(txt, " ", "");
+                        txt = Strings.CS.replace(
                                 txt, "httppdfreebooksorg",
                                 "");
-                        txt = StringUtils.replace(txt, "filejpg", "");
-                        txt = StringUtils.replace(txt, "filewmf", "");
+                        txt = Strings.CS.replace(txt, "filejpg", "");
+                        txt = Strings.CS.replace(txt, "filewmf", "");
                         ctx.output().asWriter().write(txt);
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);

@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.core.ledger;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -90,12 +91,14 @@ public final class CrawlEntryLedger {
      * rotation, even if they initialized before the rotation occurred.
      * Lazily initializes on first access - happens after bootstrap completes.
      */
+    @SuppressWarnings("unchecked")
     private CacheMap<CrawlEntry> getCurrentLedger() {
         var currentAlias = resolveCurrentLedgerAlias();
         if (currentLedger == null
                 || !currentAlias.equals(currentLedgerAlias)) {
-            currentLedger = cacheManager.getCacheMap(
-                    currentAlias, CrawlEntry.class);
+            currentLedger = (CacheMap<CrawlEntry>) cacheManager.getCacheMap(
+                    currentAlias,
+                    session.getCrawlContext().getCrawlEntryType());
             currentLedger.loadAll();
             currentLedgerAlias = currentAlias;
             LOG.debug("Lazy-initialized current ledger to: {}", currentAlias);
@@ -107,14 +110,18 @@ public final class CrawlEntryLedger {
      * Gets the baseline (previous) ledger for delta detection.
      * Lazily initializes on first access.
      */
+    @SuppressWarnings("unchecked")
     private CacheMap<CrawlEntry> getBaselineLedger() {
         var currentAlias = resolveCurrentLedgerAlias();
         var previousAlias = LEDGER_A.equals(currentAlias) ? LEDGER_B : LEDGER_A;
         if (baselineLedger == null
                 || !previousAlias.equals(baselineLedgerAlias)) {
             if (cacheManager.cacheExists(previousAlias)) {
-                baselineLedger = cacheManager.getCacheMap(
-                        previousAlias, CrawlEntry.class);
+                baselineLedger =
+                        (CacheMap<CrawlEntry>) cacheManager.getCacheMap(
+                                previousAlias,
+                                session.getCrawlContext()
+                                        .getCrawlEntryType());
                 baselineLedger.loadAll();
                 baselineLedgerAlias = previousAlias;
             } else {
@@ -134,12 +141,6 @@ public final class CrawlEntryLedger {
     }
 
     /**
-     * Ensures the current ledger alias exists in session cache.
-     * Sets default (LEDGER_A) if not present. This should be called
-     * by the coordinator before any ledger rotation to establish the
-     * initial state for all cluster nodes.
-     */
-    /**
      * Registers a listener that is called each time a new reference is
      * successfully added to the queue. Use this to decouple application-level
      * event publishing from the ledger.
@@ -147,9 +148,15 @@ public final class CrawlEntryLedger {
      * @param listener callback invoked with the queued {@link CrawlEntry}
      */
     public void setQueuedListener(Consumer<CrawlEntry> listener) {
-        this.onQueued = listener != null ? listener : e -> {};
+        onQueued = listener != null ? listener : e -> {};
     }
 
+    /**
+     * Ensures the current ledger alias exists in session cache.
+     * Sets default (LEDGER_A) if not present. This should be called
+     * by the coordinator before any ledger rotation to establish the
+     * initial state for all cluster nodes.
+     */
     public void ensureCurrentLedgerAliasExists() {
         var sessionCache = cacheManager.getCrawlSessionCache();
         sessionCache.computeIfAbsent(CURRENT_LEDGER_ALIAS_KEY,
@@ -203,7 +210,7 @@ public final class CrawlEntryLedger {
 
         // Collect entries and sort by queuedAt (nulls last) to preserve
         // FIFO ordering as much as possible when restoring queue.
-        var entries = new java.util.ArrayList<CrawlEntry>();
+        var entries = new ArrayList<CrawlEntry>();
         while (queuedIt.hasNext()) {
             entries.add(queuedIt.next());
         }
@@ -608,6 +615,7 @@ public final class CrawlEntryLedger {
      * coordinator node.</strong> In a multi-node cluster, calling this on
      * a non-coordinator node is a no-op (logged as a warning).
      */
+    @SuppressWarnings("unchecked")
     public void archiveCurrentLedger() {
         if (!session.getCluster().getLocalNode().isCoordinator()) {
             LOG.warn("archiveCurrentLedger() called on non-coordinator node; "
@@ -631,12 +639,14 @@ public final class CrawlEntryLedger {
         // Update cached references if they were already initialized
         // (this only matters for coordinator which calls this method)
         if (!newAlias.equals(currentAlias)) {
-            var entryType = CrawlEntry.class;
+            var entryType = session.getCrawlContext().getCrawlEntryType();
             currentLedger =
-                    cacheManager.getCacheMap(newAlias, entryType);
+                    (CacheMap<CrawlEntry>) cacheManager.getCacheMap(newAlias,
+                            entryType);
             currentLedgerAlias = newAlias;
             baselineLedger = cacheManager.cacheExists(previousAlias)
-                    ? cacheManager.getCacheMap(previousAlias, entryType)
+                    ? (CacheMap<CrawlEntry>) cacheManager
+                            .getCacheMap(previousAlias, entryType)
                     : null;
             baselineLedgerAlias = baselineLedger == null ? null : previousAlias;
             clearLedgerEntries(currentLedger, "new current");

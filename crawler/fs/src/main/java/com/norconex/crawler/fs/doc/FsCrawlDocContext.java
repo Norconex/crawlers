@@ -14,6 +14,8 @@
  */
 package com.norconex.crawler.fs.doc;
 
+import com.norconex.crawler.fs.ledger.FsCrawlEntry;
+
 // TODO: Delete this file. Replaced by FsCrawlEntry.
 /** @deprecated Use {@link FsCrawlEntry} instead. */
 @Deprecated(since = "4.0.0", forRemoval = true)

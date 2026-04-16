@@ -153,7 +153,9 @@ class ConcurrentUtilTest {
         });
         var result = ConcurrentUtil.waitUntil(
                 flag::get, Duration.ofSeconds(5));
+        future.join(); // ensure async task fully completed
         assertThat(result).isTrue();
+        assertThat(future).isCompleted();
     }
 
     @Test

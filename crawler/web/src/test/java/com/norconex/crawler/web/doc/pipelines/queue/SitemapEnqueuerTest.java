@@ -29,8 +29,8 @@ import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.QueueBootstr
 import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.ledger.CrawlEntry;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 import com.norconex.crawler.web.util.Web;
 
 @Timeout(30)

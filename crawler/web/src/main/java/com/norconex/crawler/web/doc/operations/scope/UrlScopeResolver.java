@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.doc.operations.scope;
 
-import com.norconex.crawler.web.doc.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 
 public interface UrlScopeResolver {
 

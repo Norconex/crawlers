@@ -27,10 +27,10 @@ import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.WebCrawlConfig;
-import com.norconex.crawler.web.doc.WebCrawlEntry;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxt;
 import com.norconex.crawler.web.doc.operations.scope.UrlScope;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 
 import lombok.NonNull;
 

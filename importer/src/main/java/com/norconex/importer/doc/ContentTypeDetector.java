@@ -17,14 +17,12 @@ package com.norconex.importer.doc;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tika.Tika;
 import org.apache.tika.detect.DefaultDetector;
 import org.apache.tika.detect.Detector;
 import org.apache.tika.io.TikaInputStream;
@@ -48,12 +46,10 @@ public final class ContentTypeDetector {
             Pattern.compile("^.*(\\.[A-z0-9]+).*");
     private static final MimeTypes CUSTOM_MIME_TYPES;
     private static final Detector DETECTOR;
-    private static final Tika TIKA;
     static {
         configureCustomMimeTypes();
         CUSTOM_MIME_TYPES = createCustomMimeTypes();
         DETECTOR = new DefaultDetector(CUSTOM_MIME_TYPES);
-        TIKA = new Tika(DETECTOR);
     }
 
     private static void configureCustomMimeTypes() {
@@ -61,7 +57,7 @@ public final class ContentTypeDetector {
                 .getProperty(MimeTypesFactory.CUSTOM_MIMES_SYS_PROP) != null) {
             return;
         }
-        URL resource = ContentTypeDetector.class.getClassLoader().getResource(
+        var resource = ContentTypeDetector.class.getClassLoader().getResource(
                 "org/apache/tika/mime/custom-mimetypes.xml");
         if (resource == null) {
             return;
