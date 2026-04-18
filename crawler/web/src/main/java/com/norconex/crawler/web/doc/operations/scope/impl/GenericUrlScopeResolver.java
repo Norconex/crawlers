@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.doc.operations.scope.impl;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
@@ -147,7 +147,7 @@ public class GenericUrlScopeResolver
 
         // if accepting sub-domains, check if it ends the same.
         return configuration.isIncludeSubdomains()
-                && StringUtils.endsWithIgnoreCase(candidate, "." + inScope);
+                && Strings.CI.endsWith(candidate, "." + inScope);
     }
 
     private boolean siteHasSitemap(String inScope) {

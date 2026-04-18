@@ -14,9 +14,8 @@
  */
 package com.norconex.crawler.web.doc.pipelines.queue;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-
-import org.apache.commons.lang3.mutable.MutableInt;
 
 import com.norconex.commons.lang.config.ConfigurationException;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.QueueBootstrapContext;
@@ -45,10 +44,10 @@ public class SitemapEnqueuer implements ReferenceEnqueuer {
                     """);
         }
 
-        final var urlCount = new MutableInt();
+        final var urlCount = new AtomicInteger();
         Consumer<WebCrawlEntry> urlConsumer = rec -> {
             queueInitCtx.queue(rec);
-            urlCount.increment();
+            urlCount.incrementAndGet();
         };
 
         // Process each sitemap URL
@@ -60,11 +59,11 @@ public class SitemapEnqueuer implements ReferenceEnqueuer {
                     .urlConsumer(urlConsumer)
                     .build());
         }
-        if (urlCount.intValue() > 0) {
+        if (urlCount.get() > 0) {
             LOG.info(
                     "Queued {} start references from {} sitemap(s).",
                     urlCount, sitemapURLs.size());
         }
-        return urlCount.intValue();
+        return urlCount.get();
     }
 }

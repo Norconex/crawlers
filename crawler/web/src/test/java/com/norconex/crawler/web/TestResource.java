@@ -25,7 +25,7 @@ import java.io.UncheckedIOException;
 import javax.imageio.ImageIO;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImage;
 
@@ -66,7 +66,7 @@ public class TestResource {
     }
 
     public String absolutePath(String baseUrl) {
-        return StringUtils.appendIfMissing(baseUrl, "/") + path;
+        return Strings.CS.appendIfMissing(baseUrl, "/") + path;
     }
 
     public BufferedImage asImage() {

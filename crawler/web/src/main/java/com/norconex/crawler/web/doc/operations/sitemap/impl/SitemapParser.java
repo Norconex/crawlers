@@ -20,10 +20,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import com.norconex.commons.lang.xml.Xml;
 import com.norconex.commons.lang.xml.XmlException;
@@ -41,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 class SitemapParser {
 
     private final boolean lenient;
-    private final MutableBoolean stopping;
+    private final AtomicBoolean stopping;
 
     List<SitemapRecord> parse(
             Doc sitemapDoc, Consumer<WebCrawlEntry> urlConsumer) {
@@ -54,7 +54,7 @@ class SitemapParser {
             var sitemapLocationDir = substringBeforeLast(location, "/");
             Xml.stream(is)
                     .takeWhile(c -> {
-                        if (stopping.isTrue()) {
+                        if (stopping.get()) {
                             LOG.debug("Sitemap not entirely parsed due to "
                                     + "crawler being stopped.");
                             return false;

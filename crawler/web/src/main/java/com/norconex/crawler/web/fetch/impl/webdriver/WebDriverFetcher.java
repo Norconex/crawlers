@@ -339,7 +339,7 @@ public class WebDriverFetcher
         if (configuration.getWaitForElementTimeout() != null
                 && StringUtils.isNotBlank(
                         configuration.getWaitForElementSelector())) {
-            var elType = ObjectUtils.defaultIfNull(
+            var elType = ObjectUtils.getIfNull(
                     configuration.getWaitForElementType(),
                     WaitElementType.TAGNAME);
             LOG.debug("Waiting for element '{}' of type '{}' for '{}'.",

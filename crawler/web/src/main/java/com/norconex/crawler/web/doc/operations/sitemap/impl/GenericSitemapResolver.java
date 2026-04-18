@@ -21,9 +21,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.hc.core5.http.HttpStatus;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -60,7 +60,7 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
     @JsonIgnore
     private CacheMap<SitemapRecord> sitemapStore;
     @JsonIgnore
-    private final MutableBoolean stopping = new MutableBoolean();
+    private final AtomicBoolean stopping = new AtomicBoolean();
 
     @EqualsAndHashCode.Include
     @ToString.Include
@@ -71,7 +71,7 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
     @Override
     public void resolve(SitemapContext ctx) {
         var location = ctx.getLocation();
-        if (stopping.isTrue()) {
+        if (stopping.get()) {
             LOG.debug(
                     "Skipping resolution of sitemap "
                             + "location (stop requested): {}",
@@ -221,6 +221,6 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
 
     @Override
     protected void onCrawlerStopBegin(CrawlerEvent event) {
-        stopping.setTrue();
+        stopping.set(true);
     }
 }

@@ -14,13 +14,11 @@
  */
 package com.norconex.crawler.web.doc.operations.image.impl;
 
-import static com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.DEFAULT_IMAGE_CACHE_DIR;
 import static com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.DEFAULT_STORAGE_DISK_DIR;
 import static com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.FEATURED_IMAGE_INLINE_FIELD;
 import static com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.FEATURED_IMAGE_PATH_FIELD;
 import static com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.FEATURED_IMAGE_URL_FIELD;
 import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.awt.Color;
@@ -31,13 +29,12 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 import javax.imageio.ImageIO;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.imgscalr.Scalr;
 import org.imgscalr.Scalr.Method;
 import org.imgscalr.Scalr.Mode;
@@ -112,17 +109,10 @@ public class FeaturedImageResolver
     private final FeaturedImageResolverConfig configuration =
             new FeaturedImageResolverConfig();
 
-    private static final Map<Path, ImageCache> IMG_CACHES = new HashMap<>();
-
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @JsonIgnore
     private ImageCache cache;
-
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @JsonIgnore
-    private Path resolvedImageCacheDir;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -136,24 +126,14 @@ public class FeaturedImageResolver
         var workDir = ((CrawlSession) event.getSource())
                 .getCrawlContext().getWorkDir();
 
-        // Initialize image cache directory
+        // Initialize in-memory image cache
         if (configuration.getImageCacheSize() > 0) {
-            resolvedImageCacheDir = ofNullable(configuration.getImageCacheDir())
-                    .orElseGet(() -> workDir.resolve(
-                            DEFAULT_IMAGE_CACHE_DIR));
-            try {
-                Files.createDirectories(resolvedImageCacheDir);
-                LOG.info(
-                        "Featured image cache directory: {}",
-                        resolvedImageCacheDir);
-            } catch (IOException e) {
-                throw new CrawlerException(
-                        "Could not create featured image cache directory.", e);
-            }
-            cache = IMG_CACHES.computeIfAbsent(
-                    resolvedImageCacheDir, dir -> new ImageCache(
-                            configuration.getImageCacheSize(),
-                            resolvedImageCacheDir));
+            cache = new ImageCache(
+                    configuration.getImageCacheSize());
+            LOG.info(
+                    "Featured image in-memory cache enabled"
+                            + " (max entries: {}).",
+                    configuration.getImageCacheSize());
         }
 
         // Initialize image directory
@@ -248,7 +228,7 @@ public class FeaturedImageResolver
                                 fileId + "." + imgFormat);
             } else {
                 String filePath = null;
-                if (StringUtils.startsWith(img.getUrl(), "data:")) {
+                if (Strings.CS.startsWith(img.getUrl(), "data:")) {
                     filePath = FileUtil.createURLDirs(
                             resolvedStorageDiskDir.toFile(),
                             doc.getReference() + "/base64-"
@@ -260,8 +240,7 @@ public class FeaturedImageResolver
                             resolvedStorageDiskDir.toFile(), img.getUrl(), true)
                             .getAbsolutePath();
                 }
-                if (!endsWithIgnoreCase(
-                        filePath, "." + imgFormat)) {
+                if (!Strings.CI.endsWith(filePath, "." + imgFormat)) {
                     filePath += "." + imgFormat;
                 }
                 imageFile = Paths.get(filePath);

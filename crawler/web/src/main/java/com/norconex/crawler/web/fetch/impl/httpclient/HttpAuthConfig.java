@@ -117,6 +117,13 @@ public class HttpAuthConfig {
     private String domain;
 
     /**
+     * Kerberos/SPNEGO configuration. Required when using
+     * {@link HttpAuthMethod#SPNEGO} or
+     * {@link HttpAuthMethod#KERBEROS}.
+     */
+    private KerberosConfig kerberosConfig;
+
+    /**
      * Whether to perform preemptive authentication
      * (valid for "basic" authentication method).
      */

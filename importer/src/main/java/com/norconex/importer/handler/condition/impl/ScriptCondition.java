@@ -17,7 +17,7 @@ package com.norconex.importer.handler.condition.impl;
 import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.mutable.MutableBoolean;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
@@ -139,7 +139,7 @@ public class ScriptCondition
     @Override
     public boolean test(DocHandlerContext docCtx) throws IOException {
 
-        var matches = new MutableBoolean();
+        var matches = new AtomicBoolean();
         ChunkedTextReader.builder()
                 .charset(configuration.getSourceCharset())
                 .fieldMatcher(configuration.getFieldMatcher())
@@ -148,15 +148,15 @@ public class ScriptCondition
                 .read(docCtx, chunk -> {
                     // only check if no successful match yet.
                     try {
-                        if (matches.isFalse() && executeScript(docCtx, chunk)) {
-                            matches.setTrue();
+                        if (!matches.get() && executeScript(docCtx, chunk)) {
+                            matches.set(true);
                         }
                     } catch (DocHandlerException e) {
                         throw new IOException(e);
                     }
                     return true;
                 });
-        return matches.booleanValue();
+        return matches.get();
     }
 
     private boolean executeScript(DocHandlerContext docCtx, TextChunk chunk)

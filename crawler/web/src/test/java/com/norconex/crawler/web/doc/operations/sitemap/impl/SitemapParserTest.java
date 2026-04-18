@@ -20,9 +20,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -37,7 +37,7 @@ class SitemapParserTest {
     @Test
     void testParse() throws IOException {
         List<WebCrawlEntry> extractedLinks = new ArrayList<>();
-        var p = new SitemapParser(false, new MutableBoolean(false));
+        var p = new SitemapParser(false, new AtomicBoolean(false));
 
         try (var is = getClass().getResourceAsStream("sitemap.xml")) {
 
@@ -66,10 +66,12 @@ class SitemapParserTest {
         // test second one:
         var doc = extractedLinks.get(1);
         Assertions.assertEquals(
-                "https://example.com/linkB", doc.getReference());
+                "https://example.com/linkB",
+                doc.getReference());
         Assertions.assertEquals(
                 "2021-04-01",
-                doc.getSitemapLastMod().toLocalDate().toString());
+                doc.getSitemapLastMod().toLocalDate()
+                        .toString());
         Assertions.assertEquals("daily", doc.getSitemapChangeFreq());
         Assertions.assertEquals(1f, doc.getSitemapPriority());
     }

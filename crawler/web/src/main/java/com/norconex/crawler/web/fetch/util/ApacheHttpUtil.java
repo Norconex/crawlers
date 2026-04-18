@@ -127,10 +127,11 @@ public final class ApacheHttpUtil {
      * @param response the HTTP response
      * @param prefix optional metadata prefix for all HTTP response headers
      * @param doc document to apply headers on
+     * @param crawlEntry crawl ledger entry
      */
     public static void applyResponseHeaders(
             HttpResponse response, String prefix, Doc doc,
-            WebCrawlEntry docRecord) {
+            WebCrawlEntry crawlEntry) {
         var it = response.headerIterator();
         while (it.hasNext()) {
             var header = it.next();
@@ -148,13 +149,13 @@ public final class ApacheHttpUtil {
 
             // ETag
             if (HttpHeaders.ETAG.equalsIgnoreCase(name)) {
-                docRecord.setEtag(value);
+                crawlEntry.setEtag(value);
             }
 
             // Last Modified
             if (HttpHeaders.LAST_MODIFIED.equalsIgnoreCase(name)) {
                 try {
-                    docRecord.setLastModified(
+                    crawlEntry.setLastModified(
                             ZonedDateTime.parse(
                                     value,
                                     DateTimeFormatter.RFC_1123_DATE_TIME));
@@ -177,13 +178,13 @@ public final class ApacheHttpUtil {
      * Applies the <code>Content-Type</code> HTTP response header
      * on the supplied document info.  It does so by extracting both
      * the content type and charset from the value, and sets them by invoking
-     * {@link DocContext#setContentType(ContentType)} and
-     * {@link DocContext#setCharset(Charset)}.
+     * {@link Doc#setContentType(ContentType)} and
+     * {@link Doc#setCharset(Charset)}.
      * This method is automatically invoked by
-     * {@link #applyResponseHeaders(HttpResponse, String, CrawlDoc)}
+     * {@link #applyResponseHeaders(HttpResponse, String, Doc, WebCrawlEntry)}
      * when encountering a content type header.
      * @param value value to parse and set.
-     * @param docRecord document info
+     * @param doc document info
      */
     public static void applyContentTypeAndCharset(
             String value, Doc doc) {
@@ -209,7 +210,7 @@ public final class ApacheHttpUtil {
      * Sets the <code>If-Modified-Since</code> HTTP request header based
      * on document cached last crawled date (if any).
      * @param request HTTP request
-     * @param doc document
+     * @param docCtx document context
      */
     public static void setRequestIfModifiedSince(
             HttpRequest request, CrawlDocContext docCtx) {
@@ -233,7 +234,7 @@ public final class ApacheHttpUtil {
      * Sets the ETag <code>If-None-Match</code> HTTP request header based
      * on document cached ETag value (if any).
      * @param request HTTP request
-     * @param doc document
+     * @param docCtx document
      */
     public static void setRequestIfNoneMatch(
             HttpRequest request, CrawlDocContext docCtx) {

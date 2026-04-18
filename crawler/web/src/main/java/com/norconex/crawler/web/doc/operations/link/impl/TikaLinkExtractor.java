@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
@@ -209,7 +210,7 @@ public class TikaLinkExtractor
 
     private String getCaseInsensitive(Metadata metadata, String key) {
         for (String name : metadata.names()) {
-            if (StringUtils.equalsIgnoreCase(name, key)) {
+            if (Strings.CI.equals(name, key)) {
                 return metadata.get(name);
             }
         }

@@ -359,7 +359,6 @@
        <minDimensions>425x312</minDimensions>
        <largest>true</largest>
        <imageCacheSize>1234</imageCacheSize>
-       <imageCacheDir>/some/path</imageCacheDir>
        <storages>
          <storage>url</storage>
          <storage>inline</storage>

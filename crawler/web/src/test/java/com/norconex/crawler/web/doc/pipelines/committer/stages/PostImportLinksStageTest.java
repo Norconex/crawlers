@@ -18,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.junit.jupiter.api.Timeout;
@@ -55,25 +56,28 @@ class PostImportLinksStageTest {
     }
 
     @WebCrawlTest
-    void testNoMatchingFieldsPassesThrough(CrawlContext ctx) {
+    void testNoMatchingFieldsPassesThrough(CrawlContext ctx)
+            throws IOException {
         // Pattern set but no metadata field matches it → no-op, always true
         Web.config(ctx).setPostImportLinks(TextMatcher.basic("myLinks"));
 
         var entry = new WebCrawlEntry("http://example.com/page.html", 0);
+        try (@SuppressWarnings("resource")
         var doc = new Doc("http://example.com/page.html").setInputStream(
-                new CachedStreamFactory(1, 1).newInputStream());
-        // Intentionally no "myLinks" field in metadata
+                new CachedStreamFactory(1, 1).newInputStream())) {
+            // Intentionally no "myLinks" field in metadata
 
-        var docCtx = CrawlDocContext.builder()
-                .doc(doc)
-                .currentCrawlEntry(entry)
-                .build();
+            var docCtx = CrawlDocContext.builder()
+                    .doc(doc)
+                    .currentCrawlEntry(entry)
+                    .build();
 
-        var session = mock(CrawlSession.class);
-        when(session.getCrawlContext()).thenReturn(ctx);
+            var session = mock(CrawlSession.class);
+            when(session.getCrawlContext()).thenReturn(ctx);
 
-        var pipeCtx = new CommitterPipelineContext(session, docCtx);
-        assertThat(new PostImportLinksStage().test(pipeCtx)).isTrue();
+            var pipeCtx = new CommitterPipelineContext(session, docCtx);
+            assertThat(new PostImportLinksStage().test(pipeCtx)).isTrue();
+        }
     }
 
     // -----------------------------------------------------------------------
@@ -254,6 +258,7 @@ class PostImportLinksStageTest {
     // Helper
     // -----------------------------------------------------------------------
 
+    @SuppressWarnings("resource")
     private static Doc buildDocWithLinks(
             String ref, String fieldName, String... urls) {
         var doc = new Doc(ref).setInputStream(
@@ -264,6 +269,7 @@ class PostImportLinksStageTest {
         return doc;
     }
 
+    @SuppressWarnings("resource")
     private static boolean runStage(
             CrawlContext ctx, String ref, WebCrawlEntry entry) {
         var doc = new Doc(ref).setInputStream(

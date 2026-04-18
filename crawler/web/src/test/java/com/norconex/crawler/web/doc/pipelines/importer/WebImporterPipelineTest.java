@@ -63,6 +63,7 @@ class WebImporterPipelineTest {
                 + reference + "\" />\n"
                 + "</head><body>Nothing of interest in body</body></html>";
         var docEntry = new WebCrawlEntry(reference, 0);
+        @SuppressWarnings("resource")
         var doc = new Doc(reference).setInputStream(
                 new CachedStreamFactory(1000, 1000)
                         .newInputStream(
@@ -85,6 +86,7 @@ class WebImporterPipelineTest {
     void testCanonicalStageSameReferenceHeader(CrawlContext crawlerCtx) {
         var reference = "http://www.example.com/file.pdf";
         var docEntry = new WebCrawlEntry(reference, 0);
+        @SuppressWarnings("resource")
         var doc = new Doc(reference).setInputStream(
                 new CachedStreamFactory(1, 1).newInputStream());
         doc.getMetadata().set("Link",
@@ -109,6 +111,7 @@ class WebImporterPipelineTest {
                 + "</head><body><a href=\"link.html\">A link</a></body></html>";
 
         var docEntry = new WebCrawlEntry(reference, 2);
+        @SuppressWarnings("resource")
         var doc = new Doc(reference)
                 .setContentType(ContentType.HTML)
                 .setInputStream(
@@ -163,6 +166,7 @@ class WebImporterPipelineTest {
 
         var reference = "http://www.example.com/page.html";
         var docEntry = new WebCrawlEntry(reference, 0);
+        @SuppressWarnings("resource")
         var doc = new Doc(reference).setInputStream(
                 new CachedStreamFactory(1, 1).newInputStream());
         var docCtx = CrawlDocContext.builder()
@@ -187,6 +191,7 @@ class WebImporterPipelineTest {
                 + "</head><body>Duplicate</body></html>";
 
         var docEntry = new WebCrawlEntry(current, 0);
+        @SuppressWarnings("resource")
         var doc = new Doc(current)
                 .setContentType(ContentType.HTML)
                 .setInputStream(
@@ -226,6 +231,7 @@ class WebImporterPipelineTest {
 
         var docEntry = new WebCrawlEntry(current, 0);
         docEntry.addRedirectURL(canonical); // seed the trail so canonical is "already seen"
+        @SuppressWarnings("resource")
         var doc = new Doc(current).setInputStream(
                 new CachedStreamFactory(1000, 1000)
                         .newInputStream(
@@ -251,6 +257,7 @@ class WebImporterPipelineTest {
         var current = "http://www.example.com/dup.html";
 
         var docEntry = new WebCrawlEntry(current, 0);
+        @SuppressWarnings("resource")
         var doc = new Doc(current).setInputStream(
                 new CachedStreamFactory(1, 1).newInputStream());
         // Set Link header so detectFromMetadata returns the canonical URL
@@ -292,6 +299,7 @@ class WebImporterPipelineTest {
                         .out("test: all out of scope"));
 
         var docEntry = new WebCrawlEntry(current, 0);
+        @SuppressWarnings("resource")
         var doc = new Doc(current).setInputStream(
                 new CachedStreamFactory(1000, 1000)
                         .newInputStream(
@@ -321,6 +329,7 @@ class WebImporterPipelineTest {
                 new WebCrawlEntry("http://www.example.com/orphan.html", 0);
         docEntry.setOrphan(true);
 
+        @SuppressWarnings("resource")
         var doc = new Doc(docEntry.getReference()).setInputStream(
                 new CachedStreamFactory(1, 1).newInputStream());
         var docCtx = CrawlDocContext.builder()
@@ -341,6 +350,7 @@ class WebImporterPipelineTest {
         Web.config(crawlerCtx).setRecrawlableResolver(null);
 
         var docEntry = new WebCrawlEntry("http://www.example.com/page.html", 0);
+        @SuppressWarnings("resource")
         var doc = new Doc(docEntry.getReference()).setInputStream(
                 new CachedStreamFactory(1, 1).newInputStream());
         var docCtx = CrawlDocContext.builder()
@@ -361,6 +371,7 @@ class WebImporterPipelineTest {
         Web.config(crawlerCtx).setRecrawlableResolver(prev -> false); // always not-recrawlable
 
         var docEntry = new WebCrawlEntry("http://www.example.com/page.html", 0);
+        @SuppressWarnings("resource")
         var doc = new Doc(docEntry.getReference()).setInputStream(
                 new CachedStreamFactory(1, 1).newInputStream());
         var docCtx = CrawlDocContext.builder()
@@ -385,6 +396,7 @@ class WebImporterPipelineTest {
                 new WebCrawlEntry("http://www.example.com/page.html", 0);
         var currentEntry =
                 new WebCrawlEntry("http://www.example.com/page.html", 0);
+        @SuppressWarnings("resource")
         var doc = new Doc(currentEntry.getReference()).setInputStream(
                 new CachedStreamFactory(1, 1).newInputStream());
         var docCtx = CrawlDocContext.builder()
@@ -417,6 +429,7 @@ class WebImporterPipelineTest {
 
         var currentEntry =
                 new WebCrawlEntry("http://www.example.com/page.html", 0);
+        @SuppressWarnings("resource")
         var doc = new Doc(currentEntry.getReference()).setInputStream(
                 new CachedStreamFactory(1, 1).newInputStream());
         var docCtx = CrawlDocContext.builder()
@@ -479,6 +492,7 @@ class WebImporterPipelineTest {
         var content = "<html><head><link rel=\"canonical\" href=\""
                 + canonical + "\" /></head><body></body></html>";
         var docEntry = new WebCrawlEntry(current, 0);
+        @SuppressWarnings("resource")
         var doc = new Doc(current).setInputStream(
                 new CachedStreamFactory(1000, 1000)
                         .newInputStream(

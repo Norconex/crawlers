@@ -56,7 +56,7 @@ class LargeContentTest {
         var path = "/largeContent";
 
         whenHtml(client, path,
-                RandomStringUtils.randomAlphanumeric(minSize));
+                RandomStringUtils.secure().nextAlphanumeric(minSize));
 
         cfg.setStartReferences(List.of(serverUrl(client, path)));
         var fetcherCfg = ((HttpClientFetcher) cfg.getFetchers().get(0))

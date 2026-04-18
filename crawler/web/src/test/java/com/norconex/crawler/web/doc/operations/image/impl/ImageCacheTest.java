@@ -16,11 +16,7 @@ package com.norconex.crawler.web.doc.operations.image.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
-import java.nio.file.Path;
-
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.web.TestResource;
@@ -28,44 +24,54 @@ import com.norconex.crawler.web.TestResource;
 @Timeout(30)
 class ImageCacheTest {
 
-    @TempDir
-    private Path tempDir;
-
     @Test
-    void testImageCache() throws IOException {
+    void testImageCache() {
         var baseUrl = "http://somewhere.com/";
-        var ref160 = TestResource.IMG_160X120_PNG.absolutePath(baseUrl);
-        var ref320 = TestResource.IMG_320X240_PNG.absolutePath(baseUrl);
-        var ref640 = TestResource.IMG_640X480_PNG.absolutePath(baseUrl);
+        var ref160 =
+                TestResource.IMG_160X120_PNG.absolutePath(baseUrl);
+        var ref320 =
+                TestResource.IMG_320X240_PNG.absolutePath(baseUrl);
+        var ref640 =
+                TestResource.IMG_640X480_PNG.absolutePath(baseUrl);
 
-        var cache = new ImageCache(2, tempDir);
+        var cache = new ImageCache(2);
 
-        assertThat(cache.getCacheDirectory()).isEqualTo(tempDir);
-
-        cache.setImage(TestResource.IMG_160X120_PNG.asFeaturedImage(baseUrl));
-        assertThat(cache.getCacheSize()).isEqualTo(1);
-        assertThat(cache.getImage(ref160)).isNull(); // pending persistent impl
-        assertThat(cache.getImage(ref320)).isNull();
-        assertThat(cache.getImage(ref640)).isNull();
-
-        // one more time the same image should not change anything
-        cache.setImage(TestResource.IMG_160X120_PNG.asFeaturedImage(baseUrl));
-        assertThat(cache.getCacheSize()).isEqualTo(1);
+        // Initially empty
+        assertThat(cache.getCacheSize()).isZero();
         assertThat(cache.getImage(ref160)).isNull();
+
+        // Store first image — should be retrievable
+        cache.setImage(
+                TestResource.IMG_160X120_PNG
+                        .asFeaturedImage(baseUrl));
+        assertThat(cache.getCacheSize()).isEqualTo(1);
+        assertThat(cache.getImage(ref160)).isNotNull();
         assertThat(cache.getImage(ref320)).isNull();
         assertThat(cache.getImage(ref640)).isNull();
 
-        cache.setImage(TestResource.IMG_320X240_PNG.asFeaturedImage(baseUrl));
+        // Storing the same image again — size unchanged
+        cache.setImage(
+                TestResource.IMG_160X120_PNG
+                        .asFeaturedImage(baseUrl));
+        assertThat(cache.getCacheSize()).isEqualTo(1);
+        assertThat(cache.getImage(ref160)).isNotNull();
+
+        // Store second image — both present
+        cache.setImage(
+                TestResource.IMG_320X240_PNG
+                        .asFeaturedImage(baseUrl));
+        assertThat(cache.getCacheSize()).isEqualTo(2);
+        assertThat(cache.getImage(ref160)).isNotNull();
+        assertThat(cache.getImage(ref320)).isNotNull();
+
+        // Store third image — LRU eviction (max 2), oldest
+        // (160) evicted
+        cache.setImage(
+                TestResource.IMG_640X480_PNG
+                        .asFeaturedImage(baseUrl));
         assertThat(cache.getCacheSize()).isEqualTo(2);
         assertThat(cache.getImage(ref160)).isNull();
-        assertThat(cache.getImage(ref320)).isNull();
-        assertThat(cache.getImage(ref640)).isNull();
-
-        // Since max is 2, size should remain 2
-        cache.setImage(TestResource.IMG_640X480_PNG.asFeaturedImage(baseUrl));
-        assertThat(cache.getCacheSize()).isEqualTo(2);
-        assertThat(cache.getImage(ref160)).isNull();
-        assertThat(cache.getImage(ref320)).isNull();
-        assertThat(cache.getImage(ref640)).isNull();
+        assertThat(cache.getImage(ref320)).isNotNull();
+        assertThat(cache.getImage(ref640)).isNotNull();
     }
 }

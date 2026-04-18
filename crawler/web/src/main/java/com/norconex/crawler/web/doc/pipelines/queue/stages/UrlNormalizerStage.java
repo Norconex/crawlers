@@ -16,20 +16,31 @@ package com.norconex.crawler.web.doc.pipelines.queue.stages;
 
 import java.util.function.Predicate;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.common.base.Objects;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.web.doc.operations.url.WebUrlNormalizer;
 import com.norconex.crawler.web.util.Web;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class UrlNormalizerStage implements Predicate<QueuePipelineContext> {
+    @SuppressWarnings("null")
     @Override
     public boolean test(QueuePipelineContext ctx) {
-        var normalizers =
-                Web.config(ctx.getCrawlSession().getCrawlContext())
-                        .getUrlNormalizers();
+        var normalizers = Web.config(ctx.getCrawlSession().getCrawlContext())
+                .getUrlNormalizers();
         if (!normalizers.isEmpty()) {
-            String originalRef = ctx.getCrawlEntry().getReference();
+            var originalRef = ctx.getCrawlEntry().getReference();
+            if (StringUtils.isBlank(originalRef)) {
+                LOG.warn("A null or blank reference detected.");
+                ctx.getCrawlEntry()
+                        .setProcessingOutcome(ProcessingOutcome.REJECTED);
+                return false;
+            }
             var url = WebUrlNormalizer.normalizeURL(originalRef, normalizers);
             if (url == null) {
                 ctx.getCrawlEntry()

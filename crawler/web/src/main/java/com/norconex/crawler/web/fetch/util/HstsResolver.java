@@ -14,14 +14,13 @@
  */
 package com.norconex.crawler.web.fetch.util;
 
-import static org.apache.commons.lang3.StringUtils.startsWithIgnoreCase;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.classic.methods.HttpHead;
 
@@ -66,6 +65,7 @@ public final class HstsResolver {
         DOMAIN_HSTS.clear();
     }
 
+    @SuppressWarnings("null")
     public static void resolve(
             HttpClient httpClient,
             WebCrawlEntry docRecord) {
@@ -81,6 +81,11 @@ public final class HstsResolver {
 
         var rootDomain = docRecord.getReference().replaceFirst(
                 "(?i)^https?://([^/\\?#]+).*", "$1");
+        if (StringUtils.isBlank(rootDomain)) {
+            LOG.warn("Unable to extract root domain from URL: {}",
+                    docRecord.getReference());
+            return;
+        }
         var isSubdomain = false;
         if (InternetDomainName.isValid(rootDomain)) {
             var dn = InternetDomainName.from(rootDomain);
@@ -99,7 +104,7 @@ public final class HstsResolver {
         }
 
         // If secure, cache HSTS support settings
-        if (startsWithIgnoreCase(docRecord.getReference(), "https:")) {
+        if (Strings.CI.startsWith(docRecord.getReference(), "https:")) {
             resolveHstsSupport(httpClient, rootDomain);
         } else {
             applyHstsSupport(docRecord, rootDomain, isSubdomain);

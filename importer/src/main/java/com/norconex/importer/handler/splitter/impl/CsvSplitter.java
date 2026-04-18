@@ -25,11 +25,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.mutable.MutableInt;
 
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.Properties;
@@ -96,7 +96,7 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
     @Override
     public void split(DocHandlerContext docCtx) throws IOException {
         try {
-            var count = new MutableInt();
+            var count = new AtomicInteger();
             // Body
             if (!configuration.getFieldMatcher().isSet()) {
                 docCtx.childDocs().addAll(
@@ -122,7 +122,7 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
     }
 
     private List<Doc> doSplitDocument(
-            DocHandlerContext doc, InputStream input, MutableInt count) {
+            DocHandlerContext doc, InputStream input, AtomicInteger count) {
 
         List<Doc> rows = new ArrayList<>();
 

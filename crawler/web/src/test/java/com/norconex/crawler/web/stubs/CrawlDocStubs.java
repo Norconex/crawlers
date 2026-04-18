@@ -47,6 +47,7 @@ public final class CrawlDocStubs {
 
     public static Doc crawlDoc(
             String ref, String content, Object... metaKeyValues) {
+        @SuppressWarnings("resource")
         var doc = new Doc(ref).setInputStream(
                 new CachedStreamFactory().newInputStream(
                         IOUtils.toInputStream(content, UTF_8)));
@@ -61,6 +62,10 @@ public final class CrawlDocStubs {
      * (i.e., the same reference processed a second time).
      * The "cache" concept has been replaced by the crawl entry ledger in the
      * new API; this method simply returns a {@link Doc} with the given content.
+     * @param ref doc reference
+     * @param content doc content
+     * @param metaKeyValues doc metadata key and values
+     * @return document
      */
     public static Doc crawlDocWithCache(
             String ref, String content, Object... metaKeyValues) {
@@ -79,6 +84,7 @@ public final class CrawlDocStubs {
 
     public static Doc crawlDoc(
             String ref, ContentType ct, InputStream is) {
+        @SuppressWarnings("resource")
         var doc = new Doc(ref).setInputStream(CachedInputStream.cache(is));
         doc.setContentType(ct);
         doc.getMetadata().set(DocMetaConstants.CONTENT_TYPE, ct);

@@ -39,6 +39,7 @@ public final class Web {
     private Web() {
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> CacheMap<T> gridCache(
             @NonNull CrawlSession crawlSession,
             @NonNull String name,

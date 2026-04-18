@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -43,10 +44,9 @@ import com.norconex.crawler.web.doc.operations.robot.RobotsTxt;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxtFilter;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxtProvider;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
+import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.WebFetchRequest;
 import com.norconex.crawler.web.fetch.WebFetchResponse;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
-import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.importer.doc.Doc;
 
 import lombok.EqualsAndHashCode;
@@ -212,16 +212,16 @@ public class StandardRobotsTxtProvider
         if ("*".equals(value)) {
             return RobotData.Precision.WILD;
         }
-        if (StringUtils.equalsIgnoreCase(userAgent, value)) {
+        if (Strings.CI.equals(userAgent, value)) {
             return RobotData.Precision.EXACT;
         }
         if (value.endsWith("*")) {
-            var val = StringUtils.removeEnd(value, "*");
-            if (StringUtils.startsWithIgnoreCase(userAgent, val)) {
+            var val = Strings.CS.removeEnd(value, "*");
+            if (Strings.CI.startsWith(userAgent, val)) {
                 return RobotData.Precision.PARTIAL;
             }
         }
-        if (StringUtils.containsIgnoreCase(userAgent, value)) {
+        if (Strings.CI.contains(userAgent, value)) {
             return RobotData.Precision.PARTIAL;
         }
         return RobotData.Precision.NOMATCH;
@@ -229,8 +229,8 @@ public class StandardRobotsTxtProvider
 
     private String getBaseURL(String url) {
         var baseURL = HttpURL.getRoot(url);
-        if (StringUtils.endsWith(baseURL, "/")) {
-            baseURL = StringUtils.removeEnd(baseURL, "/");
+        if (Strings.CS.endsWith(baseURL, "/")) {
+            baseURL = Strings.CS.removeEnd(baseURL, "/");
         }
         return baseURL;
     }

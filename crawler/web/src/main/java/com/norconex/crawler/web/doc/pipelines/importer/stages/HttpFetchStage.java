@@ -51,7 +51,7 @@ public class HttpFetchStage extends AbstractImporterStage {
      * Only does something if appropriate. For instance,
      * if a separate HTTP HEAD request was NOT required to be performed,
      * this method will never get invoked for a HEAD method.
-     * @param ctx pipeline context
+     * @param pipeCtx pipeline context
      * @return <code>true</code> if we continue processing.
      */
     @Override

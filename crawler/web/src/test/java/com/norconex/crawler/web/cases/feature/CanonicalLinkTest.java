@@ -20,8 +20,9 @@ import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.lang3.mutable.MutableInt;
+import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
@@ -31,7 +32,6 @@ import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
-import org.junit.jupiter.api.Timeout;
 
 /**
  * Test (non)canonical link detection.
@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Timeout;
 @Timeout(60)
 class CanonicalLinkTest {
 
-    final MutableInt canCount = new MutableInt();
+    final AtomicInteger canCount = new AtomicInteger();
 
     @WebCrawlTest
     void testCanonicalLink(ClientAndServer client, WebCrawlConfig config) {
@@ -95,17 +95,17 @@ class CanonicalLinkTest {
                         MediaType.HTML_UTF_8));
         // @formatter:on
 
-        canCount.setValue(0);
+        canCount.set(0);
 
         config.setStartReferences(List.of(canonicalUrl));
         config.addEventListener(e -> {
             if (e.is(WebCrawlerEvent.REJECTED_NONCANONICAL)) {
-                canCount.increment();
+                canCount.incrementAndGet();
             }
         });
 
         var captures = WebCrawlTestCapturer.crawlAndCapture(config);
         assertThat(captures.getCommitter().getUpsertRequests()).hasSize(1);
-        assertThat(canCount.intValue()).isEqualTo(2);
+        assertThat(canCount.get()).isEqualTo(2);
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2015-2024 Norconex Inc.
+/* Copyright 2015-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.nio.charset.StandardCharsets;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -43,56 +42,67 @@ class GenericRedirectUrlProviderTest {
     @Test
     void testNoOriginalUrl() {
         var provider = new GenericRedirectUrlProvider();
-        var req = SimpleHttpRequest.create("GET", "http://example.com");
+        var req = SimpleHttpRequest.create(
+                "GET", "http://example.com");
         var resp = SimpleHttpResponse.create(200, "content");
-        var ctx = new BasicHttpContext();
-        ctx.setAttribute(HttpCoreContext.HTTP_REQUEST, req);
+        var ctx = HttpCoreContext.create();
+        ctx.setRequest(req);
 
-        assertThat(provider.provideRedirectURL(req, resp, ctx)).isNull();
+        assertThat(provider.provideRedirectURL(
+                req, resp, ctx)).isNull();
     }
 
     @Test
     void testRelativeRedirect() {
         var provider = new GenericRedirectUrlProvider();
-        var req = SimpleHttpRequest.create("GET", "http://xyz.com/original");
+        var req = SimpleHttpRequest.create(
+                "GET", "http://xyz.com/original");
         var resp = SimpleHttpResponse.create(200, "content");
         resp.setHeader(HttpHeaders.LOCATION, "/redirected");
-        var ctx = new BasicHttpContext();
-        ctx.setAttribute(HttpCoreContext.HTTP_REQUEST, req);
+        var ctx = HttpCoreContext.create();
+        ctx.setRequest(req);
 
-        assertThat(provider.provideRedirectURL(req, resp, ctx)).isEqualTo(
+        assertThat(provider.provideRedirectURL(
+                req, resp, ctx)).isEqualTo(
                 "http://xyz.com/redirected");
     }
 
     @Test
     void testNonAscii() {
         var provider = new GenericRedirectUrlProvider();
-        var req = SimpleHttpRequest.create("GET", "http://xyz.com/original");
+        var req = SimpleHttpRequest.create(
+                "GET", "http://xyz.com/original");
         var resp = SimpleHttpResponse.create(200, "content");
-        resp.setHeader(HttpHeaders.LOCATION, new String("/redirigé"
-                .getBytes(StandardCharsets.UTF_8),
+        resp.setHeader(HttpHeaders.LOCATION, new String(
+                "/redirigé".getBytes(StandardCharsets.UTF_8),
                 StandardCharsets.ISO_8859_1));
         resp.setHeader(
-                HttpHeaders.CONTENT_TYPE, "text/html;charset=ISO-8859-1");
-        var ctx = new BasicHttpContext();
-        ctx.setAttribute(HttpCoreContext.HTTP_REQUEST, req);
+                HttpHeaders.CONTENT_TYPE,
+                "text/html;charset=ISO-8859-1");
+        var ctx = HttpCoreContext.create();
+        ctx.setRequest(req);
 
-        assertThat(provider.provideRedirectURL(req, resp, ctx)).isEqualTo(
+        assertThat(provider.provideRedirectURL(
+                req, resp, ctx)).isEqualTo(
                 "http://xyz.com/redirigé");
     }
 
     @Test
     void testFallbackCharset() {
         var provider = new GenericRedirectUrlProvider();
-        var req = SimpleHttpRequest.create("GET", "http://xyz.com/original");
+        var req = SimpleHttpRequest.create(
+                "GET", "http://xyz.com/original");
         var resp = SimpleHttpResponse.create(200, "content");
-        resp.setHeader(HttpHeaders.LOCATION, "/redirig\u00E9");
         resp.setHeader(
-                HttpHeaders.CONTENT_TYPE, "text/html;charset=BAD_CHARSET");
-        var ctx = new BasicHttpContext();
-        ctx.setAttribute(HttpCoreContext.HTTP_REQUEST, req);
+                HttpHeaders.LOCATION, "/redirig\u00E9");
+        resp.setHeader(
+                HttpHeaders.CONTENT_TYPE,
+                "text/html;charset=BAD_CHARSET");
+        var ctx = HttpCoreContext.create();
+        ctx.setRequest(req);
 
-        assertThat(provider.provideRedirectURL(req, resp, ctx)).isEqualTo(
+        assertThat(provider.provideRedirectURL(
+                req, resp, ctx)).isEqualTo(
                 "http://xyz.com/redirig\u00E9");
     }
 }

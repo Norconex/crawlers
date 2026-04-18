@@ -27,9 +27,9 @@ import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.mutable.MutableObject;
 
 import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.CommitterRequest;
@@ -199,7 +199,7 @@ public class FsQueue implements CommitterQueue, Configurable<FsQueueConfig> {
     public void queue(CommitterRequest request)
             throws CommitterQueueException {
 
-        var fullBatchDir = new MutableObject<Path>();
+        var fullBatchDir = new AtomicReference<Path>();
 
         var file = createQueueFile(request, fullBatchDir);
 
@@ -213,8 +213,8 @@ public class FsQueue implements CommitterQueue, Configurable<FsQueueConfig> {
                     e);
         }
 
-        if (fullBatchDir.getValue() != null) {
-            consumeBatchDirectory(fullBatchDir.getValue());
+        if (fullBatchDir.get() != null) {
+            consumeBatchDirectory(fullBatchDir.get());
         }
     }
 
@@ -399,12 +399,12 @@ public class FsQueue implements CommitterQueue, Configurable<FsQueueConfig> {
     }
 
     private synchronized Path createQueueFile(
-            CommitterRequest req, MutableObject<Path> consumeBatchDir)
+            CommitterRequest req, AtomicReference<Path> consumeBatchDir)
             throws CommitterQueueException {
         try {
             // If starting a new batch, create the folder for it
             if (batchCount.get() == configuration.getBatchSize()) {
-                consumeBatchDir.setValue(activeDir);
+                consumeBatchDir.set(activeDir);
                 batchCount.set(0);
                 activeDir = createActiveDir();
                 Files.createDirectories(activeDir);

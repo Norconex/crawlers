@@ -25,28 +25,30 @@ import java.net.InetAddress;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.security.AlgorithmConstraints;
-import java.security.AlgorithmParameters;
-import java.security.CryptoPrimitive;
-import java.security.Key;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLHandshakeException;
-import javax.net.ssl.SSLParameters;
-import javax.net.ssl.SSLSocket;
+import javax.security.auth.Subject;
+import javax.security.auth.callback.NameCallback;
+import javax.security.auth.callback.PasswordCallback;
+import javax.security.auth.login.AppConfigurationEntry;
+import javax.security.auth.login.Configuration;
+import javax.security.auth.login.LoginContext;
+import javax.security.auth.login.LoginException;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthScope;
@@ -71,8 +73,9 @@ import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.client5.http.ssl.TrustAllStrategy;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
@@ -215,6 +218,7 @@ public class HttpClientFetcher
     private HttpClient httpClient;
     private final AuthCache authCache = new BasicAuthCache();
     private Object userToken;
+    private Subject kerberosSubject;
 
     @Override
     public WebFetchResponse fetch(FetchRequest fetchRequest)
@@ -243,7 +247,7 @@ public class HttpClientFetcher
                             .getCurrentCrawlEntry();
                     HstsResolver.resolve(httpClient, crawlEntry);
                     requestReference = crawlEntry.getReference();
-                    if (!StringUtils.equals(doc.getReference(),
+                    if (!Strings.CS.equals(doc.getReference(),
                             requestReference)) {
                         effectiveDoc = doc.withReference(requestReference);
                         docCtx.setDoc(effectiveDoc);
@@ -279,80 +283,17 @@ public class HttpClientFetcher
             }
 
             // Execute the method.
-            return httpClient.execute(request, ctx, response -> {
-                //--- Process the response -------------------------------------
-
-                var statusCode = response.getCode();
-                var reason = response.getReasonPhrase();
-
-                LOG.debug(
-                        "Fetch status for: \"{}\": {} - {}",
-                        responseDoc.getReference(), statusCode, reason);
-
-                var responseBuilder = HttpClientFetchResponse.builder()
-                        .statusCode(statusCode)
-                        .reasonPhrase(reason)
-                        .userAgent(configuration.getUserAgent())
-                        .redirectTarget(
-                                ApacheRedirectCaptureStrategy
-                                        .getRedirectTarget(ctx));
-
-                //--- Extract headers ---
-                var docCtxForHeaders = req.getCrawlDocContext();
-                var webEntryForHeaders = docCtxForHeaders != null
-                        ? (WebCrawlEntry) docCtxForHeaders
-                                .getCurrentCrawlEntry()
-                        : null;
-                ApacheHttpUtil.applyResponseHeaders(
-                        response, configuration.getHeadersPrefix(), responseDoc,
-                        webEntryForHeaders);
-
-                //--- Extract body ---
-                if (HttpMethod.GET.is(method) || HttpMethod.POST.is(method)) {
-                    if (ApacheHttpUtil.applyResponseContent(response,
-                            responseDoc)) {
-                        performDetection(responseDoc);
-                    } else {
-                        LOG.debug(
-                                "No content returned for: {}",
-                                responseDoc.getReference());
-                    }
-                }
-
-                //--- VALID http response handling -----------------------------
-                if (configuration.getValidStatusCodes().contains(statusCode)) {
-                    userToken = ctx.getUserToken();
-
-                    return responseBuilder
-                            .processingOutcome(ProcessingOutcome.NEW)
-                            .build();
-                }
-
-                // UNMODIFIED
-                if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
-                    return responseBuilder
-                            .processingOutcome(ProcessingOutcome.UNMODIFIED)
-                            .build();
-                }
-
-                //--- INVALID http response handling ---------------------------
-
-                // NOT_FOUND
-                if (configuration.getNotFoundStatusCodes()
-                        .contains(statusCode)) {
-                    return responseBuilder
-                            .processingOutcome(ProcessingOutcome.NOT_FOUND)
-                            .build();
-                }
-
-                // BAD_STATUS
-                LOG.debug(
-                        "Unsupported HTTP Response: {}",
-                        response.getReasonPhrase());
-                return responseBuilder
-                        .processingOutcome(ProcessingOutcome.BAD_STATUS)
-                        .build();
-            });
+            final var execRequest = request;
+            if (kerberosSubject != null) {
+                return Subject.doAs(
+                        kerberosSubject,
+                        (PrivilegedExceptionAction<
+                                WebFetchResponse>) () -> executeRequest(
+                                        execRequest, ctx, req,
+                                        responseDoc, method));
+            }
+            return executeRequest(
+                    execRequest, ctx, req, responseDoc, method);
 
         } catch (Exception e) {
             analyseException(e);
@@ -360,6 +301,92 @@ public class HttpClientFetcher
             throw new FetchException(
                     "Could not fetch document: " + doc.getReference(), e);
         }
+    }
+
+    private WebFetchResponse executeRequest(
+            HttpUriRequestBase request,
+            HttpClientContext ctx,
+            WebFetchRequest req,
+            Doc responseDoc,
+            HttpMethod method) throws IOException {
+        return httpClient.execute(request, ctx, response -> {
+            var statusCode = response.getCode();
+            var reason = response.getReasonPhrase();
+
+            LOG.debug(
+                    "Fetch status for: \"{}\": {} - {}",
+                    responseDoc.getReference(), statusCode, reason);
+
+            var responseBuilder = HttpClientFetchResponse.builder()
+                    .statusCode(statusCode)
+                    .reasonPhrase(reason)
+                    .userAgent(configuration.getUserAgent())
+                    .redirectTarget(
+                            ApacheRedirectCaptureStrategy
+                                    .getRedirectTarget(ctx));
+
+            //--- Extract headers ---
+            var docCtxForHeaders = req.getCrawlDocContext();
+            var webEntryForHeaders = docCtxForHeaders != null
+                    ? (WebCrawlEntry) docCtxForHeaders
+                            .getCurrentCrawlEntry()
+                    : null;
+            ApacheHttpUtil.applyResponseHeaders(
+                    response,
+                    configuration.getHeadersPrefix(),
+                    responseDoc,
+                    webEntryForHeaders);
+
+            //--- Extract body ---
+            if (HttpMethod.GET.is(method)
+                    || HttpMethod.POST.is(method)) {
+                if (ApacheHttpUtil.applyResponseContent(
+                        response, responseDoc)) {
+                    performDetection(responseDoc);
+                } else {
+                    LOG.debug(
+                            "No content returned for: {}",
+                            responseDoc.getReference());
+                }
+            }
+
+            //--- VALID http response handling ---
+            if (configuration.getValidStatusCodes()
+                    .contains(statusCode)) {
+                userToken = ctx.getUserToken();
+                return responseBuilder
+                        .processingOutcome(ProcessingOutcome.NEW)
+                        .build();
+            }
+
+            // UNMODIFIED
+            if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
+                return responseBuilder
+                        .processingOutcome(
+                                ProcessingOutcome.UNMODIFIED)
+                        .build();
+            }
+
+            //--- INVALID http response handling ---
+
+            // NOT_FOUND
+            if (configuration.getNotFoundStatusCodes()
+                    .contains(statusCode)) {
+                return responseBuilder
+                        .processingOutcome(
+                                ProcessingOutcome.NOT_FOUND)
+                        .build();
+            }
+
+            // BAD_STATUS
+            LOG.debug(
+                    "Unsupported HTTP Response: {}",
+                    response.getReasonPhrase());
+            return responseBuilder
+                    .processingOutcome(
+                            ProcessingOutcome.BAD_STATUS)
+                    .build();
+        });
     }
 
     @Override
@@ -467,7 +494,8 @@ public class HttpClientFetcher
 
     protected HttpClientConnectionManager createConnectionManager() {
         final var sslContext = createSSLContext();
-        final var sslSocketFactory = createSSLSocketFactory(sslContext);
+        final var tlsSocketStrategy =
+                createTlsSocketStrategy(sslContext);
 
         var tlsBuilder = TlsConfig.custom();
 
@@ -480,13 +508,20 @@ public class HttpClientFetcher
                             .getSslProtocols()
                             .toArray(EMPTY_STRING_ARRAY));
         }
-        return PoolingHttpClientConnectionManagerBuilder.create()
-                .setSSLSocketFactory(sslSocketFactory)
-                .setDefaultTlsConfig(tlsBuilder.build())
-                .setDefaultConnectionConfig(createConnectionConfig())
-                .setMaxConnTotal(configuration.getMaxConnections())
-                .setMaxConnPerRoute(configuration.getMaxConnectionsPerRoute())
-                .build();
+        var connBuilder =
+                PoolingHttpClientConnectionManagerBuilder.create()
+                        .setDefaultTlsConfig(tlsBuilder.build())
+                        .setDefaultConnectionConfig(
+                                createConnectionConfig())
+                        .setMaxConnTotal(
+                                configuration.getMaxConnections())
+                        .setMaxConnPerRoute(
+                                configuration
+                                        .getMaxConnectionsPerRoute());
+        if (tlsSocketStrategy != null) {
+            connBuilder.setTlsSocketStrategy(tlsSocketStrategy);
+        }
+        return connBuilder.build();
     }
 
     protected HttpRoutePlanner createRoutePlanner(
@@ -623,6 +658,7 @@ public class HttpClientFetcher
         return null;
     }
 
+    @SuppressWarnings("deprecation")
     protected CredentialsProvider createCredentialsProvider() {
         BasicCredentialsProvider credsProvider = null;
 
@@ -657,11 +693,22 @@ public class HttpClientFetcher
             var password = EncryptionUtil.decryptPassword(
                     authConfig.getCredentials());
             if (HttpAuthMethod.NTLM == authConfig.getMethod()) {
-                creds = new NTCredentials(
+                LOG.warn("""
+                        NTLM authentication is deprecated and may be removed \
+                        in a future release. Consider using a supported method \
+                        such as BASIC, DIGEST, FORM, SPNEGO, or KERBEROS.""");
+                var ntlmCreds = new NTCredentials(
                         authConfig.getCredentials().getUsername(),
                         trimToEmpty(password).toCharArray(),
                         authConfig.getWorkstation(),
                         authConfig.getDomain());
+                creds = ntlmCreds;
+            } else if (HttpAuthMethod.SPNEGO == authConfig.getMethod()
+                    || HttpAuthMethod.KERBEROS == authConfig.getMethod()) {
+                performKerberosLogin(authConfig);
+                creds = new UsernamePasswordCredentials(
+                        authConfig.getCredentials().getUsername(),
+                        trimToEmpty(password).toCharArray());
             } else {
                 creds = new UsernamePasswordCredentials(
                         authConfig.getCredentials().getUsername(),
@@ -679,6 +726,139 @@ public class HttpClientFetcher
         return credsProvider;
     }
 
+    /**
+     * Performs a JAAS login to obtain a Kerberos ticket and
+     * stores the resulting {@link Subject} for use with
+     * {@code Subject.doAs()} during HTTP request execution.
+     */
+    private void performKerberosLogin(
+            HttpAuthConfig authConfig) {
+        var krbConfig = authConfig.getKerberosConfig();
+        if (krbConfig == null) {
+            throw new CrawlerException(
+                    """
+                        Kerberos configuration is required when \
+                        using SPNEGO or KERBEROS \
+                        authentication.""");
+        }
+
+        setupKerberosSystemProperties(krbConfig);
+
+        try {
+            var loginContext = createKerberosLoginContext(
+                    authConfig, krbConfig);
+            loginContext.login();
+            kerberosSubject = loginContext.getSubject();
+            LOG.debug(
+                    "Kerberos: Successfully logged in "
+                            + "as principal: {}",
+                    kerberosSubject.getPrincipals());
+        } catch (LoginException e) {
+            throw new CrawlerException(
+                    "Failed to perform Kerberos login.", e);
+        }
+    }
+
+    private void setupKerberosSystemProperties(
+            KerberosConfig krbConfig) {
+        if (krbConfig.getKrb5ConfigPath() != null) {
+            System.setProperty(
+                    "java.security.krb5.conf",
+                    krbConfig.getKrb5ConfigPath()
+                            .toAbsolutePath().toString());
+            LOG.debug(
+                    "Kerberos: Using krb5.conf: {}",
+                    krbConfig.getKrb5ConfigPath());
+        }
+        // Required for SPNEGO
+        System.setProperty(
+                "javax.security.auth.useSubjectCredsOnly",
+                "false");
+    }
+
+    private LoginContext createKerberosLoginContext(
+            HttpAuthConfig authConfig,
+            KerberosConfig krbConfig)
+            throws LoginException {
+        // If a custom login module name is provided, use it
+        if (krbConfig.getLoginModuleName() != null) {
+            LOG.debug(
+                    "Kerberos: Using custom JAAS login "
+                            + "module: {}",
+                    krbConfig.getLoginModuleName());
+            return new LoginContext(
+                    krbConfig.getLoginModuleName());
+        }
+
+        // Otherwise, create a programmatic JAAS configuration
+        var options = new HashMap<String, String>();
+        options.put("isInitiator", "true");
+
+        if (krbConfig.getKeytabPath() != null) {
+            options.put("useKeyTab", "true");
+            options.put(
+                    "keyTab",
+                    krbConfig.getKeytabPath()
+                            .toAbsolutePath().toString());
+            options.put("storeKey", "true");
+            LOG.debug(
+                    "Kerberos: Using keytab: {}",
+                    krbConfig.getKeytabPath());
+        }
+        if (krbConfig.isUseTicketCache()) {
+            options.put("useTicketCache", "true");
+            LOG.debug("Kerberos: Using ticket cache.");
+        }
+        if (krbConfig.getPrincipal() != null) {
+            options.put(
+                    "principal", krbConfig.getPrincipal());
+        }
+
+        var jaasConfig = new Configuration() {
+            @Override
+            public AppConfigurationEntry[] getAppConfigurationEntry(
+                    String name) {
+                return new AppConfigurationEntry[] {
+                        new AppConfigurationEntry(
+                                "com.sun.security.auth"
+                                        + ".module.Krb5LoginModule",
+                                AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
+                                options)
+                };
+            }
+        };
+
+        // If using username/password (no keytab, no ticket
+        // cache), provide a callback handler
+        if (krbConfig.getKeytabPath() == null
+                && !krbConfig.isUseTicketCache()
+                && authConfig.getCredentials().isSet()) {
+            var password = EncryptionUtil.decryptPassword(
+                    authConfig.getCredentials());
+            return new LoginContext(
+                    "NxKerberosLogin",
+                    null,
+                    callbacks -> {
+                        for (var cb : callbacks) {
+                            if (cb instanceof NameCallback nc) {
+                                nc.setName(
+                                        authConfig
+                                                .getCredentials()
+                                                .getUsername());
+                            } else if (cb instanceof PasswordCallback pc) {
+                                pc.setPassword(
+                                        trimToEmpty(password)
+                                                .toCharArray());
+                            }
+                        }
+                    },
+                    jaasConfig);
+        }
+
+        return new LoginContext(
+                "NxKerberosLogin", null, null, jaasConfig);
+    }
+
     protected ConnectionConfig createConnectionConfig() {
         var builder = ConnectionConfig.custom();
         ofNullable(configuration.getConnectionTimeout()).ifPresent(
@@ -693,7 +873,7 @@ public class HttpClientFetcher
         return builder.build();
     }
 
-    protected SSLConnectionSocketFactory createSSLSocketFactory(
+    protected TlsSocketStrategy createTlsSocketStrategy(
             SSLContext sslContext) {
         if (!configuration.isTrustAllSSLCertificates()
                 && configuration.getSslProtocols().isEmpty()) {
@@ -704,86 +884,62 @@ public class HttpClientFetcher
         if (context == null) {
             try {
                 context = SSLContexts.custom()
-                        .loadTrustMaterial(null, TrustAllStrategy.INSTANCE)
+                        .loadTrustMaterial(
+                                null, TrustAllStrategy.INSTANCE)
                         .build();
-            } catch (KeyManagementException | NoSuchAlgorithmException
+            } catch (KeyManagementException
+                    | NoSuchAlgorithmException
                     | KeyStoreException e) {
-                throw new CrawlerException("Cannot create SSL context.", e);
+                throw new CrawlerException(
+                        "Cannot create SSL context.", e);
             }
         }
 
-        // Turn off host name verification and remove all algorithm constraints.
-        return new SSLConnectionSocketFactory(
-                context, new NoopHostnameVerifier()) {
-            @Override
-            protected void prepareSocket(SSLSocket socket)
-                    throws IOException {
-                var sslParams = new SSLParameters();
+        // Determine hostname verifier
+        HostnameVerifier hostnameVerifier = null;
 
-                // Trust all certificates
-                if (configuration.isTrustAllSSLCertificates()) {
-                    LOG.debug("SSL: Turning off host name verification.");
-                    sslParams.setAlgorithmConstraints(
-                            new AlgorithmConstraints() {
-                                @Override
-                                public boolean permits(
-                                        Set<CryptoPrimitive> primitives,
-                                        Key key) {
-                                    return true;
-                                }
+        if (configuration.isTrustAllSSLCertificates()) {
+            LOG.debug("SSL: Turning off host name verification.");
+            hostnameVerifier = NoopHostnameVerifier.INSTANCE;
+        }
 
-                                @Override
-                                public boolean permits(
-                                        Set<CryptoPrimitive> primitives,
-                                        String algorithm,
-                                        AlgorithmParameters parameters) {
-                                    return true;
-                                }
-
-                                @Override
-                                public boolean permits(
-                                        Set<CryptoPrimitive> primitives,
-                                        String algorithm, Key key,
-                                        AlgorithmParameters parameters) {
-                                    return true;
-                                }
-                            });
-                }
-
-                // Specify protocols
-                if (!configuration.getSslProtocols().isEmpty()) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug(
-                                "SSL: Protocols={}", StringUtils.join(
-                                        configuration.getSslProtocols(), ","));
-                    }
-                    sslParams.setProtocols(
-                            configuration.getSslProtocols()
-                                    .toArray(ArrayUtils.EMPTY_STRING_ARRAY));
-                }
-
-                sslParams.setEndpointIdentificationAlgorithm("HTTPS");
-
-                if (configuration.isSniDisabled()) {
-                    // Disabling SNI extension introduced in Java 7 is necessary
-                    // to avoid
-                    // SSLProtocolException: handshake alert: unrecognized_name
-                    // for some sites with wrong Virtual Host - config.
-                    // Described here:
-                    // http://bugs.java.com/bugdatabase/view_bug.do?bug_id=7127374
-                    // Instead of using the SystemProperty to disable SNI,
-                    // follow the approach from here
-                    // https://github.com/lightbody/browsermob-proxy/issues/117#issuecomment-141363454
-                    // and disable SNI for this SSLConnectionSocketFactory only
-                    LOG.debug(
-                            "SSL: Disabling SNI Extension for this "
-                                    + "httpClientFactory.");
-                    sslParams.setServerNames(Collections.emptyList());
-                }
-
-                socket.setSSLParameters(sslParams);
+        // Determine supported protocols
+        String[] supportedProtocols = null;
+        if (!configuration.getSslProtocols().isEmpty()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(
+                        "SSL: Protocols={}",
+                        StringUtils.join(
+                                configuration.getSslProtocols(),
+                                ","));
             }
-        };
+            supportedProtocols = configuration.getSslProtocols()
+                    .toArray(EMPTY_STRING_ARRAY);
+        }
+
+        if (configuration.isSniDisabled()) {
+            // Disabling SNI extension introduced in Java 7 is necessary
+            // to avoid
+            // SSLProtocolException: handshake alert: unrecognized_name
+            // for some sites with wrong Virtual Host - config.
+            // Described here:
+            // http://bugs.java.com/bugdatabase/view_bug.do?bug_id=7127374
+            // Instead of using the SystemProperty to disable SNI,
+            // follow the approach from here
+            // https://github.com/lightbody/browsermob-proxy/issues/117#issuecomment-141363454
+            // and disable SNI for this SSLConnectionSocketFactory only
+
+            LOG.debug(
+                    "SSL: Disabling SNI Extension for "
+                            + "this httpClientFactory.");
+        }
+
+        return new DefaultClientTlsStrategy(
+                context,
+                supportedProtocols,
+                null,
+                null,
+                hostnameVerifier);
     }
 
     protected SSLContext createSSLContext() {

@@ -22,8 +22,9 @@ import static org.mockserver.model.HttpResponse.response;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.commons.lang3.mutable.MutableObject;
+import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
@@ -42,7 +43,6 @@ import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.ledger.WebCrawlEntry;
 import com.norconex.crawler.web.mocks.MockWebsite;
-import org.junit.jupiter.api.Timeout;
 
 /**
  * Test that crawling does not go being current sitemap. That is, it should
@@ -77,7 +77,7 @@ class StayOnSitemapTest {
     @WebCrawlTest
     void testStayOnSitemap(ClientAndServer client, WebCrawlConfig cfg)
             throws CommitterException {
-        var exception = new MutableObject<Exception>();
+        var exception = new AtomicReference<Exception>();
         var referrers = new ArrayList<String>();
 
         cfg.setStartReferences(List.of(serverUrl(client, page1Path)));
@@ -103,7 +103,7 @@ class StayOnSitemapTest {
                             return super.fetch(req);
                         } catch (FetchException
                                 | RuntimeException e) {
-                            exception.setValue(e);
+                            exception.set(e);
                             throw e;
                         }
                     }
@@ -118,7 +118,7 @@ class StayOnSitemapTest {
 
         // There should be no exception, else, it likely means it tried
         // to fetch an external URL.
-        assertThat(exception.getValue()).isNull();
+        assertThat(exception.get()).isNull();
 
         // There should be no refferers in fetch attempts, as as they should
         // all coming from sitemaps

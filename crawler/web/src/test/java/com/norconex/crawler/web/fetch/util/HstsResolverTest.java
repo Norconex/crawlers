@@ -162,7 +162,6 @@ class HstsResolverTest {
     // helpers
     // -----------------------------------------------------------------------
 
-    @SuppressWarnings("unchecked")
     private static HttpClient noHstsClient() throws IOException {
         var httpClient = mock(HttpClient.class);
         when(httpClient.execute(
@@ -172,7 +171,6 @@ class HstsResolverTest {
         return httpClient;
     }
 
-    @SuppressWarnings("unchecked")
     private static HttpClient hstsIncludeSubdomainsClient() throws IOException {
         var header = mock(Header.class);
         when(header.getValue())
@@ -185,7 +183,6 @@ class HstsResolverTest {
         return httpClient;
     }
 
-    @SuppressWarnings("unchecked")
     private static HttpClient hstsDomainOnlyClient() throws IOException {
         var header = mock(Header.class);
         when(header.getValue()).thenReturn("max-age=31536000");

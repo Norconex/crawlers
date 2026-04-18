@@ -14,16 +14,14 @@
  */
 package com.norconex.crawler.web.mocks;
 
-import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.apache.commons.lang3.StringUtils.leftPad;
-import static org.apache.commons.lang3.StringUtils.prependIfMissing;
-import static org.apache.commons.lang3.StringUtils.removeEnd;
 import static org.apache.commons.lang3.StringUtils.substringBeforeLast;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.model.MediaType.HTML_UTF_8;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.mock.Expectation;
@@ -87,11 +85,12 @@ public final class MockWebsite {
                 String resourceBasePath) {
             this.client = client;
             this.resourceBasePath =
-                    removeEnd(resourceBasePath, "/");
+                    Strings.CS.removeEnd(resourceBasePath,
+                            "/");
         }
 
         public ResourceWebSite whenHtml(String path) {
-            var p = prependIfMissing(path, "/");
+            var p = Strings.CS.prependIfMissing(path, "/");
             MockWebsite.whenHtml(
                     client, p,
                     new TestResource(resourceBasePath + p)
@@ -100,7 +99,7 @@ public final class MockWebsite {
         }
 
         public ResourceWebSite whenPDF(String path) {
-            var p = prependIfMissing(path, "/");
+            var p = Strings.CS.prependIfMissing(path, "/");
             MockWebsite.whenPDF(
                     client, p,
                     new TestResource(resourceBasePath + p));
@@ -108,7 +107,7 @@ public final class MockWebsite {
         }
 
         public ResourceWebSite whenJPG(String path) {
-            var p = prependIfMissing(path, "/");
+            var p = Strings.CS.prependIfMissing(path, "/");
             MockWebsite.whenJPG(
                     client, p,
                     new TestResource(resourceBasePath + p));
@@ -127,7 +126,7 @@ public final class MockWebsite {
             var reqPath = req.getPath().toString();
             var numStr = StringUtils.substringAfterLast(reqPath,
                     "/");
-            var basePath = appendIfMissing(
+            var basePath = Strings.CS.appendIfMissing(
                     substringBeforeLast(reqPath, "/"), "/");
             var curDepth = 0;
             if (NumberUtils.isDigits(numStr)) {
@@ -169,7 +168,7 @@ public final class MockWebsite {
             var reqPath = req.getPath().toString();
             var numStr = StringUtils.substringAfterLast(reqPath,
                     "/");
-            var basePath = appendIfMissing(
+            var basePath = Strings.CS.appendIfMissing(
                     substringBeforeLast(reqPath, "/"), "/");
             var curDepth = 0;
             if (NumberUtils.isDigits(numStr)) {
@@ -220,14 +219,14 @@ public final class MockWebsite {
     public static String serverUrl(ClientAndServer client, String urlPath) {
         return "http://localhost:%s%s".formatted(
                 client.getLocalPort(),
-                StringUtils.prependIfMissing(urlPath, "/"));
+                Strings.CS.prependIfMissing(urlPath, "/"));
     }
 
     public static String serverUrl(HttpRequest request, String urlPath) {
         return "http://localhost:%s%s".formatted(
                 StringUtils.substringAfterLast(
                         request.getLocalAddress(), ":"),
-                StringUtils.prependIfMissing(urlPath, "/"));
+                Strings.CS.prependIfMissing(urlPath, "/"));
     }
 
     public static Expectation[] whenHtml(

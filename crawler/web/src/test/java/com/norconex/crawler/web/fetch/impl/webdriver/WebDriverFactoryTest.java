@@ -28,7 +28,7 @@ class WebDriverFactoryTest {
     void testCreate() {
         var browserContainer =
                 AbstractWebDriverHttpFetcherTest.createWebDriverContainer(
-                        WebDriverTestUtil.firefoxTestOptions());
+                        Browser.FIREFOX);
         browserContainer.start();
         try {
             var driver = WebDriverFactory.create(

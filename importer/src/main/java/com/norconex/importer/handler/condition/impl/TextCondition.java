@@ -15,8 +15,7 @@
 package com.norconex.importer.handler.condition.impl;
 
 import java.io.IOException;
-
-import org.apache.commons.lang3.mutable.MutableBoolean;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.PropertyMatcher;
@@ -81,20 +80,20 @@ public class TextCondition
 
     @Override
     public boolean test(DocHandlerContext docCtx) throws IOException {
-        var matches = new MutableBoolean();
+        var matches = new AtomicBoolean();
         ChunkedTextReader.builder()
                 .charset(configuration.getSourceCharset())
                 .fieldMatcher(configuration.getFieldMatcher())
                 .maxChunkSize(configuration.getMaxReadSize())
                 .build()
                 .read(docCtx, chunk -> {
-                    if (matches.isFalse()
+                    if (!matches.get()
                             && textMatches(docCtx, chunk.getText())) {
-                        matches.setTrue();
+                        matches.set(true);
                     }
                     return true;
                 });
-        return matches.booleanValue();
+        return matches.get();
     }
 
     private boolean textMatches(DocHandlerContext docCtx, String input) {

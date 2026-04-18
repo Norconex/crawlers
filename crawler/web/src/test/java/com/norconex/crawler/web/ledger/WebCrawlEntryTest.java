@@ -21,8 +21,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
-
 class WebCrawlEntryTest {
 
     @Test

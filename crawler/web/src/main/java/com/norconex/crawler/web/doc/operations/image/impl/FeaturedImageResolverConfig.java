@@ -52,14 +52,8 @@ public class FeaturedImageResolverConfig {
 
     public static final String DEFAULT_PAGE_CONTENT_TYPE_PATTERN =
             "text/html|application/(xhtml\\+xml|vnd\\.wap.xhtml\\+xml|x-asp)";
-    public static final int DEFAULT_IMAGE_CACHE_SIZE = 1000;
+    public static final int DEFAULT_IMAGE_CACHE_SIZE = 200;
 
-    /**
-     * Default image cache directory, relative to the crawler working
-     * directory.
-     */
-    public static final String DEFAULT_IMAGE_CACHE_DIR =
-            "featuredImageCache";
     /**
      * Default featured image directory, relative to the crawler working
      * directory.
@@ -163,18 +157,14 @@ public class FeaturedImageResolverConfig {
      */
     private String imageFormat = DEFAULT_IMAGE_FORMAT;
     /**
-     * Maximum number of images to cache on the local file system for faster
-     * processing.
+     * Maximum number of images to cache in memory for faster
+     * processing. The cache prevents re-downloading and re-scaling
+     * the same image when it appears on multiple pages.
      * Set to 0 to disable caching. Default is
      * {@value #DEFAULT_IMAGE_CACHE_SIZE}.
      */
     private int imageCacheSize = DEFAULT_IMAGE_CACHE_SIZE;
 
-    /**
-     * Directory where to cache the images. Defaults to
-     * {@value #DEFAULT_IMAGE_CACHE_DIR}
-     */
-    private Path imageCacheDir;
     /**
      * When more than one featured image is found, whether to return the
      * largest of them all (as opposed to the first one encountered).

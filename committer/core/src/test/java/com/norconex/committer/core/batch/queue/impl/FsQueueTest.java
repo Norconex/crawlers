@@ -22,13 +22,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.lang3.mutable.MutableInt;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.CommitterException;
@@ -52,14 +52,14 @@ class FsQueueTest {
     @Test
     void testQueue() throws CommitterException, IOException {
 
-        final var batchQty = new MutableInt();
+        final var batchQty = new AtomicInteger();
         final Set<String> batchRefs = new TreeSet<>();
 
         queue.getConfiguration()
                 .setCommitLeftoversOnInit(true)
                 .setBatchSize(5);
         queue.init(ctx, it -> {
-            batchQty.increment();
+            batchQty.incrementAndGet();
             while (it.hasNext()) {
                 var req = it.next();
                 batchRefs.add(req.getReference());
@@ -73,7 +73,7 @@ class FsQueueTest {
         queue.close();
 
         // records should have been processed in 3 batches.
-        Assertions.assertEquals(3, batchQty.getValue());
+        Assertions.assertEquals(3, batchQty.get());
 
         // There should be 13 obtained from queue in total
         Assertions.assertEquals(13, batchRefs.size());

@@ -77,7 +77,6 @@ class FeaturedImageResolverTest {
                 .setStorages(List.of(INLINE, URL, DISK))
                 .setStorageDiskDir(
                         tempDir.resolve("imageStorage"))
-                .setImageCacheDir(tempDir.resolve("imageCache"))
                 .setStorageInlineField("image-inline")
                 .setStorageUrlField("image-url")
                 .setStorageDiskField("image-path")
@@ -142,7 +141,6 @@ class FeaturedImageResolverTest {
         // All settings
         p.getConfiguration()
                 .setDomSelector("dom.dom")
-                .setImageCacheDir(Paths.get("c:\\somedir"))
                 .setImageCacheSize(5000)
                 .setImageFormat("jpg")
                 .setLargest(true)
