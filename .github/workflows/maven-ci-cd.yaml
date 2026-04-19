@@ -178,8 +178,8 @@ jobs:
           fi
 
           if [[ "${{ github.ref }}" == "refs/heads/main" && "${{ steps.get_version.outputs.version }}" == *-SNAPSHOT ]]; then
-            echo "Publishing SNAPSHOT to GitHub Packages"
-            mvn clean deploy -Pgithub-snapshots \
+            echo "Publishing SNAPSHOT to Central Portal"
+            mvn clean deploy \
               -Dgpg.skip=true \
               -Dmaven.javadoc.skip=true \
               -Dmaven.wagon.rss.buffer.size=2048 \

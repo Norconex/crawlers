@@ -49,9 +49,9 @@
 
   <repositories>
     <repository>
-      <id>sonatype-oss-snapshots</id>
-      <name>Sonatype OSS Snapshot Repository</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <id>central-snapshots</id>
+      <name>Central Portal Snapshot Repository</name>
+      <url>https://central.sonatype.com/repository/snapshots/</url>
       <releases>
         <enabled>false</enabled>
       </releases>

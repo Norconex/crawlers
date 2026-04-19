@@ -135,27 +135,15 @@
   <distributionManagement>
     <repository>
       <id>central</id>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      <url>https://central.sonatype.com/repository/maven-central/</url>
     </repository>  
     <snapshotRepository>
-      <id>github</id>
-      <url>https://maven.pkg.github.com/Norconex/crawlers</url>
+      <id>central</id>
+      <url>https://central.sonatype.com/repository/snapshots/</url>
     </snapshotRepository>
   </distributionManagement>
 
   <profiles>
-    <profile>
-      <id>github-snapshots</id>
-      <activation>
-        <property>
-          <name>env.GITHUB_ACTIONS</name>
-        </property>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <properties>
-        <gpg.skip>true</gpg.skip>
-      </properties>
-    </profile>
     <!-- IDEs do not always know what to do with the Jacoco @{argLine}
      placeholder typically required for Jacoco codecoverage to integrate
      with Surefire. So by default we don't have it. When we want to include
@@ -181,14 +169,12 @@
 
   <repositories>
     <!-- 
-      TODO:
-      Needed for NX common lang snapshots. Replace with github snapshot repo
-      when migrated. 
+      Needed for NX commons-lang snapshots resolution.
     -->
     <repository>
-      <id>sonatype-oss-snapshots</id>
-      <name>Sonatype OSS Snapshot Repository</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <id>central-snapshots</id>
+      <name>Central Portal Snapshot Repository</name>
+      <url>https://central.sonatype.com/repository/snapshots/</url>
       <snapshots>
         <enabled>true</enabled>
       </snapshots>
