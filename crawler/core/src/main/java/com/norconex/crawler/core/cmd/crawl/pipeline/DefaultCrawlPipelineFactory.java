@@ -21,6 +21,7 @@ import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.StartRefsQueueStep;
 import com.norconex.crawler.core.cmd.crawl.pipeline.orphans.RequeueOrphansForDeletionStep;
+import com.norconex.crawler.core.cmd.crawl.pipeline.orphans.RequeueOrphansForProcessingStep;
 import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessStep;
 import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessStep.ProcessQueueAction;
 import com.norconex.crawler.core.session.CrawlSession;
@@ -59,7 +60,7 @@ public class DefaultCrawlPipelineFactory implements CrawlPipelineFactory {
                     ProcessQueueAction.DELETE_ALL)
                             .setDistributed(true));
         } else if (orphStrategy == OrphansStrategy.PROCESS) {
-            steps.add(new RequeueOrphansForDeletionStep(
+            steps.add(new RequeueOrphansForProcessingStep(
                     "queueOrphansForProcessing"));
             steps.add(new CrawlProcessStep(STEP_CRAWL_ORPHANS,
                     ProcessQueueAction.CRAWL_ALL)
