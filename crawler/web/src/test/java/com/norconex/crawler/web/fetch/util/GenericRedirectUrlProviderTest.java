@@ -64,7 +64,7 @@ class GenericRedirectUrlProviderTest {
 
         assertThat(provider.provideRedirectURL(
                 req, resp, ctx)).isEqualTo(
-                "http://xyz.com/redirected");
+                        "http://xyz.com/redirected");
     }
 
     @Test
@@ -84,7 +84,7 @@ class GenericRedirectUrlProviderTest {
 
         assertThat(provider.provideRedirectURL(
                 req, resp, ctx)).isEqualTo(
-                "http://xyz.com/redirigé");
+                        "http://xyz.com/redirigé");
     }
 
     @Test
@@ -103,6 +103,6 @@ class GenericRedirectUrlProviderTest {
 
         assertThat(provider.provideRedirectURL(
                 req, resp, ctx)).isEqualTo(
-                "http://xyz.com/redirig\u00E9");
+                        "http://xyz.com/redirig\u00E9");
     }
 }

@@ -266,6 +266,13 @@ public class MVStoreCacheManager implements CacheManager {
                         e.getMessage(), e);
             }
         }
+        // Invalidate cached wrappers so that the next open() creates fresh
+        // ones pointing to the new MVStore instance. Without this, stale
+        // wrappers referencing the closed store would be returned by
+        // computeIfAbsent, causing "Map is closed" exceptions on re-use.
+        maps.clear();
+        queues.clear();
+        sets.clear();
         LOG.debug("MVStore closed.");
     }
 

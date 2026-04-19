@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -208,7 +207,13 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
 
     @Override
     protected void onCrawlerCleanBegin(CrawlerEvent event) {
-        Optional.ofNullable(sitemapStore).ifPresent(CacheMap::clear);
+        // Use a fresh cache reference from the current clean session rather
+        // than the cached sitemapStore field (which may reference a
+        // closed MVStore from a previous run).
+        Web.gridCache(
+                event.getCrawlSession(),
+                SITEMAP_STORE_NAME,
+                SitemapRecord.class).clear();
     }
 
     @Override

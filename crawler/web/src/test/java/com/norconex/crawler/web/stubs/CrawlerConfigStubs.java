@@ -27,6 +27,7 @@ import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
+import com.norconex.crawler.core.cluster.impl.memory.MemoryClusterConnector;
 import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.doc.operations.delay.impl.GenericDelayResolver;
@@ -47,6 +48,9 @@ public final class CrawlerConfigStubs {
                 .setWorkDir(workDir)
                 .setIdleTimeout(Duration.ofMillis(500))
                 .setCommitters(List.of(new MemoryCommitter()));
+        cfg.getClusterConfig()
+                .setConnector(new MemoryClusterConnector())
+                .setAdminDisabled(true);
         ((GenericDelayResolver) cfg.getDelayResolver())
                 .getConfiguration().setDefaultDelay(Duration.ZERO);
         return cfg;

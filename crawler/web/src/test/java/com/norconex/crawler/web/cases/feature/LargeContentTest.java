@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
@@ -41,7 +40,6 @@ import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
  * Test that large files are processed properly (&gt; 2MB).
  */
 @MockServerSettings
-@Disabled("Need to find out why it now fails on GitHub Actions.")
 @Timeout(30)
 class LargeContentTest {
 
