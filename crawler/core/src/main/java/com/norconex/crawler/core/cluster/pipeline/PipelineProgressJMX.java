@@ -26,7 +26,7 @@ import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.context.CrawlContext;
 
 /**
  * Registrar for the coordinator-only PipelineProgress MXBean.
