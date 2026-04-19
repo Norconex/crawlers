@@ -1,4 +1,4 @@
 Norconex Committer Core 
 ==============
 
-Base library being the fondation of every committer.
+Base library being the foundation of every committer.
