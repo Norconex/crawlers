@@ -41,6 +41,10 @@ public final class HazelcastConfigLoader {
             Map<String, Object> variables) {
         var cfgPath = StringUtils.trimToNull(configFile);
 
+        if (cfgPath == null) {
+            throw new IllegalArgumentException(
+                    "Hazelcast config file path must not be blank.");
+        }
         if (!Strings.CI.endsWithAny(cfgPath, ".yaml", ".yml", ".xml")) {
             throw new IllegalArgumentException(
                     "Unknown Hazelcast config file type: " + cfgPath);
