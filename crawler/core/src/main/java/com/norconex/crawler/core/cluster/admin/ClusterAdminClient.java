@@ -77,7 +77,7 @@ public class ClusterAdminClient {
 
     private HttpResponse<String>
             tryNodes(Function<String, HttpResponse<String>> f) {
-        var urls = !nodeUrls.isEmpty()
+        var urls = nodeUrls != null && !nodeUrls.isEmpty()
                 ? nodeUrls
                 : List.of(DEFAULT_NODE_URL);
         HttpResponse<String> lastResponse = null;
