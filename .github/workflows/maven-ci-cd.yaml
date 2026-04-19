@@ -94,38 +94,13 @@ jobs:
 
       #--- Step ------------------------------------------------------------------
 
-      - name: Cache Maven installation
-        id: cache-maven
-        uses: actions/cache@v4
-        with:
-          path: /opt/maven
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
-      #--- Step ------------------------------------------------------------------
-
-      - name: Install recent Maven
-        if: ${{ steps.cache-maven.outputs.cache-hit != 'true' }}
-        run: |
-          MAVEN_VERSION=3.9.10
-          if [ ! -d "/opt/maven/apache-maven-$MAVEN_VERSION" ]; then
-            wget https://downloads.apache.org/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz
-            tar xzvf apache-maven-$MAVEN_VERSION-bin.tar.gz
-            sudo mkdir -p /opt/maven
-            sudo mv apache-maven-$MAVEN_VERSION /opt/maven/
-            rm apache-maven-$MAVEN_VERSION-bin.tar.gz
-          fi
-          sudo rm -f /usr/bin/mvn
-          sudo ln -sf /opt/maven/apache-maven-$MAVEN_VERSION/bin/mvn /usr/bin/mvn
-
-      #--- Step ------------------------------------------------------------------
-
-      - name: Set up JDK 17
+      - name: Set up JDK 17 and Maven
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
           java-version: "17"
+          maven-version: "3.9.10"
+          cache: "maven"
           # Maven servers are configured in the settings.xml in the next step.
           # Value of the GPG private key to import
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
@@ -159,19 +134,6 @@ jobs:
           echo "MAVEN_SETTINGS_PATH: $MAVEN_SETTINGS_PATH"
           echo "Default settings.xml:"
           cat ~/.m2/settings.xml || echo "Not found"
-
-      #--- Step ------------------------------------------------------------------
-
-      - name: Cache Maven repository
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.m2/repository
-            !~/.m2/repository/com/norconex
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-            ${{ runner.os }}-maven-
 
       #--- Step ------------------------------------------------------------------
 

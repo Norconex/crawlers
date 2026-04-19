@@ -36,6 +36,8 @@ jobs:
             **/workflows/**
             .github/*.yml
             **/assembly/**
+            # ignore third-party source files with their own copyright
+            **/org/apache/commons/vfs2/**
 
       - name: Echo result
         if: steps.check_dependabot.outputs.check == '0'
