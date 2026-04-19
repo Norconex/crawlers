@@ -48,7 +48,8 @@ public final class HazelcastConfigLoader {
 
         try {
             var content = interpolate(cfgPath, variables);
-            LOG.info("Interpolated content: {}", content);
+            LOG.debug("Loaded interpolated Hazelcast configuration from: {}",
+                    cfgPath);
             return createHzConfig(cfgPath, content);
         } catch (IOException e) {
             throw new ClusterException(
