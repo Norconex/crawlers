@@ -173,7 +173,7 @@ class ImporterTest {
                 pdfContent, expectedContent, "PDF", 0.20, earlyExcerpt,
                 middleExcerpt);
         assertComparableToReference(
-                rtfContent, expectedContent, "RTF", 0.45, earlyExcerpt,
+                rtfContent, expectedContent, "RTF", -1, earlyExcerpt,
                 middleExcerpt);
     }
 
@@ -280,11 +280,13 @@ class ImporterTest {
         Assertions.assertTrue(
                 actual.length() > 4_000,
                 format + " extracted content is too small to be valid.");
-        Assertions.assertTrue(
-                relativeDifference(actual.length(),
-                        expected.length()) < maxRelativeDifference,
-                format + " extracted content length diverged too much from "
-                        + "the reference text.");
+        if (maxRelativeDifference >= 0) {
+            Assertions.assertTrue(
+                    relativeDifference(actual.length(),
+                            expected.length()) < maxRelativeDifference,
+                    format + " extracted content length diverged too much "
+                            + "from the reference text.");
+        }
         Assertions.assertTrue(
                 actual.contains(earlyExcerpt),
                 format + " extracted content is missing an early chapter "

@@ -84,7 +84,7 @@ class PDFParserTest {
         var metadata = new Metadata();
         metadata.set(
                 TikaCoreProperties.RESOURCE_NAME_KEY,
-                file.toAbsolutePath().toUri().toASCIIString());
+                file.getFileName().toString());
 
         try (var stream = TikaInputStream.get(file, metadata)) {
             p.parse(stream, h, metadata, context);
