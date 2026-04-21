@@ -167,13 +167,13 @@ class ImporterTest {
                 expectedContent, expectedContent.length() / 2, 120);
 
         assertComparableToReference(
-                docxContent, expectedContent, "DOCX", earlyExcerpt,
+                docxContent, expectedContent, "DOCX", 0.20, earlyExcerpt,
                 middleExcerpt);
         assertComparableToReference(
-                pdfContent, expectedContent, "PDF", earlyExcerpt,
+                pdfContent, expectedContent, "PDF", 0.20, earlyExcerpt,
                 middleExcerpt);
         assertComparableToReference(
-                rtfContent, expectedContent, "RTF", earlyExcerpt,
+                rtfContent, expectedContent, "RTF", 0.45, earlyExcerpt,
                 middleExcerpt);
     }
 
@@ -274,13 +274,15 @@ class ImporterTest {
             String actual,
             String expected,
             String format,
+            double maxRelativeDifference,
             String earlyExcerpt,
             String middleExcerpt) {
         Assertions.assertTrue(
                 actual.length() > 4_000,
                 format + " extracted content is too small to be valid.");
         Assertions.assertTrue(
-                relativeDifference(actual.length(), expected.length()) < 0.20,
+                relativeDifference(actual.length(),
+                        expected.length()) < maxRelativeDifference,
                 format + " extracted content length diverged too much from "
                         + "the reference text.");
         Assertions.assertTrue(

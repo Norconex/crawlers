@@ -19,8 +19,10 @@ import static com.norconex.importer.TestUtil.resourceAsFile;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 import org.apache.tika.exception.TikaException;
+import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.TikaCoreProperties;
 import org.apache.tika.parser.AutoDetectParser;
@@ -67,7 +69,7 @@ class PDFParserTest {
     @Test
     void test_PDF_jbig2()
             throws IOException, SAXException, TikaException {
-        var file = resourceAsFile(folder, "/parser/pdf/jbig2.pdf");
+        var file = createStandaloneTempFile("/parser/pdf/jbig2.pdf");
         var h = new RecursiveParserWrapperHandler(
                 new BasicContentHandlerFactory(
                         BasicContentHandlerFactory.HANDLER_TYPE.IGNORE, -1));
@@ -81,9 +83,10 @@ class PDFParserTest {
         context.set(Parser.class, p);
         var metadata = new Metadata();
         metadata.set(
-                TikaCoreProperties.RESOURCE_NAME_KEY, file.toUri().toString());
+                TikaCoreProperties.RESOURCE_NAME_KEY,
+                file.toAbsolutePath().toUri().toASCIIString());
 
-        try (var stream = Files.newInputStream(file)) {
+        try (var stream = TikaInputStream.get(file, metadata)) {
             p.parse(stream, h, metadata, context);
         }
         var metadatas = h.getMetadataList();
@@ -102,5 +105,20 @@ class PDFParserTest {
         //        System.out.println("OUTPUT:" + output);
         //        System.out.println("METADATA:" + metadatas.get(1));
 
+    }
+
+    private Path createStandaloneTempFile(String resourcePath)
+            throws IOException {
+        var file = Files.createTempFile(
+                "PDFParserTest-",
+                resourcePath.substring(resourcePath.lastIndexOf('.')));
+        try (var stream = getClass().getResourceAsStream(resourcePath)) {
+            if (stream == null) {
+                throw new IOException("Resource not found: " + resourcePath);
+            }
+            Files.copy(stream, file, StandardCopyOption.REPLACE_EXISTING);
+        }
+        file.toFile().deleteOnExit();
+        return file;
     }
 }
