@@ -141,8 +141,6 @@ jobs:
           )
         run: |
           mvn clean install \
-            -Dmaven.compiler.maxmem=3072m \
-            -DargLine="-Xmx3g" \
             -Dgpg.skip=true \
             -Dsonar.skip=true \
             -Dmaven.javadoc.skip=true \
