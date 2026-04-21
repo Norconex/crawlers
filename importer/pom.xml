@@ -428,17 +428,10 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <!-- Set forkCount to 1 to enable test forking, which allows argLine JVM arguments
-               (like add-opens) to be applied. This is required for Java 17+ module system. -->
-          <forkCount>1</forkCount>
-          <reuseForks>true</reuseForks>
-          <useModulePath>false</useModulePath>
-          <argLine>--add-opens java.base/java.util=ALL-UNNAMED</argLine>
-          <!--
-          <systemPropertyVariables>
-            <tika.config>${project.basedir}/src/test/resources/tika-config.xml</tika.config>
-          </systemPropertyVariables>
-          -->
+          <argLine>
+            ${jacocoArgLine}
+            --add-opens java.base/java.util=ALL-UNNAMED
+          </argLine>
         </configuration>
       </plugin>
 
