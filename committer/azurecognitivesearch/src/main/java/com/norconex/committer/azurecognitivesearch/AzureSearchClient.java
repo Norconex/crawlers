@@ -85,7 +85,7 @@ class AzureSearchClient {
             throw new IllegalArgumentException("Index name is undefined.");
         }
 
-        var version = ObjectUtils.defaultIfNull(
+        var version = ObjectUtils.getIfNull(
                 config.getApiVersion(),
                 AzureSearchCommitterConfig.DEFAULT_API_VERSION);
         LOG.info("Azure Search API Version: {}", version);

@@ -14,8 +14,6 @@
  */
 package com.norconex.committer.idol;
 
-import static org.apache.commons.lang3.StringUtils.equalsAny;
-
 import java.io.IOException;
 import java.io.Writer;
 import java.net.URL;
@@ -23,6 +21,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
@@ -63,7 +62,7 @@ class DreAddDataAction implements IdolIndexAction {
     @Override
     public URL url(List<CommitterRequest> batch, HttpURL url)
             throws CommitterException {
-        url.setPath(StringUtils.appendIfMissing(
+        url.setPath(Strings.CS.appendIfMissing(
                 url.getPath(), "/") + "DREADDDATA");
         return url.toURL();
     }
@@ -104,7 +103,8 @@ class DreAddDataAction implements IdolIndexAction {
         for (Entry<String, List<String>> en : req.getMetadata().entrySet()) {
             var name = en.getKey();
             var values = en.getValue();
-            if (values == null || equalsAny(name, refField, contentField)) {
+            if (values == null
+                    || Strings.CS.equalsAny(name, refField, contentField)) {
                 continue;
             }
             for (String value : values) {

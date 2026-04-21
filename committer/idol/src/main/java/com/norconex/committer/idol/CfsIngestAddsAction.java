@@ -15,7 +15,6 @@
 package com.norconex.committer.idol;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.commons.lang3.StringUtils.equalsAny;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -30,6 +29,7 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
@@ -133,7 +133,8 @@ class CfsIngestAddsAction implements IdolIndexAction {
         for (Entry<String, List<String>> en : req.getMetadata().entrySet()) {
             var name = en.getKey();
             var values = en.getValue();
-            if (values == null || equalsAny(name, refField, contentField)) {
+            if (values == null
+                    || Strings.CS.equalsAny(name, refField, contentField)) {
                 continue;
             }
             for (String value : values) {

@@ -24,8 +24,6 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,15 +31,15 @@ import java.util.function.Consumer;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.NullInputStream;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
@@ -360,13 +358,13 @@ class AmazonCloudSearchCommitterTest {
     }
 
     private String httpGET(String path) {
-        var url = cloudSearchEndpoint + StringUtils.removeStart(path, "/");
+        var url = cloudSearchEndpoint + Strings.CS.removeStart(path, "/");
         LOG.debug("CloudSearch test GET request: {}", url);
         return UrlStreamer.streamToString(url);
     }
 
     private void httpDelete(String path) throws CommitterException {
-        var url = cloudSearchEndpoint + StringUtils.removeStart(path, "/");
+        var url = cloudSearchEndpoint + Strings.CS.removeStart(path, "/");
         LOG.debug("CloudSearch test DELETE request: {}", url);
         HttpURLConnection con = null;
         try {
@@ -379,7 +377,7 @@ class AmazonCloudSearchCommitterTest {
             var response = IOUtils.toString(
                     con.getInputStream(), StandardCharsets.UTF_8);
             LOG.debug("Server Response Text: {}", response);
-            if (!StringUtils.contains(response, "\"status\": \"ok\"")) {
+            if (!Strings.CS.contains(response, "\"status\": \"ok\"")) {
                 throw new CommitterException(
                         "Unexpected HTTP response: " + response);
             }

@@ -116,7 +116,7 @@ public class SolrCommitter
 
     @Override
     protected void initBatchCommitter() throws CommitterException {
-        solrClient = ObjectUtils.defaultIfNull(
+        solrClient = ObjectUtils.getIfNull(
                 configuration.getSolrClientType(),
                 SolrClientType.HTTP2).create(configuration.getSolrURL());
     }

@@ -143,7 +143,7 @@ public class CsvFileCommitter
         }
 
         builder.setRecordSeparator('\n');
-        var csv = new CSVPrinter(writer, builder.build());
+        var csv = new CSVPrinter(writer, builder.get());
         printHeaders(csv);
         return csv;
     }

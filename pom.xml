@@ -82,7 +82,7 @@
     <xpath2.version>2.1.100</xpath2.version>
 
     <!-- Compile-time annotation processors -->
-    <lombok.version>1.18.42</lombok.version>
+    <lombok.version>1.18.44</lombok.version>
 
     <!-- Test/Provided dependencies -->
     <assertj.version>3.24.2</assertj.version>
@@ -102,7 +102,7 @@
     <!-- === Maven plugins ================================================= -->
 
     <editorconfig-maven-plugin.version>0.2.0</editorconfig-maven-plugin.version>
-    <formatter-maven-plugin.version>2.24.1</formatter-maven-plugin.version>
+    <formatter-maven-plugin.version>2.29.0</formatter-maven-plugin.version>
     <gmavenplus-plugin.version>4.3.1</gmavenplus-plugin.version>
     <groovy.version>4.0.26</groovy.version>
     <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
@@ -110,6 +110,7 @@
     <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
+    <maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
     <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
     <maven-dependency-plugin.version>3.7.1</maven-dependency-plugin.version>
     <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
@@ -121,6 +122,7 @@
     <maven-site-plugin.version>4.0.0-M14</maven-site-plugin.version>
     <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
     <maven-surefire-plugin.version>3.5.5</maven-surefire-plugin.version>
+    <nexus-staging-maven-plugin.version>1.7.0</nexus-staging-maven-plugin.version>
     <therapi.version>0.15.0</therapi.version>
     <versions-maven-plugin.version>2.21.0</versions-maven-plugin.version>
     <wagon-ssh.version>3.5.3</wagon-ssh.version>
@@ -139,7 +141,7 @@
     </repository>  
     <snapshotRepository>
       <id>central</id>
-      <url>https://central.sonatype.com/repository/snapshots/</url>
+      <url>https://central.sonatype.com/repository/maven-snapshots/</url>
     </snapshotRepository>
   </distributionManagement>
 
@@ -174,7 +176,10 @@
     <repository>
       <id>central-snapshots</id>
       <name>Central Portal Snapshot Repository</name>
-      <url>https://central.sonatype.com/repository/snapshots/</url>
+      <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
       <snapshots>
         <enabled>true</enabled>
       </snapshots>
@@ -780,7 +785,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>license-maven-plugin</artifactId>
-          <version>2.5.0</version>
+          <version>${license-maven-plugin.version}</version>
           <executions>
             <execution>
               <id>add-third-party</id>
@@ -804,6 +809,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-clean-plugin</artifactId>
+          <version>${maven-clean-plugin.version}</version>
           <executions>
             <execution>
               <id>clean-license-output</id>
@@ -923,13 +929,10 @@
         </plugin>
 
         <plugin>
-          <groupId>org.sonatype.central</groupId>
-          <artifactId>central-publishing-maven-plugin</artifactId>
-          <version>0.8.0</version>
-          <extensions>true</extensions>
-          <configuration>
-            <publishingServerId>central</publishingServerId>
-          </configuration>
+          <groupId>org.sonatype.plugins</groupId>
+          <artifactId>nexus-staging-maven-plugin</artifactId>
+          <version>${nexus-staging-maven-plugin.version}</version>
+          <inherited>true</inherited>
         </plugin>
 
         <!-- TODO: Do we still publish javadocs via mvn site? Delete if not. -->         
@@ -1100,25 +1103,6 @@
           </executions>
           <inherited>true</inherited>
         </plugin>
- 
-        <!-- Done by groovy script now (gmaven-plus-plugin) -->
-        <!--
-        <plugin>
-          <groupId>org.sonarsource.scanner.maven</groupId>
-          <artifactId>sonar-maven-plugin</artifactId>
-          <version>${sonar.version}</version>
-          <executions>
-            <execution>
-              <id>sonar</id>
-              <phase>verify</phase>
-              <goals>
-                <goal>sonar</goal>
-              </goals>
-            </execution>
-          </executions>
-          <inherited>true</inherited>
-        </plugin>
-        -->
  
         <plugin>
           <groupId>org.ec4j.maven</groupId>

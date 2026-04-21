@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 package com.norconex.crawler.core.cluster.impl.hazelcast;
 
 import java.util.Iterator;

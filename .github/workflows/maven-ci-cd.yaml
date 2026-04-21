@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Copyright 2023-2024 Norconex Inc.
+# Copyright 2023-2026 Norconex Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,13 +14,12 @@
 # limitations under the License.
 #-------------------------------------------------------------------------------
 
-# This workflow automates the continuous integration (CI) and
-# continuous delivery (CD) process for the Maven project. It includes
-# building, testing, and analyzing changes in pull requests, as well
-# as deploying snapshot releases to artifact repositories upon
-# pushes to the main branch. The workflow ensures that code changes
-# are validated and deployed efficiently, maintaining the project's
-# quality and reliability.
+# This workflow handles Maven CI, Sonar analysis, and release publishing
+# for the crawler reactor. It builds and tests pull requests, runs Sonar
+# on same-repo PRs and push builds, enforces quality gates only on pushes
+# to main, publishes snapshots from main, publishes releases from
+# release/* branches, and updates the GitHub dependency graph on
+# deployment branches.
 
 name: Maven CI/CD Workflow
 
@@ -38,7 +37,7 @@ on:
   pull_request:
     branches:
       - "*"
-    types: [opened, synchronize, reopened]
+    types: [ opened, synchronize, reopened ]
     # Unfortunately GitHub actions does not yet support Yaml anchors and aliases
     # so we have to repeat the paths-ignore here.
     paths-ignore:
@@ -52,19 +51,17 @@ jobs:
 
     # Env. vars. defined here are available to all steps.
     env:
-      SHOULD_DEPLOY: ${{ github.repository == 'Norconex/crawlers' && github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) }}
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SHOULD_UPDATE_DEPENDENCY_GRAPH: ${{ github.repository == 'Norconex/crawlers' &&
+        github.event_name == 'push' && (github.ref == 'refs/heads/main' ||
+        startsWith(github.ref, 'refs/heads/release/')) }}
 
     permissions:
       id-token: write
-      # write is required to publish the dependency graph
+      # write is required for release tagging and dependency submission
       contents: write
-      # write is required to publish our snapshots to GitHub Packages
-      packages: write
 
     steps:
-      - run: |
-          echo "Should deploy: ${{ env.SHOULD_DEPLOY }}"
 
       #--- Step ------------------------------------------------------------------
 
@@ -99,9 +96,10 @@ jobs:
         with:
           distribution: "temurin"
           java-version: "17"
-          maven-version: "3.9.10"
           cache: "maven"
-          # Maven servers are configured in the settings.xml in the next step.
+          server-id: central
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_CENTRAL_TOKEN
           # Value of the GPG private key to import
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           # Env variable name for GPG private key passphrase
@@ -111,33 +109,8 @@ jobs:
 
       #--- Step ------------------------------------------------------------------
 
-      - name: Generate Maven settings.xml with multiple servers
-        uses: s4u/maven-settings-action@v3.1.0
-        with:
-          # adds a "github" server entry to the settings.xml
-          githubServer: true
-          # ids must match the server IDs in the pom.xml
-          servers: |
-            [
-              {
-                "id": "central",
-                "username": "${{ secrets.OSSRH_USERNAME }}",
-                "password": "${{ secrets.OSSRH_TOKEN }}"
-              }
-            ]
-
-      #--- Step ------------------------------------------------------------------
-
-      - name: Debug Maven settings location
-        run: |
-          echo "MAVEN_CONFIG: $MAVEN_CONFIG"
-          echo "MAVEN_SETTINGS_PATH: $MAVEN_SETTINGS_PATH"
-          echo "Default settings.xml:"
-          cat ~/.m2/settings.xml || echo "Not found"
-
-      #--- Step ------------------------------------------------------------------
-
-      - name: Cache SonarCloud analysis
+      - name: Cache SonarCloud packages
+        if: env.SONAR_TOKEN != ''
         uses: actions/cache@v4
         with:
           path: ~/.sonar/cache
@@ -158,78 +131,121 @@ jobs:
 
       #--- Step ------------------------------------------------------------------
 
-      - name: Show Maven Dependency Tree
-        run: mvn dependency:tree -Dverbose
+      # Build the full reactor in CI to keep cross-module behavior consistent.
+
+      - name: Build and test (fork or bot PR)
+        if: >
+          github.event_name == 'pull_request' && (
+            github.event.pull_request.head.repo.full_name != github.repository ||
+            contains(github.actor, '[bot]')
+          )
+        run: |
+          mvn clean install \
+            -Dmaven.compiler.maxmem=3072m \
+            -DargLine="-Xmx3g" \
+            -Dgpg.skip=true \
+            -Dsonar.skip=true \
+            -Dmaven.javadoc.skip=true \
+            -Dmaven.wagon.rss.buffer.size=2048 \
+            -Dlog4j.configurationFile=${{ github.workspace }}/.github/log4j2-ci.xml \
+            -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+            -C \
+            -B
 
       #--- Step ------------------------------------------------------------------
-      # Node, Sonar does not work well or as expected with -pl -am so
-      # we build all each time.
 
-      - name: Build, Test, and Deploy (Snapshot or Release)
+      - name: Build, test and analyze (same-repo PR)
+        if: >
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          !contains(github.actor, '[bot]')
         run: |
-          TEST_GROUP_OVERRIDES=""
-          COVERAGE_ARGS=""
-          if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.base.ref }}" == "main" ]]; then
-            echo "PR to main detected: enabling coverage and including slow tests in CI run"
-            TEST_GROUP_OVERRIDES="-DexcludedGroups="
-            COVERAGE_ARGS="-Pjacoco"
-          else
-            echo "Coverage disabled for this event; running fast feedback suite only"
-          fi
+          mvn clean install \
+            -Dmaven.compiler.maxmem=3072m \
+            -DargLine="-Xmx3g" \
+            -Dgpg.skip=true \
+            -Dmaven.javadoc.skip=true \
+            -Dmaven.wagon.rss.buffer.size=2048 \
+            -Dlog4j.configurationFile=${{ github.workspace }}/.github/log4j2-ci.xml \
+            -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+            -Pjacoco \
+            -Dsonar.qualitygate.wait=false \
+            -C \
+            -B
 
-          if [[ "${{ github.ref }}" == "refs/heads/main" && "${{ steps.get_version.outputs.version }}" == *-SNAPSHOT ]]; then
-            echo "Publishing SNAPSHOT to Central Portal"
-            mvn clean deploy \
-              -Dgpg.skip=true \
-              -Dmaven.javadoc.skip=true \
-              -Dmaven.wagon.rss.buffer.size=2048 \
-              -Dlog4j.configurationFile=${{ github.workspace }}/.github/log4j2-ci.xml \
-              -Dorg.apache.logging.log4j.debug=true \
-              -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-              $COVERAGE_ARGS \
-              $TEST_GROUP_OVERRIDES \
-              -C \
-              -Dsonar.host.url=https://sonarcloud.io \
-              -Dsonar.verbose=false \
-              -B
-          elif [[ "${{ github.ref }}" == refs/heads/release/* && "${{ steps.get_version.outputs.version }}" != *-SNAPSHOT ]]; then
-            echo "Publishing RELEASE to Maven Central"
-            mvn clean deploy \
-              -Dmaven.compiler.maxmem=3072m \
-              -DargLine="-Xmx3g" \
-              -Dmaven.javadoc.skip=true \
-              -Dmaven.wagon.rss.buffer.size=2048 \
-              -Dlog4j.configurationFile=${{ github.workspace }}/.github/log4j2-ci.xml \
-              -Dorg.apache.logging.log4j.debug=true \
-              -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-              $COVERAGE_ARGS \
-              $TEST_GROUP_OVERRIDES \
-              -C \
-              -Dsonar.host.url=https://sonarcloud.io \
-              -Dsonar.verbose=false \
-              -B
-          else
-            echo "Not a deploy branch or version, running install only"
-            mvn clean install \
-              -Dmaven.compiler.maxmem=3072m \
-              -DargLine="-Xmx3g" \
-              -Dmaven.javadoc.skip=true \
-              -Dmaven.wagon.rss.buffer.size=2048 \
-              -Dlog4j.configurationFile=${{ github.workspace }}/.github/log4j2-ci.xml \
-              -Dorg.apache.logging.log4j.debug=true \
-              -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-              $COVERAGE_ARGS \
-              $TEST_GROUP_OVERRIDES \
-              -C \
-              -Dsonar.host.url=https://sonarcloud.io \
-              -Dsonar.verbose=false \
-              -B
-          fi
+      #--- Step ------------------------------------------------------------------
+
+      - name: Build, publish and analyze snapshot (push to main)
+        if: >
+          github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+          endsWith(steps.get_version.outputs.version, '-SNAPSHOT')
+        run: |
+          mvn clean deploy \
+            -Dgpg.skip=true \
+            -Dmaven.javadoc.skip=true \
+            -Dmaven.wagon.rss.buffer.size=2048 \
+            -Dlog4j.configurationFile=${{ github.workspace }}/.github/log4j2-ci.xml \
+            -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+            -Pjacoco \
+            -Dsonar.qualitygate.wait=true \
+            -Dsonar.qualitygate.timeout=900 \
+            -Dsurefire.excludedGroups= \
+            -C \
+            -B
         env:
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_TOKEN: ${{ secrets.OSSRH_TOKEN }}
+          # Keep existing GitHub secret names; only the local env var names
+          # reflect Central publishing.
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      #--- Step ------------------------------------------------------------------
+
+      - name: Build, publish and analyze release (push to release/*)
+        if: >
+          github.event_name == 'push' && startsWith(github.ref,
+          'refs/heads/release/') && !endsWith(steps.get_version.outputs.version,
+          '-SNAPSHOT')
+        run: |
+          mvn clean deploy \
+            -Dmaven.compiler.maxmem=3072m \
+            -DargLine="-Xmx3g" \
+            -Dmaven.javadoc.skip=true \
+            -Dmaven.wagon.rss.buffer.size=2048 \
+            -Dlog4j.configurationFile=${{ github.workspace }}/.github/log4j2-ci.xml \
+            -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+            -Pjacoco \
+            -Dsonar.qualitygate.wait=false \
+            -C \
+            -B
+        env:
+          # Keep existing GitHub secret names; only the local env var names
+          # reflect Central publishing.
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+
+      #--- Step ------------------------------------------------------------------
+
+      - name: Build only (push version mismatch)
+        if: >
+          github.event_name == 'push' && (
+            (github.ref == 'refs/heads/main' && !endsWith(steps.get_version.outputs.version, '-SNAPSHOT')) ||
+            (startsWith(github.ref, 'refs/heads/release/') && endsWith(steps.get_version.outputs.version, '-SNAPSHOT'))
+          )
+        run: |
+          echo "Branch/version mismatch detected; skipping deploy and running install only"
+          mvn clean install \
+            -Dmaven.compiler.maxmem=3072m \
+            -DargLine="-Xmx3g" \
+            -Dgpg.skip=true \
+            -Dsonar.skip=true \
+            -Dmaven.javadoc.skip=true \
+            -Dmaven.wagon.rss.buffer.size=2048 \
+            -Dlog4j.configurationFile=${{ github.workspace }}/.github/log4j2-ci.xml \
+            -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+            -C \
+            -B
 
       #--- Step ------------------------------------------------------------------
       - name: Tag release version
@@ -252,5 +268,5 @@ jobs:
       # Uploads the full dependency graph to GitHub to improve the quality
       # of Dependabot alerts this repository can receive
       - name: Update Maven dependency graph
-        if: ${{ env.SHOULD_DEPLOY == 'true' }}
+        if: ${{ env.SHOULD_UPDATE_DEPENDENCY_GRAPH == 'true' }}
         uses: advanced-security/maven-dependency-submission-action@v4

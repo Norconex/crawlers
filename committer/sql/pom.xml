@@ -109,11 +109,6 @@
         <artifactId>maven-gpg-plugin</artifactId>
       </plugin>
 
-      <plugin>
-        <groupId>org.sonatype.central</groupId>
-        <artifactId>central-publishing-maven-plugin</artifactId>
-      </plugin>
-
     </plugins>
   </build>
 

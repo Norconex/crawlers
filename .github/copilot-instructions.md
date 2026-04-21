@@ -92,12 +92,13 @@ mvn versions:display-dependency-updates -pl committer/core
 - Single module compile: ~10-20 seconds
 - Single module test: ~15-30 seconds  
 - Single module package: ~20-60 seconds
-- Full reactor build: ~90-120 seconds (may fail at importer due to dependency issues)
+- Full reactor build: ~90-120 seconds
 
 ### Known Build Issues & Workarounds
 
-1. **Importer Dependency Issues**: `edu.ucar:jj2000:jar:5.4` artifact may fail to resolve
-   - **Workaround**: Skip importer module with `-pl '!importer'` or use `-Dmaven.test.skip=true`
+1. **Importer External Repository Requirement**: `importer` depends on `edu.ucar:jj2000:jar:5.4`, which is resolved from the OSGeo release repository declared in `importer/pom.xml`
+   - **Current status**: The artifact resolves successfully from `https://repo.osgeo.org/repository/release/`
+   - **Fallback**: If that external repository is temporarily unavailable, skip importer with `-pl '!importer'` for unrelated validation runs
 
 2. **EditorConfig Warnings**: XML files may show indent warnings  
    - **Expected behavior**: Warnings don't fail the build
@@ -171,7 +172,7 @@ mvn versions:display-dependency-updates -pl committer/core
 - **Module-specific builds recommended**: Use `-pl committer/core` pattern for faster iteration
 - **Understand dependencies**: Check each module's POM for specific requirements
 - **Build incrementally**: Test module changes before full builds
-- **Skip problematic modules**: Use `-pl '!importer'` to exclude importer if needed
+- **Skip importer only when needed**: Use `-pl '!importer'` if the OSGeo-hosted `jj2000` dependency is temporarily unavailable or you are validating unrelated modules
 
 ## Essential Commands Reference
 
@@ -179,10 +180,10 @@ mvn versions:display-dependency-updates -pl committer/core
 # Quick development cycle (single module)
 mvn clean compile test -pl committer/core
 
-# Full reactor build (all modules, may fail at importer)
+# Full reactor build (all modules)
 mvn clean compile
 
-# Build excluding importer module
+# Build excluding importer when validating unrelated modules or if OSGeo is unavailable
 mvn clean compile -pl '!importer'
 
 # Full package with validation (single module)  
