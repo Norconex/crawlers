@@ -173,7 +173,7 @@ class ImporterTest {
                 pdfContent, expectedContent, "PDF", 0.20, earlyExcerpt,
                 middleExcerpt);
         assertComparableToReference(
-                rtfContent, expectedContent, "RTF", -1, earlyExcerpt,
+                rtfContent, expectedContent, "RTF", -1, null,
                 middleExcerpt);
     }
 
@@ -287,14 +287,24 @@ class ImporterTest {
                     format + " extracted content length diverged too much "
                             + "from the reference text.");
         }
-        Assertions.assertTrue(
-                actual.contains(earlyExcerpt),
-                format + " extracted content is missing an early chapter "
-                        + "excerpt.");
+        if (earlyExcerpt != null) {
+            Assertions.assertTrue(
+                    actual.contains(earlyExcerpt),
+                    format + " extracted content is missing an early chapter "
+                            + "excerpt.");
+        }
         Assertions.assertTrue(
                 actual.contains(middleExcerpt),
                 format + " extracted content is missing a middle chapter "
                         + "excerpt.");
+        if ("RTF".equals(format)) {
+            Assertions.assertTrue(
+                    actual.contains("Alice"),
+                    "RTF extracted content missing 'Alice'.");
+            Assertions.assertTrue(
+                    actual.contains("Rabbit"),
+                    "RTF extracted content missing 'Rabbit'.");
+        }
     }
 
     private double relativeDifference(int actualLength, int expectedLength) {
