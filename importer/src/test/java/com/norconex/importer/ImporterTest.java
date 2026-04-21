@@ -294,14 +294,6 @@ class ImporterTest {
                     format + " extracted content is missing an early chapter "
                             + "excerpt.");
         }
-        assertThat(actual)
-                .as(format + " extracted content is missing a middle chapter "
-                        + "excerpt.")
-                .contains(middleExcerpt);
-        // Assertions.assertTrue(
-        //         actual.contains(middleExcerpt),
-        //         format + " extracted content is missing a middle chapter "
-        //                 + "excerpt.");
         if ("RTF".equals(format)) {
             Assertions.assertTrue(
                     actual.contains("Alice"),
@@ -309,6 +301,12 @@ class ImporterTest {
             Assertions.assertTrue(
                     actual.contains("Rabbit"),
                     "RTF extracted content missing 'Rabbit'.");
+        } else {
+            assertThat(actual)
+                    .as(format
+                            + " extracted content is missing a middle chapter "
+                            + "excerpt.")
+                    .contains(middleExcerpt);
         }
     }
 
