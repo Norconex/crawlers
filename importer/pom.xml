@@ -434,9 +434,11 @@
           <reuseForks>true</reuseForks>
           <useModulePath>false</useModulePath>
           <argLine>--add-opens java.base/java.util=ALL-UNNAMED</argLine>
+          <!--
           <systemPropertyVariables>
             <tika.config>${project.basedir}/src/test/resources/tika-config.xml</tika.config>
           </systemPropertyVariables>
+          -->
         </configuration>
       </plugin>
 
