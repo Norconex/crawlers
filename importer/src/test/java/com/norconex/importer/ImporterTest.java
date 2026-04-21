@@ -15,6 +15,7 @@
 package com.norconex.importer;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.File;
@@ -293,10 +294,14 @@ class ImporterTest {
                     format + " extracted content is missing an early chapter "
                             + "excerpt.");
         }
-        Assertions.assertTrue(
-                actual.contains(middleExcerpt),
-                format + " extracted content is missing a middle chapter "
-                        + "excerpt.");
+        assertThat(actual)
+                .as(format + " extracted content is missing a middle chapter "
+                        + "excerpt.")
+                .contains(middleExcerpt);
+        // Assertions.assertTrue(
+        //         actual.contains(middleExcerpt),
+        //         format + " extracted content is missing a middle chapter "
+        //                 + "excerpt.");
         if ("RTF".equals(format)) {
             Assertions.assertTrue(
                     actual.contains("Alice"),
