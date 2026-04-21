@@ -18,18 +18,17 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.Strings;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -70,18 +69,9 @@ class ImporterTest {
                 }),
                 ctx -> {
                     try {
-                        // Clean up what we know is extra noise for a given format
-                        var pattern = Pattern.compile("[^a-zA-Z ]");
-                        var txt = ctx.input().asString();
-                        txt = pattern.matcher(txt).replaceAll("");
-                        txt = txt.replaceAll("DowntheRabbitHole", "");
-                        txt = Strings.CS.replace(txt, " ", "");
-                        txt = Strings.CS.replace(
-                                txt, "httppdfreebooksorg",
-                                "");
-                        txt = Strings.CS.replace(txt, "filejpg", "");
-                        txt = Strings.CS.replace(txt, "filewmf", "");
-                        ctx.output().asWriter().write(txt);
+                        ctx.output().asWriter().write(
+                                normalizeExtractedText(
+                                        ctx.input().asString()));
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
@@ -152,57 +142,39 @@ class ImporterTest {
 
     @Test
     void testImportDocument() throws IOException {
-
-        // MS Doc
-        var docxOutput = File.createTempFile("ImporterTest-doc-", ".txt");
         var metaDocx = new Properties();
-        writeToFile(
-                importer.importDocument(
-                        new ImporterRequest(
-                                TestUtil.getAliceDocxFile().toPath())
-                                        .setMetadata(metaDocx))
-                        .getDoc(),
-                docxOutput);
+        var docxContent = importedText(
+                new ImporterRequest(TestUtil.getAliceDocxFile().toPath())
+                        .setMetadata(metaDocx));
 
-        // PDF
-        var pdfOutput = File.createTempFile("ImporterTest-pdf-", ".txt");
         var metaPdf = new Properties();
-        writeToFile(
-                importer.importDocument(
-                        new ImporterRequest(TestUtil.getAlicePdfFile().toPath())
-                                .setMetadata(metaPdf))
-                        .getDoc(),
-                pdfOutput);
+        var pdfContent = importedText(
+                new ImporterRequest(TestUtil.getAlicePdfFile().toPath())
+                        .setMetadata(metaPdf));
 
-        // ZIP/RTF
-        var rtfOutput = File.createTempFile("ImporterTest-zip-rtf-", ".txt");
         var metaRtf = new Properties();
-        var resp = importer.importDocument(
+        var rtfResponse = importer.importDocument(
                 new ImporterRequest(TestUtil.getAliceZipFile().toPath())
                         .setMetadata(metaRtf));
-        //writeToFile(resp.getDoc(), rtfOutput);
-        writeToFile(resp.getNestedResponses().get(0).getDoc(), rtfOutput);
+        var rtfContent = TestUtil.toString(
+                rtfResponse.getNestedResponses().get(0)
+                        .getDoc().getInputStream());
 
-        double doc = docxOutput.length();
-        double pdf = pdfOutput.length();
-        double rtf = rtfOutput.length();
-        if (Math.abs(pdf - doc) / 1024.0 > 0.03
-                || Math.abs(pdf - rtf) / 1024.0 > 0.03) {
-            Assertions.fail(
-                    "Content extracted from examples documents are too "
-                            + "different from each other. They were not deleted to "
-                            + "help you troubleshoot under: "
-                            + FileUtils.getTempDirectoryPath()
-                            + "ImporterTest-*");
-        } else {
-            FileUtils.deleteQuietly(docxOutput);
-            FileUtils.deleteQuietly(pdfOutput);
-            FileUtils.deleteQuietly(rtfOutput);
-        }
+        var expectedContent = normalizeExtractedText(
+                Files.readString(TestUtil.getAliceTextFile().toPath(), UTF_8));
+        var earlyExcerpt = excerpt(expectedContent, 400, 120);
+        var middleExcerpt = excerpt(
+                expectedContent, expectedContent.length() / 2, 120);
 
-        Assertions.assertTrue(
-                pdfOutput.length() < 10,
-                "Converted file size is too small to be valid.");
+        assertComparableToReference(
+                docxContent, expectedContent, "DOCX", earlyExcerpt,
+                middleExcerpt);
+        assertComparableToReference(
+                pdfContent, expectedContent, "PDF", earlyExcerpt,
+                middleExcerpt);
+        assertComparableToReference(
+                rtfContent, expectedContent, "RTF", earlyExcerpt,
+                middleExcerpt);
     }
 
     //TODO uncomment following to test rejections and validation
@@ -293,10 +265,56 @@ class ImporterTest {
         }
     }
 
-    private void writeToFile(Doc doc, File file)
-            throws IOException {
-        var out = new FileOutputStream(file);
-        IOUtils.copy(doc.getInputStream(), out);
-        out.close();
+    private String importedText(ImporterRequest request) {
+        return TestUtil.toString(importer.importDocument(request)
+                .getDoc().getInputStream());
+    }
+
+    private void assertComparableToReference(
+            String actual,
+            String expected,
+            String format,
+            String earlyExcerpt,
+            String middleExcerpt) {
+        Assertions.assertTrue(
+                actual.length() > 4_000,
+                format + " extracted content is too small to be valid.");
+        Assertions.assertTrue(
+                relativeDifference(actual.length(), expected.length()) < 0.20,
+                format + " extracted content length diverged too much from "
+                        + "the reference text.");
+        Assertions.assertTrue(
+                actual.contains(earlyExcerpt),
+                format + " extracted content is missing an early chapter "
+                        + "excerpt.");
+        Assertions.assertTrue(
+                actual.contains(middleExcerpt),
+                format + " extracted content is missing a middle chapter "
+                        + "excerpt.");
+    }
+
+    private double relativeDifference(int actualLength, int expectedLength) {
+        return Math.abs(actualLength - expectedLength)
+                / (double) expectedLength;
+    }
+
+    private String excerpt(String text, int center, int length) {
+        var safeLength = Math.min(length, text.length());
+        var start = Math.max(0,
+                Math.min(center - (safeLength / 2),
+                        text.length() - safeLength));
+        return text.substring(start, start + safeLength);
+    }
+
+    private String normalizeExtractedText(String text) {
+        var pattern = Pattern.compile("[^a-zA-Z ]");
+        var normalized = pattern.matcher(text).replaceAll("");
+        normalized = normalized.replaceAll("DowntheRabbitHole", "");
+        normalized = Strings.CS.replace(normalized, " ", "");
+        normalized = Strings.CS.replace(
+                normalized, "httppdfreebooksorg", "");
+        normalized = Strings.CS.replace(normalized, "filejpg", "");
+        normalized = Strings.CS.replace(normalized, "filewmf", "");
+        return normalized;
     }
 }

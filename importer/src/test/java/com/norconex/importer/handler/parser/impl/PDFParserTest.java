@@ -17,10 +17,12 @@ package com.norconex.importer.handler.parser.impl;
 import static com.norconex.importer.TestUtil.resourceAsFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
+import org.apache.tika.metadata.TikaCoreProperties;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
@@ -30,8 +32,8 @@ import org.apache.tika.sax.BasicContentHandlerFactory;
 import org.apache.tika.sax.RecursiveParserWrapperHandler;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.io.TempDir;
 import org.xml.sax.SAXException;
 
 @Timeout(30)
@@ -65,6 +67,7 @@ class PDFParserTest {
     @Test
     void test_PDF_jbig2()
             throws IOException, SAXException, TikaException {
+        var file = resourceAsFile(folder, "/parser/pdf/jbig2.pdf");
         var h = new RecursiveParserWrapperHandler(
                 new BasicContentHandlerFactory(
                         BasicContentHandlerFactory.HANDLER_TYPE.IGNORE, -1));
@@ -76,10 +79,12 @@ class PDFParserTest {
         config.setExtractUniqueInlineImagesOnly(false);
         context.set(PDFParserConfig.class, config);
         context.set(Parser.class, p);
+        var metadata = new Metadata();
+        metadata.set(
+                TikaCoreProperties.RESOURCE_NAME_KEY, file.toUri().toString());
 
-        try (var stream =
-                getClass().getResourceAsStream("/parser/pdf/jbig2.pdf")) {
-            p.parse(stream, h, new Metadata(), context);
+        try (var stream = Files.newInputStream(file)) {
+            p.parse(stream, h, metadata, context);
         }
         var metadatas = h.getMetadataList();
 
