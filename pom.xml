@@ -94,7 +94,7 @@
          an older 1.12.21 which lacks ClassFileVersion.JAVA_V21, breaking inline mocking -->
     <bytebuddy.version>1.17.7</bytebuddy.version>
     <mockserver.version>5.15.0</mockserver.version>
-    <testcontainers.version>2.0.3</testcontainers.version>
+    <testcontainers.version>2.0.5</testcontainers.version>
     <!--
     <testcontainers-junit4-mock.version>1.0.1</testcontainers-junit4-mock.version>
     -->
