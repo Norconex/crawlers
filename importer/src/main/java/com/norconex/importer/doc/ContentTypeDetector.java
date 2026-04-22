@@ -17,9 +17,9 @@ package com.norconex.importer.doc;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -47,49 +47,51 @@ public final class ContentTypeDetector {
     private static final MimeTypes CUSTOM_MIME_TYPES;
     private static final Detector DETECTOR;
     static {
-        configureCustomMimeTypes();
         CUSTOM_MIME_TYPES = createCustomMimeTypes();
         DETECTOR = new DefaultDetector(CUSTOM_MIME_TYPES);
     }
 
-    private static void configureCustomMimeTypes() {
-        if (System
-                .getProperty(MimeTypesFactory.CUSTOM_MIMES_SYS_PROP) != null) {
-            return;
-        }
-        var resource = ContentTypeDetector.class.getClassLoader().getResource(
-                "org/apache/tika/mime/custom-mimetypes.xml");
-        if (resource == null) {
-            return;
-        }
-        try {
-            if ("file".equalsIgnoreCase(resource.getProtocol())) {
-                var path = Path.of(resource.toURI());
-                System.setProperty(
-                        MimeTypesFactory.CUSTOM_MIMES_SYS_PROP,
-                        path.toString());
-                return;
-            }
-            try (var in = resource.openStream()) {
-                var temp =
-                        Files.createTempFile("tika-custom-mimetypes-", ".xml");
-                Files.copy(in, temp, StandardCopyOption.REPLACE_EXISTING);
-                temp.toFile().deleteOnExit();
-                System.setProperty(
-                        MimeTypesFactory.CUSTOM_MIMES_SYS_PROP,
-                        temp.toString());
-            }
-        } catch (Exception e) {
-            LOG.warn("Could not register custom mime types resource.", e);
-        }
-    }
-
     private static MimeTypes createCustomMimeTypes() {
+        var cl = ContentTypeDetector.class.getClassLoader();
         try {
-            return MimeTypesFactory.create(
-                    "tika-mimetypes.xml",
-                    "custom-mimetypes.xml",
-                    ContentTypeDetector.class.getClassLoader());
+            var urls = new ArrayList<URL>();
+
+            // Tika core MIME types
+            var coreUrl = cl.getResource(
+                    "org/apache/tika/mime/tika-mimetypes.xml");
+            if (coreUrl == null) {
+                LOG.warn(
+                        "Tika core mime types not found; falling back to defaults.");
+                return MimeTypes.getDefaultMimeTypes();
+            }
+            urls.add(coreUrl);
+
+            // Norconex custom types bundled with the importer
+            var norconexUrl = cl.getResource(
+                    "org/apache/tika/mime/custom-mimetypes.xml");
+            if (norconexUrl != null) {
+                urls.add(norconexUrl);
+            }
+
+            // User-provided drop-in: any "custom-mimetypes.xml" at the
+            // classpath root in any JAR (Tika's documented extension point)
+            urls.addAll(Collections.list(
+                    cl.getResources("custom-mimetypes.xml")));
+
+            // User-provided external file via system property
+            var sysPropPath = System.getProperty("tika.custom-mimetypes");
+            if (sysPropPath != null) {
+                var externalFile = new File(sysPropPath);
+                if (externalFile.exists()) {
+                    urls.add(externalFile.toURI().toURL());
+                } else {
+                    LOG.warn(
+                            "Custom MIME types file not found: {}",
+                            sysPropPath);
+                }
+            }
+
+            return MimeTypesFactory.create(urls.toArray(new URL[0]));
         } catch (IOException | MimeTypeException e) {
             LOG.warn(
                     "Could not load custom mime types; falling back to defaults.",
