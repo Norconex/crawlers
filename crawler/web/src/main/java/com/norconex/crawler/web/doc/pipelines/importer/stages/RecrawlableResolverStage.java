@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>Determines whether to recrawl a document or not.</p>
- * <p>Only does so if the document is not an orphan.</p>
+ * <p>This check applies to all documents, including orphans.</p>
  * @since 2.5.0
  */
 @Slf4j
@@ -38,11 +38,6 @@ public class RecrawlableResolverStage extends AbstractImporterStage {
     protected boolean executeStage(ImporterPipelineContext pipeCtx) {
         var crawlSession = pipeCtx.getCrawlSession();
         var crawlContext = crawlSession.getCrawlContext();
-
-        // skip if doc is an orphan
-        if (pipeCtx.getDocContext().getCurrentCrawlEntry().isOrphan()) {
-            return true;
-        }
 
         var rr = Web.config(crawlContext).getRecrawlableResolver();
         if (rr == null) {

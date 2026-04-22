@@ -324,24 +324,32 @@ class WebImporterPipelineTest {
 
     @WebCrawlTest
     void testRecrawlableResolverStageOrphan(CrawlContext crawlerCtx) {
-        // Orphan docs are never skipped by the recrawl resolver
-        var docEntry =
+        // Orphan docs with a previous entry go through the recrawl resolver
+        // just like regular docs – they are NOT unconditionally passed through
+        Web.config(crawlerCtx).setRecrawlableResolver(prev -> false);
+
+        var prevEntry =
                 new WebCrawlEntry("http://www.example.com/orphan.html", 0);
-        docEntry.setOrphan(true);
+        var currentEntry =
+                new WebCrawlEntry("http://www.example.com/orphan.html", 0);
+        currentEntry.setOrphan(true);
 
         @SuppressWarnings("resource")
-        var doc = new Doc(docEntry.getReference()).setInputStream(
+        var doc = new Doc(currentEntry.getReference()).setInputStream(
                 new CachedStreamFactory(1, 1).newInputStream());
         var docCtx = CrawlDocContext.builder()
                 .doc(doc)
-                .currentCrawlEntry(docEntry)
+                .currentCrawlEntry(currentEntry)
+                .previousCrawlEntry(prevEntry)
                 .build();
 
         var session = mock(CrawlSession.class);
         when(session.getCrawlContext()).thenReturn(crawlerCtx);
         var ctx = new WebImporterPipelineContext(session, docCtx);
 
-        assertThat(new RecrawlableResolverStage().test(ctx)).isTrue();
+        assertThat(new RecrawlableResolverStage().test(ctx)).isFalse();
+        assertThat(currentEntry.getProcessingOutcome())
+                .isEqualTo(ProcessingOutcome.PREMATURE);
     }
 
     @WebCrawlTest
