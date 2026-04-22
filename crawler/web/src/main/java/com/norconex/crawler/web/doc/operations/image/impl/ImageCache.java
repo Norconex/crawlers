@@ -48,7 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ImageCache {
 
-    private record CachedEntry(
+    private record CachedEntry( //NOSONAR
             Dimension originalSize, byte[] pngBytes) {
     }
 

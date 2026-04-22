@@ -31,8 +31,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
-import org.mockserver.model.MediaType;
 import org.mockserver.model.HttpRequest;
+import org.mockserver.model.MediaType;
 
 import com.hazelcast.core.Hazelcast;
 import com.norconex.committer.core.UpsertRequest;
@@ -60,7 +60,7 @@ class StrictTransportSecurityTest {
         // to prevent resource accumulation and port conflicts
         Hazelcast.shutdownAll();
         try {
-            Thread.sleep(500); // Give Hazelcast time to fully shut down
+            Thread.sleep(500); //NOSONAR Give Hazelcast time to fully shut down
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -70,8 +70,8 @@ class StrictTransportSecurityTest {
      * Waits until the MockServer responds with expectations for the given path, or times out after 2 seconds.
      */
     private void waitForMockServerReady(ClientAndServer client, String path) {
-        long deadline = System.currentTimeMillis() + 2000;
-        boolean ready = false;
+        var deadline = System.currentTimeMillis() + 2000;
+        var ready = false;
         Exception last = null;
         while (System.currentTimeMillis() < deadline && !ready) {
             // Retrieve all expectations and check path manually to avoid
@@ -90,8 +90,9 @@ class StrictTransportSecurityTest {
                 break;
             }
             try {
-                Thread.sleep(50);
+                Thread.sleep(50); //NOSONAR
             } catch (InterruptedException ignored) {
+                // swallow
             }
         }
         if (!ready) {
