@@ -30,8 +30,8 @@
     <sonar.skip>false</sonar.skip>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
     <!-- Sonar expects this one to be relative to mono-repo root: -->
-    <sonar.exclusions>crawler/fs/src/main/java/org/apache/commons/vfs2/**/*</sonar.exclusions>
-    <sonar.coverage.exclusions>crawler/fs/src/main/java/org/apache/commons/vfs2/**/*</sonar.coverage.exclusions>
+    <sonar.exclusions>**/org/apache/commons/vfs2/**/*</sonar.exclusions>
+    <sonar.coverage.exclusions>**/org/apache/commons/vfs2/**/*</sonar.coverage.exclusions>
     <shared-resources.include>scripts/**</shared-resources.include> 
       
     <commons-net.version>3.12.0</commons-net.version>
@@ -272,24 +272,11 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>prepare-agent</id>
-            <configuration>
-              <excludes>
-                <exclude>org/apache/commons/vfs2/**/*</exclude>
-              </excludes>
-            </configuration>
-          </execution>
-          <execution>
-            <id>report</id>
-            <configuration>
-              <excludes>
-                <exclude>org/apache/commons/vfs2/**/*</exclude>
-              </excludes>
-            </configuration>
-          </execution>
-        </executions>
+        <configuration>
+          <excludes>
+            <exclude>org/apache/commons/vfs2/**/*</exclude>
+          </excludes>
+        </configuration>        
       </plugin>
 
       <plugin>
