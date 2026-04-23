@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Path;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.Fetcher;
@@ -28,6 +29,7 @@ import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 import com.norconex.crawler.fs.stubs.CrawlDocStubs;
 
+@Timeout(30)
 class LocalFetcherTest extends AbstractFileFetcherTest {
 
     public static LocalFetcher fetcherClient() {
@@ -41,7 +43,7 @@ class LocalFetcherTest extends AbstractFileFetcherTest {
 
     @Override
     protected String getStartPath() {
-        return StringUtils.removeEnd(
+        return Strings.CS.removeEnd(
                 Path.of(FsTestUtil.TEST_FS_PATH)
                         .toAbsolutePath().toUri().toString(),
                 "/");

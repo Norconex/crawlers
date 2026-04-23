@@ -1,4 +1,4 @@
-/* Copyright 2021-2025 Norconex Inc.
+/* Copyright 2021-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +30,11 @@ import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.DeleteRejectedEventListener;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListenerConfig.OnMultiple;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test the stopping of a crawler upon reaching configured maximum number of
@@ -41,20 +42,25 @@ import com.norconex.crawler.web.mocks.MockWebsite;
  * {@link DeleteRejectedEventListener}.
  */
 @MockServerSettings
+@Timeout(60)
 class StopCrawlerOnMaxEventTest {
+
+    private static final int SITE_DEPTH = 50;
 
     @WebCrawlTest
     void testStopCrawlerOnMaxEvent(
-            ClientAndServer client, WebCrawlerConfig cfg) {
+            ClientAndServer client, WebCrawlConfig cfg) {
 
-        MockWebsite.whenInfiniteDepth(client);
+        MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 
         cfg.setStartReferences(List.of(
-                MockWebsite.serverUrl(client, "/stopCrawlerOnMaxEvent")));
+                MockWebsite.serverUrl(client,
+                        "/stopCrawlerOnMaxEvent")));
         var lis = new StopCrawlerOnMaxEventListener();
         lis.getConfiguration().setEventMatcher(
                 TextMatcher.csv(CommitterEvent.COMMITTER_UPSERT_END
-                        + "," + CrawlerEvent.REJECTED_FILTER));
+                        + ","
+                        + CrawlerEvent.REJECTED_FILTER));
         lis.getConfiguration().setMaximum(10);
         lis.getConfiguration().setOnMultiple(OnMultiple.SUM);
         cfg.addEventListeners(List.of(lis));
@@ -64,10 +70,12 @@ class StopCrawlerOnMaxEventTest {
         // reject references with odd depth number
         cfg.setDocumentFilters(List.of(Configurable.configure(
                 new GenericReferenceFilter(), c -> c
-                        .setValueMatcher(TextMatcher.regex(".*[13579]$"))
+                        .setValueMatcher(TextMatcher
+                                .regex(".*[13579]$"))
                         .setOnMatch(OnMatch.EXCLUDE))));
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+                .getCommitter();
 
         // Expected: 6 upserts, 0 deletes
         assertThat(mem.getUpsertCount()).isEqualTo(6);

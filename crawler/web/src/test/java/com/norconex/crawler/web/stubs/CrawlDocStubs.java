@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2024-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,7 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.map.MapUtil;
-import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetaConstants;
 
 public final class CrawlDocStubs {
@@ -38,19 +37,18 @@ public final class CrawlDocStubs {
     private CrawlDocStubs() {
     }
 
-    // Content MD5:
-    public static CrawlDoc crawlDoc(String ref) {
+    public static Doc crawlDoc(String ref) {
         return crawlDoc(ref, CRAWLDOC_CONTENT, new Object[] {});
     }
 
-    public static CrawlDoc crawlDoc(String ref, String content) {
+    public static Doc crawlDoc(String ref, String content) {
         return crawlDoc(ref, content, new Object[] {});
     }
 
-    public static CrawlDoc crawlDoc(
+    public static Doc crawlDoc(
             String ref, String content, Object... metaKeyValues) {
-        var doc = new CrawlDoc(
-                new WebCrawlDocContext(ref),
+        @SuppressWarnings("resource")
+        var doc = new Doc(ref).setInputStream(
                 new CachedStreamFactory().newInputStream(
                         IOUtils.toInputStream(content, UTF_8)));
         if (ArrayUtils.isNotEmpty(metaKeyValues)) {
@@ -59,34 +57,36 @@ public final class CrawlDocStubs {
         return doc;
     }
 
-    public static CrawlDoc crawlDocWithCache(
+    /**
+     * Creates a document stub that simulates a previously-crawled document
+     * (i.e., the same reference processed a second time).
+     * The "cache" concept has been replaced by the crawl entry ledger in the
+     * new API; this method simply returns a {@link Doc} with the given content.
+     * @param ref doc reference
+     * @param content doc content
+     * @param metaKeyValues doc metadata key and values
+     * @return document
+     */
+    public static Doc crawlDocWithCache(
             String ref, String content, Object... metaKeyValues) {
-        var doc = new CrawlDoc(
-                new WebCrawlDocContext(ref),
-                new WebCrawlDocContext(ref),
-                new CachedStreamFactory().newInputStream(
-                        IOUtils.toInputStream(content, UTF_8)));
-        if (ArrayUtils.isNotEmpty(metaKeyValues)) {
-            doc.getMetadata().loadFromMap(MapUtil.toMap(metaKeyValues));
-        }
-        return doc;
+        return crawlDoc(ref, content, metaKeyValues);
     }
 
-    public static CrawlDoc crawlDocHtml(String ref) {
+    public static Doc crawlDocHtml(String ref) {
         return crawlDocHtml(ref, "Sample HTML content.");
     }
 
-    public static CrawlDoc crawlDocHtml(String ref, String content) {
+    public static Doc crawlDocHtml(String ref, String content) {
         return crawlDoc(
                 ref, ContentType.HTML,
                 IOUtils.toInputStream(content, UTF_8));
     }
 
-    public static CrawlDoc crawlDoc(
+    public static Doc crawlDoc(
             String ref, ContentType ct, InputStream is) {
-        var docRecord = new WebCrawlDocContext(ref);
-        docRecord.setContentType(ct);
-        var doc = new CrawlDoc(docRecord, CachedInputStream.cache(is));
+        @SuppressWarnings("resource")
+        var doc = new Doc(ref).setInputStream(CachedInputStream.cache(is));
+        doc.setContentType(ct);
         doc.getMetadata().set(DocMetaConstants.CONTENT_TYPE, ct);
         return doc;
     }

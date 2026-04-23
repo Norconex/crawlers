@@ -6,7 +6,7 @@
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,28 +23,25 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import javax.mail.Address;
-import javax.mail.Header;
-import javax.mail.Message.RecipientType;
-import javax.mail.MessagingException;
-import javax.mail.Part;
-import javax.mail.internet.MimeMessage;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import lombok.Generated;
+import jakarta.mail.Address;
+import jakarta.mail.Header;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Part;
+import jakarta.mail.internet.MimeMessage;
 
 /**
  * A map which tries to allow access to the various aspects of the mail.
  */
-@Generated // to exclude from code coverage
+@lombok.Generated
 public class MimeAttributesMap implements Map<String, Object> {
     private static final String OBJECT_PREFIX = "obj.";
 
@@ -77,12 +74,19 @@ public class MimeAttributesMap implements Map<String, Object> {
         }
     }
 
-    private Map<String, Object> getMap() {
-        if (backingMap == null) {
-            backingMap = createMap();
-        }
+    @Override
+    public void clear() {
+        throw new UnsupportedOperationException();
+    }
 
-        return backingMap;
+    @Override
+    public boolean containsKey(final Object key) {
+        return getMap().containsKey(key);
+    }
+
+    @Override
+    public boolean containsValue(final Object value) {
+        return getMap().containsValue(value);
     }
 
     private Map<String, Object> createMap() {
@@ -118,10 +122,7 @@ public class MimeAttributesMap implements Map<String, Object> {
             }
         }
 
-        // add all simple get/is results (with obj. prefix)
-        final Iterator<Entry<String, Method>> iterEntries = mimeMessageGetters.entrySet().iterator();
-        while (iterEntries.hasNext()) {
-            final Map.Entry<String, Method> entry = iterEntries.next();
+        for (final Entry<String, Method> entry : mimeMessageGetters.entrySet()) {
             final String name = entry.getKey();
             final Method method = entry.getValue();
 
@@ -137,19 +138,19 @@ public class MimeAttributesMap implements Map<String, Object> {
         if (part instanceof MimeMessage) {
             final MimeMessage message = (MimeMessage) part;
             try {
-                final Address[] address = message.getRecipients(RecipientType.BCC);
+                final Address[] address = message.getRecipients(Message.RecipientType.BCC);
                 ret.put(OBJECT_PREFIX + "Recipients.BCC", address);
             } catch (final MessagingException e) {
                 log.debug(e.getLocalizedMessage(), e);
             }
             try {
-                final Address[] address = message.getRecipients(RecipientType.CC);
+                final Address[] address = message.getRecipients(Message.RecipientType.CC);
                 ret.put(OBJECT_PREFIX + "Recipients.CC", address);
             } catch (final MessagingException e) {
                 log.debug(e.getLocalizedMessage(), e);
             }
             try {
-                final Address[] address = message.getRecipients(RecipientType.TO);
+                final Address[] address = message.getRecipients(Message.RecipientType.TO);
                 ret.put(OBJECT_PREFIX + "Recipients.TO", address);
             } catch (final MessagingException e) {
                 log.debug(e.getLocalizedMessage(), e);
@@ -166,8 +167,21 @@ public class MimeAttributesMap implements Map<String, Object> {
     }
 
     @Override
-    public int size() {
-        return getMap().size();
+    public Set<Entry<String, Object>> entrySet() {
+        return Collections.unmodifiableSet(getMap().entrySet());
+    }
+
+    @Override
+    public Object get(final Object key) {
+        return getMap().get(key);
+    }
+
+    private Map<String, Object> getMap() {
+        if (backingMap == null) {
+            backingMap = createMap();
+        }
+
+        return backingMap;
     }
 
     @Override
@@ -176,27 +190,12 @@ public class MimeAttributesMap implements Map<String, Object> {
     }
 
     @Override
-    public boolean containsKey(final Object key) {
-        return getMap().containsKey(key);
-    }
-
-    @Override
-    public boolean containsValue(final Object value) {
-        return getMap().containsValue(value);
-    }
-
-    @Override
-    public Object get(final Object key) {
-        return getMap().get(key);
+    public Set<String> keySet() {
+        return Collections.unmodifiableSet(getMap().keySet());
     }
 
     @Override
     public Object put(final String key, final Object value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Object remove(final Object key) {
         throw new UnsupportedOperationException();
     }
 
@@ -206,22 +205,17 @@ public class MimeAttributesMap implements Map<String, Object> {
     }
 
     @Override
-    public void clear() {
+    public Object remove(final Object key) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Set<String> keySet() {
-        return Collections.unmodifiableSet(getMap().keySet());
+    public int size() {
+        return getMap().size();
     }
 
     @Override
     public Collection<Object> values() {
         return Collections.unmodifiableCollection(getMap().values());
-    }
-
-    @Override
-    public Set<Entry<String, Object>> entrySet() {
-        return Collections.unmodifiableSet(getMap().entrySet());
     }
 }

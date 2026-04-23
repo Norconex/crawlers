@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,22 @@
  */
 package com.norconex.crawler.fs.doc.pipelines.importer.stages;
 
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.doc.pipelines.importer.stages.AbstractImporterStage;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchUtil;
-import com.norconex.crawler.fs.doc.FsCrawlDocContext;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
+import com.norconex.crawler.fs.doc.FsDocMetadata;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.FileFetchResponse;
+import com.norconex.crawler.fs.ledger.FsCrawlEntry;
 import com.norconex.importer.doc.DocMetaConstants;
 
 import lombok.NonNull;
@@ -57,65 +60,84 @@ public class FileFetchStage extends AbstractImporterStage {
             return true;
         }
 
-        var docRecord = (FsCrawlDocContext) pipeCtx.getDoc().getDocContext();
-        var fetcher = pipeCtx.getCrawlContext().getFetcher();
+        var docContext = pipeCtx.getDocContext();
+        var fsEntry = (FsCrawlEntry) docContext.getCurrentCrawlEntry();
+        var doc = docContext.getDoc();
+        var crawlSession = pipeCtx.getCrawlSession();
+        var crawlContext = crawlSession.getCrawlContext();
+        var fetcher = crawlContext.getFetcher();
         FileFetchResponse response;
         try {
             response = (FileFetchResponse) fetcher.fetch(
-                    new FileFetchRequest(
-                            pipeCtx.getDoc(), getFetchDirective()));
+                    new FileFetchRequest(doc, getFetchDirective()));
         } catch (FetchException e) {
             throw new CrawlerException("Could not fetch file: "
-                    + pipeCtx.getDoc().getDocContext().getReference(), e);
+                    + docContext.getReference(), e);
         }
-        var originalCrawlDocState = docRecord.getState();
+        var originalOutcome = fsEntry.getProcessingOutcome();
+        var previousEntry = docContext.getPreviousCrawlEntry();
 
-        docRecord.setCrawlDate(ZonedDateTime.now());
-        docRecord.setFile(response.isFile());
-        docRecord.setFolder(response.isFolder());
+        fsEntry.setProcessedAt(ZonedDateTime.now());
+        fsEntry.setFile(response.isFile());
+        fsEntry.setFolder(response.isFolder());
+
+        var lastModifiedMillis = doc.getMetadata()
+                .getLong(FsDocMetadata.LAST_MODIFIED);
+        fsEntry.setLastModified(lastModifiedMillis != null
+                ? ZonedDateTime.ofInstant(
+                        Instant.ofEpochMilli(lastModifiedMillis),
+                        ZoneOffset.UTC)
+                : previousEntry != null
+                        ? previousEntry.getLastModified()
+                : null);
+        fsEntry.setContentType(doc.getContentType() != null
+                ? doc.getContentType()
+                : previousEntry != null
+                        ? previousEntry.getContentType()
+                : null);
+        fsEntry.setCharset(doc.getCharset() != null
+                ? doc.getCharset()
+                : previousEntry != null
+                        ? previousEntry.getCharset()
+                : null);
 
         //--- Add collector-specific metadata ---
-        var meta = pipeCtx.getDoc().getMetadata();
-        meta.set(DocMetaConstants.CONTENT_TYPE, docRecord.getContentType());
-        meta.set(DocMetaConstants.CONTENT_ENCODING, docRecord.getCharset());
+        var meta = doc.getMetadata();
+        meta.set(DocMetaConstants.CONTENT_TYPE, doc.getContentType());
+        meta.set(DocMetaConstants.CONTENT_ENCODING, doc.getCharset());
 
-        var state = response.getResolutionStatus();
-        //TODO really do here??  or just do it if different than response?
-        docRecord.setState(state);
+        var outcome = response.getProcessingOutcome();
+        fsEntry.setProcessingOutcome(outcome);
 
-        if (state.isGoodState()) {
-            pipeCtx.getCrawlContext().fire(CrawlerEvent.builder()
+        if (outcome.isGoodState()) {
+            crawlSession.fire(CrawlerEvent.builder()
                     .name(FetchDirective.METADATA.is(
                             getFetchDirective())
                                     ? CrawlerEvent.DOCUMENT_METADATA_FETCHED
                                     : CrawlerEvent.DOCUMENT_FETCHED)
-                    .source(pipeCtx.getCrawlContext())
-                    .subject(response)
-                    .docContext(docRecord)
+                    .source(crawlSession)
+                    .crawlSession(crawlSession)
+                    .crawlEntry(fsEntry)
                     .build());
             return true;
         }
 
-        String eventType = null;
-        if (state.isOneOf(CrawlDocStatus.NOT_FOUND)) {
+        String eventType;
+        if (outcome.isOneOf(ProcessingOutcome.NOT_FOUND)) {
             eventType = CrawlerEvent.REJECTED_NOTFOUND;
         } else {
             eventType = CrawlerEvent.REJECTED_BAD_STATUS;
         }
 
-        pipeCtx.getCrawlContext().fire(
+        crawlSession.fire(
                 CrawlerEvent.builder()
                         .name(eventType)
-                        .source(pipeCtx.getCrawlContext())
-                        .subject(response)
-                        .docContext(docRecord)
+                        .source(crawlSession)
+                        .crawlSession(crawlSession)
+                        .crawlEntry(fsEntry)
                         .build());
 
-        // At this stage, the ref is either unsupported or with a bad status.
-        // In either case, whether we break the pipeline or not (returning
-        // false or true) depends on the fetch methods supported.
         return FetchUtil.shouldContinueOnBadStatus(
-                pipeCtx.getCrawlContext(), originalCrawlDocState,
-                getFetchDirective());
+                crawlContext, originalOutcome, getFetchDirective());
     }
 }

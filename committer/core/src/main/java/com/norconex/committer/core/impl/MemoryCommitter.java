@@ -1,4 +1,4 @@
-/* Copyright 2019-2025 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -164,13 +164,11 @@ public class MemoryCommitter extends AbstractCommitter<MemoryCommitterConfig> {
             } else {
                 memMetadata.loadFromMap(
                         reqMetadata.entrySet().stream()
-                                .filter(
-                                        en -> configuration.getFieldMatcher()
-                                                .matches(en.getKey()))
-                                .collect(
-                                        Collectors.toMap(
-                                                Entry::getKey,
-                                                Entry::getValue)));
+                                .filter(en -> configuration.getFieldMatcher()
+                                        .matches(en.getKey()))
+                                .collect(Collectors.toMap(
+                                        Entry::getKey,
+                                        Entry::getValue)));
             }
         }
         return memMetadata;

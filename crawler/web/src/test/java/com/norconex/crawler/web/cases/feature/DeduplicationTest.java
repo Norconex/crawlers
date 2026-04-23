@@ -1,4 +1,4 @@
-/* Copyright 2021-2025 Norconex Inc.
+/* Copyright 2021-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,20 +30,21 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
-import com.norconex.grid.local.LocalGridConnector;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test detection of duplicate files within crawling session.
  */
 @MockServerSettings
+@Timeout(30)
 class DeduplicationTest {
 
     @WebCrawlTest
-    void testDeduplication(ClientAndServer client, WebCrawlerConfig cfg) {
+    void testDeduplication(ClientAndServer client, WebCrawlConfig cfg) {
         var homePath = "/dedup";
         var noDuplPath = "/dedup/1-noDupl";
         var metaDuplPath = "/dedup/2-meta";
@@ -108,10 +109,6 @@ class DeduplicationTest {
         cfg.setStartReferences(List.of(serverUrl(client, homePath)));
         cfg.setMetadataDeduplicate(true);
         cfg.setDocumentDeduplicate(true);
-
-        ((LocalGridConnector) cfg.getGridConnector()).getConfiguration()
-                .setAutoCommitBufferSize(1L)
-                .setAutoCommitDelay(1L);
 
         var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 

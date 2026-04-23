@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,14 @@
  */
 package com.norconex.crawler.web.mocks;
 
-import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.apache.commons.lang3.StringUtils.leftPad;
-import static org.apache.commons.lang3.StringUtils.prependIfMissing;
-import static org.apache.commons.lang3.StringUtils.removeEnd;
 import static org.apache.commons.lang3.StringUtils.substringBeforeLast;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.model.MediaType.HTML_UTF_8;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.mock.Expectation;
@@ -48,7 +46,16 @@ public final class MockWebsite {
     public static void whenInfiniteDepth(ClientAndServer client) {
         client
                 .when(request())
-                .respond(MockWebsite.responseWithInfiniteDepth());
+                .respond(MockWebsite
+                        .responseWithInfiniteDepth());
+    }
+
+    public static void whenBoundedDepth(
+            ClientAndServer client, int maxDepthInclusive) {
+        client
+                .when(request())
+                .respond(MockWebsite.responseWithBoundedDepth(
+                        maxDepthInclusive));
     }
 
     public static void whenJsRenderedWebsite(ClientAndServer client) {
@@ -74,21 +81,25 @@ public final class MockWebsite {
         private final ClientAndServer client;
 
         private ResourceWebSite(
-                ClientAndServer client, String resourceBasePath) {
+                ClientAndServer client,
+                String resourceBasePath) {
             this.client = client;
-            this.resourceBasePath = removeEnd(resourceBasePath, "/");
+            this.resourceBasePath =
+                    Strings.CS.removeEnd(resourceBasePath,
+                            "/");
         }
 
         public ResourceWebSite whenHtml(String path) {
-            var p = prependIfMissing(path, "/");
+            var p = Strings.CS.prependIfMissing(path, "/");
             MockWebsite.whenHtml(
                     client, p,
-                    new TestResource(resourceBasePath + p).asString());
+                    new TestResource(resourceBasePath + p)
+                            .asString());
             return this;
         }
 
         public ResourceWebSite whenPDF(String path) {
-            var p = prependIfMissing(path, "/");
+            var p = Strings.CS.prependIfMissing(path, "/");
             MockWebsite.whenPDF(
                     client, p,
                     new TestResource(resourceBasePath + p));
@@ -96,7 +107,7 @@ public final class MockWebsite {
         }
 
         public ResourceWebSite whenJPG(String path) {
-            var p = prependIfMissing(path, "/");
+            var p = Strings.CS.prependIfMissing(path, "/");
             MockWebsite.whenJPG(
                     client, p,
                     new TestResource(resourceBasePath + p));
@@ -113,8 +124,9 @@ public final class MockWebsite {
     public static ExpectationResponseCallback responseWithInfiniteDepth() {
         return req -> {
             var reqPath = req.getPath().toString();
-            var numStr = StringUtils.substringAfterLast(reqPath, "/");
-            var basePath = appendIfMissing(
+            var numStr = StringUtils.substringAfterLast(reqPath,
+                    "/");
+            var basePath = Strings.CS.appendIfMissing(
                     substringBeforeLast(reqPath, "/"), "/");
             var curDepth = 0;
             if (NumberUtils.isDigits(numStr)) {
@@ -123,11 +135,15 @@ public final class MockWebsite {
 
             var prevLink = "";
             if (curDepth > 0) {
-                var beforeNum = leftPad(Integer.toString(curDepth - 1), 4, '0');
+                var beforeNum = leftPad(
+                        Integer.toString(curDepth - 1),
+                        4, '0');
                 prevLink = "<a href=\"%s\">Previous</a> | "
-                        .formatted(basePath + beforeNum);
+                        .formatted(basePath
+                                + beforeNum);
             }
-            var afterNum = leftPad(Integer.toString(curDepth + 1), 4, '0');
+            var afterNum = leftPad(Integer.toString(curDepth + 1),
+                    4, '0');
             var nextLink = " | <a href=\"%s\">Next</a>"
                     .formatted(basePath + afterNum);
             return response().withBody(
@@ -137,7 +153,57 @@ public final class MockWebsite {
                                     %s Current page depth: %s %s
                                     """
                                     .formatted(
-                                            reqPath, prevLink, curDepth,
+                                            reqPath,
+                                            prevLink,
+                                            curDepth,
+                                            nextLink))
+                            .build(),
+                    HTML_UTF_8);
+        };
+    }
+
+    public static ExpectationResponseCallback responseWithBoundedDepth(
+            int maxDepthInclusive) {
+        return req -> {
+            var reqPath = req.getPath().toString();
+            var numStr = StringUtils.substringAfterLast(reqPath,
+                    "/");
+            var basePath = Strings.CS.appendIfMissing(
+                    substringBeforeLast(reqPath, "/"), "/");
+            var curDepth = 0;
+            if (NumberUtils.isDigits(numStr)) {
+                curDepth = Integer.parseInt(numStr);
+            }
+
+            var prevLink = "";
+            if (curDepth > 0) {
+                var beforeNum = leftPad(
+                        Integer.toString(curDepth - 1),
+                        4, '0');
+                prevLink = "<a href=\"%s\">Previous</a> | "
+                        .formatted(basePath
+                                + beforeNum);
+            }
+
+            var nextLink = "";
+            if (curDepth < maxDepthInclusive) {
+                var afterNum = leftPad(
+                        Integer.toString(curDepth + 1),
+                        4, '0');
+                nextLink = " | <a href=\"%s\">Next</a>"
+                        .formatted(basePath + afterNum);
+            }
+
+            return response().withBody(
+                    MockWebsite.htmlPage().body(
+                            """
+                                    <h1>%s test page</h1>
+                                    %s Current page depth: %s %s
+                                    """
+                                    .formatted(
+                                            reqPath,
+                                            prevLink,
+                                            curDepth,
                                             nextLink))
                             .build(),
                     HTML_UTF_8);
@@ -146,19 +212,21 @@ public final class MockWebsite {
 
     public static String secureServerUrl(
             ClientAndServer client, String urlPath) {
-        return serverUrl(client, urlPath).replace("http://", "https://");
+        return serverUrl(client, urlPath).replace("http://",
+                "https://");
     }
 
     public static String serverUrl(ClientAndServer client, String urlPath) {
         return "http://localhost:%s%s".formatted(
                 client.getLocalPort(),
-                StringUtils.prependIfMissing(urlPath, "/"));
+                Strings.CS.prependIfMissing(urlPath, "/"));
     }
 
     public static String serverUrl(HttpRequest request, String urlPath) {
         return "http://localhost:%s%s".formatted(
-                StringUtils.substringAfterLast(request.getLocalAddress(), ":"),
-                StringUtils.prependIfMissing(urlPath, "/"));
+                StringUtils.substringAfterLast(
+                        request.getLocalAddress(), ":"),
+                Strings.CS.prependIfMissing(urlPath, "/"));
     }
 
     public static Expectation[] whenHtml(
@@ -167,45 +235,56 @@ public final class MockWebsite {
                 .when(request().withPath(urlPath))
                 .respond(
                         response().withBody(
-                                MockWebsite.htmlPage().body(body).build(),
+                                MockWebsite.htmlPage()
+                                        .body(body)
+                                        .build(),
                                 HTML_UTF_8));
     }
 
     public static Expectation[] whenHtml(
-            ClientAndServer client, String urlPath, TestResource resource) {
+            ClientAndServer client, String urlPath,
+            TestResource resource) {
         return client
                 .when(request().withPath(urlPath))
-                .respond(response().withBody(resource.asString(), HTML_UTF_8));
+                .respond(response().withBody(
+                        resource.asString(),
+                        HTML_UTF_8));
     }
 
     public static Expectation[] whenPNG(
-            ClientAndServer client, String urlPath, TestResource resource) {
+            ClientAndServer client, String urlPath,
+            TestResource resource) {
         return client
                 .when(request().withPath(urlPath))
                 .respond(
                         response().withBody(
                                 BinaryBody.binary(
-                                        resource.asBytes(), MediaType.PNG)));
+                                        resource.asBytes(),
+                                        MediaType.PNG)));
     }
 
     public static Expectation[] whenJPG(
-            ClientAndServer client, String urlPath, TestResource resource) {
+            ClientAndServer client, String urlPath,
+            TestResource resource) {
         return client
                 .when(request().withPath(urlPath))
                 .respond(
                         response().withBody(
                                 BinaryBody.binary(
-                                        resource.asBytes(), MediaType.JPEG)));
+                                        resource.asBytes(),
+                                        MediaType.JPEG)));
     }
 
     public static Expectation[] whenPDF(
-            ClientAndServer client, String urlPath, TestResource resource) {
+            ClientAndServer client, String urlPath,
+            TestResource resource) {
         return client
                 .when(request().withPath(urlPath))
                 .respond(
                         response().withBody(
                                 BinaryBody.binary(
-                                        resource.asBytes(), MediaType.PDF)));
+                                        resource.asBytes(),
+                                        MediaType.PDF)));
     }
 
     public static String htmlWithBody(String body) {

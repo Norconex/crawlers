@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ package com.norconex.crawler.fs.fetch.impl;
 
 import java.util.Set;
 
-import com.norconex.crawler.core.doc.CrawlDocStatus;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.fs.fetch.FolderPathsFetchResponse;
 import com.norconex.crawler.fs.fetch.FsPath;
 
@@ -28,7 +28,7 @@ import lombok.Data;
 @Data
 public class GenericFolderPathsFetchResponse
         implements FolderPathsFetchResponse {
-    private CrawlDocStatus resolutionStatus;
+    private ProcessingOutcome processingOutcome;
     private int statusCode;
     private String reasonPhrase;
     private Exception exception;

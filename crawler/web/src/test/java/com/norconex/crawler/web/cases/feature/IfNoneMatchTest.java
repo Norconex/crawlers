@@ -1,4 +1,4 @@
-/* Copyright 2021-2024 Norconex Inc.
+/* Copyright 2021-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,10 +29,11 @@ import org.mockserver.matchers.Times;
 import org.mockserver.model.HttpStatusCode;
 
 import com.norconex.committer.core.CommitterException;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Tests that the ETag "If-None-Match" is supported properly.
@@ -49,12 +50,13 @@ import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
  */
 //Test for https://github.com/Norconex/collector-http/issues/182
 @MockServerSettings
+@Timeout(60)
 class IfNoneMatchTest {
 
     private String path = "/ifNoneMatch";
 
     @WebCrawlTest
-    void testIfNoneMatch(ClientAndServer client, WebCrawlerConfig cfg)
+    void testIfNoneMatch(ClientAndServer client, WebCrawlConfig cfg)
             throws CommitterException {
 
         cfg.setStartReferences(List.of(serverUrl(client, path)));

@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
@@ -66,13 +67,7 @@ import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategize
 import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.junit.CrawlTestCapturer;
-import com.norconex.crawler.core.junit.CrawlTestCapturer.CrawlCaptures;
-import com.norconex.crawler.core.session.CrawlContext;
 import com.norconex.crawler.fs.doc.operations.checksum.FsMetadataChecksummer;
-import com.norconex.crawler.fs.mock.MockFsCrawlerBuilder;
-import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.GridConnector;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.doc.Doc;
 
@@ -83,9 +78,9 @@ public final class FsTestUtil {
     public static final String TEST_CRAWLER_ID = "test-crawler";
     public static final String TEST_CRAWL_SESSION_ID = "test-session";
     public static final String TEST_KEYSTORE_PATH =
-            "src/test/resources/keystore.jks";
+            resolvePath("src/test/resources/keystore.jks");
     public static final String TEST_FS_PATH =
-            "src/test/resources/mock-fs";
+            resolvePath("src/test/resources/mock-fs");
 
     private static EasyRandom easyRandom = new EasyRandom(
             new EasyRandomParameters()
@@ -97,38 +92,48 @@ public final class FsTestUtil {
                     .randomize(
                             File.class,
                             () -> new File(
-                                    new StringRandomizer(100).getRandomValue()))
+                                    new StringRandomizer(
+                                            100).getRandomValue()))
                     .randomize(
                             Path.class,
                             () -> Path.of(
-                                    new StringRandomizer(100).getRandomValue()))
+                                    new StringRandomizer(
+                                            100).getRandomValue()))
                     .randomize(
                             Long.class,
                             () -> Math
-                                    .abs(new LongRandomizer().getRandomValue()))
+                                    .abs(new LongRandomizer()
+                                            .getRandomValue()))
                     .randomize(
                             Integer.class,
                             () -> Math.abs(
-                                    new IntegerRandomizer().getRandomValue()))
-                    .randomize(ImporterConfig.class, ImporterConfig::new)
+                                    new IntegerRandomizer()
+                                            .getRandomValue()))
+                    .randomize(ImporterConfig.class,
+                            ImporterConfig::new)
                     .randomize(
                             UpsertRequest.class,
                             () -> new UpsertRequest(
-                                    new StringRandomizer(100).getRandomValue(),
+                                    new StringRandomizer(
+                                            100).getRandomValue(),
                                     new Properties(),
                                     new NullInputStream()))
                     .randomize(
                             DeleteRequest.class,
                             () -> new DeleteRequest(
-                                    new StringRandomizer(100).getRandomValue(),
+                                    new StringRandomizer(
+                                            100).getRandomValue(),
                                     new Properties()))
-                    .randomize(Committer.class, MemoryCommitter::new)
+                    .randomize(Committer.class,
+                            MemoryCommitter::new)
                     .randomize(
                             SpoiledReferenceStrategizer.class,
                             GenericSpoiledReferenceStrategizer::new)
                     .randomize(
-                            AtomicBoolean.class, () -> new AtomicBoolean(
-                                    new BooleanRandomizer().getRandomValue()))
+                            AtomicBoolean.class,
+                            () -> new AtomicBoolean(
+                                    new BooleanRandomizer()
+                                            .getRandomValue()))
                     .randomize(
                             ReferenceFilter.class,
                             randomInstanceOf(
@@ -155,8 +160,6 @@ public final class FsTestUtil {
                             DocumentChecksummer.class,
                             Md5DocumentChecksummer::new)
 
-                    .excludeType(Grid.class::equals)
-                    .excludeType(GridConnector.class::equals)
                     .excludeType(StandardFileSystemManager.class::equals)
                     .excludeType(FileSystemOptions.class::equals)
                     .excludeType(ReferencesProvider.class::equals)
@@ -167,6 +170,18 @@ public final class FsTestUtil {
     // and make it a usable test artifact?
 
     private FsTestUtil() {
+    }
+
+    private static String resolvePath(String relativePath) {
+        var modulePath = Path.of("crawler", "fs").resolve(relativePath);
+        if (java.nio.file.Files.exists(modulePath)) {
+            return modulePath.toString();
+        }
+        var path = Path.of(relativePath);
+        if (java.nio.file.Files.exists(path)) {
+            return path.toString();
+        }
+        return relativePath;
     }
 
     public static <T> T randomize(Class<T> cls) {
@@ -185,7 +200,8 @@ public final class FsTestUtil {
             @NonNull String ref,
             @NonNull String fieldName) {
         return getUpsertRequest(mem, ref)
-                .map(req -> req.getMetadata().getString(fieldName))
+                .map(req -> req.getMetadata()
+                        .getString(fieldName))
                 .orElse(null);
     }
 
@@ -268,30 +284,30 @@ public final class FsTestUtil {
     }
 
     public static String resourceAsString(String resourcePath) {
-        return toString(FsTestUtil.class.getResourceAsStream(resourcePath));
+        return toString(FsTestUtil.class
+                .getResourceAsStream(resourcePath));
     }
 
     public static MemoryCommitter
-            firstCommitter(@NonNull CrawlContext crawler) {
-        return (MemoryCommitter) crawler.getCrawlConfig().getCommitters()
-                .get(0);
-    }
-
-    public static MemoryCommitter firstCommitter(@NonNull Crawler crawler) {
+            firstCommitter(@NonNull Crawler crawler) {
         return (MemoryCommitter) crawler
                 .getCrawlConfig()
                 .getCommitters()
                 .get(0);
     }
 
-    public static CrawlCaptures crawlWithFetcher(
+    public static MemoryCommitter crawlWithFetcher(
             Path tempDir, Fetcher fetcher, String... refs)
             throws Exception {
-        return CrawlTestCapturer.capture(new MockFsCrawlerBuilder(tempDir)
-                .configModifier(cfg -> cfg
-                        .setStartReferences(List.of(refs))
-                        .setFetchers(List.of(fetcher)))
-                .crawler(), Crawler::crawl);
+        var mem = new MemoryCommitter();
+        var config = new CrawlConfig()
+                .setId("test-crawler")
+                .setWorkDir(tempDir)
+                .setStartReferences(List.of(refs))
+                .setFetchers(List.of(fetcher))
+                .setCommitters(List.of(mem));
+        new Crawler(FsCrawlDriverFactory.create(), config).crawl();
+        return mem;
     }
 
     public static int freePort() {
@@ -309,7 +325,8 @@ public final class FsTestUtil {
         return () -> {
             if (subtypes.length == 0)
                 return null;
-            var index = ThreadLocalRandom.current().nextInt(subtypes.length);
+            var index = ThreadLocalRandom.current()
+                    .nextInt(subtypes.length);
             return easyRandom.nextObject(subtypes[index]);
         };
     }

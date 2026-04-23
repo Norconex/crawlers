@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,10 @@ import org.apache.commons.vfs2.FileSystemOptions;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.Xml;
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher;
+import com.norconex.importer.doc.Doc;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -60,7 +60,7 @@ public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
     private final CmisFetcherConfig configuration = new CmisFetcherConfig();
 
     @Override
-    protected void fetchMetadata(CrawlDoc doc, @NonNull FileObject fileObject)
+    protected void fetchMetadata(Doc doc, @NonNull FileObject fileObject)
             throws FileSystemException {
         super.fetchMetadata(doc, fileObject);
 

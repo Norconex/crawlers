@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,14 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.importer.handler.transformer.impl.Constant;
 import com.norconex.importer.handler.transformer.impl.ConstantTransformer;
 import com.norconex.importer.response.DummyResponseProcessor;
 
+@Timeout(30)
 class ImporterConfigTest {
 
     @TempDir

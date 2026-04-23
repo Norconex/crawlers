@@ -1,4 +1,4 @@
-/* Copyright 2025 Norconex Inc.
+/* Copyright 2025-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,17 @@
  */
 package com.norconex.crawler.core.session;
 
+/**
+ * Whether we are executing a full or incremental crawler run.
+ */
 public enum CrawlMode {
+    /**
+     * Disregard any previous crawl and crawl as if it was the first time.
+     */
     FULL,
+    /**
+     * Crawl taking into account previously crawled documents and only
+     * commit those that have been added, removed, or modified.
+     */
     INCREMENTAL
 }

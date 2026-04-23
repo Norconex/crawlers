@@ -1,4 +1,4 @@
-/* Copyright 2015-2025 Norconex Inc.
+/* Copyright 2015-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,7 +109,7 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
     public void split(DocHandlerContext docCtx) throws DocHandlerException {
 
         if (!MatchUtil.matchesContentType(
-                configuration.getContentTypeMatcher(), docCtx.docContext())) {
+                configuration.getContentTypeMatcher(), docCtx.contentType())) {
             return;
         }
 
@@ -118,22 +118,18 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
             docCtx.childDocs();
             docCtx.metadata().matchKeys(
                     configuration.getFieldMatcher())
-                    .forEach(
-                            (k, vals) -> vals.forEach(
-                                    v -> parse(
-                                            docCtx,
-                                            Jsoup.parse(
-                                                    v, docCtx.reference(),
-                                                    DomUtil.toJSoupParser(
-                                                            configuration
-                                                                    .getParser())))));
+                    .forEach((k, vals) -> vals.forEach(
+                            v -> parse(docCtx, Jsoup.parse(
+                                    v, docCtx.reference(),
+                                    DomUtil.toJSoupParser(
+                                            configuration.getParser())))));
         } else {
             // Body
             try {
                 var inputCharset = CharsetUtil.firstNonNullOrUTF8(
                         docCtx.parseState(),
                         configuration.getSourceCharset(),
-                        docCtx.docContext().getCharset());
+                        docCtx.charset());
                 var soupDoc = Jsoup.parse(
                         docCtx.input().asInputStream(),
                         inputCharset.toString(),
@@ -176,9 +172,11 @@ public class DomSplitter extends AbstractDocumentSplitter<DomSplitterConfig> {
             } else {
                 content = docCtx.streamFactory().newInputStream();
             }
-            var childDoc = new Doc(childRef, content, childMeta);
-            var childInfo = childDoc.getDocContext();
-            childInfo.addEmbeddedParentReference(docCtx.reference());
+            @SuppressWarnings("resource")
+            var childDoc = new Doc(childRef)
+                    .setInputStream(content)
+                    .setMetadata(childMeta)
+                    .addParentReference(docCtx.reference());
             childMeta.set(DocMetaConstants.EMBEDDED_REFERENCE, childEmbedRef);
             docs.add(childDoc);
         }

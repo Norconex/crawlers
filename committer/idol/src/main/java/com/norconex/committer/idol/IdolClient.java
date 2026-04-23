@@ -1,4 +1,4 @@
-/* Copyright 2020-2024 Norconex Inc.
+/* Copyright 2020-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  */
 package com.norconex.committer.idol;
 
-import static org.apache.commons.lang3.StringUtils.contains;
-
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -30,6 +28,7 @@ import java.util.Objects;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,8 +132,9 @@ class IdolClient {
             var response = IOUtils.toString(
                     con.getInputStream(), StandardCharsets.UTF_8);
             LOG.debug("Server Response Text: {}", response);
-            if ((config.isCfs() && !contains(response, "SUCCESS"))
-                    || (!config.isCfs() && !contains(response, "INDEXID"))) {
+            if ((config.isCfs() && !Strings.CS.contains(response, "SUCCESS"))
+                    || (!config.isCfs()
+                            && !Strings.CS.contains(response, "INDEXID"))) {
                 throw new CommitterException(
                         "Unexpected HTTP response: " + response);
             }

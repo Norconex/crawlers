@@ -1,4 +1,4 @@
-/* Copyright 2022-2025 Norconex Inc.
+/* Copyright 2022-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.fetch.impl.httpclient;
 
-import com.norconex.crawler.core.doc.CrawlDocStatus;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.web.fetch.WebFetchResponse;
 
 import lombok.Builder;
@@ -27,7 +27,7 @@ import lombok.Data;
 @Builder
 @Data
 public class HttpClientFetchResponse implements WebFetchResponse {
-    private CrawlDocStatus resolutionStatus;
+    private ProcessingOutcome processingOutcome;
     private int statusCode;
     private String reasonPhrase;
     private Exception exception;

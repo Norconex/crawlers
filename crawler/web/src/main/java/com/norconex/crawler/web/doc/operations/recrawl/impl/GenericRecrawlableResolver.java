@@ -1,4 +1,4 @@
-/* Copyright 2016-2025 Norconex Inc.
+/* Copyright 2016-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,12 +28,12 @@ import org.apache.commons.lang3.math.NumberUtils;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.time.DurationFormatter;
 import com.norconex.commons.lang.time.DurationParser;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.recrawl.RecrawlableResolver;
 import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableResolverConfig.MinFrequency;
-import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableResolverConfig.SitemapSupport;
 import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableResolverConfig.MinFrequency.ApplyTo;
+import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableResolverConfig.SitemapSupport;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapChangeFrequency;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -80,10 +80,10 @@ public class GenericRecrawlableResolver implements
             new GenericRecrawlableResolverConfig();
 
     @Override
-    public boolean isRecrawlable(WebCrawlDocContext prevData) {
+    public boolean isRecrawlable(WebCrawlEntry prevData) {
 
         // if never crawled: yes, crawl it
-        if (prevData.getCrawlDate() == null) {
+        if (prevData.getProcessedAt() == null) {
             return true;
         }
 
@@ -112,12 +112,14 @@ public class GenericRecrawlableResolver implements
         return true;
     }
 
-    private MinFrequency getMatchingMinFrequency(WebCrawlDocContext prevData) {
+    private MinFrequency getMatchingMinFrequency(WebCrawlEntry prevData) {
         for (MinFrequency f : configuration.getMinFrequencies()) {
             var applyTo = ofNullable(f.getApplyTo()).orElse(ApplyTo.REFERENCE);
             var matchMe = applyTo == ApplyTo.REFERENCE
                     ? prevData.getReference()
-                    : prevData.getContentType().toString();
+                    : ofNullable(prevData.getContentType())
+                            .map(Object::toString)
+                            .orElse("");
             if (f.getMatcher().matches(matchMe)) {
                 return f;
             }
@@ -125,16 +127,16 @@ public class GenericRecrawlableResolver implements
         return null;
     }
 
-    private boolean hasSitemapFrequency(WebCrawlDocContext prevData) {
+    private boolean hasSitemapFrequency(WebCrawlEntry prevData) {
         return StringUtils.isNotBlank(prevData.getSitemapChangeFreq());
     }
 
-    private boolean hasSitemapLastModified(WebCrawlDocContext prevData) {
+    private boolean hasSitemapLastModified(WebCrawlEntry prevData) {
         return prevData.getSitemapLastMod() != null;
     }
 
     private boolean isRecrawlableFromMinFrequencies(
-            MinFrequency f, WebCrawlDocContext prevData) {
+            MinFrequency f, WebCrawlEntry prevData) {
         var value = f.getValue();
         if (StringUtils.isBlank(value)) {
             return true;
@@ -151,7 +153,7 @@ public class GenericRecrawlableResolver implements
         } else {
             millis = new DurationParser().parse(value).toMillis();
         }
-        var lastCrawlDate = prevData.getCrawlDate();
+        var lastCrawlDate = prevData.getProcessedAt();
         var minCrawlDate = lastCrawlDate.plus(
                 millis, ChronoField.MILLI_OF_DAY.getBaseUnit());
         var now = ZonedDateTime.now();
@@ -184,13 +186,13 @@ public class GenericRecrawlableResolver implements
         return false;
     }
 
-    private boolean isRecrawlableFromSitemap(WebCrawlDocContext prevData) {
+    private boolean isRecrawlableFromSitemap(WebCrawlEntry prevData) {
 
         // If sitemap specifies a last modified date and it is more recent
         // than the the document last crawl date, recrawl it (otherwise don't).
         if (hasSitemapLastModified(prevData)) {
             var lastModified = prevData.getSitemapLastMod();
-            var lastCrawled = prevData.getCrawlDate();
+            var lastCrawled = prevData.getProcessedAt();
             LOG.debug(
                     "Sitemap last modified date is {} for: {}",
                     lastModified, prevData.getReference());
@@ -220,7 +222,7 @@ public class GenericRecrawlableResolver implements
     }
 
     private boolean isRecrawlableFromFrequency(
-            SitemapChangeFrequency cf, WebCrawlDocContext prevData,
+            SitemapChangeFrequency cf, WebCrawlEntry prevData,
             String context) {
         if (cf == null) {
             return true;
@@ -237,8 +239,8 @@ public class GenericRecrawlableResolver implements
             return false;
         }
 
-        var lastCrawlDate = prevData.getCrawlDate();
-        var minCrawlDate = prevData.getCrawlDate();
+        var lastCrawlDate = prevData.getProcessedAt();
+        var minCrawlDate = prevData.getProcessedAt();
         switch (cf) {
             case HOURLY:
                 minCrawlDate = minCrawlDate.plusHours(1);

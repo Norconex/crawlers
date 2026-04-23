@@ -1,4 +1,4 @@
-/* Copyright 2014-2025 Norconex Inc.
+/* Copyright 2014-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiPredicate;
@@ -32,25 +33,25 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.collections4.set.ListOrderedSet;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.text.StringEscapeUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 
-import com.google.common.base.Objects;
 import com.norconex.commons.lang.EqualsUtil;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.operations.link.Link;
 import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
 import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractorConfig.RegexPair;
 import com.norconex.crawler.web.doc.operations.url.impl.GenericUrlNormalizer;
 import com.norconex.crawler.web.util.Web;
+import com.norconex.importer.doc.Doc;
 import com.norconex.importer.handler.CommonMatchers;
 
 import lombok.EqualsAndHashCode;
@@ -240,7 +241,7 @@ public class HtmlLinkExtractor
             .filter(t -> isNotBlank(t.bodyText))
             .map(t -> toCleanAbsoluteURL(t.referrer, tag.bodyText.trim()))
             .map(url -> addAsLink(links, url, tag, null))
-            .filter(Boolean::valueOf)
+            .filter(Boolean.TRUE::equals)
             .orElse(false))
                 //--- From meta http-equiv tag ---
                 // E.g.: <meta http-equiv="refresh" content="...">:
@@ -259,9 +260,9 @@ public class HtmlLinkExtractor
                         .map(url -> toCleanAbsoluteURL(tag.referrer, url))
                         .findFirst()
                         .map(url -> addAsLink(links, url, tag, CONTENT))
-                        .filter(Boolean::valueOf)
+                        .filter(Boolean.TRUE::equals)
                         .orElse(false))
-                    .filter(Boolean::valueOf)
+                    .filter(Boolean.TRUE::equals)
                     .orElse(false))
 
                     //--- From anchor tag ---
@@ -274,7 +275,7 @@ public class HtmlLinkExtractor
                         .map(t -> toCleanAbsoluteURL(
                                 t.referrer, t.attribs.getString("href")))
                         .map(url -> addAsLink(links, url, tag, "href"))
-                        .filter(Boolean::valueOf)
+                        .filter(Boolean.TRUE::equals)
                         // skip others if no follow
                         .orElse(hasActiveDoNotFollow(tag))
                     )
@@ -291,17 +292,17 @@ public class HtmlLinkExtractor
                         .stream()
                         .map(url -> toCleanAbsoluteURL(tag.referrer, url))
                         .map(url -> addAsLink(links, url, tag, cfgAttr))
-                        .anyMatch(Boolean::valueOf)))
+                        .anyMatch(Boolean.TRUE::equals)))
                         .flatMap(Optional::stream)
-                        .anyMatch(Boolean::valueOf));
+                        .anyMatch(Boolean.TRUE::equals));
     // @formatter:on
 
     @Override
-    public Set<Link> extractLinks(CrawlDoc doc) throws IOException {
+    public Set<Link> extractLinks(Doc doc) throws IOException {
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(
-                doc.getDocContext().getContentType().toString())) {
+                doc.getContentType().toString())) {
             return Set.of();
         }
 
@@ -470,7 +471,7 @@ public class HtmlLinkExtractor
         setNonBlank(linkMeta, "attr", attWithUrl);
 
         tag.attribs.forEach((attName, attValues) -> {
-            if (!Objects.equal(attWithUrl, attName)) {
+            if (!Objects.equals(attWithUrl, attName)) {
                 attValues.forEach(
                         val -> setNonBlank(linkMeta, "attr." + attName, val));
             }
@@ -630,7 +631,7 @@ public class HtmlLinkExtractor
                 supportedSchemes = HtmlLinkExtractorConfig.DEFAULT_SCHEMES;
             }
             for (String scheme : supportedSchemes) {
-                if (StringUtils.startsWithIgnoreCase(newURL, scheme + ":")) {
+                if (Strings.CI.startsWith(newURL, scheme + ":")) {
                     return true;
                 }
             }

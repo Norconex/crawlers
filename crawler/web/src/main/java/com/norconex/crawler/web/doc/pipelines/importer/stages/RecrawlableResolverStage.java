@@ -1,4 +1,4 @@
-/* Copyright 2016-2025 Norconex Inc.
+/* Copyright 2016-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,19 @@ package com.norconex.crawler.web.doc.pipelines.importer.stages;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.doc.pipelines.importer.stages.AbstractImporterStage;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 import com.norconex.crawler.web.util.Web;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>Determines whether to recrawl a document or not.</p>
- * <p>Only does so if the document is not an orphan.</p>
+ * <p>This check applies to all documents, including orphans.</p>
  * @since 2.5.0
  */
 @Slf4j
@@ -35,52 +36,56 @@ public class RecrawlableResolverStage extends AbstractImporterStage {
 
     @Override
     protected boolean executeStage(ImporterPipelineContext pipeCtx) {
-        // skip if doc is an orphan
-        if (pipeCtx.getDoc().isOrphan()) {
-            return true;
-        }
+        var crawlSession = pipeCtx.getCrawlSession();
+        var crawlContext = crawlSession.getCrawlContext();
 
-        var crawlerCtx = pipeCtx.getCrawlContext();
-        var rr = Web.config(crawlerCtx).getRecrawlableResolver();
+        var rr = Web.config(crawlContext).getRecrawlableResolver();
         if (rr == null) {
             // no resolver means we process it.
             return true;
         }
 
-        var cachedDocContext = Web.cachedDocContext(pipeCtx.getDoc());
+        var cachedDocContext =
+                (WebCrawlEntry) pipeCtx.getDocContext()
+                        .getPreviousCrawlEntry();
         if (cachedDocContext == null) {
             // this document was not previously crawled so process it.
             return true;
         }
 
-        var currentDocContext = pipeCtx.getDoc().getDocContext();
+        var currentDocContext =
+                (WebCrawlEntry) pipeCtx.getDocContext()
+                        .getCurrentCrawlEntry();
 
         var isRecrawlable = rr.isRecrawlable(cachedDocContext);
         if (!isRecrawlable) {
             LOG.debug("{} is not ready to be recrawled, skipping it.",
                     cachedDocContext.getReference());
-            crawlerCtx.fire(
+            crawlSession.fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.REJECTED_PREMATURE)
-                            .source(crawlerCtx)
-                            .subject(rr)
-                            .docContext(currentDocContext)
+                            .source(crawlSession)
+                            .crawlSession(crawlSession)
+                            .crawlEntry(currentDocContext)
                             .build());
-            currentDocContext.setState(CrawlDocStatus.PREMATURE);
+            currentDocContext.setProcessingOutcome(ProcessingOutcome.PREMATURE);
 
             // If the URL was redirected (as per cache) and the redirect URL
             // target has not been processed already (still in cache),
             // re-queue the redirect URL target or it may be wrongfully
             // considered orphan if not referenced somewhere else during the
             // crawl.
-            if (StringUtils.isNotBlank(cachedDocContext.getRedirectTarget())) {
-                crawlerCtx.getDocLedger()
-                        .getCached(cachedDocContext.getRedirectTarget())
-                        .ifPresent(targetDocInfo -> crawlerCtx
+            var redirectTarget = cachedDocContext.getRedirectTarget();
+            if (StringUtils.isNotBlank(redirectTarget)
+                    && !crawlContext.getCrawlEntryLedger()
+                            .exists(redirectTarget)) {
+                crawlContext.getCrawlEntryLedger()
+                        .getBaselineEntry(redirectTarget)
+                        .ifPresent(targetDocInfo -> crawlContext
                                 .getDocPipelines()
                                 .getQueuePipeline()
                                 .accept(new QueuePipelineContext(
-                                        crawlerCtx, targetDocInfo)));
+                                        crawlSession, targetDocInfo)));
             }
         }
         return isRecrawlable;

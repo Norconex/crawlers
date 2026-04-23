@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,20 +24,22 @@ import org.apache.commons.lang3.StringUtils;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test that the user agent is sent properly to web servers with the
  * default HTTP Fetcher.
  */
 @MockServerSettings
+@Timeout(30)
 class UserAgentTest {
     @WebCrawlTest
-    void testUserAgent(ClientAndServer client, WebCrawlerConfig cfg) {
+    void testUserAgent(ClientAndServer client, WebCrawlConfig cfg) {
 
         var path = "/userAgent";
         client

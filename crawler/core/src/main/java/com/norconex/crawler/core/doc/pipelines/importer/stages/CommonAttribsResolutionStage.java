@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,21 @@ public class CommonAttribsResolutionStage
 
     @Override
     public boolean test(ImporterPipelineContext ctx) {
-        CommonAttributesResolver.resolve(ctx.getDoc());
+        var docContext = ctx.getDocContext();
+        CommonAttributesResolver.resolve(docContext.getDoc());
+
+        var current = docContext.getCurrentCrawlEntry();
+        var previous = docContext.getPreviousCrawlEntry();
+        current.setContentType(docContext.getDoc().getContentType() != null
+                ? docContext.getDoc().getContentType()
+                : previous != null
+                        ? previous.getContentType()
+                : null);
+        current.setCharset(docContext.getDoc().getCharset() != null
+                ? docContext.getDoc().getCharset()
+                : previous != null
+                        ? previous.getCharset()
+                : null);
         return true;
     }
 }

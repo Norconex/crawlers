@@ -1,4 +1,4 @@
-/* Copyright 2014-2025 Norconex Inc.
+/* Copyright 2014-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
+import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,90 +33,73 @@ public final class ChecksumStageUtil {
     }
 
     public static boolean resolveMetaChecksum(
-            String newChecksum, CrawlDoc doc) {
-        return resolveChecksum(true, newChecksum, doc);
+            String newChecksum, CrawlDocContext docCtx) {
+        return resolveChecksum(true, newChecksum, docCtx);
     }
 
     public static boolean resolveDocumentChecksum(
-            String newChecksum, CrawlDoc doc) {
-        return resolveChecksum(false, newChecksum, doc);
+            String newChecksum, CrawlDocContext docCtx) {
+        return resolveChecksum(false, newChecksum, docCtx);
     }
 
     // return false if checksum is rejected/unmodified
     private static boolean resolveChecksum(
             boolean isMeta,
             String newChecksum,
-            CrawlDoc doc) {
-        var docContext = doc.getDocContext();
+            CrawlDocContext docCtx) {
+        var currentCrawlEntry = docCtx.getCurrentCrawlEntry();
 
         // Set new checksum on crawlData + metadata
         String type;
         if (isMeta) {
-            docContext.setMetaChecksum(newChecksum);
+            currentCrawlEntry.setMetaChecksum(newChecksum);
             type = "metadata";
         } else {
-            docContext.setContentChecksum(newChecksum);
+            currentCrawlEntry.setContentChecksum(newChecksum);
             type = "document";
         }
 
         // Get old checksum from cache
-        var cachedDocInfo = doc.getCachedDocContext();
+        var prevCrawlEntry = docCtx.getPreviousCrawlEntry();
 
         // if there was nothing in cache, or what is in cache is a deleted
         // doc, consider as new.
-        if (cachedDocInfo == null
-                || CrawlDocStatus.DELETED
-                        .isOneOf(cachedDocInfo.getState())) {
-            LOG.debug(
-                    "ACCEPTED {} checkum (new): Reference={}",
-                    type, docContext.getReference());
+        if (prevCrawlEntry == null || ProcessingOutcome.DELETED
+                .isOneOf(prevCrawlEntry.getProcessingOutcome())) {
+            LOG.debug("ACCEPTED {} checkum (new): Reference={}",
+                    type, docCtx.getReference());
 
             // Prevent not having status when finalizing document on embedded
             // docs (which otherwise do not have a status.
             // But if already has a status, keep it.
-            if (docContext.getState() == null) {
-                docContext.setState(CrawlDocStatus.NEW);
+            if (currentCrawlEntry.getProcessingOutcome() == null) {
+                currentCrawlEntry.setProcessingOutcome(ProcessingOutcome.NEW);
             }
             return true;
         }
 
         String oldChecksum = null;
         if (isMeta) {
-            oldChecksum = cachedDocInfo.getMetaChecksum();
+            oldChecksum = prevCrawlEntry.getMetaChecksum();
         } else {
-            oldChecksum = cachedDocInfo.getContentChecksum();
+            oldChecksum = prevCrawlEntry.getContentChecksum();
         }
 
         // Compare checksums
         if (StringUtils.isNotBlank(newChecksum)
                 && Objects.equals(newChecksum, oldChecksum)) {
             if (LOG.isDebugEnabled()) {
-                LOG.debug(
-                        "REJECTED {} checkum (unmodified): Reference={}",
-                        type, docContext.getReference());
+                LOG.debug("REJECTED {} checkum (unmodified): Reference={}",
+                        type, docCtx.getReference());
             }
-            docContext.setState(CrawlDocStatus.UNMODIFIED);
-
-            //            var s = new StringBuilder();
-            //            if (subject != null) {
-            //                s.append(subject.getClass().getSimpleName() + " - ");
-            //            }
-            //            s.append("Checksum=" + StringUtils.abbreviate(newChecksum, 200));
-
-            //            ctx.fire(CrawlerEvent.builder()
-            //                    .name(CrawlerEvent.REJECTED_UNMODIFIED)
-            //                    .source(ctx.getCrawler())
-            //                    .crawlDocRecord(ctx.getDocRecord())
-            //                    .subject(subject)
-            //                    .message(s.toString())
-            //                    .build());
+            currentCrawlEntry
+                    .setProcessingOutcome(ProcessingOutcome.UNMODIFIED);
             return false;
         }
 
-        docContext.setState(CrawlDocStatus.MODIFIED);
-        LOG.debug(
-                "ACCEPTED {} checksum (modified): Reference={}",
-                type, docContext.getReference());
+        currentCrawlEntry.setProcessingOutcome(ProcessingOutcome.MODIFIED);
+        LOG.debug("ACCEPTED {} checksum (modified): Reference={}",
+                type, docCtx.getReference());
         return true;
     }
 }

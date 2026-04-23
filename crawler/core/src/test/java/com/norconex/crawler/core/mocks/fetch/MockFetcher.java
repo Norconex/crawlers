@@ -1,4 +1,4 @@
-/* Copyright 2022-2025 Norconex Inc.
+/* Copyright 2022-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@ package com.norconex.crawler.core.mocks.fetch;
 
 import java.io.ByteArrayInputStream;
 
+import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.TimeIdGenerator;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
-import com.norconex.crawler.core.fetch.BaseFetcherConfig;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchRequest;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -29,26 +29,31 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-public class MockFetcher extends AbstractFetcher<BaseFetcherConfig> {
+public class MockFetcher extends AbstractFetcher<MockFetcherConfig> {
 
-    private BaseFetcherConfig configuration = new BaseFetcherConfig();
-
-    private Boolean denyRequest;
-    private boolean returnBadStatus;
-    private boolean randomDocContent;
+    private MockFetcherConfig configuration = new MockFetcherConfig();
 
     @Override
     public MockFetchResponse fetch(FetchRequest fetchRequest)
             throws FetchException {
-        var req = (MockFetchRequest) fetchRequest;
+        if (configuration.getDelay() != null) {
+            Sleeper.sleepMillis(configuration.getDelay().toMillis());
+        }
+        var ref = fetchRequest.getDoc().getReference();
+        if (configuration.isThrowFetchException()
+                || configuration.getThrowOnRefs().contains(ref)) {
+            throw new FetchException(
+                    "MockFetcher: forced exception for: " + ref);
+        }
         var resp = new MockFetchResponseImpl();
-        resp.setResolutionStatus(
-                returnBadStatus ? CrawlDocStatus.BAD_STATUS
-                        : CrawlDocStatus.NEW);
-        var content = randomDocContent
-                ? "Fake content for: " + req.getRef()
+        resp.setProcessingOutcome(
+                configuration.isReturnBadStatus()
+                        ? ProcessingOutcome.BAD_STATUS
+                        : ProcessingOutcome.NEW);
+        var content = configuration.isRandomDocContent()
+                ? "Fake content for: " + ref
                         + "\nRandomness: " + TimeIdGenerator.next()
-                : "Fake content for: " + req.getRef();
+                : "Fake content for: " + ref;
         fetchRequest.getDoc().setInputStream(
                 new ByteArrayInputStream(content.getBytes()));
         return resp;
@@ -56,9 +61,15 @@ public class MockFetcher extends AbstractFetcher<BaseFetcherConfig> {
 
     @Override
     public boolean acceptRequest(@NonNull FetchRequest fetchRequest) {
-        if (denyRequest == null) {
+        var ref = fetchRequest.getDoc().getReference();
+        if (configuration.isThrowOnAccept()
+                || configuration.getThrowOnAcceptRefs().contains(ref)) {
+            throw new RuntimeException(
+                    "MockFetcher: simulated pipeline exception for: " + ref);
+        }
+        if (configuration.getDenyRequest() == null) {
             return super.acceptRequest(fetchRequest);
         }
-        return !denyRequest;
+        return !configuration.getDenyRequest();
     }
 }

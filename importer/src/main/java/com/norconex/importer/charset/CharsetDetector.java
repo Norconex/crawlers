@@ -1,4 +1,4 @@
-/* Copyright 2015-2025 Norconex Inc.
+/* Copyright 2015-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import org.apache.tika.utils.CharsetUtils;
 
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocContext;
 import com.norconex.importer.handler.DocHandlerContext;
 
 import lombok.Data;
@@ -91,7 +90,7 @@ public class CharsetDetector {
      *   </li>
      *   <li>
      *     If the charset has already been detected for the document, returns
-     *     that charset ({@link DocContext#getCharset()}).
+     *     that charset ({@link Doc#getCharset()}).
      *   </li>
      *   <li>
      *     Try to detect the character set, using any declared charset
@@ -117,8 +116,7 @@ public class CharsetDetector {
         if (doc == null) {
             return fallbackCharset;
         }
-        return detect(
-                doc.getInputStream(), doc.getDocContext().getCharset());
+        return detect(doc.getInputStream(), doc.getCharset());
     }
 
     /**
@@ -160,7 +158,10 @@ public class CharsetDetector {
             return fallbackCharset;
         }
         try {
-            return detect(new ByteArrayInputStream(input.getBytes()));
+            // Use UTF_8 explicitly: Java Strings are Unicode internally;
+            // using getBytes() (platform-default) causes non-deterministic
+            // behavior across platforms and Tika versions.
+            return detect(new ByteArrayInputStream(input.getBytes(UTF_8)));
         } catch (IOException e) {
             // We swallow and return fallback if it fails. Since
             // the input is a string, it should not happen.

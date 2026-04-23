@@ -1,4 +1,4 @@
-/* Copyright 2014-2024 Norconex Inc.
+/* Copyright 2014-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.text.WordUtils;
 
 import com.norconex.commons.lang.EqualsUtil;
@@ -125,7 +126,7 @@ public class CharacterCaseTransformer
     private void doFields(DocHandlerContext docCtx) {
         var applyTo = configuration.getApplyTo();
         if (StringUtils.isNotBlank(applyTo)
-                && !StringUtils.equalsAnyIgnoreCase(
+                && !Strings.CI.equalsAny(
                         applyTo, APPLY_FIELD, APPLY_VALUE, APPLY_BOTH)) {
             LOG.warn("Unsupported \"applyTo\": {}", applyTo);
             return;

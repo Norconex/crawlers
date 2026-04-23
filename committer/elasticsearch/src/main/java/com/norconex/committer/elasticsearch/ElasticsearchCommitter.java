@@ -1,4 +1,4 @@
-/* Copyright 2013-2025 Norconex Inc.
+/* Copyright 2013-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.Map.Entry;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpStatus;
@@ -288,7 +289,7 @@ public class ElasticsearchCommitter
         var first = true;
         for (Entry<String, List<String>> entry : req.getMetadata().entrySet()) {
             var field = entry.getKey();
-            field = StringUtils.replace(
+            field = Strings.CS.replace(
                     field, ".",
                     configuration.getDotReplacement());
             // Do not store _id as a field since it is passed above already.

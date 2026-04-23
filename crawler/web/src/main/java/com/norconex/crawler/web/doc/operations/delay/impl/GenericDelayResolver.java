@@ -1,4 +1,4 @@
-/* Copyright 2010-2025 Norconex Inc.
+/* Copyright 2010-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.CircularRange;
+import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.event.CrawlerEvent;
 
@@ -71,7 +72,7 @@ import lombok.ToString;
 @ToString
 public class GenericDelayResolver
         extends AbstractDelayResolver<GenericDelayResolverConfig>
-        implements EventListener<CrawlerEvent> {
+        implements EventListener<Event> {
 
     @Getter
     private final GenericDelayResolverConfig configuration =
@@ -81,7 +82,10 @@ public class GenericDelayResolver
     private List<CircularSchedule> schedules = new ArrayList<>();
 
     @Override
-    public void accept(CrawlerEvent ev) {
+    public void accept(Event event) {
+        if (!(event instanceof CrawlerEvent ev)) {
+            return;
+        }
         if (ev.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
             //        if (ev.is(CrawlerEvent.TASK_RUN_BEGIN)) {
             schedules.clear();

@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.fetch.FetchRequest;
+import com.norconex.importer.doc.Doc;
 
 public final class FileFetchUtil {
 
@@ -40,9 +41,9 @@ public final class FileFetchUtil {
 
         return Optional.ofNullable(req)
                 .map(FetchRequest::getDoc)
-                .map(CrawlDoc::getReference)
+                .map(Doc::getReference)
                 .map(String::toLowerCase)
-                .filter(ref -> StringUtils.startsWithAny(ref, prefixes))
+                .filter(ref -> Strings.CS.startsWithAny(ref, prefixes))
                 .isPresent();
     }
 

@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2024-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.web.WebCrawler;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 
 public final class CrawlerStubs {
 
@@ -33,7 +33,7 @@ public final class CrawlerStubs {
     }
 
     public static Crawler memoryCrawler(
-            Path workDir, Consumer<WebCrawlerConfig> c) {
+            Path workDir, Consumer<WebCrawlConfig> c) {
         var webCrawlerConfig = CrawlerConfigStubs.memoryCrawlerConfig(workDir);
         if (c != null) {
             c.accept(webCrawlerConfig);

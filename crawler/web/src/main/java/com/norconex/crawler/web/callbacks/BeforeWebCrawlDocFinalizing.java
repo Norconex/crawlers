@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@ package com.norconex.crawler.web.callbacks;
 
 import java.util.function.BiConsumer;
 
-import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.importer.doc.Doc;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,10 +29,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 class BeforeWebCrawlDocFinalizing
-        implements BiConsumer<CrawlContext, CrawlDoc> {
+        implements BiConsumer<CrawlSession, Doc> {
 
     @Override
-    public void accept(CrawlContext crawler, CrawlDoc doc) {
+    public void accept(CrawlSession crawler, Doc doc) {
         // If URLs were not yet extracted, it means no links will be followed.
         // In case the referring document was skipped or has a bad status
         // (which can always be temporary), we should queue for processing any
@@ -42,23 +42,33 @@ class BeforeWebCrawlDocFinalizing
         // be re-assigned the wrong depth if linked from another, deeper, page.
         // See: https://github.com/Norconex/collector-http/issues/278
 
-        var httpData = (WebCrawlDocContext) doc.getDocContext();
-        var httpCachedData = (WebCrawlDocContext) doc.getCachedDocContext();
+        var httpData = (WebCrawlEntry) crawler.getCrawlContext()
+                .getCrawlEntryLedger()
+                .getEntry(doc.getReference())
+                .orElse(null);
+        if (httpData == null) {
+            return;
+        }
+        var httpCachedData = (WebCrawlEntry) crawler.getCrawlContext()
+                .getCrawlEntryLedger()
+                .getBaselineEntry(doc.getReference())
+                .orElse(null);
 
-        // If never crawled before, URLs were extracted already, or cached
-        // version has no extracted, URLs, abort now.
+        // If never crawled before, or cached version has no extracted URLs,
+        // abort now.
         if (httpCachedData == null
-                || !httpData.getReferencedUrls().isEmpty()
                 || httpCachedData.getReferencedUrls().isEmpty()) {
             return;
         }
 
-        // Only continue if the document could not have extracted URLs because
-        // it was skipped, or in a temporary invalid state that prevents
-        // accessing child links normally.
-        var state = httpData.getState();
-        if (!state.isSkipped() && !state.isOneOf(
-                CrawlDocStatus.BAD_STATUS, CrawlDocStatus.ERROR)) {
+        // Keep cached child URL re-queueing for skipped outcomes
+        // (e.g., UNMODIFIED/PREMATURE) and temporary invalid states.
+        // Only skip re-queueing for normal fresh/modified processing flows.
+        var state = httpData.getProcessingOutcome();
+        if (state != null
+                && !state.isSkipped() && !state.isOneOf(
+                        ProcessingOutcome.BAD_STATUS,
+                        ProcessingOutcome.ERROR)) {
             return;
         }
 
@@ -69,12 +79,13 @@ class BeforeWebCrawlDocFinalizing
         var referencedUrls = httpCachedData.getReferencedUrls();
         for (String url : referencedUrls) {
 
-            var childData = new WebCrawlDocContext(url, childDepth);
+            var childData = new WebCrawlEntry(url, childDepth);
             childData.setReferrerReference(httpData.getReference());
             LOG.debug("Queueing skipped document's child: {}",
                     childData.getReference());
-            crawler.getDocPipelines().getQueuePipeline().accept(
-                    new QueuePipelineContext(crawler, childData));
+            crawler.getCrawlContext().getDocPipelines().getQueuePipeline()
+                    .accept(
+                            new QueuePipelineContext(crawler, childData));
         }
     }
 }

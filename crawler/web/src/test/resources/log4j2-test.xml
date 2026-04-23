@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
-   Copyright 2024 Norconex Inc.
+   Copyright 2024-2026 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -30,6 +30,9 @@
     <!-- TODO: check for a format that displays logger name up to X characters, showing truncations as ... -->      
   </Appenders>
   <Loggers>
+
+    <!-- Suppress Hazelcast logo -->
+    <Logger name="com.hazelcast.system.logo" level="OFF" additivity="false"/>
 
     <Logger name="com.norconex" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>

@@ -1,4 +1,4 @@
-/* Copyright 2010-2024 Norconex Inc.
+/* Copyright 2010-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.io.StringReader;
 import org.apache.commons.io.input.NullInputStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
@@ -31,6 +32,7 @@ import com.norconex.commons.lang.text.TextMatcher.Method;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.handler.parser.ParseState;
 
+@Timeout(30)
 class DeleteTransformerTest {
 
     @Test

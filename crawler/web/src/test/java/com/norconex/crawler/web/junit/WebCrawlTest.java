@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2024-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,41 +22,22 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.time.Duration;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
-import org.jeasy.random.EasyRandom;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+import com.hazelcast.config.MapStoreConfig.InitialLoadMode;
 import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.WebCrawlDriverFactory;
-import com.norconex.crawler.web.WebTestUtil;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
+import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.doc.operations.delay.impl.GenericDelayResolver;
-import com.norconex.crawler.web.junit.WebCrawlTest.WebConfigRandomizer;
-import com.norconex.grid.core.GridConnector;
-import com.norconex.grid.local.LocalGridConnector;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.TYPE, ElementType.ANNOTATION_TYPE })
-@CrawlTest(
-    driverFactory = WebCrawlDriverFactory.class,
-    randomizer = WebConfigRandomizer.class
-)
-//NOTE: Attributes copied from @CrawlTest
+@Test
+@ExtendWith(WebCrawlExtension.class)
 public @interface WebCrawlTest {
-
-    /**
-     * Whether to run the crawler, initialize the crawler context, or
-     * simply construct the configuration.
-     */
-    Focus focus() default Focus.CONFIG;
-
-    Class<? extends GridConnector>[] gridConnectors() default {
-            LocalGridConnector.class,
-            //            IgniteGridTestConnector.class
-            //            IgniteGridConnector.class
-    };
 
     boolean randomConfig() default false;
 
@@ -67,20 +48,25 @@ public @interface WebCrawlTest {
     Class<? extends Consumer<
             ? extends CrawlConfig>> configModifier() default DefaultWebCrawlerConfigModifier.class;
 
-    public static final class WebConfigRandomizer
-            implements Supplier<EasyRandom> {
-        @Override
-        public EasyRandom get() {
-            return WebTestUtil.RANDOMIZER;
-        }
-    }
-
     public static final class DefaultWebCrawlerConfigModifier
-            implements Consumer<WebCrawlerConfig> {
+            implements Consumer<WebCrawlConfig> {
         @Override
-        public void accept(WebCrawlerConfig cfg) {
-            cfg.setDelayResolver(configure(new GenericDelayResolver(),
-                    dr -> dr.setDefaultDelay(Duration.ofMillis(0))));
+        public void accept(WebCrawlConfig cfg) {
+            cfg.setDelayResolver(configure(
+                    new GenericDelayResolver(),
+                    dr -> dr.setDefaultDelay(
+                            Duration.ofMillis(0))));
+
+            var connector = cfg.getClusterConfig().getConnector();
+            if (connector instanceof HazelcastClusterConnector hzConnector
+                    && hzConnector.getConfiguration()
+                            .getConfigurer() instanceof JdbcHazelcastConfigurer jdbcConfigurer) {
+                jdbcConfigurer
+                        .setJetEnabled(false)
+                        .setBackupCount(0)
+                        .setInitialLoadMode(
+                                InitialLoadMode.EAGER);
+            }
         }
     }
 

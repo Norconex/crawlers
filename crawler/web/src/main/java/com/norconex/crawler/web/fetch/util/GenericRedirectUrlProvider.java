@@ -1,4 +1,4 @@
-/* Copyright 2015-2024 Norconex Inc.
+/* Copyright 2015-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,13 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.tika.utils.CharsetUtils;
 
 import com.norconex.commons.lang.config.Configurable;
@@ -101,11 +101,9 @@ public class GenericRedirectUrlProvider implements
     public String provideRedirectURL(
             HttpRequest request,
             HttpResponse response, HttpContext context) {
-        var currentReq = (HttpRequest) context.getAttribute(
-                HttpCoreContext.HTTP_REQUEST);
         String originalURL = null;
         try {
-            originalURL = currentReq.getUri().toString();
+            originalURL = request.getUri().toString();
         } catch (URISyntaxException e) {
             LOG.error("Could not provide redirect URL.", e);
             return null;
@@ -158,7 +156,9 @@ public class GenericRedirectUrlProvider implements
                 Will try to fix. Redirect URL: {}""", redirectURL);
 
         // try to fix if non ascii charset is non UTF8.
-        return new String(url.getBytes(resolveCharset(response, redirectURL)));
+        return new String(
+                url.getBytes(resolveCharset(response, redirectURL)),
+                StandardCharsets.UTF_8);
     }
 
     // Detect charset from response header or use fallback

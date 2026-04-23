@@ -1,5 +1,5 @@
 <!--
-   Copyright 2014-2025 Norconex Inc.
+   Copyright 2014-2026 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -28,9 +28,18 @@
   <properties>
     <sonar.skip>false</sonar.skip>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>      
-      
+
+    <classgraph.version>4.8.181</classgraph.version>
     <cxf.version>3.4.5</cxf.version>
+    <h2.version>2.4.240</h2.version>
+    <hazelcast.version>5.6.0</hazelcast.version>
     <jdom2.version>2.0.6.1</jdom2.version>
+    <sulky-ulid.version>8.2.0</sulky-ulid.version>
+    <mvstore.version>2.3.232</mvstore.version>
+    <!--
+    <log4j.version>2.20.0</log4j.version>
+    <slf4j.version>2.0.0-alpha1</slf4j.version>
+    -->
   </properties>
 
   <inceptionYear>2014</inceptionYear>
@@ -52,7 +61,9 @@
         <artifactId>jdom2</artifactId>
         <version>${jdom2.version}</version>
       </dependency>
+
     </dependencies>
+    
   </dependencyManagement>
 
   <dependencies>
@@ -71,22 +82,33 @@
       <groupId>com.norconex.crawler</groupId>
       <artifactId>nx-committer-core</artifactId>
     </dependency>
+    
+    <!-- Hazelcast for distributed caching and clustering -->
     <dependency>
-      <groupId>com.norconex.crawler</groupId>
-      <artifactId>nx-grid-local</artifactId>
+      <groupId>com.hazelcast</groupId>
+      <artifactId>hazelcast</artifactId>
+      <version>${hazelcast.version}</version>
     </dependency>
-
+    
+    <dependency>
+      <groupId>de.huxhorn.sulky</groupId>
+      <artifactId>de.huxhorn.sulky.ulid</artifactId>
+      <version>${sulky-ulid.version}</version>
+    </dependency>
+    
     <dependency>
       <groupId>info.picocli</groupId>
       <artifactId>picocli</artifactId>
     </dependency>    
 
     <!-- Runtime --> 
+    <!--
     <dependency>
       <groupId>com.norconex.crawler</groupId>
       <artifactId>nx-grid-jdbc</artifactId>
       <scope>runtime</scope>
     </dependency>
+    -->
    
 
     <!-- Tests and provided. -->
@@ -97,12 +119,11 @@
       <type>zip</type>
       <scope>provided</scope>
     </dependency>
+
     <dependency>
-      <groupId>com.norconex.crawler</groupId>
-      <artifactId>nx-grid-core</artifactId>
-      <version>${project.parent.version}</version>
-      <type>test-jar</type>
-      <scope>test</scope>
+      <groupId>io.github.classgraph</groupId>
+      <artifactId>classgraph</artifactId>
+      <version>${classgraph.version}</version>
     </dependency>
     
     <dependency>
@@ -118,6 +139,9 @@
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j2-impl</artifactId>
+      <!--
+      <version>${log4j.version}</version>
+      -->
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -127,7 +151,7 @@
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>junit-jupiter</artifactId>
+      <artifactId>testcontainers-junit-jupiter</artifactId>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -135,6 +159,33 @@
           <artifactId>junit</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <!-- JUnit 4 API required by Hazelcast TestHazelcastInstanceFactory at
+         class-load time. No junit-vintage-engine is present so JUnit 4 test
+         classes will NOT be auto-discovered or run by Surefire. -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13.2</version>
+      <scope>test</scope>
+    </dependency>
+    <!--
+    <dependency>
+      <groupId>software.xdev</groupId>
+      <artifactId>testcontainers-junit4-mock</artifactId>
+      <scope>test</scope>
+    </dependency>
+    -->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers-postgresql</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>42.7.4</version>
+      <!--<scope>runtime</scope>-->
     </dependency>
     <dependency>
       <groupId>org.jeasy</groupId>
@@ -161,10 +212,75 @@
       <artifactId>jakarta.el-api</artifactId>
       <scope>test</scope>
     </dependency>
+    
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <!--<scope>test</scope>-->
+    </dependency>    
+
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2-mvstore</artifactId>
+      <version>${mvstore.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.zaxxer</groupId>
+      <artifactId>HikariCP</artifactId>
+      <version>5.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-dbutils</groupId>
+      <artifactId>commons-dbutils</artifactId>
+      <version>1.7</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jdbi</groupId>
+      <artifactId>jdbi3-core</artifactId>
+      <version>3.43.0</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>com.hazelcast</groupId>
+      <artifactId>hazelcast-jdbc</artifactId>
+      <version>${hazelcast.version}</version>
+    </dependency>    
+    <dependency>
+      <groupId>com.hazelcast</groupId>
+      <artifactId>hazelcast-sql</artifactId>
+      <version>${hazelcast.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.hazelcast</groupId>
+      <artifactId>hazelcast</artifactId>
+      <version>${hazelcast.version}</version>
+      <classifier>tests</classifier>
+    </dependency>
+<!--    <dependency>
+      <groupId>org.liquibase</groupId>
+      <artifactId>liquibase-core</artifactId>
+      <version>4.25.1</version>
+    </dependency>-->
+    <!--
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jul-to-slf4j</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>test</scope>
+    </dependency>
+    -->
+
   </dependencies>
 
   <build>
     <plugins>
+    
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+      </plugin>
+    
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
@@ -192,8 +308,19 @@
       </plugin>
 
       <plugin>
-        <groupId>org.sonatype.central</groupId>
-        <artifactId>central-publishing-maven-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>
+            ${jacocoArgLine}
+            --add-modules java.se
+            --add-exports java.base/jdk.internal.ref=ALL-UNNAMED
+            --add-opens java.base/java.lang=ALL-UNNAMED
+            --add-opens java.base/sun.nio.ch=ALL-UNNAMED
+            --add-opens java.management/sun.management=ALL-UNNAMED
+            --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED
+          </argLine>
+        </configuration>
       </plugin>
 
     </plugins>

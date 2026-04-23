@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,21 @@ public enum HttpAuthMethod {
     BASIC,
     /** DIGEST authentication method. */
     DIGEST,
-    /** NTLM authentication method. */
+    /** NTLM authentication method. @deprecated NTLM is no longer
+     *  supported by Apache HttpClient 5. Consider using
+     *  SPNEGO or KERBEROS instead. */
+    @Deprecated(since = "4.0.0")
     NTLM,
-    /** Experimental: SPNEGO authentication method. */
+    /**
+     * SPNEGO authentication method. Requires a
+     * {@link KerberosConfig} in the authentication
+     * configuration.
+     */
     SPNEGO,
-    /** Experimental: Kerberos authentication method. */
+    /**
+     * Kerberos authentication method. Requires a
+     * {@link KerberosConfig} in the authentication
+     * configuration.
+     */
     KERBEROS
 }

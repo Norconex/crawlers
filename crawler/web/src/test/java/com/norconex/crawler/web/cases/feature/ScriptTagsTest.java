@@ -1,4 +1,4 @@
-/* Copyright 2019-2025 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,13 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractor;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Content of &lt;script&gt; tags must be stripped by GenericLinkExtractor
@@ -37,10 +38,11 @@ import com.norconex.crawler.web.mocks.MockWebsite;
  */
 // Test case for https://github.com/Norconex/collector-http/issues/232
 @MockServerSettings
+@Timeout(30)
 class ScriptTagsTest {
 
     @WebCrawlTest
-    void testScriptTags(ClientAndServer client, WebCrawlerConfig cfg)
+    void testScriptTags(ClientAndServer client, WebCrawlConfig cfg)
             throws CommitterException {
 
         var homePath = "/scriptTags/index.html";

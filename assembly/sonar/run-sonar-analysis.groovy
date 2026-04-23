@@ -15,11 +15,21 @@ if (!sonarLogin) {
 def projectKey = "${project.groupId}:${project.artifactId}"
 println "[Sonar] Running analysis for: $projectKey"
 
+def qualityGateWait = project.properties.get("sonar.qualitygate.wait")
+def qualityGateTimeout = project.properties.get("sonar.qualitygate.timeout")
+
 def mvnCmd = [
     "mvn", "sonar:sonar",
     "-Dsonar.login=${sonarLogin}",
     "-Dsonar.projectKey=${projectKey}"
 ].collect { it.toString() }
+
+if (qualityGateWait != null) {
+    mvnCmd << "-Dsonar.qualitygate.wait=${qualityGateWait}".toString()
+}
+if (qualityGateTimeout != null) {
+    mvnCmd << "-Dsonar.qualitygate.timeout=${qualityGateTimeout}".toString()
+}
 
 def procBuilder = new ProcessBuilder(mvnCmd)
 procBuilder.redirectErrorStream(true)

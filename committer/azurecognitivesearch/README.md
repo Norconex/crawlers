@@ -1,13 +1,7 @@
-Azure Cogintive Search Committer
+Azure AI Search Committer
 ==============
 
-Azure Cogintive Search implementation of Norconex Committer.
+Azure AI Search (formely Azure Cogintive Search) implementation of Norconex Committer.
 
 Website: https://opensource.norconex.com/committers/azuresearch
 
-## Compatibility Matrix
-
-| This Committer   | Committer Core | HTTP Collector | FS Collector |
-| ---------------- | -------------- | -------------- | ------------ |
-
-  

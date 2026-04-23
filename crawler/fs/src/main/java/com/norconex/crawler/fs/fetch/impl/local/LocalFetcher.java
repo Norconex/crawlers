@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,10 +32,10 @@ import org.apache.commons.vfs2.provider.local.LocalFile;
 import org.apache.commons.vfs2.provider.local.LocalFileName;
 
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.fs.doc.FsDocMetadata;
 import com.norconex.crawler.fs.fetch.impl.AbstractVfsFetcher;
+import com.norconex.importer.doc.Doc;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -67,17 +67,11 @@ import lombok.extern.slf4j.Slf4j;
  *
  * <h2>Archive files as file systems</h2>
  * <p>
- * This fetcher can also treat local archive files as local file
- * systems. Supported local archives file systems (and their schemes):
+ * Archive files (zip, tar, jar, etc.) are no longer handled by this fetcher.
+ * Use {@link com.norconex.crawler.fs.fetch.impl.archive.ArchiveFetcher}
+ * instead, which supports both local and remote archives and provides
+ * credential configuration for inner remote file systems.
  * </p>
- * <ul>
- *   <li>bzip2 ({@code bzip2://})</li>
- *   <li>gzip ({@code gzip://})</li>
- *   <li>Jar ({@code jar://})</li>
- *   <li>Tar ({@code tar://}, {@code tgz://}, {@code tbz2://})</li>
- *   <li>Zip ({@code zip://})</li>
- *   <li>MIME ({@code mime://})</li>
- * </ul>
  */
 @ToString
 @EqualsAndHashCode
@@ -89,16 +83,13 @@ public class LocalFetcher extends AbstractVfsFetcher<LocalFetcherConfig> {
 
     @Override
     protected boolean acceptRequest(@NonNull FetchRequest fetchRequest) {
-        return referenceStartsWith(
-                fetchRequest,
-                "/", "\\", "file:", "bzip2:", "gzip:", "jar:",
-                "tar:", "tgz:", "tbz2:", "zip:", "mime:")
-                || fetchRequest.getDoc().getDocContext().getReference().matches(
+        return referenceStartsWith(fetchRequest, "/", "\\", "file:")
+                || fetchRequest.getDoc().getReference().matches(
                         "(?i)^[a-z]{1,2}:[/\\\\].*");
     }
 
     @Override
-    protected void fetchMetadata(CrawlDoc doc, @NonNull FileObject fileObject)
+    protected void fetchMetadata(Doc doc, @NonNull FileObject fileObject)
             throws FileSystemException {
         super.fetchMetadata(doc, fileObject);
 

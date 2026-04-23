@@ -1,4 +1,4 @@
-/* Copyright 2015-2025 Norconex Inc.
+/* Copyright 2015-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import java.io.InputStream;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 
 /**
  * <p>Detects and return any canonical URL found in documents, whether from
@@ -28,7 +28,7 @@ import com.norconex.crawler.web.WebCrawlerConfig;
  * of the document represented by the canonical URL.</p>
  *
  * <p>When metadata fetching is enabled via
- * {@link WebCrawlerConfig#getMetadataFetchSupport()},
+ * {@link WebCrawlConfig#getMetadataFetchSupport()},
  * a page won't be downloaded if a canonical link is found in the HTTP headers
  * (saving bandwidth and
  * processing). If not used, or if no canonical link was found, an attempt

@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,13 +35,23 @@ class TikaUtil {
             if (TikaCoreProperties.RESOURCE_NAME_KEY.equals(name)) {
                 continue;
             }
-            var nxValues = metadata.getStrings(name);
+            // When Tika 3.x returns dc: prefixed metadata (e.g. dc:title),
+            // also store it under the bare field name (e.g. title) to preserve
+            // backward compatibility with callers expecting the plain name.
             var tikaValues = tikaMeta.getValues(name);
-            for (String tikaValue : tikaValues) {
-                if (!containsSameValue(name, nxValues, tikaValue)) {
-                    metadata.add(name, tikaValue);
-                } else {
-                    metadata.set(name, tikaValue);
+            var fieldNames = new java.util.ArrayList<String>();
+            fieldNames.add(name);
+            if (name.startsWith("dc:")) {
+                fieldNames.add(name.substring(3));
+            }
+            for (String fieldName : fieldNames) {
+                var nxValues = metadata.getStrings(fieldName);
+                for (String tikaValue : tikaValues) {
+                    if (!containsSameValue(fieldName, nxValues, tikaValue)) {
+                        metadata.add(fieldName, tikaValue);
+                    } else {
+                        metadata.set(fieldName, tikaValue);
+                    }
                 }
             }
         }

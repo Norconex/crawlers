@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2024-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,29 +14,18 @@
  */
 package com.norconex.crawler.core.spi;
 
-import org.apache.commons.collections4.MultiMapUtils;
-import org.apache.commons.collections4.MultiValuedMap;
+import com.norconex.commons.lang.bean.spi.BasePolymorphicTypeProvider;
+import com.norconex.crawler.core.cluster.ClusterJoinGateFetcher;
+import com.norconex.crawler.core.fetch.Fetcher;
+import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 
-import com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider;
-import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core.cmd.crawl.pipeline.process.ProcessUpsertTest;
-import com.norconex.crawler.core.junit.CrawlTestCapturer;
-import com.norconex.crawler.core.mocks.cli.MockCliEventWriter;
-import com.norconex.crawler.core.mocks.grid.MockFailingGridConnector;
-import com.norconex.grid.core.GridConnector;
-import com.norconex.importer.response.ImporterResponseProcessor;
-
-public class CoreTestPtProvider implements PolymorphicTypeProvider {
+public class CoreTestPtProvider extends BasePolymorphicTypeProvider {
 
     @Override
-    public MultiValuedMap<Class<?>, Class<?>> getPolymorphicTypes() {
-        MultiValuedMap<Class<?>, Class<?>> map =
-                MultiMapUtils.newListValuedHashMap();
-        map.put(EventListener.class, MockCliEventWriter.class);
-        map.put(EventListener.class, CrawlTestCapturer.class);
-        map.put(ImporterResponseProcessor.class,
-                ProcessUpsertTest.TestResponseProcessor.class);
-        map.put(GridConnector.class, MockFailingGridConnector.class);
-        return map;
+    protected void register(Registry registry) {
+        registry
+                .add(Fetcher.class,
+                        MockFetcher.class,
+                        ClusterJoinGateFetcher.class);
     }
 }

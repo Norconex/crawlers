@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2024-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ public final class CliCrawlerLauncher {
 
     public static int launch(
             @NonNull CrawlDriver crawlDriver, String... args) {
-
+        System.setProperty("org.jboss.logging.provider", "slf4j");
         var cmdLine = new CommandLine(new CliRunner(crawlDriver));
 
         cmdLine.setExecutionExceptionHandler(
@@ -53,7 +53,13 @@ public final class CliCrawlerLauncher {
             cmdLine.usage(cmdLine.getOut());
             return -1;
         }
-        return cmdLine.execute(args);
+
+        try {
+            return cmdLine.execute(args);
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
+            return -1;
+        }
     }
 
 }

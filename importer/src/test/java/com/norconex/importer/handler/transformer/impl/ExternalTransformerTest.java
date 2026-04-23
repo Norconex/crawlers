@@ -1,4 +1,4 @@
-/* Copyright 2017-2023 Norconex Inc.
+/* Copyright 2017-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,9 @@
 package com.norconex.importer.handler.transformer.impl;
 
 import com.norconex.importer.handler.AbstractExternalTest;
+import org.junit.jupiter.api.Timeout;
 
+@Timeout(30)
 class ExternalTransformerTest extends AbstractExternalTest {
 
     public ExternalTransformerTest() {

@@ -1,4 +1,4 @@
-/* Copyright 2014-2025 Norconex Inc.
+/* Copyright 2014-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
 package com.norconex.crawler.core.doc.pipelines.committer;
 
 import com.norconex.committer.core.Committer;
-import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.session.CrawlSession;
 
 import lombok.Data;
 
@@ -29,6 +29,6 @@ import lombok.Data;
  */
 @Data
 public class CommitterPipelineContext {
-    private final CrawlContext crawlContext;
-    private final CrawlDoc doc;
+    private final CrawlSession crawlSession;
+    private final CrawlDocContext docContext;
 }

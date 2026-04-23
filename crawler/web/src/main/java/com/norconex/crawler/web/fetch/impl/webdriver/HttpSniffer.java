@@ -1,4 +1,4 @@
-/* Copyright 2018-2025 Norconex Inc.
+/* Copyright 2018-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ import io.netty.handler.codec.http.QueryStringDecoder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -135,7 +136,8 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
         return new InetSocketAddress(proxyHost.getName(), proxyHost.getPort());
     }
 
-    public CompletableFuture<SniffedResponseHeaders> track(String requestId) {
+    public CompletableFuture<SniffedResponseHeaders>
+            track(@NonNull String requestId) {
         var future = new CompletableFuture<SniffedResponseHeaders>();
         sniffedHeaders.put(requestId, future);
         future.whenComplete((res, ex) -> sniffedHeaders.invalidate(requestId));

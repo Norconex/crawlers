@@ -1,4 +1,4 @@
-/* Copyright 2010-2025 Norconex Inc.
+/* Copyright 2010-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,20 +25,21 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.html.DefaultHtmlMapper;
 import org.apache.tika.parser.html.HtmlMapper;
-import org.apache.tika.parser.html.HtmlParser;
+import org.apache.tika.parser.html.JSoupParser;
 import org.apache.tika.sax.Link;
 import org.apache.tika.sax.LinkContentHandler;
 import org.xml.sax.SAXException;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
+import com.norconex.importer.doc.Doc;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -76,12 +77,12 @@ public class TikaLinkExtractor
     @Override
     public Set<com.norconex.crawler.web.doc.operations.link.Link>
             extractLinks(
-                    CrawlDoc doc)
+                    Doc doc)
                     throws IOException {
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(
-                doc.getDocContext().getContentType().toString())) {
+                doc.getContentType().toString())) {
             return Set.of();
         }
 
@@ -120,7 +121,7 @@ public class TikaLinkExtractor
         var parseContext = new ParseContext();
         parseContext.set(HtmlMapper.class, fixedHtmlMapper);
 
-        var parser = new HtmlParser();
+        var parser = new JSoupParser();
         try (is) {
             parser.parse(is, linkHandler, metadata, parseContext);
             var tikaLinks = linkHandler.getLinks();
@@ -209,7 +210,7 @@ public class TikaLinkExtractor
 
     private String getCaseInsensitive(Metadata metadata, String key) {
         for (String name : metadata.names()) {
-            if (StringUtils.equalsIgnoreCase(name, key)) {
+            if (Strings.CI.equals(name, key)) {
                 return metadata.get(name);
             }
         }

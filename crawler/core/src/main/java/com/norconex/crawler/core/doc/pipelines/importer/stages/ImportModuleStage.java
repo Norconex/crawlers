@@ -1,4 +1,4 @@
-/* Copyright 2014-2025 Norconex Inc.
+/* Copyright 2014-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,11 @@ public class ImportModuleStage implements Predicate<ImporterPipelineContext> {
 
     @Override
     public boolean test(ImporterPipelineContext ctx) {
-        var importer = ctx.getCrawlContext().getImporter();
-        Doc doc = ctx.getDoc();
+        var importer = ctx.getCrawlSession().getCrawlContext().getImporter();
+        var docContext = ctx.getDocContext();
+        Doc doc = docContext.getDoc();
 
-        var isContentTypeSet = doc.getDocContext().getContentType() != null;
+        var isContentTypeSet = doc.getContentType() != null;
         var response = importer.importDocument(doc);
         ctx.setImporterResponse(response);
 
@@ -37,9 +38,21 @@ public class ImportModuleStage implements Predicate<ImporterPipelineContext> {
         // We make sure to set it to save it to store so IRecrawlableResolver
         // has one to deal with
         if (!isContentTypeSet && response.getDoc() != null) {
-            doc.getDocContext().setContentType(
-                    response.getDoc().getDocContext().getContentType());
+            doc.setContentType(response.getDoc().getContentType());
         }
+
+        var current = docContext.getCurrentCrawlEntry();
+        var previous = docContext.getPreviousCrawlEntry();
+        current.setContentType(doc.getContentType() != null
+                ? doc.getContentType()
+                : previous != null
+                        ? previous.getContentType()
+                : null);
+        current.setCharset(doc.getCharset() != null
+                ? doc.getCharset()
+                : previous != null
+                        ? previous.getCharset()
+                : null);
 
         return true;
     }

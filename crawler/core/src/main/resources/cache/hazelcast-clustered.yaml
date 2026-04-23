@@ -1,0 +1,193 @@
+#-------------------------------------------------------------------------------
+# Copyright 2026 Norconex Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#-------------------------------------------------------------------------------
+
+# yaml-language-server: $schema=./hazelcast-config-5.6.json
+
+# Hazelcast Cluster Configuration
+#
+# This configuration is designed for multi-node cluster deployments with:
+# - Backup count of 1 for data redundancy
+# - TCP/IP discovery enabled (for test environments)
+# - JDBC persistence support (configure credentials programmatically)
+#
+# IMPORTANT: Only ONE discovery method (multicast OR tcp-ip) can be
+# enabled at a time. This config uses TCP/IP by default.
+#
+hazelcast:
+  cluster-name: crawler-cluster
+
+  data-connection:
+    jdbc-datasource:
+      type: JDBC
+      properties:
+        jdbcUrl: ${JDBC_URL}
+        username: ${JDBC_USERNAME}
+        password: ${JDBC_PASSWORD}
+        driverClassName: ${JDBC_DRIVER}
+        maximumPoolSize: 20
+      shared: true  
+  
+  jet:
+    enabled: true
+    backup-count: 1
+    #resource-upload-enabled: false
+    #flow-control-period: 100
+    #scale-up-delay-millis: 10000
+    #lossless-restart-enabled: false
+    #max-processor-accumulated-records: 9223372036854776000
+      
+  network:
+    port:
+      port: 5701
+      auto-increment: true
+      port-count: 100
+    join:
+      # Multicast for automatic cluster discovery
+      # Note: Only ONE discovery method can be enabled at a time
+      # To use multicast: set enabled: true here AND tcp-ip enabled: false
+      multicast:
+        enabled: false
+        multicast-group: 224.2.2.3
+        multicast-port: 54327
+        multicast-time-to-live: 32
+        multicast-timeout-seconds: 2
+        trusted-interfaces:
+          - 127.0.0.*
+          - 192.168.*.*
+      
+      # TCP/IP for explicit member list (enabled by default)
+      # Good for tests and environments without multicast
+      # To use TCP/IP: set enabled: true here AND multicast enabled: false
+      tcp-ip:
+        enabled: true
+        member-list:
+          - 127.0.0.1:5701
+          - 127.0.0.1:5702
+          - 127.0.0.1:5703
+        connection-timeout-seconds: 5
+
+  # Map configurations with backup-count: 1 for cluster redundancy
+  
+  map:
+    default:
+      backup-count: 1
+      async-backup-count: 0
+      read-backup-data: false
+      map-store:
+        enabled: true
+        initial-mode: LAZY
+        write-delay-seconds: 0
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
+        properties:
+          data-connection-ref: jdbc-datasource
+          column-key-type: VARCHAR(4096)
+          column-value-type: TEXT
+          sql-merge: |
+            INSERT INTO "{tableName}" (k, v) 
+            VALUES (?, ?) 
+            ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v
+
+    pipeCurrentStep:
+      backup-count: 1
+      async-backup-count: 0
+      read-backup-data: false
+      map-store:
+        enabled: true
+        initial-mode: LAZY
+        write-delay-seconds: 0
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
+        properties:
+          # Avoid remote type registry lookups from partition-operation threads.
+          value-class-name: com.norconex.crawler.core.cluster.pipeline.StepRecord
+          data-connection-ref: jdbc-datasource
+          column-key-type: VARCHAR(4096)
+          column-value-type: TEXT
+          sql-merge: |
+            INSERT INTO "{tableName}" (k, v) 
+            VALUES (?, ?) 
+            ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v
+
+    pipeWorkerStatuses:
+      backup-count: 1
+      async-backup-count: 0
+      read-backup-data: false
+      map-store:
+        enabled: true
+        initial-mode: LAZY
+        write-delay-seconds: 0
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
+        properties:
+          # Avoid remote type registry lookups from partition-operation threads.
+          value-class-name: com.norconex.crawler.core.cluster.pipeline.StepRecord
+          data-connection-ref: jdbc-datasource
+          column-key-type: VARCHAR(4096)
+          column-value-type: TEXT
+          sql-merge: |
+            INSERT INTO "{tableName}" (k, v) 
+            VALUES (?, ?) 
+            ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v
+
+    ledger_*:
+      backup-count: 1
+      async-backup-count: 0
+      read-backup-data: false
+      map-store:
+        enabled: true
+        initial-mode: LAZY
+        write-delay-seconds: 0
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
+        properties:
+          # Base type for the ledger value. If a more specific subtype is
+          # registered in the runtime type registry, that subtype takes
+          # precedence (see TypedJdbcMapStoreFactory.resolveValueClass).
+          value-class-name: com.norconex.crawler.core.ledger.CrawlEntry
+          data-connection-ref: jdbc-datasource
+          column-key-type: VARCHAR(4096)
+          column-value-type: TEXT
+          sql-merge: |
+            INSERT INTO "{tableName}" (k, v) 
+            VALUES (?, ?) 
+            ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v
+    eph-*:
+      backup-count: 1
+      async-backup-count: 0
+      map-store:
+        enabled: false
+        
+  # Queue configurations
+  queue:
+    # Configure distributed FIFO queues matching "queue-*" names. Values
+    # are persisted as strings (VARCHAR) so JSON-serialized objects are
+    # portable across JDBC implementations. The queue store factory class
+    # should implement persistence using a single value column.
+    queue-*:
+      backup-count: 1
+      async-backup-count: 0
+      queue-store:
+        enabled: true
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcQueueStoreFactory
+        properties:
+          data-connection-ref: jdbc-datasource
+          column-value-type: VARCHAR(4096)
+
+  # Partition group configuration for cluster
+  partition-group:
+    enabled: false
+    group-type: PER_MEMBER
+
+  # Management Center (optional)
+  management-center:
+    scripting-enabled: false

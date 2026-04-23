@@ -1,4 +1,4 @@
-/* Copyright 2017-2025 Norconex Inc.
+/* Copyright 2017-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,10 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.TextReader;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.operations.link.Link;
 import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
+import com.norconex.importer.doc.Doc;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -95,7 +95,7 @@ public class RegexLinkExtractor
             new RegexLinkExtractorConfig();
 
     @Override
-    public Set<Link> extractLinks(CrawlDoc doc) throws IOException {
+    public Set<Link> extractLinks(Doc doc) throws IOException {
 
         Set<Link> links = new HashSet<>();
 

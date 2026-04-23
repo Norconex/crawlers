@@ -1,4 +1,4 @@
-/* Copyright 2017-2024 Norconex Inc.
+/* Copyright 2017-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerExtension;
 
@@ -55,6 +56,7 @@ import com.norconex.commons.lang.security.Credentials;
  */
 @ExtendWith(MockServerExtension.class)
 @TestInstance(Lifecycle.PER_CLASS)
+@Timeout(30)
 class AzureSearchCommitterTest {
 
     private static final String TEST_ID = "3";

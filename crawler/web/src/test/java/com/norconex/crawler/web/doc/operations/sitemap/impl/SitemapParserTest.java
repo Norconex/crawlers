@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,22 +20,24 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
 
+@Timeout(30)
 class SitemapParserTest {
 
     @Test
     void testParse() throws IOException {
-        List<WebCrawlDocContext> extractedLinks = new ArrayList<>();
-        var p = new SitemapParser(false, new MutableBoolean(false));
+        List<WebCrawlEntry> extractedLinks = new ArrayList<>();
+        var p = new SitemapParser(false, new AtomicBoolean(false));
 
         try (var is = getClass().getResourceAsStream("sitemap.xml")) {
 
@@ -58,16 +60,18 @@ class SitemapParserTest {
                         "https://example.com/linkC",
                         "https://example.com/linkD"),
                 extractedLinks.stream()
-                        .map(WebCrawlDocContext::getReference)
+                        .map(WebCrawlEntry::getReference)
                         .collect(Collectors.toList()));
 
         // test second one:
         var doc = extractedLinks.get(1);
         Assertions.assertEquals(
-                "https://example.com/linkB", doc.getReference());
+                "https://example.com/linkB",
+                doc.getReference());
         Assertions.assertEquals(
                 "2021-04-01",
-                doc.getSitemapLastMod().toLocalDate().toString());
+                doc.getSitemapLastMod().toLocalDate()
+                        .toString());
         Assertions.assertEquals("daily", doc.getSitemapChangeFreq());
         Assertions.assertEquals(1f, doc.getSitemapPriority());
     }

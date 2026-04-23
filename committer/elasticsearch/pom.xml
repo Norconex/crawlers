@@ -1,5 +1,5 @@
 <!--
-   Copyright 2013-2025 Norconex Inc.
+   Copyright 2013-2026 Norconex Inc.
    
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
   <name>Norconex Committer Elasticsearch</name>
 
   <properties>
-    <elasticsearch.version>8.12.2</elasticsearch.version>
+    <elasticsearch.version>9.3.1</elasticsearch.version>
     <sonar.skip>false</sonar.skip>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>    
   </properties>
@@ -55,15 +55,25 @@
     <!-- Testing libs -->
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>junit-jupiter</artifactId>
+      <artifactId>testcontainers-elasticsearch</artifactId>
       <scope>test</scope>
     </dependency>
+	<dependency>
+	  <groupId>org.testcontainers</groupId>
+	  <artifactId>testcontainers</artifactId>
+	  <scope>test</scope>
+	</dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>elasticsearch</artifactId>
-      <version>${testcontainers.version}</version>
+      <artifactId>testcontainers-junit-jupiter</artifactId>
       <scope>test</scope>
-    </dependency>
+      <exclusions>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>    
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
@@ -121,11 +131,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-gpg-plugin</artifactId>
-      </plugin>
-
-      <plugin>
-        <groupId>org.sonatype.central</groupId>
-        <artifactId>central-publishing-maven-plugin</artifactId>
       </plugin>
 
     </plugins>

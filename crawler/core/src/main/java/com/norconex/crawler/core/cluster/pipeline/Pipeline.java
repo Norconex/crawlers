@@ -1,0 +1,58 @@
+/* Copyright 2025-2026 Norconex Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.norconex.crawler.core.cluster.pipeline;
+
+import java.util.List;
+import java.util.Objects;
+
+import org.apache.commons.collections4.OrderedMap;
+import org.apache.commons.collections4.map.ListOrderedMap;
+
+import lombok.Data;
+import lombok.NonNull;
+
+@Data
+public class Pipeline {
+
+    private final String id;
+    private final OrderedMap<String, Step> steps =
+            new ListOrderedMap<>();
+
+    public Pipeline(String id) {
+        this.id = id;
+    }
+
+    public Pipeline(String id, List<Step> steps) {
+        this.id = id;
+        steps.forEach(step -> this.steps.put(step.getId(), step));
+    }
+
+    public void addStep(@NonNull Step step) {
+        steps.put(step.getId(), step);
+    }
+
+    public Step getStep(String stepId) {
+        return Objects.requireNonNull(steps.get(stepId),
+                "No cluster pipeline step found for step id: " + stepId);
+    }
+
+    public Step getFirstStep() {
+        return steps.isEmpty() ? null : steps.get(steps.firstKey());
+    }
+
+    public Step getLastStep() {
+        return steps.isEmpty() ? null : steps.get(steps.lastKey());
+    }
+}

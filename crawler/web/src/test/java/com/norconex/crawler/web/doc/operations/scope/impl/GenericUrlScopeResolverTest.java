@@ -1,4 +1,4 @@
-/* Copyright 2015-2025 Norconex Inc.
+/* Copyright 2015-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,11 @@ package com.norconex.crawler.web.doc.operations.scope.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 
+@Timeout(30)
 class GenericUrlScopeResolverTest {
 
     @Test
@@ -110,7 +112,7 @@ class GenericUrlScopeResolverTest {
         assertThat(s.resolve(sub1, docCtx(sub1)).isInScope()).isTrue();
     }
 
-    private static WebCrawlDocContext docCtx(String ref) {
-        return new WebCrawlDocContext(ref);
+    private static WebCrawlEntry docCtx(String ref) {
+        return new WebCrawlEntry(ref);
     }
 }

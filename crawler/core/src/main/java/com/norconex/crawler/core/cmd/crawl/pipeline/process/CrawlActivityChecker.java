@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2024-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
  */
 package com.norconex.crawler.core.cmd.crawl.pipeline.process;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.time.DurationFormatter;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.session.CrawlState;
-import com.norconex.grid.core.compute.GridTaskBuilder;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -29,27 +29,47 @@ import lombok.extern.slf4j.Slf4j;
  * considered active. When applicable, will wait until that information
  * can be established.
  */
-@RequiredArgsConstructor
 @Slf4j
+//TODO still needed? Done by cluster?
 class CrawlActivityChecker {
-    private final CrawlContext ctx;
+    private final CrawlSession session;
     @Getter
     private final boolean deleting;
 
-    private static boolean isResolving;
-    private static boolean isPresumedActive = true;
-    private boolean maxDocsReached;
+    private final long expireAt;
 
+    private boolean isResolving;
+    private boolean isPresumedActive = true;
+    private AtomicBoolean canContinue = new AtomicBoolean(true);
+    //    private boolean maxDocsReached;
+
+    public CrawlActivityChecker(CrawlSession session, boolean deleting) {
+        this.session = session;
+        this.deleting = deleting;
+        var maxDuration = session
+                .getCrawlContext().getCrawlConfig().getMaxCrawlDuration();
+        expireAt = (maxDuration == null || maxDuration.toMillis() <= 0)
+                ? 0
+                : System.currentTimeMillis() + maxDuration.toMillis();
+    }
+
+    //TODO can we do without synchronize?
     synchronized boolean isActive() {
         if (!isPresumedActive) {
+            LOG.trace("isActive(): presumed inactive; returning false.");
             return false;
         }
         if (isResolving) {
+            LOG.trace("isActive(): another thread is already resolving; "
+                    + "returning presumed active (true).");
             return true;
         }
         isResolving = true;
         try {
-            isPresumedActive = doIsActive();
+            var active = doIsActive();
+            LOG.trace("isActive(): resolved active={} (prevPresumed={}).",
+                    active, isPresumedActive);
+            isPresumedActive = active;
         } finally {
             isResolving = false;
         }
@@ -57,72 +77,167 @@ class CrawlActivityChecker {
     }
 
     private boolean doIsActive() {
-        if (isMaxDocsApplicableAndReached()) {
+        var queuedEntryCount = queuedEntryCount();
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("""
+                doIsActive(): canContinue={} queueInitialized={} \
+                queueEmpty={} deleting={} expireAt={} \
+                nowMs={}.""",
+                    canContinue.get(),
+                    session.isStartRefsQueueingComplete(),
+                    queuedEntryCount == 0,
+                    deleting,
+                    expireAt,
+                    System.currentTimeMillis());
+        }
+        if (!canContinue()) {
+            LOG.info("doIsActive(): canContinue is false; crawler "
+                    + "considered inactive.");
             return false;
         }
         if (isQueueInitializedAndEmpty()) {
-            return !isQueueStillEmptyAfterIdleTimeout();
+            var stillEmpty = isQueueStillEmptyAfterIdleTimeout();
+            LOG.trace("doIsActive(): queue initialized and empty; "
+                    + "stillEmptyAfterIdleTimeout={}.", stillEmpty);
+            return !stillEmpty;
+        }
+        LOG.trace("doIsActive(): queue is not both initialized and "
+                + "empty; treating crawler as active.");
+        return true;
+    }
+
+    boolean canContinue() {
+        if (!canContinue.get()) {
+            LOG.trace("canContinue(): global flag already false; "
+                    + "returning false.");
+            return false;
+        }
+
+        var can = doCanContinue();
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("canContinue(): evaluated can={} (was={}).", can,
+                    canContinue.get());
+        }
+        if (!can) {
+            LOG.info("Stopping crawl execution (i.e., pause). Will "
+                    + "resume on next start.");
+            session.updateCrawlState(CrawlState.STOPPED);
+        }
+
+        canContinue.set(can);
+        return can;
+    }
+
+    boolean doCanContinue() {
+        // If deleting we don't care about checking if max is reached,
+        // we proceed.
+        if (deleting) {
+            LOG.trace("doCanContinue(): deleting=true; bypassing "
+                    + "max-docs/duration checks.");
+            return true;
+        }
+
+        if (isCrawlExpired()) {
+            LOG.info("Max crawl duration reached.");
+            return false;
+        }
+
+        if (session.getCrawlContext().getCrawlEntryLedger()
+                .isMaxDocsProcessedReached()) {
+            LOG.info("Max number of documents reached.");
+            return false;
         }
         return true;
     }
 
-    boolean isMaxDocsApplicableAndReached() {
-        // If deleting we don't care about checking if max is reached,
-        // we proceed.
-        if (deleting) {
-            return false;
+    private boolean isCrawlExpired() {
+        var expired = expireAt > 0 && System.currentTimeMillis() > expireAt;
+        if (expired && LOG.isDebugEnabled()) {
+            LOG.debug("isCrawlExpired(): expireAt={} nowMs={} -> true.",
+                    expireAt, System.currentTimeMillis());
         }
-
-        if (maxDocsReached) {
-            return true;
-        }
-
-        if (ctx.getDocLedger().isMaxDocsProcessedReached()) {
-            LOG.info("Pausing crawler. Will resume on next start.");
-            maxDocsReached = true;
-            // We update the crawl state to PAUSED so that the crawler
-            // can be resumed later if needed.
-            // This is done here so that the crawl state is updated
-            // before the task is stopped.
-            ctx.getGrid().getCompute().executeTask(GridTaskBuilder
-                    .create("updateCrawlState")
-                    .singleNode()
-                    .processor(g -> CrawlContext
-                            .get(g)
-                            .getSessionProperties()
-                            .updateCrawlState(CrawlState.PAUSED))
-                    .build());
-            return true;
-        }
-        return false;
+        return expired;
     }
 
     private boolean isQueueInitializedAndEmpty() {
-        var sessionStore = ctx.getSessionProperties();
-        var queueEmpty = isQueueEmpty();
+        var queueEmpty = isQueuedEntryEmpty();
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("isQueueInitializedAndEmpty(): start queueEmpty={} "
+                    + "startRefsQueuedComplete={}",
+                    queueEmpty,
+                    session.isStartRefsQueueingComplete());
+        }
         if (queueEmpty) {
-            var queueInitialized = sessionStore.isQueueInitialized();
+            var queueInitialized = session.isStartRefsQueueingComplete();
             if (!queueInitialized) {
                 LOG.info("""
                     References are still being queued. \
                     Waiting for new references or initial queuing \
                     to be over...""");
+                var noWorkPollCount = 0;
+                var waitStartMs = System.currentTimeMillis();
                 do {
-                    Sleeper.sleepSeconds(1);
-                    queueEmpty = isQueueEmpty();
-                    queueInitialized = sessionStore.isQueueInitialized();
+                    Sleeper.sleepMillis(200);
+                    queueEmpty = isQueuedEntryEmpty();
+                    queueInitialized =
+                            session.isStartRefsQueueingComplete();
+                    if (LOG.isTraceEnabled()) {
+                        LOG.trace("""
+                            isQueueInitializedAndEmpty(): \
+                            poll loop queueEmpty={} \
+                            queueInitialized={}.""",
+                                queueEmpty, queueInitialized);
+                    }
+                    // Guard against the start-refs-queuing flag becoming
+                    // permanently unavailable (e.g., due to partition
+                    // migration after a coordinator crash). Exit the loop if:
+                    //  (a) Queue and processing have both been empty for ~1s,
+                    //      meaning no more work exists at all; OR
+                    //  (b) We have been waiting >30s, after which even
+                    //      orphaned PROCESSING entries left by a crashed node
+                    //      should not prevent idle timeout from firing.
+                    if (!queueInitialized && queueEmpty) {
+                        var processingCount = session.getCrawlContext()
+                                .getCrawlEntryLedger().getProcessingCount();
+                        if (processingCount == 0) {
+                            noWorkPollCount++;
+                        } else {
+                            noWorkPollCount = 0;
+                        }
+                        var waitedMs =
+                                System.currentTimeMillis() - waitStartMs;
+                        if (noWorkPollCount >= 5 || waitedMs >= 30_000) {
+                            LOG.info("Treating start-refs queuing as "
+                                    + "complete (no-work polls: {}, "
+                                    + "waited: {}ms). The flag may be "
+                                    + "temporarily unavailable due to a "
+                                    + "coordinator crash.",
+                                    noWorkPollCount, waitedMs);
+                            queueInitialized = true;
+                        }
+                    } else {
+                        noWorkPollCount = 0;
+                    }
                 } while (queueEmpty && !queueInitialized);
             }
         }
         if (queueEmpty) {
-            LOG.info("Reference queue is empty.");
+            LOG.debug("Reference queue is empty.");
+        } else if (LOG.isTraceEnabled()) {
+            LOG.trace("isQueueInitializedAndEmpty(): queue not empty; "
+                    + "returning false.");
         }
         return queueEmpty;
     }
 
     private boolean isQueueStillEmptyAfterIdleTimeout() {
-        var duration = ctx.getCrawlConfig().getIdleTimeout();
+        var duration =
+                session.getCrawlContext().getCrawlConfig().getIdleTimeout();
         if (duration == null || duration.isZero()) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("isQueueStillEmptyAfterIdleTimeout(): no "
+                        + "idleTimeout configured; returning true.");
+            }
             return true;
         }
 
@@ -131,8 +246,16 @@ class CrawlActivityChecker {
         var timeout = duration.toMillis();
         var then = System.currentTimeMillis();
         while (System.currentTimeMillis() - then < timeout) {
-            Sleeper.sleepSeconds(1);
-            if (!isQueueEmpty()) {
+            Sleeper.sleepMillis(200);
+            var empty = isQueuedEntryEmpty();
+            if (LOG.isTraceEnabled()) {
+                LOG.trace("isQueueStillEmptyAfterIdleTimeout(): polled "
+                        + "queueEmpty={} after {} ms (timeout={} ms).",
+                        empty,
+                        System.currentTimeMillis() - then,
+                        timeout);
+            }
+            if (!empty) {
                 return false;
             }
         }
@@ -141,13 +264,19 @@ class CrawlActivityChecker {
         return true;
     }
 
-    private boolean isQueueEmpty() {
-        return ctx.getDocLedger().isQueueEmpty();
+    private boolean isQueuedEntryEmpty() {
+        return queuedEntryCount() == 0;
+    }
+
+    private long queuedEntryCount() {
+        return session.getCrawlContext()
+                .getCrawlEntryLedger()
+                .getQueuedEntryCount();
     }
 
     private String idleTimeoutAsText() {
         return DurationFormatter.FULL.format(
-                ctx.getCrawlConfig().getIdleTimeout());
+                session.getCrawlContext().getCrawlConfig().getIdleTimeout());
     }
 
 }

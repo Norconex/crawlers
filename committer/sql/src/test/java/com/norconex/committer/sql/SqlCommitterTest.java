@@ -1,4 +1,4 @@
-/* Copyright 2017-2024 Norconex Inc.
+/* Copyright 2017-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +48,7 @@ import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.security.Credentials;
 
+@Timeout(30)
 class SqlCommitterTest {
 
     private static final Logger LOG =

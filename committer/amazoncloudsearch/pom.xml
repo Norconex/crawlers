@@ -1,5 +1,5 @@
 <!-- 
-   Copyright 2024 Norconex Inc.
+   Copyright 2024-2026 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -28,6 +28,10 @@
   <description>Amazon CloudSearch implementation of Norconex Committer</description>
 
   <inceptionYear>2009</inceptionYear>
+
+  <properties>
+    <aws-java-sdk.version>1.12.797</aws-java-sdk.version>
+  </properties>
 
   <dependencies>
     <dependency>
@@ -61,17 +65,23 @@
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-	    <groupId>org.testcontainers</groupId>
-	    <artifactId>junit-jupiter</artifactId>
-	    <scope>test</scope>
-		</dependency>
 		<dependency>
 		  <groupId>org.testcontainers</groupId>
 		  <artifactId>testcontainers</artifactId>
-		  <version>${testcontainers.version}</version>
 		  <scope>test</scope>
 		</dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers-junit-jupiter</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
     <dependency>
       <groupId>com.norconex.commons</groupId>
       <artifactId>norconex-commons-lang</artifactId>

@@ -1,4 +1,4 @@
-/* Copyright 2020-2025 Norconex Inc.
+/* Copyright 2020-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,7 +143,7 @@ public class CsvFileCommitter
         }
 
         builder.setRecordSeparator('\n');
-        var csv = new CSVPrinter(writer, builder.build());
+        var csv = new CSVPrinter(writer, builder.get());
         printHeaders(csv);
         return csv;
     }

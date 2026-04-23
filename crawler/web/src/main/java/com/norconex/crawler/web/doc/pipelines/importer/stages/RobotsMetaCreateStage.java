@@ -1,4 +1,4 @@
-/* Copyright 2010-2025 Norconex Inc.
+/* Copyright 2010-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,37 +34,43 @@ public class RobotsMetaCreateStage extends AbstractImporterStage {
     @Override
     protected boolean executeStage(ImporterPipelineContext context) {
         var ctx = (WebImporterPipelineContext) context;
-        if (Web.config(ctx.getCrawlContext())
+        if (Web.config(ctx.getCrawlSession().getCrawlContext())
                 .getRobotsMetaProvider() == null) {
             return true;
         }
 
         try (var reader = new InputStreamReader(
-                context.getDoc().getInputStream(), StandardCharsets.UTF_8)) {
+                ctx.getDocContext().getDoc().getInputStream(),
+                StandardCharsets.UTF_8)) {
             ctx.setRobotsMeta(
-                    Web.config(ctx.getCrawlContext())
+                    Web.config(ctx.getCrawlSession()
+                            .getCrawlContext())
                             .getRobotsMetaProvider()
                             .getRobotsMeta(
-                                    reader, ctx
-                                            .getDoc()
+                                    reader,
+                                    ctx
                                             .getDocContext()
                                             .getReference(),
-                                    ctx.getDoc().getDocContext()
+                                    ctx.getDocContext()
+                                            .getDoc()
                                             .getContentType(),
-                                    ctx.getDoc().getMetadata()));
+                                    ctx.getDocContext()
+                                            .getDoc()
+                                            .getMetadata()));
             if (ctx.getRobotsMeta() != null) {
-                ctx.getCrawlContext().fire(
+                ctx.getCrawlSession().fire(
                         CrawlerEvent.builder()
                                 .name(WebCrawlerEvent.EXTRACTED_ROBOTS_META)
-                                .source(ctx.getCrawlContext())
-                                .subject(ctx.getRobotsMeta())
-                                .docContext(ctx.getDoc().getDocContext())
+                                .source(ctx.getCrawlSession())
+                                .crawlEntry(ctx.getDocContext()
+                                        .getCurrentCrawlEntry())
                                 .build());
             }
         } catch (IOException e) {
             throw new CrawlerException(
                     "Cannot create RobotsMeta for : "
-                            + ctx.getDoc().getDocContext().getReference(),
+                            + ctx.getDocContext()
+                                    .getReference(),
                     e);
         }
         return true;

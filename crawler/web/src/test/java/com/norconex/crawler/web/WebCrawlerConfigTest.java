@@ -1,4 +1,4 @@
-/* Copyright 2017-2024 Norconex Inc.
+/* Copyright 2017-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,14 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
 
+@Timeout(30)
 class WebCrawlerConfigTest {
 
     @TempDir
@@ -48,7 +50,7 @@ class WebCrawlerConfigTest {
             try (Reader r = new InputStreamReader(
                     getClass().getResourceAsStream(
                             "/validation/web-crawl-config-large.xml"))) {
-                var cfg = new WebCrawlerConfig();
+                var cfg = new WebCrawlConfig();
                 BeanMapper.DEFAULT.read(cfg, r, Format.XML);
                 BeanMapper.DEFAULT.assertWriteRead(cfg);
             } catch (Exception e) {

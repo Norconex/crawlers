@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxtProvider;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapLocator;
 import com.norconex.crawler.web.util.Web;
@@ -53,10 +53,11 @@ public class GenericSitemapLocator implements
 
     @Override
     public List<String> locations(String reference,
-            CrawlContext crawler) {
+            CrawlSession crawlSession) {
         List<String> resolvedpaths = new ArrayList<>(configuration.getPaths());
         if (!configuration.isRobotsTxtSitemapDisabled()) {
-            var robotsTxt = Web.robotsTxt(crawler, reference);
+            var robotsTxt = Web.robotsTxt(
+                    crawlSession.getCrawlContext(), reference);
             if (robotsTxt != null) {
                 var locs = robotsTxt.getSitemapLocations();
                 if (CollectionUtils.isNotEmpty(locs)) {

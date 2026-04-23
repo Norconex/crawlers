@@ -1,4 +1,4 @@
-/* Copyright 2020-2024 Norconex Inc.
+/* Copyright 2020-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.norconex.committer.core.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.TestUtil;
@@ -25,6 +26,7 @@ import com.norconex.commons.lang.text.TextMatcher;
 /**
  * <p>MemoryCommitter tests.</p>
  */
+@Timeout(30)
 class MemoryCommitterTest {
 
     @Test

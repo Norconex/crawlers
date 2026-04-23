@@ -1,4 +1,4 @@
-/* Copyright 2015-2025 Norconex Inc.
+/* Copyright 2015-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,11 +37,11 @@ import com.norconex.commons.lang.event.EventListener;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractor;
 import com.norconex.crawler.web.doc.operations.link.impl.TikaLinkExtractor;
-import com.norconex.crawler.web.fetch.WebFetchResponse;
+import com.norconex.crawler.web.event.WebCrawlerEvent;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -126,7 +126,7 @@ public class UrlStatusCrawlerEventListener implements
     @Override
     public void accept(Event event) {
         if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
-            init((CrawlContext) event.getSource());
+            init((CrawlSession) event.getSource());
             return;
         }
         if (event.is(CrawlerEvent.CRAWLER_CRAWL_END)) {
@@ -142,16 +142,21 @@ public class UrlStatusCrawlerEventListener implements
             return;
         }
 
-        if (((ce.getSubject() instanceof WebFetchResponse response)
+        if (ce.is(CrawlerEvent.DOCUMENT_FETCHED,
+                CrawlerEvent.DOCUMENT_METADATA_FETCHED,
+                CrawlerEvent.REJECTED_BAD_STATUS,
+                CrawlerEvent.REJECTED_NOTFOUND,
+                CrawlerEvent.REJECTED_UNMODIFIED,
+                WebCrawlerEvent.REJECTED_REDIRECTED)
+                && ce.getCrawlEntry() instanceof WebCrawlEntry crawlRef
                 && (parsedCodes.isEmpty()
-                        || parsedCodes.contains(response.getStatusCode())))
+                        || parsedCodes.contains(crawlRef.getHttpStatusCode()))
                 && (csvPrinter != null)) {
-            var crawlRef = (WebCrawlDocContext) ce.getDocContext();
             Object[] csvRecord = {
                     trimToEmpty(crawlRef.getReferrerReference()),
                     trimToEmpty(crawlRef.getReference()),
-                    response.getStatusCode(),
-                    response.getReasonPhrase()
+                    crawlRef.getHttpStatusCode(),
+                    crawlRef.getHttpReasonPhrase()
             };
             printCSVRecord(csvPrinter, csvRecord);
         }
@@ -166,9 +171,9 @@ public class UrlStatusCrawlerEventListener implements
         }
     }
 
-    private void init(CrawlContext crawler) {
+    private void init(CrawlSession session) {
 
-        var baseDir = getBaseDir(crawler);
+        var baseDir = getBaseDir(session);
         var timestamp = "";
         if (configuration.isTimestamped()) {
             timestamp = LocalDateTime.now().truncatedTo(
@@ -177,7 +182,8 @@ public class UrlStatusCrawlerEventListener implements
         }
 
         // if combined == true, get using null to hashmap.
-        csvPrinter = createCSVPrinter(baseDir, crawler.getId(), timestamp);
+        csvPrinter =
+                createCSVPrinter(baseDir, session.getCrawlerId(), timestamp);
 
         // Parse status codes
         if (StringUtils.isBlank(configuration.getStatusCodes())) {
@@ -213,9 +219,9 @@ public class UrlStatusCrawlerEventListener implements
         }
     }
 
-    private Path getBaseDir(CrawlContext crawler) {
+    private Path getBaseDir(CrawlSession session) {
         if (configuration.getOutputDir() == null) {
-            return crawler.getWorkDir();
+            return session.getCrawlContext().getWorkDir();
         }
         return configuration.getOutputDir();
     }

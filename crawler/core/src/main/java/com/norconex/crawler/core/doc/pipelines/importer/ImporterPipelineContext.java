@@ -1,4 +1,4 @@
-/* Copyright 2014-2025 Norconex Inc.
+/* Copyright 2014-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  */
 package com.norconex.crawler.core.doc.pipelines.importer;
 
-import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.importer.response.ImporterResponse;
 
 import lombok.Data;
@@ -32,8 +32,8 @@ import lombok.Data;
 @Data
 public class ImporterPipelineContext {
 
-    private final CrawlContext crawlContext;
-    private final CrawlDoc doc;
+    private final CrawlSession crawlSession;
+    private final CrawlDocContext docContext;
 
     private ImporterResponse importerResponse;
 
@@ -58,7 +58,7 @@ public class ImporterPipelineContext {
         // current directive is DOCUMENT, then metadata had to be performed.
         return currentDirective == FetchDirective.DOCUMENT
                 && FetchDirectiveSupport.isEnabled(
-                        crawlContext.getCrawlConfig()
+                        crawlSession.getCrawlContext().getCrawlConfig()
                                 .getMetadataFetchSupport());
     }
 
@@ -71,11 +71,11 @@ public class ImporterPipelineContext {
     public boolean isFetchDirectiveEnabled(FetchDirective directive) {
         return (directive == FetchDirective.METADATA
                 && FetchDirectiveSupport.isEnabled(
-                        crawlContext.getCrawlConfig()
+                        crawlSession.getCrawlContext().getCrawlConfig()
                                 .getMetadataFetchSupport()))
                 || (directive == FetchDirective.DOCUMENT
                         && FetchDirectiveSupport.isEnabled(
-                                crawlContext.getCrawlConfig()
+                                crawlSession.getCrawlContext().getCrawlConfig()
                                         .getDocumentFetchSupport()));
     }
 }

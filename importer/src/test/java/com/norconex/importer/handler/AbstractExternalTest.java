@@ -1,4 +1,4 @@
-/* Copyright 2017-2024 Norconex Inc.
+/* Copyright 2017-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.config.Configurable;
@@ -39,6 +40,7 @@ import com.norconex.importer.handler.parser.ParseState;
 import com.norconex.importer.handler.transformer.impl.ExternalTransformerConfig;
 import com.norconex.importer.util.ExternalApp;
 
+@Timeout(30)
 public abstract class AbstractExternalTest {
 
     static final String INPUT = "1 2 3\n4 5 6\n7 8 9";

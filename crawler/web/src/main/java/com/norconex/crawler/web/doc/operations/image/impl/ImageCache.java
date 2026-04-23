@@ -1,4 +1,4 @@
-/* Copyright 2017-2025 Norconex Inc.
+/* Copyright 2017-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,118 +18,110 @@ import java.awt.Dimension;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.Serializable;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
 
 import org.apache.commons.collections4.map.LRUMap;
-import org.h2.mvstore.MVMap;
-import org.h2.mvstore.MVStore;
 
-import com.norconex.crawler.core.CrawlerException;
-
-import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Caches images. This class should not be instantiated more than once
- * for the same path. It is best to share the instance.
+ * <p>
+ * Thread-safe, in-memory LRU cache for featured images, keyed by
+ * image URL. Prevents re-downloading and re-scaling the same image
+ * when it appears on multiple crawled pages (e.g., a shared logo
+ * or banner).
+ * </p><p>
+ * Images are stored as <b>PNG-compressed byte arrays</b> rather than
+ * raw {@code BufferedImage} objects, reducing per-entry memory by
+ * roughly 10&ndash;50&times; (e.g., a 200&times;200 scaled image
+ * uses ~5&ndash;10&nbsp;KB compressed vs ~160&nbsp;KB raw).
+ * </p><p>
+ * The cache is local to each crawler node &mdash; it is intentionally
+ * <b>not</b> shared across cluster nodes because serializing image
+ * payloads through the grid would negate the performance benefit.
+ * </p>
  * @since 2.8.0
  */
-//TODO consider using DataStorageEngine instead (give it as an option?).
 @Slf4j
 public class ImageCache {
 
-    //TODO use Grid cache instead?
-    @Getter(value = AccessLevel.PACKAGE)
-    private final MVStore store;
-    private final Map<String, String> lru;
-    private final Path cacheDir;
-    MVMap<String, MVImage> imgCache;
+    private record CachedEntry( //NOSONAR
+            Dimension originalSize, byte[] pngBytes) {
+    }
 
-    public ImageCache(int maxSize, Path dir) {
-        cacheDir = dir;
-        try {
-            Files.createDirectories(dir);
-            LOG.debug("Image cache directory: {}", dir);
-        } catch (IOException e) {
-            throw new CrawlerException(
-                    "Cannot create image cache directory: "
-                            + dir.toAbsolutePath(),
-                    e);
-        }
+    private final Map<String, CachedEntry> lru;
 
-        store = MVStore.open(
-                dir.resolve("images").toAbsolutePath().toString());
-        imgCache = store.openMap("imgCache");
-        imgCache.clear();
-
+    /**
+     * Creates a new in-memory image cache with the given maximum
+     * number of entries.
+     * @param maxSize maximum cached images before the
+     *                least-recently used entry is evicted
+     */
+    public ImageCache(int maxSize) {
         lru = Collections.synchronizedMap(
-                new LRUMap<String, String>(maxSize) {
+                new LRUMap<String, CachedEntry>(maxSize) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     protected boolean removeLRU(
-                            LinkEntry<String, String> entry) {
-                        if (LOG.isDebugEnabled()) {
-                            LOG.debug(
-                                    "Cache full, removing: {}",
-                                    entry.getKey());
-                        }
-                        imgCache.remove(entry.getKey());
-                        return super.removeLRU(entry);
+                            LinkEntry<String, CachedEntry> entry) {
+                        LOG.debug(
+                                "Cache full, evicting: {}",
+                                entry.getKey());
+                        return true;
                     }
                 });
-        store.commit();
     }
 
-    public Path getCacheDirectory() {
-        return cacheDir;
-    }
-
-    public FeaturedImage getImage(String ref) throws IOException {
-        var img = imgCache.get(ref);
-        if (img == null) {
+    /**
+     * Returns the cached image for the given URL, or {@code null}
+     * if absent or if the cached entry cannot be decoded.
+     * @param url image URL
+     * @return cached image or {@code null}
+     */
+    public FeaturedImage getImage(String url) {
+        var entry = lru.get(url);
+        if (entry == null) {
             return null;
         }
-        lru.put(ref, null);
-        return new FeaturedImage(
-                ref, img.getOriginalDimension(),
-                ImageIO.read(new ByteArrayInputStream(img.getImage())));
+        try {
+            var bi = ImageIO.read(
+                    new ByteArrayInputStream(entry.pngBytes()));
+            return new FeaturedImage(
+                    url, entry.originalSize(), bi);
+        } catch (IOException e) {
+            LOG.debug("Could not decode cached image: {}", url, e);
+            lru.remove(url);
+            return null;
+        }
     }
 
-    public void setImage(FeaturedImage scaledImage)
-            throws IOException {
-        lru.put(scaledImage.getUrl(), null);
-        var baos = new ByteArrayOutputStream();
-        ImageIO.write(scaledImage.getImage(), "png", baos);
-        imgCache.put(
-                scaledImage.getUrl(), new MVImage(
-                        scaledImage.getOriginalSize(), baos.toByteArray()));
-        store.commit();
+    /**
+     * Stores a featured image in the cache as a PNG-compressed
+     * byte array, keyed by its URL.
+     * @param image the featured image to cache
+     */
+    public void setImage(FeaturedImage image) {
+        try {
+            var baos = new ByteArrayOutputStream();
+            ImageIO.write(image.getImage(), "png", baos);
+            lru.put(image.getUrl(), new CachedEntry(
+                    image.getOriginalSize(), baos.toByteArray()));
+        } catch (IOException e) {
+            LOG.debug(
+                    "Could not compress image for caching: {}",
+                    image.getUrl(), e);
+        }
     }
 
-    private static class MVImage implements Serializable {
-        private static final long serialVersionUID = 1L;
-        private final Dimension originalDimension;
-        private final byte[] image;
-
-        public MVImage(Dimension originalDimension, byte[] image) {
-            this.originalDimension = originalDimension;
-            this.image = image;
-        }
-
-        public Dimension getOriginalDimension() {
-            return originalDimension;
-        }
-
-        public byte[] getImage() {
-            return image;
-        }
+    /**
+     * Returns the number of images currently in the cache.
+     * @return current cache size
+     */
+    public int getCacheSize() {
+        return lru.size();
     }
 }

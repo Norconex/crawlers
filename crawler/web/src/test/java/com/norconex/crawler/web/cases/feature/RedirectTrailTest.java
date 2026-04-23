@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,22 +29,24 @@ import org.mockserver.model.HttpClassCallback;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * The tail of redirects should be kept as metadata so implementors
  * can know where documents came from.
  */
 @MockServerSettings
+@Timeout(30)
 class RedirectTrailTest {
 
     private static final String PATH = "/redirectTrail";
 
     @WebCrawlTest
-    void testRedirectTrailTest(ClientAndServer client, WebCrawlerConfig cfg) {
+    void testRedirectTrailTest(ClientAndServer client, WebCrawlConfig cfg) {
 
         client
                 .when(request(PATH))

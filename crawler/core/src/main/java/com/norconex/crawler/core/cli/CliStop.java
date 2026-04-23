@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,16 @@
  */
 package com.norconex.crawler.core.cli;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.norconex.crawler.core.Crawler;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 
 /**
  * Stop a crawler.
@@ -29,10 +34,18 @@ import picocli.CommandLine.Command;
 )
 @EqualsAndHashCode
 @ToString
+@Slf4j
 public class CliStop extends CliBase {
+
+    @Option(
+        names = { "-url" },
+        description = "The URL for the node that will receive the stop "
+                + "request (can specify multiple URLs). "
+    )
+    private List<String> urls = new ArrayList<>();
 
     @Override
     protected void runCommand(Crawler crawler) {
-        crawler.stop();
+        crawler.stop(urls.toArray(new String[] {}));
     }
 }

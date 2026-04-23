@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,12 @@
 package com.norconex.crawler.core.doc.pipelines.importer.stages;
 
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.operations.filter.MetadataFilter;
 import com.norconex.crawler.core.doc.pipelines.OnMatchFiltersResolver;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchDirective;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.event.CrawlerEvent;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -44,26 +44,30 @@ public class MetadataFiltersStage extends AbstractImporterStage {
             return true;
         }
 
+        var doc = ctx.getDocContext().getDoc();
+
         return OnMatchFiltersResolver
                 .<Properties, MetadataFilter>builder()
-                .subject(ctx.getDoc().getMetadata())
-                .filters(ctx.getCrawlContext().getCrawlConfig()
-                        .getMetadataFilters())
+                .subject(doc.getMetadata())
+                .filters(
+                        ctx.getCrawlSession().getCrawlContext().getCrawlConfig()
+                                .getMetadataFilters())
                 .predicate((s, f) -> f
-                        .acceptMetadata(ctx.getDoc().getReference(), s))
+                        .acceptMetadata(doc.getReference(), s))
                 .onRejected((f, msg) -> {
                     LOG.debug("REJECTED metadata. Reference: {} Filter={}",
-                            ctx.getDoc().getDocContext().getReference(), f);
-                    ctx.getCrawlContext().fire(
-                            CrawlerEvent.builder()
-                                    .name(CrawlerEvent.REJECTED_FILTER)
-                                    .source(ctx.getCrawlContext())
-                                    .docContext(ctx.getDoc().getDocContext())
-                                    .subject(f)
-                                    .message(msg)
-                                    .build());
-                    ctx.getDoc().getDocContext()
-                            .setState(CrawlDocStatus.REJECTED);
+                            doc.getReference(), f);
+                    ctx.getCrawlSession().fire(CrawlerEvent
+                            .builder()
+                            .name(CrawlerEvent.REJECTED_FILTER)
+                            .crawlSession(ctx.getCrawlSession())
+                            .crawlEntry(
+                                    ctx.getDocContext().getCurrentCrawlEntry())
+                            .source(f)
+                            .message(msg)
+                            .build());
+                    ctx.getDocContext().getCurrentCrawlEntry()
+                            .setProcessingOutcome(ProcessingOutcome.REJECTED);
                 })
                 .build()
                 .isAccepted();

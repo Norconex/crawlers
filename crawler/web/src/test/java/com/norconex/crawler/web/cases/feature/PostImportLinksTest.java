@@ -1,4 +1,4 @@
-/* Copyright 2020-2025 Norconex Inc.
+/* Copyright 2020-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,22 +28,24 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core.doc.operations.filter.impl.ExtensionReferenceFilter;
 import com.norconex.crawler.web.TestResource;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import com.norconex.importer.handler.parser.impl.DefaultParser;
 import com.norconex.importer.handler.transformer.impl.UrlExtractorTransformer;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test that links can be specified for crawling after importing.
  */
 @MockServerSettings
+@Timeout(30)
 class PostImportLinksTest {
 
     @WebCrawlTest
     void testPostImportLinksURL(
-            ClientAndServer client, WebCrawlerConfig cfg) {
+            ClientAndServer client, WebCrawlConfig cfg) {
 
         var path = "/postImportLinks";
 

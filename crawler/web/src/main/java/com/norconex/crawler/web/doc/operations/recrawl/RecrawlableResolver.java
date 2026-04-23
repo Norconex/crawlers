@@ -1,4 +1,4 @@
-/* Copyright 2010-2025 Norconex Inc.
+/* Copyright 2010-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.doc.operations.recrawl;
 
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 
 /**
  * Indicates whether a document that was successfully crawled on a previous
@@ -30,5 +30,5 @@ public interface RecrawlableResolver {
      * @param prevDocRecord data about previously crawled document (if any)
      * @return <code>true</code> if recrawlable
      */
-    boolean isRecrawlable(WebCrawlDocContext prevDocRecord);
+    boolean isRecrawlable(WebCrawlEntry prevDocRecord);
 }

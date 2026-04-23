@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2024-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@ package com.norconex.crawler.core.doc.pipelines;
 
 import java.util.Optional;
 
-import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.grid.core.storage.GridMap;
+import com.norconex.crawler.core.cluster.CacheMap;
+import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.session.CrawlSession;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,19 +28,20 @@ public class DedupService {
     //TODO merge with CrawlDocLedger if we can query by checksum
     // at no extra cost?
 
-    private GridMap<String> dedupMetadataStore; // checksum -> ref
-    private GridMap<String> dedupDocumentStore; // checksum -> ref
+    private CacheMap<String> dedupMetadataStore; // checksum -> ref
+    private CacheMap<String> dedupDocumentStore; // checksum -> ref
 
-    public void init(CrawlContext ctx) {
+    public void init(CrawlSession session) {
+        var ctx = session.getCrawlContext();
         var crawlConfig = ctx.getCrawlConfig();
-        var grid = ctx.getGrid();
-        var storeEngine = grid.getStorage();
+        var cluster = session.getCluster();
+        var cacheManager = cluster.getCacheManager();
 
         // only enable if configured to do dedup
         if (crawlConfig.isMetadataDeduplicate()
                 && crawlConfig.getMetadataChecksummer() != null) {
             dedupMetadataStore =
-                    storeEngine.getMap("dedupMetadata", String.class);
+                    cacheManager.getCacheMap("dedupMetadata", String.class);
             LOG.info("Initialized deduplication based on document metadata.");
         } else {
             dedupMetadataStore = null;
@@ -48,7 +49,7 @@ public class DedupService {
         if (crawlConfig.isDocumentDeduplicate()
                 && crawlConfig.getDocumentChecksummer() != null) {
             dedupDocumentStore =
-                    storeEngine.getMap("dedupDocument", String.class);
+                    cacheManager.getCacheMap("dedupDocument", String.class);
             LOG.info("Initialized deduplication based on document content.");
         } else {
             dedupDocumentStore = null;
@@ -59,42 +60,41 @@ public class DedupService {
      * Finds a document with the same checksum as the one supplied (effectively
      * being a duplicate) and return its reference. Otherwise save the
      * checksum of the supplied document and return an empty optional.
-     * @param docContext doc to check for duplicates
+     * @param crawlEntry doc to check for duplicates
      * @return the duplicate reference or empty
      */
     public Optional<String>
-            findOrTrackDocument(CrawlDocContext docContext) {
+            findOrTrackDocument(CrawlEntry crawlEntry) {
         return doFindOrTrack(
                 dedupDocumentStore,
-                docContext.getContentChecksum(),
-                docContext.getReference());
+                crawlEntry.getContentChecksum(),
+                crawlEntry.getReference());
     }
 
     /**
      * Finds a document with the same checksum as the one supplied (effectively
      * being a duplicate) and return its reference. Otherwise save the
      * checksum of the supplied document and return an empty optional.
-     * @param docContext doc to check for duplicates
+     * @param crawlEntry doc to check for duplicates
      * @return the duplicate reference or empty
      */
-    public Optional<String>
-            findOrTrackMetadata(CrawlDocContext docContext) {
+    public Optional<String> findOrTrackMetadata(CrawlEntry crawlEntry) {
         return doFindOrTrack(
                 dedupMetadataStore,
-                docContext.getMetaChecksum(),
-                docContext.getReference());
+                crawlEntry.getMetaChecksum(),
+                crawlEntry.getReference());
     }
 
     private Optional<String> doFindOrTrack(
-            GridMap<String> store, String checksum, String reference) {
+            CacheMap<String> cache, String checksum, String reference) {
 
-        if (store == null || checksum == null) {
+        if (cache == null || checksum == null) {
             return Optional.empty();
         }
-        var ref = store.get(checksum);
-        if (ref == null) {
-            store.put(checksum, reference);
+        var ref = cache.get(checksum);
+        if (ref.isEmpty()) {
+            cache.put(checksum, reference);
         }
-        return Optional.ofNullable(ref);
+        return ref;
     }
 }

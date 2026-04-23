@@ -1,4 +1,4 @@
-/* Copyright 2018-2025 Norconex Inc.
+/* Copyright 2018-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,15 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import java.io.IOException;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.multipdf.Splitter;
 import org.apache.pdfbox.pdmodel.PDDocument;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocContext;
 import com.norconex.importer.doc.DocMetaConstants;
-import com.norconex.importer.handler.DocHandlerException;
 import com.norconex.importer.handler.DocHandlerContext;
+import com.norconex.importer.handler.DocHandlerException;
 import com.norconex.importer.handler.splitter.AbstractDocumentSplitter;
 import com.norconex.importer.util.MatchUtil;
 
@@ -101,13 +101,16 @@ public class PdfPageSplitter
 
         // Make sure we are not splitting a page that was already split
         if (!MatchUtil.matchesContentType(
-                configuration.getContentTypeMatcher(), docCtx.docContext())
-                || (docCtx.metadata().getInteger(DOC_PDF_PAGE_NO, 0) > 0)) {
+                configuration.getContentTypeMatcher(),
+                docCtx.contentType())
+                || (docCtx.metadata().getInteger(
+                        DOC_PDF_PAGE_NO, 0) > 0)) {
             return;
         }
 
-        try (var document = PDDocument.load(
-                docCtx.input().asInputStream())) {
+        try (var document = Loader.loadPDF(
+                docCtx.input().asInputStream()
+                        .readAllBytes())) {
 
             // Make sure we are not splitting single pages.
             if (document.getNumberOfPages() <= 1) {
@@ -124,39 +127,43 @@ public class PdfPageSplitter
                 pageNo++;
 
                 var pageRef = docCtx.reference()
-                        + trimToEmpty(configuration.getReferencePagePrefix())
+                        + trimToEmpty(configuration
+                                .getReferencePagePrefix())
                         + pageNo;
 
                 // metadata
                 var pageMeta = new Properties();
                 pageMeta.loadFromMap(docCtx.metadata());
 
-                var pageInfo = new DocContext(pageRef);
+                var pageDoc = new Doc(pageRef);
 
                 pageMeta.set(
                         DocMetaConstants.EMBEDDED_REFERENCE,
                         Integer.toString(pageNo));
 
-                pageInfo.addEmbeddedParentReference(docCtx.reference());
+                pageDoc.addParentReference(docCtx.reference());
 
                 pageMeta.set(DOC_PDF_PAGE_NO, pageNo);
-                pageMeta.set(DOC_PDF_TOTAL_PAGES, document.getNumberOfPages());
+                pageMeta.set(DOC_PDF_TOTAL_PAGES,
+                        document.getNumberOfPages());
 
                 // a single page should not be too big to store in memory
                 var os = new ByteArrayOutputStream();
                 try (page) {
                     page.save(os);
                 }
-                var pageDoc = new Doc(
-                        pageInfo,
-                        docCtx.streamFactory().newInputStream(
-                                os.toInputStream()),
-                        pageMeta);
+                pageDoc.setInputStream(
+                        docCtx.streamFactory()
+                                .newInputStream(os
+                                        .toInputStream()))
+                        .setMetadata(pageMeta);
                 pageDocs.add(pageDoc);
             }
         } catch (IOException e) {
             throw new DocHandlerException(
-                    "Could not split PDF: " + docCtx.reference(), e);
+                    "Could not split PDF: "
+                            + docCtx.reference(),
+                    e);
         }
     }
 }

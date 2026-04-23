@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  */
 package com.norconex.committer.solr;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -21,13 +22,11 @@ import java.util.function.Function;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
-import org.apache.solr.client.solrj.impl.ConcurrentUpdateHttp2SolrClient;
-import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
-import org.apache.solr.client.solrj.impl.Http2SolrClient;
 import org.apache.solr.client.solrj.impl.HttpJdkSolrClient;
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
-import org.apache.solr.client.solrj.impl.LBHttp2SolrClient;
-import org.apache.solr.client.solrj.impl.LBHttpSolrClient;
+import org.apache.solr.client.solrj.impl.LBSolrClient;
+import org.apache.solr.client.solrj.jetty.ConcurrentUpdateJettySolrClient;
+import org.apache.solr.client.solrj.jetty.HttpJettySolrClient;
+import org.apache.solr.client.solrj.jetty.LBJettySolrClient;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -38,7 +37,6 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * SolrClient</a> types.
  * @author Pascal Essiembre
  */
-@SuppressWarnings("deprecation")
 public enum SolrClientType {
 
     /**
@@ -54,28 +52,34 @@ public enum SolrClientType {
     }),
 
     /**
-     * For direct access to a single Solr node using the HTTP/2 protocol.
-     * Ideal for local development or small setups. Expects a Solr URL.
-     */
-    HTTP2("Http2SolrClient", url -> new Http2SolrClient.Builder(url).build()),
-
-    /**
-     * A client using the HTTP/2 protocol, performing simple load-balancing
-     * as an alternative to an external load balancer.
-     * Expects two or more Solr node URLs (comma-separated).
-     */
-    LB_HTTP2("LBHttp2SolrClient", url -> new LBHttp2SolrClient.Builder(
-            new Http2SolrClient.Builder().build(),
-            url.split(SolrClientType.CSV_SPLIT_REGEX)).build()),
-
-    /**
-     * A client using the HTTP/2 protocol, optimized for mass upload on a
-     * single node.  Not best for queries.
+     * For direct access to a single Solr node using the HTTP/2 protocol
+     * (via Jetty). Ideal for local development or small setups.
      * Expects a Solr URL.
      */
-    CONCURRENT_UPDATE_HTTP2("ConcurrentUpdateHttp2SolrClient",
-            url -> new ConcurrentUpdateHttp2SolrClient.Builder(
-                    url, new Http2SolrClient.Builder().build()).build()),
+    HTTP2("HttpJettySolrClient",
+            url -> new HttpJettySolrClient.Builder(url).build()),
+
+    /**
+     * A client using the HTTP/2 protocol (via Jetty), performing simple
+     * load-balancing as an alternative to an external load balancer.
+     * Expects two or more Solr node URLs (comma-separated).
+     */
+    LB_HTTP2("LBJettySolrClient", url -> {
+        var endpoints = Arrays.stream(url.split(SolrClientType.CSV_SPLIT_REGEX))
+                .map(LBSolrClient.Endpoint::from)
+                .toArray(LBSolrClient.Endpoint[]::new);
+        return new LBJettySolrClient.Builder(
+                new HttpJettySolrClient.Builder().build(), endpoints).build();
+    }),
+
+    /**
+     * A client using the HTTP/2 protocol (via Jetty), optimized for mass
+     * upload on a single node. Not best for queries.
+     * Expects a Solr URL.
+     */
+    CONCURRENT_UPDATE_HTTP2("ConcurrentUpdateJettySolrClient",
+            url -> new ConcurrentUpdateJettySolrClient.Builder(
+                    url, new HttpJettySolrClient.Builder().build()).build()),
 
     /**
      * A client using the JDK’s built-in Http Client. Supports both Http/2
@@ -92,7 +96,8 @@ public enum SolrClientType {
      * @deprecated use {@link #HTTP2} instead.
      */
     @Deprecated(since = "4.0.0")
-    HTTP("HttpSolrClient", url -> new HttpSolrClient.Builder(url).build()),
+    HTTP("HttpSolrClient",
+            url -> new HttpJettySolrClient.Builder(url).build()),
     /**
      * A client using the HTTP/1.x protocol, performing simple load-balancing
      * as an alternative to an external load balancer.
@@ -100,9 +105,13 @@ public enum SolrClientType {
      * @deprecated use {@link #LB_HTTP2} instead.
      */
     @Deprecated(since = "4.0.0")
-    LB_HTTP("LBHttpSolrClient",
-            url -> new LBHttpSolrClient.Builder().withBaseSolrUrls(
-                    url.split(SolrClientType.CSV_SPLIT_REGEX)).build()),
+    LB_HTTP("LBHttpSolrClient", url -> {
+        var endpoints = Arrays.stream(url.split(SolrClientType.CSV_SPLIT_REGEX))
+                .map(LBSolrClient.Endpoint::from)
+                .toArray(LBSolrClient.Endpoint[]::new);
+        return new LBJettySolrClient.Builder(
+                new HttpJettySolrClient.Builder().build(), endpoints).build();
+    }),
     /**
      * A client using the HTTP/1.x protocol, optimized for mass upload on a
      * single node.  Not best for queries.
@@ -111,8 +120,9 @@ public enum SolrClientType {
      */
     @Deprecated(since = "4.0.0")
     CONCURRENT_UPDATE("ConcurrentUpdateSolrClient",
-            url -> new ConcurrentUpdateSolrClient.Builder(url).build()),
-            ;
+            url -> new ConcurrentUpdateJettySolrClient.Builder(
+                    url, new HttpJettySolrClient.Builder().build()).build()),
+                    ;
 
     private static final String CSV_SPLIT_REGEX = "\\s*,\\s*";
 

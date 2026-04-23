@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,15 +28,17 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.committer.core.CommitterException;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test detection of modified files.
  */
 @MockServerSettings
+@Timeout(30)
 class ModifiedFileDetectionTest {
 
     private static final ZonedDateTime twentyDaysAgo =
@@ -49,7 +51,7 @@ class ModifiedFileDetectionTest {
 
     @WebCrawlTest
     void testModifiedFileDetection(
-            ClientAndServer client, WebCrawlerConfig cfg)
+            ClientAndServer client, WebCrawlConfig cfg)
             throws CommitterException {
 
         // relies on default checksummers

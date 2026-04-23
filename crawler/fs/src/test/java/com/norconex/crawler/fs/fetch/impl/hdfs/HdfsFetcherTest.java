@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,13 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.provider.hdfs.HdfsFileSystemConfigBuilder;
 import org.apache.hadoop.fs.Path;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
-import com.norconex.importer.doc.DocContext;
+import com.norconex.importer.doc.Doc;
 
+@Timeout(30)
 class HdfsFetcherTest {
 
     //TODO find a way to unit test HDFS.
@@ -39,7 +40,8 @@ class HdfsFetcherTest {
     @Test
     void testHdfsFetcher() throws MalformedURLException {
         List<String> names = List.of("name1", "name2");
-        List<Path> paths = List.of(new Path("/path1"), new Path("/path2"));
+        List<Path> paths =
+                List.of(new Path("/path1"), new Path("/path2"));
         List<URL> urls = List.of(
                 new URL("http://url1.com"),
                 new URL("http://url2.com"));
@@ -51,7 +53,8 @@ class HdfsFetcherTest {
                     .setConfigPaths(paths)
                     .setConfigUrls(urls);
             assertThatNoException()
-                    .isThrownBy(() -> BeanMapper.DEFAULT.assertWriteRead(f));
+                    .isThrownBy(() -> BeanMapper.DEFAULT
+                            .assertWriteRead(f));
         });
 
         assertThat(f.getConfiguration().getConfigNames())
@@ -62,18 +65,20 @@ class HdfsFetcherTest {
                 .containsExactlyElementsOf(urls);
 
         assertThat(f.acceptRequest(new FileFetchRequest(
-                new CrawlDoc(new DocContext("hdfs://blah")),
+                new Doc("hdfs://blah"),
                 DOCUMENT))).isTrue();
         assertThat(f.acceptRequest(new FileFetchRequest(
-                new CrawlDoc(new DocContext("http://blah")),
+                new Doc("http://blah"),
                 DOCUMENT))).isFalse();
 
         var opts = new FileSystemOptions();
         f.applyFileSystemOptions(opts);
         var cfg = HdfsFileSystemConfigBuilder.getInstance();
-        assertThat(cfg.getConfigNames(opts)).containsExactlyElementsOf(names);
-        assertThat(cfg.getConfigPaths(opts)).containsExactlyElementsOf(paths);
-        assertThat(cfg.getConfigURLs(opts)).containsExactlyElementsOf(urls);
-
+        assertThat(cfg.getConfigNames(opts))
+                .containsExactlyElementsOf(names);
+        assertThat(cfg.getConfigPaths(opts))
+                .containsExactlyElementsOf(paths);
+        assertThat(cfg.getConfigURLs(opts))
+                .containsExactlyElementsOf(urls);
     }
 }

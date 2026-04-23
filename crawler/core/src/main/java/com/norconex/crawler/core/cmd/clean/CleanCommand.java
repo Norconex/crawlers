@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2024-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@ package com.norconex.crawler.core.cmd.clean;
 
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.grid.core.compute.GridTaskBuilder;
-import com.norconex.grid.core.compute.TaskState;
+import com.norconex.crawler.core.session.CrawlSession;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,29 +24,37 @@ import lombok.extern.slf4j.Slf4j;
 public class CleanCommand implements Command {
 
     @Override
-    public void execute(CrawlContext ctx) {
+    public void execute(CrawlSession session) {
+        var ctx = session.getCrawlContext();
         Thread.currentThread().setName(ctx.getId() + "/CLEAN");
-        ctx.fire(CrawlerEvent.CRAWLER_CLEAN_BEGIN);
-        var result = ctx.getGrid()
-                .getCompute()
-                .executeTask(GridTaskBuilder.create("cleanTask")
-                        .singleNode()
-                        .processor(grid -> {
-                            var cntx = CrawlContext.get(grid);
-                            cntx.getCommitterService().clean();
-                            // Close metrics prematurely, before cleaning, or
-                            // it will want to report on a blown-away store:
-                            cntx.getMetrics().close();
-                            cntx.getGrid().getStorage().destroy();
-                        })
-                        .build());
+        session.fire(CrawlerEvent.CRAWLER_CLEAN_BEGIN, this);
 
-        if (result.getState() != TaskState.COMPLETED) {
-            LOG.warn("Command returned with a non-completed status: {}",
-                    result);
+        session.getCrawlContext().getCommitterService().clean();
+
+        // Cleaning the cache should be done by a single node.
+        // Use a lightweight cluster-wide lock in the admin cache to ensure
+        // only one node performs the clear even under racy coordinator checks.
+        var cacheManager = session.getCluster().getCacheManager();
+        var ephemeralCache = cacheManager.getCrawlRunCache();
+        var lockKey = "clean.lock";
+        var ownerId = ctx.getId() + ":" + Thread.currentThread().getName();
+        var acquired = ephemeralCache.putIfAbsent(lockKey, ownerId) == null;
+        if (acquired) {
+            try {
+                cacheManager.clearCaches();
+                LOG.info("Clean command executed.");
+            } finally {
+                // Only remove if still owned by us
+                // (avoid clearing someone else's lock in rare races)
+                var current = ephemeralCache.get(lockKey);
+                if (ownerId.equals(current.orElse(null))) {
+                    ephemeralCache.remove(lockKey);
+                }
+            }
         } else {
-            LOG.info("Clean command executed.");
+            LOG.warn("Another node is already performing cache cleaning "
+                    + "(lock held); skipping cache clear on this node.");
         }
-        ctx.fire(CrawlerEvent.CRAWLER_CLEAN_END);
+        session.fire(CrawlerEvent.CRAWLER_CLEAN_END, this);
     }
 }

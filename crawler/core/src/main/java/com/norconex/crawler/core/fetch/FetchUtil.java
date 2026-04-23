@@ -1,4 +1,4 @@
-/* Copyright 2020-2025 Norconex Inc.
+/* Copyright 2020-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
  */
 package com.norconex.crawler.core.fetch;
 
-import com.norconex.crawler.core.doc.CrawlDocStatus;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.NonNull;
 
@@ -29,7 +29,7 @@ public final class FetchUtil {
 
     public static boolean shouldContinueOnBadStatus(
             @NonNull CrawlContext crawler,
-            CrawlDocStatus originalCrawlDocState,
+            ProcessingOutcome originalOutcome,
             @NonNull FetchDirective fetchDirective) {
         // Note: a disabled directive should never get here,
         // and when both are enabled, DOCUMENT always comes after METADATA.
@@ -57,7 +57,7 @@ public final class FetchUtil {
             // we continue
             return FetchDirectiveSupport.OPTIONAL.is(docSupport)
                     && FetchDirectiveSupport.isEnabled(metaSupport)
-                    && CrawlDocStatus.isGoodState(originalCrawlDocState);
+                    && ProcessingOutcome.isGoodState(originalOutcome);
         }
 
         // At this point it would imply the directive for which we are asking

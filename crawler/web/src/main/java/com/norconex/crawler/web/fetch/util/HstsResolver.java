@@ -1,4 +1,4 @@
-/* Copyright 2021-2024 Norconex Inc.
+/* Copyright 2021-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,19 @@
  */
 package com.norconex.crawler.web.fetch.util;
 
-import static org.apache.commons.lang3.StringUtils.startsWithIgnoreCase;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.classic.methods.HttpHead;
 
 import com.google.common.net.InternetDomainName;
 import com.norconex.commons.lang.url.UrlNormalizer;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -66,9 +65,10 @@ public final class HstsResolver {
         DOMAIN_HSTS.clear();
     }
 
+    @SuppressWarnings("null")
     public static void resolve(
             HttpClient httpClient,
-            WebCrawlDocContext docRecord) {
+            WebCrawlEntry docRecord) {
 
         // The idea: "public" suffixes are "effective" top-level domains
         // under which new domains can be registered. When considering a root
@@ -81,6 +81,11 @@ public final class HstsResolver {
 
         var rootDomain = docRecord.getReference().replaceFirst(
                 "(?i)^https?://([^/\\?#]+).*", "$1");
+        if (StringUtils.isBlank(rootDomain)) {
+            LOG.warn("Unable to extract root domain from URL: {}",
+                    docRecord.getReference());
+            return;
+        }
         var isSubdomain = false;
         if (InternetDomainName.isValid(rootDomain)) {
             var dn = InternetDomainName.from(rootDomain);
@@ -99,7 +104,7 @@ public final class HstsResolver {
         }
 
         // If secure, cache HSTS support settings
-        if (startsWithIgnoreCase(docRecord.getReference(), "https:")) {
+        if (Strings.CI.startsWith(docRecord.getReference(), "https:")) {
             resolveHstsSupport(httpClient, rootDomain);
         } else {
             applyHstsSupport(docRecord, rootDomain, isSubdomain);
@@ -107,7 +112,7 @@ public final class HstsResolver {
     }
 
     private static synchronized void applyHstsSupport(
-            WebCrawlDocContext docRecord, String domain, boolean isSubdomain) {
+            WebCrawlEntry docRecord, String domain, boolean isSubdomain) {
         var support = DOMAIN_HSTS.getOrDefault(domain, HstsSupport.NO);
         if (support == HstsSupport.INCLUDE_SUBDOMAINS
                 || (support == HstsSupport.DOMAIN_ONLY && !isSubdomain)) {
@@ -116,7 +121,7 @@ public final class HstsResolver {
                     domain Strict-Transport-Security (HSTS) settings\s\
                     for effective top-level domain: {}
                     """, domain);
-            docRecord.setOriginalReference(docRecord.getReference());
+            docRecord.addToReferenceTrail(docRecord.getReference());
             docRecord.setReference(
                     docRecord.getReference().replaceFirst(
                             "(?i)^http://", "https://"));

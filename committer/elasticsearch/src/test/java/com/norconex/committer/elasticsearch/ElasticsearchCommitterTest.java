@@ -1,4 +1,4 @@
-/* Copyright 2013-2024 Norconex Inc.
+/* Copyright 2013-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,8 +44,10 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -65,10 +67,12 @@ import com.norconex.commons.lang.security.Credentials;
 import lombok.extern.slf4j.Slf4j;
 
 @Testcontainers(disabledWithoutDocker = true)
+@Tag("slow")
 @Slf4j
+@Timeout(30)
 class ElasticsearchCommitterTest {
 
-    private static final String TEST_ES_VERSION = "8.7.1";
+    private static final String TEST_ES_VERSION = "9.3.1";
     private static final String TEST_INDEX = "tests";
     private static final String TEST_ID = "1";
     private static final String TEST_CONTENT = "This is test content.";

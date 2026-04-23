@@ -1,0 +1,88 @@
+/* Copyright 2025-2026 Norconex Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.norconex.crawler.core.cluster.impl.hazelcast.jdbc;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+
+import com.hazelcast.core.HazelcastInstance;
+import com.norconex.crawler.core.cluster.pipeline.StepRecord;
+
+/**
+ * Unit tests for {@link TypedJdbcMapStoreFactory} covering
+ * {@code getValueClass}, {@code setValueClass}, and
+ * {@code setHazelcastInstance}.
+ */
+@Timeout(30)
+class TypedJdbcMapStoreFactoryTest {
+
+    @Test
+    void getValueClass_whenNullValueClass_returnsNull() {
+        var factory = new TypedJdbcMapStoreFactory();
+        // Default state: valueClassName is null → getValueClass() returns null
+        assertThat(factory.getValueClass()).isNull();
+    }
+
+    @Test
+    void getValueClass_withValidClass_returnsClass() {
+        var factory = new TypedJdbcMapStoreFactory();
+        factory.setValueClass(StepRecord.class);
+        assertThat(factory.getValueClass()).isEqualTo(StepRecord.class);
+    }
+
+    @Test
+    void getValueClass_withStringClass_returnsStringClass() {
+        var factory = new TypedJdbcMapStoreFactory();
+        factory.setValueClass(String.class);
+        assertThat(factory.getValueClass()).isEqualTo(String.class);
+    }
+
+    @Test
+    void setValueClass_withNull_clearsClassName() {
+        var factory = new TypedJdbcMapStoreFactory();
+        factory.setValueClass(StepRecord.class);
+        factory.setValueClass(null);
+        assertThat(factory.getValueClass()).isNull();
+    }
+
+    @Test
+    void setHazelcastInstance_storesInstanceAndName() {
+        var hz = mock(HazelcastInstance.class);
+        when(hz.getName()).thenReturn("test-hz-instance");
+
+        var factory = new TypedJdbcMapStoreFactory();
+        factory.setHazelcastInstance(hz);
+
+        assertThat(factory.getHazelcastInstance()).isSameAs(hz);
+    }
+
+    @Test
+    void setHazelcastInstance_withDifferentInstance_updatesInstance() {
+        var hz1 = mock(HazelcastInstance.class);
+        when(hz1.getName()).thenReturn("instance-1");
+        var hz2 = mock(HazelcastInstance.class);
+        when(hz2.getName()).thenReturn("instance-2");
+
+        var factory = new TypedJdbcMapStoreFactory();
+        factory.setHazelcastInstance(hz1);
+        factory.setHazelcastInstance(hz2);
+
+        assertThat(factory.getHazelcastInstance()).isSameAs(hz2);
+    }
+}

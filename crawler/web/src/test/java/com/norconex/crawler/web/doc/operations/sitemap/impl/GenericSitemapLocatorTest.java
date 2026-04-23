@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,34 +16,44 @@ package com.norconex.crawler.web.doc.operations.sitemap.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.util.Web;
+import org.junit.jupiter.api.Timeout;
 
+@Timeout(30)
 class GenericSitemapLocatorTest {
 
-    @WebCrawlTest(focus = Focus.CONTEXT)
+    @WebCrawlTest
     void testGenericSitemapLocator(CrawlContext ctx) {
 
         var locator = new GenericSitemapLocator();
         assertThat(locator.getConfiguration().getPaths()).contains(
                 "/sitemap.xml", "/sitemap_index.xml");
 
-        locator.getConfiguration().setPaths(List.of("abc.xml", "def.xml"));
+        locator.getConfiguration()
+                .setPaths(List.of("abc.xml", "def.xml"));
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(locator));
+                () -> BeanMapper.DEFAULT
+                        .assertWriteRead(locator));
 
         Web.config(ctx)
                 .setRobotsTxtProvider(null)
-                .setStartReferences(List.of("http://example.com/index.html"));
+                .setStartReferences(List.of(
+                        "http://example.com/index.html"));
+
+        var session = mock(CrawlSession.class);
+        when(session.getCrawlContext()).thenReturn(ctx);
 
         assertThat(locator.locations(
-                "http://example.com/index.html", ctx))
+                "http://example.com/index.html", session))
                         .containsExactly(
                                 "http://example.com/abc.xml",
                                 "http://example.com/def.xml");
@@ -51,6 +61,7 @@ class GenericSitemapLocatorTest {
         // try with empty paths
         locator.getConfiguration().setPaths(null);
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(locator));
+                () -> BeanMapper.DEFAULT
+                        .assertWriteRead(locator));
     }
 }

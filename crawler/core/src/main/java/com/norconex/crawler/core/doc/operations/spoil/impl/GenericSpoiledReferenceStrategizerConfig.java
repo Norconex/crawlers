@@ -1,4 +1,4 @@
-/* Copyright 2015-2025 Norconex Inc.
+/* Copyright 2015-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategy;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -36,31 +36,31 @@ public class GenericSpoiledReferenceStrategizerConfig {
     public static final SpoiledReferenceStrategy DEFAULT_FALLBACK_STRATEGY =
             SpoiledReferenceStrategy.DELETE;
 
-    private final Map<CrawlDocStatus, SpoiledReferenceStrategy> mappings =
+    private final Map<ProcessingOutcome, SpoiledReferenceStrategy> mappings =
             new HashMap<>();
     private SpoiledReferenceStrategy fallbackStrategy =
             DEFAULT_FALLBACK_STRATEGY;
 
     public GenericSpoiledReferenceStrategizerConfig() {
         // store default mappings
-        mappings.put(CrawlDocStatus.NOT_FOUND,
+        mappings.put(ProcessingOutcome.NOT_FOUND,
                 SpoiledReferenceStrategy.DELETE);
         mappings.put(
-                CrawlDocStatus.BAD_STATUS,
+                ProcessingOutcome.BAD_STATUS,
                 SpoiledReferenceStrategy.GRACE_ONCE);
-        mappings.put(CrawlDocStatus.ERROR,
+        mappings.put(ProcessingOutcome.ERROR,
                 SpoiledReferenceStrategy.GRACE_ONCE);
     }
 
     @JsonIgnore
     public GenericSpoiledReferenceStrategizerConfig setMapping(
-            CrawlDocStatus state, SpoiledReferenceStrategy strategy) {
+            ProcessingOutcome state, SpoiledReferenceStrategy strategy) {
         mappings.put(state, strategy);
         return this;
     }
 
     public GenericSpoiledReferenceStrategizerConfig setMappings(
-            Map<CrawlDocStatus, SpoiledReferenceStrategy> mappings) {
+            Map<ProcessingOutcome, SpoiledReferenceStrategy> mappings) {
         this.mappings.clear();
         this.mappings.putAll(mappings);
         return this;

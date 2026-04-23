@@ -1,4 +1,4 @@
-/* Copyright 2017-2024 Norconex Inc.
+/* Copyright 2017-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,7 +85,7 @@ class AzureSearchClient {
             throw new IllegalArgumentException("Index name is undefined.");
         }
 
-        var version = ObjectUtils.defaultIfNull(
+        var version = ObjectUtils.getIfNull(
                 config.getApiVersion(),
                 AzureSearchCommitterConfig.DEFAULT_API_VERSION);
         LOG.info("Azure Search API Version: {}", version);

@@ -1,4 +1,4 @@
-/* Copyright 2022-2025 Norconex Inc.
+/* Copyright 2022-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,9 @@
  */
 package com.norconex.crawler.web.fetch;
 
-import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.fetch.FetchRequest;
+import com.norconex.importer.doc.Doc;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -28,7 +29,12 @@ import lombok.NonNull;
 public class WebFetchRequest implements FetchRequest {
 
     @NonNull
-    private final CrawlDoc doc;
+    private final Doc doc;
     @NonNull
     private final HttpMethod method;
+    /**
+     * The crawl doc context, providing access to the current and previous
+     * crawl entries (e.g. for ETag and If-Modified-Since support).
+     */
+    private CrawlDocContext crawlDocContext;
 }

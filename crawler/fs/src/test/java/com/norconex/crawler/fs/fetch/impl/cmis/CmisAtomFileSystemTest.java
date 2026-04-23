@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,11 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.fs.FsTestUtil;
 
+@Timeout(30)
 class CmisAtomFileSystemTest {
 
     @TempDir
@@ -58,9 +60,8 @@ class CmisAtomFileSystemTest {
 
     void testCmisFileSystem(String path, int expectedQty) throws Exception {
         var ref = cmisEndpointUrl(path);
-        var captures = FsTestUtil.crawlWithFetcher(
+        var mem = FsTestUtil.crawlWithFetcher(
                 tempDir, new CmisFetcher(), ref);
-        var mem = captures.getCommitter();
         assertThat(mem.getUpsertCount()).isEqualTo(expectedQty);
     }
 

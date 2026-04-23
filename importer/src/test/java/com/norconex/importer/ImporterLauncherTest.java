@@ -1,4 +1,4 @@
-/* Copyright 2024 Norconex Inc.
+/* Copyright 2024-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,15 +23,21 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.SystemUtil;
 
+@Timeout(30)
 class ImporterLauncherTest {
 
     private static final String TEST_CONFIG =
-            "./src/test/java/com/norconex/importer/test-config.xml";
+            TestUtil.resolvePath(
+                    "src/test/java/com/norconex/importer/test-config.xml")
+                    .toString();
     private static final String TEST_PDF =
-            "./src/test/resources/parser/pdf/plain.pdf";
+            TestUtil.resolvePath(
+                    "src/test/resources/parser/pdf/plain.pdf")
+                    .toString();
 
     @TempDir
     private Path tempDir;
@@ -40,11 +46,14 @@ class ImporterLauncherTest {
     void testLaunch() {
         System.setProperty("tempDir", tempDir.toString());
         assertThatNoException()
-                .isThrownBy(() -> ImporterLauncher.launch(new String[] {
-                        "--config", TEST_CONFIG,
-                        "-i", TEST_PDF,
-                        "-o", tempDir + "/output.txt"
-                }));
+                .isThrownBy(() -> ImporterLauncher
+                        .launch(new String[] {
+                                "--config",
+                                TEST_CONFIG,
+                                "-i", TEST_PDF,
+                                "-o",
+                                tempDir + "/output.txt"
+                        }));
     }
 
     @Test
@@ -53,13 +62,17 @@ class ImporterLauncherTest {
         var varFile = tempDir.resolve("variables.properties");
         Files.writeString(varFile, "key=value");
         assertThatNoException()
-                .isThrownBy(() -> ImporterLauncher.launch(new String[] {
-                        "--config", TEST_CONFIG,
-                        "--variables",
-                        varFile.toAbsolutePath().toString(),
-                        "-i", TEST_PDF,
-                        "-o", tempDir + "/output.txt"
-                }));
+                .isThrownBy(() -> ImporterLauncher
+                        .launch(new String[] {
+                                "--config",
+                                TEST_CONFIG,
+                                "--variables",
+                                varFile.toAbsolutePath()
+                                        .toString(),
+                                "-i", TEST_PDF,
+                                "-o",
+                                tempDir + "/output.txt"
+                        }));
     }
 
     @Test
@@ -71,12 +84,14 @@ class ImporterLauncherTest {
                 () -> ImporterLauncher.launch(new String[] {
                         "--config", TEST_CONFIG,
                         "--variables",
-                        varFile.toAbsolutePath().toString(),
+                        varFile.toAbsolutePath()
+                                .toString(),
                         "-i", TEST_PDF,
                         "-o", tempDir + "/output.txt"
                 }));
         assertThat(exit.getReturnValue()).isNotZero();
-        assertThat(exit.getStdErr()).contains("Invalid variable file path:");
+        assertThat(exit.getStdErr())
+                .contains("Invalid variable file path:");
     }
 
     @Test
@@ -87,7 +102,8 @@ class ImporterLauncherTest {
         var exit = SystemUtil.callAndCaptureOutput(
                 () -> ImporterLauncher.launch(new String[] {
                         "--config",
-                        cfgFile.toAbsolutePath().toString(),
+                        cfgFile.toAbsolutePath()
+                                .toString(),
                         "-i", TEST_PDF,
                         "-o", tempDir + "/output.txt"
                 }));

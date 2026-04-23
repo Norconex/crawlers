@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,23 +28,25 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test proper handling of page timeouts.
  */
 // Test for https://github.com/Norconex/collector-http/issues/316
 @MockServerSettings
+@Timeout(30)
 class TimeoutTest {
 
     private final String basePath = "/timeout";
     private final String homePath = basePath + "/index.html";
 
     @WebCrawlTest
-    void testTimeout(ClientAndServer client, WebCrawlerConfig cfg)
+    void testTimeout(ClientAndServer client, WebCrawlConfig cfg)
             throws CommitterException {
 
         cfg.setStartReferences(List.of(serverUrl(client, homePath)));

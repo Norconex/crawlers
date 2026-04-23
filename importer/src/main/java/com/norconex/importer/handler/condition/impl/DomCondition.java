@@ -1,4 +1,4 @@
-/* Copyright 2021-2024 Norconex Inc.
+/* Copyright 2021-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ package com.norconex.importer.handler.condition.impl;
 import static com.norconex.importer.util.DomUtil.toJSoupParser;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -155,11 +155,11 @@ public class DomCondition
 
         // only proceed if we are dealing with a supported content type
         if (!configuration.getContentTypeMatcher().matches(
-                docCtx.docContext().getContentType().toString())) {
+                docCtx.contentType().toString())) {
             return false;
         }
 
-        var matches = new MutableBoolean();
+        var matches = new AtomicBoolean();
         ChunkedTextReader.builder()
                 .charset(configuration.getSourceCharset())
                 .fieldMatcher(configuration.getFieldMatcher())
@@ -167,17 +167,17 @@ public class DomCondition
                 .build()
                 .read(docCtx, chunk -> {
                     // only check if no successful match yet.
-                    if (matches.isFalse() && testDocument(
+                    if (!matches.get() && testDocument(
                             Jsoup.parse(
                                     chunk.getText(),
                                     docCtx.reference(),
                                     toJSoupParser(
                                             configuration.getParser())))) {
-                        matches.setTrue();
+                        matches.set(true);
                     }
                     return true;
                 });
-        return matches.booleanValue();
+        return matches.get();
     }
 
     private boolean testDocument(Document doc) {

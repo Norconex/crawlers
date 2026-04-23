@@ -1,0 +1,275 @@
+#-------------------------------------------------------------------------------
+# Copyright 2026 Norconex Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#-------------------------------------------------------------------------------
+
+# yaml-language-server: $schema=https://raw.githubusercontent.com/hazelcast/hazelcast/v5.6.0/hazelcast/src/main/resources/hazelcast-config-5.6.json
+# Test-only Hazelcast Cluster Configuration
+#
+# This is intentionally tuned for fast startup on CI/Windows:
+# - Fewer partitions -> fewer migration tasks on cluster formation
+# - LAZY map-store loading to avoid long startup times in stop/resume tests
+# - Explicit ledger_* value type to keep server-side predicates queryable
+#
+hazelcast:
+  cluster-name: crawler-cluster
+
+  properties:
+    hazelcast.partition.count: 17
+    # Fast failure detection for crash tests: declare a dead member within ~10s
+    # rather than the default 60s. This allows the coordinator to see a crashed
+    # node as EXPIRED and reduce the pipeline status to COMPLETED quickly.
+    hazelcast.heartbeat.interval.seconds: 1
+    hazelcast.max.no.heartbeat.seconds: 10
+
+  data-connection:
+    jdbc-datasource:
+      type: JDBC
+      properties:
+        jdbcUrl: ${JDBC_URL}
+        username: ${JDBC_USERNAME}
+        password: ${JDBC_PASSWORD}
+        driverClassName: ${JDBC_DRIVER}
+        maximumPoolSize: 20
+      shared: true  
+  
+  jet:
+    enabled: true
+    backup-count: 1
+      
+  network:
+    port:
+      port: 5701
+      auto-increment: true
+      port-count: 100
+    join:
+      multicast:
+        enabled: false
+        multicast-group: 224.2.2.3
+        multicast-port: 54327
+        multicast-time-to-live: 32
+        multicast-timeout-seconds: 2
+        trusted-interfaces:
+          - 127.0.0.*
+          - 192.168.*.*
+      
+      tcp-ip:
+        enabled: true
+        member-list:
+          # Match the configured port range (5701 + port-count=100).
+          # On Windows/CI, ports may remain temporarily unavailable between
+          # tests; auto-increment can then bind to a higher port.
+          - 127.0.0.1:5701
+          - 127.0.0.1:5702
+          - 127.0.0.1:5703
+          - 127.0.0.1:5704
+          - 127.0.0.1:5705
+          - 127.0.0.1:5706
+          - 127.0.0.1:5707
+          - 127.0.0.1:5708
+          - 127.0.0.1:5709
+          - 127.0.0.1:5710
+          - 127.0.0.1:5711
+          - 127.0.0.1:5712
+          - 127.0.0.1:5713
+          - 127.0.0.1:5714
+          - 127.0.0.1:5715
+          - 127.0.0.1:5716
+          - 127.0.0.1:5717
+          - 127.0.0.1:5718
+          - 127.0.0.1:5719
+          - 127.0.0.1:5720
+          - 127.0.0.1:5721
+          - 127.0.0.1:5722
+          - 127.0.0.1:5723
+          - 127.0.0.1:5724
+          - 127.0.0.1:5725
+          - 127.0.0.1:5726
+          - 127.0.0.1:5727
+          - 127.0.0.1:5728
+          - 127.0.0.1:5729
+          - 127.0.0.1:5730
+          - 127.0.0.1:5731
+          - 127.0.0.1:5732
+          - 127.0.0.1:5733
+          - 127.0.0.1:5734
+          - 127.0.0.1:5735
+          - 127.0.0.1:5736
+          - 127.0.0.1:5737
+          - 127.0.0.1:5738
+          - 127.0.0.1:5739
+          - 127.0.0.1:5740
+          - 127.0.0.1:5741
+          - 127.0.0.1:5742
+          - 127.0.0.1:5743
+          - 127.0.0.1:5744
+          - 127.0.0.1:5745
+          - 127.0.0.1:5746
+          - 127.0.0.1:5747
+          - 127.0.0.1:5748
+          - 127.0.0.1:5749
+          - 127.0.0.1:5750
+          - 127.0.0.1:5751
+          - 127.0.0.1:5752
+          - 127.0.0.1:5753
+          - 127.0.0.1:5754
+          - 127.0.0.1:5755
+          - 127.0.0.1:5756
+          - 127.0.0.1:5757
+          - 127.0.0.1:5758
+          - 127.0.0.1:5759
+          - 127.0.0.1:5760
+          - 127.0.0.1:5761
+          - 127.0.0.1:5762
+          - 127.0.0.1:5763
+          - 127.0.0.1:5764
+          - 127.0.0.1:5765
+          - 127.0.0.1:5766
+          - 127.0.0.1:5767
+          - 127.0.0.1:5768
+          - 127.0.0.1:5769
+          - 127.0.0.1:5770
+          - 127.0.0.1:5771
+          - 127.0.0.1:5772
+          - 127.0.0.1:5773
+          - 127.0.0.1:5774
+          - 127.0.0.1:5775
+          - 127.0.0.1:5776
+          - 127.0.0.1:5777
+          - 127.0.0.1:5778
+          - 127.0.0.1:5779
+          - 127.0.0.1:5780
+          - 127.0.0.1:5781
+          - 127.0.0.1:5782
+          - 127.0.0.1:5783
+          - 127.0.0.1:5784
+          - 127.0.0.1:5785
+          - 127.0.0.1:5786
+          - 127.0.0.1:5787
+          - 127.0.0.1:5788
+          - 127.0.0.1:5789
+          - 127.0.0.1:5790
+          - 127.0.0.1:5791
+          - 127.0.0.1:5792
+          - 127.0.0.1:5793
+          - 127.0.0.1:5794
+          - 127.0.0.1:5795
+          - 127.0.0.1:5796
+          - 127.0.0.1:5797
+          - 127.0.0.1:5798
+          - 127.0.0.1:5799
+          - 127.0.0.1:5800
+        connection-timeout-seconds: 5
+
+  map:
+    default:
+      backup-count: 1
+      async-backup-count: 0
+      read-backup-data: false
+      map-store:
+        enabled: true
+        initial-mode: LAZY
+        write-delay-seconds: 0
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
+        properties:
+          data-connection-ref: jdbc-datasource
+          column-key-type: VARCHAR(4096)
+          column-value-type: TEXT
+          sql-merge: |
+            INSERT INTO "{tableName}" (k, v) 
+            VALUES (?, ?) 
+            ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v
+
+    pipeCurrentStep:
+      backup-count: 1
+      async-backup-count: 0
+      read-backup-data: false
+      map-store:
+        enabled: true
+        initial-mode: LAZY
+        write-delay-seconds: 0
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
+        properties:
+          # Avoid remote type registry lookups from partition-operation threads.
+          value-class-name: com.norconex.crawler.core.cluster.pipeline.StepRecord
+          data-connection-ref: jdbc-datasource
+          column-key-type: VARCHAR(4096)
+          column-value-type: TEXT
+          sql-merge: |
+            INSERT INTO "{tableName}" (k, v) 
+            VALUES (?, ?) 
+            ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v
+
+    pipeWorkerStatuses:
+      backup-count: 1
+      async-backup-count: 0
+      read-backup-data: false
+      map-store:
+        enabled: true
+        initial-mode: LAZY
+        write-delay-seconds: 0
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
+        properties:
+          # Avoid remote type registry lookups from partition-operation threads.
+          value-class-name: com.norconex.crawler.core.cluster.pipeline.StepRecord
+          data-connection-ref: jdbc-datasource
+          column-key-type: VARCHAR(4096)
+          column-value-type: TEXT
+          sql-merge: |
+            INSERT INTO "{tableName}" (k, v) 
+            VALUES (?, ?) 
+            ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v
+
+    ledger_*:
+      backup-count: 1
+      async-backup-count: 0
+      read-backup-data: false
+      map-store:
+        enabled: true
+        initial-mode: LAZY
+        write-delay-seconds: 0
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
+        properties:
+          # Avoid remote type registry lookups from partition-operation threads.
+          value-class-name: com.norconex.crawler.core.ledger.CrawlEntry
+          data-connection-ref: jdbc-datasource
+          column-key-type: VARCHAR(4096)
+          column-value-type: TEXT
+          sql-merge: |
+            INSERT INTO "{tableName}" (k, v) 
+            VALUES (?, ?) 
+            ON CONFLICT (k) DO UPDATE SET v = EXCLUDED.v
+    eph-*:
+      backup-count: 1
+      async-backup-count: 0
+      map-store:
+        enabled: false
+        
+  queue:
+    queue-*:
+      backup-count: 1
+      async-backup-count: 0
+      queue-store:
+        enabled: true
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcQueueStoreFactory
+        properties:
+          data-connection-ref: jdbc-datasource
+          column-value-type: VARCHAR(4096)
+
+  partition-group:
+    enabled: false
+    group-type: PER_MEMBER
+
+  management-center:
+    scripting-enabled: false

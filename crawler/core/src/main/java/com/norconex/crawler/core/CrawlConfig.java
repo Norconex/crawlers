@@ -1,4 +1,4 @@
-/* Copyright 2014-2025 Norconex Inc.
+/* Copyright 2014-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -29,6 +30,7 @@ import com.norconex.committer.core.Committer;
 import com.norconex.commons.lang.bean.jackson.JsonXmlCollection;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.event.EventListener;
+import com.norconex.crawler.core.cluster.ClusterConfig;
 import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
 import com.norconex.crawler.core.doc.operations.DocumentConsumer;
 import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
@@ -43,12 +45,11 @@ import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.grid.core.GridConnector;
-import com.norconex.grid.local.LocalGridConnector;
 import com.norconex.importer.ImporterConfig;
 
 import jakarta.validation.constraints.Min;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 
@@ -57,10 +58,6 @@ import lombok.experimental.FieldNameConstants;
  * Base Crawler configuration. Crawlers usually read this configuration upon
  * starting up. While not always enforced, once execution has started, it
  * should be considered immutable to avoid unexpected behaviors.
- * </p>
- * <p>
- * Concrete implementations inherit the following XML configuration
- * options (typically within a <code>&lt;crawler&gt;</code> tag):
  * </p>
  */
 @Data
@@ -90,9 +87,14 @@ public class CrawlConfig {
     }
 
     public static final Duration DEFAULT_IDLE_TIMEOUT =
-            Duration.ofSeconds(0);
+            Duration.ofSeconds(5);
     public static final Duration DEFAULT_MIN_PROGRESS_LOGGING_INTERVAL =
             Duration.ofSeconds(30);
+    //    /**
+    //     * Default port used to communicate via a node for some administrative
+    //     * crawler cluster tasks.
+    //     */
+    //    public static final int DEFAULT_ADMIN_PORT = 27295;
 
     //--- Properties -----------------------------------------------------------
 
@@ -149,9 +151,35 @@ public class CrawlConfig {
     private Duration deferredShutdownDuration = Duration.ZERO;
 
     /**
-     * The Grid Connector.
+     * The maximum amount of time a crawler is allowed to run. Zero or a
+     * negative value means unlimited. Default is zero (unlimited).
      */
-    private GridConnector gridConnector = new LocalGridConnector();
+    private Duration maxCrawlDuration = Duration.ZERO;
+
+    /**
+     * The Importer module configuration.
+     */
+    @NonNull
+    @JsonProperty("cluster")
+    private ClusterConfig clusterConfig = new ClusterConfig();
+
+    //    /**
+    //     * The cluster used to run the crawler. Default (Hazelcast) handles
+    //     * both running the crawler on single and multiple nodes.
+    //     */
+    //    private ClusterConnector clusterConnector =
+    //            new HazelcastClusterConnector();
+    //    /**
+    //     * Disable launching the crawler administrative server endpoints.
+    //     */
+    //    private boolean clusterAdminDisabled;
+    //    /**
+    //     * Port the crawler cluster listens to for administrative commands,
+    //     * on each nodes. Incremented
+    //     * to the next available port in case of conflicts.
+    //     * Default is 27295 (mnemonic: ‘CRAWL’ on a phone keypad).
+    //     */
+    //    private int clusterAdminPort = DEFAULT_ADMIN_PORT;
 
     /**
      * Whether the start references should be loaded asynchronously. When
@@ -165,7 +193,13 @@ public class CrawlConfig {
     private boolean startReferencesAsync;
 
     /**
-     * The maximum number of threads a crawler can use. Default is 2.
+     * The maximum number of threads a crawler can use.
+     * Default is 2.
+     * <p>
+     * When running in a cluster, this value applies <em>per node</em>.
+     * For example, setting {@code numThreads} to 4 on a 3-node cluster
+     * results in up to 12 concurrent processing threads across the cluster.
+     * </p>
      */
     @Min(1)
     private int numThreads = 2;
@@ -203,7 +237,57 @@ public class CrawlConfig {
      * Default is -1 (unlimited).
      * </p>
      */
+    @JsonAlias({ "maxDocumentsPerRun", "maxRunDocuments" })
     private int maxDocuments = -1;
+
+    /**
+     * Preferred alias for {@link #getMaxDocuments()} to emphasize that the
+     * cap applies to a single run.
+     *
+     * @return maximum documents processed per run, or {@code -1} for unlimited
+     */
+    public int getMaxDocumentsPerRun() {
+        return maxDocuments;
+    }
+
+    /**
+     * Preferred alias for {@link #setMaxDocuments(int)} to emphasize that the
+     * cap applies to a single run.
+     *
+     * @param maxDocumentsPerRun maximum documents processed per run,
+     * {@code -1} for unlimited
+     * @return this config
+     */
+    public CrawlConfig setMaxDocumentsPerRun(int maxDocumentsPerRun) {
+        this.maxDocuments = maxDocumentsPerRun;
+        return this;
+    }
+
+    /**
+     * Backward-compatible alias of {@link #getMaxDocumentsPerRun()}.
+     *
+     * @return maximum documents processed per run, or {@code -1} for unlimited
+     */
+    public int getMaxRunDocuments() {
+        return getMaxDocumentsPerRun();
+    }
+
+    /**
+     * Backward-compatible alias of {@link #setMaxDocumentsPerRun(int)}.
+     *
+     * @param maxRunDocuments maximum documents processed per run,
+     * {@code -1} for unlimited
+     * @return this config
+     */
+    public CrawlConfig setMaxRunDocuments(int maxRunDocuments) {
+        return setMaxDocumentsPerRun(maxRunDocuments);
+    }
+
+    /**
+     * The maximum number of references a node will read at once from the queue,
+     * to process locally.
+     */
+    private int maxQueueBatchSize = 50;
 
     /**
      * The maximum depth the crawler should go. The exact definition of depth
@@ -218,10 +302,10 @@ public class CrawlConfig {
      * A crawler is considered idle when its queue is empty and there are
      * no reference being actively processed.
      * Differs from {@link #deferredShutdownDuration} in that additions to
-     * the crawler queue will restart the processing.
+     * the crawler queue will resume the normal processing.
      * A non-zero value can be useful if the crawler queue can be populated
      * by an external process. Default is zero (does not wait).
-     * {@value #DEFAULT_IDLE_PROCESSING_TIMEOUT}. A {@code null}
+     * {@value #DEFAULT_IDLE_TIMEOUT}. A {@code null}
      * value is equivalent to zero.
      * The smallest considered unit is seconds (milliseconds are rounded up).
      */
@@ -530,6 +614,19 @@ public class CrawlConfig {
     }
 
     /**
+     * Adds a Committer responsible for persisting information
+     * to a target location/repository.
+     * @param committer a Committer
+     * @return this
+     */
+    public CrawlConfig addCommitter(Committer committer) {
+        if (committer != null) {
+            committers.add(committer);
+        }
+        return this;
+    }
+
+    /**
      * Gets event listeners.
      * Those are considered additions to automatically
      * detected configuration objects implementing {@link EventListener}.
@@ -613,8 +710,8 @@ public class CrawlConfig {
      */
     public CrawlConfig setPreImportConsumers(
             List<DocumentConsumer> preImportConsumers) {
-        CollectionUtil.setAll(preImportConsumers, preImportConsumers);
-        CollectionUtil.removeNulls(preImportConsumers);
+        CollectionUtil.setAll(this.preImportConsumers, preImportConsumers);
+        CollectionUtil.removeNulls(this.preImportConsumers);
         return this;
     }
 
@@ -633,8 +730,8 @@ public class CrawlConfig {
      */
     public CrawlConfig setPostImportConsumers(
             List<DocumentConsumer> postImportConsumers) {
-        CollectionUtil.setAll(postImportConsumers, postImportConsumers);
-        CollectionUtil.removeNulls(postImportConsumers);
+        CollectionUtil.setAll(this.postImportConsumers, postImportConsumers);
+        CollectionUtil.removeNulls(this.postImportConsumers);
         return this;
     }
 

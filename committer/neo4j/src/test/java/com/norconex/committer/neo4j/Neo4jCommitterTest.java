@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,10 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
@@ -43,9 +45,9 @@ import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.internal.types.InternalTypeSystem;
 import org.neo4j.driver.types.Node;
-import org.testcontainers.containers.Neo4jContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.neo4j.Neo4jContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import com.norconex.committer.core.CommitterContext;
@@ -57,15 +59,17 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.security.Credentials;
 
 @Testcontainers(disabledWithoutDocker = true)
+@Tag("slow")
+@Timeout(30)
 class Neo4jCommitterTest {
 
-    private static final String NEO4J_VERSION = "5.9.0";
+    private static final String NEO4J_VERSION = "5.26.0";
     private static final String TEST_CONTENT =
             "This is a movie about something.";
 
     @SuppressWarnings("resource")
     @Container
-    private static Neo4jContainer<?> neo4jContainer = new Neo4jContainer<>(
+    private static Neo4jContainer neo4jContainer = new Neo4jContainer(
             DockerImageName.parse("neo4j").withTag(NEO4J_VERSION))
                     .withoutAuthentication();
     private static Driver driver;

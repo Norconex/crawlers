@@ -1,4 +1,4 @@
-/* Copyright 2019-2025 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,11 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.crawler.core.CrawlConfig.OrphansStrategy;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapResolver;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * The second time the sitemap has 1 less URL and that URL no longer
@@ -42,6 +43,7 @@ import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
  */
 //Test for https://github.com/Norconex/collector-http/issues/390
 @MockServerSettings
+@Timeout(30)
 class SitemapURLDeletionTest {
 
     private final String sitemapPath = "/sitemapUrlDeletion/sitemap.xml";
@@ -80,7 +82,7 @@ class SitemapURLDeletionTest {
               class: GenericRecrawlableResolver
               sitemapSupport: NEVER
             """)
-    void testSitemapURLDeletion(ClientAndServer client, WebCrawlerConfig cfg)
+    void testSitemapURLDeletion(ClientAndServer client, WebCrawlConfig cfg)
             throws CommitterException {
 
         cfg.setSitemapResolver(new GenericSitemapResolver())
@@ -116,7 +118,7 @@ class SitemapURLDeletionTest {
     // recrawl.
     @WebCrawlTest
     void testSitemapURLDeletionNotReadyForRecrawl(
-            ClientAndServer client, WebCrawlerConfig cfg)
+            ClientAndServer client, WebCrawlConfig cfg)
             throws CommitterException {
 
         cfg.setSitemapResolver(new GenericSitemapResolver())

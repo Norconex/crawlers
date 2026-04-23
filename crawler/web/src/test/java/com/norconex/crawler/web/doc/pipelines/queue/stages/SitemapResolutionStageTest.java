@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,19 +26,23 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.doc.operations.scope.impl.GenericUrlScopeResolver;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapLocator;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapResolver;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Tests sitemap resolution.
  */
 @MockServerSettings()
+@Timeout(30)
 class SitemapResolutionStageTest {
+
+    private static final int SITE_DEPTH = 20;
 
     private static final String SITEMAP_XML = """
             <urlset>
@@ -65,7 +69,7 @@ class SitemapResolutionStageTest {
 
     // Should only crawl URLs in sitemap. Start URL not in sitemap.
     @WebCrawlTest
-    void testStayOnSitemap(ClientAndServer client, WebCrawlerConfig cfg) {
+    void testStayOnSitemap(ClientAndServer client, WebCrawlConfig cfg) {
         client.reset();
         var baseUrl = serverUrl(client, "");
         var sitemap = SITEMAP_XML.formatted(
@@ -73,19 +77,23 @@ class SitemapResolutionStageTest {
                 baseUrl + "0002",
                 baseUrl + "0003");
         client.when(request().withPath("/sitemap.xml"))
-                .respond(response().withBody(sitemap, MediaType.XML_UTF_8));
-        MockWebsite.whenInfiniteDepth(client);
+                .respond(response().withBody(sitemap,
+                        MediaType.XML_UTF_8));
+        MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 
         cfg.setSitemapLocator(new GenericSitemapLocator())
-                .setSitemapResolver(new GenericSitemapResolver())
+                .setSitemapResolver(
+                        new GenericSitemapResolver())
                 .setStartReferences(
-                        List.of(serverUrl(client, "/stayOnSitemap")))
+                        List.of(serverUrl(client,
+                                "/stayOnSitemap")))
                 .setNumThreads(1)
                 .setMaxDocuments(10);
         ((GenericUrlScopeResolver) cfg.getUrlScopeResolver())
                 .getConfiguration().setStayOnSitemap(true);
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+                .getCommitter();
 
         assertThat(mem.getRequestCount()).isEqualTo(3);
         assertThat(mem.getUpsertRequests())
@@ -97,7 +105,7 @@ class SitemapResolutionStageTest {
     // Should only crawl URLs in sitemap. Start URL included in sitemap.
     @WebCrawlTest
     void testStayOnSitemapStartInSitemap(
-            ClientAndServer client, WebCrawlerConfig cfg) {
+            ClientAndServer client, WebCrawlConfig cfg) {
         client.reset();
         var baseUrl = serverUrl(client, "");
         var sitemap = SITEMAP_XML.formatted(
@@ -108,13 +116,15 @@ class SitemapResolutionStageTest {
                 .when(request().withPath("/sitemap.xml"))
                 .respond(response().withBody(sitemap,
                         MediaType.XML_UTF_8));
-        MockWebsite.whenInfiniteDepth(client);
+        MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 
         cfg.setSitemapLocator(new GenericSitemapLocator())
-                .setSitemapResolver(new GenericSitemapResolver())
+                .setSitemapResolver(
+                        new GenericSitemapResolver())
                 .setNumThreads(1)
                 .setMaxDocuments(10)
-                .setStartReferences(List.of(serverUrl(client, "/0002")));
+                .setStartReferences(List.of(
+                        serverUrl(client, "/0002")));
         ((GenericUrlScopeResolver) cfg.getUrlScopeResolver())
                 .getConfiguration().setStayOnSitemap(true);
 

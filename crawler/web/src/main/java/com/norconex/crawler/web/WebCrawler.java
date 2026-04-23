@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ public final class WebCrawler {
      * @param crawlerConfig Web Crawler configuration
      * @return crawler
      */
-    public static Crawler create(WebCrawlerConfig crawlerConfig) {
+    public static Crawler create(WebCrawlConfig crawlerConfig) {
         return new Crawler(WebCrawlDriverFactory.create(), crawlerConfig);
     }
 }

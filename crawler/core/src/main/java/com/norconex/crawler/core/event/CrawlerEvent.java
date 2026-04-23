@@ -1,4 +1,4 @@
-/* Copyright 2018-2025 Norconex Inc.
+/* Copyright 2018-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,9 @@ import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.event.Event;
-import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.cmd.Command;
+import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.session.CrawlSession;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -37,8 +38,6 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 public class CrawlerEvent extends Event {
 
-    //MAYBE rename some to be "CRAWLTASK_..."?
-
     private static final long serialVersionUID = 1L;
 
     /**
@@ -53,13 +52,12 @@ public class CrawlerEvent extends Event {
     public static final String CRAWLER_CRAWL_END = "CRAWLER_CRAWL_END";
 
     /**
-     * Issued when a request to stop the crawler has been received.
+     * Issued when a request to stop the crawler has been sent.
      */
     public static final String CRAWLER_STOP_REQUEST_BEGIN =
             "CRAWLER_STOP_REQUEST_BEGIN";
     /**
-     * Issued when a request to stop the crawler has been fully executed
-     * (crawler stopped).
+     * Issued when a request to stop the crawler has been received.
      */
     public static final String CRAWLER_STOP_REQUEST_END =
             "CRAWLER_STOP_REQUEST_END";
@@ -77,6 +75,28 @@ public class CrawlerEvent extends Event {
             "CRAWLER_STORE_IMPORT_END";
 
     public static final String CRAWLER_ERROR = "CRAWLER_ERROR";
+
+    /**
+     * Fired just before a crawl session is initialized. The event source
+     * is the {@link com.norconex.crawler.core.CrawlConfig}.
+     */
+    public static final String CRAWLER_SESSION_BEGIN = "CRAWLER_SESSION_BEGIN";
+    /**
+     * Fired just after a crawl session has been closed. The event source
+     * is the {@link com.norconex.crawler.core.CrawlConfig}.
+     */
+    public static final String CRAWLER_SESSION_END = "CRAWLER_SESSION_END";
+
+    /**
+     * Fired just before a command starts executing.
+     * The {@link #getCommandClass()} field carries the command type.
+     */
+    public static final String CRAWLER_COMMAND_BEGIN = "CRAWLER_COMMAND_BEGIN";
+    /**
+     * Fired just after a command finishes executing.
+     * The {@link #getCommandClass()} field carries the command type.
+     */
+    public static final String CRAWLER_COMMAND_END = "CRAWLER_COMMAND_END";
 
     /**
      * A document was rejected by a filters.
@@ -153,49 +173,87 @@ public class CrawlerEvent extends Event {
      */
     public static final String DOCUMENT_PROCESSED = "DOCUMENT_PROCESSED";
 
+    /**
+     * Fired just before document processing begins.
+     * The event source is the {@link com.norconex.importer.doc.Doc}.
+     */
+    public static final String DOCUMENT_PROCESSING_BEGIN =
+            "DOCUMENT_PROCESSING_BEGIN";
+    /**
+     * Fired just after document processing ends.
+     * The event source is the {@link com.norconex.importer.doc.Doc}.
+     */
+    public static final String DOCUMENT_PROCESSING_END =
+            "DOCUMENT_PROCESSING_END";
+
+    /**
+     * Fired just before document finalization begins.
+     * The event source is the {@link com.norconex.importer.doc.Doc}.
+     */
+    public static final String DOCUMENT_FINALIZING_BEGIN =
+            "DOCUMENT_FINALIZING_BEGIN";
+    /**
+     * Fired just after document finalization ends.
+     * The event source is the {@link com.norconex.importer.doc.Doc}.
+     */
+    public static final String DOCUMENT_FINALIZING_END =
+            "DOCUMENT_FINALIZING_END";
+
     //    /**
     //     * A document was saved.
     //     */
     //    public static final String DOCUMENT_SAVED = "DOCUMENT_SAVED";
 
     /**
-     * Gets the crawl data holding contextual information about the
-     * crawled reference.  CRAWLER_* events will return a {@code null}
-     * crawl data.
+     * Gets the document being processed associated with this event.
+     * CRAWLER_* events will return a {@code null} doc.
      */
-    private final CrawlDocContext docContext;
-    private final Object subject;
+    private final transient CrawlEntry crawlEntry;
+    private final transient CrawlSession crawlSession;
+    /**
+     * The command class firing a {@link #CRAWLER_COMMAND_BEGIN} or
+     * {@link #CRAWLER_COMMAND_END} event, or {@code null} for all other events.
+     */
+    private final transient Class<? extends Command> commandClass;
+    //    private final transient Object subject;
     //TODO keep a reference to actual document?
 
-    /**
-     * Gets the subject. That is often the entity being the target
-     * of the event (as opposed to the source).
-     * @return the subject
-     */
-    public Object getSubject() {
-        return subject;
+    public CrawlSession getCrawlSession() {
+        return crawlSession;
     }
 
-    @Override
-    public CrawlContext getSource() {
-        return (CrawlContext) super.getSource();
-    }
+    //    /**
+    //     * Gets the subject. That is often the entity being the target
+    //     * of the event (as opposed to the source).
+    //     * @return the subject
+    //     */
+    //    public Object getSubject() {
+    //        return subject;
+    //    }
+    //
+    //    /**
+    //     * The {@link CrawlSession}.
+    //     */
+    //    @Override
+    //    public CrawlSession getSource() {
+    //        return (CrawlSession) super.getSource();
+    //    }
 
     @Override
     public String toString() {
         var b = new StringBuilder();
         // always print the reference if we have it
-        if (docContext != null) {
-            b.append(docContext.getReference()).append(" - ");
+        if (crawlEntry != null) {
+            b.append(crawlEntry.getReference()).append(" - ");
         }
 
-        // print the first value set in that order: message, subject, source
+        // print the first value set in that order: message, source, session
         if (StringUtils.isNotBlank(getMessage())) {
             b.append(getMessage());
-        } else if (subject != null) {
-            b.append(subject.toString());
+        } else if (source != null) {
+            b.append(source.toString());
         } else {
-            b.append(Objects.toString(source));
+            b.append(Objects.toString(crawlSession));
         }
 
         return b.toString();

@@ -1,4 +1,4 @@
-/* Copyright 2020-2024 Norconex Inc.
+/* Copyright 2020-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import java.io.Writer;
 import java.net.URL;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.CommitterRequest;
@@ -49,7 +49,7 @@ class DreDeleteRefAction implements IdolIndexAction {
     @Override
     public URL url(List<CommitterRequest> batch, HttpURL url)
             throws CommitterException {
-        url.setPath(StringUtils.appendIfMissing(
+        url.setPath(Strings.CS.appendIfMissing(
                 url.getPath(), "/") + "DREDELETEREF");
         url.getQueryString().set("DREDbName", config.getDatabaseName());
         return IdolUtil

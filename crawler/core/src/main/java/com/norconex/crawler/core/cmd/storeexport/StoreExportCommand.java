@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2024-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,23 +20,20 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.NumberFormat;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.mutable.MutableLong;
 
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.crawler.core.CrawlerException;
+import com.norconex.crawler.core.cluster.ClusterException;
+import com.norconex.crawler.core.cluster.SerializedCache;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.grid.core.compute.GridTaskBuilder;
-import com.norconex.grid.core.storage.GridMap;
-import com.norconex.grid.core.storage.GridQueue;
-import com.norconex.grid.core.storage.GridSet;
-import com.norconex.grid.core.storage.GridStore;
-import com.norconex.grid.core.util.SerialUtil;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,51 +49,56 @@ public class StoreExportCommand implements Command {
     // set stopRequested on context?  Or do it higher up on context?
 
     @Override
-    public void execute(CrawlContext ctx) {
+    public void execute(CrawlSession session) {
+        var ctx = session.getCrawlContext();
+
         Thread.currentThread().setName(ctx.getId() + "/STORE_EXPORT");
-        ctx.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_BEGIN);
-        try {
-            ctx.getGrid().getCompute()
-                    .executeTask(GridTaskBuilder.create("storeExportTask")
-                            .singleNode()
-                            .processor(grid -> {
-                                try {
-                                    exportAllStores(ctx);
-                                } catch (IOException e) {
-                                    throw new CrawlerException(e);
-                                }
-                            })
-                            .build());
-        } catch (Exception e) {
-            throw new CrawlerException(
-                    "A problem occured while exporting crawler storage.", e);
+
+        // Export/Import are meant to run on a single node only. We ensure
+        // this by checking if we are the coordinator.
+
+        if (session.getCluster().getLocalNode().isCoordinator()) {
+            session.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_BEGIN, this);
+            try {
+                exportAllStores(session);
+            } catch (Exception e) {
+                throw new ClusterException(
+                        "A problem occured while exporting crawler caches.", e);
+            }
+            session.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_END, this);
+        } else {
+            LOG.warn("""
+                Exporting can only be performed on a single node. \
+                Another node started the export process so this one \
+                will ignore the request.""");
         }
-        ctx.fire(CrawlerEvent.CRAWLER_STORE_EXPORT_END);
     }
 
-    private void exportAllStores(CrawlContext crawlContext)
+    private void exportAllStores(CrawlSession session)
             throws IOException {
-        var storage = crawlContext.getGrid().getStorage();
+        var cacheManager = session.getCluster().getCacheManager();
         Files.createDirectories(exportDir);
 
         var outFile = exportDir.resolve(
-                FileUtil.toSafeFileName(crawlContext.getId() + ".zip"));
+                FileUtil.toSafeFileName(session.getCrawlerId() + ".zip"));
         LOG.info("Exporting crawler storage to file: {}", outFile);
 
         try (var zipOS = new ZipOutputStream(
                 IOUtils.buffer(Files.newOutputStream(outFile)), UTF_8)) {
-            storage.forEachStore(store -> {
-                var name = store.getName();
-                var type = store.getType();
-                try {
-                    zipOS.putNextEntry(new ZipEntry(
-                            FileUtil.toSafeFileName(name) + ".json"));
-                    exportOneStore(crawlContext, store, zipOS, type);
-                    zipOS.flush();
-                    zipOS.closeEntry();
-                } catch (IOException e) {
-                    throw new CrawlerException(
-                            "Could not export store: " + name, e);
+            cacheManager.exportCaches(serialCache -> {
+                var name = serialCache.getCacheName();
+                //NOTE: export only persistent caches
+                if (serialCache.isPersistent()) {
+                    try {
+                        zipOS.putNextEntry(new ZipEntry(
+                                FileUtil.toSafeFileName(name) + ".json"));
+                        exportOneStore(session, serialCache, zipOS);
+                        zipOS.flush();
+                        zipOS.closeEntry();
+                    } catch (IOException e) {
+                        throw new CrawlerException(
+                                "Could not export store: " + name, e);
+                    }
                 }
             });
             zipOS.flush();
@@ -105,60 +107,49 @@ public class StoreExportCommand implements Command {
     }
 
     private void exportOneStore(
-            CrawlContext crawlContext,
-            GridStore<?> store,
-            OutputStream out,
-            Class<?> type) throws IOException {
+            CrawlSession session,
+            SerializedCache serialCache,
+            OutputStream out) throws IOException {
 
+        var name = serialCache.getCacheName();
         var writer = SerialUtil.jsonGenerator(out);
         if (pretty) {
             writer.useDefaultPrettyPrinter();
         }
-        var qty = store.size();
 
-        LOG.info("Exporting {} entries from \"{}\".", qty, store.getName());
+        var cnt = 0L;
 
-        var cnt = new MutableLong();
-        var lastPercent = new MutableLong();
+        LOG.info("Exporting \"{}\" cache entries...", name);
+
         writer.writeStartObject();
-        writer.writeStringField("crawler", crawlContext.getId());
-        writer.writeStringField("store", store.getName());
-        writer.writeStringField("storeType", storeSuperClassName(store));
-        writer.writeStringField("objectType", type.getName());
+        writer.writeStringField("crawler", session.getCrawlerId());
+        writer.writeStringField("store", name);
+        writer.writeStringField("type", serialCache.getClassName());
+        writer.writeStringField("cacheType", serialCache.getCacheType().name());
         writer.writeFieldName("records");
         writer.writeStartArray();
 
-        store.forEach((id, obj) -> {
+        for (var entry : serialCache) {
             try {
                 writer.writeStartObject();
-                writer.writeStringField("id", id);
-                writer.writePOJOField("object", obj);
+                writer.writeStringField("id", entry.getKey());
+                writer.writePOJOField("object", entry.getJson());
                 writer.writeEndObject();
-                var c = cnt.incrementAndGet();
-                var percent = Math.floorDiv(c * 100, qty);
-                if (percent != lastPercent.longValue()) {
-                    LOG.info(" {}%", percent);
+                cnt++;
+                if (cnt % 1000 == 0) {
+                    LOG.info(" Exported {} \"{}\" records.",
+                            NumberFormat.getNumberInstance().format(cnt), name);
                 }
-                lastPercent.setValue(percent);
-                return true;
             } catch (IOException e) {
-                throw new CrawlerException("Could not export " + id, e);
+                throw new CrawlerException(
+                        "Could not export " + entry.getKey(), e);
             }
-        });
+        }
+        LOG.info(" Total exported: {} records.",
+                NumberFormat.getNumberInstance().format(cnt));
 
         writer.writeEndArray();
         writer.writeEndObject();
         writer.flush();
-    }
-
-    private String storeSuperClassName(GridStore<?> store) {
-        var concreteClass = store.getClass();
-        if (GridQueue.class.isAssignableFrom(concreteClass)) {
-            return GridQueue.class.getName();
-        }
-        if (GridSet.class.isAssignableFrom(concreteClass)) {
-            return GridSet.class.getName();
-        }
-        return GridMap.class.getName();
     }
 }

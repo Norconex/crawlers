@@ -1,4 +1,4 @@
-/* Copyright 2019-2025 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,13 @@ import org.apache.commons.io.IOUtils;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.operations.canon.impl.GenericCanonicalLinkDetector;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * The tail of redirects should be kept as metadata so implementors
@@ -40,6 +41,7 @@ import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
  * with canonical to redirect, then redirect to canonical.
  */
 @MockServerSettings
+@Timeout(30)
 class CanonicalRedirectLoopTest {
 
     private static final String CANONICAL_PATH = "/canonical";
@@ -47,20 +49,20 @@ class CanonicalRedirectLoopTest {
 
     @WebCrawlTest
     void testStartWithCanonical(
-            ClientAndServer client, WebCrawlerConfig cfg) throws IOException {
+            ClientAndServer client, WebCrawlConfig cfg) throws IOException {
         testLoop(CANONICAL_PATH, client, cfg);
     }
 
     @WebCrawlTest
     void testStartWithRedirect(
-            ClientAndServer client, WebCrawlerConfig cfg) throws IOException {
+            ClientAndServer client, WebCrawlConfig cfg) throws IOException {
         testLoop(REDIRECT_PATH, client, cfg);
     }
 
     void testLoop(
             String startUrlPath,
             ClientAndServer client,
-            WebCrawlerConfig config) throws IOException {
+            WebCrawlConfig config) throws IOException {
 
         //--- Web site ---
 

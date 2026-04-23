@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,22 +20,31 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.doc.WebDocMetadata;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.importer.doc.Doc;
 
 /**
  * Initialize a Web CrawlDoc.
  */
 class WebCrawlDocInitializer
-        implements BiConsumer<CrawlContext, CrawlDoc> {
+        implements BiConsumer<CrawlSession, Doc> {
 
     @Override
-    public void accept(CrawlContext crawler, CrawlDoc doc) {
-        var docRecord = (WebCrawlDocContext) doc.getDocContext();
-        var cachedDocRecord = (WebCrawlDocContext) doc.getCachedDocContext();
+    public void accept(CrawlSession crawler, Doc doc) {
+        var docRecord = (WebCrawlEntry) crawler.getCrawlContext()
+                .getCrawlEntryLedger()
+                .getEntry(doc.getReference())
+                .orElse(null);
+        if (docRecord == null) {
+            return;
+        }
+        var cachedDocRecord = (WebCrawlEntry) crawler.getCrawlContext()
+                .getCrawlEntryLedger()
+                .getBaselineEntry(doc.getReference())
+                .orElse(null);
         var metadata = doc.getMetadata();
 
         //TODO consider moving metadata setting elsewhere

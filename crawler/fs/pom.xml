@@ -1,5 +1,5 @@
 <!-- 
-   Copyright 2013-2025 Norconex Inc.
+   Copyright 2013-2026 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -30,19 +30,16 @@
     <sonar.skip>false</sonar.skip>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>
     <!-- Sonar expects this one to be relative to mono-repo root: -->
-    <sonar.exclusions>crawler/fs/src/main/java/org/apache/commons/vfs2/**/*</sonar.exclusions>
+    <sonar.exclusions>**/org/apache/commons/vfs2/**/*</sonar.exclusions>
+    <sonar.coverage.exclusions>**/org/apache/commons/vfs2/**/*</sonar.coverage.exclusions>
     <shared-resources.include>scripts/**</shared-resources.include> 
       
-    <commons-net.version>3.11.1</commons-net.version>
-    <commons-vfs.version>2.9.0</commons-vfs.version>
-    <ftpserver.version>1.2.0</ftpserver.version>
-    <hadoop.version>3.4.1</hadoop.version>
+    <commons-net.version>3.12.0</commons-net.version>
+    <commons-vfs.version>2.10.0</commons-vfs.version>
+    <ftpserver.version>1.2.1</ftpserver.version>
+    <hadoop.version>3.4.2</hadoop.version>
     <jackrabbit.version>2.21.7</jackrabbit.version>
-    <javax-mail.version>1.6.2</javax-mail.version>
-    <jaxb-api.version>2.4.0-b180830.0359</jaxb-api.version>
     <jcifs.version>1.3.17</jcifs.version>
-    <jetty.version>9.4.34.v20201102</jetty.version>
-    <opencmis.version>1.1.0</opencmis.version>
     <log4j-over-slf4j.version>2.0.7</log4j-over-slf4j.version>
   </properties>
   <inceptionYear>2014</inceptionYear>
@@ -72,8 +69,8 @@
           <artifactId>commons-logging</artifactId>
         </exclusion>
         <exclusion>
-        	<groupId>org.apache.logging.log4j</groupId>
-        	<artifactId>log4j-core</artifactId>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>log4j-core</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -96,6 +93,11 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>log4j-over-slf4j</artifactId>
+    </dependency>
+    <!-- Bridge commons-logging API to SLF4J (used by copied sandbox sources) -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jcl-over-slf4j</artifactId>
     </dependency>
 
     <!-- WebDav support -->
@@ -127,6 +129,12 @@
     </dependency>    
     
     <!-- HDFS support -->
+    <!-- commons-vfs2-hdfs was split out from commons-vfs2 in 2.10.0 (VFS-851) -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-vfs2-hdfs</artifactId>
+      <version>${commons-vfs.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
@@ -165,13 +173,20 @@
       <groupId>jcifs</groupId>
       <artifactId>jcifs</artifactId>
       <version>${jcifs.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>javax.servlet</groupId>
+          <artifactId>servlet-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     
     <!-- MIME support -->
+    <!-- sandbox migrated from javax.mail to jakarta.mail in 2.1 -->
     <dependency>
-      <groupId>javax.mail</groupId>
-      <artifactId>javax.mail-api</artifactId>
-      <version>${javax-mail.version}</version>
+      <groupId>jakarta.mail</groupId>
+      <artifactId>jakarta.mail-api</artifactId>
+      <version>2.1.3</version>
     </dependency>
 
 
@@ -191,6 +206,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
       <scope>test</scope>
@@ -202,8 +222,14 @@
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>junit-jupiter</artifactId>
+      <artifactId>testcontainers-junit-jupiter</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
@@ -224,42 +250,47 @@
     </dependency>
     
     
-    <!-- Dependency for CMIS systems (e.g., Alfresco, Interwoven, Magnolia, 
-         SharePoint server, OpenCMS, OpenText Documentum, etc).
-         More at: https://en.wikipedia.org/wiki/Content_Management_Interoperability_Services#CMIS_Servers -->
+    <!-- MockServer for mocking CMIS Atom HTTP responses in tests -->
     <dependency>
-      <groupId>org.apache.chemistry.opencmis</groupId>
-      <artifactId>chemistry-opencmis-server-inmemory</artifactId>
-      <version>${opencmis.version}</version>
-      <classifier>classes</classifier>
+      <groupId>org.mock-server</groupId>
+      <artifactId>mockserver-netty</artifactId>
       <scope>test</scope>
-      <exclusions>
-      	<exclusion>
-      		<groupId>org.apache.logging.log4j</groupId>
-      		<artifactId>log4j-slf4j-impl</artifactId>
-      	</exclusion>
-      	<exclusion>
-      		<groupId>org.apache.logging.log4j</groupId>
-      		<artifactId>log4j-core</artifactId>
-      	</exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>javax.xml.bind</groupId>
-      <artifactId>jaxb-api</artifactId>
-      <version>${jaxb-api.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-webapp</artifactId>
-        <scope>test</scope>
     </dependency>
 
   </dependencies>
   
   <build>
     <plugins>
+
+      <!--
+        Exclude Apache Commons VFS sandbox sources (copied as-is, not
+        maintained here) from code-coverage and editor-config checks.
+        Sonar exclusion is already declared via <sonar.exclusions> above.
+        The formatter-maven-plugin is unaffected because the parent config
+        already limits its scope to com/norconex/**/*.java.
+      -->
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>org/apache/commons/vfs2/**/*</exclude>
+          </excludes>
+        </configuration>        
+      </plugin>
+
+      <plugin>
+        <groupId>org.ec4j.maven</groupId>
+        <artifactId>editorconfig-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>
+              src/main/java/org/apache/commons/vfs2/**
+            </exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
@@ -285,12 +316,12 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-gpg-plugin</artifactId>
       </plugin>
-
-      <plugin>
-        <groupId>org.sonatype.central</groupId>
-        <artifactId>central-publishing-maven-plugin</artifactId>
-      </plugin>
       
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+      </plugin>
+
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>license-maven-plugin</artifactId>

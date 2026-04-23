@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,26 +120,22 @@ public class ParseAssertions {
 
     public ParseAssertions hasContentType(String contentType) {
         return assertResponses(
-                resp -> Assertions.assertThat(
-                        resp.getDoc().getDocContext().getContentType())
-                        .hasToString(
-                                contentType));
+                resp -> Assertions.assertThat(resp.getDoc().getContentType())
+                        .hasToString(contentType));
     }
 
     public ParseAssertions hasContentFamily(String contentFamily) {
         return assertResponses(
-                resp -> Assertions.assertThat(
-                        resp.getDoc().getDocContext().getContentType()
-                                .getContentFamily()
-                                .getDisplayName(ENGLISH))
+                resp -> Assertions.assertThat(resp.getDoc().getContentType()
+                        .getContentFamily()
+                        .getDisplayName(ENGLISH))
                         .hasToString(contentFamily));
     }
 
     public ParseAssertions hasExtension(String extension) {
         return assertResponses(
-                resp -> Assertions.assertThat(
-                        resp.getDoc().getDocContext().getContentType()
-                                .getExtension())
+                resp -> Assertions.assertThat(resp.getDoc().getContentType()
+                        .getExtension())
                         .hasToString(extension));
     }
 

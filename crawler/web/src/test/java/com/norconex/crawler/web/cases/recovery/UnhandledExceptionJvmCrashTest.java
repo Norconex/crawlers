@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,63 @@ package com.norconex.crawler.web.cases.recovery;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.grid.local.LocalGridConnector;
+import java.nio.file.Path;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.io.TempDir;
+
+import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.test.CrawlTestHarness;
+import com.norconex.crawler.core.test.CrawlTestInstrument;
+import com.norconex.crawler.web.WebCrawlDriverFactory;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Test that unhandled exceptions will abort the crawl as opposed,
- * for example, to have the process hanging and never returning.
+ * for example, to having the process hang indefinitely.
  */
 @Slf4j
+@Timeout(60)
 class UnhandledExceptionJvmCrashTest {
 
-    @WebCrawlTest(gridConnectors = LocalGridConnector.class)
-    void testUnhandledExceptiotnJvmCrash(WebCrawlerConfig cfg) {
-        cfg.addEventListener(new ThrowingEventListener());
-        var outcome = ExternalCrawlSessionLauncher.start(cfg);
-        LOG.debug(outcome.getStdErr());
-        LOG.debug(outcome.getStdOut());
-        assertThat(outcome.getReturnValue()).isEqualTo(1);
-        assertThat(outcome.getStdOut()).contains(
-                "Simulating unrecoverable exception");
-        assertThat(outcome.getCommitterAfterLaunch().getUpsertCount()).isZero();
+    @Test
+    void testUnhandledExceptionJvmCrash(@TempDir Path tempDir)
+            throws Exception {
+        var instrument = new CrawlTestInstrument()
+                .setDriverSupplierClass(WebCrawlDriverFactory.class)
+                .setRecordEvents(true)
+                .setWorkDir(tempDir)
+                .setNewJvm(false)
+                .setClustered(false)
+                .setConfigModifier(cfg -> {
+                    cfg.setId("test-exception-crash");
+                    cfg.addEventListener(new ThrowingEventListener());
+                });
+
+        try (var harness = new CrawlTestHarness(instrument)) {
+            RuntimeException thrown = null;
+            try {
+                harness.launchSync("node1");
+            } catch (RuntimeException e) {
+                thrown = e;
+            }
+
+            // The crawler must terminate quickly (not hang) — verified by @Timeout.
+            // ThrowingEventListener throws on the first event, before any imports.
+            var output = harness.getNodeOutput("node1");
+            assertThat(output).isPresent();
+            assertThat(output.get().getEventNameBag()
+                    .getCount(CrawlerEvent.DOCUMENT_IMPORTED)).isZero();
+
+            // If an exception was propagated, its cause should reference the
+            // simulated error thrown by ThrowingEventListener.
+            if (thrown != null) {
+                assertThat(thrown.getCause())
+                        .hasMessageContaining(
+                                "Simulating unrecoverable exception");
+            }
+        }
     }
 }

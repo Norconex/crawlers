@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,13 @@ import static org.mockserver.model.MediaType.HTML_UTF_8;
 
 import java.util.List;
 
+import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.matchers.Times;
 
 import com.norconex.committer.core.CommitterException;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 
@@ -36,6 +37,7 @@ import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
  * Test detection of page deletion (404 - File Not Found).
  */
 @MockServerSettings
+@Timeout(180)
 class FileNotFoundDeletionTest {
 
     private static final String HOME_PATH = "/notFoundDelete";
@@ -43,7 +45,7 @@ class FileNotFoundDeletionTest {
 
     @WebCrawlTest
     void testFileNotFoundDeletion(
-            ClientAndServer client, WebCrawlerConfig cfg)
+            ClientAndServer client, WebCrawlConfig cfg)
             throws CommitterException {
 
         // @formatter:off
@@ -74,7 +76,7 @@ class FileNotFoundDeletionTest {
         assertThat(mem.getDeleteCount()).isOne();
         mem.clean();
 
-        // Third run: 1 new doc (1 unmodified + 1 resurrected) and zero delete
+        // Third run: one doc is rediscovered and no delete
         whenPageFound(client);
         mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
@@ -83,6 +85,7 @@ class FileNotFoundDeletionTest {
     }
 
     private void whenPageFound(ClientAndServer client) {
+        client.clear(request().withPath(TOGGLE_PATH));
         client
                 .when(request().withPath(TOGGLE_PATH), Times.once())
                 .respond(
@@ -92,6 +95,7 @@ class FileNotFoundDeletionTest {
     }
 
     private void whenPageNotFound(ClientAndServer client) {
+        client.clear(request().withPath(TOGGLE_PATH));
         client
                 .when(request().withPath(TOGGLE_PATH), Times.once())
                 .respond(

@@ -1,4 +1,4 @@
-/* Copyright 2025 Norconex Inc.
+/* Copyright 2025-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.mockserver.model.MediaType;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.crawler.core.CrawlConfig.OrphansStrategy;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
@@ -73,7 +73,7 @@ public class NonRecrawlablesRedirected {
 
     @WebCrawlTest
     void testNonRecrawlablesRedirected(
-            ClientAndServer client, WebCrawlerConfig cfg)
+            ClientAndServer client, WebCrawlConfig cfg)
             throws CommitterException {
         cfg.setStartReferencesSitemaps(List.of(serverUrl(client, sitemapPath)));
         cfg.setOrphansStrategy(OrphansStrategy.DELETE);

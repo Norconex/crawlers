@@ -1,4 +1,4 @@
-/* Copyright 2020-2025 Norconex Inc.
+/* Copyright 2020-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.norconex.commons.lang.event.EventManager;
+import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.io.CachedOutputStream;
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.importer.ImporterEvent;
 import com.norconex.importer.charset.CharsetUtil;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocContext;
 import com.norconex.importer.handler.condition.Condition;
 import com.norconex.importer.handler.parser.ParseState;
 import com.norconex.importer.util.ReadAdapter;
@@ -62,6 +62,10 @@ public class DocHandlerContext {
     @NonNull
     private final Doc doc;
 
+    //    @Getter(value = AccessLevel.NONE)
+    //    @Setter(value = AccessLevel.NONE)
+    //    private final HandlerDoc handlerDoc;
+
     @NonNull
     @Default
     private ParseState parseState = ParseState.PRE;
@@ -83,16 +87,24 @@ public class DocHandlerContext {
 
     private Object rejectedBy;
 
-    public DocContext docContext() {
-        return doc.getDocContext();
-    }
-
     public Properties metadata() {
         return doc.getMetadata();
     }
 
     public String reference() {
         return doc.getReference();
+    }
+
+    public ContentType contentType() {
+        return doc.getContentType();
+    }
+
+    public List<String> parentReferences() {
+        return doc.getParentReferences();
+    }
+
+    public Charset charset() {
+        return doc.getCharset();
     }
 
     public CachedStreamFactory streamFactory() {
@@ -120,7 +132,7 @@ public class DocHandlerContext {
         return CharsetUtil.firstNonNullOrUTF8(
                 parseState,
                 charset,
-                docContext().getCharset(),
+                doc.getCharset(),
                 StandardCharsets.UTF_8);
     }
 
@@ -155,11 +167,11 @@ public class DocHandlerContext {
         return new ReadAdapter(
                 doc::getInputStream,
                 CharsetUtil.firstNonNullOrUTF8(
-                        parseState, docContext().getCharset()));
+                        parseState, doc.getCharset()));
     }
 
     /**
-     * Make sure to close the stream when done or explictely flush the stream.
+     * Make sure to close the stream when done or explictly flush the stream.
      * @return output adapter
      */
     public synchronized WriteAdapter output() {

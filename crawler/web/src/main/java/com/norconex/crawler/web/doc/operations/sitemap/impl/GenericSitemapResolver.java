@@ -1,4 +1,4 @@
-/* Copyright 2019-2025 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,27 +19,28 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.hc.core5.http.HttpStatus;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapContext;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapRecord;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapResolver;
+import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.WebFetchRequest;
 import com.norconex.crawler.web.fetch.WebFetchResponse;
-import com.norconex.crawler.web.fetch.HttpMethod;
-import com.norconex.grid.core.storage.GridMap;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.util.Web;
+import com.norconex.importer.doc.Doc;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -56,9 +57,9 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
     static final String SITEMAP_STORE_NAME =
             SitemapRecord.class.getSimpleName();
     @JsonIgnore
-    private GridMap<SitemapRecord> sitemapStore;
+    private CacheMap<SitemapRecord> sitemapStore;
     @JsonIgnore
-    private final MutableBoolean stopping = new MutableBoolean();
+    private final AtomicBoolean stopping = new AtomicBoolean();
 
     @EqualsAndHashCode.Include
     @ToString.Include
@@ -69,7 +70,7 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
     @Override
     public void resolve(SitemapContext ctx) {
         var location = ctx.getLocation();
-        if (stopping.isTrue()) {
+        if (stopping.get()) {
             LOG.debug(
                     "Skipping resolution of sitemap "
                             + "location (stop requested): {}",
@@ -87,20 +88,22 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
         // TODO Delete stored sitemaps that were not updated in session (orphans)
 
         List<SitemapRecord> childSitemaps = new ArrayList<>();
-        var sitemapDoc = new CrawlDoc(new WebCrawlDocContext(location));
+        var sitemapEntry = new WebCrawlEntry(location);
         SitemapRecord sitemapRec = null;
+        FetchResult fetchResult = null;
 
         try {
             var fetcher = ctx.getFetcher();
             LOG.info("Resolving sitemap: {}", location);
             // Execute the method.
-            var response = httpGet(fetcher, sitemapDoc);
-            sitemapRec = SitemapUtil.toSitemapRecord(sitemapDoc);
-            var statusCode = response.getStatusCode();
+            fetchResult = httpGet(fetcher, sitemapEntry, new Doc(location));
+            sitemapRec = SitemapUtil.toSitemapRecord(fetchResult.doc(),
+                    sitemapEntry);
+            var statusCode = fetchResult.response().getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
                 childSitemaps.addAll(
                         processFetchedSitemap(
-                                ctx, sitemapRec, sitemapDoc));
+                                ctx, sitemapRec, fetchResult.doc()));
                 LOG.info("         Resolved: {}", location);
             } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
                 LOG.debug("Sitemap not found : {}", location);
@@ -118,12 +121,14 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
             if (sitemapRec != null) {
                 sitemapStore.put(location, sitemapRec);
             }
-            try {
-                sitemapDoc.dispose();
-            } catch (IOException e) {
-                LOG.error(
-                        "Could not dispose of sitemap file for: {}",
-                        location, e);
+            if (fetchResult != null) {
+                try {
+                    fetchResult.doc().close();
+                } catch (IOException e) {
+                    LOG.error(
+                            "Could not close sitemap file for: {}",
+                            location, e);
+                }
             }
         }
 
@@ -138,10 +143,10 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
     }
 
     private List<SitemapRecord> processFetchedSitemap(
-            SitemapContext ctx, SitemapRecord sitemapRec, CrawlDoc sitemapDoc)
+            SitemapContext ctx, SitemapRecord sitemapRec, Doc sitemapDoc)
             throws IOException {
         var location = sitemapDoc.getReference();
-        var cachedRec = sitemapStore.get(location);
+        var cachedRec = sitemapStore.get(location).orElse(null);
 
         if (!SitemapUtil.shouldProcessSitemap(sitemapRec, cachedRec)) {
             LOG.info("Sitemap not modified since last crawl: {}", location);
@@ -159,16 +164,21 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
         return childSitemaps;
     }
 
-    // Follow redirects
-    private WebFetchResponse httpGet(
-            Fetcher fetcher, CrawlDoc doc) throws IOException {
-        return httpGet(fetcher, doc, 0);
+    private record FetchResult(WebFetchResponse response, Doc doc) {
     }
 
-    private WebFetchResponse httpGet(
-            Fetcher fetcher, CrawlDoc doc, int loop) throws IOException {
+    // Follow redirects
+    private FetchResult httpGet(
+            Fetcher fetcher, WebCrawlEntry entry, Doc doc)
+            throws IOException {
+        return httpGet(fetcher, entry, doc, 0);
+    }
 
-        var location = doc.getReference();
+    private FetchResult httpGet(
+            Fetcher fetcher, WebCrawlEntry entry, Doc doc, int loop)
+            throws IOException {
+
+        var location = entry.getReference();
         var response = (WebFetchResponse) fetcher.fetch(
                 new WebFetchRequest(doc, HttpMethod.GET));
         var redirectUrl = response.getRedirectTarget();
@@ -179,35 +189,43 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
                         "Sitemap redirect loop detected. "
                                 + "Last redirect: {} --> {}",
                         location, redirectUrl);
-                return response;
+                return new FetchResult(response, doc);
             }
             LOG.info("         Redirect: {} --> {}", location, redirectUrl);
 
             // fetch redirect target then store back original URL
-            doc.getDocContext().setReference(redirectUrl);
-            var redirectResponse = httpGet(fetcher, doc, loop + 1);
-            doc.getDocContext().setReference(location);
-            return redirectResponse;
+            entry.setReference(redirectUrl);
+            var result =
+                    httpGet(fetcher, entry, new Doc(redirectUrl), loop + 1);
+            entry.setReference(location);
+            return result;
         }
-        return response;
+        return new FetchResult(response, doc);
     }
 
     //--- Life cycle events ----------------------------------------------------
 
     @Override
     protected void onCrawlerCleanBegin(CrawlerEvent event) {
-        Optional.ofNullable(sitemapStore).ifPresent(GridMap::clear);
+        // Use a fresh cache reference from the current clean session rather
+        // than the cached sitemapStore field (which may reference a
+        // closed MVStore from a previous run).
+        Web.gridCache(
+                event.getCrawlSession(),
+                SITEMAP_STORE_NAME,
+                SitemapRecord.class).clear();
     }
 
     @Override
     protected void onCrawlerCrawlBegin(CrawlerEvent event) {
-        sitemapStore = event.getSource()
-                .getGrid().getStorage().getMap(
-                        SITEMAP_STORE_NAME, SitemapRecord.class);
+        sitemapStore = Web.gridCache(
+                (CrawlSession) event.getSource(),
+                SITEMAP_STORE_NAME,
+                SitemapRecord.class);
     }
 
     @Override
     protected void onCrawlerStopBegin(CrawlerEvent event) {
-        stopping.setTrue();
+        stopping.set(true);
     }
 }

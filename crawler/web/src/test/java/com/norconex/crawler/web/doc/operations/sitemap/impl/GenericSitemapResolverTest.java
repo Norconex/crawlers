@@ -1,4 +1,4 @@
-/* Copyright 2019-2025 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@ package com.norconex.crawler.web.doc.operations.sitemap.impl;
 import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
@@ -24,17 +27,22 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.zip.GZIPOutputStream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.core.cluster.CacheManager;
+import com.norconex.crawler.core.cluster.Cluster;
+import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapContext;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 
@@ -42,9 +50,10 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @MockServerSettings
+@Timeout(30)
 class GenericSitemapResolverTest {
 
-    @WebCrawlTest(focus = Focus.CONTEXT)
+    @WebCrawlTest
     void testResolveSitemaps(
             ClientAndServer client, CrawlContext ctx)
             throws IOException {
@@ -71,23 +80,54 @@ class GenericSitemapResolverTest {
                         .withStatusCode(302)
                         .withHeader(
                                 "Location",
-                                serverUrl(client, "/sitemap-new")));
+                                serverUrl(client,
+                                        "/sitemap-new")));
 
         client.when(request().withPath("/sitemap-new"))
                 .respond(response()
-                        .withHeader("Content-Encoding", "gzip")
-                        .withHeader("Content-type", "text/xml; charset=utf-8")
-                        .withBody(compressSitemap(serverUrl(client, ""))));
+                        .withHeader("Content-Encoding",
+                                "gzip")
+                        .withHeader("Content-type",
+                                "text/xml; charset=utf-8")
+                        .withBody(compressSitemap(
+                                serverUrl(client,
+                                        ""))));
 
         List<String> urls = new ArrayList<>();
-        var resolver = ((WebCrawlerConfig) ctx.getCrawlConfig())
+        var resolver = ((WebCrawlConfig) ctx.getCrawlConfig())
                 .getSitemapResolver();
+
+        var session = mock(CrawlSession.class);
+        var cluster = mock(Cluster.class);
+        var cacheManager = mock(CacheManager.class);
+        @SuppressWarnings("unchecked")
+        var sitemapStore =
+                (com.norconex.crawler.core.cluster.CacheMap<
+                        com.norconex.crawler.web.doc.operations.sitemap.SitemapRecord>) mock(
+                                com.norconex.crawler.core.cluster.CacheMap.class);
+        when(session.getCluster()).thenReturn(cluster);
+        when(cluster.getCacheManager()).thenReturn(cacheManager);
+        when(cacheManager.getCacheMap(
+                GenericSitemapResolver.SITEMAP_STORE_NAME,
+                com.norconex.crawler.web.doc.operations.sitemap.SitemapRecord.class))
+                        .thenReturn(sitemapStore);
+        when(sitemapStore.get(anyString())).thenReturn(Optional.empty());
+
+        ((GenericSitemapResolver) resolver).onCrawlerCrawlBegin(
+                CrawlerEvent.builder()
+                        .name("test")
+                        .source(session)
+                        .crawlSession(session)
+                        .build());
+
         resolver.resolve(
                 SitemapContext
                         .builder()
                         .fetcher(ctx.getFetcher())
-                        .location(serverUrl(client, "sitemap-index"))
-                        .urlConsumer(rec -> urls.add(rec.getReference()))
+                        .location(serverUrl(client,
+                                "sitemap-index"))
+                        .urlConsumer(rec -> urls.add(rec
+                                .getReference()))
                         .build());
 
         assertThat(urls).containsExactly(

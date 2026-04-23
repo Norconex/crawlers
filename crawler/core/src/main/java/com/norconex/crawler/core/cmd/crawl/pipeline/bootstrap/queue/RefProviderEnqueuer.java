@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2024-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ public class RefProviderEnqueuer implements ReferenceEnqueuer {
 
     @Override
     public int enqueue(QueueBootstrapContext ctx) {
-        var cfg = ctx.getCrawlContext().getCrawlConfig();
+        var cfg = ctx.getCrawlSession().getCrawlContext().getCrawlConfig();
         var providers = cfg.getStartReferencesProviders();
         var cnt = 0;
         for (ReferencesProvider provider : providers) {

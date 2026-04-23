@@ -1,4 +1,4 @@
-/* Copyright 2021-2024 Norconex Inc.
+/* Copyright 2021-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,16 +23,21 @@ import static org.mockserver.model.HttpResponse.response;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
+import org.mockserver.model.HttpRequest;
 import org.mockserver.model.MediaType;
 
+import com.hazelcast.core.Hazelcast;
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.web.WebTestUtil;
+import com.norconex.crawler.web.doc.operations.scope.impl.GenericUrlScopeResolver;
 import com.norconex.crawler.web.fetch.util.HstsResolver;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
@@ -43,9 +48,58 @@ import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
  */
 //Related to https://github.com/Norconex/collector-http/issues/694
 @MockServerSettings
+@Timeout(60)
+@Isolated
 class StrictTransportSecurityTest {
     @TempDir
     private Path tempDir;
+
+    @AfterEach
+    void tearDown() {
+        // Ensure all Hazelcast instances are shut down after each invocation
+        // to prevent resource accumulation and port conflicts
+        Hazelcast.shutdownAll();
+        try {
+            Thread.sleep(500); //NOSONAR Give Hazelcast time to fully shut down
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    /**
+     * Waits until the MockServer responds with expectations for the given path, or times out after 2 seconds.
+     */
+    private void waitForMockServerReady(ClientAndServer client, String path) {
+        var deadline = System.currentTimeMillis() + 2000;
+        var ready = false;
+        Exception last = null;
+        while (System.currentTimeMillis() < deadline && !ready) {
+            // Retrieve all expectations and check path manually to avoid
+            // issues with matcher strictness regarding the 'secure' flag.
+            var expectations = client.retrieveActiveExpectations(null);
+            if (expectations != null) {
+                for (var expectation : expectations) {
+                    if (expectation.getHttpRequest() instanceof HttpRequest req
+                            && path.equals(req.getPath().getValue())) {
+                        ready = true;
+                        break;
+                    }
+                }
+            }
+            if (ready) {
+                break;
+            }
+            try {
+                Thread.sleep(50); //NOSONAR
+            } catch (InterruptedException ignored) {
+                // swallow
+            }
+        }
+        if (!ready) {
+            throw new RuntimeException("MockServer not ready for path: " + path,
+                    last);
+        }
+    }
 
     // CSV: clientSupport, serverSupport, expectsSecureUrl
     @CsvSource(textBlock = """
@@ -61,13 +115,21 @@ class StrictTransportSecurityTest {
             boolean expectsSecureUrl,
             ClientAndServer client) {
 
+        client.reset();
+
         var basePath = "/strictTransportSecurity";
         var securePath = basePath + "/secure.html";
         var secureUrl = secureServerUrl(client, securePath);
         var securablePath = basePath + "/securable.html";
-        var securableUrl = serverUrl(client, securablePath);
 
-        client.reset();
+        // We MUST use the secure port for the securable URL link when we expect
+        // an upgrade. Otherwise, HSTS protocol upgrade will point to the
+        // non-secure port where no SSL listener exists.
+        var securableUrl = expectsSecureUrl
+                ? secureServerUrl(client, securablePath).replace("https://",
+                        "http://")
+                : serverUrl(client, securablePath);
+
         HstsResolver.clearCache();
         // @formatter:off
         if (serverSupportsHSTS) {
@@ -82,13 +144,19 @@ class StrictTransportSecurityTest {
                 .when(request().withMethod("HEAD"))
                 .respond(response());
         }
+        var secureResponse = response()
+            .withBody(
+                    "Will this <a href=\"%s\">link</a> be secure?"
+                            .formatted(securableUrl),
+                    MediaType.HTML_UTF_8);
+        if (serverSupportsHSTS) {
+            secureResponse.withHeader(
+                    "Strict-Transport-Security",
+                    "max-age=16070400; includeSubDomains");
+        }
         client
             .when(request(securePath).withSecure(true))
-            .respond(response()
-                .withBody(
-                        "Will this <a href=\"%s\">link</a> be secure?"
-                                .formatted(securableUrl),
-                        MediaType.HTML_UTF_8));
+            .respond(secureResponse);
 
         client
             .when(request(securablePath).withSecure(true))
@@ -100,16 +168,32 @@ class StrictTransportSecurityTest {
                 .withBody("I am NOT secure"));
         // @formatter:on
 
+        // Wait for MockServer to register all expectations before crawling
+        waitForMockServerReady(client, securePath);
+        waitForMockServerReady(client, securablePath);
+
         var cfg = CrawlerConfigStubs.memoryCrawlerConfig(tempDir);
+        cfg.setId("test-hsts-"
+                + clientSupportsHSTS + '-'
+                + serverSupportsHSTS + '-'
+                + expectsSecureUrl);
+
+        // Allow port and protocol changes as we switch between http and https.
+        // often on different ports in mock tests.
+        var scopeCfg = ((GenericUrlScopeResolver) cfg.getUrlScopeResolver())
+                .getConfiguration();
+        scopeCfg.setStayOnProtocol(false);
+        scopeCfg.setStayOnPort(false);
 
         cfg.setStartReferences(List.of(secureUrl));
-        cfg.setMaxDocuments(2);
+        cfg.setMaxDocuments(5);
+        cfg.setMaxDepth(5);
+        cfg.setNumThreads(1);
         var fetcherCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
         fetcherCfg.setTrustAllSSLCertificates(true);
         if (!clientSupportsHSTS) {
             fetcherCfg.setHstsDisabled(true);
         }
-        cfg.setPostImportLinks(TextMatcher.basic("secondURL"));
 
         var expectedUrl = securableUrl;
         if (expectsSecureUrl) {

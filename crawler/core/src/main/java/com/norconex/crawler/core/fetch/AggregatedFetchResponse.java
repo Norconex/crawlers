@@ -1,4 +1,4 @@
-/* Copyright 2022-2025 Norconex Inc.
+/* Copyright 2022-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import com.norconex.crawler.core.doc.CrawlDocStatus;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -39,9 +39,9 @@ public class AggregatedFetchResponse implements FetchResponse {
     private final List<? extends FetchResponse> fetchResponses;
 
     @Override
-    public CrawlDocStatus getResolutionStatus() {
+    public ProcessingOutcome getProcessingOutcome() {
         return getLastFetchResponse().map(
-                FetchResponse::getResolutionStatus).orElse(null);
+                FetchResponse::getProcessingOutcome).orElse(null);
     }
 
     @Override

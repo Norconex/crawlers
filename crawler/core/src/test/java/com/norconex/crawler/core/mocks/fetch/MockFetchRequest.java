@@ -1,4 +1,4 @@
-/* Copyright 2022-2024 Norconex Inc.
+/* Copyright 2022-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,8 @@
  */
 package com.norconex.crawler.core.mocks.fetch;
 
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.fetch.FetchRequest;
-import com.norconex.crawler.core.stubs.CrawlDocStubs;
+import com.norconex.importer.doc.Doc;
 
 import lombok.Data;
 import lombok.Getter;
@@ -27,10 +26,10 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public class MockFetchRequest implements FetchRequest {
 
-    private final CrawlDoc doc;
+    private final Doc doc;
 
     public MockFetchRequest(String ref) {
-        doc = CrawlDocStubs.crawlDoc(ref);
+        doc = new Doc(ref);
     }
 
     public String getRef() {

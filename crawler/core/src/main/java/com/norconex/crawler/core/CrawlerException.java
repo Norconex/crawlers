@@ -1,4 +1,4 @@
-/* Copyright 2014-2024 Norconex Inc.
+/* Copyright 2014-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,7 @@ package com.norconex.crawler.core;
 import lombok.experimental.StandardException;
 
 /**
- * Runtime exception for most unrecoverable issues thrown by a
- * crawler.
+ * Runtime exception for most issues thrown by a crawler.
  */
 @StandardException
 public class CrawlerException extends RuntimeException {

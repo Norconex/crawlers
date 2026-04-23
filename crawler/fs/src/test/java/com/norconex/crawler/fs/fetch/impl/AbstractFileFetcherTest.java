@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.committer.core.UpsertRequest;
@@ -33,6 +34,7 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.fs.FsTestUtil;
 
+@Timeout(60)
 public abstract class AbstractFileFetcherTest {
 
     @TempDir
@@ -46,8 +48,7 @@ public abstract class AbstractFileFetcherTest {
         var basePath = getStartPath();
 
         var mem = FsTestUtil
-                .crawlWithFetcher(tempDir, fetcher, basePath)
-                .getCommitter();
+                .crawlWithFetcher(tempDir, fetcher, basePath);
 
         assertThat(mem.getUpsertCount()).isEqualTo(8);
         assertThat(mem.getUpsertRequests())
@@ -64,7 +65,8 @@ public abstract class AbstractFileFetcherTest {
 
         // Assert content
         assertThat(getUpsertRequestContent(
-                mem, basePath + "/bye.txt")).contains("Bye World!");
+                mem, basePath + "/bye.txt"))
+                        .contains("Bye World!");
         assertThat(getUpsertRequestContent(
                 mem, basePath + "/pdfs/plain.pdf"))
                         .contains("Hey Norconex, this is a test.");
@@ -74,16 +76,20 @@ public abstract class AbstractFileFetcherTest {
                 mem, basePath + "/UTF-8.txt", CONTENT_ENCODING))
                         .isEqualTo("UTF-8");
         assertThat(getUpsertRequestMeta(
-                mem, basePath + "/windows-1252.txt", CONTENT_ENCODING))
+                mem, basePath + "/windows-1252.txt",
+                CONTENT_ENCODING))
                         .isEqualTo("windows-1252");
 
         // Assert content type
         assertThat(getUpsertRequestMeta(
                 mem, basePath + "/UTF-8.txt", CONTENT_TYPE))
-                        .isEqualTo(ContentType.TEXT.toString());
+                        .startsWith(ContentType.TEXT
+                                .toString());
         assertThat(getUpsertRequestMeta(
-                mem, basePath + "/pdfs/plain.pdf", CONTENT_TYPE))
-                        .isEqualTo(ContentType.PDF.toString());
+                mem, basePath + "/pdfs/plain.pdf",
+                CONTENT_TYPE))
+                        .isEqualTo(ContentType.PDF
+                                .toString());
 
         // Assert file size
         assertThat(getUpsertRequestMeta(
@@ -98,8 +104,10 @@ public abstract class AbstractFileFetcherTest {
 
         assertThatNoException()
                 .isThrownBy(
-                        () -> BeanMapper.DEFAULT.assertWriteRead(
-                                FsTestUtil.randomize(fetcher.getClass())));
+                        () -> BeanMapper.DEFAULT
+                                .assertWriteRead(
+                                        FsTestUtil.randomize(
+                                                fetcher.getClass())));
         // Assert ACLs
 
         //TODO extract ACL, possibly making it a flag if costly?

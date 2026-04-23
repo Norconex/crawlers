@@ -1,4 +1,4 @@
-/* Copyright 2015-2025 Norconex Inc.
+/* Copyright 2015-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.Objects;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.language.translate.Translator;
 import org.apache.tika.language.translate.impl.CachedTranslator;
@@ -39,7 +40,6 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.unit.DataUnit;
 import com.norconex.importer.ImporterRuntimeException;
 import com.norconex.importer.doc.Doc;
-import com.norconex.importer.doc.DocContext;
 import com.norconex.importer.doc.DocMetaConstants;
 import com.norconex.importer.handler.DocHandlerContext;
 import com.norconex.importer.handler.DocHandlerException;
@@ -382,16 +382,19 @@ public class TranslatorSplitter
         var childEmbedRef = "translation-" + targetLang;
         var childDocRef = docCtx.reference() + "!" + childEmbedRef;
 
-        var childInfo = new DocContext(childDocRef);
+        @SuppressWarnings("resource")
+        var childDoc = new Doc(childDocRef);
 
         childMeta.set(DocMetaConstants.EMBEDDED_REFERENCE, childEmbedRef);
 
-        childInfo.addEmbeddedParentReference(docCtx.reference());
+        childDoc.addParentReference(docCtx.reference());
 
         childMeta.set(DocMetaConstants.LANGUAGE, targetLang);
         childMeta.set(DocMetaConstants.TRANSLATED_FROM, sourceLang);
 
-        return new Doc(childDocRef, childInput, childMeta);
+        return childDoc
+                .setInputStream(childInput)
+                .setMetadata(childMeta);
     }
 
     private Properties translateFields(
@@ -434,8 +437,8 @@ public class TranslatorSplitter
         var lines = IOUtils.readLines(new StringReader(txt));
         var index = 0;
         for (String line : lines) {
-            line = StringUtils.removeStart(line, "[");
-            line = StringUtils.removeEnd(line, "]");
+            line = Strings.CS.removeStart(line, "[");
+            line = Strings.CS.removeEnd(line, "]");
             var values = StringUtils.splitByWholeSeparator(line, "][");
             childMeta.set(fieldsToTranslate.get(index), values);
             index++;

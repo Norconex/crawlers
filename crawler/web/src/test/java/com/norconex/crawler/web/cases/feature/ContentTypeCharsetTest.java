@@ -1,4 +1,4 @@
-/* Copyright 2019-2025 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,12 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.importer.doc.DocMetaConstants;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test proper charset detection when the declared one does not match
@@ -40,11 +41,12 @@ import com.norconex.importer.doc.DocMetaConstants;
  */
 // Related ticket: https://github.com/Norconex/importer/issues/41
 @MockServerSettings
+@Timeout(30)
 class ContentTypeCharsetTest {
 
     @WebCrawlTest
     void testContentTypeCharset(
-            ClientAndServer client, WebCrawlerConfig cfg) {
+            ClientAndServer client, WebCrawlConfig cfg) {
 
         var urlPath = "/contentTypeCharset";
 

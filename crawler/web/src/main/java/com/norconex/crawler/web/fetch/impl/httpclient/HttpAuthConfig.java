@@ -1,4 +1,4 @@
-/* Copyright 2020-2025 Norconex Inc.
+/* Copyright 2020-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,6 +115,13 @@ public class HttpAuthConfig {
      * Gets the NTLM authentication domain.
      */
     private String domain;
+
+    /**
+     * Kerberos/SPNEGO configuration. Required when using
+     * {@link HttpAuthMethod#SPNEGO} or
+     * {@link HttpAuthMethod#KERBEROS}.
+     */
+    private KerberosConfig kerberosConfig;
 
     /**
      * Whether to perform preemptive authentication

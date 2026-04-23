@@ -1,4 +1,4 @@
-/* Copyright 2020-2024 Norconex Inc.
+/* Copyright 2020-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
+import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.mock.action.ExpectationResponseCallback;
@@ -34,7 +35,7 @@ import org.mockserver.model.HttpResponse;
 import org.mockserver.model.HttpStatusCode;
 
 import com.norconex.committer.core.CommitterException;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
@@ -57,6 +58,7 @@ import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
  */
 //Related issue: https://github.com/Norconex/collector-http/issues/637
 @MockServerSettings
+@Timeout(120)
 class IfModifiedSinceTest {
 
     private String path = "/ifModifiedSince";
@@ -67,13 +69,14 @@ class IfModifiedSinceTest {
     private static ZonedDateTime serverDate = null;
 
     @WebCrawlTest
-    void testIfModifiedSince(ClientAndServer client, WebCrawlerConfig cfg)
+    void testIfModifiedSince(ClientAndServer client, WebCrawlConfig cfg)
             throws CommitterException {
         serverDate = fiveDaysAgo;
 
         client
                 .when(request().withPath(path))
-                .respond(HttpClassCallback.callback(Callback.class));
+                .respond(HttpClassCallback
+                        .callback(Callback.class));
 
         cfg.setStartReferences(List.of(serverUrl(client, path)));
         // disable checksums and E-Tag so they do not influence
@@ -84,7 +87,8 @@ class IfModifiedSinceTest {
                 .getConfiguration().setETagDisabled(true);
 
         // First run is new
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+                .getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
@@ -114,13 +118,16 @@ class IfModifiedSinceTest {
             var response = response().withHeader(
                     HttpHeaders.LAST_MODIFIED,
                     WebTestUtil.rfcFormat(serverDate));
-            var dateStr = req.getFirstHeader(HttpHeaders.IF_MODIFIED_SINCE);
+            var dateStr = req.getFirstHeader(
+                    HttpHeaders.IF_MODIFIED_SINCE);
             if (StringUtils.isNotBlank(dateStr)) {
                 var reqDate = ZonedDateTime.parse(
-                        dateStr, DateTimeFormatter.RFC_1123_DATE_TIME);
+                        dateStr,
+                        DateTimeFormatter.RFC_1123_DATE_TIME);
                 if (!reqDate.isBefore(serverDate)) {
                     return response.withStatusCode(
-                            HttpStatusCode.NOT_MODIFIED_304.code());
+                            HttpStatusCode.NOT_MODIFIED_304
+                                    .code());
                 }
             }
             return response.withBody("Doc modified.");

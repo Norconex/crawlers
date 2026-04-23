@@ -1,4 +1,4 @@
-/* Copyright 2022-2023 Norconex Inc.
+/* Copyright 2022-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.CommitterException;
@@ -25,6 +26,7 @@ import com.norconex.committer.core.TestBatchCommitter;
 import com.norconex.committer.core.TestMemoryQueue;
 import com.norconex.committer.core.TestUtil;
 
+@Timeout(30)
 class AbstractBatchCommitterTest {
 
     @Test

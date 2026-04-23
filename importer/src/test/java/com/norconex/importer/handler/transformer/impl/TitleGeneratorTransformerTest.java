@@ -1,4 +1,4 @@
-/* Copyright 2015-2025 Norconex Inc.
+/* Copyright 2015-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.io.InputStream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.Properties;
@@ -35,6 +36,7 @@ import com.norconex.importer.handler.parser.ParseState;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Timeout(30)
 class TitleGeneratorTransformerTest {
 
     // Test for: https://github.com/Norconex/importer/issues/74

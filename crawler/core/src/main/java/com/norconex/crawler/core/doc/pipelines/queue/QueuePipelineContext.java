@@ -1,4 +1,4 @@
-/* Copyright 2020-2025 Norconex Inc.
+/* Copyright 2020-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
 package com.norconex.crawler.core.doc.pipelines.queue;
 
 import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.session.CrawlSession;
 
 import lombok.Data;
 
@@ -28,6 +29,6 @@ import lombok.Data;
  */
 @Data
 public class QueuePipelineContext {
-    private final CrawlContext crawlContext;
-    private final CrawlDocContext docContext;
+    private final CrawlSession crawlSession;
+    private final CrawlEntry crawlEntry;
 }

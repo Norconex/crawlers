@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ package com.norconex.crawler.web.doc.operations.sitemap;
 
 import java.util.List;
 
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.session.CrawlSession;
 
 /**
  * <p>
@@ -35,5 +35,5 @@ import com.norconex.crawler.core.session.CrawlContext;
  */
 @FunctionalInterface
 public interface SitemapLocator {
-    List<String> locations(String url, CrawlContext crawler);
+    List<String> locations(String url, CrawlSession crawlSession);
 }

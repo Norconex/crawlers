@@ -1,4 +1,4 @@
-/* Copyright 2020-2025 Norconex Inc.
+/* Copyright 2020-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,11 +61,11 @@ import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpAuthConfig;
-import com.norconex.importer.doc.DocContext;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.importer.doc.Doc;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -90,7 +90,7 @@ public final class ApacheHttpUtil {
      * @throws IOException could not read existing content
      */
     public static boolean applyResponseContent(
-            ClassicHttpResponse response, CrawlDoc doc) throws IOException {
+            ClassicHttpResponse response, Doc doc) throws IOException {
 
         var entity = response.getEntity();
         if (entity == null) {
@@ -113,7 +113,7 @@ public final class ApacheHttpUtil {
      * <p>
      * Applies the HTTP response headers to a document. This method will
      * do its best to derive relevant information from the HTTP headers
-     * that can be set on the document {@link WebCrawlDocContext}:
+     * that can be set on the document {@link WebCrawlEntry}:
      * </p>
      * <ul>
      *   <li>Content type</li>
@@ -127,10 +127,11 @@ public final class ApacheHttpUtil {
      * @param response the HTTP response
      * @param prefix optional metadata prefix for all HTTP response headers
      * @param doc document to apply headers on
+     * @param crawlEntry crawl ledger entry
      */
     public static void applyResponseHeaders(
-            HttpResponse response, String prefix, CrawlDoc doc) {
-        var docRecord = (WebCrawlDocContext) doc.getDocContext();
+            HttpResponse response, String prefix, Doc doc,
+            WebCrawlEntry crawlEntry) {
         var it = response.headerIterator();
         while (it.hasNext()) {
             var header = it.next();
@@ -143,18 +144,18 @@ public final class ApacheHttpUtil {
 
             // Content-Type + Content Encoding (Charset)
             if (HttpHeaders.CONTENT_TYPE.equalsIgnoreCase(name)) {
-                applyContentTypeAndCharset(value, docRecord);
+                applyContentTypeAndCharset(value, doc);
             }
 
             // ETag
             if (HttpHeaders.ETAG.equalsIgnoreCase(name)) {
-                docRecord.setEtag(value);
+                crawlEntry.setEtag(value);
             }
 
             // Last Modified
             if (HttpHeaders.LAST_MODIFIED.equalsIgnoreCase(name)) {
                 try {
-                    docRecord.setLastModified(
+                    crawlEntry.setLastModified(
                             ZonedDateTime.parse(
                                     value,
                                     DateTimeFormatter.RFC_1123_DATE_TIME));
@@ -177,17 +178,17 @@ public final class ApacheHttpUtil {
      * Applies the <code>Content-Type</code> HTTP response header
      * on the supplied document info.  It does so by extracting both
      * the content type and charset from the value, and sets them by invoking
-     * {@link DocContext#setContentType(ContentType)} and
-     * {@link DocContext#setCharset(Charset)}.
+     * {@link Doc#setContentType(ContentType)} and
+     * {@link Doc#setCharset(Charset)}.
      * This method is automatically invoked by
-     * {@link #applyResponseHeaders(HttpResponse, String, CrawlDoc)}
+     * {@link #applyResponseHeaders(HttpResponse, String, Doc, WebCrawlEntry)}
      * when encountering a content type header.
      * @param value value to parse and set.
-     * @param docRecord document info
+     * @param doc document info
      */
     public static void applyContentTypeAndCharset(
-            String value, DocContext docRecord) {
-        if (StringUtils.isBlank(value) || docRecord == null) {
+            String value, Doc doc) {
+        if (StringUtils.isBlank(value) || doc == null) {
             return;
         }
         // delegate parsing of content-type honoring various forms
@@ -197,11 +198,11 @@ public final class ApacheHttpUtil {
         // only overwrite object properties if not null
         var ct = ContentType.valueOf(apacheCT.getMimeType());
         if (ct != null) {
-            docRecord.setContentType(ct);
+            doc.setContentType(ct);
         }
         var charset = apacheCT.getCharset();
         if (charset != null) {
-            docRecord.setCharset(charset);
+            doc.setCharset(charset);
         }
     }
 
@@ -209,17 +210,18 @@ public final class ApacheHttpUtil {
      * Sets the <code>If-Modified-Since</code> HTTP request header based
      * on document cached last crawled date (if any).
      * @param request HTTP request
-     * @param doc document
+     * @param docCtx document context
      */
     public static void setRequestIfModifiedSince(
-            HttpRequest request, CrawlDoc doc) {
-        if (doc.hasCache()) {
+            HttpRequest request, CrawlDocContext docCtx) {
+        if (docCtx != null && docCtx.getPreviousCrawlEntry() != null) {
+            var prevEntry = (WebCrawlEntry) docCtx.getPreviousCrawlEntry();
             // In case the server did not previously return the last modified
             // date but supports "If-Modified-Since" (odd), we try
             // with last crawl date if last modified is null.
             var zdt = ObjectUtils.firstNonNull(
-                    doc.getCachedDocContext().getLastModified(),
-                    doc.getCachedDocContext().getCrawlDate());
+                    prevEntry.getLastModified(),
+                    prevEntry.getProcessedAt());
             if (zdt != null) {
                 request.addHeader(
                         HttpHeaders.IF_MODIFIED_SINCE,
@@ -232,12 +234,12 @@ public final class ApacheHttpUtil {
      * Sets the ETag <code>If-None-Match</code> HTTP request header based
      * on document cached ETag value (if any).
      * @param request HTTP request
-     * @param doc document
+     * @param docCtx document
      */
     public static void setRequestIfNoneMatch(
-            HttpRequest request, CrawlDoc doc) {
-        if (doc.hasCache()) {
-            var docRecord = (WebCrawlDocContext) doc.getCachedDocContext();
+            HttpRequest request, CrawlDocContext docCtx) {
+        if (docCtx != null && docCtx.getPreviousCrawlEntry() != null) {
+            var docRecord = (WebCrawlEntry) docCtx.getPreviousCrawlEntry();
             if (docRecord.getEtag() != null) {
                 request.addHeader(
                         HttpHeaders.IF_NONE_MATCH, docRecord.getEtag());

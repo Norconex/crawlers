@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,40 @@ package com.norconex.crawler.web.doc.pipelines.queue.stages;
 
 import java.util.function.Predicate;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.common.base.Objects;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.web.doc.operations.url.WebUrlNormalizer;
 import com.norconex.crawler.web.util.Web;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class UrlNormalizerStage implements Predicate<QueuePipelineContext> {
+    @SuppressWarnings("null")
     @Override
     public boolean test(QueuePipelineContext ctx) {
-        var normalizers =
-                Web.config(ctx.getCrawlContext()).getUrlNormalizers();
+        var normalizers = Web.config(ctx.getCrawlSession().getCrawlContext())
+                .getUrlNormalizers();
         if (!normalizers.isEmpty()) {
-            String originalRef = ctx.getDocContext().getReference();
+            var originalRef = ctx.getCrawlEntry().getReference();
+            if (StringUtils.isBlank(originalRef)) {
+                LOG.warn("A null or blank reference detected.");
+                ctx.getCrawlEntry()
+                        .setProcessingOutcome(ProcessingOutcome.REJECTED);
+                return false;
+            }
             var url = WebUrlNormalizer.normalizeURL(originalRef, normalizers);
             if (url == null) {
-                ctx.getDocContext().setState(CrawlDocStatus.REJECTED);
+                ctx.getCrawlEntry()
+                        .setProcessingOutcome(ProcessingOutcome.REJECTED);
                 return false;
             }
             if (!Objects.equal(originalRef, url)) {
-                ctx.getDocContext().setReference(url);
-                ctx.getDocContext().setOriginalReference(originalRef);
+                ctx.getCrawlEntry().setReference(url);
+                ctx.getCrawlEntry().addToReferenceTrail(originalRef);
             }
         }
         return true;

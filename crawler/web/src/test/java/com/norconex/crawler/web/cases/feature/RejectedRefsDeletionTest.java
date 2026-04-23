@@ -1,4 +1,4 @@
-/* Copyright 2021-2024 Norconex Inc.
+/* Copyright 2021-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import static org.mockserver.model.HttpStatusCode.INTERNAL_SERVER_ERROR_500;
 
 import java.util.List;
 
+import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.mock.action.ExpectationResponseCallback;
@@ -35,7 +36,7 @@ import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.DeleteRejectedEventListener;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 
@@ -44,12 +45,13 @@ import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
  * {@link DeleteRejectedEventListener}.
  */
 @MockServerSettings
+@Timeout(120)
 class RejectedRefsDeletionTest {
     private static final String PATH = "/rejectedRefsDeletion";
 
     @WebCrawlTest
     void testRejectedRefsDeletionTest(
-            ClientAndServer client, WebCrawlerConfig cfg) {
+            ClientAndServer client, WebCrawlConfig cfg) {
         client
                 .when(request())
                 .respond(HttpClassCallback.callback(Callback.class));

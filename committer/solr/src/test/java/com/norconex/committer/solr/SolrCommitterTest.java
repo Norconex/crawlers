@@ -1,4 +1,4 @@
-/* Copyright 2010-2024 Norconex Inc.
+/* Copyright 2010-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
@@ -35,16 +36,10 @@ import com.norconex.commons.lang.map.Properties;
  *
  * @author Pascal Essiembre
  */
+@Timeout(30)
 class SolrCommitterTest extends AbstractSolrTest {
 
     //TODO test update/delete URL params
-
-    static {
-        System.setProperty("solr.allow.unsafe.resourceloading", "true");
-        var loader = SolrCommitterTest.class.getClassLoader();
-        loader.setPackageAssertionStatus("org.apache.solr", true);
-        loader.setPackageAssertionStatus("org.apache.lucene", true);
-    }
 
     @Test
     void testCommitAdd() throws Exception {

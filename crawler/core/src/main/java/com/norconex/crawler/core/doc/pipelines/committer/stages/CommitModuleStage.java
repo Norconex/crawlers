@@ -1,4 +1,4 @@
-/* Copyright 2014-2025 Norconex Inc.
+/* Copyright 2014-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,13 +25,14 @@ public class CommitModuleStage implements Predicate<CommitterPipelineContext> {
     @Override
     public boolean test(CommitterPipelineContext ctx) {
         // Event triggered by service
-        ctx.getCrawlContext()
+        ctx.getCrawlSession()
+                .getCrawlContext()
                 .getCommitterService()
-                .upsert(ctx.getDoc());
+                .upsert(ctx.getDocContext().getDoc());
 
         //TODO rewind was done in CrawlerCommitterService when it was in this
         // core project. Now here... best place?
-        ctx.getDoc().getInputStream().rewind();
+        ctx.getDocContext().getDoc().getInputStream().rewind();
 
         return true;
     }

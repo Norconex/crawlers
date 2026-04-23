@@ -1,4 +1,4 @@
-/* Copyright 2019-2025 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
@@ -40,11 +40,11 @@ import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
  * Test that large files are processed properly (&gt; 2MB).
  */
 @MockServerSettings
-@Disabled("Need to find out why it now fails on GitHub Actions.")
+@Timeout(30)
 class LargeContentTest {
 
     @WebCrawlTest
-    void testLargeContent(ClientAndServer client, WebCrawlerConfig cfg)
+    void testLargeContent(ClientAndServer client, WebCrawlConfig cfg)
             throws IOException {
 
         Awaitility.await().atMost(10, TimeUnit.SECONDS)
@@ -53,19 +53,23 @@ class LargeContentTest {
         var minSize = 3 * 1024 * 1024;
         var path = "/largeContent";
 
-        whenHtml(client, path, RandomStringUtils.randomAlphanumeric(minSize));
+        whenHtml(client, path,
+                RandomStringUtils.secure().nextAlphanumeric(minSize));
 
         cfg.setStartReferences(List.of(serverUrl(client, path)));
         var fetcherCfg = ((HttpClientFetcher) cfg.getFetchers().get(0))
                 .getConfiguration();
         fetcherCfg.setSocketTimeout(Duration.ofSeconds(60))
                 .setConnectionTimeout(Duration.ofSeconds(60))
-                .setConnectionRequestTimeout(Duration.ofSeconds(60));
+                .setConnectionRequestTimeout(
+                        Duration.ofSeconds(60));
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+                .getCommitter();
 
         var txt = IOUtils.toString(
-                mem.getUpsertRequests().get(0).getContent(), UTF_8);
+                mem.getUpsertRequests().get(0).getContent(),
+                UTF_8);
 
         assertThat(txt).hasSizeGreaterThanOrEqualTo(minSize);
     }

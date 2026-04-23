@@ -1,4 +1,4 @@
-/* Copyright 2014-2024 Norconex Inc.
+/* Copyright 2014-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,7 +165,7 @@ public class TextStatisticsTransformer
         //TODO make this more efficient, by doing all this in one pass.
         var it = IOUtils.lineIterator(input);
         while (it.hasNext()) {
-            var line = it.nextLine().trim();
+            var line = it.next().trim();
             if (StringUtils.isBlank(line)) {
                 continue;
             }

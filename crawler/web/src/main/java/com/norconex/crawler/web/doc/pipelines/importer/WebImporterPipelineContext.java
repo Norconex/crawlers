@@ -1,4 +1,4 @@
-/* Copyright 2010-2025 Norconex Inc.
+/* Copyright 2010-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
 package com.norconex.crawler.web.doc.pipelines.importer;
 
 import com.norconex.commons.lang.bean.BeanUtil;
-import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.doc.operations.robot.RobotsMeta;
 
 import lombok.Data;
@@ -33,12 +33,12 @@ public class WebImporterPipelineContext extends ImporterPipelineContext {
      * @since 2.8.0
      */
     public WebImporterPipelineContext(ImporterPipelineContext ipc) {
-        super(ipc.getCrawlContext(), ipc.getDoc());
+        super(ipc.getCrawlSession(), ipc.getDocContext());
         BeanUtil.copyProperties(this, ipc);
     }
 
     public WebImporterPipelineContext(
-            CrawlContext crawler, CrawlDoc doc) {
-        super(crawler, doc);
+            CrawlSession crawlSession, CrawlDocContext docContext) {
+        super(crawlSession, docContext);
     }
 }

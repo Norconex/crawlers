@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
 <!-- 
-   Copyright 2017-2024 Norconex Inc.
+   Copyright 2017-2026 Norconex Inc.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -99,15 +99,14 @@
     </schedules>
   </delayResolver>    
 
-  <gridConnector class="LocalGridConnector">
-    <pageSplitSize>1000</pageSplitSize>
-    <compress>1</compress>
-    <cacheConcurrency>0</cacheConcurrency>
-    <cacheSize>1000</cacheSize>
-    <autoCompactFillRate>100</autoCompactFillRate>
-    <autoCommitBufferSize>100</autoCommitBufferSize>
-    <autoCommitDelay>100</autoCommitDelay>    
-  </gridConnector>
+  <cluster>
+    <connector class="HazelcastClusterConnector">
+      <clusterName>test-cluster</clusterName>
+      <configurer class="JdbcHazelcastConfigurer">
+        <backupCount>1</backupCount>
+      </configurer>
+    </connector>
+  </cluster>
 
   <fetchersMaxRetries>5</fetchersMaxRetries>
   <fetchersRetryDelay>10 seconds</fetchersRetryDelay>
@@ -360,7 +359,6 @@
        <minDimensions>425x312</minDimensions>
        <largest>true</largest>
        <imageCacheSize>1234</imageCacheSize>
-       <imageCacheDir>/some/path</imageCacheDir>
        <storages>
          <storage>url</storage>
          <storage>inline</storage>

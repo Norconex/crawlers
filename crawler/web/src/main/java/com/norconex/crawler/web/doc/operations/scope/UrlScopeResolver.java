@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2024-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.doc.operations.scope;
 
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 
 public interface UrlScopeResolver {
 
@@ -29,5 +29,5 @@ public interface UrlScopeResolver {
     String RESOLVED_SITES_CACHE_NAME =
             UrlScopeResolver.class.getSimpleName() + ".resolvedSites";
 
-    UrlScope resolve(String inScopeURL, WebCrawlDocContext candidateDocContext);
+    UrlScope resolve(String inScopeURL, WebCrawlEntry candidateDocContext);
 }

@@ -1,4 +1,4 @@
-/* Copyright 2017-2025 Norconex Inc.
+/* Copyright 2025-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,40 +14,83 @@
  */
 package com.norconex.crawler.core.doc.operations.spoil.impl;
 
-import static com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizerConfig.DEFAULT_FALLBACK_STRATEGY;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
-import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategy;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
+@Timeout(30)
 class GenericSpoiledReferenceStrategizerTest {
 
     @Test
-    void testWriteRead() {
-        var s = new GenericSpoiledReferenceStrategizer();
-        s.getConfiguration()
-                .setFallbackStrategy(SpoiledReferenceStrategy.GRACE_ONCE)
-                .setMapping(
-                        CrawlDocStatus.MODIFIED,
-                        SpoiledReferenceStrategy.IGNORE)
-                .setMapping(
-                        CrawlDocStatus.BAD_STATUS,
-                        SpoiledReferenceStrategy.DELETE);
-        assertThatNoException().isThrownBy(() -> {
-            BeanMapper.DEFAULT.assertWriteRead(s);
-        });
+    void notFound_mapsToDelete() {
+        var strategizer = new GenericSpoiledReferenceStrategizer();
+        assertThat(strategizer.resolveSpoiledReferenceStrategy(
+                "http://example.com/gone", ProcessingOutcome.NOT_FOUND))
+                        .isEqualTo(SpoiledReferenceStrategy.DELETE);
     }
 
     @Test
-    void testNoStrategy() {
-        var s = new GenericSpoiledReferenceStrategizer();
-        s.getConfiguration().setFallbackStrategy(null);
-        assertThat(s.resolveSpoiledReferenceStrategy(
-                "ref", CrawlDocStatus.MODIFIED)).isSameAs(
-                        DEFAULT_FALLBACK_STRATEGY);
+    void badStatus_mapsToGraceOnce() {
+        var strategizer = new GenericSpoiledReferenceStrategizer();
+        assertThat(strategizer.resolveSpoiledReferenceStrategy(
+                "http://example.com/broken", ProcessingOutcome.BAD_STATUS))
+                        .isEqualTo(SpoiledReferenceStrategy.GRACE_ONCE);
+    }
+
+    @Test
+    void error_mapsToGraceOnce() {
+        var strategizer = new GenericSpoiledReferenceStrategizer();
+        assertThat(strategizer.resolveSpoiledReferenceStrategy(
+                "http://example.com/error", ProcessingOutcome.ERROR))
+                        .isEqualTo(SpoiledReferenceStrategy.GRACE_ONCE);
+    }
+
+    @Test
+    void unmappedState_usesDefaultFallback() {
+        var strategizer = new GenericSpoiledReferenceStrategizer();
+        // REJECTED has no default mapping → falls back to DELETE
+        assertThat(strategizer.resolveSpoiledReferenceStrategy(
+                "http://example.com/rejected", ProcessingOutcome.REJECTED))
+                        .isEqualTo(
+                                GenericSpoiledReferenceStrategizerConfig.DEFAULT_FALLBACK_STRATEGY);
+    }
+
+    @Test
+    void customFallbackStrategy_usedForUnmappedStates() {
+        var strategizer = new GenericSpoiledReferenceStrategizer();
+        strategizer.getConfiguration()
+                .setFallbackStrategy(SpoiledReferenceStrategy.IGNORE);
+
+        assertThat(strategizer.resolveSpoiledReferenceStrategy(
+                "http://example.com/unknown", ProcessingOutcome.REJECTED))
+                        .isEqualTo(SpoiledReferenceStrategy.IGNORE);
+    }
+
+    @Test
+    void customMapping_overridesDefault() {
+        var strategizer = new GenericSpoiledReferenceStrategizer();
+        strategizer.getConfiguration()
+                .setMapping(ProcessingOutcome.NOT_FOUND,
+                        SpoiledReferenceStrategy.GRACE_ONCE);
+
+        assertThat(strategizer.resolveSpoiledReferenceStrategy(
+                "http://example.com/gone", ProcessingOutcome.NOT_FOUND))
+                        .isEqualTo(SpoiledReferenceStrategy.GRACE_ONCE);
+    }
+
+    @Test
+    void nullFallbackStrategy_usesClassDefault() {
+        var strategizer = new GenericSpoiledReferenceStrategizer();
+        strategizer.getConfiguration().setFallbackStrategy(null);
+
+        // No mapping for REJECTED, null fallback → class-level default (DELETE)
+        assertThat(strategizer.resolveSpoiledReferenceStrategy(
+                "http://example.com/any", ProcessingOutcome.REJECTED))
+                        .isEqualTo(
+                                GenericSpoiledReferenceStrategizerConfig.DEFAULT_FALLBACK_STRATEGY);
     }
 }

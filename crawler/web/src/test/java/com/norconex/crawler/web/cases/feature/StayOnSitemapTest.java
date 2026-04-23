@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,9 @@ import static org.mockserver.model.HttpResponse.response;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.commons.lang3.mutable.MutableObject;
+import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
@@ -31,22 +32,24 @@ import org.mockserver.model.MediaType;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchRequest;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.doc.operations.scope.impl.GenericUrlScopeResolver;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapLocator;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapResolver;
+import com.norconex.crawler.web.fetch.WebFetchRequest;
 import com.norconex.crawler.web.fetch.WebFetchResponse;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 import com.norconex.crawler.web.mocks.MockWebsite;
-import com.norconex.crawler.web.util.Web;
 
 /**
  * Test that crawling does not go being current sitemap. That is, it should
  * not queue URLs from pages, and certainly not follow them.
  */
 @MockServerSettings
+@Timeout(30)
 class StayOnSitemapTest {
 
     private final String sitemapPath = "/sitemap.xml";
@@ -72,9 +75,9 @@ class StayOnSitemapTest {
             """;
 
     @WebCrawlTest
-    void testStayOnSitemap(ClientAndServer client, WebCrawlerConfig cfg)
+    void testStayOnSitemap(ClientAndServer client, WebCrawlConfig cfg)
             throws CommitterException {
-        var exception = new MutableObject<Exception>();
+        var exception = new AtomicReference<Exception>();
         var referrers = new ArrayList<String>();
 
         cfg.setStartReferences(List.of(serverUrl(client, page1Path)));
@@ -85,15 +88,22 @@ class StayOnSitemapTest {
                 // and referrers
                 .setFetchers(List.of(new HttpClientFetcher() {
                     @Override
-                    public WebFetchResponse fetch(FetchRequest req)
+                    public WebFetchResponse fetch(
+                            FetchRequest req)
                             throws FetchException {
                         try {
-                            Optional.ofNullable(Web.docContext(req.getDoc())
-                                    .getReferrerReference())
-                                    .ifPresent(referrers::add);
+                            if (req instanceof WebFetchRequest webReq
+                                    && webReq.getCrawlDocContext() != null
+                                    && webReq.getCrawlDocContext()
+                                            .getCurrentCrawlEntry() instanceof WebCrawlEntry wdc) {
+                                Optional.ofNullable(
+                                        wdc.getReferrerReference())
+                                        .ifPresent(referrers::add);
+                            }
                             return super.fetch(req);
-                        } catch (FetchException | RuntimeException e) {
-                            exception.setValue(e);
+                        } catch (FetchException
+                                | RuntimeException e) {
+                            exception.set(e);
                             throw e;
                         }
                     }
@@ -103,11 +113,12 @@ class StayOnSitemapTest {
 
         mockServer(client);
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+                .getCommitter();
 
         // There should be no exception, else, it likely means it tried
         // to fetch an external URL.
-        assertThat(exception.getValue()).isNull();
+        assertThat(exception.get()).isNull();
 
         // There should be no refferers in fetch attempts, as as they should
         // all coming from sitemaps
@@ -122,7 +133,8 @@ class StayOnSitemapTest {
         mem.getUpsertRequests().forEach(req -> {
             assertThat(
                     req.getMetadata().getInteger(
-                            "crawler.depth")).isZero();
+                            "crawler.depth"))
+                                    .isZero();
             assertThat(req.getReference()).containsAnyOf(
                     page1Path,
                     page2Path,
@@ -143,11 +155,16 @@ class StayOnSitemapTest {
                 .respond(response()
                         .withBody(
                                 SITEMAP_XML.formatted(
-                                        serverUrl(client, page1Path),
-                                        serverUrl(client, page2Path),
-                                        serverUrl(client, page3Path),
-                                        serverUrl(client, page4Path),
-                                        serverUrl(client, page5Path)),
+                                        serverUrl(client,
+                                                page1Path),
+                                        serverUrl(client,
+                                                page2Path),
+                                        serverUrl(client,
+                                                page3Path),
+                                        serverUrl(client,
+                                                page4Path),
+                                        serverUrl(client,
+                                                page5Path)),
                                 MediaType.XML_UTF_8));
 
         // The links in ALL following pages should not be followed when

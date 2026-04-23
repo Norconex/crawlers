@@ -1,4 +1,4 @@
-/* Copyright 2021-2024 Norconex Inc.
+/* Copyright 2021-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,11 @@ public interface CrawlerMetricsMXBean {
 
     Map<String, Long> getEventCounts();
 
+    long getProcessingCount();
+
     long getProcessedCount();
 
     long getQueuedCount();
 
-    long getCachedCount();
+    long getBaselineCount();
 }

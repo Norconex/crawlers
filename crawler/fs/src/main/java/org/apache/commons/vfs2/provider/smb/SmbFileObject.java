@@ -6,7 +6,7 @@
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,36 +39,25 @@ import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileInputStream;
 import jcifs.smb.SmbFileOutputStream;
-import lombok.Generated;
 
 /**
  * A file in an SMB file system.
  */
-@Generated // to exclude from code coverage
+@lombok.Generated
 public class SmbFileObject extends AbstractFileObject<SmbFileSystem> {
     // private final String fileName;
     private SmbFile file;
 
-    protected SmbFileObject(final AbstractFileName name, final SmbFileSystem fileSystem) throws FileSystemException {
-        super(name, fileSystem);
-        // this.fileName = UriParser.decode(name.getURI());
-    }
-
     /**
-     * Attaches this file object to its file resource.
+     * Constructs a new instance.
+     *
+     * @param fileName the file name.
+     * @param fileSystem the file system.
+     * @throws FileSystemException not thrown.
      */
-    @Override
-    protected void doAttach() throws Exception {
-        // Defer creation of the SmbFile to here
-        if (file == null) {
-            file = createSmbFile(getName());
-        }
-    }
-
-    @Override
-    protected void doDetach() throws Exception {
-        // file closed through content-streams
-        file = null;
+    protected SmbFileObject(final AbstractFileName fileName, final SmbFileSystem fileSystem) throws FileSystemException {
+        super(fileName, fileSystem);
+        // this.fileName = UriParser.decode(name.getURI());
     }
 
     private SmbFile createSmbFile(final FileName fileName)
@@ -112,55 +101,14 @@ public class SmbFileObject extends AbstractFileObject<SmbFileSystem> {
     }
 
     /**
-     * Determines the type of the file, returns null if the file does not exist.
+     * Attaches this file object to its file resource.
      */
     @Override
-    protected FileType doGetType() throws Exception {
-        if (!file.exists()) {
-            return FileType.IMAGINARY;
+    protected void doAttach() throws Exception {
+        // Defer creation of the SmbFile to here
+        if (file == null) {
+            file = createSmbFile(getName());
         }
-        if (file.isDirectory()) {
-            return FileType.FOLDER;
-        }
-        if (file.isFile()) {
-            return FileType.FILE;
-        }
-
-        throw new FileSystemException("vfs.provider.smb/get-type.error", getName());
-    }
-
-    /**
-     * Lists the children of the file. Is only called if {@link #doGetType} returns {@link FileType#FOLDER}.
-     */
-    @Override
-    protected String[] doListChildren() throws Exception {
-        // VFS-210: do not try to get listing for anything else than directories
-        if (!file.isDirectory()) {
-            return null;
-        }
-
-        return UriParser.encode(file.list());
-    }
-
-    /**
-     * Determines if this file is hidden.
-     */
-    @Override
-    protected boolean doIsHidden() throws Exception {
-        return file.isHidden();
-    }
-
-    /**
-     * Deletes the file.
-     */
-    @Override
-    protected void doDelete() throws Exception {
-        file.delete();
-    }
-
-    @Override
-    protected void doRename(final FileObject newfile) throws Exception {
-        file.renameTo(createSmbFile(newfile.getName()));
     }
 
     /**
@@ -173,19 +121,25 @@ public class SmbFileObject extends AbstractFileObject<SmbFileSystem> {
     }
 
     /**
+     * Deletes the file.
+     */
+    @Override
+    protected void doDelete() throws Exception {
+        file.delete();
+    }
+
+    @Override
+    protected void doDetach() throws Exception {
+        // file closed through content-streams
+        file = null;
+    }
+
+    /**
      * Returns the size of the file content (in bytes).
      */
     @Override
     protected long doGetContentSize() throws Exception {
         return file.length();
-    }
-
-    /**
-     * Returns the last modified time of this file.
-     */
-    @Override
-    protected long doGetLastModifiedTime() throws Exception {
-        return file.getLastModified();
     }
 
     /**
@@ -208,6 +162,14 @@ public class SmbFileObject extends AbstractFileObject<SmbFileSystem> {
     }
 
     /**
+     * Returns the last modified time of this file.
+     */
+    @Override
+    protected long doGetLastModifiedTime() throws Exception {
+        return file.getLastModified();
+    }
+
+    /**
      * Creates an output stream to write the file content to.
      */
     @Override
@@ -221,6 +183,50 @@ public class SmbFileObject extends AbstractFileObject<SmbFileSystem> {
     @Override
     protected RandomAccessContent doGetRandomAccessContent(final RandomAccessMode mode) throws Exception {
         return new SmbFileRandomAccessContent(file, mode);
+    }
+
+    /**
+     * Determines the type of the file, returns null if the file does not exist.
+     */
+    @Override
+    protected FileType doGetType() throws Exception {
+        if (!file.exists()) {
+            return FileType.IMAGINARY;
+        }
+        if (file.isDirectory()) {
+            return FileType.FOLDER;
+        }
+        if (file.isFile()) {
+            return FileType.FILE;
+        }
+
+        throw new FileSystemException("vfs.provider.smb/get-type.error", getName());
+    }
+
+    /**
+     * Determines if this file is hidden.
+     */
+    @Override
+    protected boolean doIsHidden() throws Exception {
+        return file.isHidden();
+    }
+
+    /**
+     * Lists the children of the file. Is only called if {@link #doGetType} returns {@link FileType#FOLDER}.
+     */
+    @Override
+    protected String[] doListChildren() throws Exception {
+        // VFS-210: do not try to get listing for anything else than directories
+        if (!file.isDirectory()) {
+            return null;
+        }
+
+        return UriParser.encode(file.list());
+    }
+
+    @Override
+    protected void doRename(final FileObject newfile) throws Exception {
+        file.renameTo(createSmbFile(newfile.getName()));
     }
 
     @Override

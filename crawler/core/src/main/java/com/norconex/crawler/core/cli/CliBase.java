@@ -1,4 +1,4 @@
-/* Copyright 2019-2025 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.commons.lang.config.ConfigurationLoader;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.CrawlDriver;
@@ -28,6 +29,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ParentCommand;
@@ -36,6 +38,7 @@ import picocli.CommandLine.Spec;
 /**
  * Base class for sub-commands.
  */
+@Slf4j
 @EqualsAndHashCode
 @ToString
 public abstract class CliBase implements Runnable {
@@ -113,6 +116,20 @@ public abstract class CliBase implements Runnable {
                 throw new CliException(b.toString());
             }
             throw e;
+        } catch (Exception e) {
+            // Catch all other exceptions during config loading and
+            // provide detailed error information
+            var msg = String.format(
+                    "Failed to load configuration from: %s%nError: %s",
+                    getConfigFile().toFile().getAbsolutePath(),
+                    ExceptionUtil.getFormattedMessages(e));
+            // Log full stack trace for debugging
+            if (LOG.isDebugEnabled()) {
+                LOG.error(msg, e);
+            } else {
+                LOG.error(msg);
+            }
+            throw new CliException(msg, e);
         }
     }
 }

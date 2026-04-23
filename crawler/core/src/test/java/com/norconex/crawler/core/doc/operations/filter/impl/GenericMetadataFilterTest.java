@@ -1,4 +1,4 @@
-/* Copyright 2021-2025 Norconex Inc.
+/* Copyright 2025-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,47 +15,155 @@
 package com.norconex.crawler.core.doc.operations.filter.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
-import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
-import com.norconex.crawler.core.stubs.CrawlDocStubs;
+import com.norconex.importer.doc.Doc;
 
+/**
+ * Tests for {@link GenericMetadataFilter} and
+ * {@link GenericMetadataFilterConfig}.
+ */
+@Timeout(30)
 class GenericMetadataFilterTest {
 
+    // -----------------------------------------------------------------
+    // acceptMetadata — blank pattern shortcuts
+    // -----------------------------------------------------------------
+
     @Test
-    void testGenericMetadataFilter() {
-        var f = new GenericMetadataFilter();
-        f.getConfiguration()
-                .setFieldMatcher(TextMatcher.basic("field1"))
-                .setValueMatcher(TextMatcher.basic("value1"))
-                .setOnMatch(OnMatch.INCLUDE);
-
-        var doc1 = CrawlDocStubs.crawlDoc("ref", "blah", "field1", "value1");
-        assertThat(f.acceptDocument(doc1)).isTrue();
-        assertThat(f.acceptMetadata(
-                doc1.getReference(), doc1.getMetadata())).isTrue();
-
-        var doc2 = CrawlDocStubs.crawlDoc("ref", "blah", "field2", "value2");
-        assertThat(f.acceptDocument(doc2)).isFalse();
-        assertThat(f.acceptMetadata(
-                doc2.getReference(), doc2.getMetadata())).isFalse();
-
-        // null documents are considered a match
-        assertThat(f.acceptDocument(null)).isTrue();
+    void blankFieldMatcherPattern_returnsInclude() {
+        var filter = new GenericMetadataFilter();
+        // fieldMatcher has blank pattern → short-circuits to INCLUDE by default
+        var result = filter.acceptMetadata("ref", new Properties());
+        assertThat(result).isTrue(); // onMatch defaults to INCLUDE via includeIfNull
     }
 
     @Test
-    void testWriteRead() {
-        var f = new GenericMetadataFilter();
-        f.getConfiguration()
-                .setOnMatch(OnMatch.EXCLUDE)
-                .setFieldMatcher(TextMatcher.basic("title"))
-                .setValueMatcher(TextMatcher.regex(".*blah.*"));
-        assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(f));
+    void blankValueMatcherPattern_returnsInclude() {
+        var filter = new GenericMetadataFilter();
+        filter.getConfiguration().setFieldMatcher(TextMatcher.basic("myField"));
+        // valueMatcher still blank → short-circuits to INCLUDE
+        var result = filter.acceptMetadata("ref", new Properties());
+        assertThat(result).isTrue();
+    }
+
+    // -----------------------------------------------------------------
+    // acceptMetadata — property matching
+    // -----------------------------------------------------------------
+
+    @Test
+    void propertyMatches_onMatchInclude_returnsTrue() {
+        var filter = new GenericMetadataFilter();
+        filter.getConfiguration()
+                .setFieldMatcher(TextMatcher.basic("color"))
+                .setValueMatcher(TextMatcher.basic("blue"))
+                .setOnMatch(OnMatch.INCLUDE);
+
+        var meta = new Properties();
+        meta.add("color", "blue");
+        assertThat(filter.acceptMetadata("ref", meta)).isTrue();
+    }
+
+    @Test
+    void propertyMatches_onMatchExclude_returnsFalse() {
+        var filter = new GenericMetadataFilter();
+        filter.getConfiguration()
+                .setFieldMatcher(TextMatcher.basic("color"))
+                .setValueMatcher(TextMatcher.basic("blue"))
+                .setOnMatch(OnMatch.EXCLUDE);
+
+        var meta = new Properties();
+        meta.add("color", "blue");
+        assertThat(filter.acceptMetadata("ref", meta)).isFalse();
+    }
+
+    @Test
+    void propertyDoesNotMatch_onMatchInclude_returnsFalse() {
+        var filter = new GenericMetadataFilter();
+        filter.getConfiguration()
+                .setFieldMatcher(TextMatcher.basic("color"))
+                .setValueMatcher(TextMatcher.basic("blue"))
+                .setOnMatch(OnMatch.INCLUDE);
+
+        var meta = new Properties();
+        meta.add("color", "red"); // doesn't match "blue"
+        assertThat(filter.acceptMetadata("ref", meta)).isFalse();
+    }
+
+    @Test
+    void propertyDoesNotMatch_onMatchExclude_returnsTrue() {
+        var filter = new GenericMetadataFilter();
+        filter.getConfiguration()
+                .setFieldMatcher(TextMatcher.basic("color"))
+                .setValueMatcher(TextMatcher.basic("blue"))
+                .setOnMatch(OnMatch.EXCLUDE);
+
+        var meta = new Properties();
+        meta.add("color", "red"); // doesn't match "blue"
+        assertThat(filter.acceptMetadata("ref", meta)).isTrue();
+    }
+
+    // -----------------------------------------------------------------
+    // acceptDocument
+    // -----------------------------------------------------------------
+
+    @Test
+    void acceptDocument_nullDoc_returnsInclude() {
+        var filter = new GenericMetadataFilter();
+        assertThat(filter.acceptDocument(null)).isTrue();
+    }
+
+    @Test
+    void acceptDocument_nullDoc_onMatchExclude_returnsFalse() {
+        var filter = new GenericMetadataFilter();
+        filter.getConfiguration().setOnMatch(OnMatch.EXCLUDE);
+        assertThat(filter.acceptDocument(null)).isFalse();
+    }
+
+    @Test
+    void acceptDocument_delegatesToAcceptMetadata() {
+        var filter = new GenericMetadataFilter();
+        filter.getConfiguration()
+                .setFieldMatcher(TextMatcher.basic("status"))
+                .setValueMatcher(TextMatcher.basic("active"))
+                .setOnMatch(OnMatch.INCLUDE);
+
+        var doc = new Doc("http://example.com");
+        doc.getMetadata().add("status", "active");
+        assertThat(filter.acceptDocument(doc)).isTrue();
+    }
+
+    // -----------------------------------------------------------------
+    // GenericMetadataFilterConfig - setters with copyFrom
+    // -----------------------------------------------------------------
+
+    @Test
+    void config_chainedSetters_setsProperly() {
+        var cfg = new GenericMetadataFilterConfig()
+                .setFieldMatcher(TextMatcher.basic("field1"))
+                .setValueMatcher(TextMatcher.basic("value1"))
+                .setOnMatch(OnMatch.EXCLUDE);
+
+        assertThat(cfg.getFieldMatcher().getPattern()).isEqualTo("field1");
+        assertThat(cfg.getValueMatcher().getPattern()).isEqualTo("value1");
+        assertThat(cfg.getOnMatch()).isEqualTo(OnMatch.EXCLUDE);
+    }
+
+    @Test
+    void config_defaultOnMatch_isNull() {
+        var cfg = new GenericMetadataFilterConfig();
+        assertThat(cfg.getOnMatch()).isNull();
+    }
+
+    @Test
+    void filter_defaultOnMatch_treatedAsInclude() {
+        var filter = new GenericMetadataFilter();
+        // includeIfNull returns INCLUDE when onMatch is null
+        assertThat(filter.getOnMatch()).isEqualTo(OnMatch.INCLUDE);
     }
 }

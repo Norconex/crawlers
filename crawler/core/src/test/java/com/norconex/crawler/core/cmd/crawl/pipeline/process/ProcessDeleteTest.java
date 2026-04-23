@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2025-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,35 +15,78 @@
 package com.norconex.crawler.core.cmd.crawl.pipeline.process;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import com.norconex.committer.core.impl.MemoryCommitter;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
-import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.crawler.core.stubs.CrawlDocStubs;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
+import com.norconex.committer.core.service.CommitterService;
+import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.importer.doc.Doc;
+
+/**
+ * Tests for {@link ProcessDelete}.
+ */
+@Timeout(30)
 class ProcessDeleteTest {
 
-    @CrawlTest(focus = Focus.CONTEXT)
-    void testDocProcessorDelete(CrawlContext ctx, MemoryCommitter mem) {
+    @SuppressWarnings("unchecked")
+    private ProcessContext buildCtx(String ref) {
+        var entry = new CrawlEntry(ref);
+        var doc = new Doc(ref);
+        var docContext = CrawlDocContext.builder()
+                .doc(doc)
+                .currentCrawlEntry(entry)
+                .build();
 
-        var doc = CrawlDocStubs.crawlDoc("http://delete.me");
+        var committerService = mock(CommitterService.class);
+        var crawlContext = mock(CrawlContext.class);
+        var session = mock(CrawlSession.class);
+        when(session.getCrawlContext()).thenReturn(crawlContext);
+        when(crawlContext.getCommitterService()).thenReturn(committerService);
 
-        var docProcCtx = new ProcessContext()
-                .finalized(false)
-                .crawlContext(ctx)
-                .docContext(doc.getDocContext())
-                .doc(doc);
+        return new ProcessContext()
+                .crawlSession(session)
+                .docContext(docContext)
+                .finalized(true); // prevents ProcessFinalize from executing
+    }
 
-        ProcessDelete.execute(docProcCtx);
+    @Test
+    void execute_setsDeletedOutcome() {
+        var ctx = buildCtx("http://example.com/deleted");
 
-        assertThat(docProcCtx.docContext().getState())
-                .isEqualTo(CrawlDocStatus.DELETED);
-        assertThat(mem.getDeleteCount()).isOne();
-        assertThat(mem.getDeleteRequests()
-                .get(0)
-                .getReference())
-                        .isEqualTo("http://delete.me");
+        ProcessDelete.execute(ctx);
+
+        assertThat(ctx.docContext().getCurrentCrawlEntry()
+                .getProcessingOutcome()).isEqualTo(ProcessingOutcome.DELETED);
+    }
+
+    @Test
+    void execute_callsCommitterServiceDelete() {
+        var ctx = buildCtx("http://example.com/deleted");
+        var committerService =
+                ctx.crawlSession()
+                        .getCrawlContext().getCommitterService();
+
+        ProcessDelete.execute(ctx);
+
+        verify(committerService).delete(any(Doc.class));
+    }
+
+    @Test
+    void execute_callsDeleteWithCorrectDoc() {
+        var ctx = buildCtx("http://example.com/my-doc");
+
+        ProcessDelete.execute(ctx);
+
+        assertThat(ctx.docContext().getDoc().getReference())
+                .isEqualTo("http://example.com/my-doc");
     }
 }

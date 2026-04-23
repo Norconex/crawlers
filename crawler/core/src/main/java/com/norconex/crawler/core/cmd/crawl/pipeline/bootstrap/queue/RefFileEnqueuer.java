@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2024-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,14 +36,14 @@ public class RefFileEnqueuer implements ReferenceEnqueuer {
 
     @Override
     public int enqueue(QueueBootstrapContext ctx) {
-        var cfg = ctx.getCrawlContext().getCrawlConfig();
+        var cfg = ctx.getCrawlSession().getCrawlContext().getCrawlConfig();
         var refsFiles = cfg.getStartReferencesFiles();
         var cnt = 0;
         for (Path refsFile : refsFiles) {
             try (var it = IOUtils.lineIterator(Files.newInputStream(refsFile),
                     StandardCharsets.UTF_8)) {
                 while (it.hasNext()) {
-                    var ref = StringUtils.trimToNull(it.nextLine());
+                    var ref = StringUtils.trimToNull(it.next());
                     if (ref != null && !ref.startsWith("#")) {
                         ctx.queue(ref);
                         cnt++;

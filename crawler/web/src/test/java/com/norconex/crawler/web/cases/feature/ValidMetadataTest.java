@@ -1,4 +1,4 @@
-/* Copyright 2019-2025 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,28 +24,34 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import com.norconex.importer.doc.DocMetaConstants;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test that metadata is extracted properly.
  */
 @MockServerSettings
+@Timeout(30)
 class ValidMetadataTest {
 
-    @WebCrawlTest
-    void testValidMetadata(ClientAndServer client, WebCrawlerConfig cfg) {
+    private static final int SITE_DEPTH = 20;
 
-        MockWebsite.whenInfiniteDepth(client);
+    @WebCrawlTest
+    void testValidMetadata(ClientAndServer client, WebCrawlConfig cfg) {
+
+        MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 
         cfg.setStartReferences(
-                List.of(MockWebsite.serverUrl(client, "/validMetadata/0000")));
+                List.of(MockWebsite.serverUrl(client,
+                        "/validMetadata/0000")));
         cfg.setMaxDepth(10);
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+                .getCommitter();
 
         // 0-depth + 10 others == 11 expected files
         assertThat(mem.getRequestCount()).isEqualTo(11);
@@ -53,11 +59,17 @@ class ValidMetadataTest {
         for (UpsertRequest doc : mem.getUpsertRequests()) {
             var meta = doc.getMetadata();
             assertThat(meta.getStrings(HttpHeaders.CONTENT_TYPE))
-                    .containsExactly("text/html; charset=UTF-8");
-            assertThat(meta.getStrings(DocMetaConstants.CONTENT_TYPE))
-                    .containsExactly("text/html");
-            assertThat(meta.getStrings(DocMetaConstants.CONTENT_ENCODING))
-                    .containsExactly(StandardCharsets.UTF_8.toString());
+                    .containsExactly(
+                            "text/html; charset=UTF-8");
+            assertThat(meta.getStrings(
+                    DocMetaConstants.CONTENT_TYPE))
+                            .containsExactly(
+                                    "text/html");
+            assertThat(meta.getStrings(
+                    DocMetaConstants.CONTENT_ENCODING))
+                            .containsExactly(
+                                    StandardCharsets.UTF_8
+                                            .toString());
         }
     }
 }

@@ -1,4 +1,4 @@
-/* Copyright 2021-2025 Norconex Inc.
+/* Copyright 2021-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@ package com.norconex.crawler.core.metrics;
 
 import java.io.Closeable;
 
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.session.CrawlSession;
 
 /**
  * Interface used to access crawler metrics across the application.
  */
 public interface CrawlerMetrics extends CrawlerMetricsMXBean, Closeable {
 
-    void init(CrawlContext crawlContext);
+    void init(CrawlSession session);
 
     /**
      * Flushes the metrics. Implementation specific, but normally forces a

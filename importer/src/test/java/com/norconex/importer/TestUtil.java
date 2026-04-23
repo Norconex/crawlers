@@ -1,4 +1,4 @@
-/* Copyright 2010-2025 Norconex Inc.
+/* Copyright 2010-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 package com.norconex.importer;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Optional.ofNullable;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -81,23 +82,35 @@ public final class TestUtil {
     }
 
     public static File getAlicePdfFile() {
-        return new File(BASE_PATH + ".pdf");
+        return resolvePath(BASE_PATH + ".pdf").toFile();
     }
 
     public static File getAliceDocxFile() {
-        return new File(BASE_PATH + ".docx");
+        return resolvePath(BASE_PATH + ".docx").toFile();
     }
 
     public static File getAliceZipFile() {
-        return new File(BASE_PATH + ".zip");
+        return resolvePath(BASE_PATH + ".zip").toFile();
     }
 
     public static File getAliceHtmlFile() {
-        return new File(BASE_PATH + ".html");
+        return resolvePath(BASE_PATH + ".html").toFile();
     }
 
     public static File getAliceTextFile() {
-        return new File(BASE_PATH + ".txt");
+        return resolvePath(BASE_PATH + ".txt").toFile();
+    }
+
+    public static Path resolvePath(String relativePath) {
+        var path = Path.of(relativePath);
+        if (Files.exists(path)) {
+            return path;
+        }
+        var modulePath = Path.of("importer").resolve(relativePath);
+        if (Files.exists(modulePath)) {
+            return modulePath;
+        }
+        return path;
     }
 
     public static Doc getAlicePdfDoc() {
@@ -158,11 +171,17 @@ public final class TestUtil {
         t.handle(newHandlerContext(ref, input, metadata, parseState));
     }
 
+    @SuppressWarnings("resource")
     public static Doc newDoc(File file) {
         try {
-            return new Doc(
-                    file.getAbsolutePath(),
-                    CachedInputStream.cache(new FileInputStream(file)));
+            var path = file.toPath();
+            if (!Files.exists(path) && !path.isAbsolute()) {
+                path = resolvePath(file.getPath());
+            }
+            return new Doc(path.toAbsolutePath().toString())
+                    .setInputStream(
+                            CachedInputStream.cache(
+                                    new FileInputStream(path.toFile())));
         } catch (FileNotFoundException e) {
             throw new UncheckedException(e);
         }
@@ -193,15 +212,19 @@ public final class TestUtil {
         // Remove document.reference for tests that need the same count
         // as values they entered in metadata. Just keep it if explicitely
         // passed.
-        var hasRef = meta != null && meta.containsKey("document.reference");
+        var safeMeta = ofNullable(meta).orElseGet(Properties::new);
+        var hasRef = safeMeta.containsKey("document.reference");
         var inputStream = in != null ? in : InputStream.nullInputStream();
-        var doc = new Doc(ref, CachedInputStream.cache(inputStream), meta);
+        @SuppressWarnings("resource")
+        var doc = new Doc(ref)
+                .setInputStream(CachedInputStream.cache(inputStream))
+                .setMetadata(safeMeta);
         if (!hasRef) {
             doc.getMetadata().remove("document.reference");
         }
         var ct = doc.getMetadata().getString(DocMetaConstants.CONTENT_TYPE);
         if (ct != null) {
-            doc.getDocContext().setContentType(ContentType.valueOf(ct));
+            doc.setContentType(ContentType.valueOf(ct));
         }
 
         return doc;

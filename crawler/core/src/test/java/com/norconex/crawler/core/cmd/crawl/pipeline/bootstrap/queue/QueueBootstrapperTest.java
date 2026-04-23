@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2025-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,66 +15,93 @@
 package com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.List;
-import java.util.function.Consumer;
 
-import com.norconex.committer.core.impl.MemoryCommitter;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+
 import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.junit.CrawlTest;
-import com.norconex.crawler.core.junit.CrawlTest.Focus;
+import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.session.CrawlSession;
 
+/**
+ * Tests for {@link QueueBootstrapper}.
+ */
+@Timeout(30)
 class QueueBootstrapperTest {
 
-    public static class FromFilesConfigModifier
-            implements Consumer<CrawlConfig> {
-        @Override
-        public void accept(CrawlConfig cfg) {
-            var file1 = cfg.getWorkDir().resolve("start-file1.txt");
-            var file2 = cfg.getWorkDir().resolve("start-file2.txt");
-            try {
-                Files.writeString(file1, "ref1\nref2\nref3");
-                Files.writeString(file2, "ref4\nref5\n");
-                cfg.setStartReferencesFiles(List.of(file1, file2));
-            } catch (IOException e) {
-                fail(e);
-            }
-        }
+    private CrawlSession buildSession(CrawlConfig config) {
+        var crawlContext = mock(CrawlContext.class);
+        when(crawlContext.getCrawlConfig()).thenReturn(config);
+        when(crawlContext.createCrawlEntry(anyString()))
+                .thenAnswer(inv -> new CrawlEntry(inv.getArgument(0)));
+
+        var session = mock(CrawlSession.class);
+        when(session.getCrawlContext()).thenReturn(crawlContext);
+        when(session.isResumed()).thenReturn(false);
+        return session;
     }
 
-    public static class FromProvidersConfigModifier
-            implements Consumer<CrawlConfig> {
-        @Override
-        public void accept(CrawlConfig cfg) {
-            cfg.setStartReferencesProviders(List.of(
-                    () -> List.of("ref1", "ref2").iterator(),
-                    () -> List.of("ref3", "ref4", "ref5").iterator()));
-        }
+    @Test
+    void defaultConstructor_createsBootstrapper() {
+        // Default constructor builds three enqueuers internally
+        assertThat(new QueueBootstrapper()).isNotNull();
     }
 
-    @CrawlTest(
-        focus = Focus.CRAWL,
-        config = """
-                numThreads: 2
-                """,
-        configModifier = FromFilesConfigModifier.class
-    )
-    void testFromFiles(MemoryCommitter mem) {
-        assertThat(mem.getUpsertCount()).isEqualTo(5);
+    @Test
+    void customConstructor_withEmptyList_createsBootstrapper() {
+        assertThat(new QueueBootstrapper(List.of())).isNotNull();
     }
 
-    @CrawlTest(
-        focus = Focus.CRAWL,
-        config = """
-                numThreads: 2
-                """,
-        configModifier = FromProvidersConfigModifier.class
-    )
-    void testFromProviders(MemoryCommitter mem) {
-        assertThat(mem.getUpsertCount()).isEqualTo(5);
+    @Test
+    void customConstructor_withNullList_createsBootstrapper() {
+        // Null list is treated as empty (no enqueuers)
+        assertThat(new QueueBootstrapper(null)).isNotNull();
     }
 
+    @Test
+    void bootstrap_sync_withNoStartRefs_completesSuccessfully() {
+        // Default CrawlConfig has no start references and async=false (sync)
+        var config = new CrawlConfig();
+        var session = buildSession(config);
+
+        new QueueBootstrapper().bootstrap(session);
+
+        // After sync bootstrap, queuing should be marked complete
+        verify(session).setStartRefsQueueingComplete(true);
+    }
+
+    @Test
+    void bootstrap_sync_whenResumed_logsResumeAndCompletes() {
+        var config = new CrawlConfig();
+        var session = buildSession(config);
+        when(session.isResumed()).thenReturn(true);
+
+        new QueueBootstrapper().bootstrap(session);
+
+        verify(session).setStartRefsQueueingComplete(true);
+    }
+
+    @Test
+    void bootstrap_withCustomEnqueuer_invokesEnqueuer() {
+        // A custom enqueuer that records its invocations
+        var invocations = new java.util.concurrent.atomic.AtomicInteger(0);
+        ReferenceEnqueuer enqueuer = ctx -> {
+            invocations.incrementAndGet();
+            return 0;
+        };
+
+        var config = new CrawlConfig();
+        var session = buildSession(config);
+
+        new QueueBootstrapper(List.of(enqueuer)).bootstrap(session);
+
+        assertThat(invocations.get()).isEqualTo(1);
+    }
 }

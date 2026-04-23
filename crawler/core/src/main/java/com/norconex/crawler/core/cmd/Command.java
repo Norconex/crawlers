@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2024-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,12 @@
  */
 package com.norconex.crawler.core.cmd;
 
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.session.CrawlSession;
 
+/**
+ * A crawler command launched within an active crawl session.
+ */
 @FunctionalInterface
 public interface Command {
-    void execute(CrawlContext ctx);
+    void execute(CrawlSession session);
 }

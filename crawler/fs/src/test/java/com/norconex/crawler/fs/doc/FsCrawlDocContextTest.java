@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,24 +19,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
-import com.norconex.importer.doc.DocContext;
+import com.norconex.crawler.fs.ledger.FsCrawlEntry;
 
+// TODO: Rename this file to FsCrawlEntryTest once FsCrawlDocContext is deleted.
+@Timeout(30)
 class FsCrawlDocContextTest {
 
     @Test
     void test() {
         // Should make absolute
-        var rec = new FsCrawlDocContext("ref");
+        var rec = new FsCrawlEntry("ref");
         assertThat(rec.getReference()).isEqualTo(
                 new File("ref").getAbsolutePath());
 
-        // Already absolute on windows, do not change
-        rec = new FsCrawlDocContext(new DocContext("c:\\ref"));
+        // Windows absolute path: already absolute, do not change
+        rec = new FsCrawlEntry("c:\\ref");
         assertThat(rec.getReference()).isEqualTo("c:\\ref");
 
         // Not a local file, do not change
-        rec = new FsCrawlDocContext("cmis:http://blah.com");
+        rec = new FsCrawlEntry("cmis:http://blah.com");
         assertThat(rec.getReference()).isEqualTo("cmis:http://blah.com");
     }
 }

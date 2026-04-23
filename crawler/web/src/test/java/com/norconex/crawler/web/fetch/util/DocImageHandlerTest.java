@@ -1,4 +1,4 @@
-/* Copyright 2020-2024 Norconex Inc.
+/* Copyright 2020-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,16 +29,18 @@ import javax.imageio.ImageIO;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.img.MutableImage;
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.web.TestResource;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.DirStructure;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
+import com.norconex.importer.doc.Doc;
 
+@Timeout(30)
 class DocImageHandlerTest {
 
     @Test
@@ -128,7 +130,7 @@ class DocImageHandlerTest {
         return h;
     }
 
-    private CrawlDoc crawlDoc() {
+    private Doc crawlDoc() {
         return CrawlDocStubs.crawlDoc(
                 "http://site.com/page.html",
                 ContentType.HTML,

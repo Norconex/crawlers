@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,20 +23,22 @@ import java.util.List;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test that blank files are committed.
  */
 // Test case for https://github.com/Norconex/collector-http/issues/313
 @MockServerSettings
+@Timeout(30)
 class ZeroLengthTest {
 
     @WebCrawlTest
-    void testZeroLength(ClientAndServer client, WebCrawlerConfig cfg) {
+    void testZeroLength(ClientAndServer client, WebCrawlConfig cfg) {
         var path = "/zeroLength";
 
         client

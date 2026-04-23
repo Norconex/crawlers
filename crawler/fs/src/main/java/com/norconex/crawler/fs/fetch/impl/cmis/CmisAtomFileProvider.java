@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -144,7 +144,9 @@ public class CmisAtomFileProvider extends AbstractLayeredFileProvider {
             throws FileSystemException {
         var cmis =
                 CmisAtomFileSystemConfigBuilder.getInstance();
-        var atomURL = StringUtils.substringBefore(file.toString(), "!");
+        var rawFileString = file.getName().getURI();
+        var atomURL = StringUtils.substringBefore(rawFileString, "!")
+                .replaceFirst("^cmis(?:-atom)?:", "");
         session.setEndpointURL(atomURL);
         LOG.info("CMIS Atom endpoint URL: " + atomURL);
 

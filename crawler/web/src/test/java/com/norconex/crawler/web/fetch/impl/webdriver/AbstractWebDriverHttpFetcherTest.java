@@ -1,4 +1,4 @@
-/* Copyright 2018-2025 Norconex Inc.
+/* Copyright 2018-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,21 +31,21 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
-import org.openqa.selenium.Capabilities;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.Testcontainers;
-import org.testcontainers.containers.BrowserWebDriverContainer;
-import org.testcontainers.containers.BrowserWebDriverContainer.VncRecordingMode;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.selenium.BrowserWebDriverContainer;
+import org.testcontainers.selenium.BrowserWebDriverContainer.VncRecordingMode;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.img.MutableImage;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;
 import com.norconex.crawler.web.junit.WebCrawlTest;
@@ -58,6 +58,7 @@ import lombok.extern.slf4j.Slf4j;
 @MockServerSettings
 @TestInstance(Lifecycle.PER_CLASS)
 @org.testcontainers.junit.jupiter.Testcontainers(disabledWithoutDocker = true)
+@Timeout(30)
 public abstract class AbstractWebDriverHttpFetcherTest
         implements ExecutionCondition {
 
@@ -66,18 +67,15 @@ public abstract class AbstractWebDriverHttpFetcherTest
 
     private static final int LARGE_CONTENT_MIN_SIZE = 3 * 1024 * 1024;
 
-    private final Capabilities capabilities;
-    private BrowserWebDriverContainer<?> browserContainer;
+    private BrowserWebDriverContainer browserContainer;
     private Browser browserType;
 
     public AbstractWebDriverHttpFetcherTest(Browser browserType) {
-        if (browserType == Browser.CHROME) {
-            capabilities = WebDriverTestUtil.chromeTestOptions();
-        } else if (browserType == Browser.FIREFOX) {
-            capabilities = WebDriverTestUtil.firefoxTestOptions();
-        } else {
+        if (browserType != Browser.CHROME
+                && browserType != Browser.FIREFOX) {
             throw new IllegalArgumentException(
-                    "Only Chrome and Firefox are supported for testing.");
+                    "Only Chrome and Firefox are supported "
+                            + "for testing.");
         }
         this.browserType = browserType;
     }
@@ -89,7 +87,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
         for (var port = SNIFFER_PORT_START; port <= SNIFFER_PORT_END; port++) {
             Testcontainers.exposeHostPorts(port);
         }
-        browserContainer = createWebDriverContainer(capabilities);
+        browserContainer = createWebDriverContainer(browserType);
         browserContainer.start();
         LOG.info("{} browser container started. Selenium address: {}",
                 browserType, browserContainer.getSeleniumAddress());
@@ -121,7 +119,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
 
     @WebCrawlTest
     void testFetchingJsGeneratedContent(
-            ClientAndServer client, WebCrawlerConfig cfg) {
+            ClientAndServer client, WebCrawlConfig cfg) {
         MockWebsite.whenJsRenderedWebsite(client);
 
         WebTestUtil.ignoreAllIgnorables(cfg);
@@ -137,7 +135,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
 
     @WebCrawlTest
     //    @Disabled("Does not work under GitHub actions.")
-    void testTakeScreenshots(ClientAndServer client, WebCrawlerConfig cfg)
+    void testTakeScreenshots(ClientAndServer client, WebCrawlConfig cfg)
             throws IOException {
 
         MockWebsite.whenJsRenderedWebsite(client);
@@ -173,7 +171,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
     // using sniffer with large content (test case for:
     // https://github.com/Norconex/collector-http/issues/751)
     @WebCrawlTest
-    void testHttpSniffer(ClientAndServer client, WebCrawlerConfig cfg) {
+    void testHttpSniffer(ClientAndServer client, WebCrawlConfig cfg) {
         var path = "/sniffHeaders.html";
 
         // @formatter:off
@@ -184,8 +182,8 @@ public abstract class AbstractWebDriverHttpFetcherTest
                 .withHeader("singleKey", "singleValue")
                 .withBody(MockWebsite
                     .htmlPage()
-                    .body(RandomStringUtils
-                            .randomAlphanumeric(LARGE_CONTENT_MIN_SIZE))
+                    .body(RandomStringUtils.secure().nextAlphanumeric(
+                            LARGE_CONTENT_MIN_SIZE))
                     .build()));
         // @formatter:on
 
@@ -216,7 +214,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
     }
 
     @WebCrawlTest
-    void testPageScript(ClientAndServer client, WebCrawlerConfig cfg) {
+    void testPageScript(ClientAndServer client, WebCrawlConfig cfg) {
         var path = "/pageScript.html";
 
         // @formatter:off
@@ -258,7 +256,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
 
     @WebCrawlTest
     void testResolvingUserAgent(
-            ClientAndServer client, WebCrawlerConfig cfg) {
+            ClientAndServer client, WebCrawlConfig cfg) {
         var path = "/userAgent.html";
 
         // @formatter:off
@@ -316,13 +314,17 @@ public abstract class AbstractWebDriverHttpFetcherTest
     }
 
     @SuppressWarnings("resource")
-    protected static BrowserWebDriverContainer<?> createWebDriverContainer(
-            Capabilities capabilities) {
+    protected static BrowserWebDriverContainer createWebDriverContainer(
+            Browser browser) {
+        var image = switch (browser) {
+            case CHROME -> "selenium/standalone-chrome";
+            case FIREFOX -> "selenium/standalone-firefox";
+            default -> throw new IllegalArgumentException(
+                    "Unsupported browser: " + browser);
+        };
 
-        return new BrowserWebDriverContainer<>()
-                .withCapabilities(capabilities)
+        return new BrowserWebDriverContainer(image)
                 .withAccessToHost(true)
-                //                .withExtraHost("host.docker.internal", "172.17.0.1")
                 .withRecordingMode(VncRecordingMode.SKIP, null)
                 .withLogConsumer(new Slf4jLogConsumer(LOG))
                 .withEnv("SE_OPTS", "--tracing false")
@@ -336,14 +338,14 @@ public abstract class AbstractWebDriverHttpFetcherTest
                 .withEnv("OTEL_PROPAGATORS", "none")
                 // Completely disable OpenTelemetry
                 .withEnv("OTEL_SDK_DISABLED", "true")
-
-                .withSharedMemorySize(1L * 1024 * 1024 * 1024) // 1GB
-                .withCreateContainerCmdModifier(cmd -> cmd.getHostConfig()
-                        .withMemory(2048L * 1024 * 1024) // 2GB
-                        .withMemorySwap(4096L * 1024 * 1024)) // 4GB
-                .withStartupTimeout(Duration.ofMinutes(5))
-        //                .waitingFor(Wait.forLogMessage(
-        //                        ".*Started Selenium Standalone.*", 1))
-        ;
+                .withSharedMemorySize(
+                        1L * 1024 * 1024 * 1024) // 1GB
+                .withCreateContainerCmdModifier(
+                        cmd -> cmd.getHostConfig()
+                                .withMemory(
+                                        2048L * 1024 * 1024) // 2GB
+                                .withMemorySwap(
+                                        4096L * 1024 * 1024)) // 4GB
+                .withStartupTimeout(Duration.ofMinutes(5));
     }
 }

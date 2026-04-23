@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import com.norconex.commons.lang.xml.Xml;
 import com.norconex.commons.lang.xml.XmlException;
-import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapRecord;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.importer.doc.Doc;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,10 +41,10 @@ import lombok.extern.slf4j.Slf4j;
 class SitemapParser {
 
     private final boolean lenient;
-    private final MutableBoolean stopping;
+    private final AtomicBoolean stopping;
 
     List<SitemapRecord> parse(
-            CrawlDoc sitemapDoc, Consumer<WebCrawlDocContext> urlConsumer) {
+            Doc sitemapDoc, Consumer<WebCrawlEntry> urlConsumer) {
 
         var location = sitemapDoc.getReference();
         List<SitemapRecord> children = new ArrayList<>();
@@ -54,7 +54,7 @@ class SitemapParser {
             var sitemapLocationDir = substringBeforeLast(location, "/");
             Xml.stream(is)
                     .takeWhile(c -> {
-                        if (stopping.isTrue()) {
+                        if (stopping.get()) {
                             LOG.debug("Sitemap not entirely parsed due to "
                                     + "crawler being stopped.");
                             return false;
@@ -94,7 +94,7 @@ class SitemapParser {
         return Optional.ofNullable(rec);
     }
 
-    private Optional<WebCrawlDocContext> toDocRecord(
+    private Optional<WebCrawlEntry> toDocRecord(
             Xml xml, String sitemapLocationDir) {
         var url = xml.getString("loc");
 
@@ -107,7 +107,7 @@ class SitemapParser {
             return Optional.empty();
         }
 
-        var doc = new WebCrawlDocContext(url);
+        var doc = new WebCrawlEntry(url);
         doc.setSitemapLastMod(SitemapUtil.toDateTime(xml.getString("lastmod")));
         doc.setSitemapChangeFreq(xml.getString("changefreq"));
         var priority = xml.getString("priority");

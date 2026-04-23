@@ -1,4 +1,4 @@
-/* Copyright 2010-2024 Norconex Inc.
+/* Copyright 2010-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.importer.handler.DocHandler;
@@ -88,7 +89,7 @@ public class ForceSingleValueTransformer
                     singleValue = values.get(0);
                 } else if ("keepLast".equalsIgnoreCase(action)) {
                     singleValue = values.get(values.size() - 1);
-                } else if (StringUtils.startsWithIgnoreCase(
+                } else if (Strings.CI.startsWith(
                         action, "mergeWith")) {
                     var sep = StringUtils.substringAfter(action, ":");
                     singleValue = StringUtils.join(values, sep);

@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2025-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,62 +14,37 @@
  */
 package com.norconex.crawler.core;
 
-import static java.util.Optional.ofNullable;
-
 import java.nio.file.Path;
+import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.clean.CleanCommand;
 import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
+import com.norconex.crawler.core.cmd.stop.StopCommand;
 import com.norconex.crawler.core.cmd.storeexport.StoreExportCommand;
 import com.norconex.crawler.core.cmd.storeimport.StoreImportCommand;
-import com.norconex.crawler.core.session.CrawlSessionManager;
-import com.norconex.crawler.core.util.ConfigUtil;
+import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlSessionFactory;
+import com.norconex.crawler.core.util.ExceptionSwallower;
 import com.norconex.crawler.core.util.LogUtil;
-import com.norconex.grid.core.BaseGridContext;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-//TODO maybe rename to Crawler and have server side be CrawlerNode?
-
-/**
- * <p>
- * Crawler. Facade to crawl-related commands.
- * </p>
- * <h2>JMX Support</h2>
- * <p>
- * JMX support is disabled by default. To enable it, set the system property
- * "enableJMX" to <code>true</code>. You can do so by adding this to your Java
- * launch command:
- * </p>
- *
- * <pre>
- *     -DenableJMX=true
- * </pre>
- *
- * @see CrawlConfig
- */
 @Slf4j
-@EqualsAndHashCode
 public class Crawler {
-
-    private static final String GRID_WORKDIR_NAME = "grid";
 
     @Getter
     private final CrawlDriver crawlDriver;
     @Getter
     private final CrawlConfig crawlConfig;
 
-    private final CrawlSessionManager sessionManager;
-
     public Crawler(CrawlDriver crawlDriver, CrawlConfig crawlConfig) {
         this.crawlDriver = crawlDriver;
         this.crawlConfig = crawlConfig;
-        sessionManager = new CrawlSessionManager(crawlDriver, crawlConfig);
     }
 
     /**
@@ -85,23 +60,20 @@ public class Crawler {
      * @param startClean
      */
     public void crawl(boolean startClean) {
+        var crawlCmd = new CrawlCommand(crawlDriver.crawlPipelineFactory());
         if (startClean) {
-            executeCommand(new CleanCommand());
+            executeCommand(new CleanCommand(), crawlCmd);
+        } else {
+            executeCommand(crawlCmd);
         }
-        executeCommand(new CrawlCommand());
     }
 
     public void clean() {
         executeCommand(new CleanCommand());
     }
 
-    public void stop() {
-        // Since we are stopping we are not initializing
-        // the context and not explicitly connecting to the grid
-        var gridWorkDir = ConfigUtil
-                .resolveWorkDir(crawlConfig).resolve(GRID_WORKDIR_NAME);
-        crawlConfig.getGridConnector().shutdownGrid(
-                new BaseGridContext(gridWorkDir));
+    public void stop(String... nodeUrls) {
+        executeDetachedCommand(new StopCommand(crawlConfig, nodeUrls));
     }
 
     public void storageExport(Path dir, boolean pretty) {
@@ -119,21 +91,61 @@ public class Crawler {
         }
     }
 
-    private void executeCommand(Command command) {
+    // Launched without an active crawl session and not directly attached
+    // to a cluster. Does not participate in normal command launch flow.
+    private void executeDetachedCommand(Runnable... commands) {
+        for (Runnable cmd : commands) {
+            LOG.info("Executing command: {}", cmd.getClass().getSimpleName());
+            ExceptionSwallower.runWithInterruptClear(cmd::run);
+        }
+    }
+
+    // Launched within active crawl session.
+    private void executeCommand(Command... commands) {
         validateConfig(crawlConfig);
         LogUtil.logCommandIntro(LOG, crawlConfig);
-        LOG.info("Executing command: {}", command.getClass().getSimpleName());
-        sessionManager.withCrawlContext(ctx -> {
-            try {
-                ofNullable(ctx.getCallbacks()
-                        .getBeforeCommand())
-                                .ifPresent(c -> c.accept(ctx));
-                command.execute(ctx);
-            } finally {
-                ofNullable(ctx.getCallbacks()
-                        .getAfterCommand())
-                                .ifPresent(c -> c.accept(ctx));
+
+        var em = crawlDriver.eventManager();
+        em.addListener(crawlDriver.callbacks());
+
+        em.fire(CrawlerEvent.builder()
+                .name(CrawlerEvent.CRAWLER_SESSION_BEGIN)
+                .source(crawlConfig)
+                .build());
+
+        withCrawlSession(sess -> {
+            for (Command cmd : commands) {
+                try {
+                    LOG.info("Executing command: {}",
+                            cmd.getClass().getSimpleName());
+                    sess.fire(CrawlerEvent.builder()
+                            .name(CrawlerEvent.CRAWLER_COMMAND_BEGIN)
+                            .crawlSession(sess)
+                            .commandClass(cmd.getClass())
+                            .source(cmd.getClass())
+                            .build());
+                    ExceptionSwallower
+                            .runWithInterruptClear(() -> cmd.execute(sess));
+                } finally {
+                    sess.fire(CrawlerEvent.builder()
+                            .name(CrawlerEvent.CRAWLER_COMMAND_END)
+                            .crawlSession(sess)
+                            .commandClass(cmd.getClass())
+                            .source(cmd.getClass())
+                            .build());
+                }
             }
         });
+
+        em.fire(CrawlerEvent.builder()
+                .name(CrawlerEvent.CRAWLER_SESSION_END)
+                .source(crawlConfig)
+                .build());
+    }
+
+    public void withCrawlSession(Consumer<CrawlSession> c) {
+        try (var sess = CrawlSessionFactory.create(crawlDriver, crawlConfig)) {
+            c.accept(sess);
+        }
     }
 }

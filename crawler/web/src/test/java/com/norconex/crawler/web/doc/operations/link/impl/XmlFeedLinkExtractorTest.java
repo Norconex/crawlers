@@ -1,4 +1,4 @@
-/* Copyright 2017-2025 Norconex Inc.
+/* Copyright 2017-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,16 +24,16 @@ import java.util.Set;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.commons.lang.io.CachedInputStream;
-import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.operations.link.Link;
+import com.norconex.crawler.web.stubs.CrawlDocStubs;
 import com.norconex.importer.doc.ContentTypeDetector;
-import com.norconex.importer.doc.DocMetaConstants;
+import com.norconex.importer.doc.Doc;
 
+@Timeout(30)
 class XmlFeedLinkExtractorTest {
 
     @Test
@@ -64,7 +64,8 @@ class XmlFeedLinkExtractorTest {
         for (String expectedURL : expectedURLs) {
             assertTrue(
                     contains(links, expectedURL),
-                    "Could not find expected URL: " + expectedURL);
+                    "Could not find expected URL: "
+                            + expectedURL);
         }
 
         Assertions.assertEquals(
@@ -100,7 +101,8 @@ class XmlFeedLinkExtractorTest {
         for (String expectedURL : expectedURLs) {
             assertTrue(
                     contains(links, expectedURL),
-                    "Could not find expected URL: " + expectedURL);
+                    "Could not find expected URL: "
+                            + expectedURL);
         }
 
         Assertions.assertEquals(
@@ -114,7 +116,8 @@ class XmlFeedLinkExtractorTest {
         //        extractor.addRestriction(new PropertyMatcher(TextMatcher.basic("ct")));
         //        extractor.addRestriction(new PropertyMatcher(TextMatcher.basic("ref")));
         assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(extractor));
+                () -> BeanMapper.DEFAULT
+                        .assertWriteRead(extractor));
     }
 
     private boolean contains(Set<Link> links, String url) {
@@ -126,11 +129,7 @@ class XmlFeedLinkExtractorTest {
         return false;
     }
 
-    private CrawlDoc toCrawlDoc(String ref, ContentType ct, InputStream is) {
-        var docRecord = new WebCrawlDocContext(ref);
-        docRecord.setContentType(ct);
-        var doc = new CrawlDoc(docRecord, CachedInputStream.cache(is));
-        doc.getMetadata().set(DocMetaConstants.CONTENT_TYPE, ct);
-        return doc;
+    private Doc toCrawlDoc(String ref, ContentType ct, InputStream is) {
+        return CrawlDocStubs.crawlDoc(ref, ct, is);
     }
 }

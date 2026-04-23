@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,7 +116,7 @@ public class SolrCommitter
 
     @Override
     protected void initBatchCommitter() throws CommitterException {
-        solrClient = ObjectUtils.defaultIfNull(
+        solrClient = ObjectUtils.getIfNull(
                 configuration.getSolrClientType(),
                 SolrClientType.HTTP2).create(configuration.getSolrURL());
     }

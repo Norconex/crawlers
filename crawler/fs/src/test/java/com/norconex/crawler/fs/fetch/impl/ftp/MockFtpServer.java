@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-class MockFtpServer {
+public class MockFtpServer {
 
     @Getter
     private int port;
@@ -42,6 +42,19 @@ class MockFtpServer {
 
     private final File tempDir;
     private final boolean secure;
+    /** Optional: override the directory served over FTP. Uses mock-fs if null. */
+    private String servedDir;
+
+    /**
+     * Sets the root directory served to FTP clients. Defaults to
+     * {@link FsTestUtil#TEST_FS_PATH} when not set.
+     * @param dir absolute path to the directory to serve
+     * @return this, for chaining
+     */
+    public MockFtpServer setServedDir(String dir) {
+        this.servedDir = dir;
+        return this;
+    }
 
     public void start() throws IOException {
 
@@ -70,7 +83,8 @@ class MockFtpServer {
         user.setName("testuser");
         user.setPassword("testpassword");
         user.setEnabled(true);
-        user.setHomeDirectory(FsTestUtil.TEST_FS_PATH);
+        user.setHomeDirectory(
+                servedDir != null ? servedDir : FsTestUtil.TEST_FS_PATH);
         try {
             userManager.save(user);
             serverFactory.setUserManager(userManager);

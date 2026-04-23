@@ -6,7 +6,7 @@
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,12 +21,10 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.provider.GenericFileName;
 
-import lombok.Generated;
-
 /**
  * An SMB URI. Adds a share name to the generic URI.
  */
-@Generated // to exclude from code coverage
+@lombok.Generated
 public class SmbFileName extends GenericFileName {
     private static final int DEFAULT_PORT = 139;
 
@@ -34,6 +32,19 @@ public class SmbFileName extends GenericFileName {
     private final String domain;
     private String uriWithoutAuth;
 
+    /**
+     * Constructs a new instance.
+     *
+     * @param scheme the scheme.
+     * @param hostName the host name.
+     * @param port the port.
+     * @param userName the user name.
+     * @param password the password.
+     * @param domain the domain.
+     * @param share the share.
+     * @param path the absolute path, maybe empty or null.
+     * @param type the file type.
+     */
     protected SmbFileName(final String scheme, final String hostName, final int port, final String userName,
             final String password, final String domain, final String share, final String path, final FileType type) {
         super(scheme, hostName, port, DEFAULT_PORT, userName, password, path, type);
@@ -42,26 +53,7 @@ public class SmbFileName extends GenericFileName {
     }
 
     /**
-     * Returns the share name.
-     *
-     * @return share name
-     */
-    public String getShare() {
-        return share;
-    }
-
-    /**
-     * Builds the root URI for this file name.
-     */
-    @Override
-    protected void appendRootUri(final StringBuilder buffer, final boolean addPassword) {
-        super.appendRootUri(buffer, addPassword);
-        buffer.append('/');
-        buffer.append(share);
-    }
-
-    /**
-     * Put {@code domain} before @{code username} if both are set.
+     * Put {@code domain} before {@code username} if both are set.
      * <p>
      * Uses super method to add password or password placeholder.
      */
@@ -72,6 +64,16 @@ public class SmbFileName extends GenericFileName {
             buffer.append("\\");
         }
         super.appendCredentials(buffer, addPassword);
+    }
+
+    /**
+     * Builds the root URI for this file name.
+     */
+    @Override
+    protected void appendRootUri(final StringBuilder buffer, final boolean addPassword) {
+        super.appendRootUri(buffer, addPassword);
+        buffer.append('/');
+        buffer.append(share);
     }
 
     /**
@@ -88,7 +90,25 @@ public class SmbFileName extends GenericFileName {
     }
 
     /**
-     * Construct the path suitable for SmbFile when used with NtlmPasswordAuthentication.
+     * Returns the domain name.
+     *
+     * @return domain name
+     */
+    public String getDomain() {
+        return domain;
+    }
+
+    /**
+     * Returns the share name.
+     *
+     * @return share name
+     */
+    public String getShare() {
+        return share;
+    }
+
+    /**
+     * Constructs the path suitable for SmbFile when used with NtlmPasswordAuthentication.
      *
      * @return caches and return URI with no username/password, never null
      * @throws FileSystemException if any of the invoked methods throw
@@ -111,14 +131,5 @@ public class SmbFileName extends GenericFileName {
         sb.append(getPathDecoded());
         uriWithoutAuth = sb.toString();
         return uriWithoutAuth;
-    }
-
-    /**
-     * Returns the domain name.
-     *
-     * @return domain name
-     */
-    public String getDomain() {
-        return domain;
     }
 }

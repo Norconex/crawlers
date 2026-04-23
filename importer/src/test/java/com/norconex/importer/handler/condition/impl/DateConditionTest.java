@@ -1,4 +1,4 @@
-/* Copyright 2022-2024 Norconex Inc.
+/* Copyright 2022-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import java.time.temporal.ChronoUnit;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.Operator;
 import com.norconex.commons.lang.bean.BeanMapper;
@@ -41,6 +42,7 @@ import com.norconex.importer.handler.condition.impl.DateCondition.TimeUnit;
 import com.norconex.importer.handler.condition.impl.DateProviderFactory.DynamicFixedDateTimeProvider;
 import com.norconex.importer.handler.condition.impl.DateProviderFactory.DynamicFloatingDateTimeProvider;
 
+@Timeout(30)
 class DateConditionTest {
 
     @Test

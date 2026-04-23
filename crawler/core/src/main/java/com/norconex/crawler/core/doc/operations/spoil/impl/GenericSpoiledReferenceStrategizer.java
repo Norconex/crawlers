@@ -1,4 +1,4 @@
-/* Copyright 2015-2025 Norconex Inc.
+/* Copyright 2015-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
 package com.norconex.crawler.core.doc.operations.spoil.impl;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategy;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -54,7 +54,7 @@ public class GenericSpoiledReferenceStrategizer implements
 
     @Override
     public SpoiledReferenceStrategy resolveSpoiledReferenceStrategy(
-            String reference, CrawlDocStatus state) {
+            String reference, ProcessingOutcome state) {
 
         var strategy = configuration.getMappings().get(state);
         if (strategy == null) {

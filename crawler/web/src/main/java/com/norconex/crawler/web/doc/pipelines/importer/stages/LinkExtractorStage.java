@@ -1,4 +1,4 @@
-/* Copyright 2010-2025 Norconex Inc.
+/* Copyright 2010-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,13 @@ import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.doc.pipelines.importer.stages.AbstractImporterStage;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.web.WebCrawlerConfig.ReferencedLinkType;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
+import com.norconex.crawler.web.WebCrawlConfig.ReferencedLinkType;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.operations.link.Link;
 import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
 import com.norconex.crawler.web.doc.pipelines.importer.WebImporterPipelineContext;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 import com.norconex.crawler.web.util.Web;
 
 import lombok.extern.slf4j.Slf4j;
@@ -51,13 +51,16 @@ public class LinkExtractorStage extends AbstractImporterStage {
         var ctx = (WebImporterPipelineContext) context;
 
         var linkTypes =
-                Web.config(ctx.getCrawlContext()).getKeepReferencedLinks();
+                Web.config(ctx.getCrawlSession().getCrawlContext())
+                        .getKeepReferencedLinks();
 
         // If the current page is the deepest allowed, only extract its URL
         // if configured to do so.
-        var maxDepth = Web.config(ctx.getCrawlContext()).getMaxDepth();
+        var maxDepth = Web.config(ctx.getCrawlSession().getCrawlContext())
+                .getMaxDepth();
         if (maxDepth != -1
-                && ctx.getDoc().getDocContext().getDepth() == maxDepth
+                && ctx.getDocContext().getCurrentCrawlEntry()
+                        .getDepth() == maxDepth
                 && !linkTypes.contains(ReferencedLinkType.MAXDEPTH)) {
             return true;
         }
@@ -77,26 +80,25 @@ public class LinkExtractorStage extends AbstractImporterStage {
         if (!docLinks.inScope.isEmpty()) {
             var inScopeUrls = docLinks.inScope.toArray(EMPTY_STRING_ARRAY);
             if (linkTypes.contains(ReferencedLinkType.INSCOPE)) {
-                ctx.getDoc().getMetadata().add(
+                ctx.getDocContext().getDoc().getMetadata().add(
                         WebDocMetadata.REFERENCED_URLS, inScopeUrls);
             }
-            ((WebCrawlDocContext) ctx.getDoc().getDocContext())
+            ((WebCrawlEntry) ctx.getDocContext().getCurrentCrawlEntry())
                     .setReferencedUrls(Arrays.asList(inScopeUrls));
         }
 
         LOG.debug("outScope count: {}.", docLinks.outScope.size());
         if (!docLinks.outScope.isEmpty()) {
-            ctx.getDoc().getMetadata().add(
+            ctx.getDocContext().getDoc().getMetadata().add(
                     WebDocMetadata.REFERENCED_URLS_OUT_OF_SCOPE,
                     docLinks.outScope.toArray(EMPTY_STRING_ARRAY));
         }
 
-        ctx.getCrawlContext().fire(
+        ctx.getCrawlSession().fire(
                 CrawlerEvent.builder()
                         .name(WebCrawlerEvent.URLS_EXTRACTED)
-                        .source(ctx.getCrawlContext())
-                        .subject(ctx.getDoc().getReference())
-                        .docContext(ctx.getDoc().getDocContext())
+                        .source(ctx.getCrawlSession())
+                        .crawlEntry(ctx.getDocContext().getCurrentCrawlEntry())
                         .message(Integer.toString(docLinks.inScope.size()))
                         .build());
         return true;
@@ -107,15 +109,16 @@ public class LinkExtractorStage extends AbstractImporterStage {
             UniqueDocLinks docLinks, Link link) {
 
         var linkTypes =
-                Web.config(ctx.getCrawlContext()).getKeepReferencedLinks();
+                Web.config(ctx.getCrawlSession().getCrawlContext())
+                        .getKeepReferencedLinks();
 
         try {
-            String reference = ctx.getDoc().getDocContext().getReference();
+            String reference = ctx.getDocContext().getReference();
 
-            var scopedUrlCtx = new WebCrawlDocContext(link.getUrl());
-            var urlScope = Web.config(ctx.getCrawlContext())
+            var scopedUrlCtx = new WebCrawlEntry(link.getUrl());
+            var urlScope = Web.config(ctx.getCrawlSession().getCrawlContext())
                     .getUrlScopeResolver().resolve(reference, scopedUrlCtx);
-            Web.fireIfUrlOutOfScope(ctx.getCrawlContext(), scopedUrlCtx,
+            Web.fireIfUrlOutOfScope(ctx.getCrawlSession(), scopedUrlCtx,
                     urlScope);
             if (urlScope.isInScope()) {
                 if (LOG.isTraceEnabled()) {
@@ -145,9 +148,10 @@ public class LinkExtractorStage extends AbstractImporterStage {
     }
 
     private Set<Link> extractLinks(WebImporterPipelineContext ctx) {
-        String reference = ctx.getDoc().getDocContext().getReference();
+        String reference = ctx.getDocContext().getReference();
         var extractors =
-                Web.config(ctx.getCrawlContext()).getLinkExtractors();
+                Web.config(ctx.getCrawlSession().getCrawlContext())
+                        .getLinkExtractors();
         if (extractors.isEmpty()) {
             LOG.debug(
                     "No configured link extractor.  No links will be "
@@ -167,8 +171,8 @@ public class LinkExtractorStage extends AbstractImporterStage {
         }
 
         Set<Link> links = new ListOrderedSet<>();
-        var is = ctx.getDoc().getInputStream();
-        var doc = ctx.getDoc();
+        var is = ctx.getDocContext().getDoc().getInputStream();
+        var doc = ctx.getDocContext().getDoc();
         for (LinkExtractor extractor : extractors) {
             try {
                 var extracted = extractor.extractLinks(doc);
@@ -194,16 +198,17 @@ public class LinkExtractorStage extends AbstractImporterStage {
         // i.e., those properly formatted.  If we do so, can it prevent
         // weird/custom URLs that some link extractors may find valid?
         if (uniqueExtractedURLs.add(link.getUrl())) {
-            var newURL = new WebCrawlDocContext(
-                    link.getUrl(), ctx.getDoc().getDocContext().getDepth() + 1);
+            var newURL = new WebCrawlEntry(
+                    link.getUrl(),
+                    ctx.getDocContext().getCurrentCrawlEntry().getDepth() + 1);
             newURL.setReferrerReference(link.getReferrer());
             if (!link.getMetadata().isEmpty()) {
                 newURL.setReferrerLinkMetadata(link.getMetadata().toString());
             }
-            ctx.getCrawlContext()
+            ctx.getCrawlSession().getCrawlContext()
                     .getDocPipelines()
                     .getQueuePipeline()
-                    .accept(new QueuePipelineContext(ctx.getCrawlContext(),
+                    .accept(new QueuePipelineContext(ctx.getCrawlSession(),
                             newURL));
             String afterQueueURL = newURL.getReference();
             if (LOG.isDebugEnabled() && !link.getUrl().equals(afterQueueURL)) {

@@ -1,0 +1,140 @@
+# GitHub Actions Test Strategy for Norconex Crawlers
+#
+# This workflow implements a tiered testing approach:
+# 1. Fast tests: Run on every push/PR (< 1 minute total)
+# 2. Cluster tests: Run on PR and main branch (~ 5 minutes total)
+# 3. Slow tests: Run nightly or on-demand (~ 30+ minutes total)
+
+name: CI Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - fast
+          - cluster
+          - slow
+          - all
+
+jobs:
+  # Job 1: Fast tests - Run on every push
+  fast-tests:
+    name: Fast Tests
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' || 
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'workflow_dispatch' && 
+       (github.event.inputs.test_suite == 'fast' || 
+        github.event.inputs.test_suite == 'all'))
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      
+      - name: Run Fast Tests
+        run: |
+          cd ${{ github.workspace }}
+          # Fast tests run by default (pom.xml excludes cluster,slow)
+          # No need to specify -DexcludedGroups
+          mvn -B test -pl crawler/core
+        continue-on-error: false
+      
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fast-test-results
+          path: |
+            **/target/surefire-reports/
+            **/target/failsafe-reports/
+
+  # Job 2: Cluster tests - Run on PR and main branch pushes
+  cluster-tests:
+    name: Cluster Tests
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'pull_request' || 
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && 
+       (github.event.inputs.test_suite == 'cluster' || 
+        github.event.inputs.test_suite == 'all'))
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      
+      - name: Run Cluster Tests
+        run: |
+          cd ${{ github.workspace }}
+          mvn -B test -pl crawler/core \
+            -Dgroups="cluster" \
+            -DexcludedGroups="slow"
+        continue-on-error: false
+      
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cluster-test-results
+          path: |
+            **/target/surefire-reports/
+            **/target/failsafe-reports/
+
+  # Job 3: Slow tests - Run on schedule or manual trigger
+  slow-tests:
+    name: Slow Tests (E2E)
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && 
+       (github.event.inputs.test_suite == 'slow' || 
+        github.event.inputs.test_suite == 'all'))
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      
+      - name: Run Slow Tests
+        run: |
+          cd ${{ github.workspace }}
+          mvn -B test -pl crawler/core \
+            -Dgroups="slow"
+        continue-on-error: false
+      
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: slow-test-results
+          path: |
+            **/target/surefire-reports/
+            **/target/failsafe-reports/

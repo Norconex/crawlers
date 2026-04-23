@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.nio.charset.Charset;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.doc.DocMetaConstants;
 
+@Timeout(30)
 class CommonAttributesResolverTest {
 
     @Test
@@ -32,9 +34,9 @@ class CommonAttributesResolverTest {
 
         CommonAttributesResolver.resolve(doc);
 
-        assertThat(doc.getDocContext().getCharset()).isEqualTo(
+        assertThat(doc.getCharset()).isEqualTo(
                 Charset.forName("UTF-16LE"));
-        assertThat(doc.getDocContext().getContentType()).isEqualTo(
+        assertThat(doc.getContentType()).isEqualTo(
                 ContentType.PDF);
 
         assertThat(

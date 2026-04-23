@@ -1,4 +1,4 @@
-/* Copyright 2014-2025 Norconex Inc.
+/* Copyright 2014-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@ package com.norconex.crawler.core.doc.pipelines.importer.stages;
 
 import java.util.function.Predicate;
 
-import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
 import com.norconex.crawler.core.doc.pipelines.OnMatchFiltersResolver;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
+import com.norconex.importer.doc.Doc;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,26 +32,29 @@ public class DocumentFiltersStage
     @Override
     public boolean test(ImporterPipelineContext ctx) {
         var filters =
-                ctx.getCrawlContext().getCrawlConfig().getDocumentFilters();
-        var doc = ctx.getDoc();
+                ctx.getCrawlSession().getCrawlContext().getCrawlConfig()
+                        .getDocumentFilters();
+        var doc = ctx.getDocContext().getDoc();
 
         return OnMatchFiltersResolver
-                .<CrawlDoc, DocumentFilter>builder()
+                .<Doc, DocumentFilter>builder()
                 .subject(doc)
                 .filters(filters)
                 .predicate((s, f) -> f.acceptDocument(s))
                 .onRejected((f, msg) -> {
                     LOG.debug("REJECTED document. Reference: {} Filter={}",
-                            doc.getDocContext().getReference(), f);
-                    ctx.getCrawlContext().fire(
-                            CrawlerEvent.builder()
-                                    .name(CrawlerEvent.REJECTED_FILTER)
-                                    .source(ctx.getCrawlContext())
-                                    .docContext(doc.getDocContext())
-                                    .subject(f)
-                                    .message(msg)
-                                    .build());
-                    doc.getDocContext().setState(CrawlDocStatus.REJECTED);
+                            doc.getReference(), f);
+                    ctx.getCrawlSession().fire(CrawlerEvent
+                            .builder()
+                            .name(CrawlerEvent.REJECTED_FILTER)
+                            .crawlSession(ctx.getCrawlSession())
+                            .crawlEntry(
+                                    ctx.getDocContext().getCurrentCrawlEntry())
+                            .source(f)
+                            .message(msg)
+                            .build());
+                    ctx.getDocContext().getCurrentCrawlEntry()
+                            .setProcessingOutcome(ProcessingOutcome.REJECTED);
                 })
                 .build()
                 .isAccepted();

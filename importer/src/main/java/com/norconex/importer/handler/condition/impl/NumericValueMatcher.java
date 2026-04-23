@@ -1,4 +1,4 @@
-/* Copyright 2023-2024 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,10 @@
 package com.norconex.importer.handler.condition.impl;
 
 import static com.norconex.commons.lang.Operator.EQUALS;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import java.util.function.Predicate;
+
+import org.apache.commons.lang3.ObjectUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -44,7 +45,7 @@ public class NumericValueMatcher //NOSONAR we want to support null
         if (number == null) {
             return false;
         }
-        var op = defaultIfNull(operator, EQUALS);
+        var op = ObjectUtils.getIfNull(operator, EQUALS);
         return op.evaluate(number, this.number);
     }
 }

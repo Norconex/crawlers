@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2024-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,17 @@ import java.util.function.Supplier;
 
 import com.norconex.crawler.core.CrawlDriver;
 import com.norconex.crawler.core.CrawlDriver.FetchDriver;
-import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.ledger.DocLedgerBootstrapper;
+import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.ledger.CrawlEntryLedgerBootstrapper;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.QueueBootstrapper;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.RefFileEnqueuer;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.RefListEnqueuer;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.RefProviderEnqueuer;
 import com.norconex.crawler.web.callbacks.WebCrawlerCallbacks;
-import com.norconex.crawler.web.doc.WebCrawlDocContext;
 import com.norconex.crawler.web.doc.pipelines.WebDocPipelines;
 import com.norconex.crawler.web.doc.pipelines.queue.SitemapEnqueuer;
 import com.norconex.crawler.web.fetch.AggregatedWebFetchResponse;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetchResponse;
+import com.norconex.crawler.web.ledger.WebCrawlEntry;
 
 public class WebCrawlDriverFactory implements Supplier<CrawlDriver> {
 
@@ -42,27 +42,29 @@ public class WebCrawlDriverFactory implements Supplier<CrawlDriver> {
         return CrawlDriver.builder()
                 .fetchDriver(createFetchDriver())
                 .bootstrappers(List.of(
-                        new DocLedgerBootstrapper(),
+                        new CrawlEntryLedgerBootstrapper(),
                         new QueueBootstrapper(List.of(
                                 new SitemapEnqueuer(),
                                 new RefListEnqueuer(),
                                 new RefFileEnqueuer(),
                                 new RefProviderEnqueuer()))))
-                .crawlerConfigClass(WebCrawlerConfig.class)
+                .crawlerConfigClass(WebCrawlConfig.class)
                 .callbacks(WebCrawlerCallbacks.get())
                 .docPipelines(WebDocPipelines.create())
-                .docContextType(WebCrawlDocContext.class)
+                .crawlEntryType(WebCrawlEntry.class)
                 .build();
     }
 
     private static FetchDriver createFetchDriver() {
         return new FetchDriver()
                 .responseAggregator(
-                        (req, resps) -> new AggregatedWebFetchResponse(resps))
+                        (req, resps) -> new AggregatedWebFetchResponse(
+                                resps))
                 .unsuccesfulResponseFactory(
                         (state, msg, e) -> HttpClientFetchResponse
                                 .builder()
-                                .resolutionStatus(state)
+                                .processingOutcome(
+                                        state)
                                 .reasonPhrase(msg)
                                 .exception(e)
                                 .statusCode(-1)

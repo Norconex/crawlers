@@ -1,4 +1,4 @@
-/* Copyright 2014-2025 Norconex Inc.
+/* Copyright 2014-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,13 @@ import com.norconex.importer.doc.DocMetaConstants;
  * @see DocMetaConstants
  */
 public final class CrawlDocMetaConstants {
+
+    //TODO MAYBE: have constants a construct instead, which could
+    // have a formal name, and a way to parse each property received
+    // to see if it fits.  We could put a listener on the metadata Properties
+    // so this formal ones are updated on the fly.
+    // Best to have a MetadataRegistry.  We'll need to distinguish between
+    // formal metadata and ad-hoc ones (metadata vs properties maybe)?
 
     //TODO use the same prefix for both crawler and importer...
     // all "document." ? In any case, no longer make it "collector."

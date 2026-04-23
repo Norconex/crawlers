@@ -1,4 +1,4 @@
-/* Copyright 2019-2025 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ public class CliRunner implements Runnable {
     @Override
     public void run() {
         if (version) {
-            spec.commandLine().getOut().println(About.about(null));
+            spec.commandLine().getOut().println("\n" + About.about(null));
         }
     }
 }

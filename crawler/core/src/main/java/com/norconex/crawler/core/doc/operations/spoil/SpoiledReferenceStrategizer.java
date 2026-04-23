@@ -1,4 +1,4 @@
-/* Copyright 2015-2025 Norconex Inc.
+/* Copyright 2015-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.doc.operations.spoil;
 
-import com.norconex.crawler.core.doc.CrawlDocStatus;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 /**
  * <p>
@@ -28,7 +28,7 @@ import com.norconex.crawler.core.doc.CrawlDocStatus;
  * <p>
  * A "bad" state is any state but <code>NEW</code>, <code>MODIFIED</code>,
  * and <code>UNMODIFIED</code>. These statuses never have to be resolved.
- * A complete list of statuses can be obtained from {@link CrawlDocStatus}
+ * A complete list of statuses can be obtained from {@link ProcessingOutcome}
  * or a subclass.
  * </p>
  * <p>
@@ -42,9 +42,9 @@ public interface SpoiledReferenceStrategizer {
     /**
      * Establish which spoiled reference strategy to adopt.
      * @param reference a document reference
-     * @param state the reference crawl state to evaluate
+     * @param processingOutcome the processing outcome to evaluate
      * @return a spoiled reference strategy
      */
     SpoiledReferenceStrategy resolveSpoiledReferenceStrategy(
-            String reference, CrawlDocStatus state);
+            String reference, ProcessingOutcome processingOutcome);
 }

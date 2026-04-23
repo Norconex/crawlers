@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2024-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,20 +20,21 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import org.apache.commons.io.input.BrokenInputStream;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.io.CachedInputStream;
-import com.norconex.crawler.core.doc.CrawlDoc;
 import com.norconex.crawler.core.fetch.BaseFetcherConfig;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.FolderPathsFetchRequest;
 import com.norconex.crawler.fs.stubs.CrawlDocStubs;
-import com.norconex.importer.doc.DocContext;
+import com.norconex.importer.doc.Doc;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Timeout(30)
 class AbstractVfsFetcherTest {
 
     @Test
@@ -69,7 +70,7 @@ class AbstractVfsFetcherTest {
         assertThatExceptionOfType(FetchException.class).isThrownBy( //NOSONAR
                 () -> {
                     fetcher.fetch(new FolderPathsFetchRequest(
-                            new CrawlDoc(new DocContext("i/dont/exist"))));
+                            new Doc("i/dont/exist")));
                 }).withMessageContaining("Could not fetch child paths of:");
     }
 
@@ -96,10 +97,12 @@ class AbstractVfsFetcherTest {
                 FetchDirective.DOCUMENT);
     }
 
+    @SuppressWarnings("resource")
     private FileFetchRequest mockFailingRequest() {
         return new FileFetchRequest(
-                new CrawlDoc(new DocContext("ref"),
-                        CachedInputStream.cache(BrokenInputStream.INSTANCE)),
+                new Doc("ref")
+                        .setInputStream(CachedInputStream.cache(
+                                BrokenInputStream.INSTANCE)),
                 FetchDirective.DOCUMENT);
     }
 

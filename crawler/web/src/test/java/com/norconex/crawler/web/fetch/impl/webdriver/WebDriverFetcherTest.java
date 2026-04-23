@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2024-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,15 @@ package com.norconex.crawler.web.fetch.impl.webdriver;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.doc.CrawlDocStatus;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.web.fetch.WebFetchRequest;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
 
+@Timeout(30)
 class WebDriverFetcherTest {
 
     @Test
@@ -33,8 +35,8 @@ class WebDriverFetcherTest {
                         CrawlDocStubs.crawlDocHtml("http://example.com"),
                         HttpMethod.HEAD));
         assertThat(response.getReasonPhrase()).contains("To obtain headers");
-        assertThat(response.getResolutionStatus()).isEqualTo(
-                CrawlDocStatus.UNSUPPORTED);
+        assertThat(response.getProcessingOutcome()).isEqualTo(
+                ProcessingOutcome.UNSUPPORTED);
     }
 
 }

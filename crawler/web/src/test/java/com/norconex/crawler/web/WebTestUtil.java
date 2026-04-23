@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,6 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
@@ -63,6 +61,8 @@ import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.Crawler;
+import com.norconex.crawler.core.cluster.ClusterConnector;
+import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
 import com.norconex.crawler.core.doc.operations.DocumentConsumer;
 import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
@@ -78,7 +78,6 @@ import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategize
 import com.norconex.crawler.core.doc.operations.spoil.impl.GenericSpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.web.cases.recovery.TestCommitter;
 import com.norconex.crawler.web.doc.operations.canon.CanonicalLinkDetector;
 import com.norconex.crawler.web.doc.operations.canon.impl.GenericCanonicalLinkDetector;
 import com.norconex.crawler.web.doc.operations.checksum.impl.LastModifiedMetadataChecksummer;
@@ -106,21 +105,15 @@ import com.norconex.crawler.web.fetch.impl.httpclient.HttpAuthMethod;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcherConfig;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcherConfig.CookieSpec;
-import com.norconex.grid.core.Grid;
-import com.norconex.grid.core.GridConnector;
-import com.norconex.grid.core.storage.GridMap;
 import com.norconex.importer.ImporterConfig;
 import com.norconex.importer.doc.Doc;
 
 import lombok.NonNull;
-import lombok.SneakyThrows;
 
 public final class WebTestUtil {
 
     public static final String TEST_CRAWLER_ID = "test-crawler";
     public static final String TEST_CRAWL_SESSION_ID = "test-session";
-    public static final String TEST_COMMITER_DIR = "committer-test";
-
     public static final EasyRandom RANDOMIZER = createRandomizer();
 
     public static <T> T randomize(Class<T> cls) {
@@ -148,7 +141,8 @@ public final class WebTestUtil {
      * @param config crawler config
      * @return Memory committer
      */
-    public static MemoryCommitter memoryCommitter(@NonNull CrawlConfig config) {
+    public static MemoryCommitter
+            memoryCommitter(@NonNull CrawlConfig config) {
         return (MemoryCommitter) config
                 .getCommitters()
                 .stream()
@@ -157,42 +151,8 @@ public final class WebTestUtil {
                 .orElse(null);
     }
 
-    /**
-     * Gets the first {@link TestCommitter} encountered from all registered
-     * committers, or null if there are none.
-     * @param config crawler config
-     * @return Test committer
-     */
-    public static TestCommitter getTestCommitter(@NonNull CrawlConfig config) {
-        return (TestCommitter) config
-                .getCommitters()
-                .stream()
-                .filter(TestCommitter.class::isInstance)
-                .findFirst()
-                .orElse(null);
-    }
-
-    /**
-     * Adds a new {@link TestCommitter} to a configuration if none already
-     * exist. Calling this method on the same config more than once has no
-     * effect.
-     * @param cfg crawler config
-     */
-    @SneakyThrows
-    public static void addTestCommitterOnce(@NonNull CrawlConfig cfg) {
-        if (cfg.getCommitters().isEmpty() || cfg.getCommitters()
-                .stream()
-                .noneMatch(TestCommitter.class::isInstance)) {
-            var committer = new TestCommitter(
-                    cfg.getWorkDir().resolve(TEST_COMMITER_DIR));
-            committer.init(null);
-            List<Committer> committers = new ArrayList<>(cfg.getCommitters());
-            committers.add(committer);
-            cfg.setCommitters(committers);
-        }
-    }
-
-    public static HttpClientFetcher firstHttpFetcher(@NonNull Crawler crawler) {
+    public static HttpClientFetcher
+            firstHttpFetcher(@NonNull Crawler crawler) {
         return (HttpClientFetcher) crawler
                 .getCrawlConfig()
                 .getFetchers()
@@ -248,10 +208,10 @@ public final class WebTestUtil {
 
     public static void ignoreAllIgnorables(Crawler crawler) {
         ignoreAllIgnorables(
-                (WebCrawlerConfig) crawler.getCrawlConfig());
+                (WebCrawlConfig) crawler.getCrawlConfig());
     }
 
-    public static void ignoreAllIgnorables(WebCrawlerConfig config) {
+    public static void ignoreAllIgnorables(WebCrawlConfig config) {
         config.setCanonicalLinkDetector(null)
                 .setRobotsMetaProvider(null)
                 .setRobotsTxtProvider(null)
@@ -340,23 +300,27 @@ public final class WebTestUtil {
                                 100).getRandomValue()))
                 .randomize(
                         Long.class,
-                        () -> Math.abs(new LongRandomizer().getRandomValue()))
+                        () -> Math.abs(new LongRandomizer()
+                                .getRandomValue()))
                 .randomize(
                         Integer.class,
                         () -> Math.abs(
-                                new IntegerRandomizer().getRandomValue()))
+                                new IntegerRandomizer()
+                                        .getRandomValue()))
                 .randomize(ImporterConfig.class,
                         ImporterConfig::new)
                 .randomize(
                         UpsertRequest.class,
                         () -> new UpsertRequest(
-                                new StringRandomizer(100).getRandomValue(),
+                                new StringRandomizer(
+                                        100).getRandomValue(),
                                 new Properties(),
                                 new NullInputStream()))
                 .randomize(
                         DeleteRequest.class,
                         () -> new DeleteRequest(
-                                new StringRandomizer(100).getRandomValue(),
+                                new StringRandomizer(
+                                        100).getRandomValue(),
                                 new Properties()))
                 .randomize(Committer.class,
                         MemoryCommitter::new)
@@ -366,7 +330,8 @@ public final class WebTestUtil {
                 .randomize(
                         AtomicBoolean.class,
                         () -> new AtomicBoolean(
-                                new BooleanRandomizer().getRandomValue()))
+                                new BooleanRandomizer()
+                                        .getRandomValue()))
                 .randomize(
                         UrlScopeResolver.class,
                         GenericUrlScopeResolver::new)
@@ -410,10 +375,9 @@ public final class WebTestUtil {
                 .randomize(
                         DocumentChecksummer.class,
                         Md5DocumentChecksummer::new)
+                .randomize(ClusterConnector.class,
+                        randomInstanceOf(HazelcastClusterConnector.class))
 
-                .excludeType(Grid.class::equals)
-                .excludeType(GridMap.class::equals)
-                .excludeType(GridConnector.class::equals)
                 .excludeType(SitemapResolver.class::equals)
                 .excludeType(DocumentConsumer.class::equals)
                 .excludeType(FeaturedImageResolver.class::equals)
@@ -423,19 +387,25 @@ public final class WebTestUtil {
                 .excludeType(Class.class::equals)
                 .excludeType(HttpClientFetcherConfig.class::equals)
 
-                .randomize(Charset.class, () -> StandardCharsets.UTF_8)
+                .randomize(Charset.class,
+                        () -> StandardCharsets.UTF_8)
                 .randomize(CircularRange.class, () -> {
-                    int a = new NumberRandomizer().getRandomValue();
-                    int b = new NumberRandomizer().getRandomValue();
+                    int a = new NumberRandomizer()
+                            .getRandomValue();
+                    int b = new NumberRandomizer()
+                            .getRandomValue();
                     return CircularRange.between(
-                            Math.min(a, b), Math.max(a, b));
+                            Math.min(a, b),
+                            Math.max(a, b));
                 })
                 .randomize(
                         CachedInputStream.class,
                         CachedInputStream::nullInputStream)
-                .randomize(Fetcher.class, HttpClientFetcher::new)
+                .randomize(Fetcher.class,
+                        HttpClientFetcher::new)
                 .randomize(
-                        RobotsTxtProvider.class, StandardRobotsTxtProvider::new)
+                        RobotsTxtProvider.class,
+                        StandardRobotsTxtProvider::new)
                 .randomize(
                         Pattern.class,
                         () -> Pattern.compile(
@@ -449,16 +419,21 @@ public final class WebTestUtil {
                 })
                 .randomize(DomLinkExtractor.class, () -> {
                     var extractor = new DomLinkExtractor();
-                    extractor.getConfiguration().addLinkSelector("text");
+                    extractor.getConfiguration()
+                            .addLinkSelector(
+                                    "text");
                     return extractor;
                 })
                 .randomize(LinkExtractor.class, () -> {
                     var extractor = new DomLinkExtractor();
-                    extractor.getConfiguration().addLinkSelector("text");
+                    extractor.getConfiguration()
+                            .addLinkSelector(
+                                    "text");
                     return extractor;
                 })
                 .randomize(
-                        f -> "cookieSpec".equals(f.getName()),
+                        f -> "cookieSpec".equals(
+                                f.getName()),
                         () -> CookieSpec.STRICT)
                 .randomize(
                         named(HttpAuthConfig.Fields.method)

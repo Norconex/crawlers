@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,22 +27,23 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.impl.StandardFileSystemManager;
 import org.apache.commons.vfs2.provider.local.LocalFile;
 
+import com.norconex.commons.lang.file.ContentType;
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.doc.CrawlDoc;
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.BaseFetcherConfig;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.FetchResponse;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.fs.doc.FsDocMetadata;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.FileFetchResponse;
 import com.norconex.crawler.fs.fetch.FolderPathsFetchRequest;
 import com.norconex.crawler.fs.fetch.FolderPathsFetchResponse;
 import com.norconex.crawler.fs.fetch.FsPath;
+import com.norconex.importer.doc.Doc;
 import com.norconex.importer.doc.DocMetaConstants;
 
 import lombok.AccessLevel;
@@ -74,7 +75,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
     private FileSystemOptions fsOptions;
 
     @Override
-    protected void fetcherStartup(CrawlContext crawler) {
+    protected void fetcherStartup(CrawlSession crawler) {
         try {
             fsManager = new StandardFileSystemManager();
             fsManager.setClassLoader(getClass().getClassLoader());
@@ -89,7 +90,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
     }
 
     @Override
-    protected void fetcherShutdown(CrawlContext crawler) {
+    protected void fetcherShutdown(CrawlSession crawler) {
         if (fsManager != null) {
             fsManager.close();
         }
@@ -122,13 +123,14 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
         // obtained from having both META and BODY request types)
 
         var ref = doc.getReference();
+        var vfsRef = normalizeReferenceForVfs(ref);
         try {
             var fileObject = fsManager.resolveFile(
-                    FileFetchUtil.uriEncodeLocalPath(ref), fsOptions);
+                    FileFetchUtil.uriEncodeLocalPath(vfsRef), fsOptions);
 
             if (fileObject == null || !fileObject.exists()) {
                 return GenericFileFetchResponse.builder()
-                        .resolutionStatus(CrawlDocStatus.NOT_FOUND)
+                        .processingOutcome(ProcessingOutcome.NOT_FOUND)
                         .build();
             }
 
@@ -144,7 +146,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
             //TODO set status if not found or whatever bad state
 
             return GenericFileFetchResponse.builder()
-                    .resolutionStatus(CrawlDocStatus.NEW)
+                    .processingOutcome(ProcessingOutcome.NEW)
                     .file(fileObject.isFile())
                     .folder(fileObject.isFolder())
                     .build();
@@ -160,9 +162,10 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
     protected FolderPathsFetchResponse fetchChildPaths(
             FolderPathsFetchRequest req) throws FetchException {
         var parentPath = req.getDoc().getReference();
+        var vfsParentPath = normalizeReferenceForVfs(parentPath);
         try {
             var fileObject = fsManager.resolveFile(
-                    FileFetchUtil.uriEncodeLocalPath(parentPath), fsOptions);
+                    FileFetchUtil.uriEncodeLocalPath(vfsParentPath), fsOptions);
             Set<FsPath> childPaths = new HashSet<>();
             for (var childPath : fileObject.getChildren()) {
 
@@ -180,7 +183,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
             }
             return GenericFolderPathsFetchResponse.builder()
                     //TODO shall we care to put a real state here?
-                    .resolutionStatus(CrawlDocStatus.NEW)
+                    .processingOutcome(ProcessingOutcome.NEW)
                     .childPaths(childPaths)
                     .build();
         } catch (FileSystemException e) {
@@ -189,13 +192,37 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
         }
     }
 
+    private String normalizeReferenceForVfs(String reference) {
+        if (reference == null) {
+            return null;
+        }
+        if (requiresVirtualRootSuffix(reference) && !reference.contains("!")) {
+            return reference + "!/";
+        }
+        return reference;
+    }
+
+    private boolean requiresVirtualRootSuffix(String reference) {
+        return reference.regionMatches(true, 0, "cmis:", 0, 5)
+                || reference.regionMatches(true, 0, "bzip2:", 0, 6)
+                || reference.regionMatches(true, 0, "bz2:", 0, 4)
+                || reference.regionMatches(true, 0, "gzip:", 0, 5)
+                || reference.regionMatches(true, 0, "gz:", 0, 3)
+                || reference.regionMatches(true, 0, "jar:", 0, 4)
+                || reference.regionMatches(true, 0, "mime:", 0, 5)
+                || reference.regionMatches(true, 0, "tar:", 0, 4)
+                || reference.regionMatches(true, 0, "tgz:", 0, 4)
+                || reference.regionMatches(true, 0, "tbz2:", 0, 5)
+                || reference.regionMatches(true, 0, "zip:", 0, 4);
+    }
+
     /**
      * Applies options specific to this Commons VFS implementations.
      * @param opts file system options
      */
     protected abstract void applyFileSystemOptions(FileSystemOptions opts);
 
-    protected void fetchMetadata(CrawlDoc doc, @NonNull FileObject fileObject)
+    protected void fetchMetadata(Doc doc, @NonNull FileObject fileObject)
             throws FileSystemException {
 
         var content = fileObject.getContent();
@@ -208,6 +235,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
             meta.set(DocMetaConstants.CONTENT_ENCODING,
                     info.getContentEncoding());
             meta.set(DocMetaConstants.CONTENT_TYPE, info.getContentType());
+            doc.setContentType(ContentType.valueOf(info.getContentType()));
         }
         content.getAttributes().forEach((k, v) -> {
             if (v != null) {
@@ -222,7 +250,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
         meta.set(PREFIX + "writable", fileObject.isWriteable());
     }
 
-    protected boolean fetchContent(CrawlDoc doc, @NonNull FileObject fileObject)
+    protected boolean fetchContent(Doc doc, @NonNull FileObject fileObject)
             throws IOException {
         var content = fileObject.getContent();
         if (content == null) {

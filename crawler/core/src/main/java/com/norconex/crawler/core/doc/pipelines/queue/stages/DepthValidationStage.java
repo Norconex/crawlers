@@ -1,4 +1,4 @@
-/* Copyright 2010-2025 Norconex Inc.
+/* Copyright 2010-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@ package com.norconex.crawler.core.doc.pipelines.queue.stages;
 
 import java.util.function.Predicate;
 
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,21 +27,20 @@ public class DepthValidationStage implements Predicate<QueuePipelineContext> {
 
     @Override
     public boolean test(QueuePipelineContext ctx) {
-        var cfg = ctx.getCrawlContext().getCrawlConfig();
-        var docCtx = ctx.getDocContext();
+        var cfg = ctx.getCrawlSession().getCrawlContext().getCrawlConfig();
+        var entry = ctx.getCrawlEntry();
 
-        if (cfg.getMaxDepth() >= 0 && docCtx.getDepth() > cfg.getMaxDepth()) {
-            LOG.debug(
-                    "URL too deep to process ({}): {}",
-                    docCtx.getDepth(),
-                    docCtx.getReference());
-            docCtx.setState(CrawlDocStatus.TOO_DEEP);
-            ctx.getCrawlContext().fire(
+        if (cfg.getMaxDepth() >= 0 && entry.getDepth() > cfg.getMaxDepth()) {
+            LOG.debug("URL too deep to process ({}): {}",
+                    entry.getDepth(),
+                    entry.getReference());
+            entry.setProcessingOutcome(ProcessingOutcome.TOO_DEEP);
+            ctx.getCrawlSession().fire(
                     CrawlerEvent.builder()
                             .name(CrawlerEvent.REJECTED_TOO_DEEP)
-                            .source(ctx.getCrawlContext())
-                            .subject(docCtx.getDepth())
-                            .docContext(docCtx)
+                            .crawlSession(ctx.getCrawlSession())
+                            .source(entry.getDepth())
+                            .crawlEntry(entry)
                             .build());
             return false;
         }

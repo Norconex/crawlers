@@ -1,4 +1,4 @@
-/* Copyright 2025 Norconex Inc.
+/* Copyright 2025-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,40 +14,19 @@
  */
 package com.norconex.crawler.core.cmd.crawl.pipeline;
 
-import java.util.List;
-import java.util.Optional;
+import com.norconex.crawler.core.cluster.pipeline.Pipeline;
+import com.norconex.crawler.core.session.CrawlSession;
 
-import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapTask;
-import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessTask;
-import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessTask.ProcessQueueAction;
-import com.norconex.crawler.core.session.CrawlContext;
-import com.norconex.grid.core.compute.GridPipeline;
-import com.norconex.grid.core.compute.Stage;
+/**
+ * Creator of a crawl pipeline, the principal flow of a crawler.
+ */
+@FunctionalInterface
+public interface CrawlPipelineFactory {
 
-public final class CrawlPipelineFactory {
-
-    private CrawlPipelineFactory() {
-    }
-
-    public static GridPipeline create(CrawlContext ctx) {
-        return new GridPipeline("crawlPipeline", List.of(
-
-                // Prepare for crawling (on one)
-                new Stage(new CrawlBootstrapTask("crawlBootstrapTask"))
-                        .withAlways(true),
-
-                // Crawl (on all)
-                new Stage(new CrawlProcessTask(
-                        "crawlMainProcessTask", ProcessQueueAction.CRAWL_ALL)),
-
-                // Resolve orphans (on one)
-                new Stage(new CrawlHandleOrphansTask("crawlHandleOrphansTask")),
-
-                // Crawl/delete orphans (on all)
-                new Stage((grid, prev) -> Optional.ofNullable(prev.getResult())
-                        .map(ProcessQueueAction.class::cast)
-                        .map(action -> new CrawlProcessTask(
-                                "crawlOrphanTask" + action, action))
-                        .orElse(null))));
-    }
+    /**
+     * Create a crawler pipeline
+     * @param session initialized crawl session
+     * @return crawl pipeline
+     */
+    Pipeline create(CrawlSession session);
 }

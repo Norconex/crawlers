@@ -1,4 +1,4 @@
-/* Copyright 2022-2024 Norconex Inc.
+/* Copyright 2022-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  */
 package com.norconex.crawler.core.fetch;
 
-import com.norconex.crawler.core.doc.CrawlDoc;
+import com.norconex.importer.doc.Doc;
 
 /**
  * Fetch request.
  */
 public interface FetchRequest {
 
-    CrawlDoc getDoc();
+    Doc getDoc();
 
 }

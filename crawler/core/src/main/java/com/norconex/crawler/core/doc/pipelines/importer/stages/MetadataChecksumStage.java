@@ -1,4 +1,4 @@
-/* Copyright 2010-2025 Norconex Inc.
+/* Copyright 2010-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@ package com.norconex.crawler.core.doc.pipelines.importer.stages;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.crawler.core.doc.CrawlDocStatus;
 import com.norconex.crawler.core.doc.pipelines.ChecksumStageUtil;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchDirective;
+import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.NonNull;
 
@@ -42,32 +42,33 @@ public class MetadataChecksumStage extends AbstractImporterStage {
             return true;
         }
 
-        var check = ctx.getCrawlContext().getCrawlConfig()
+        var check = ctx.getCrawlSession().getCrawlContext().getCrawlConfig()
                 .getMetadataChecksummer();
         if (check == null) {
             // NEW is default state (?)
-            ctx.getDoc().getDocContext().setState(CrawlDocStatus.NEW);
+            ctx.getDocContext().getCurrentCrawlEntry()
+                    .setProcessingOutcome(ProcessingOutcome.NEW);
             return true;
         }
-        var headers = ctx.getDoc().getMetadata();
+        var doc = ctx.getDocContext().getDoc();
+        var headers = doc.getMetadata();
         var newHeadChecksum = check.createMetadataChecksum(headers);
 
         var accepted = ChecksumStageUtil.resolveMetaChecksum(
-                newHeadChecksum, ctx.getDoc());
+                newHeadChecksum, ctx.getDocContext());
         if (!accepted) {
             var s = new StringBuilder()
                     .append(check.getClass().getSimpleName())
                     .append(" - ")
                     .append("Checksum=")
                     .append(StringUtils.abbreviate(newHeadChecksum, 200));
-            ctx.getCrawlContext().fire(
-                    CrawlerEvent.builder()
-                            .name(CrawlerEvent.REJECTED_UNMODIFIED)
-                            .source(ctx.getCrawlContext())
-                            .docContext(ctx.getDoc().getDocContext())
-                            .subject(check)
-                            .message(s.toString())
-                            .build());
+            ctx.getCrawlSession().fire(CrawlerEvent.builder()
+                    .name(CrawlerEvent.REJECTED_UNMODIFIED)
+                    .crawlSession(ctx.getCrawlSession())
+                    .crawlEntry(ctx.getDocContext().getCurrentCrawlEntry())
+                    .source(check)
+                    .message(s.toString())
+                    .build());
         }
         return accepted;
     }

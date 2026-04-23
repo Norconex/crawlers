@@ -1,4 +1,4 @@
-/* Copyright 2017-2024 Norconex Inc.
+/* Copyright 2017-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,9 +34,9 @@ import java.util.regex.Pattern;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.help.HelpFormatter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -307,8 +307,12 @@ public class ExternalApp {
         } catch (ParseException e) {
             System.err.println("A problem occured while parsing arguments.");
             e.printStackTrace(System.err);
-            var formatter = new HelpFormatter();
-            formatter.printHelp("Optional arguments:", options);
+            var formatter = HelpFormatter.builder().get();
+            try {
+                formatter.printOptions(options);
+            } catch (IOException e1) {
+                e1.printStackTrace(System.err);
+            }
             System.exit(-1);
         }
         return cmd;

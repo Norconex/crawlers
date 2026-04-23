@@ -1,4 +1,4 @@
-/* Copyright 2020-2025 Norconex Inc.
+/* Copyright 2020-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,7 +128,8 @@ public class XmlStreamSplitter
     public void split(DocHandlerContext docCtx) throws IOException {
 
         if (!MatchUtil.matchesContentType(
-                configuration.getContentTypeMatcher(), docCtx.docContext())) {
+                configuration.getContentTypeMatcher(), docCtx.contentType())) {
+            return;
         }
 
         if (configuration.getFieldMatcher().isSet()) {
@@ -223,16 +224,15 @@ public class XmlStreamSplitter
                         var childMeta = new Properties();
                         childMeta.loadFromMap(xmlDoc.metadata());
                         var embedRef = Integer.toString(splitDocs.size());
+                        @SuppressWarnings("resource")
                         var childDoc = new Doc(
-                                xmlDoc.reference() + "!" + embedRef,
-                                out.getInputStream(),
-                                childMeta);
+                                xmlDoc.reference() + "!" + embedRef)
+                                        .setInputStream(out.getInputStream())
+                                        .setMetadata(childMeta);
                         w.close();
                         out = null;
                         w = null;
-                        var childInfo = childDoc.getDocContext();
-                        childInfo.addEmbeddedParentReference(
-                                xmlDoc.reference());
+                        childDoc.addParentReference(xmlDoc.reference());
                         childMeta.set(
                                 DocMetaConstants.EMBEDDED_REFERENCE, embedRef);
                         splitDocs.add(childDoc);

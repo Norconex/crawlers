@@ -1,4 +1,4 @@
-/* Copyright 2019-2025 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,23 +25,25 @@ import java.util.Set;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.crawler.web.WebCrawlerConfig;
-import com.norconex.crawler.web.WebCrawlerConfig.ReferencedLinkType;
+import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlConfig.ReferencedLinkType;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.importer.doc.DocMetaConstants;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * The final URL of a redirect should be stored so relative links in it
  * are relative to final URL, not the first.  Github issue #17.
  */
 @MockServerSettings
+@Timeout(30)
 class RedirectRelativeLinksTest {
 
     @WebCrawlTest
     void testRedirectRelativeLinks(
-            ClientAndServer client, WebCrawlerConfig cfg) {
+            ClientAndServer client, WebCrawlConfig cfg) {
         var basePath = "/redirectRelativeLinks";
         var homePath = basePath + "/home.html";
         var finalPath = basePath + "/final/target.html";

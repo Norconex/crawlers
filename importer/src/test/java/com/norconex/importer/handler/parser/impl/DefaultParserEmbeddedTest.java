@@ -1,4 +1,4 @@
-/* Copyright 2014-2024 Norconex Inc.
+/* Copyright 2014-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.importer.Importer;
@@ -36,6 +37,7 @@ import com.norconex.importer.ImporterRequest;
 import com.norconex.importer.TestUtil;
 import com.norconex.importer.response.ImporterResponse;
 
+@Timeout(30)
 class DefaultParserEmbeddedTest {
 
     private static final String ZIP = "application/zip";
@@ -189,8 +191,7 @@ class DefaultParserEmbeddedTest {
 
         // the only content type must be zip
         Assertions.assertEquals(
-                ZIP, zipResponse.getDoc()
-                        .getDocContext().getContentType().toString(),
+                ZIP, zipResponse.getDoc().getContentType().toString(),
                 "Must be zip content type.");
 
         ParseAssertions.assertThat(zipResponse)
@@ -230,8 +231,7 @@ class DefaultParserEmbeddedTest {
 
         // the only content type must be zip
         Assertions.assertEquals(
-                ZIP, zipResponse.getDoc()
-                        .getDocContext().getContentType().toString(),
+                ZIP, zipResponse.getDoc().getContentType().toString(),
                 "Must be zip content type.");
 
         var content = IOUtils.toString(
@@ -448,8 +448,7 @@ class DefaultParserEmbeddedTest {
 
     private ImporterResponse findResponse(
             ImporterResponse response, String contentType) {
-        if (response.getDoc().getDocContext()
-                .getContentType().toString().equals(contentType)) {
+        if (response.getDoc().getContentType().toString().equals(contentType)) {
             return response;
         }
         var childResponses = response.getNestedResponses();

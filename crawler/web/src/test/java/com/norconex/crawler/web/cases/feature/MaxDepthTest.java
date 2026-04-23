@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,20 +22,24 @@ import java.util.List;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
+import org.junit.jupiter.api.Timeout;
 
 /**
  * Test that MaxDepth setting is respected.
  */
 @MockServerSettings
+@Timeout(30)
 class MaxDepthTest {
 
+    private static final int SITE_DEPTH = 20;
+
     @WebCrawlTest
-    void testMaxDepth(ClientAndServer client, WebCrawlerConfig cfg) {
-        MockWebsite.whenInfiniteDepth(client);
+    void testMaxDepth(ClientAndServer client, WebCrawlConfig cfg) {
+        MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 
         cfg.setStartReferences(
                 List.of(serverUrl(client, "/maxDepth/0000")));

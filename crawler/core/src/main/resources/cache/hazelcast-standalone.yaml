@@ -1,0 +1,148 @@
+#-------------------------------------------------------------------------------
+# Copyright 2026 Norconex Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#-------------------------------------------------------------------------------
+
+# yaml-language-server: $schema=./hazelcast-config-5.6.json
+
+# Hazelcast Standalone Configuration
+#
+# The {workDir} variable is substituted for the "workDir" specified in 
+# the crawler config.
+hazelcast:
+  cluster-name: standalone-crawler
+
+  data-connection:
+    jdbc-datasource:
+      type: JDBC
+      properties:
+        jdbcUrl: jdbc:h2:file:${workDir}/db;DB_CLOSE_DELAY=-1
+        username: sa
+        password: ""
+        maximumPoolSize: 10
+      shared: true  
+  
+  jet:
+    enabled: true
+      
+  network:
+    port:
+      # was: 5701
+      #port: 0
+      auto-increment: true
+    join:
+      multicast:
+        enabled: false
+      tcp-ip:
+        enabled: false
+
+  # Map configurations
+  map:
+    default:
+      backup-count: 0
+      map-store:
+        enabled: true
+        initial-mode: LAZY
+        write-delay-seconds: 0
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
+        properties:
+          data-connection-ref: jdbc-datasource
+          column-key-type: VARCHAR(4096)
+          column-value-type: TEXT
+          sql-merge: |
+            MERGE INTO "{tableName}" (k, v)
+            KEY(k)
+            VALUES (?, ?)
+
+    pipeCurrentStep:
+      backup-count: 0
+      map-store:
+        enabled: true
+        initial-mode: LAZY
+        write-delay-seconds: 0
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
+        properties:
+          # Avoid remote type registry lookups from partition-operation threads.
+          value-class-name: com.norconex.crawler.core.cluster.pipeline.StepRecord
+          data-connection-ref: jdbc-datasource
+          column-key-type: VARCHAR(4096)
+          column-value-type: TEXT
+          sql-merge: |
+            MERGE INTO "{tableName}" (k, v)
+            KEY(k)
+            VALUES (?, ?)
+
+    pipeWorkerStatuses:
+      backup-count: 0
+      map-store:
+        enabled: true
+        initial-mode: LAZY
+        write-delay-seconds: 0
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
+        properties:
+          # Avoid remote type registry lookups from partition-operation threads.
+          value-class-name: com.norconex.crawler.core.cluster.pipeline.StepRecord
+          data-connection-ref: jdbc-datasource
+          column-key-type: VARCHAR(4096)
+          column-value-type: TEXT
+          sql-merge: |
+            MERGE INTO "{tableName}" (k, v)
+            KEY(k)
+            VALUES (?, ?)
+
+    ledger_*:
+      backup-count: 0
+      map-store:
+        enabled: true
+        initial-mode: LAZY
+        write-delay-seconds: 0
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory
+        properties:
+          # Base type for the ledger value. If a more specific subtype is
+          # registered in the runtime type registry, that subtype takes
+          # precedence (see TypedJdbcMapStoreFactory.resolveValueClass).
+          value-class-name: com.norconex.crawler.core.ledger.CrawlEntry
+          data-connection-ref: jdbc-datasource
+          column-key-type: VARCHAR(4096)
+          column-value-type: TEXT
+          sql-merge: |
+            MERGE INTO "{tableName}" (k, v)
+            KEY(k)
+            VALUES (?, ?)
+
+    eph-*:
+      backup-count: 0
+      map-store:
+        enabled: false
+
+
+  # Queue configurations
+  queue:
+    # Configure distributed FIFO queues matching "queue-*" names. Values
+    # are persisted as strings (VARCHAR) so JSON-serialized objects are
+    # portable across JDBC implementations. The queue store factory class
+    # should implement persistence using a single value column.
+    queue-*:
+      backup-count: 0
+      queue-store:
+        enabled: true
+        factory-class-name: com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcQueueStoreFactory
+        properties:
+          data-connection-ref: jdbc-datasource
+          column-value-type: VARCHAR(4096)
+        
+        
+    # Note: ordering should be handled by the QueueStore implementation
+    # (for example using an internal sequence). The JDBC persistence
+    # column for the queue value is VARCHAR(4096) by default.

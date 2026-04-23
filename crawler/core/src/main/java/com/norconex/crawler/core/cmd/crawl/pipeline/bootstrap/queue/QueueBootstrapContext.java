@@ -1,4 +1,4 @@
-/* Copyright 2024-2025 Norconex Inc.
+/* Copyright 2024-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@ package com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue;
 
 import java.util.function.Consumer;
 
-import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.session.CrawlSession;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,16 +31,16 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 public class QueueBootstrapContext {
     @Getter
-    private final CrawlContext crawlContext;
-    private final Consumer<CrawlDocContext> queuer;
+    private final CrawlSession crawlSession;
+    private final Consumer<CrawlEntry> queuer;
 
     public void queue(@NonNull String reference) {
-        var rec = crawlContext.createDocContext(reference);
+        var rec = crawlSession.getCrawlContext().createCrawlEntry(reference);
         rec.setDepth(0);
         queue(rec);
     }
 
-    public void queue(@NonNull CrawlDocContext rec) {
-        queuer.accept(rec);
+    public void queue(@NonNull CrawlEntry entry) {
+        queuer.accept(entry);
     }
 }

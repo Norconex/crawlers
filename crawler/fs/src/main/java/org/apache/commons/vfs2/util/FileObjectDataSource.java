@@ -6,7 +6,7 @@
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,32 +20,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import javax.activation.DataSource;
+import jakarta.activation.DataSource;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 
-import lombok.Generated;
-
 /**
  * (Sandbox) Provide access to a FileObject as JAF DataSource.
  */
-@Generated // to exclude from code coverage
+@lombok.Generated
 public class FileObjectDataSource implements DataSource {
     private final FileObject fo;
 
     public FileObjectDataSource(final FileObject fo) {
         this.fo = fo;
-    }
-
-    @Override
-    public InputStream getInputStream() throws IOException {
-        return fo.getContent().getInputStream();
-    }
-
-    @Override
-    public OutputStream getOutputStream() throws IOException {
-        return fo.getContent().getOutputStream();
     }
 
     @Override
@@ -58,7 +46,17 @@ public class FileObjectDataSource implements DataSource {
     }
 
     @Override
+    public InputStream getInputStream() throws IOException {
+        return fo.getContent().getInputStream();
+    }
+
+    @Override
     public String getName() {
         return fo.getName().getBaseName();
+    }
+
+    @Override
+    public OutputStream getOutputStream() throws IOException {
+        return fo.getContent().getOutputStream();
     }
 }

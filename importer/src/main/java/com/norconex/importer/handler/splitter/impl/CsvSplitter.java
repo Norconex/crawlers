@@ -1,4 +1,4 @@
-/* Copyright 2014-2025 Norconex Inc.
+/* Copyright 2014-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.mutable.MutableInt;
 
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.Properties;
@@ -96,7 +96,7 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
     @Override
     public void split(DocHandlerContext docCtx) throws IOException {
         try {
-            var count = new MutableInt();
+            var count = new AtomicInteger();
             // Body
             if (!configuration.getFieldMatcher().isSet()) {
                 docCtx.childDocs().addAll(
@@ -122,7 +122,7 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
     }
 
     private List<Doc> doSplitDocument(
-            DocHandlerContext doc, InputStream input, MutableInt count) {
+            DocHandlerContext doc, InputStream input, AtomicInteger count) {
 
         List<Doc> rows = new ArrayList<>();
 
@@ -204,11 +204,10 @@ public class CsvSplitter extends AbstractDocumentSplitter<CsvSplitterConfig> {
         } else {
             content = docCtx.streamFactory().newInputStream();
         }
-        var childDoc = new Doc(childDocRef, content, childMeta);
-        var childInfo = childDoc.getDocContext();
-        childInfo.setReference(childDocRef);
-        childInfo.addEmbeddedParentReference(docCtx.reference());
-
+        @SuppressWarnings("resource")
+        var childDoc = new Doc(childDocRef)
+                .setInputStream(content)
+                .setMetadata(childMeta);
         childMeta.set(DocMetaConstants.EMBEDDED_REFERENCE, childEmbedRef);
 
         return childDoc;

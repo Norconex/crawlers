@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapper;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
-import com.norconex.crawler.core.session.CrawlContext;
+import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.EqualsAndHashCode;
@@ -48,7 +48,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @EqualsAndHashCode
+//TODO XXX rename this if no longer a "bootstrapper" as we are moving the logic back to pipeline
 public class QueueBootstrapper implements CrawlBootstrapper {
+
+    //TODO XXX ******** make summary about crawl run, just total process for session? Or show delta? ***********
 
     private final List<ReferenceEnqueuer> enqueuers = new ArrayList<>();
 
@@ -66,9 +69,14 @@ public class QueueBootstrapper implements CrawlBootstrapper {
     }
 
     @Override
-    public void bootstrap(CrawlContext crawlContext) {
-        if (crawlContext.isResumedSession()) {
+    public void bootstrap(CrawlSession session) {
+        var crawlContext = session.getCrawlContext();
+        if (session.isResumed()) {
             LOG.info("Unfinished previous crawl detected. Resuming...");
+            LOG.info("Skipping start reference queueing on resumed run. "
+                    + "Will continue with entries restored from ledger.");
+            session.setStartRefsQueueingComplete(true);
+            return;
         } else {
             LOG.info("Queueing start references ({})...",
                     crawlContext.getCrawlConfig().isStartReferencesAsync()
@@ -87,8 +95,8 @@ public class QueueBootstrapper implements CrawlBootstrapper {
         // (this last option would likely be very impractical).
         LOG.info("Queueing initial references...");
         var queueInitContext = new QueueBootstrapContext(
-                crawlContext, docCtx -> queue(
-                        new QueuePipelineContext(crawlContext, docCtx)));
+                session,
+                docCtx -> queue(new QueuePipelineContext(session, docCtx)));
 
         var callback = (Consumer<QueueBootstrapContext>) ctx -> {
             var cnt = 0;
@@ -110,7 +118,8 @@ public class QueueBootstrapper implements CrawlBootstrapper {
     }
 
     private void queue(QueuePipelineContext context) {
-        context.getCrawlContext()
+        context.getCrawlSession()
+                .getCrawlContext()
                 .getDocPipelines()
                 .getQueuePipeline()
                 .accept(context);
@@ -122,17 +131,17 @@ public class QueueBootstrapper implements CrawlBootstrapper {
         var executor = Executors.newSingleThreadExecutor();
         try {
             executor.submit(() -> {
-                LogUtil.setMdcCrawlerId(ctx.getCrawlContext().getId());
-                Thread.currentThread().setName(ctx.getCrawlContext().getId());
+                LogUtil.setMdcCrawlerId(ctx.getCrawlSession().getCrawlerId());
+                Thread.currentThread()
+                        .setName(ctx.getCrawlSession().getCrawlerId());
                 callback.accept(ctx);
-                ctx.getCrawlContext()
-                        .getSessionProperties()
-                        .setQueueInitialized(true);
+                ctx.getCrawlSession().setStartRefsQueueingComplete(true);
             });
         } finally {
             try {
                 executor.shutdown();
-                executor.awaitTermination(5, TimeUnit.SECONDS);
+                // Reduced from 5s to 2s for faster shutdown
+                executor.awaitTermination(2, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 LOG.error("Reading of start references interrupted.", e);
                 Thread.currentThread().interrupt();
@@ -144,6 +153,6 @@ public class QueueBootstrapper implements CrawlBootstrapper {
             Consumer<QueueBootstrapContext> callback,
             QueueBootstrapContext ctx) {
         callback.accept(ctx);
-        ctx.getCrawlContext().getSessionProperties().setQueueInitialized(true);
+        ctx.getCrawlSession().setStartRefsQueueingComplete(true);
     }
 }
