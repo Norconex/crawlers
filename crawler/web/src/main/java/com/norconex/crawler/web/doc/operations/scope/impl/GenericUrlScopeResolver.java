@@ -93,7 +93,7 @@ public class GenericUrlScopeResolver
             return UrlScope.in();
         }
 
-        String candidateURL = candidateDocContext.getReference();
+        var candidateURL = candidateDocContext.getReference();
 
         try {
             var inScope = new HttpURL(inScopeURL);
@@ -118,7 +118,8 @@ public class GenericUrlScopeResolver
                                 candidate.getHost()));
             }
             if (configuration.isStayOnPort()
-                    && inScope.getPort() != candidate.getPort()) {
+                    && inScope.getResolvedPort() != candidate
+                            .getResolvedPort()) {
                 return UrlScope.out(
                         "Outbound port: %s".formatted(
                                 candidate.getPort()));
