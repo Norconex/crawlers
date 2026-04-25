@@ -18,7 +18,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -80,8 +79,8 @@ final class IdolUtil {
                             StandardCharsets.UTF_8.toString()));
                     sep = refsDelimiter;
                 }
-                return new URL(b.toString());
-            } catch (MalformedURLException | UnsupportedEncodingException e) {
+                return HttpURL.toURL(b.toString());
+            } catch (UnsupportedEncodingException e) {
                 throw new CommitterException(
                         "Could not create IDOL deletion URL.", e);
             }

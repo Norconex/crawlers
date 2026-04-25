@@ -28,11 +28,11 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HostnameVerifier;
@@ -285,12 +285,10 @@ public class HttpClientFetcher
             // Execute the method.
             final var execRequest = request;
             if (kerberosSubject != null) {
-                return Subject.doAs(
-                        kerberosSubject,
-                        (PrivilegedExceptionAction<
-                                WebFetchResponse>) () -> executeRequest(
-                                        execRequest, ctx, req,
-                                        responseDoc, method));
+                return Subject.callAs(kerberosSubject,
+                        (Callable<WebFetchResponse>) () -> executeRequest(
+                                execRequest, ctx, req,
+                                responseDoc, method));
             }
             return executeRequest(
                     execRequest, ctx, req, responseDoc, method);
@@ -703,13 +701,11 @@ public class HttpClientFetcher
                         authConfig.getWorkstation(),
                         authConfig.getDomain());
                 creds = ntlmCreds;
-            } else if (HttpAuthMethod.SPNEGO == authConfig.getMethod()
-                    || HttpAuthMethod.KERBEROS == authConfig.getMethod()) {
-                performKerberosLogin(authConfig);
-                creds = new UsernamePasswordCredentials(
-                        authConfig.getCredentials().getUsername(),
-                        trimToEmpty(password).toCharArray());
             } else {
+                if (HttpAuthMethod.SPNEGO == authConfig.getMethod()
+                        || HttpAuthMethod.KERBEROS == authConfig.getMethod()) {
+                    performKerberosLogin(authConfig);
+                }
                 creds = new UsernamePasswordCredentials(
                         authConfig.getCredentials().getUsername(),
                         trimToEmpty(password).toCharArray());

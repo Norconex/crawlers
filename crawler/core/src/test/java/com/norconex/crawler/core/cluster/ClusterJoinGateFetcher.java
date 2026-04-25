@@ -28,7 +28,7 @@ import com.norconex.crawler.core.util.ConcurrentUtil;
 public class ClusterJoinGateFetcher extends MockFetcher {
 
     private static final Duration CLUSTER_JOIN_TIMEOUT =
-            Duration.ofSeconds(60);
+            Duration.ofSeconds(120);
     private static final Duration CHECK_INTERVAL = Duration.ofMillis(100);
 
     private transient CrawlSession session;

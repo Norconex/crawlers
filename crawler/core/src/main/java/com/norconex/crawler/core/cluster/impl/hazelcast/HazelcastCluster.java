@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.hazelcast.cluster.Member;
 import com.hazelcast.cluster.MembershipEvent;
 import com.hazelcast.cluster.MembershipListener;
@@ -139,6 +141,12 @@ public class HazelcastCluster implements Cluster {
             // multiple instances co-exist in the same JVM (e.g., parallel
             // tests). Honour any name already set by a custom HazelcastConfigurer
             // (or loaded from XML/YAML) and only generate a UUID as a fallback.
+            if (StringUtils.isBlank(hzConfig.getInstanceName())
+                    && StringUtils.isNotBlank(
+                            configuration.getInstanceName())) {
+                hzConfig.setInstanceName(configuration.getInstanceName());
+            }
+
             var instanceName = hzConfig.getInstanceName();
             if (instanceName == null || instanceName.isBlank()) {
                 instanceName = UUID.randomUUID().toString();

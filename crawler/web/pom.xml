@@ -136,29 +136,7 @@
 
     <!-- TODO: BELOW FROM V.3x, CLEANUP AND EVALUATE WHAT'S STILL NEEDED -->          
 
-<!--
-    <dependency>
-      <groupId>org.imgscalr</groupId>
-      <artifactId>imgscalr-lib</artifactId>
-      <version>${imgscalr.version}</version>
-    </dependency>  
-    <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-webapp</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-proxy</artifactId>
-    </dependency>
-    -->
-    <!-- About Web Driver Dependencies:
-         You could download drivers separately instead, with
-         just the "selenimum-support" artifact if you are not using many 
-         drivers or do not want to package them all.
-         You could also use the "selenium-server" instead for grid
-         support and running server embedded.
-         https://www.seleniumhq.org/download/maven.jsp
-          -->
+
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-java</artifactId>

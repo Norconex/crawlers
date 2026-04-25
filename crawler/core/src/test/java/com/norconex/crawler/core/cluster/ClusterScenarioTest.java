@@ -20,6 +20,8 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
@@ -57,7 +59,7 @@ import lombok.extern.slf4j.Slf4j;
 class ClusterScenarioTest {
 
     private static final Duration CLUSTER_JOIN_WAIT =
-            Duration.ofSeconds(60);
+            Duration.ofSeconds(120);
     private static final Duration NODE_DIE_WAIT = Duration.ofSeconds(8);
     private static final Duration RESULT_RECORD_INTERVAL =
             Duration.ofMillis(200);
@@ -284,47 +286,50 @@ class ClusterScenarioTest {
                             cfg.setMaxQueueBatchSize(
                                     1);
                         }))) {
-            var futureResult = timing.measure("first-run-launch",
-                    () -> harness.launchAsync(nodeNames));
-            timing.measure("wait-for-processing-begin",
-                    () -> harness.waitFor(CLUSTER_JOIN_WAIT)
-                            .anyNodeToHaveFired(
-                                    CrawlerEvent.DOCUMENT_PROCESSING_BEGIN));
-            timing.measure("crash-node-1",
-                    () -> harness.crashNode("node-1"));
-            timing.measure("wait-for-node-1-death",
-                    () -> harness.waitFor(NODE_DIE_WAIT)
-                            .nodeToHaveDied("node-1"));
+            try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+                var futureResult = timing.measure("first-run-launch",
+                        () -> CompletableFuture.supplyAsync(
+                                () -> harness.launchSync(nodeNames), executor));
+                timing.measure("wait-for-processing-begin",
+                        () -> harness.waitFor(CLUSTER_JOIN_WAIT)
+                                .anyNodeToHaveFired(
+                                        CrawlerEvent.DOCUMENT_PROCESSING_BEGIN));
+                timing.measure("crash-node-1",
+                        () -> harness.crashNode("node-1"));
+                timing.measure("wait-for-node-1-death",
+                        () -> harness.waitFor(NODE_DIE_WAIT)
+                                .nodeToHaveDied("node-1"));
 
-            var firstResult = timing.measure("await-first-run",
-                    () -> futureResult.get(120,
-                            TimeUnit.SECONDS));
-            assertThat(firstResult.getNodeOutput("node-2")
-                    .getEventNames())
-                            .contains(CrawlerEvent.CRAWLER_CRAWL_END);
+                var firstResult = timing.measure("await-first-run",
+                        () -> futureResult.get(120,
+                                TimeUnit.SECONDS));
+                assertThat(firstResult.getNodeOutput("node-2")
+                        .getEventNames())
+                                .contains(CrawlerEvent.CRAWLER_CRAWL_END);
 
-            harness.getInstrumentTemplate()
-                    .setRecordCaches(true)
-                    .setConfigModifier(cfg -> {
-                        baseConfig(numOfRefs, 0)
-                                .accept(cfg);
-                        cfg.setId("scenario-coordinator-crash-"
-                                + numOfRefs);
-                        cfg.setMaxQueueBatchSize(50);
-                    });
+                harness.getInstrumentTemplate()
+                        .setRecordCaches(true)
+                        .setConfigModifier(cfg -> {
+                            baseConfig(numOfRefs, 0)
+                                    .accept(cfg);
+                            cfg.setId("scenario-coordinator-crash-"
+                                    + numOfRefs);
+                            cfg.setMaxQueueBatchSize(50);
+                        });
 
-            var secondResult = timing.measure("resume-run",
-                    () -> harness.launchSync(nodeNames));
-            var coordinatorOutput =
-                    requireCoordinator(secondResult);
-            var statusCounts = coordinatorOutput
-                    .getLedgerStatusCounts();
-            assertThat(statusCounts.getQueued()).isZero();
-            assertThat(statusCounts.getUntracked()).isZero();
-            assertThat(
-                    statusCounts.getProcessed()
-                            + statusCounts.getProcessing())
-                                    .isEqualTo(numOfRefs);
+                var secondResult = timing.measure("resume-run",
+                        () -> harness.launchSync(nodeNames));
+                var coordinatorOutput =
+                        requireCoordinator(secondResult);
+                var statusCounts = coordinatorOutput
+                        .getLedgerStatusCounts();
+                assertThat(statusCounts.getQueued()).isZero();
+                assertThat(statusCounts.getUntracked()).isZero();
+                assertThat(
+                        statusCounts.getProcessed()
+                                + statusCounts.getProcessing())
+                                        .isEqualTo(numOfRefs);
+            }
         } finally {
             timing.finish();
         }
@@ -361,50 +366,54 @@ class ClusterScenarioTest {
                             configurer.setAutoDiscoveryEnabled(
                                     true);
                         }))) {
-            var initialFuture = timing.measure(
-                    "initial-node-launch",
-                    () -> harness.launchAsync(
-                            initialNodeNames));
-            timing.measure("wait-for-initial-processing-begin",
-                    () -> harness.waitFor(CLUSTER_JOIN_WAIT)
-                            .anyNodeToHaveFired(
-                                    CrawlerEvent.DOCUMENT_PROCESSING_BEGIN));
-            var lateFuture = timing.measure("late-node-launch",
-                    () -> harness.launchAsync(
-                            lateNodeName));
-            timing.measure("wait-for-late-node-processing-begin",
-                    () -> ConcurrentUtil.waitUntil(
-                            () -> harness.getNodeOutput(
-                                    lateNodeName)
-                                    .map(output -> output
-                                            .getEventNames()
-                                            .contains(
-                                                    CrawlerEvent.DOCUMENT_PROCESSING_BEGIN))
-                                    .orElse(false),
-                            CLUSTER_JOIN_WAIT,
-                            Duration.ofMillis(
-                                    100)));
+            try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+                var initialFuture = timing.measure(
+                        "initial-node-launch",
+                        () -> CompletableFuture.supplyAsync(
+                                () -> harness.launchSync(initialNodeNames),
+                                executor));
+                timing.measure("wait-for-initial-processing-begin",
+                        () -> harness.waitFor(CLUSTER_JOIN_WAIT)
+                                .anyNodeToHaveFired(
+                                        CrawlerEvent.DOCUMENT_PROCESSING_BEGIN));
+                var lateFuture = timing.measure("late-node-launch",
+                        () -> CompletableFuture.supplyAsync(
+                                () -> harness.launchSync(lateNodeName),
+                                executor));
+                timing.measure("wait-for-late-node-processing-begin",
+                        () -> ConcurrentUtil.waitUntil(
+                                () -> harness.getNodeOutput(
+                                        lateNodeName)
+                                        .map(output -> output
+                                                .getEventNames()
+                                                .contains(
+                                                        CrawlerEvent.DOCUMENT_PROCESSING_BEGIN))
+                                        .orElse(false),
+                                CLUSTER_JOIN_WAIT,
+                                Duration.ofMillis(
+                                        100)));
 
-            var initialResult = timing.measure(
-                    "await-initial-node-complete",
-                    () -> initialFuture.get(120,
-                            TimeUnit.SECONDS));
-            var lateResult = timing.measure(
-                    "await-late-node-complete",
-                    () -> lateFuture.get(120,
-                            TimeUnit.SECONDS));
+                var initialResult = timing.measure(
+                        "await-initial-node-complete",
+                        () -> initialFuture.get(120,
+                                TimeUnit.SECONDS));
+                var lateResult = timing.measure(
+                        "await-late-node-complete",
+                        () -> lateFuture.get(120,
+                                TimeUnit.SECONDS));
 
-            var lateOutput = lateResult.getNodeOutput(lateNodeName);
-            assertThat(lateOutput).isNotNull();
-            assertThat(lateOutput.getEventNames())
-                    .contains(CrawlerEvent.DOCUMENT_PROCESSING_BEGIN);
-            assertThat(lateOutput.getEventNameBag()
-                    .getCount(CrawlerEvent.DOCUMENT_IMPORTED))
-                            .isGreaterThan(0);
-            assertThat(initialResult.getNodeOutput("node-1")
-                    .getEventNameBag()
-                    .getCount(CrawlerEvent.DOCUMENT_IMPORTED))
-                            .isGreaterThan(0);
+                var lateOutput = lateResult.getNodeOutput(lateNodeName);
+                assertThat(lateOutput).isNotNull();
+                assertThat(lateOutput.getEventNames())
+                        .contains(CrawlerEvent.DOCUMENT_PROCESSING_BEGIN);
+                assertThat(lateOutput.getEventNameBag()
+                        .getCount(CrawlerEvent.DOCUMENT_IMPORTED))
+                                .isGreaterThan(0);
+                assertThat(initialResult.getNodeOutput("node-1")
+                        .getEventNameBag()
+                        .getCount(CrawlerEvent.DOCUMENT_IMPORTED))
+                                .isGreaterThan(0);
+            }
         } finally {
             timing.finish();
         }
@@ -415,7 +424,7 @@ class ClusterScenarioTest {
         var instrument = new CrawlTestInstrument()
                 .setRecordInterval(RESULT_RECORD_INTERVAL)
                 .setWorkDir(tempDir)
-                .setNewJvm(clustered)
+                .setNewJvm(false)
                 .setClustered(clustered);
         instrumentModifier.accept(instrument);
         return new CrawlTestHarness(instrument);

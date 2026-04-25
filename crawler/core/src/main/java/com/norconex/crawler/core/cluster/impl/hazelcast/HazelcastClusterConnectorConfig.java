@@ -44,6 +44,14 @@ public class HazelcastClusterConnectorConfig {
     private String clusterName = "crawler-cluster";
 
     /**
+     * Unique name for the Hazelcast instance. Useful when running multiple
+     * nodes in the same JVM (e.g., during tests). If not set, a random
+     * UUID will be generated.
+     * @since 4.0.0
+     */
+    private String instanceName;
+
+    /**
      * Maximum amount of time to wait before declaring a node as
      * "expired" when running a crawler task across multiple nodes.
      * <p>

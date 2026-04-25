@@ -18,7 +18,6 @@ import static com.norconex.crawler.core.fetch.FetchDirective.DOCUMENT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
@@ -29,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.bean.BeanMapper;
+import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.importer.doc.Doc;
 
@@ -38,13 +38,13 @@ class HdfsFetcherTest {
     //TODO find a way to unit test HDFS.
 
     @Test
-    void testHdfsFetcher() throws MalformedURLException {
+    void testHdfsFetcher() {
         List<String> names = List.of("name1", "name2");
         List<Path> paths =
                 List.of(new Path("/path1"), new Path("/path2"));
         List<URL> urls = List.of(
-                new URL("http://url1.com"),
-                new URL("http://url2.com"));
+                HttpURL.toURL("http://url1.com"),
+                HttpURL.toURL("http://url2.com"));
 
         var f = new HdfsFetcher();
         assertThatNoException().isThrownBy(() -> {
