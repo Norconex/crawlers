@@ -187,6 +187,11 @@ public class PlaywrightFetcher
             }
         }
         allPlaywrights.clear();
+        // Clean up ThreadLocals for the calling thread
+        playwrightLocal.remove();
+        browserLocal.remove();
+        navCountLocal.remove();
+        browserStartTimeLocal.remove();
     }
 
     @Override
@@ -236,6 +241,7 @@ public class PlaywrightFetcher
                 LOG.warn("Error closing browser before recycle.", e);
             }
             browserLocal.remove();
+            browserStartTimeLocal.remove();
             existing = null;
         }
 

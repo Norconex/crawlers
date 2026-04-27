@@ -59,8 +59,9 @@ public abstract class AbstractWebDriverHttpFetcherTest {
     private static final int SNIFFER_PORT_END = 50049; // 50 ports
 
     private static final int LARGE_CONTENT_MIN_SIZE = 3 * 1024 * 1024;
-    private static final ConcurrentHashMap<WebDriverBrowser, Boolean> LOCAL_BROWSER_OK =
-            new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<WebDriverBrowser,
+            Boolean> LOCAL_BROWSER_OK =
+                    new ConcurrentHashMap<>();
 
     private WebDriverBrowser browserType;
 

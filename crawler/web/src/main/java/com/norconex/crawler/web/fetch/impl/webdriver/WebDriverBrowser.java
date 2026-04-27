@@ -218,7 +218,8 @@ public enum WebDriverBrowser {
             // web driver factory
             (location, options) -> new WebDriverBuilder()
                     .driverClass(ChromeDriver.class)
-                    .driverSystemProperty(WebDriverBrowser.OPERA_DRIVER_EXE_PROPERTY)
+                    .driverSystemProperty(
+                            WebDriverBrowser.OPERA_DRIVER_EXE_PROPERTY)
                     .location(location)
                     .options(options)
                     .build(),
