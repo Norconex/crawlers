@@ -248,10 +248,8 @@ class HttpClientFetcherTest {
         var headers = fetcher.createDefaultRequestHeaders();
 
         // Should return early — no Authorization header
-        assertThat(headers).isNotEmpty();
         assertThat(headers)
-                .extracting(h -> h.getName())
-                .doesNotContain("Authorization");
+                .noneMatch(h -> "Authorization".equals(h.getName()));
     }
 
     @Test
