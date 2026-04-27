@@ -346,7 +346,8 @@ public class CrawlTestHarness implements Closeable {
             // When running multiple nodes in the same JVM, each must have a
             // unique instance name to be treated as a separate cluster member.
             if (!instrument.isNewJvm()) {
-                connConfig.setInstanceName(hazelcastClusterName + "-" + nodeName);
+                connConfig
+                        .setInstanceName(hazelcastClusterName + "-" + nodeName);
             }
 
             // Configure the JDBC configurer directly — no YAML file needed.

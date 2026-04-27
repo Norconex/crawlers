@@ -132,23 +132,21 @@ public class WebDriverFetcher
             userAgent = httpSniffer.getConfiguration().getUserAgent();
         }
         webDriverManager = new WebDriverManager(configuration);
-        if (StringUtils.isBlank(userAgent)) {
-            userAgent = webDriverManager.safeCall(
-                    driver -> (String) ((JavascriptExecutor) driver)
-                            .executeScript("return navigator.userAgent;"));
-        }
     }
 
     @Override
     protected void fetcherShutdown(CrawlSession c) {
-        if (httpSniffer != null) {
-            LOG.info("Shutting down {} HTTP sniffer...",
-                    configuration.getBrowser());
-            Sleeper.sleepSeconds(2);
-            httpSniffer.stop();
-        }
-        if (webDriverManager != null) {
-            webDriverManager.shutdown();
+        try {
+            if (httpSniffer != null) {
+                LOG.info("Shutting down {} HTTP sniffer...",
+                        configuration.getBrowser());
+                Sleeper.sleepSeconds(2);
+                httpSniffer.stop();
+            }
+        } finally {
+            if (webDriverManager != null) {
+                webDriverManager.shutdown();
+            }
         }
     }
 
@@ -191,6 +189,8 @@ public class WebDriverFetcher
 
     private WebFetchResponse withoutSniffer(WebDriver driver, Doc doc) {
         doc.setInputStream(fetchDocumentContent(driver, doc.getReference()));
+        userAgent = StringUtils.firstNonBlank(
+                userAgent, resolveUserAgent(driver));
         // We assume text/html until maybe WebDriver expands its
         // API to obtain different types of files.
         if (doc.getContentType() == null) {
@@ -246,7 +246,9 @@ public class WebDriverFetcher
                 sniffedResp.getStatus().reasonPhrase());
 
         userAgent = StringUtils.firstNonBlank(
-                userAgent, sniffedResp.getRequestUserAgent());
+                userAgent,
+                sniffedResp.getRequestUserAgent(),
+                resolveUserAgent(driver));
 
         WebFetchResponse fetchResponse = null;
         var status = sniffedResp.getStatus();
@@ -260,6 +262,14 @@ public class WebDriverFetcher
                     ProcessingOutcome.BAD_STATUS).build();
         }
         return fetchResponse;
+    }
+
+    private String resolveUserAgent(WebDriver driver) {
+        if (!(driver instanceof JavascriptExecutor)) {
+            return null;
+        }
+        return (String) ((JavascriptExecutor) driver)
+                .executeScript("return navigator.userAgent;");
     }
 
     private void buildFailedSniffedHttpFetchResponse(

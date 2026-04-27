@@ -31,6 +31,12 @@ import lombok.extern.slf4j.Slf4j;
 public final class WebDriverFactory {
 
     public static WebDriver create(WebDriverFetcherConfig config) {
+        var session = createSession(config);
+        session.untrack();
+        return session.driver();
+    }
+
+    static DriverSession createSession(WebDriverFetcherConfig config) {
         var browser = config.getBrowser();
         LOG.info("Creating {} web driver.", browser);
 
@@ -62,17 +68,14 @@ public final class WebDriverFactory {
         // @formatter:on
 
         //--- Web Driver ---
-        WebDriver driver = null;
         if (config.isUseHtmlUnit()) {
             var v = browser.getHtmlUnitBrowser();
             if (v == null) {
                 throw new CrawlerException(
                         "Unsupported HtmlUnit browser version: " + v);
             }
-            driver = new HtmlUnitDriver(v, true);
-        } else {
-            driver = browser.createDriver(location, options);
+            return DriverSession.of(new HtmlUnitDriver(v, true));
         }
-        return driver;
+        return browser.createDriverSession(location, options);
     }
 }

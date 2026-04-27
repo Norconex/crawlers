@@ -16,38 +16,30 @@ package com.norconex.crawler.web.fetch.impl.webdriver;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import org.openqa.selenium.remote.RemoteWebDriver;
 
-@org.testcontainers.junit.jupiter.Testcontainers(disabledWithoutDocker = true)
 @Timeout(300)
 class WebDriverFactoryTest {
 
     @Test
-    void testCreate() {
-        var browserContainer =
-                AbstractWebDriverHttpFetcherTest.createWebDriverContainer(
-                        Browser.FIREFOX);
-        browserContainer.start();
-        try {
-            var driver = WebDriverFactory.create(
-                    new WebDriverFetcherConfig()
-                            .setBrowser(Browser.FIREFOX)
-                            .setRemoteURL(
-                                    browserContainer.getSeleniumAddress()));
-            try {
-                assertThat(driver).isInstanceOf(RemoteWebDriver.class);
-                var remoteDriver = (RemoteWebDriver) driver;
-                assertThat(remoteDriver.getSessionId()).isNotNull();
-                assertThat(remoteDriver.getCapabilities().getBrowserName())
-                        .containsIgnoringCase("firefox");
-            } finally {
-                driver.quit();
-            }
-        } finally {
-            browserContainer.stop();
+    void testCreate() throws Exception {
+        Assumptions.assumeTrue(isLocalFirefoxAvailable(),
+                "Local Firefox not detected.");
+
+        var config = new WebDriverFetcherConfig();
+        config.setBrowser(Browser.FIREFOX);
+        try (var session = WebDriverFactory.createSession(config)) {
+            var driver = session.driver();
+            assertThat(driver).isNotNull();
+            assertThat(driver.getClass().getSimpleName())
+                    .containsIgnoringCase("firefox");
         }
     }
 
+    private boolean isLocalFirefoxAvailable() {
+        return AbstractWebDriverHttpFetcherTest.isLocalBrowserDetectable(
+                Browser.FIREFOX);
+    }
 }

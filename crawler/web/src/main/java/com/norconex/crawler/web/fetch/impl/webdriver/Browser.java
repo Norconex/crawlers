@@ -43,6 +43,7 @@ import org.openqa.selenium.internal.Require;
 import org.openqa.selenium.remote.AbstractDriverOptions;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.remote.service.DriverService;
 import org.openqa.selenium.safari.SafariDriver;
 import org.openqa.selenium.safari.SafariOptions;
 import org.slf4j.Logger;
@@ -166,7 +167,13 @@ public enum Browser {
 
     EDGE(
             // browser-specific options
-            location -> new EdgeOptions(),
+            location -> {
+                var options = new EdgeOptions();
+                options.addArguments("--headless=new");
+                ofNullable(location.getBrowserPath())
+                        .ifPresent(p -> options.setBinary(p.toFile()));
+                return options;
+            },
             // web driver factory
             (location, options) -> new WebDriverBuilder()
                     .driverClass(EdgeDriver.class)
@@ -177,8 +184,12 @@ public enum Browser {
                     .build(),
             // proxy setup
             (options, host) -> {
-                ((EdgeOptions) options).setProxy(
-                        new Proxy().setHttpProxy(host.toString()));
+                var edgeOptions = (EdgeOptions) options;
+                edgeOptions.setProxy(
+                        new Proxy()
+                                .setHttpProxy(host.toString())
+                                .setSslProxy(host.toString()));
+                edgeOptions.addArguments(Tools.chromiumCommonArgs(host));
             },
             BrowserVersion.EDGE),
 
@@ -243,7 +254,7 @@ public enum Browser {
     private final Function<WebDriverLocation,
             MutableCapabilities> optionsSupplier;
     private final BiFunction<WebDriverLocation, MutableCapabilities,
-            WebDriver> driverFactory;
+            DriverSession> driverFactory;
     private final BiConsumer<MutableCapabilities, Host> proxySetter;
 
     @Getter(value = AccessLevel.PACKAGE)
@@ -252,7 +263,7 @@ public enum Browser {
     Browser(
             Function<WebDriverLocation, MutableCapabilities> optionsSupplier,
             BiFunction<WebDriverLocation, MutableCapabilities,
-                    WebDriver> driverFactory,
+                    DriverSession> driverFactory,
             BiConsumer<MutableCapabilities, Host> proxySetter,
             BrowserVersion htmlUnitBrowser) {
         this.optionsSupplier = optionsSupplier;
@@ -265,7 +276,7 @@ public enum Browser {
         return optionsSupplier.apply(location);
     }
 
-    public WebDriver createDriver(
+    public DriverSession createDriverSession(
             WebDriverLocation location,
             MutableCapabilities options) {
         return driverFactory.apply(location, options);
@@ -313,7 +324,7 @@ public enum Browser {
         // Set system property but restore to whatever value
         // in case other crawlers have a different value.
         // This is why we have it synchronized too.
-        synchronized WebDriver build() {
+        synchronized DriverSession build() {
             Objects.requireNonNull(location);
             Objects.requireNonNull(options);
             Objects.requireNonNull(driverClass);
@@ -332,27 +343,105 @@ public enum Browser {
                                         options, false);
                                 LOG.info("Remote \"{}\" web driver created.",
                                         driverClass.getSimpleName());
-                                return rwd;
+                                return DriverSession.of(rwd);
                             }
                             LOG.info("Creating local \"{}\" web driver.",
                                     driverClass.getSimpleName());
-                            var constructor = ConstructorUtils
-                                    .getMatchingAccessibleConstructor(
-                                            driverClass, options.getClass());
-                            if (constructor != null) {
-                                return constructor.newInstance(options);
-                            }
-                            return driverClass.getDeclaredConstructor()
-                                    .newInstance();
+                            return buildLocalSession();
                         });
             } catch (Exception e) {
                 throw new CrawlerException("Could not build web driver", e);
             }
         }
+
+        private DriverSession buildLocalSession() throws Exception {
+            var service = createDriverService();
+            if (service == null) {
+                var constructor = ConstructorUtils
+                        .getMatchingAccessibleConstructor(
+                                driverClass, options.getClass());
+                if (constructor != null) {
+                    return DriverSession.of(constructor.newInstance(options));
+                }
+                return DriverSession.of(
+                        driverClass.getDeclaredConstructor().newInstance());
+            }
+
+            try {
+                var driver = createDriverWithService(service);
+                return new DriverSession(driver, () -> {
+                    Exception failure = null;
+                    try {
+                        driver.quit();
+                    } catch (Exception e) {
+                        failure = e;
+                    }
+                    try {
+                        service.stop();
+                    } catch (Exception e) {
+                        if (failure == null) {
+                            failure = e;
+                        } else {
+                            failure.addSuppressed(e);
+                        }
+                    }
+                    if (failure != null) {
+                        throw failure;
+                    }
+                });
+            } catch (Exception e) {
+                try {
+                    service.stop();
+                } catch (Exception stopEx) {
+                    e.addSuppressed(stopEx);
+                }
+                throw e;
+            }
+        }
+
+        private DriverService createDriverService() {
+            if (driverClass == ChromeDriver.class) {
+                return new ChromeDriverService.Builder()
+                        .usingAnyFreePort()
+                        .build();
+            }
+            if (driverClass == FirefoxDriver.class) {
+                return new GeckoDriverService.Builder()
+                        .usingAnyFreePort()
+                        .build();
+            }
+            if (driverClass == EdgeDriver.class) {
+                return new EdgeDriverService.Builder()
+                        .usingAnyFreePort()
+                        .build();
+            }
+            return null;
+        }
+
+        private WebDriver createDriverWithService(DriverService service) {
+            if (driverClass == ChromeDriver.class) {
+                return new ChromeDriver(
+                        (ChromeDriverService) service,
+                        (ChromeOptions) options);
+            }
+            if (driverClass == FirefoxDriver.class) {
+                return new FirefoxDriver(
+                        (GeckoDriverService) service,
+                        (FirefoxOptions) options);
+            }
+            if (driverClass == EdgeDriver.class) {
+                return new EdgeDriver(
+                        (EdgeDriverService) service,
+                        (EdgeOptions) options);
+            }
+            throw new CrawlerException(
+                    "No explicit driver service support for "
+                            + driverClass.getSimpleName());
+        }
     }
 
     public static class CustomDriverOptions
-            extends AbstractDriverOptions<AbstractDriverOptions<?>> {
+            extends AbstractDriverOptions<CustomDriverOptions> {
         private static final long serialVersionUID = 1L;
 
         @Override
