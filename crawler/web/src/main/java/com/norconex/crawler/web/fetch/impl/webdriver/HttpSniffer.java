@@ -144,7 +144,7 @@ public class HttpSniffer implements Configurable<HttpSnifferConfig> {
         return future;
     }
 
-    public void configureBrowser(Browser browser, MutableCapabilities opts) {
+    public void configureBrowser(WebDriverBrowser browser, MutableCapabilities opts) {
         browser.configureProxy(opts, proxyHost);
     }
 

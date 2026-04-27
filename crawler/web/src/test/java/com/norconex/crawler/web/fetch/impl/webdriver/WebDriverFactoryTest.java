@@ -29,7 +29,7 @@ class WebDriverFactoryTest {
                 "Local Firefox not detected.");
 
         var config = new WebDriverFetcherConfig();
-        config.setBrowser(Browser.FIREFOX);
+        config.setBrowser(WebDriverBrowser.FIREFOX);
         try (var session = WebDriverFactory.createSession(config)) {
             var driver = session.driver();
             assertThat(driver).isNotNull();
@@ -40,6 +40,6 @@ class WebDriverFactoryTest {
 
     private boolean isLocalFirefoxAvailable() {
         return AbstractWebDriverHttpFetcherTest.isLocalBrowserDetectable(
-                Browser.FIREFOX);
+                WebDriverBrowser.FIREFOX);
     }
 }

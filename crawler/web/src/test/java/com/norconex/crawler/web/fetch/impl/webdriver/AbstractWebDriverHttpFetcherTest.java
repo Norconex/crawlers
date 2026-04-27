@@ -59,15 +59,15 @@ public abstract class AbstractWebDriverHttpFetcherTest {
     private static final int SNIFFER_PORT_END = 50049; // 50 ports
 
     private static final int LARGE_CONTENT_MIN_SIZE = 3 * 1024 * 1024;
-    private static final ConcurrentHashMap<Browser, Boolean> LOCAL_BROWSER_OK =
+    private static final ConcurrentHashMap<WebDriverBrowser, Boolean> LOCAL_BROWSER_OK =
             new ConcurrentHashMap<>();
 
-    private Browser browserType;
+    private WebDriverBrowser browserType;
 
-    public AbstractWebDriverHttpFetcherTest(Browser browserType) {
-        if (browserType != Browser.CHROME
-                && browserType != Browser.FIREFOX
-                && browserType != Browser.EDGE) {
+    public AbstractWebDriverHttpFetcherTest(WebDriverBrowser browserType) {
+        if (browserType != WebDriverBrowser.CHROME
+                && browserType != WebDriverBrowser.FIREFOX
+                && browserType != WebDriverBrowser.EDGE) {
             throw new IllegalArgumentException(
                     "Only Chrome, Firefox, and Edge are supported "
                             + "for testing.");
@@ -110,7 +110,7 @@ public abstract class AbstractWebDriverHttpFetcherTest {
                 AbstractWebDriverHttpFetcherTest::isLocalBrowserDetectable);
     }
 
-    static boolean isLocalBrowserDetectable(Browser browser) {
+    static boolean isLocalBrowserDetectable(WebDriverBrowser browser) {
         // If the caller pre-installed the driver and set the corresponding
         // system property (e.g. -Dwebdriver.edge.driver=/path/msedgedriver.exe)
         // we accept that as sufficient proof the browser is available.
@@ -130,7 +130,7 @@ public abstract class AbstractWebDriverHttpFetcherTest {
         }
     }
 
-    private static String driverSystemProperty(Browser browser) {
+    private static String driverSystemProperty(WebDriverBrowser browser) {
         return switch (browser) {
             case CHROME -> System.getProperty("webdriver.chrome.driver");
             case EDGE -> System.getProperty("webdriver.edge.driver");
@@ -162,7 +162,7 @@ public abstract class AbstractWebDriverHttpFetcherTest {
 
         MockWebsite.whenJsRenderedWebsite(client);
 
-        var h = new ScreenshotHandler();
+        var h = new WebDriverScreenshotHandler();
         h.getConfiguration()
                 .setCssSelector("#applePicture")
                 .setTargets(List.of(Target.METADATA))

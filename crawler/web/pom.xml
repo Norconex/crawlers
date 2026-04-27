@@ -41,6 +41,7 @@
     <imgscalr.version>4.2</imgscalr.version>
     <littleproxy.version>2.4.0</littleproxy.version>
     <netty.version>4.1.110.Final</netty.version>
+    <playwright.version>1.51.0</playwright.version>
     <selenium.version>4.43.0</selenium.version>
     <selenium-htmlunit3.version>4.43.0</selenium-htmlunit3.version>
     <okhttp.version>3.14.9</okhttp.version>
@@ -136,6 +137,12 @@
 
     <!-- TODO: BELOW FROM V.3x, CLEANUP AND EVALUATE WHAT'S STILL NEEDED -->          
 
+    <!-- Playwright browser automation (alternative to Selenium WebDriver) -->
+    <dependency>
+      <groupId>com.microsoft.playwright</groupId>
+      <artifactId>playwright</artifactId>
+      <version>${playwright.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>

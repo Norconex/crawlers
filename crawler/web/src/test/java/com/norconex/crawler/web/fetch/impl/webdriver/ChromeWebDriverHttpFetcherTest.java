@@ -22,6 +22,6 @@ class ChromeWebDriverHttpFetcherTest extends AbstractWebDriverHttpFetcherTest {
     // Tests are in super class
 
     public ChromeWebDriverHttpFetcherTest() {
-        super(Browser.CHROME);
+        super(WebDriverBrowser.CHROME);
     }
 }

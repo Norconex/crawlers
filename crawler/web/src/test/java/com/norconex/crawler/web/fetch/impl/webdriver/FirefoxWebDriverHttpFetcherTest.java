@@ -22,6 +22,6 @@ class FirefoxWebDriverHttpFetcherTest extends AbstractWebDriverHttpFetcherTest {
     // Tests are in super class
 
     public FirefoxWebDriverHttpFetcherTest() {
-        super(Browser.FIREFOX);
+        super(WebDriverBrowser.FIREFOX);
     }
 }

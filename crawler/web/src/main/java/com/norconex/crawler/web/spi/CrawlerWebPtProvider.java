@@ -41,6 +41,7 @@ import com.norconex.crawler.web.doc.operations.sitemap.SitemapLocator;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapResolver;
 import com.norconex.crawler.web.doc.operations.url.WebUrlNormalizer;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
+import com.norconex.crawler.web.fetch.impl.playwright.PlaywrightFetcher;
 import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverFetcher;
 
 /**
@@ -84,6 +85,7 @@ public class CrawlerWebPtProvider implements PolymorphicTypeProvider {
         //        map.put(CrawlConfig.class, WebCrawlerConfig.class);
         map.putAll(Fetcher.class, List.of(
                 HttpClientFetcher.class,
+                PlaywrightFetcher.class,
                 WebDriverFetcher.class));
 
         // For unit test

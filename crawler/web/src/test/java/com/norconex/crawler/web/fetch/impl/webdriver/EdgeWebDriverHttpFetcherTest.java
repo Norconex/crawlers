@@ -22,6 +22,6 @@ class EdgeWebDriverHttpFetcherTest extends AbstractWebDriverHttpFetcherTest {
     // Tests are in super class
 
     public EdgeWebDriverHttpFetcherTest() {
-        super(Browser.EDGE);
+        super(WebDriverBrowser.EDGE);
     }
 }

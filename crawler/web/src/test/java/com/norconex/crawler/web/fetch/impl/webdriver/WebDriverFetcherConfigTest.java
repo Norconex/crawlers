@@ -45,7 +45,7 @@ class WebDriverFetcherConfigTest {
         var f = new WebDriverFetcher();
 
         var c = f.getConfiguration();
-        c.setBrowser(Browser.CHROME);
+        c.setBrowser(WebDriverBrowser.CHROME);
         c.setBrowserPath(Paths.get("/some/browser/path"));
         c.setDriverPath(Paths.get("/some/driver/path"));
         c.setRemoteURL(HttpURL.toURL("http://example.com"));
@@ -78,7 +78,7 @@ class WebDriverFetcherConfigTest {
                 new GenericReferenceFilter(), cfg -> cfg
                         .setValueMatcher(TextMatcher.regex("test.*")))));
 
-        var sh = new ScreenshotHandler();
+        var sh = new WebDriverScreenshotHandler();
         sh.getConfiguration()
                 .setCssSelector("selector")
                 .setImageFormat("gif")

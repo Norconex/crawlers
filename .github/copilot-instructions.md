@@ -4,9 +4,9 @@
 
 This is a Java-based Maven mono-repository containing the **Norconex Crawler v4 stack** - a comprehensive suite of web and filesystem crawlers with pluggable committers for various data stores. The crawler framework is designed to be highly configurable, extensible, and capable of handling complex crawling scenarios including document transformation, filtering, and routing to multiple backends.
 
-**Repository Type:** Multi-module Maven project (Java 17, Maven 3.8.8+)  
+**Repository Type:** Multi-module Maven project (Java 21, Maven 3+)  
 **Size:** ~15 modules, ~350 Java files  
-**Target Runtimes:** Java 17+, Command-line applications, Embeddable libraries  
+**Target Runtimes:** Java 21+, Command-line applications, Embeddable libraries  
 **Key Technologies:** Maven, Lombok, JaCoCo, JUnit 5, AssertJ, Jackson, Apache Commons
 
 ## High-Level Architecture
@@ -33,14 +33,14 @@ This is a Java-based Maven mono-repository containing the **Norconex Crawler v4 
 ## Build and Validation Commands
 
 ### Prerequisites
-**Always ensure Java 17+ and Maven 3.8.8+ are installed before building.**
+**Always ensure Java 21+ and Maven 3+ are installed before building.**
 
 ### Bootstrap
 ```bash
 # Clone and setup (no additional bootstrap required)
 cd /path/to/crawlers
-mvn --version  # Verify Maven 3.8.8+
-java -version  # Verify Java 17+
+mvn --version  # Verify Maven 3+
+java -version  # Verify Java 21+
 ```
 
 ### Build Commands
@@ -124,7 +124,7 @@ mvn versions:display-dependency-updates -pl committer/core
 ```
 
 ### Key Configuration Files
-- **pom.xml** - Maven parent POM, Java 17, dependency versions
+- **pom.xml** - Maven parent POM, Java 21, dependency versions
 - **.editorconfig** - 4-space indentation, LF line endings
 - **lombok.config** - Lombok settings (log field name, etc.)
 - **norconex-formatter.xml** - Eclipse Java formatter settings
@@ -136,7 +136,7 @@ mvn versions:display-dependency-updates -pl committer/core
 - Mock objects use **Mockito**
 
 ### CI/CD Pipeline (`.github/workflows/maven-ci-cd.yaml`)
-- Runs on: Ubuntu latest, Java 17, Maven 3.9.10
+- Runs on: Ubuntu latest, Java 21, Maven 3.9.10
 - Triggers: Push to main/release branches, PRs  
 - Steps: Install Maven → Build → Test → SonarCloud analysis → Deploy snapshots
 - **Important**: CI builds use `-Pjacoco` profile for code coverage

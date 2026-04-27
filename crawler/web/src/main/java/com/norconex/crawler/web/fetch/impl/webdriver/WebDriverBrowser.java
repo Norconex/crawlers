@@ -61,7 +61,7 @@ import lombok.Getter;
  * creation.
  * @since 3.0.0
  */
-public enum Browser {
+public enum WebDriverBrowser {
 
     /* NOTE: As per #844, we added --no-sandbox to the chrome driver, but it
      * started leaking orphan chrome processes so we are taking it out
@@ -218,7 +218,7 @@ public enum Browser {
             // web driver factory
             (location, options) -> new WebDriverBuilder()
                     .driverClass(ChromeDriver.class)
-                    .driverSystemProperty(Browser.OPERA_DRIVER_EXE_PROPERTY)
+                    .driverSystemProperty(WebDriverBrowser.OPERA_DRIVER_EXE_PROPERTY)
                     .location(location)
                     .options(options)
                     .build(),
@@ -260,7 +260,7 @@ public enum Browser {
     @Getter(value = AccessLevel.PACKAGE)
     private final BrowserVersion htmlUnitBrowser;
 
-    Browser(
+    WebDriverBrowser(
             Function<WebDriverLocation, MutableCapabilities> optionsSupplier,
             BiFunction<WebDriverLocation, MutableCapabilities,
                     DriverSession> driverFactory,
@@ -286,8 +286,8 @@ public enum Browser {
         proxySetter.accept(options, proxyHost);
     }
 
-    public static Browser of(String name) {
-        for (Browser d : Browser.values()) {
+    public static WebDriverBrowser of(String name) {
+        for (WebDriverBrowser d : WebDriverBrowser.values()) {
             if (d.name().equalsIgnoreCase(name)) {
                 return d;
             }
@@ -457,7 +457,7 @@ public enum Browser {
 
     private static final class Tools {
         private static final Logger LOG = LoggerFactory.getLogger(
-                Browser.class); //NOSONAR
+                WebDriverBrowser.class); //NOSONAR
 
         private Tools() {
         }
