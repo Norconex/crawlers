@@ -24,8 +24,8 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.committer.core.CommitterContext;
 import com.norconex.committer.core.CommitterException;
@@ -69,6 +69,8 @@ class ElasticsearchCommitterConfigTest {
                 new PropertyMatcher(
                         TextMatcher.basic("title"),
                         TextMatcher.wildcard("Nah!")));
+
+        cfg.setApiKey("QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
 
         cfg.setSourceIdField("mySourceIdField");
         cfg.setTargetContentField("myTargetContentField");

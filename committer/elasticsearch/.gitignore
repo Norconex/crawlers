@@ -3,3 +3,4 @@
 /.classpath
 /.project
 /.factorypath
+.claude/settings.local.json

@@ -39,6 +39,7 @@
 			<size>128</size>
 		</passwordKey>
 	</credentials>
+	<apiKey>QWxhZGRpbjpvcGVuIHNlc2FtZQ==</apiKey>
 	<restrictions>
 		<restriction>
 			<fieldMatcher method="basic">

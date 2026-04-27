@@ -77,6 +77,15 @@ public class ElasticsearchCommitterConfig extends BaseBatchCommitterConfig {
     private final Credentials credentials = new Credentials();
 
     /**
+     * The Base64-encoded API key for Elasticsearch API Key authentication.
+     * When set, takes precedence over basic credentials.
+     * The value should be the Base64-encoded API key as provided
+     * by Elasticsearch (i.e., the value sent in the
+     * {@code Authorization: ApiKey ...} header).
+     */
+    private String apiKey;
+
+    /**
      * The character used to replace dots in field names.
      * Default is {@code null} (does not replace dots).
      */
