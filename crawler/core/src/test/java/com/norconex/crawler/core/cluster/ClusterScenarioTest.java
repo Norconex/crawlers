@@ -42,7 +42,6 @@ import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
-import com.norconex.crawler.core.session.CrawlMode;
 import com.norconex.crawler.core.session.CrawlResumeState;
 import com.norconex.crawler.core.test.CoreTestUtil;
 import com.norconex.crawler.core.test.CrawlTestDriver;
@@ -134,20 +133,21 @@ class ClusterScenarioTest {
     void stopResumeCompletes(int numNodes) throws Exception {
         var timing = ScenarioTiming.start("stopResumeCompletes",
                 numNodes);
-        var numOfRefs = 12;
+        var numOfRefs = 60;
         var nodeNames = CoreTestUtil.nodeNames(numNodes);
 
         try (var harness = newHarness(numNodes > 1,
                 instrument -> instrument
                         .setRecordEvents(true)
-                        .setRecordCaches(false)
+                        .setRecordCaches(true)
                         .setConfigModifier(cfg -> {
                             baseConfig(numOfRefs,
-                                    25).accept(cfg);
+                                    100).accept(cfg);
                             cfg.setId("scenario-stop-resume-"
                                     + numOfRefs
                                     + "-n"
                                     + numNodes);
+                            cfg.setNumThreads(1);
                             cfg.setMaxQueueBatchSize(
                                     1);
                         }))) {
@@ -157,6 +157,17 @@ class ClusterScenarioTest {
                     () -> harness.waitFor(CLUSTER_JOIN_WAIT)
                             .anyNodeToHaveFired(
                                     CrawlerEvent.DOCUMENT_PROCESSING_BEGIN));
+            timing.measure("wait-for-partial-progress",
+                    () -> assertThat(ConcurrentUtil.waitUntil(
+                            () -> {
+                                var imported = harness.getResults()
+                                        .getAllNodesEventNameBag()
+                                        .getCount(
+                                                CrawlerEvent.DOCUMENT_IMPORTED);
+                                return imported > 0 && imported < numOfRefs;
+                            },
+                            CLUSTER_JOIN_WAIT,
+                            Duration.ofMillis(100))).isTrue());
             timing.measure("stop-request",
                     () -> new Crawler(CrawlTestDriver
                             .create(),
@@ -165,9 +176,13 @@ class ClusterScenarioTest {
             var firstResult = timing.measure("await-first-run",
                     () -> futureResult.get(30,
                             TimeUnit.SECONDS));
-            assertThat(firstResult.getAllNodesEventNameBag()
-                    .getCount(CrawlerEvent.DOCUMENT_IMPORTED))
-                            .isBetween(0, numOfRefs);
+            var firstImportedCount = firstResult.getAllNodesEventNameBag()
+                    .getCount(CrawlerEvent.DOCUMENT_IMPORTED);
+            assertThat(firstImportedCount)
+                    .isGreaterThan(0)
+                    .isLessThan(numOfRefs);
+            var firstRunInfo = requireCoordinator(firstResult)
+                    .getCrawlRunInfo();
 
             harness.getInstrumentTemplate()
                     .setRecordCaches(true)
@@ -194,8 +209,8 @@ class ClusterScenarioTest {
                             + statusCounts.getProcessing())
                                     .isEqualTo(numOfRefs);
             var runInfo = coordinatorOutput.getCrawlRunInfo();
-            assertThat(runInfo.getCrawlMode())
-                    .isSameAs(CrawlMode.FULL);
+            assertThat(runInfo.getCrawlSessionId())
+                    .isEqualTo(firstRunInfo.getCrawlSessionId());
             assertThat(runInfo.getCrawlResumeState())
                     .isSameAs(CrawlResumeState.RESUMED);
         } finally {
@@ -343,6 +358,8 @@ class ClusterScenarioTest {
         var numOfRefs = 360;
         var initialNodeNames = new String[] { "node-1" };
         var lateNodeName = "node-2";
+        var completionDeadlineNanos = System.nanoTime()
+                + Duration.ofSeconds(390).toNanos();
 
         try (var harness = newHarness(true,
                 instrument -> instrument
@@ -374,33 +391,30 @@ class ClusterScenarioTest {
                                 executor));
                 timing.measure("wait-for-initial-processing-begin",
                         () -> harness.waitFor(CLUSTER_JOIN_WAIT)
-                                .anyNodeToHaveFired(
+                                .nodeToHaveFired(
+                                        initialNodeNames[0],
                                         CrawlerEvent.DOCUMENT_PROCESSING_BEGIN));
                 var lateFuture = timing.measure("late-node-launch",
                         () -> CompletableFuture.supplyAsync(
                                 () -> harness.launchSync(lateNodeName),
                                 executor));
                 timing.measure("wait-for-late-node-processing-begin",
-                        () -> ConcurrentUtil.waitUntil(
-                                () -> harness.getNodeOutput(
-                                        lateNodeName)
-                                        .map(output -> output
-                                                .getEventNames()
-                                                .contains(
-                                                        CrawlerEvent.DOCUMENT_PROCESSING_BEGIN))
-                                        .orElse(false),
-                                CLUSTER_JOIN_WAIT,
-                                Duration.ofMillis(
-                                        100)));
+                        () -> harness.waitFor(CLUSTER_JOIN_WAIT)
+                                .nodeToHaveFired(lateNodeName,
+                                        CrawlerEvent.DOCUMENT_PROCESSING_BEGIN));
+                timing.measure("wait-for-late-node-import",
+                        () -> harness.waitFor(CLUSTER_JOIN_WAIT)
+                                .nodeToHaveFired(lateNodeName,
+                                        CrawlerEvent.DOCUMENT_IMPORTED));
 
-                var initialResult = timing.measure(
-                        "await-initial-node-complete",
-                        () -> initialFuture.get(120,
-                                TimeUnit.SECONDS));
-                var lateResult = timing.measure(
-                        "await-late-node-complete",
-                        () -> lateFuture.get(120,
-                                TimeUnit.SECONDS));
+                timing.measure("await-both-nodes-complete",
+                        () -> CompletableFuture.allOf(initialFuture,
+                                lateFuture)
+                                .get(remainingMillis(
+                                        completionDeadlineNanos),
+                                        TimeUnit.MILLISECONDS));
+                var initialResult = initialFuture.join();
+                var lateResult = lateFuture.join();
 
                 var lateOutput = lateResult.getNodeOutput(lateNodeName);
                 assertThat(lateOutput).isNotNull();
@@ -458,6 +472,15 @@ class ClusterScenarioTest {
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException(
                         "No coordinator node found with CRAWL_SESSION cache"));
+    }
+
+    private static long remainingMillis(long deadlineNanos) {
+        var remainingNanos = deadlineNanos - System.nanoTime();
+        if (remainingNanos <= 0) {
+            throw new IllegalStateException(
+                    "Scenario wait budget exhausted.");
+        }
+        return Math.max(1, TimeUnit.NANOSECONDS.toMillis(remainingNanos));
     }
 
     private static final class ScenarioTiming {
