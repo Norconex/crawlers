@@ -19,8 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.net.URISyntaxException;
+import java.time.Duration;
 import java.util.List;
 
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -269,6 +272,21 @@ class HttpClientFetcherTest {
                 .contains("Authorization");
     }
 
+    @Test
+    void testCreateDefaultRequestHeadersIncludesConfiguredHeaders() {
+        var fetcher = new HttpClientFetcher();
+        fetcher.getConfiguration().setRequestHeader("X-Test", "value");
+
+        List<Header> headers = fetcher.createDefaultRequestHeaders();
+
+        assertThat(headers)
+                .extracting(Header::getName)
+                .containsExactly("X-Test");
+        assertThat(headers)
+                .extracting(Header::getValue)
+                .containsExactly("value");
+    }
+
     // -------------------------------------------------------------------------
     // createCredentialsProvider — proxy creds
     // -------------------------------------------------------------------------
@@ -285,6 +303,51 @@ class HttpClientFetcherTest {
         assertThat(provider).isNotNull();
     }
 
+    @Test
+    void testCreateCredentialsProviderAuthHostCreds() {
+        var fetcher = new HttpClientFetcher();
+        var authCfg = new HttpAuthConfig();
+        authCfg.setMethod(HttpAuthMethod.BASIC);
+        authCfg.setHost(new Host("example.com", 80));
+        authCfg.setCredentials(new Credentials("user", "pass"));
+        fetcher.getConfiguration().setAuthentication(authCfg);
+
+        var provider = fetcher.createCredentialsProvider();
+
+        assertThat(provider).isNotNull();
+    }
+
+    @Test
+    void testCreateCredentialsProviderFormAuthIgnored() {
+        var fetcher = new HttpClientFetcher();
+        var authCfg = new HttpAuthConfig();
+        authCfg.setMethod(HttpAuthMethod.FORM);
+        authCfg.setHost(new Host("example.com", 80));
+        authCfg.setCredentials(new Credentials("user", "pass"));
+        fetcher.getConfiguration().setAuthentication(authCfg);
+
+        var provider = fetcher.createCredentialsProvider();
+
+        assertThat(provider).isNull();
+    }
+
+    @Test
+    void testCreateRequestConfigWithConfiguredValues() {
+        var fetcher = new HttpClientFetcher();
+        fetcher.getConfiguration()
+                .setConnectionRequestTimeout(Duration.ofSeconds(2))
+                .setMaxRedirects(0)
+                .setExpectContinueEnabled(true)
+                .setCookieSpec(HttpClientFetcherConfig.CookieSpec.STRICT);
+
+        RequestConfig config = fetcher.createRequestConfig();
+
+        assertThat(config).isNotNull();
+        assertThat(config.isRedirectsEnabled()).isFalse();
+        assertThat(config.isExpectContinueEnabled()).isTrue();
+        assertThat(config.getCookieSpec()).isEqualTo("STRICT");
+    }
+
     // -------------------------------------------------------------------------
     // createConnectionConfig
     // -------------------------------------------------------------------------
@@ -293,6 +356,22 @@ class HttpClientFetcherTest {
     void testCreateConnectionConfigReturnsNonNull() {
         var fetcher = new HttpClientFetcher();
         assertThat(fetcher.createConnectionConfig()).isNotNull();
+    }
+
+    @Test
+    void testCreateConnectionConfigWithConfiguredValues() {
+        var fetcher = new HttpClientFetcher();
+        fetcher.getConfiguration()
+                .setConnectionTimeout(Duration.ofSeconds(2))
+                .setSocketTimeout(Duration.ofSeconds(3))
+                .setMaxConnectionInactiveTime(Duration.ofSeconds(4));
+
+        var connectionConfig = fetcher.createConnectionConfig();
+
+        assertThat(connectionConfig).isNotNull();
+        assertThat(connectionConfig.getConnectTimeout()).isNotNull();
+        assertThat(connectionConfig.getSocketTimeout()).isNotNull();
+        assertThat(connectionConfig.getValidateAfterInactivity()).isNotNull();
     }
 
     // -------------------------------------------------------------------------
