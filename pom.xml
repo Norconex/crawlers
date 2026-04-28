@@ -748,6 +748,7 @@
               -Djava.net.preferIPv4Stack=true
               -Dio.netty.tryReflectionSetAccessible=true
             </argLine>
+            <forkCount>1</forkCount>
             <forkedProcessTimeoutInSeconds>1800</forkedProcessTimeoutInSeconds>
             <forkedProcessExitTimeoutInSeconds>60</forkedProcessExitTimeoutInSeconds>
               <!-- By default, exclude slow tests for fast development feedback.
