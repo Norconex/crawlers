@@ -88,6 +88,22 @@ public class CrawlTestWaitFor {
         }
     }
 
+    @SneakyThrows
+    public void nodeToHaveFired(String nodeName, String eventName) {
+        if (!harness.getInstrumentTemplate().isRecordEvents()) {
+            throw new IllegalStateException("Events must recorded to check "
+                    + "for event-based conditions.");
+        }
+
+        if (!ConcurrentUtil.waitUntil(() -> harness.getNodeOutput(nodeName)
+                .map(output -> output.getEventNames().contains(eventName))
+                .orElse(false), timeout, INTERVAL)) {
+            throw new TimeoutException(
+                    "Node \"%s\" did not fire \"%s\" within %s."
+                            .formatted(nodeName, eventName, fmt(timeout)));
+        }
+    }
+
     /**
      * Waits until the named node's child JVM process has terminated.
      * Useful after calling {@link CrawlTestHarness#crashNode(String)} to

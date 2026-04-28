@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
@@ -44,8 +45,6 @@ import com.norconex.crawler.core.test.CrawlTestInstrument;
 class ClusterLateJoinPrototypeTest {
 
     private static final Duration CLUSTER_JOIN_WAIT = Duration.ofSeconds(120);
-    private static final Duration INITIAL_NODE_HEAD_START =
-            Duration.ofSeconds(1);
     private static final Duration RESULT_RECORD_INTERVAL =
             Duration.ofMillis(200);
     private static final Duration TEST_IDLE_TIMEOUT = Duration.ofSeconds(1);
@@ -59,6 +58,8 @@ class ClusterLateJoinPrototypeTest {
         var numOfRefs = 100;
         var initialNodeNames = new String[] { "node-1" };
         var lateNodeName = "node-2";
+        var completionDeadlineNanos = System.nanoTime()
+                + Duration.ofSeconds(170).toNanos();
 
         try (var harness = newHarness(instrument -> instrument
                 .setRecordEvents(true)
@@ -89,14 +90,24 @@ class ClusterLateJoinPrototypeTest {
                             fcfg -> fcfg.setDelay(Duration.ZERO))));
                 }))) {
             var initialFuture = harness.launchAsync(initialNodeNames);
-            Thread.sleep(INITIAL_NODE_HEAD_START.toMillis());
+            harness.waitFor(CLUSTER_JOIN_WAIT).nodeToHaveFired(
+                    initialNodeNames[0],
+                    CrawlerEvent.DOCUMENT_PROCESSING_BEGIN);
 
             var lateFuture = harness.launchAsync(lateNodeName);
+            harness.waitFor(CLUSTER_JOIN_WAIT).nodeToHaveFired(
+                    lateNodeName,
+                    CrawlerEvent.DOCUMENT_PROCESSING_BEGIN);
+            harness.waitFor(CLUSTER_JOIN_WAIT).nodeToHaveFired(
+                    lateNodeName,
+                    CrawlerEvent.DOCUMENT_IMPORTED);
 
-            var initialResult = initialFuture.get(
-                    CLUSTER_JOIN_WAIT.toSeconds(), TimeUnit.SECONDS);
-            var lateResult = lateFuture.get(
-                    CLUSTER_JOIN_WAIT.toSeconds(), TimeUnit.SECONDS);
+            CompletableFuture.allOf(initialFuture, lateFuture)
+                    .get(remainingMillis(completionDeadlineNanos),
+                            TimeUnit.MILLISECONDS);
+
+            var initialResult = initialFuture.join();
+            var lateResult = lateFuture.join();
 
             var lateOutput = lateResult.getNodeOutput(lateNodeName);
             assertThat(lateOutput).isNotNull();
@@ -110,6 +121,15 @@ class ClusterLateJoinPrototypeTest {
                             .getCount(CrawlerEvent.DOCUMENT_IMPORTED))
                                     .isGreaterThan(0);
         }
+    }
+
+    private static long remainingMillis(long deadlineNanos) {
+        var remainingNanos = deadlineNanos - System.nanoTime();
+        if (remainingNanos <= 0) {
+            throw new IllegalStateException(
+                    "Prototype wait budget exhausted.");
+        }
+        return Math.max(1, TimeUnit.NANOSECONDS.toMillis(remainingNanos));
     }
 
     private CrawlTestHarness newHarness(
