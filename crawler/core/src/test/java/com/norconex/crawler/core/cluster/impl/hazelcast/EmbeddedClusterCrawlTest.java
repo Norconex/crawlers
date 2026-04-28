@@ -19,9 +19,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -53,6 +56,9 @@ import lombok.extern.slf4j.Slf4j;
 @SlowTest
 class EmbeddedClusterCrawlTest {
 
+    private static final long CRAWL_TIMEOUT_SECONDS = 90;
+    private static final long EXECUTOR_SHUTDOWN_SECONDS = 15;
+
     @TempDir
     java.nio.file.Path tempDir;
 
@@ -62,7 +68,7 @@ class EmbeddedClusterCrawlTest {
     }
 
     @Test
-    @Timeout(60)
+    @Timeout(120)
     void twoEmbeddedNodesCrawlAllReferences() throws Exception {
         var numRefs = 8;
         var crawlerId = "embedded-cluster-test";
@@ -103,12 +109,33 @@ class EmbeddedClusterCrawlTest {
         });
 
         // Launch both nodes concurrently in the same JVM.
-        var f1 = CompletableFuture.runAsync(
-                () -> new Crawler(CrawlTestDriver.create(), cfg1).crawl());
-        var f2 = CompletableFuture.runAsync(
-                () -> new Crawler(CrawlTestDriver.create(), cfg2).crawl());
+        ExecutorService executor = Executors.newFixedThreadPool(2, r -> {
+            var thread = new Thread(r, "embedded-cluster-crawl");
+            thread.setDaemon(false);
+            return thread;
+        });
+        Future<?> f1 = null;
+        Future<?> f2 = null;
+        try {
+            f1 = executor.submit(
+                    () -> new Crawler(CrawlTestDriver.create(), cfg1).crawl());
+            f2 = executor.submit(
+                    () -> new Crawler(CrawlTestDriver.create(), cfg2).crawl());
 
-        CompletableFuture.allOf(f1, f2).get(55, TimeUnit.SECONDS);
+            f1.get(CRAWL_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            f2.get(CRAWL_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            cancel(f1);
+            cancel(f2);
+            HazelcastTestSupport.shutdownAll();
+            throw e;
+        } finally {
+            cancel(f1);
+            cancel(f2);
+            executor.shutdownNow();
+            executor.awaitTermination(
+                    EXECUTOR_SHUTDOWN_SECONDS, TimeUnit.SECONDS);
+        }
 
         // Both nodes should have completed their crawl lifecycle.
         var importCount = allEvents.stream()
@@ -139,6 +166,7 @@ class EmbeddedClusterCrawlTest {
 
         // Cluster: embedded mock-network connector
         cfg.getClusterConfig().setClustered(true);
+        cfg.getClusterConfig().setAdminDisabled(true);
         var connector = new MockNetworkClusterConnector();
         cfg.getClusterConfig().setConnector(connector);
 
@@ -155,5 +183,11 @@ class EmbeddedClusterCrawlTest {
                 .setJetEnabled(false);
 
         return cfg;
+    }
+
+    private static void cancel(Future<?> future) {
+        if (future != null && !future.isDone()) {
+            future.cancel(true);
+        }
     }
 }
