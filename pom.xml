@@ -82,7 +82,7 @@
     <xpath2.version>2.1.100</xpath2.version>
 
     <!-- Compile-time annotation processors -->
-    <lombok.version>1.18.44</lombok.version>
+    <lombok.version>1.18.46</lombok.version>
 
     <!-- Test/Provided dependencies -->
     <assertj.version>3.24.2</assertj.version>
