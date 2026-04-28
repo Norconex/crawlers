@@ -65,6 +65,11 @@
       <name>UNIDATA Releases</name>
       <url>https://repo.osgeo.org/repository/release/</url>
     </repository>
+    <!-- The following repo is required for GraalVM JS support. -->
+    <repository>
+      <id>graalvm</id>
+      <url>https://repo.graalvm.org/maven/</url>
+    </repository>
   </repositories>
 
   <dependencyManagement>
