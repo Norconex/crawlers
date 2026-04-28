@@ -68,6 +68,7 @@
     <!-- The following repo is required for GraalVM JS support. -->
     <repository>
       <id>graalvm</id>
+      <name>GraalVM Repository</name>
       <url>https://repo.graalvm.org/maven/</url>
     </repository>
   </repositories>
