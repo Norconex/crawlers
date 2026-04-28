@@ -42,3 +42,4 @@ crawler/core/.factorypath
 /benchmark/results/*
 !/benchmark/results/.gitkeep
 /benchmark/**/target/
+.codex

@@ -15,39 +15,116 @@
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import java.util.Map;
+
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 
-@org.testcontainers.junit.jupiter.Testcontainers(disabledWithoutDocker = true)
+import com.norconex.crawler.core.CrawlerException;
+
 @Timeout(300)
 class WebDriverFactoryTest {
 
     @Test
-    void testCreate() {
-        var browserContainer =
-                AbstractWebDriverHttpFetcherTest.createWebDriverContainer(
-                        Browser.FIREFOX);
-        browserContainer.start();
-        try {
-            var driver = WebDriverFactory.create(
-                    new WebDriverFetcherConfig()
-                            .setBrowser(Browser.FIREFOX)
-                            .setRemoteURL(
-                                    browserContainer.getSeleniumAddress()));
-            try {
-                assertThat(driver).isInstanceOf(RemoteWebDriver.class);
-                var remoteDriver = (RemoteWebDriver) driver;
-                assertThat(remoteDriver.getSessionId()).isNotNull();
-                assertThat(remoteDriver.getCapabilities().getBrowserName())
-                        .containsIgnoringCase("firefox");
-            } finally {
-                driver.quit();
-            }
-        } finally {
-            browserContainer.stop();
+    void testCreate() throws Exception {
+        Assumptions.assumeTrue(isLocalFirefoxAvailable(),
+                "Local Firefox not detected.");
+
+        var config = new WebDriverFetcherConfig();
+        config.setBrowser(WebDriverBrowser.FIREFOX);
+        try (var session = WebDriverFactory.createSession(config)) {
+            var driver = session.driver();
+            assertThat(driver).isNotNull();
+            assertThat(driver.getClass().getSimpleName())
+                    .containsIgnoringCase("firefox");
         }
     }
 
+    @Test
+    void testCreateSessionWithHtmlUnitChrome() throws Exception {
+        var config = new WebDriverFetcherConfig();
+        config.setBrowser(WebDriverBrowser.CHROME);
+        config.setUseHtmlUnit(true);
+        try (var session = WebDriverFactory.createSession(config)) {
+            assertThat(session.driver())
+                    .isNotNull()
+                    .isInstanceOf(HtmlUnitDriver.class);
+        }
+    }
+
+    @Test
+    void testCreateSessionWithHtmlUnitFirefox() throws Exception {
+        var config = new WebDriverFetcherConfig();
+        config.setBrowser(WebDriverBrowser.FIREFOX);
+        config.setUseHtmlUnit(true);
+        try (var session = WebDriverFactory.createSession(config)) {
+            assertThat(session.driver())
+                    .isNotNull()
+                    .isInstanceOf(HtmlUnitDriver.class);
+        }
+    }
+
+    @Test
+    void testCreateWithHtmlUnitChromeReturnsDriver() {
+        var config = new WebDriverFetcherConfig();
+        config.setBrowser(WebDriverBrowser.CHROME);
+        config.setUseHtmlUnit(true);
+        var driver = WebDriverFactory.create(config);
+        try {
+            assertThat(driver).isNotNull().isInstanceOf(HtmlUnitDriver.class);
+        } finally {
+            driver.quit();
+        }
+    }
+
+    @Test
+    void testCreateSessionWithHtmlUnitUnsupportedBrowserThrows() {
+        var config = new WebDriverFetcherConfig();
+        config.setBrowser(WebDriverBrowser.SAFARI);
+        config.setUseHtmlUnit(true);
+        assertThatExceptionOfType(CrawlerException.class)
+                .isThrownBy(() -> WebDriverFactory.createSession(config));
+    }
+
+    @Test
+    void testCreateSessionWithCapabilitiesDoesNotThrow() throws Exception {
+        var config = new WebDriverFetcherConfig();
+        config.setBrowser(WebDriverBrowser.CHROME);
+        config.setUseHtmlUnit(true);
+        config.setCapabilities(Map.of("se:custom-cap", "true"));
+        try (var session = WebDriverFactory.createSession(config)) {
+            assertThat(session.driver()).isNotNull();
+        }
+    }
+
+    @Test
+    void testCreateSessionWithArgumentsChrome() throws Exception {
+        var config = new WebDriverFetcherConfig();
+        config.setBrowser(WebDriverBrowser.CHROME);
+        config.setUseHtmlUnit(true);
+        config.getArguments().add("--headless");
+        try (var session = WebDriverFactory.createSession(config)) {
+            assertThat(session.driver()).isNotNull();
+        }
+    }
+
+    @Test
+    void testCreateSessionWithArgumentsFirefox() throws Exception {
+        var config = new WebDriverFetcherConfig();
+        config.setBrowser(WebDriverBrowser.FIREFOX);
+        config.setUseHtmlUnit(true);
+        config.getArguments().add("--headless");
+        try (var session = WebDriverFactory.createSession(config)) {
+            assertThat(session.driver()).isNotNull();
+        }
+    }
+
+    private boolean isLocalFirefoxAvailable() {
+        return AbstractWebDriverHttpFetcherTest.isLocalBrowserDetectable(
+                WebDriverBrowser.FIREFOX);
+    }
 }

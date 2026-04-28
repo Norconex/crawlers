@@ -1,4 +1,4 @@
-/* Copyright 2019-2025 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,20 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.web.fetch.impl.webdriver;
+package com.norconex.crawler.web.fetch.util;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
-import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
 
 /**
  * <p>
- * Configuration for {@link ScreenshotHandler}.
+ * Configuration for screenshot handlers (Selenium WebDriver and Playwright).
+ * Shared by both {@code WebDriverScreenshotHandler} and
+ * {@code PlaywrightScreenshotHandler}.
  * </p>
  * @since 3.0.0
  */

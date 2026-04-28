@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import java.awt.Dimension;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
@@ -31,6 +30,7 @@ import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.map.MapUtil;
 import com.norconex.commons.lang.net.ProxySettings;
 import com.norconex.commons.lang.text.TextMatcher;
+import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.web.fetch.impl.webdriver.WebDriverFetcherConfig.WaitElementType;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.DirStructure;
@@ -45,10 +45,10 @@ class WebDriverFetcherConfigTest {
         var f = new WebDriverFetcher();
 
         var c = f.getConfiguration();
-        c.setBrowser(Browser.CHROME);
+        c.setBrowser(WebDriverBrowser.CHROME);
         c.setBrowserPath(Paths.get("/some/browser/path"));
         c.setDriverPath(Paths.get("/some/driver/path"));
-        c.setRemoteURL(new URL("http://example.com"));
+        c.setRemoteURL(HttpURL.toURL("http://example.com"));
         c.setImplicitlyWait(Duration.ofSeconds(4));
         c.setEarlyPageScript("alert('hello init!');");
         c.setPageLoadTimeout(Duration.ofSeconds(5));
@@ -78,7 +78,7 @@ class WebDriverFetcherConfigTest {
                 new GenericReferenceFilter(), cfg -> cfg
                         .setValueMatcher(TextMatcher.regex("test.*")))));
 
-        var sh = new ScreenshotHandler();
+        var sh = new WebDriverScreenshotHandler();
         sh.getConfiguration()
                 .setCssSelector("selector")
                 .setImageFormat("gif")

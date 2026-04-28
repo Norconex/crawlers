@@ -1,4 +1,4 @@
-/* Copyright 2019-2024 Norconex Inc.
+/* Copyright 2019-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,27 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.norconex.crawler.web.fetch.impl.webdriver;
+package com.norconex.crawler.web.fetch.util;
 
-import static java.util.Optional.ofNullable;
-
-import java.awt.Rectangle;
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.util.Optional;
-
-import org.apache.commons.lang3.StringUtils;
-import org.openqa.selenium.By;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.WebDriver;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.commons.lang.img.MutableImage;
 import com.norconex.commons.lang.io.CachedStreamFactory;
-import com.norconex.crawler.web.fetch.util.DocImageHandler;
 import com.norconex.importer.doc.Doc;
 
 import lombok.EqualsAndHashCode;
@@ -42,17 +30,24 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
- * Takes screenshot of pages using a Selenium {@link WebDriver}.
- * Either the entire page, or a specific DOM element.
- * Screenshot images can be stored in a document metadata/field or
- * in a local directory.
+ * Base class for screenshot handlers that capture browser page images during
+ * crawling. Handles the common infrastructure: stream management,
+ * {@link DocImageHandler} wiring, and error handling.
  * </p>
- * @since 3.0.0
+ * <p>
+ * Concrete subclasses implement {@link #captureScreenshotBytes(Object)} to
+ * obtain the raw screenshot bytes using their specific browser API (e.g.,
+ * Selenium WebDriver or Playwright). CSS selector-based element targeting,
+ * when supported, should also be applied within that method.
+ * </p>
+ *
+ * @param <T> the browser driver/page type used to capture the screenshot
+ * @since 4.0.0
  */
 @ToString
 @EqualsAndHashCode
 @Slf4j
-public class ScreenshotHandler
+public abstract class AbstractScreenshotHandler<T>
         implements Configurable<ScreenshotHandlerConfig> {
 
     @Getter
@@ -64,39 +59,42 @@ public class ScreenshotHandler
     @JsonIgnore
     private final CachedStreamFactory streamFactory;
 
-    public ScreenshotHandler() {
+    protected AbstractScreenshotHandler() {
         this(null);
     }
 
-    public ScreenshotHandler(CachedStreamFactory streamFactory) {
+    protected AbstractScreenshotHandler(CachedStreamFactory streamFactory) {
         this.streamFactory = Optional.ofNullable(
                 streamFactory).orElseGet(CachedStreamFactory::new);
     }
 
-    public void takeScreenshot(WebDriver driver, Doc doc) {
+    /**
+     * Captures screenshot bytes for the given browser source. Implementations
+     * are responsible for applying CSS selector-based element targeting (when
+     * {@link ScreenshotHandlerConfig#getCssSelector()} is set) before
+     * returning the final image bytes.
+     *
+     * @param source the browser driver or page object
+     * @return screenshot bytes (PNG or JPEG)
+     * @throws Exception if the screenshot cannot be captured
+     */
+    protected abstract byte[] captureScreenshotBytes(T source) throws Exception;
+
+    /**
+     * Takes a screenshot of the given browser source and stores it according
+     * to the handler configuration. Exceptions during capture are logged but
+     * not propagated.
+     *
+     * @param source the browser driver or page object
+     * @param doc    the crawl document to attach the image to
+     */
+    public void takeScreenshot(T source, Doc doc) {
         var imageHandler = new DocImageHandler();
         imageHandler.setConfiguration(configuration);
-
-        try (InputStream in = streamFactory.newInputStream(
-                new ByteArrayInputStream(((TakesScreenshot) driver)
-                        .getScreenshotAs(OutputType.BYTES)))) {
-
-            // If wanting a specific web element:
-            if (StringUtils.isNotBlank(configuration.getCssSelector())) {
-                var element = driver.findElement(
-                        By.cssSelector(configuration.getCssSelector()));
-
-                var location = element.getLocation();
-                var size = element.getSize();
-                var rectangle = new Rectangle(
-                        location.x, location.y, size.width, size.height);
-                var img = new MutableImage(in);
-                img.crop(rectangle);
-                imageHandler.handleImage(img.toInputStream(
-                        ofNullable(getConfiguration().getImageFormat())
-                                .orElse("png")),
-                        doc);
-            } else {
+        try {
+            var bytes = captureScreenshotBytes(source);
+            try (var in = streamFactory.newInputStream(
+                    new ByteArrayInputStream(bytes))) {
                 imageHandler.handleImage(in, doc);
             }
         } catch (Exception e) {

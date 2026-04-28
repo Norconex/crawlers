@@ -1,4 +1,4 @@
-/* Copyright 2014-2025 Norconex Inc.
+/* Copyright 2014-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,13 @@
  */
 package com.norconex.crawler.core.doc.operations.filter.impl;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import org.apache.commons.io.FilenameUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
+import com.norconex.commons.lang.url.HttpURL;
+import com.norconex.commons.lang.url.UrlException;
 import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
 import com.norconex.crawler.core.doc.operations.filter.MetadataFilter;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
@@ -67,9 +66,8 @@ public class ExtensionReferenceFilter implements
         }
         String referencePath;
         try {
-            var referenceUrl = new URL(reference);
-            referencePath = referenceUrl.getPath();
-        } catch (MalformedURLException ex) {
+            referencePath = new HttpURL(reference).getPath();
+        } catch (UrlException ex) {
             referencePath = reference;
         }
 

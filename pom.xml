@@ -27,7 +27,7 @@
   <!-- Change anything in this comment to trigger a full build. -->
 
   <properties>
-    <java.version>17</java.version>
+    <java.version>21</java.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <maven.compiler.release>${java.version}</maven.compiler.release>
@@ -470,26 +470,6 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
-      <!--
-      <dependency>
-        <groupId>org.testcontainers</groupId>
-        <artifactId>testcontainers-junit-jupiter</artifactId>
-        <version>${testcontainers.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.testcontainers</groupId>
-        <artifactId>testcontainers-postgresql</artifactId>
-        <version>${testcontainers.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.testcontainers</groupId>
-        <artifactId>testcontainers-selenium</artifactId>
-        <version>${testcontainers.version}</version>
-        <scope>test</scope>
-      </dependency>
-      -->
       <dependency>
         <groupId>software.xdev</groupId>
         <artifactId>testcontainers-junit4-mock</artifactId>
@@ -752,11 +732,6 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-deploy-plugin</artifactId>
           <version>${maven-deploy-plugin.version}</version>
-          <!--
-          <configuration>
-            <allowIncompleteProjects>true</allowIncompleteProjects>
-          </configuration>
-          -->          
           <inherited>true</inherited>
         </plugin>
         
@@ -1000,22 +975,6 @@
                 <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
               </configuration>
             </execution>
-            <!--
-              We are not generating javadoc on tests so consider dropping this:
-              -->
-            <!--
-            <execution>
-              <id>test-delombok</id>
-              <phase>generate-test-sources</phase>
-              <goals>
-                <goal>testDelombok</goal>
-              </goals>
-              <configuration>
-                <addOutputDirectory>false</addOutputDirectory>
-                <sourceDirectory>${project.basedir}/src/test/java</sourceDirectory>
-              </configuration>
-            </execution>
-            -->
           </executions>
           <inherited>true</inherited>
         </plugin>
@@ -1081,9 +1040,6 @@
               <configuration>
                 <propertyName>argLine</propertyName>
                 <destFile>${project.build.directory}/jacoco.exec</destFile>
-              <!-- 
-                <propertyName>surefireArgLine</propertyName>
-              -->
               </configuration>
             </execution>
             <execution>

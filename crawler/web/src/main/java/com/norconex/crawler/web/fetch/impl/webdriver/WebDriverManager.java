@@ -172,23 +172,23 @@ public class WebDriverManager {
         return new DriverEntry(() -> {
             LOG.debug("Creating new WebDriver for thread {}",
                     Thread.currentThread().getName());
-            var driver = WebDriverFactory.create(config);
+            var session = WebDriverFactory.createSession(config);
             createdCount.incrementAndGet();
             LOG.info("Created WebDriver #{} for thread [{}]",
                     createdCount.get(), Thread.currentThread().getName());
-            return driver;
+            return session;
         });
     }
 
     private static class DriverEntry {
-        private WebDriver driver;
+        private DriverSession session;
         private Instant createdAt;
         private final AtomicInteger navCount = new AtomicInteger(0);
-        private final Supplier<WebDriver> driverSupplier;
+        private final Supplier<DriverSession> driverSupplier;
 
-        DriverEntry(Supplier<WebDriver> driverSupplier) {
+        DriverEntry(Supplier<DriverSession> driverSupplier) {
             this.driverSupplier = driverSupplier;
-            driver = driverSupplier.get();
+            session = driverSupplier.get();
             createdAt = Instant.now();
         }
 
@@ -201,12 +201,12 @@ public class WebDriverManager {
                             createdAt, Instant.now()).compareTo(maxAge) > 0) {
                 reset();
             }
-            return driver;
+            return session.driver();
         }
 
         void reset() {
             safeQuit();
-            driver = driverSupplier.get();
+            session = driverSupplier.get();
             createdAt = Instant.now();
             navCount.set(0);
         }
@@ -216,7 +216,7 @@ public class WebDriverManager {
             LOG.debug("Force resetting WebDriver for thread {}",
                     Thread.currentThread().getName());
             safeQuit();
-            driver = driverSupplier.get();
+            session = driverSupplier.get();
             createdAt = Instant.now();
             navCount.set(0);
         }
@@ -227,11 +227,11 @@ public class WebDriverManager {
 
         // FIX: Improved quit method with better error handling
         private void safeQuit() {
-            if (driver != null) {
+            if (session != null) {
                 try {
                     LOG.debug("Quitting WebDriver for thread {}",
                             Thread.currentThread().getName());
-                    driver.quit();
+                    session.close();
                     LOG.debug("Successfully quit WebDriver for thread {}",
                             Thread.currentThread().getName());
                 } catch (Exception e) {
@@ -240,7 +240,7 @@ public class WebDriverManager {
                     // Even if quit fails, we still need to null the reference
                     // to prevent memory leaks
                 } finally {
-                    driver = null;
+                    session = null;
                 }
             }
         }

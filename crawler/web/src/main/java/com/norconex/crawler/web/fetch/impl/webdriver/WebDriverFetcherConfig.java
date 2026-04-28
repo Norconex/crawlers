@@ -1,4 +1,4 @@
-/* Copyright 2020-2025 Norconex Inc.
+/* Copyright 2020-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ public class WebDriverFetcherConfig extends BaseFetcherConfig {
      * The browser used for crawling. Also defines which WebDriver to use.
      * Default is Firefox.
      */
-    private Browser browser = Browser.FIREFOX;
+    private WebDriverBrowser browser = WebDriverBrowser.FIREFOX;
     /**
      * Local path to driver executable or {@code null} to attempt
      * automatic detection of the driver path.
@@ -95,7 +95,7 @@ public class WebDriverFetcherConfig extends BaseFetcherConfig {
     private URL remoteURL;
 
     /**
-     * <b>Experimental</b> feature where the selected {@link Browser} will be
+     * <b>Experimental</b> feature where the selected {@link WebDriverBrowser} will be
      * used to configure and use
      * <a href="https://github.com/SeleniumHQ/htmlunit-driver">
      * HtmlUnit WebDriver</a> as a wrapper instead of directly using the
@@ -113,7 +113,7 @@ public class WebDriverFetcherConfig extends BaseFetcherConfig {
     /**
      * When configured, takes screenshots of each web pages.
      */
-    private ScreenshotHandler screenshotHandler;
+    private WebDriverScreenshotHandler screenshotHandler;
 
     /**
      * Optional capabilities (configuration options) for the web driver.

@@ -39,7 +39,7 @@ class ScreenshotHandlerTest {
 
     @Test
     void testWriteRead() {
-        var h = new ScreenshotHandler();
+        var h = new WebDriverScreenshotHandler();
         h.getConfiguration()
                 .setCssSelector("body .content")
                 .setImageFormat("jpg")
@@ -59,7 +59,7 @@ class ScreenshotHandlerTest {
         when(driver.getScreenshotAs(OutputType.BYTES))
                 .thenThrow(UnsupportedOperationException.class);
         var doc = mock(Doc.class);
-        var h = spy(new ScreenshotHandler());
+        var h = spy(new WebDriverScreenshotHandler());
         assertThatNoException().isThrownBy(() -> {
             h.takeScreenshot(driver, doc);
         });

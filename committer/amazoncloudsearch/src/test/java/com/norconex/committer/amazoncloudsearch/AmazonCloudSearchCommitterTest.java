@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -57,6 +56,7 @@ import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.net.Host;
 import com.norconex.commons.lang.security.Credentials;
+import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.commons.lang.url.UrlStreamer;
 
 /**
@@ -73,8 +73,8 @@ class AmazonCloudSearchCommitterTest {
     private static final Logger LOG = LoggerFactory.getLogger(
             AmazonCloudSearchCommitterTest.class);
 
-    //TODO test update/delete URL params
-    //TODO test source + target mappings + other mappings
+    //TO DO test update/delete URL params
+    //TO DO test source + target mappings + other mappings
 
     private static final int CLOUDSEARCH_PORT = 15808;
     private static final String API_DEV_DOCUMENTS = "/dev/documents";
@@ -368,7 +368,7 @@ class AmazonCloudSearchCommitterTest {
         LOG.debug("CloudSearch test DELETE request: {}", url);
         HttpURLConnection con = null;
         try {
-            con = (HttpURLConnection) new URL(url).openConnection();
+            con = (HttpURLConnection) HttpURL.toURL(url).openConnection();
             con.setUseCaches(false);
             con.setRequestMethod("DELETE");
             // Get the response

@@ -1,4 +1,4 @@
-/* Copyright 2023-2025 Norconex Inc.
+/* Copyright 2023-2026 Norconex Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,6 +75,15 @@ public class ElasticsearchCommitterConfig extends BaseBatchCommitterConfig {
      * Elasticsearch credentials, if applicable.
      */
     private final Credentials credentials = new Credentials();
+
+    /**
+     * The Base64-encoded API key for Elasticsearch API Key authentication.
+     * When set, takes precedence over basic credentials.
+     * The value should be the Base64-encoded API key as provided
+     * by Elasticsearch (i.e., the value sent in the
+     * {@code Authorization: ApiKey ...} header).
+     */
+    private String apiKey;
 
     /**
      * The character used to replace dots in field names.

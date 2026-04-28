@@ -14,7 +14,6 @@
  */
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
-import static com.norconex.crawler.web.mocks.MockWebsite.serverUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
@@ -24,24 +23,20 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.Timeout;
-import org.junit.jupiter.api.extension.ConditionEvaluationResult;
-import org.junit.jupiter.api.extension.ExecutionCondition;
-import org.junit.jupiter.api.extension.ExtensionContext;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
-import org.testcontainers.DockerClientFactory;
-import org.testcontainers.Testcontainers;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.selenium.BrowserWebDriverContainer;
-import org.testcontainers.selenium.BrowserWebDriverContainer.VncRecordingMode;
+import org.openqa.selenium.manager.SeleniumManager;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.img.MutableImage;
@@ -57,24 +52,25 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @MockServerSettings
 @TestInstance(Lifecycle.PER_CLASS)
-@org.testcontainers.junit.jupiter.Testcontainers(disabledWithoutDocker = true)
-@Timeout(30)
-public abstract class AbstractWebDriverHttpFetcherTest
-        implements ExecutionCondition {
+@Timeout(60)
+public abstract class AbstractWebDriverHttpFetcherTest {
 
     private static final int SNIFFER_PORT_START = 50000;
     private static final int SNIFFER_PORT_END = 50049; // 50 ports
 
     private static final int LARGE_CONTENT_MIN_SIZE = 3 * 1024 * 1024;
+    private static final ConcurrentHashMap<WebDriverBrowser,
+            Boolean> LOCAL_BROWSER_OK =
+                    new ConcurrentHashMap<>();
 
-    private BrowserWebDriverContainer browserContainer;
-    private Browser browserType;
+    private WebDriverBrowser browserType;
 
-    public AbstractWebDriverHttpFetcherTest(Browser browserType) {
-        if (browserType != Browser.CHROME
-                && browserType != Browser.FIREFOX) {
+    public AbstractWebDriverHttpFetcherTest(WebDriverBrowser browserType) {
+        if (browserType != WebDriverBrowser.CHROME
+                && browserType != WebDriverBrowser.FIREFOX
+                && browserType != WebDriverBrowser.EDGE) {
             throw new IllegalArgumentException(
-                    "Only Chrome and Firefox are supported "
+                    "Only Chrome, Firefox, and Edge are supported "
                             + "for testing.");
         }
         this.browserType = browserType;
@@ -82,39 +78,66 @@ public abstract class AbstractWebDriverHttpFetcherTest
 
     @BeforeAll
     void beforeAll() {
-        // Expose all ports in the range for use by sniffer proxies
-        // Best done before starting the container.
-        for (var port = SNIFFER_PORT_START; port <= SNIFFER_PORT_END; port++) {
-            Testcontainers.exposeHostPorts(port);
+        if (isLocalBrowserAvailable()) {
+            LOG.info("Local {} browser detected. Tests will run against "
+                    + "host browser managed by Selenium Manager.", browserType);
+        } else {
+            LOG.warn(
+                    "Local {} browser was not detected. Tests will be skipped.",
+                    browserType);
         }
-        browserContainer = createWebDriverContainer(browserType);
-        browserContainer.start();
-        LOG.info("{} browser container started. Selenium address: {}",
-                browserType, browserContainer.getSeleniumAddress());
     }
 
     @AfterAll
     void afterAll() {
-        browserContainer.stop();
+        DriverSession.closeAllOpenSessions();
+    }
+
+    @AfterEach
+    void afterEach() {
+        DriverSession.closeAllOpenSessions();
     }
 
     @BeforeEach
     void beforeEach(ClientAndServer client) {
-        Testcontainers.exposeHostPorts(client.getPort());
+        Assumptions.assumeTrue(isLocalBrowserAvailable(),
+                "Local " + browserType
+                        + " browser not detected. Test skipped.");
     }
 
-    @Override
-    public ConditionEvaluationResult evaluateExecutionCondition(
-            ExtensionContext ctx) {
-        try {
-            DockerClientFactory.instance().client();
-            return ConditionEvaluationResult.enabled(
-                    "Docker found: WebDriverHttpFetcher tests will run.");
-        } catch (Throwable ex) {
-            return ConditionEvaluationResult.enabled(
-                    "Docker NOT found: WebDriverHttpFetcher tests will be "
-                            + "disabled and will not run.");
+    private boolean isLocalBrowserAvailable() {
+        return LOCAL_BROWSER_OK.computeIfAbsent(
+                browserType,
+                AbstractWebDriverHttpFetcherTest::isLocalBrowserDetectable);
+    }
+
+    static boolean isLocalBrowserDetectable(WebDriverBrowser browser) {
+        // If the caller pre-installed the driver and set the corresponding
+        // system property (e.g. -Dwebdriver.edge.driver=/path/msedgedriver.exe)
+        // we accept that as sufficient proof the browser is available.
+        if (driverSystemProperty(browser) != null) {
+            return true;
         }
+        try {
+            var options = browser.createOptions(
+                    new WebDriverLocation(null, null, null));
+            SeleniumManager.getInstance().getBinaryPaths(List.of(
+                    "--browser", options.getBrowserName()));
+            return true;
+        } catch (Throwable e) {
+            LOG.info("Selenium Manager could not auto-detect a local {} "
+                    + "browser for tests.", browser, e);
+            return false;
+        }
+    }
+
+    private static String driverSystemProperty(WebDriverBrowser browser) {
+        return switch (browser) {
+            case CHROME -> System.getProperty("webdriver.chrome.driver");
+            case EDGE -> System.getProperty("webdriver.edge.driver");
+            case FIREFOX -> System.getProperty("webdriver.gecko.driver");
+            default -> null;
+        };
     }
 
     @WebCrawlTest
@@ -140,7 +163,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
 
         MockWebsite.whenJsRenderedWebsite(client);
 
-        var h = new ScreenshotHandler();
+        var h = new WebDriverScreenshotHandler();
         h.getConfiguration()
                 .setCssSelector("#applePicture")
                 .setTargets(List.of(Target.METADATA))
@@ -190,7 +213,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
         var sniffer = new HttpSniffer();
         var snifCfg = sniffer.getConfiguration();
 
-        snifCfg.setHost("host.testcontainers.internal");
+        snifCfg.setHost("127.0.0.1");
         snifCfg.setPort(freeSnifferPort());
         // also test sniffer with large content
         snifCfg.setMaxBufferSize(6 * 1024 * 1024);
@@ -200,7 +223,7 @@ public abstract class AbstractWebDriverHttpFetcherTest
         WebTestUtil.ignoreAllIgnorables(cfg);
         cfg.setFetchers(List.of(fetcher));
         cfg.setMaxDepth(0);
-        cfg.setStartReferences(List.of(serverUrl(client, path)));
+        cfg.setStartReferences(List.of(hostUrl(client, path)));
         var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertRequests()).hasSize(1);
@@ -290,15 +313,31 @@ public abstract class AbstractWebDriverHttpFetcherTest
     //--- Private/Protected ----------------------------------------------------
 
     private WebDriverFetcher createWebDriverHttpFetcher() {
-        return Configurable.configure(
-                new WebDriverFetcher(), cfg -> cfg
-                        .setBrowser(browserType)
-                        .setRemoteURL(browserContainer.getSeleniumAddress()));
+        return Configurable.configure(new WebDriverFetcher(), cfg -> {
+            cfg.setBrowser(browserType);
+            var driverPath = driverSystemProperty(browserType);
+            if (driverPath != null) {
+                cfg.setDriverPath(java.nio.file.Path.of(driverPath));
+            }
+            switch (browserType) {
+                case CHROME ->
+                        cfg.getArguments().addAll(
+                                WebDriverTestUtil.chromeTestArguments());
+                case EDGE ->
+                        cfg.getArguments().addAll(
+                                WebDriverTestUtil.edgeTestArguments());
+                case FIREFOX ->
+                        cfg.getArguments().addAll(
+                                WebDriverTestUtil.firefoxTestArguments());
+                default -> {
+                }
+            }
+        });
     }
 
     private String hostUrl(ClientAndServer client, String path) {
-        return "http://host.testcontainers.internal:%s%s".formatted(
-                client.getLocalPort(), path);
+        return "http://%s:%s%s".formatted(
+                "127.0.0.1", client.getLocalPort(), path);
     }
 
     private int freeSnifferPort() {
@@ -311,41 +350,5 @@ public abstract class AbstractWebDriverHttpFetcherTest
         }
         throw new IllegalStateException(
                 "No free sniffer port available in range.");
-    }
-
-    @SuppressWarnings("resource")
-    protected static BrowserWebDriverContainer createWebDriverContainer(
-            Browser browser) {
-        var image = switch (browser) {
-            case CHROME -> "selenium/standalone-chrome";
-            case FIREFOX -> "selenium/standalone-firefox";
-            default -> throw new IllegalArgumentException(
-                    "Unsupported browser: " + browser);
-        };
-
-        return new BrowserWebDriverContainer(image)
-                .withAccessToHost(true)
-                .withRecordingMode(VncRecordingMode.SKIP, null)
-                .withLogConsumer(new Slf4jLogConsumer(LOG))
-                .withEnv("SE_OPTS", "--tracing false")
-                .withEnv("SE_NODE_MAX_SESSIONS", "5")
-                .withEnv("SESSION_REQUEST_TIMEOUT", "60000")
-                // Disable traces
-                .withEnv("OTEL_TRACES_EXPORTER", "none")
-                // Disable metrics
-                .withEnv("OTEL_METRICS_EXPORTER", "none")
-                // Disable context propagation
-                .withEnv("OTEL_PROPAGATORS", "none")
-                // Completely disable OpenTelemetry
-                .withEnv("OTEL_SDK_DISABLED", "true")
-                .withSharedMemorySize(
-                        1L * 1024 * 1024 * 1024) // 1GB
-                .withCreateContainerCmdModifier(
-                        cmd -> cmd.getHostConfig()
-                                .withMemory(
-                                        2048L * 1024 * 1024) // 2GB
-                                .withMemorySwap(
-                                        4096L * 1024 * 1024)) // 4GB
-                .withStartupTimeout(Duration.ofMinutes(5));
     }
 }

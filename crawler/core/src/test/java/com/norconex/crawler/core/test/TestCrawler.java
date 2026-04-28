@@ -286,6 +286,7 @@ public class TestCrawler implements Closeable {
     /**
      * Returns {@code true} if this crawler's child JVM process is currently
      * alive (i.e. launched in a separate JVM and not yet terminated).
+     * @return <code>true</code> if alive
      */
     public boolean isProcessAlive() {
         var process = childProcess.get();
@@ -293,7 +294,7 @@ public class TestCrawler implements Closeable {
     }
 
     public static void main(String[] args) {
-        int exitCode = 0;
+        var exitCode = 0;
         try {
             var instPath = Path.of(args[0]);
             var instrument = CoreTestUtil.readFromFile(instPath,
@@ -319,7 +320,7 @@ public class TestCrawler implements Closeable {
                             crawlFailure.set(t);
                             LOG.error("crawlThread failed.", t);
                         }
-                        LOG.info("crawlThread finished. Thread: {}",
+                        LOG.info("crawlThread finished. Virtual Thread: {}",
                                 Thread.currentThread().getName());
                     });
                     crawlThread.start();
@@ -370,7 +371,7 @@ public class TestCrawler implements Closeable {
                     Thread.getAllStackTraces().keySet().stream()
                             .filter(t -> t.isAlive() && !t.isDaemon())
                             .forEach(t -> LOG.info("Thread: {} (id={})",
-                                    t.getName(), t.getId()));
+                                    t.getName(), t.threadId()));
 
                     if (crawlFailure.get() != null) {
                         throw new RuntimeException(
@@ -396,15 +397,9 @@ public class TestCrawler implements Closeable {
                 Thread.getAllStackTraces().keySet().stream()
                         .filter(t -> t.isAlive() && !t.isDaemon())
                         .forEach(t -> LOG.info("Thread: {} (id={})",
-                                t.getName(), t.getId()));
+                                t.getName(), t.threadId()));
             }
-        } catch (IOException e) {
-            exitCode = 1;
-            LOG.error("TestCrawler main() failed", e);
-        } catch (RuntimeException e) {
-            exitCode = 1;
-            LOG.error("TestCrawler main() failed", e);
-        } catch (Error e) {
+        } catch (IOException | RuntimeException | Error e) {
             exitCode = 1;
             LOG.error("TestCrawler main() failed", e);
         } finally {
@@ -497,7 +492,7 @@ public class TestCrawler implements Closeable {
                 .resolve(TEST_RESULT_FILE_NAME);
         deleteStaleResultFile(nodeName, resultPath);
 
-        final long processStartMillis = System.currentTimeMillis();
+        final var processStartMillis = System.currentTimeMillis();
         var streamChildLogs = Boolean.getBoolean(STREAM_CHILD_LOGS_PROP);
 
         var launcher = JvmLauncher.builder()
@@ -525,8 +520,8 @@ public class TestCrawler implements Closeable {
         LOG.info(
                 "=== Node {} child process started. PID: {}. Waiting for completion... ===",
                 nodeName, process.pid());
-        boolean interrupted = false;
-        boolean terminalResultObserved = false;
+        var interrupted = false;
+        var terminalResultObserved = false;
         try {
             while (process.isAlive() && !terminalResultObserved) {
                 if (process.waitFor(RESULT_POLL_INTERVAL_MS,
@@ -590,7 +585,7 @@ public class TestCrawler implements Closeable {
         // (child might still be flushing results to disk)
         if (interrupted) {
             try {
-                Thread.sleep(100);
+                Thread.sleep(100); //NOSONAR
             } catch (InterruptedException e) {
                 // Ignore
             }
@@ -643,7 +638,7 @@ public class TestCrawler implements Closeable {
     private CrawlTestNodeOutput deserializeNodeTestResults() {
         var resultPath = instrument.getCrawlConfig().getWorkDir()
                 .resolve(TEST_RESULT_FILE_NAME);
-        for (int attempt = 1; attempt <= RESULT_READ_RETRY_COUNT; attempt++) {
+        for (var attempt = 1; attempt <= RESULT_READ_RETRY_COUNT; attempt++) {
             if (!Files.isRegularFile(resultPath)) {
                 if (attempt == 1) {
                     LOG.trace("No node test results at: {}", resultPath);
@@ -676,7 +671,7 @@ public class TestCrawler implements Closeable {
 
     private void deleteStaleResultFile(String nodeName, Path resultPath) {
         IOException lastFailure = null;
-        for (int attempt = 1; attempt <= RESULT_DELETE_RETRY_COUNT; attempt++) {
+        for (var attempt = 1; attempt <= RESULT_DELETE_RETRY_COUNT; attempt++) {
             try {
                 Files.deleteIfExists(resultPath);
                 return;
@@ -726,7 +721,7 @@ public class TestCrawler implements Closeable {
 
     private static void sleepQuietly(long delayMs) {
         try {
-            Thread.sleep(delayMs);
+            Thread.sleep(delayMs); //NOSONAR
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }

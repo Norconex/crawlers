@@ -22,6 +22,7 @@ import static org.mockserver.model.MediaType.HTML_UTF_8;
 
 import java.util.List;
 
+import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
@@ -29,7 +30,6 @@ import com.norconex.committer.core.UpsertRequest;
 import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.junit.WebCrawlTest;
 import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
-import org.junit.jupiter.api.Timeout;
 
 /**
  * Test that special characters in URLs are handled properly.

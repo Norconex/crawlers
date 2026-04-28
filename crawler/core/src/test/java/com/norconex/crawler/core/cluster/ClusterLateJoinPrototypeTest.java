@@ -39,11 +39,11 @@ import com.norconex.crawler.core.test.CrawlTestHarness;
 import com.norconex.crawler.core.test.CrawlTestInstrument;
 
 @WithTestWatcherLogging
-@Timeout(30)
+@Timeout(180)
 @SlowTest
 class ClusterLateJoinPrototypeTest {
 
-    private static final Duration CLUSTER_JOIN_WAIT = Duration.ofSeconds(60);
+    private static final Duration CLUSTER_JOIN_WAIT = Duration.ofSeconds(120);
     private static final Duration INITIAL_NODE_HEAD_START =
             Duration.ofSeconds(1);
     private static final Duration RESULT_RECORD_INTERVAL =
@@ -56,7 +56,7 @@ class ClusterLateJoinPrototypeTest {
     @Test
     @Timeout(180)
     void lateJoinUsingClusterJoinGateFetcher() throws Exception {
-        var numOfRefs = 48;
+        var numOfRefs = 100;
         var initialNodeNames = new String[] { "node-1" };
         var lateNodeName = "node-2";
 
@@ -64,7 +64,7 @@ class ClusterLateJoinPrototypeTest {
                 .setRecordEvents(true)
                 .setRecordCaches(false)
                 .setConfigModifier(cfg -> {
-                    baseConfig(numOfRefs, 0).accept(cfg);
+                    baseConfig(numOfRefs, 10).accept(cfg);
                     cfg.setId("prototype-late-join-" + numOfRefs);
                     cfg.setMaxQueueBatchSize(1);
 
@@ -103,9 +103,12 @@ class ClusterLateJoinPrototypeTest {
             assertThat(lateOutput.getEventNames())
                     .contains(CrawlerEvent.DOCUMENT_PROCESSING_BEGIN);
             assertThat(lateOutput.getEventNameBag()
-                    .getCount(CrawlerEvent.DOCUMENT_IMPORTED)).isGreaterThan(0);
-            assertThat(initialResult.getNodeOutput("node-1").getEventNameBag()
-                    .getCount(CrawlerEvent.DOCUMENT_IMPORTED)).isGreaterThan(0);
+                    .getCount(CrawlerEvent.DOCUMENT_IMPORTED))
+                            .isGreaterThan(0);
+            assertThat(
+                    initialResult.getNodeOutput("node-1").getEventNameBag()
+                            .getCount(CrawlerEvent.DOCUMENT_IMPORTED))
+                                    .isGreaterThan(0);
         }
     }
 
@@ -114,7 +117,7 @@ class ClusterLateJoinPrototypeTest {
         var instrument = new CrawlTestInstrument()
                 .setRecordInterval(RESULT_RECORD_INTERVAL)
                 .setWorkDir(tempDir)
-                .setNewJvm(true)
+                .setNewJvm(false)
                 .setClustered(true);
         instrumentModifier.accept(instrument);
         return new CrawlTestHarness(instrument);

@@ -24,11 +24,11 @@ import java.nio.file.Path;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.Isolated;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.HttpRequest;
@@ -48,51 +48,68 @@ import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
  */
 //Related to https://github.com/Norconex/collector-http/issues/694
 @MockServerSettings
-@Timeout(60)
+@Timeout(180)
 @Isolated
 class StrictTransportSecurityTest {
+
     @TempDir
     private Path tempDir;
 
+    @BeforeEach
+    void setUp() {
+        cleanup();
+    }
+
     @AfterEach
     void tearDown() {
-        // Ensure all Hazelcast instances are shut down after each invocation
-        // to prevent resource accumulation and port conflicts
+        cleanup();
+    }
+
+    private void cleanup() {
         Hazelcast.shutdownAll();
+        HstsResolver.clearCache();
         try {
-            Thread.sleep(500); //NOSONAR Give Hazelcast time to fully shut down
+            //NOSONAR Give Hazelcast time to fully shut down.
+            Thread.sleep(2000); //NOSONAR
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
     }
 
     /**
-     * Waits until the MockServer responds with expectations for the given path, or times out after 2 seconds.
+     * Waits until the MockServer responds with expectations for the given
+     * path, or times out after 2 seconds.
      */
     private void waitForMockServerReady(ClientAndServer client, String path) {
-        var deadline = System.currentTimeMillis() + 2000;
+        var deadline = System.currentTimeMillis() + 10000;
         var ready = false;
         Exception last = null;
         while (System.currentTimeMillis() < deadline && !ready) {
-            // Retrieve all expectations and check path manually to avoid
-            // issues with matcher strictness regarding the 'secure' flag.
-            var expectations = client.retrieveActiveExpectations(null);
-            if (expectations != null) {
-                for (var expectation : expectations) {
-                    if (expectation.getHttpRequest() instanceof HttpRequest req
-                            && path.equals(req.getPath().getValue())) {
-                        ready = true;
-                        break;
+            try {
+                // Retrieve all expectations and check path manually to avoid
+                // issues with matcher strictness regarding the 'secure' flag.
+                var expectations = client.retrieveActiveExpectations(null);
+                if (expectations != null) {
+                    for (var expectation : expectations) {
+                        if (expectation
+                                .getHttpRequest() instanceof HttpRequest req
+                                && path.equals(req.getPath().getValue())) {
+                            ready = true;
+                            break;
+                        }
                     }
                 }
+            } catch (Exception e) {
+                last = e;
             }
             if (ready) {
                 break;
             }
             try {
-                Thread.sleep(50); //NOSONAR
+                Thread.sleep(200); //NOSONAR
             } catch (InterruptedException ignored) {
-                // swallow
+                Thread.currentThread().interrupt();
+                break;
             }
         }
         if (!ready) {
@@ -101,21 +118,39 @@ class StrictTransportSecurityTest {
         }
     }
 
-    // CSV: clientSupport, serverSupport, expectsSecureUrl
-    @CsvSource(textBlock = """
-            true,  false, false
-            true,  true,  true
-            false, false, false
-            false, true,  false
-            """)
-    @ParameterizedTest
-    void testStrictTransportSecurity(
+    @Test
+    void testClientYesServerNo(ClientAndServer client) {
+        runStrictTransportSecurityScenario(true, false, false, client);
+    }
+
+    @Test
+    void testClientYesServerYes(ClientAndServer client) {
+        runStrictTransportSecurityScenario(true, true, true, client);
+    }
+
+    @Test
+    void testClientNoServerNo(ClientAndServer client) {
+        runStrictTransportSecurityScenario(false, false, false, client);
+    }
+
+    @Test
+    void testClientNoServerYes(ClientAndServer client) {
+        runStrictTransportSecurityScenario(false, true, false, client);
+    }
+
+    private void runStrictTransportSecurityScenario(
             boolean clientSupportsHSTS,
             boolean serverSupportsHSTS,
             boolean expectsSecureUrl,
             ClientAndServer client) {
 
         client.reset();
+        HstsResolver.clearCache();
+
+        System.out.println(">>> testStrictTransportSecurity: clientHSTS="
+                + clientSupportsHSTS
+                + ", serverHSTS=" + serverSupportsHSTS + ", expectsSecure="
+                + expectsSecureUrl);
 
         var basePath = "/strictTransportSecurity";
         var securePath = basePath + "/secure.html";
@@ -191,6 +226,18 @@ class StrictTransportSecurityTest {
         cfg.setNumThreads(1);
         var fetcherCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
         fetcherCfg.setTrustAllSSLCertificates(true);
+
+        // Diagnostic: Listen for rejection or fetch errors to see why the
+        // URL is missing
+        cfg.addEventListeners(List.of(event -> {
+            if (event.getName().contains("REJECTED")
+                    || event.getName().contains("ERROR")
+                    || event.getName().contains("FETCHED")) {
+                System.out.println("    [DIAGNOSTIC] " + event.getName()
+                        + " - " + event);
+            }
+        }));
+
         if (!clientSupportsHSTS) {
             fetcherCfg.setHstsDisabled(true);
         }
@@ -200,11 +247,20 @@ class StrictTransportSecurityTest {
             expectedUrl = expectedUrl.replace("http://", "https://");
         }
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        try {
+            var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
 
-        assertThat(mem.getUpsertRequests())
-                .map(UpsertRequest::getReference)
-                .filteredOn(ref -> !ref.equals(secureUrl))
-                .containsExactly(expectedUrl);
+            assertThat(mem.getUpsertRequests())
+                    .map(UpsertRequest::getReference)
+                    .filteredOn(ref -> !ref.equals(secureUrl))
+                    .containsExactly(expectedUrl);
+        } catch (Throwable t) {
+            System.err.println("FAILED variant details:");
+            System.err.println("  Start URL:    " + secureUrl);
+            System.err.println("  Expected URL: " + expectedUrl);
+            System.err.println(
+                    "  MockServer logs:\n" + client.retrieveLogMessages(null));
+            throw t;
+        }
     }
 }

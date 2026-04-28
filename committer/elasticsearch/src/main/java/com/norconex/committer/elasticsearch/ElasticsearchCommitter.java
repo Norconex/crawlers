@@ -25,12 +25,14 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.apache.commons.text.StringEscapeUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.message.BasicHeader;
 import org.elasticsearch.client.Node;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
@@ -130,6 +132,13 @@ import lombok.extern.slf4j.Slf4j;
  * <h2>Authentication</h2>
  * <p>
  * Basic authentication is supported for password-protected clusters.
+ * Alternatively, API Key authentication can be used by providing the
+ * encoded API key value via
+ * {@link ElasticsearchCommitterConfig#setApiKey(String)}.
+ * When an API key is set, it takes precedence over basic credentials.
+ * The API key value should be the Base64-encoded string as provided
+ * by Elasticsearch (i.e., the value sent in the
+ * {@code Authorization: ApiKey ...} header).
  * </p>
  *
  * <h2>Timeouts</h2>
@@ -145,7 +154,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ElasticsearchCommitter
         extends AbstractBatchCommitter<ElasticsearchCommitterConfig> {
-
+ 
     public static final String ELASTICSEARCH_ID_FIELD = "_id";
 
     @EqualsAndHashCode.Exclude
@@ -400,8 +409,13 @@ public class ElasticsearchCommitter
                 .setSocketTimeout(
                         (int) configuration.getSocketTimeout().toMillis()));
 
+        var apiKey = configuration.getApiKey();
         var credentials = configuration.getCredentials();
-        if (credentials.isSet()) {
+        if (StringUtils.isNotBlank(apiKey)) {
+            Header authHeader = new BasicHeader(
+                    "Authorization", "ApiKey " + apiKey);
+            builder.setDefaultHeaders(new Header[] { authHeader });
+        } else if (credentials.isSet()) {
             CredentialsProvider credsProvider = new BasicCredentialsProvider();
             credsProvider.setCredentials(
                     AuthScope.ANY, new UsernamePasswordCredentials(

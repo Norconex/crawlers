@@ -13,7 +13,7 @@ This branch holds version 4 code, which is still in development.
 
 # UPCOMING: Crawler V4 Stack
 
-As of Feb 24, 2024, the default `main` branch holds code for the upcoming version 4 crawler stack. It is now a mono-repo containing all Norconex crawler-related projects previously maintained in separate repos. All projects in this mono report will now be released simultaneously and share the same version number.
+The default `main` branch holds code for the upcoming version 4 crawler stack. It is now a mono-repo containing all Norconex crawler-related projects previously maintained in separate repos. All projects in this mono report will now be released simultaneously and share the same version number.
 
 Until v4 is officially released, this branch should not be considered stable.  
 
