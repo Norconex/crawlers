@@ -34,7 +34,7 @@ jobs:
           ref: 3.x-branch
       
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
     #check which version value should be used
       - name: check condition - version value
