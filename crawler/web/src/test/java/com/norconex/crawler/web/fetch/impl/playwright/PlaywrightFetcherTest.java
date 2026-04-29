@@ -18,7 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -571,8 +570,6 @@ class PlaywrightFetcherTest {
             Page page, Response playwrightResp) {
         var context = mock(BrowserContext.class);
         when(context.newPage()).thenReturn(page);
-        // Simulate AutoCloseable contract
-        doReturn(page).when(context).newPage();
 
         var browser = mock(Browser.class);
         when(browser.isConnected()).thenReturn(true);
