@@ -35,19 +35,18 @@
       
     <!-- TODO: SEVERAL BELOW FROM V.3x, CLEANUP AND EVALUATE WHAT'S STILL NEEDED -->          
       
-    <bc.version>1.70</bc.version>
+    <bc.version>1.84</bc.version>
     <findbugs.version>3.0.2</findbugs.version>
     <guava.version>33.2.1-jre</guava.version>
     <imgscalr.version>4.2</imgscalr.version>
-    <littleproxy.version>2.4.0</littleproxy.version>
+    <littleproxy.version>2.7.0</littleproxy.version>
     <netty.version>4.2.0.Final</netty.version>
     <playwright.version>1.51.0</playwright.version>
     <selenium.version>4.43.0</selenium.version>
     <selenium-htmlunit3.version>4.43.0</selenium-htmlunit3.version>
-    <okhttp.version>3.14.9</okhttp.version>
+    <okhttp.version>4.12.0</okhttp.version>
     
-    <commons-compress.version>1.26.0</commons-compress.version>
-    <cxf.version>3.4.5</cxf.version>
+    <cxf.version>3.6.10</cxf.version>
     <hikaricp.version>4.0.3</hikaricp.version>
     <jdom2.version>2.0.6.1</jdom2.version>
   </properties>
@@ -57,12 +56,16 @@
   <dependencyManagement>
     <dependencies>
 
-      <!-- TODO: SEVERAL BELO FROM V.3x, CLEANUP AND EVALUATE WHAT'S STILL NEEDED -->          
-        
+      <!-- TODO: SEVERAL BELOW FROM V.3x, CLEANUP AND EVALUATE WHAT'S STILL NEEDED -->          
+
+      <!-- Import netty BOM to pin all netty artifacts to the same version,
+           overriding any older 4.1.x versions pulled in by Selenium or others. -->
       <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-compress</artifactId>
-        <version>${commons-compress.version}</version>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-bom</artifactId>
+        <version>${netty.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>org.apache.cxf</groupId>
@@ -81,23 +84,18 @@
       </dependency>
       <dependency>
         <groupId>org.bouncycastle</groupId>
-        <artifactId>bcprov-jdk15on</artifactId>
+        <artifactId>bcprov-jdk18on</artifactId>
         <version>${bc.version}</version>
       </dependency>
       <dependency>
         <groupId>org.bouncycastle</groupId>
-        <artifactId>bcpkix-jdk15on</artifactId>
+        <artifactId>bcpkix-jdk18on</artifactId>
         <version>${bc.version}</version>
       </dependency>
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
         <version>${guava.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty-all</artifactId>
-        <version>${netty.version}</version>
       </dependency>
       <dependency>
         <groupId>com.squareup.okhttp3</groupId>
@@ -207,7 +205,18 @@
       <artifactId>littleproxy</artifactId>
       <version>${littleproxy.version}</version>
     </dependency>
-    
+
+    <!-- Explicit Netty dependencies required by HttpSniffer; versions are
+         managed by the netty-bom import in dependencyManagement. -->
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-codec-http</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-transport</artifactId>
+    </dependency>
+
     <!-- Seems to be referenced by Guava -->
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
