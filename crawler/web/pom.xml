@@ -56,7 +56,7 @@
   <dependencyManagement>
     <dependencies>
 
-      <!-- TODO: SEVERAL BELO FROM V.3x, CLEANUP AND EVALUATE WHAT'S STILL NEEDED -->          
+      <!-- TODO: SEVERAL BELOW FROM V.3x, CLEANUP AND EVALUATE WHAT'S STILL NEEDED -->          
 
       <!-- Import netty BOM to pin all netty artifacts to the same version,
            overriding any older 4.1.x versions pulled in by Selenium or others. -->
