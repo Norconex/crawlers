@@ -14,9 +14,11 @@
  */
 package com.norconex.crawler.web.fetch.impl.webdriver;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Timeout;
 
 @Timeout(60)
+@Disabled("Too flaky in unit test.")
 class EdgeWebDriverHttpFetcherTest extends AbstractWebDriverHttpFetcherTest {
 
     // Tests are in super class

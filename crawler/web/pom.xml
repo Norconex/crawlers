@@ -128,20 +128,19 @@
       <artifactId>mockserver-junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
-      <dependency>
-        <groupId>com.h2database</groupId>
-        <artifactId>h2</artifactId>
-        <scope>test</scope>
-      </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>test</scope>
+    </dependency>
 
-
-    <!-- TODO: BELOW FROM V.3x, CLEANUP AND EVALUATE WHAT'S STILL NEEDED -->          
-
-    <!-- Playwright browser automation (alternative to Selenium WebDriver) -->
+    <!-- Playwright browser automation (alternative to Selenium WebDriver)
+         Not bundled with distributable (too big) -->
     <dependency>
       <groupId>com.microsoft.playwright</groupId>
       <artifactId>playwright</artifactId>
       <version>${playwright.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
