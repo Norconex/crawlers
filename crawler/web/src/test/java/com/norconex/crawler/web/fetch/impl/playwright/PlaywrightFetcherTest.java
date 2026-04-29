@@ -151,14 +151,14 @@ class PlaywrightFetcherTest {
     void testToPlaywrightSelectorLinkText() {
         assertThat(PlaywrightFetcher.toPlaywrightSelector(
                 WaitElementType.LINKTEXT, "Click here"))
-                        .isEqualTo("xpath=Click here");
+                        .isEqualTo("a:text-is(\"Click here\")");
     }
 
     @Test
     void testToPlaywrightSelectorPartialLinkText() {
         assertThat(PlaywrightFetcher.toPlaywrightSelector(
                 WaitElementType.PARTIALLINKTEXT, "Click"))
-                        .isEqualTo("xpath=Click");
+                        .isEqualTo("a:has-text(\"Click\")");
     }
 
     @Test
