@@ -30,7 +30,7 @@
     <sonar.skip>false</sonar.skip>
     <sonar.projectKey>${project.groupId}:${project.artifactId}</sonar.projectKey>      
       
-    <graalvm-js.version>24.1.1</graalvm-js.version>
+    <graalvm-js.version>25.0.3</graalvm-js.version>
     <jpeg2000-imageio.version>1.4.0</jpeg2000-imageio.version>
     <jython.version>2.7.3</jython.version>
     <luaj-jse.version>3.0.1</luaj-jse.version>
@@ -230,6 +230,7 @@
       <groupId>org.graalvm.js</groupId>
       <artifactId>js</artifactId>
       <version>${graalvm-js.version}</version>
+      <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.apache.velocity</groupId>
