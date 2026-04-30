@@ -481,8 +481,9 @@ public class PlaywrightFetcher
             case TAGNAME -> selector; // tag names are valid CSS selectors
             case CLASSNAME -> "." + selector;
             case ID -> "#" + selector;
-            case XPATH, LINKTEXT, PARTIALLINKTEXT ->
-                    "xpath=" + selector;
+            case XPATH -> "xpath=" + selector;
+            case LINKTEXT -> "a:text-is(\"" + selector + "\")";
+            case PARTIALLINKTEXT -> "a:has-text(\"" + selector + "\")";
             case NAME -> "[name='" + selector + "']";
             default -> selector;
         };
