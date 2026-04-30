@@ -40,7 +40,7 @@
     <hadoop.version>3.4.2</hadoop.version>
     <jackrabbit.version>2.21.7</jackrabbit.version>
     <jcifs.version>1.3.17</jcifs.version>
-    <log4j-over-slf4j.version>2.0.7</log4j-over-slf4j.version>
+    <log4j-over-slf4j.version>2.0.17</log4j-over-slf4j.version>
   </properties>
   <inceptionYear>2014</inceptionYear>
 
