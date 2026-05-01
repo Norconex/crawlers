@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.core.cmd.crawl.pipeline.process;
 
+import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.norconex.commons.lang.Sleeper;
@@ -35,8 +36,7 @@ class CrawlActivityChecker {
     private final CrawlSession session;
     @Getter
     private final boolean deleting;
-
-    private final long expireAt;
+    private final Instant expireAt;
 
     private boolean isResolving;
     private boolean isPresumedActive = true;
@@ -48,9 +48,10 @@ class CrawlActivityChecker {
         this.deleting = deleting;
         var maxDuration = session
                 .getCrawlContext().getCrawlConfig().getMaxCrawlDuration();
-        expireAt = (maxDuration == null || maxDuration.toMillis() <= 0)
-                ? 0
-                : System.currentTimeMillis() + maxDuration.toMillis();
+        expireAt = (maxDuration == null || maxDuration.isNegative()
+                || maxDuration.isZero())
+                        ? null
+                        : Instant.now().plus(maxDuration);
     }
 
     //TODO can we do without synchronize?
