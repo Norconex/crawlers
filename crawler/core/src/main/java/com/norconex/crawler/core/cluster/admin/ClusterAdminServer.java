@@ -164,21 +164,25 @@ public class ClusterAdminServer {
             String responseContentType,
             HttpHandler handler) {
         httpServer.createContext(endpoint.getPath(), exchange -> {
-            // Validate request
-            if (!requestMethod.equals(exchange.getRequestMethod())) {
-                exchange.sendResponseHeaders(405, -1); // Method Not Allowed
-                return;
-            }
-            if (!session.getCrawlerId().equals(
-                    exchange.getRequestHeaders().getFirst("crawler-id"))) {
-                exchange.sendResponseHeaders(412, -1); // Precondition Failed
-                return;
-            }
+            try {
+                // Validate request
+                if (!requestMethod.equals(exchange.getRequestMethod())) {
+                    exchange.sendResponseHeaders(405, -1); // Method Not Allowed
+                    return;
+                }
+                if (!session.getCrawlerId().equals(
+                        exchange.getRequestHeaders().getFirst("crawler-id"))) {
+                    exchange.sendResponseHeaders(412, -1); // Precondition Failed
+                    return;
+                }
 
-            // Handle response
-            exchange.getResponseHeaders().set(
-                    "Content-Type", responseContentType);
-            handler.handle(exchange);
+                // Handle response
+                exchange.getResponseHeaders().set(
+                        "Content-Type", responseContentType);
+                handler.handle(exchange);
+            } finally {
+                exchange.close();
+            }
         });
     }
 

@@ -187,7 +187,6 @@ jobs:
             -Pjacoco \
             -Dsonar.qualitygate.wait=true \
             -Dsonar.qualitygate.timeout=900 \
-            -Dsurefire.excludedGroups= \
             -C \
             -B
         env:
