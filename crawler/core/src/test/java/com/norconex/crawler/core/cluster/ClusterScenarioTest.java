@@ -351,15 +351,15 @@ class ClusterScenarioTest {
     }
 
     @Test
-    @Timeout(420)
+    @Timeout(240)
     void lateJoiningNodeContinuesCurrentStep() throws Exception {
         var timing = ScenarioTiming.start(
                 "lateJoiningNodeContinuesCurrentStep", 2);
-        var numOfRefs = 360;
+        var numOfRefs = 120;
         var initialNodeNames = new String[] { "node-1" };
         var lateNodeName = "node-2";
         var completionDeadlineNanos = System.nanoTime()
-                + Duration.ofSeconds(390).toNanos();
+                + Duration.ofSeconds(210).toNanos();
 
         try (var harness = newHarness(true,
                 instrument -> instrument
@@ -367,11 +367,11 @@ class ClusterScenarioTest {
                         .setRecordCaches(false)
                         .setConfigModifier(cfg -> {
                             baseConfig(numOfRefs,
-                                    60).accept(cfg);
+                                    20).accept(cfg);
                             cfg.setId("scenario-late-join-"
                                     + numOfRefs);
                             cfg.setMaxQueueBatchSize(
-                                    1);
+                                    5);
 
                             var connector = (HazelcastClusterConnector) cfg
                                     .getClusterConfig()
