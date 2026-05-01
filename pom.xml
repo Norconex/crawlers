@@ -85,7 +85,7 @@
     <lombok.version>1.18.46</lombok.version>
 
     <!-- Test/Provided dependencies -->
-    <assertj.version>3.24.2</assertj.version>
+    <assertj.version>3.27.7</assertj.version>
     <easy-random.version>5.0.0</easy-random.version>
     <junit-jupiter.version>5.12.0</junit-jupiter.version>
     <junit-platform.version>1.12.0</junit-platform.version>
