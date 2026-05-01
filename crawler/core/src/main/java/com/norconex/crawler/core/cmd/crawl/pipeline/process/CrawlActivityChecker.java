@@ -152,7 +152,7 @@ class CrawlActivityChecker {
     }
 
     private boolean isCrawlExpired() {
-        var expired = expireAt > 0 && System.currentTimeMillis() > expireAt;
+        var expired = expireAt != null && Instant.now().isAfter(expireAt);
         if (expired && LOG.isDebugEnabled()) {
             LOG.debug("isCrawlExpired(): expireAt={} nowMs={} -> true.",
                     expireAt, System.currentTimeMillis());
