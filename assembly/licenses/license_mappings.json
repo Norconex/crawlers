@@ -22,7 +22,9 @@
       "patterns": [
         "^BSD-2-Clause$",
         "^BSD 2-Clause \"Simplified\" License$",
-        "^The BSD 2-Clause License$"
+        "^The BSD 2-Clause License$",
+        "^BSD 2-Clause License$",
+        "^BSD 2-Clause$"
       ]
     },
     {
@@ -40,6 +42,7 @@
         "^EDL 1\\.0$",
         "^New BSD License$",
         "^Revised BSD$",
+        "^Modified BSD$",
         "^The \\(New\\) BSD License$",
         "^The BSD 3-Clause License \\(BSD3\\)$",
         "^The BSD License$"
@@ -199,6 +202,7 @@
         "^Bouncy Castle Licence$",
         "^MIT$",
         "^MIT License$",
+        "^MIT license$",
         "^The MIT License$",
         "^The MIT License \\(MIT\\)$"
       ]
