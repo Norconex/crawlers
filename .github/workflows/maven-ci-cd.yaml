@@ -266,4 +266,4 @@ jobs:
       # of Dependabot alerts this repository can receive
       - name: Update Maven dependency graph
         if: ${{ env.SHOULD_UPDATE_DEPENDENCY_GRAPH == 'true' }}
-        uses: advanced-security/maven-dependency-submission-action@v4
+        uses: advanced-security/maven-dependency-submission-action@v5
