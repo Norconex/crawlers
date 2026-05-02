@@ -47,7 +47,7 @@ class ClusterLateJoinPrototypeTest {
     private static final Duration CLUSTER_JOIN_WAIT = Duration.ofSeconds(120);
     private static final Duration RESULT_RECORD_INTERVAL =
             Duration.ofMillis(200);
-    private static final Duration TEST_IDLE_TIMEOUT = Duration.ofSeconds(1);
+    private static final Duration TEST_IDLE_TIMEOUT = Duration.ofSeconds(5);
 
     @TempDir
     private Path tempDir;

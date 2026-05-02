@@ -204,7 +204,8 @@
         "^MIT License$",
         "^MIT license$",
         "^The MIT License$",
-        "^The MIT License \\(MIT\\)$"
+        "^The MIT License \\(MIT\\)$",
+        "^jQuery license$"
       ]
     },
     {
@@ -225,11 +226,6 @@
       "spdx_id": "W3C",
       "full_name": "W3C Software Notice and License",
       "patterns": ["^W3C license$"]
-    },
-    {
-      "spdx_id": "MIT",
-      "full_name": "MIT License",
-      "patterns": ["^jQuery license$"]
     },
     {
       "spdx_id": "UPL-1.0",

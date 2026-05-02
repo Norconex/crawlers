@@ -14,6 +14,7 @@
  */
 package com.norconex.crawler.core.cmd.crawl.pipeline.process;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -89,7 +90,7 @@ class CrawlActivityChecker {
                     queuedEntryCount == 0,
                     deleting,
                     expireAt,
-                    System.currentTimeMillis());
+                    Instant.now());
         }
         if (!canContinue()) {
             LOG.info("doIsActive(): canContinue is false; crawler "
@@ -154,8 +155,8 @@ class CrawlActivityChecker {
     private boolean isCrawlExpired() {
         var expired = expireAt != null && Instant.now().isAfter(expireAt);
         if (expired && LOG.isDebugEnabled()) {
-            LOG.debug("isCrawlExpired(): expireAt={} nowMs={} -> true.",
-                    expireAt, System.currentTimeMillis());
+            LOG.debug("isCrawlExpired(): expireAt={} now={} -> true.",
+                    expireAt, Instant.now());
         }
         return expired;
     }
@@ -176,7 +177,7 @@ class CrawlActivityChecker {
                     Waiting for new references or initial queuing \
                     to be over...""");
                 var noWorkPollCount = 0;
-                var waitStartMs = System.currentTimeMillis();
+                var waitStart = Instant.now();
                 do {
                     Sleeper.sleepMillis(200);
                     queueEmpty = isQueuedEntryEmpty();
@@ -205,15 +206,16 @@ class CrawlActivityChecker {
                         } else {
                             noWorkPollCount = 0;
                         }
-                        var waitedMs =
-                                System.currentTimeMillis() - waitStartMs;
-                        if (noWorkPollCount >= 5 || waitedMs >= 30_000) {
+                        var waited =
+                                Duration.between(waitStart, Instant.now());
+                        if (noWorkPollCount >= 5
+                                || waited.toMillis() >= 30_000) {
                             LOG.info("Treating start-refs queuing as "
                                     + "complete (no-work polls: {}, "
-                                    + "waited: {}ms). The flag may be "
+                                    + "waited: {}). The flag may be "
                                     + "temporarily unavailable due to a "
                                     + "coordinator crash.",
-                                    noWorkPollCount, waitedMs);
+                                    noWorkPollCount, waited);
                             queueInitialized = true;
                         }
                     } else {
@@ -244,17 +246,17 @@ class CrawlActivityChecker {
 
         LOG.info("Waiting up to {} for references to be added to the queue.",
                 idleTimeoutAsText());
-        var timeout = duration.toMillis();
-        var then = System.currentTimeMillis();
-        while (System.currentTimeMillis() - then < timeout) {
+        var timeoutMs = duration.toMillis();
+        var start = Instant.now();
+        while (Duration.between(start, Instant.now()).toMillis() < timeoutMs) {
             Sleeper.sleepMillis(200);
             var empty = isQueuedEntryEmpty();
             if (LOG.isTraceEnabled()) {
                 LOG.trace("isQueueStillEmptyAfterIdleTimeout(): polled "
-                        + "queueEmpty={} after {} ms (timeout={} ms).",
+                        + "queueEmpty={} after {} (timeout={} ms).",
                         empty,
-                        System.currentTimeMillis() - then,
-                        timeout);
+                        Duration.between(start, Instant.now()),
+                        timeoutMs);
             }
             if (!empty) {
                 return false;
