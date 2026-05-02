@@ -154,7 +154,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ElasticsearchCommitter
         extends AbstractBatchCommitter<ElasticsearchCommitterConfig> {
- 
+
     public static final String ELASTICSEARCH_ID_FIELD = "_id";
 
     @EqualsAndHashCode.Exclude

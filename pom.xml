@@ -1098,6 +1098,9 @@
                 and when we do, it is sometimes to test oddities.
                 -->
             </includes>
+            <excludes>
+              <exclude>website/**</exclude>
+            </excludes>
           </configuration>          
           <inherited>true</inherited>
         </plugin>
