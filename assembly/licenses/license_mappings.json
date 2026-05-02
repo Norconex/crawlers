@@ -107,6 +107,7 @@
       "full_name": "GNU General Public License v2.0 only with the Classpath exception 2.0",
       "patterns": [
         "^GNU General Public License, version 2 with the GNU Classpath Exception$",
+        "^The GNU General Public License (GPL), Version 2, With Classpath Exception$",
         "^GPL-2\\.0-with-classpath-exception$",
         "^GPL2 w/ CPE$",
         "^GPLv2 with classpath exception$",
