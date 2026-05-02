@@ -20,32 +20,19 @@
       "spdx_id": "BSD-2-Clause",
       "full_name": "BSD 2-Clause \"Simplified\" License",
       "patterns": [
-        "^BSD-2-Clause$",
-        "^BSD 2-Clause \"Simplified\" License$",
-        "^The BSD 2-Clause License$",
-        "^BSD 2-Clause License$",
-        "^BSD 2-Clause$"
+        "^(?i)(The )?BSD[ -]2-Clause([ \"]Simplified[\"])?( License)?$",
+        "^BSD-2-Clause$"
       ]
     },
     {
       "spdx_id": "BSD-3-Clause",
       "full_name": "BSD 3-Clause \"New\" or \"Revised\" License",
       "patterns": [
-        "^BSD$",
-        "^BSD License$",
-        "^BSD Licence$",
-        "^BSD License 3$",
-        "^BSD 3-Clause \"New\" or \"Revised\" License$",
+        "^(?i)(The )?(New |Revised |Modified )?BSD( [3-]-Clause)?( (Licen[sc]e|Licence 3))?$",
+        "^(?i)The BSD 3-Clause License \\(BSD3\\)$",
         "^BSD-3-Clause: BSD 3-Clause \"New\" or \"Revised\" License$",
-        "^BSD-3-Clause$",
         "^Eclipse Distribution License - v 1\\.0$",
-        "^EDL 1\\.0$",
-        "^New BSD License$",
-        "^Revised BSD$",
-        "^Modified BSD$",
-        "^The \\(New\\) BSD License$",
-        "^The BSD 3-Clause License \\(BSD3\\)$",
-        "^The BSD License$"
+        "^EDL 1\\.0$"
       ]
     },
     {
@@ -84,9 +71,7 @@
       "spdx_id": "EPL-1.0",
       "full_name": "Eclipse Public License 1.0",
       "patterns": [
-        "^Eclipse Public License 1\\.0$",
-        "^Eclipse Public License Version 1\\.0$",
-        "^Eclipse Public License - Version 1\\.0$",
+        "^(?i)Eclipse Public License ((- )?Version )?1\\.0$",
         "^EPL 1\\.0$"
       ]
     },
@@ -94,27 +79,18 @@
       "spdx_id": "EPL-2.0",
       "full_name": "Eclipse Public License 2.0",
       "patterns": [
-        "^Eclipse Public License 2\\.0$",
-        "^Eclipse Public License - Version 2\\.0$",
-        "^Eclipse Public License v\\. 2\\.0$",
-        "^Eclipse Public License v2\\.0$",
-        "^EPL 2\\.0$",
-        "^EPL-2\\.0$"
+        "^(?i)Eclipse Public License ((- )?Version |v\\.? )?2\\.0$",
+        "^EPL-?2\\.0$"
       ]
     },
     {
       "spdx_id": "GPL-2.0-with-classpath-exception",
       "full_name": "GNU General Public License v2.0 only with the Classpath exception 2.0",
       "patterns": [
-        "^GNU General Public License, version 2 with the GNU Classpath Exception$",
-        "^The GNU General Public License (GPL), Version 2, With Classpath Exception$",
-        "^GPL-2\\.0-with-classpath-exception$",
-        "^GPL2 w/ CPE$",
-        "^GPLv2 with classpath exception$",
-        "^GPL-2\\.0 with Classpath Exception$",
-        "^GNU General Public License v2\\.0 with Classpath Exception$",
-        "^CDDL \\+ GPLv2 with classpath exception$",
-        "^CDDL/GPLv2\\+CE$"
+        "^(?i)(The )?GNU General Public License,? (version |v)?2( with the (GNU )?Classpath Exception)?$",
+        "^(?i)GPLv?2 (w/ CPE|with classpath exception)$",
+        "^GPL-2\\.0[ -]with[ -]Classpath[ -]Exception$",
+        "^CDDL([ /]\\+? ?GPLv2 with classpath exception|/GPLv2\\+CE)$"
       ]
     },
     {
@@ -200,13 +176,9 @@
       "spdx_id": "MIT",
       "full_name": "MIT License",
       "patterns": [
+        "^(?i)(The )?MIT( [Ll]icense( \\(MIT\\))?)?$",
         "^Bouncy Castle Licence$",
-        "^MIT$",
-        "^MIT License$",
-        "^MIT license$",
-        "^The MIT License$",
-        "^The MIT License \\(MIT\\)$",
-        "^jQuery license$"
+        "^(?i)jQuery license$"
       ]
     },
     {
@@ -218,8 +190,7 @@
       "spdx_id": "MPL-2.0",
       "full_name": "Mozilla Public License 2.0",
       "patterns": [
-        "^Mozilla Public License 2\\.0$",
-        "^Mozilla Public License, Version 2\\.0$",
+        "^(?i)Mozilla Public License[, ]? (Version )?2\\.0$",
         "^MPL 2\\.0$"
       ]
     },
