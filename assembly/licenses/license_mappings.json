@@ -33,7 +33,8 @@
         "^(?i)The BSD 3-Clause License \\(BSD3\\)$",
         "^BSD-3-Clause: BSD 3-Clause \"New\" or \"Revised\" License$",
         "^Eclipse Distribution License - v 1\\.0$",
-        "^EDL 1\\.0$"
+        "^EDL 1\\.0$",
+        "^BSD[- ]?3[- ]Clause$"
       ]
     },
     {
