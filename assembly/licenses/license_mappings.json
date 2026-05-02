@@ -73,7 +73,7 @@
       "full_name": "Eclipse Public License 1.0",
       "patterns": [
         "^(?i)Eclipse Public License ((- )?Version )?1\\.0$",
-        "^EPL 1\\.0$"
+        "^EPL[- ]?1(\\.0)?$"
       ]
     },
     {
@@ -81,7 +81,7 @@
       "full_name": "Eclipse Public License 2.0",
       "patterns": [
         "^(?i)Eclipse Public License ((- )?Version |v\\.? )?2\\.0$",
-        "^EPL-?2\\.0$"
+        "^EPL[- ]?2(\\.0)?$"
       ]
     },
     {
