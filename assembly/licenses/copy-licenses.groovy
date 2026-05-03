@@ -57,6 +57,15 @@ def consecutiveLicensePattern = ~/^(\([^()]+(?:\([^()]*\)[^()]*)*\)\s*)+/
 // Pattern to match plus-separated licenses with nested parentheses
 def plusLicensePattern = ~/^\([^()]+(?:\([^()]*\)[^()]*)*\)/
 
+// Helper to normalize license strings for easier matching
+def normalizeForMatch = { str ->
+    str?.toLowerCase()
+        ?.replaceAll(/\b(v(er|ersion)?\.?\s*)(?=[0-9])/, 'version ')
+        ?.replaceAll(/[^a-zA-Z0-9]/, ' ')
+        ?.replaceAll(/\s+/, ' ')
+        ?.trim()
+}
+
 // Track copied licenses to avoid duplicates
 def copiedSpdxIds = new HashSet<String>()
 
@@ -100,6 +109,8 @@ Files.readAllLines(thirdPartyFile).each { line ->
     // Normalize licenses
     def normalizedLicenses = licenses.collect { license ->
         license = license.trim()
+        def normalized = normalizeForMatch(license)
+
         def result = licenseMappings.find { mapping ->
             // Match "<spdx-id>:" first
             if (license.startsWith("${mapping.spdx_id}:")) {
@@ -108,7 +119,9 @@ Files.readAllLines(thirdPartyFile).each { line ->
             // Then other patterns
             mapping.patterns.any { pattern ->
                 def regex = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE)
-                regex.matcher(license).find()
+                // Try matching against both original and normalized
+                regex.matcher(license).find() || 
+                    (normalized && regex.matcher(normalized).find())
             } ? mapping : null
         }
         if (!result) {

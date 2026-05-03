@@ -3,210 +3,202 @@
     {
       "spdx_id": "0BSD",
       "full_name": "BSD Zero Clause License",
-      "patterns": ["^0BSD$", "^BSD Zero Clause License$"]
+      "patterns": ["^0bsd$", "^bsd zero clause license$"]
     },
     {
       "spdx_id": "Apache-2.0",
       "full_name": "Apache License 2.0",
       "patterns": [
-        "^(?i)(The )?Apache( Software)?( License)?(,? )?(Version |v)?2(\\.0)?$",
-        "^ASF 2\\.0$",
-        "^ASL 2\\.0$",
-        "^Apache-2(\\.0)?",
-        "^Apache License$",
-        "^Apache Software Licenses$"
+        "^(the )?apache( software)?( license)?( version)? ?2( 0)?$",
+        "^asf 2 0$",
+        "^asl 2 0$",
+        "^apache 2( 0)?$",
+        "^apache license$",
+        "^apache software licenses$",
+        "^apache 2( 0)? license$"
       ]
     },
     {
       "spdx_id": "BSD-2-Clause",
       "full_name": "BSD 2-Clause \"Simplified\" License",
       "patterns": [
-        "^(?i)(The )?BSD[ -]2-Clause([ \"]Simplified[\"])?( License)?$",
-        "^BSD-2-Clause$"
+        "^(the )?bsd 2 clause( simplified)?( license)?$",
+        "^bsd 2 clause$"
       ]
     },
     {
       "spdx_id": "BSD-3-Clause",
       "full_name": "BSD 3-Clause \"New\" or \"Revised\" License",
       "patterns": [
-        "^(?i)(The )?(New |Revised |Modified )?BSD( [3-]-Clause)?( (Licen[sc]e|Licence 3))?$",
-        "^(?i)The BSD 3-Clause License \\(BSD3\\)$",
-        "^BSD-3-Clause: BSD 3-Clause \"New\" or \"Revised\" License$",
-        "^Eclipse Distribution License - v 1\\.0$",
-        "^EDL 1\\.0$",
-        "^BSD[- ]?3[- ]Clause$"
+        "^(the )?(new |revised |modified )?bsd( 3 clause)?( licen[sc]e( 3)?)?$",
+        "^(the )?bsd 3 clause license( bsd3)?$",
+        "^bsd 3 clause bsd 3 clause new or revised license$",
+        "^eclipse distribution license version 1 0$",
+        "^edl 1 0$",
+        "^bsd 3 clause$",
+        "^(the )?new bsd license$",
+        "^bsd license 3$"
       ]
     },
     {
       "spdx_id": "BSD-3-Clause-No-Nuclear-License",
       "full_name": "BSD 3-clause License w/nuclear disclaimer",
-      "patterns": ["^BSD 3-clause License w/nuclear disclaimer$"]
+      "patterns": ["^bsd 3 clause license w nuclear disclaimer$"]
     },
     {
       "spdx_id": "CDDL-1.0",
       "full_name": "Common Development and Distribution License 1.0",
       "patterns": [
-        "^CDDL$",
-        "^CDDL 1\\.0$",
-        "^CDDL, v1\\.0$",
-        "^Common Development and Distribution License$"
+        "^cddl$",
+        "^cddl( version)? 1 0$",
+        "^common development and distribution license$"
       ]
     },
     {
       "spdx_id": "CDDL-1.1",
       "full_name": "Common Development and Distribution License 1.1",
       "patterns": [
-        "^CDDL 1\\.1$",
-        "^CDDL License$",
-        "^Common Development and Distribution License 1\\.1$",
-        "^Unknown license$",
-        "^CDDL \\+ GPLv2 with classpath exception$",
-        "^CDDL/GPLv2\\+CE$"
+        "^cddl 1 1$",
+        "^cddl license$",
+        "^common development and distribution license 1 1$",
+        "^unknown license$",
+        "^cddl gplv2 with classpath exception$",
+        "^cddl gplv2 ce$"
       ]
     },
     {
       "spdx_id": "CPL-1.0",
       "full_name": "Common Public License 1.0",
-      "patterns": ["^Common Public License 1\\.0$", "^CPL$"]
+      "patterns": ["^common public license 1 0$", "^cpl$"]
     },
     {
       "spdx_id": "EPL-1.0",
       "full_name": "Eclipse Public License 1.0",
-      "patterns": [
-        "^(?i)Eclipse Public License ((- )?Version |v\\.? ?)?1\\.0$",
-        "^EPL[- ]?1(\\.0)?$"
-      ]
+      "patterns": ["^eclipse public license( version)? 1 0$", "^epl 1 0$"]
     },
     {
       "spdx_id": "EPL-2.0",
       "full_name": "Eclipse Public License 2.0",
-      "patterns": [
-        "^(?i)Eclipse Public License ((- )?Version |v\\.? ?)?2\\.0$",
-        "^EPL[- ]?2(\\.0)?$"
-      ]
+      "patterns": ["^eclipse public license( version)? 2 0$", "^epl 2 0$"]
     },
     {
       "spdx_id": "GPL-2.0-with-classpath-exception",
       "full_name": "GNU General Public License v2.0 only with the Classpath exception 2.0",
       "patterns": [
-        "^(?i)(The )?GNU General Public License,? (version |v)?2( with the (GNU )?Classpath Exception)?$",
-        "^(?i)GPLv?2 (w/ CPE|with classpath exception)$",
-        "^GPL-2\\.0[ -]with[ -]Classpath[ -]Exception$",
-        "^CDDL([ /]\\+? ?GPLv2 with classpath exception|/GPLv2\\+CE)$"
+        "^(the )?gnu general public license( gpl)?( version)? 2( with (the )?(gnu )?classpath exception)?$",
+        "^gpl 2 (w cpe|with classpath exception)$",
+        "^gpl 2 0 with classpath exception$",
+        "^cddl ( gplv2 with classpath exception|gplv2 ce)$",
+        "^gpl ?2( with| w/)? cpe$"
       ]
     },
     {
       "spdx_id": "GPL-3.0-only",
       "full_name": "GNU General Public License v3.0 only",
-      "patterns": ["^GENERAL PUBLIC LICENSE, version 3 \\(GPL-3\\.0\\)$"]
+      "patterns": ["^general public license version 3 gpl 3 0$"]
     },
     {
       "spdx_id": "ICU",
       "full_name": "ICU License",
-      "patterns": ["^ICU License$"]
+      "patterns": ["^icu license$"]
     },
     {
       "spdx_id": "LGPL-2.1-or-later",
       "full_name": "GNU Lesser General Public License v2.1 or later",
       "patterns": [
-        "^GNU Lesser General Public License v2\\.1 or later$",
-        "^LGPL-2\\.1-or-later$",
-        "^LGPL, v2\\.1 or later$"
+        "^(gnu )?lesser general public license( version)? 2 1( or later)?$",
+        "^lgpl( version)? 2 1( or later)?$"
       ]
     },
     {
       "spdx_id": "LGPL-2.1-only",
       "full_name": "GNU Lesser General Public License v2.1 only",
-      "patterns": ["^GNU Lesser General Public License, version 2\\.1$"]
+      "patterns": ["^gnu lesser general public license( version)? 2 1$"]
     },
     {
       "spdx_id": "LGPL-3.0-or-later",
       "full_name": "GNU Lesser General Public License v3.0 or later",
       "patterns": [
-        "^GNU Lesser General Public License v3\\.0 or later$",
-        "^Lesser General Public License, version 3 or greater$"
+        "^gnu lesser general public license( version)? 3 0 or later$",
+        "^lesser general public license( version)? 3 or greater$"
       ]
     },
     {
       "spdx_id": "LGPL-3.0-only",
       "full_name": "GNU Lesser General Public License v3.0 only",
       "patterns": [
-        "^GNU LESSER GENERAL PUBLIC LICENSE, version 3 \\(LGPL-3\\.0\\)$",
-        "^GNU Lesser General Public License v3 \\(LGPL\\)$"
+        "^gnu lesser general public license( version)? 3 lgpl( 3 0)?$"
       ]
     },
     {
       "spdx_id": "LicenseRef-CUP-Parser-Generator",
       "full_name": "CUP Parser Generator Copyright Notice, License, and Disclaimer",
       "patterns": [
-        "^CUP Parser Generator Copyright Notice, License, and Disclaimer$"
+        "^cup parser generator copyright notice license and disclaimer$"
       ]
     },
     {
       "spdx_id": "LicenseRef-GO",
       "full_name": "The Go license",
-      "patterns": ["^The Go license$"]
+      "patterns": ["^the go license$"]
     },
     {
       "spdx_id": "LicenseRef-JDOM",
       "full_name": "Similar to Apache License but with the acknowledgment clause removed",
       "patterns": [
-        "^Similar to Apache License but with the acknowledgment clause removed$"
+        "^similar to apache license but with the acknowledgment clause removed$"
       ]
     },
     {
       "spdx_id": "LicenseRef-JJ2000",
       "full_name": "jj2000 License",
-      "patterns": ["^jj2000 License$", "^JJ2000$"]
+      "patterns": ["^jj2000 license$", "^jj2000$"]
     },
     {
       "spdx_id": "LicenseRef-Public-Domain",
       "full_name": "Public Domain",
-      "patterns": ["^LicenseRef-Public-Domain$", "^Public Domain$"]
+      "patterns": ["^licenseref public domain$", "^public domain$"]
     },
     {
       "spdx_id": "LicenseRef-UnRAR",
       "full_name": "UnRar License",
-      "patterns": ["^UnRar License$"]
+      "patterns": ["^unrar license$"]
     },
     {
       "spdx_id": "Unicode-3.0",
       "full_name": "Unicode License v3",
-      "patterns": ["^Unicode/ICU License$", "^Unicode License v3$"]
+      "patterns": ["^unicode icu license$", "^unicode license v 3$"]
     },
     {
       "spdx_id": "MIT",
       "full_name": "MIT License",
       "patterns": [
-        "^(?i)(The )?MIT( [Ll]icense( \\(MIT\\))?)?$",
-        "^Bouncy Castle Licence$",
-        "^(?i)jQuery license$"
+        "^(the )?mit( license( mit)?)?$",
+        "^bouncy castle licence$",
+        "^jquery license$"
       ]
     },
     {
       "spdx_id": "MPL-1.1",
       "full_name": "Mozilla Public License 1.1",
-      "patterns": ["^Mozilla Public License Version 1\\.1$"]
+      "patterns": ["^mozilla public license version 1 1$", "^mpl 1 1$"]
     },
     {
       "spdx_id": "MPL-2.0",
       "full_name": "Mozilla Public License 2.0",
-      "patterns": [
-        "^(?i)Mozilla Public License[, ]? (Version )?2\\.0$",
-        "^MPL 2\\.0$"
-      ]
+      "patterns": ["^mozilla public license( version)? 2 0$", "^mpl 2 0$"]
     },
     {
       "spdx_id": "W3C",
       "full_name": "W3C Software Notice and License",
-      "patterns": ["^W3C license$"]
+      "patterns": ["^w3c license$"]
     },
     {
       "spdx_id": "UPL-1.0",
       "full_name": "Universal Permissive License v1.0",
       "patterns": [
-        "^Universal Permissive License v1\\.0$",
-        "^Universal Permissive License, Version 1\\.0$"
+        "^universal permissive license v 1 0$",
+        "^universal permissive license version 1 0$"
       ]
     }
   ]
