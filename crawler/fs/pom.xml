@@ -347,4 +347,92 @@
   <url>https://opensource.norconex.com/crawlers/filesystem</url>
   <description>Norconex File System Crawler. Walks through directories and files and extracts their content for integration into any target repository.  It aims to be very flexible, easy to extend, and portable</description>
   
+  <profiles>
+
+    <!--
+      STANDARD distribution: minimal default runtime footprint.
+      Activate with -Pstandard.  The default build (no profile) produces
+      the full distribution.
+    -->
+
+    <profile>
+      <id>standard</id>
+      <properties>
+        <dist.zip.name>${project.artifactId}-${project.version}-standard</dist.zip.name>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>com.norconex.crawler</groupId>
+          <artifactId>nx-crawler-core</artifactId>
+          <exclusions>
+
+            <!-- Clustering: -->
+            <exclusion>
+              <groupId>com.hazelcast</groupId>
+              <artifactId>hazelcast</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>com.hazelcast</groupId>
+              <artifactId>hazelcast-jdbc</artifactId>
+            </exclusion>    
+            <exclusion>
+              <groupId>com.hazelcast</groupId>
+              <artifactId>hazelcast-sql</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.postgresql</groupId>
+              <artifactId>postgresql</artifactId>
+            </exclusion>
+
+            <!-- Advanced Tika modules: -->
+            <exclusion>
+              <groupId>org.apache.tika</groupId>
+              <artifactId>tika-parser-scientific-package</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.tika</groupId>
+              <artifactId>tika-parser-advancedmedia-module</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.tika</groupId>
+              <artifactId>tika-parser-sqlite3-module</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.tika</groupId>
+              <artifactId>tika-parser-ocr-module</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.tika</groupId>
+              <artifactId>tika-parser-nlp-module</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.tika</groupId>
+              <artifactId>tika-langdetect-opennlp</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.tika</groupId>
+              <artifactId>tika-langdetect-mitll-text</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.tika</groupId>
+              <artifactId>tika-translate</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>edu.usc.ir</groupId>
+              <artifactId>sentiment-analysis-parser</artifactId>
+            </exclusion>
+
+            <!-- Scripting: -->
+            <exclusion>
+              <groupId>org.graalvm.js</groupId>
+              <artifactId>js</artifactId>
+            </exclusion>
+            
+          </exclusions>
+        </dependency>
+      </dependencies>
+    </profile>
+
+  </profiles>
+
 </project>

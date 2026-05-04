@@ -326,6 +326,8 @@
           <groupId>com.norconex.crawler</groupId>
           <artifactId>nx-crawler-core</artifactId>
           <exclusions>
+
+            <!-- Clustering: -->
             <exclusion>
               <groupId>com.hazelcast</groupId>
               <artifactId>hazelcast</artifactId>
@@ -342,6 +344,8 @@
               <groupId>org.postgresql</groupId>
               <artifactId>postgresql</artifactId>
             </exclusion>
+
+            <!-- XML Parsing: -->
             <exclusion>
               <groupId>xml-apis</groupId>
               <artifactId>xml-apis</artifactId>
@@ -350,10 +354,8 @@
               <groupId>xerces</groupId>
               <artifactId>xercesImpl</artifactId>
             </exclusion>
-            <exclusion>
-            <groupId>org.apache.poi</groupId>
-              <artifactId>poi-ooxml-full</artifactId>
-            </exclusion>
+
+            <!-- Image parsers: -->
             <exclusion>
               <groupId>com.github.jai-imageio</groupId>
               <artifactId>jai-imageio-jpeg2000</artifactId>
@@ -366,6 +368,8 @@
               <groupId>edu.ucar</groupId>
               <artifactId>jj2000</artifactId>
             </exclusion>
+
+            <!-- Advanced Tika modules: -->
             <exclusion>
               <groupId>org.apache.tika</groupId>
               <artifactId>tika-parser-scientific-package</artifactId>
@@ -399,21 +403,17 @@
               <artifactId>tika-translate</artifactId>
             </exclusion>
             <exclusion>
-              <groupId>org.graalvm.js</groupId>
-              <artifactId>js</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.apache.tika</groupId>
-              <artifactId>tika-parser-ocr-module</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.apache.tika</groupId>
-              <artifactId>tika-parser-nlp-module</artifactId>
-            </exclusion>
-            <exclusion>
               <groupId>edu.usc.ir</groupId>
               <artifactId>sentiment-analysis-parser</artifactId>
             </exclusion>
+
+            <!-- Scripting: -->
+            <exclusion>
+              <groupId>org.graalvm.js</groupId>
+              <artifactId>js</artifactId>
+            </exclusion>
+
+            <!-- Microsoft Office Documents: -->
             <exclusion>
               <groupId>org.apache.poi</groupId>
               <artifactId>poi-ooxml</artifactId>
@@ -434,6 +434,7 @@
               <groupId>org.apache.poi</groupId>
               <artifactId>poi</artifactId>
             </exclusion>
+            
           </exclusions>
         </dependency>
       </dependencies>
