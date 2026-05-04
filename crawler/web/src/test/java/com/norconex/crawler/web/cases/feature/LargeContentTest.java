@@ -29,7 +29,6 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
-import org.testcontainers.shaded.org.awaitility.Awaitility;
 
 import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
@@ -47,8 +46,7 @@ class LargeContentTest {
     void testLargeContent(ClientAndServer client, WebCrawlConfig cfg)
             throws IOException {
 
-        Awaitility.await().atMost(10, TimeUnit.SECONDS)
-                .until(client::isRunning);
+        waitForServerRunning(client, Duration.ofSeconds(10));
 
         var minSize = 3 * 1024 * 1024;
         var path = "/largeContent";
@@ -72,5 +70,28 @@ class LargeContentTest {
                 UTF_8);
 
         assertThat(txt).hasSizeGreaterThanOrEqualTo(minSize);
+    }
+
+    private static void waitForServerRunning(
+            ClientAndServer client, Duration timeout) {
+
+        long deadlineNanos = System.nanoTime() + timeout.toNanos();
+
+        while (System.nanoTime() < deadlineNanos) {
+            if (client.isRunning()) {
+                return;
+            }
+            try {
+                TimeUnit.MILLISECONDS.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException(
+                        "Interrupted while waiting for MockServer to start.",
+                        e);
+            }
+        }
+
+        throw new IllegalStateException(
+                "MockServer did not start within " + timeout + ".");
     }
 }

@@ -212,12 +212,6 @@
       <artifactId>jakarta.el-api</artifactId>
       <scope>test</scope>
     </dependency>
-    
-    <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <!--<scope>test</scope>-->
-    </dependency>    
 
     <dependency>
       <groupId>com.h2database</groupId>
@@ -257,19 +251,11 @@
       <version>${hazelcast.version}</version>
       <classifier>tests</classifier>
     </dependency>
-<!--    <dependency>
-      <groupId>org.liquibase</groupId>
-      <artifactId>liquibase-core</artifactId>
-      <version>4.25.1</version>
-    </dependency>-->
-    <!--
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>jul-to-slf4j</artifactId>
-      <version>${slf4j.version}</version>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
       <scope>test</scope>
-    </dependency>
-    -->
+    </dependency>    
 
   </dependencies>
 

@@ -41,6 +41,9 @@
     <selenium-htmlunit3.version>4.43.0</selenium-htmlunit3.version>
 
     <findbugs.version>3.0.2</findbugs.version>
+
+    <!-- Distribution zip name; standard profile overrides to -standard. -->
+    <dist.zip.name>${project.artifactId}-${project.version}-full</dist.zip.name>
   </properties>
 
   <inceptionYear>2009</inceptionYear>
@@ -71,10 +74,6 @@
       <artifactId>norconex-commons-lang</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.norconex.crawler</groupId>
-      <artifactId>nx-crawler-core</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.apache.httpcomponents.client5</groupId>
       <artifactId>httpclient5</artifactId>
     </dependency>
@@ -82,14 +81,6 @@
       <groupId>org.mock-server</groupId>
       <artifactId>mockserver-junit-jupiter</artifactId>
       <scope>test</scope>
-    </dependency>
-    <!-- Playwright browser automation (alternative to Selenium WebDriver)
-         Not bundled with distributable (too big) -->
-    <dependency>
-      <groupId>com.microsoft.playwright</groupId>
-      <artifactId>playwright</artifactId>
-      <version>${playwright.version}</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
@@ -224,6 +215,20 @@
       <artifactId>jakarta.el-api</artifactId>
       <scope>compile</scope>
     </dependency>
+
+    <dependency>
+      <groupId>com.norconex.crawler</groupId>
+      <artifactId>nx-crawler-core</artifactId>
+    </dependency>
+    <!-- Playwright browser automation (alternative to Selenium WebDriver).
+         Declared provided: not bundled in the distribution zip (too large);
+         users install it separately when needed. -->
+    <dependency>
+      <groupId>com.microsoft.playwright</groupId>
+      <artifactId>playwright</artifactId>
+      <version>${playwright.version}</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
   
   <build>
@@ -231,6 +236,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <finalName>${dist.zip.name}</finalName>
+        </configuration>
       </plugin>
 
       <plugin>
@@ -299,4 +307,138 @@
     Norconex Web Crawler is use for in-depth crawling of web sites of any size. 
     It aims to be very flexible, easy to extend, and portable
   </description>
+
+  <profiles>
+
+    <!--
+      STANDARD distribution: minimal default runtime footprint.
+      Activate with -Pstandard.  The default build (no profile) produces
+      the full distribution.
+    -->
+
+    <profile>
+      <id>standard</id>
+      <properties>
+        <dist.zip.name>${project.artifactId}-${project.version}-standard</dist.zip.name>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>com.norconex.crawler</groupId>
+          <artifactId>nx-crawler-core</artifactId>
+          <exclusions>
+            <exclusion>
+              <groupId>com.hazelcast</groupId>
+              <artifactId>hazelcast</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>com.hazelcast</groupId>
+              <artifactId>hazelcast-jdbc</artifactId>
+            </exclusion>    
+            <exclusion>
+              <groupId>com.hazelcast</groupId>
+              <artifactId>hazelcast-sql</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.postgresql</groupId>
+              <artifactId>postgresql</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>xml-apis</groupId>
+              <artifactId>xml-apis</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>xerces</groupId>
+              <artifactId>xercesImpl</artifactId>
+            </exclusion>
+            <exclusion>
+            <groupId>org.apache.poi</groupId>
+              <artifactId>poi-ooxml-full</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>com.github.jai-imageio</groupId>
+              <artifactId>jai-imageio-jpeg2000</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.sejda.imageio</groupId>
+              <artifactId>webp-imageio</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>edu.ucar</groupId>
+              <artifactId>jj2000</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.tika</groupId>
+              <artifactId>tika-parser-scientific-package</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.tika</groupId>
+              <artifactId>tika-parser-advancedmedia-module</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.tika</groupId>
+              <artifactId>tika-parser-sqlite3-module</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.tika</groupId>
+              <artifactId>tika-parser-ocr-module</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.tika</groupId>
+              <artifactId>tika-parser-nlp-module</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.tika</groupId>
+              <artifactId>tika-langdetect-opennlp</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.tika</groupId>
+              <artifactId>tika-langdetect-mitll-text</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.tika</groupId>
+              <artifactId>tika-translate</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.graalvm.js</groupId>
+              <artifactId>js</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.tika</groupId>
+              <artifactId>tika-parser-ocr-module</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.tika</groupId>
+              <artifactId>tika-parser-nlp-module</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>edu.usc.ir</groupId>
+              <artifactId>sentiment-analysis-parser</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.poi</groupId>
+              <artifactId>poi-ooxml</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.poi</groupId>
+              <artifactId>poi-ooxml-full</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.poi</groupId>
+              <artifactId>poi-scratchpad</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.xmlbeans</groupId>
+              <artifactId>xmlbeans</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.apache.poi</groupId>
+              <artifactId>poi</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+      </dependencies>
+    </profile>
+
+  </profiles>
+
 </project>
