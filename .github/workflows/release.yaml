@@ -44,7 +44,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version (e.g. 4.0.0) — must not contain SNAPSHOT'
+        description: "Release version (e.g. 4.0.0) — must not contain SNAPSHOT"
         required: true
 
 jobs:
@@ -102,7 +102,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: "21"
           cache: maven
 
       #--- Step ------------------------------------------------------------------
