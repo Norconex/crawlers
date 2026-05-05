@@ -321,123 +321,125 @@
       <properties>
         <dist.zip.name>${project.artifactId}-${project.version}-standard</dist.zip.name>
       </properties>
-      <dependencies>
-        <dependency>
-          <groupId>com.norconex.crawler</groupId>
-          <artifactId>nx-crawler-core</artifactId>
-          <exclusions>
+      <dependencyManagement>
+        <dependencies>
+          <dependency>
+            <groupId>com.norconex.crawler</groupId>
+            <artifactId>nx-crawler-core</artifactId>
+            <exclusions>
 
-            <!-- Clustering: -->
-            <exclusion>
-              <groupId>com.hazelcast</groupId>
-              <artifactId>hazelcast</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>com.hazelcast</groupId>
-              <artifactId>hazelcast-jdbc</artifactId>
-            </exclusion>    
-            <exclusion>
-              <groupId>com.hazelcast</groupId>
-              <artifactId>hazelcast-sql</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.postgresql</groupId>
-              <artifactId>postgresql</artifactId>
-            </exclusion>
+              <!-- Clustering: -->
+              <exclusion>
+                <groupId>com.hazelcast</groupId>
+                <artifactId>hazelcast</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>com.hazelcast</groupId>
+                <artifactId>hazelcast-jdbc</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>com.hazelcast</groupId>
+                <artifactId>hazelcast-sql</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+              </exclusion>
 
-            <!-- XML Parsing: -->
-            <exclusion>
-              <groupId>xml-apis</groupId>
-              <artifactId>xml-apis</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>xerces</groupId>
-              <artifactId>xercesImpl</artifactId>
-            </exclusion>
+              <!-- XML Parsing: -->
+              <exclusion>
+                <groupId>xml-apis</groupId>
+                <artifactId>xml-apis</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>xerces</groupId>
+                <artifactId>xercesImpl</artifactId>
+              </exclusion>
 
-            <!-- Image parsers: -->
-            <exclusion>
-              <groupId>com.github.jai-imageio</groupId>
-              <artifactId>jai-imageio-jpeg2000</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.sejda.imageio</groupId>
-              <artifactId>webp-imageio</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>edu.ucar</groupId>
-              <artifactId>jj2000</artifactId>
-            </exclusion>
+              <!-- Image parsers: -->
+              <exclusion>
+                <groupId>com.github.jai-imageio</groupId>
+                <artifactId>jai-imageio-jpeg2000</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.sejda.imageio</groupId>
+                <artifactId>webp-imageio</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>edu.ucar</groupId>
+                <artifactId>jj2000</artifactId>
+              </exclusion>
 
-            <!-- Advanced Tika modules: -->
-            <exclusion>
-              <groupId>org.apache.tika</groupId>
-              <artifactId>tika-parser-scientific-package</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.apache.tika</groupId>
-              <artifactId>tika-parser-advancedmedia-module</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.apache.tika</groupId>
-              <artifactId>tika-parser-sqlite3-module</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.apache.tika</groupId>
-              <artifactId>tika-parser-ocr-module</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.apache.tika</groupId>
-              <artifactId>tika-parser-nlp-module</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.apache.tika</groupId>
-              <artifactId>tika-langdetect-opennlp</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.apache.tika</groupId>
-              <artifactId>tika-langdetect-mitll-text</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.apache.tika</groupId>
-              <artifactId>tika-translate</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>edu.usc.ir</groupId>
-              <artifactId>sentiment-analysis-parser</artifactId>
-            </exclusion>
+              <!-- Advanced Tika modules: -->
+              <exclusion>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-parser-scientific-package</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-parser-advancedmedia-module</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-parser-sqlite3-module</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-parser-ocr-module</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-parser-nlp-module</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-langdetect-opennlp</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-langdetect-mitll-text</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-translate</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>edu.usc.ir</groupId>
+                <artifactId>sentiment-analysis-parser</artifactId>
+              </exclusion>
 
-            <!-- Scripting: -->
-            <exclusion>
-              <groupId>org.graalvm.js</groupId>
-              <artifactId>js</artifactId>
-            </exclusion>
+              <!-- Scripting: -->
+              <exclusion>
+                <groupId>org.graalvm.js</groupId>
+                <artifactId>js</artifactId>
+              </exclusion>
 
-            <!-- Microsoft Office Documents: -->
-            <exclusion>
-              <groupId>org.apache.poi</groupId>
-              <artifactId>poi-ooxml</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.apache.poi</groupId>
-              <artifactId>poi-ooxml-full</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.apache.poi</groupId>
-              <artifactId>poi-scratchpad</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.apache.xmlbeans</groupId>
-              <artifactId>xmlbeans</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.apache.poi</groupId>
-              <artifactId>poi</artifactId>
-            </exclusion>
-            
-          </exclusions>
-        </dependency>
-      </dependencies>
+              <!-- Microsoft Office Documents: -->
+              <exclusion>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml-full</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-scratchpad</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.apache.xmlbeans</groupId>
+                <artifactId>xmlbeans</artifactId>
+              </exclusion>
+              <exclusion>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi</artifactId>
+              </exclusion>
+
+            </exclusions>
+          </dependency>
+        </dependencies>
+      </dependencyManagement>
     </profile>
 
   </profiles>
