@@ -144,6 +144,7 @@ jobs:
             -Dgpg.skip=true \
             -Dsonar.skip=true \
             -Dmaven.javadoc.skip=true \
+            -Dassembly.skipAssembly=true \
             -Dmaven.wagon.rss.buffer.size=2048 \
             -Dlog4j.configurationFile=${{ github.workspace }}/.github/log4j2-ci.xml \
             -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
@@ -163,6 +164,7 @@ jobs:
             -DargLine="-Xmx3g" \
             -Dgpg.skip=true \
             -Dmaven.javadoc.skip=true \
+            -Dassembly.skipAssembly=true \
             -Dmaven.wagon.rss.buffer.size=2048 \
             -Dlog4j.configurationFile=${{ github.workspace }}/.github/log4j2-ci.xml \
             -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
@@ -181,6 +183,7 @@ jobs:
           mvn clean deploy \
             -Dgpg.skip=true \
             -Dmaven.javadoc.skip=true \
+            -Dassembly.skipAssembly=true \
             -Dmaven.wagon.rss.buffer.size=2048 \
             -Dlog4j.configurationFile=${{ github.workspace }}/.github/log4j2-ci.xml \
             -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
@@ -208,6 +211,7 @@ jobs:
             -Dmaven.compiler.maxmem=3072m \
             -DargLine="-Xmx3g" \
             -Dmaven.javadoc.skip=true \
+            -Dassembly.skipAssembly=true \
             -Dmaven.wagon.rss.buffer.size=2048 \
             -Dlog4j.configurationFile=${{ github.workspace }}/.github/log4j2-ci.xml \
             -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
@@ -238,6 +242,7 @@ jobs:
             -Dgpg.skip=true \
             -Dsonar.skip=true \
             -Dmaven.javadoc.skip=true \
+            -Dassembly.skipAssembly=true \
             -Dmaven.wagon.rss.buffer.size=2048 \
             -Dlog4j.configurationFile=${{ github.workspace }}/.github/log4j2-ci.xml \
             -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
@@ -259,6 +264,124 @@ jobs:
           git push origin "v${{ steps.get_version.outputs.version }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      #--- Step ------------------------------------------------------------------
+
+      #--- Step ------------------------------------------------------------------
+
+      - name: Package distribution zips
+        if: >
+          success() && github.event_name == 'push' && (
+            (github.ref == 'refs/heads/main' &&
+              endsWith(steps.get_version.outputs.version, '-SNAPSHOT')) ||
+            (startsWith(github.ref, 'refs/heads/release/') &&
+              !endsWith(steps.get_version.outputs.version, '-SNAPSHOT'))
+          )
+        run: |
+          # Full zips (default profile): reuses compiled output from main deploy
+          mvn -pl crawler/web,crawler/fs \
+            -Dmaven.compiler.skip=true \
+            -Dmaven.test.skip=true \
+            -Dmaven.javadoc.skip=true \
+            -Dgpg.skip=true \
+            -B \
+            package
+          # Standard zips: Maven resolver applies transitive exclusions
+          # declared in each module's standard profile — no recompile needed.
+          mvn -pl crawler/web -Pstandard \
+            -Dmaven.compiler.skip=true \
+            -Dmaven.test.skip=true \
+            -Dmaven.javadoc.skip=true \
+            -Dgpg.skip=true \
+            -B \
+            package
+          mvn -pl crawler/fs -Pstandard \
+            -Dmaven.compiler.skip=true \
+            -Dmaven.test.skip=true \
+            -Dmaven.javadoc.skip=true \
+            -Dgpg.skip=true \
+            -B \
+            package
+
+      #--- Step ------------------------------------------------------------------
+
+      - name: Publish snapshot zips to GitHub Releases
+        if: >
+          success() && github.event_name == 'push' && github.ref ==
+          'refs/heads/main' && endsWith(steps.get_version.outputs.version,
+          '-SNAPSHOT')
+        run: |
+          SNAP_TAG="snapshot-$(date -u '+%Y%m%d-%H%M%S')"
+          gh release create "$SNAP_TAG" \
+            --title "Snapshot (${{ steps.get_version.outputs.version }}, $(date -u '+%Y-%m-%d %H:%M UTC'))" \
+            --notes "Development snapshot. Only the 3 most recent builds are retained." \
+            --prerelease \
+            crawler/web/target/nx-crawler-web-*-full.zip \
+            crawler/web/target/nx-crawler-web-*-standard.zip \
+            crawler/fs/target/nx-crawler-fs-*-full.zip \
+            crawler/fs/target/nx-crawler-fs-*-standard.zip
+          # Delete snapshot releases beyond the 3 most recent
+          gh release list --limit 100 \
+            --json tagName,createdAt \
+            --jq '[.[] | select(.tagName | startswith("snapshot-"))] | sort_by(.createdAt) | reverse | .[3:] | .[].tagName' \
+            | xargs -r -I {} gh release delete {} --yes --cleanup-tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      #--- Step ------------------------------------------------------------------
+
+      - name: Publish release zips to GitHub Releases
+        if: >
+          success() && github.event_name == 'push' && startsWith(github.ref,
+          'refs/heads/release/') && !endsWith(steps.get_version.outputs.version,
+          '-SNAPSHOT')
+        run: |
+          # The git tag was created by "Tag release version". Create the GitHub
+          # Release for it (or upload to it if pre-created manually).
+          gh release create "v${{ steps.get_version.outputs.version }}" \
+            --title "Release ${{ steps.get_version.outputs.version }}" \
+            --generate-notes \
+            crawler/web/target/nx-crawler-web-*-full.zip \
+            crawler/web/target/nx-crawler-web-*-standard.zip \
+            crawler/fs/target/nx-crawler-fs-*-full.zip \
+            crawler/fs/target/nx-crawler-fs-*-standard.zip 2>/dev/null || \
+          gh release upload "v${{ steps.get_version.outputs.version }}" \
+            crawler/web/target/nx-crawler-web-*-full.zip \
+            crawler/web/target/nx-crawler-web-*-standard.zip \
+            crawler/fs/target/nx-crawler-fs-*-full.zip \
+            crawler/fs/target/nx-crawler-fs-*-standard.zip \
+            --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      #--- Step ------------------------------------------------------------------
+
+      # After a successful release, bump all POMs to the next patch SNAPSHOT
+      # (e.g. 4.0.0 → 4.0.1-SNAPSHOT) so that subsequent commits on the
+      # release branch don't accidentally re-trigger a Maven Central deploy.
+      # Uses RELEASE_PAT so the commit re-triggers the CI/CD workflow for a
+      # snapshot build/deploy of the new version.
+      - name: Bump to next patch SNAPSHOT after release
+        if: >
+          success() && github.event_name == 'push' && startsWith(github.ref,
+          'refs/heads/release/') && !endsWith(steps.get_version.outputs.version,
+          '-SNAPSHOT')
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+          NEXT_SNAPSHOT="${MAJOR}.${MINOR}.$((PATCH + 1))-SNAPSHOT"
+          mvn versions:set \
+            -DnewVersion="$NEXT_SNAPSHOT" \
+            -DgenerateBackupPoms=false \
+            -B
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore(release): bump to next development version ${NEXT_SNAPSHOT}"
+          git push
+        env:
+          # PAT required so this commit triggers CI for the new SNAPSHOT version.
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PAT }}
 
       #--- Step ------------------------------------------------------------------
 

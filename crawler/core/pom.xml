@@ -35,7 +35,7 @@
     <hazelcast.version>5.6.0</hazelcast.version>
     <jdom2.version>2.0.6.1</jdom2.version>
     <sulky-ulid.version>8.2.0</sulky-ulid.version>
-    <mvstore.version>2.3.232</mvstore.version>
+    <mvstore.version>2.4.240</mvstore.version>
     <!--
     <log4j.version>2.20.0</log4j.version>
     <slf4j.version>2.0.0-alpha1</slf4j.version>
@@ -212,12 +212,6 @@
       <artifactId>jakarta.el-api</artifactId>
       <scope>test</scope>
     </dependency>
-    
-    <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <!--<scope>test</scope>-->
-    </dependency>    
 
     <dependency>
       <groupId>com.h2database</groupId>
@@ -257,19 +251,11 @@
       <version>${hazelcast.version}</version>
       <classifier>tests</classifier>
     </dependency>
-<!--    <dependency>
-      <groupId>org.liquibase</groupId>
-      <artifactId>liquibase-core</artifactId>
-      <version>4.25.1</version>
-    </dependency>-->
-    <!--
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>jul-to-slf4j</artifactId>
-      <version>${slf4j.version}</version>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
       <scope>test</scope>
-    </dependency>
-    -->
+    </dependency>    
 
   </dependencies>
 
