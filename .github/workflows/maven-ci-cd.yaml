@@ -356,6 +356,35 @@ jobs:
 
       #--- Step ------------------------------------------------------------------
 
+      # After a successful release, bump all POMs to the next patch SNAPSHOT
+      # (e.g. 4.0.0 → 4.0.1-SNAPSHOT) so that subsequent commits on the
+      # release branch don't accidentally re-trigger a Maven Central deploy.
+      # Uses RELEASE_PAT so the commit re-triggers the CI/CD workflow for a
+      # snapshot build/deploy of the new version.
+      - name: Bump to next patch SNAPSHOT after release
+        if: >
+          success() && github.event_name == 'push' && startsWith(github.ref,
+          'refs/heads/release/') && !endsWith(steps.get_version.outputs.version,
+          '-SNAPSHOT')
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+          NEXT_SNAPSHOT="${MAJOR}.${MINOR}.$((PATCH + 1))-SNAPSHOT"
+          mvn versions:set \
+            -DnewVersion="$NEXT_SNAPSHOT" \
+            -DgenerateBackupPoms=false \
+            -B
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore(release): bump to next development version ${NEXT_SNAPSHOT}"
+          git push
+        env:
+          # PAT required so this commit triggers CI for the new SNAPSHOT version.
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PAT }}
+
+      #--- Step ------------------------------------------------------------------
+
       # Uploads the full dependency graph to GitHub to improve the quality
       # of Dependabot alerts this repository can receive
       - name: Update Maven dependency graph

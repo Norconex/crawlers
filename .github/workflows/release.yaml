@@ -1,0 +1,137 @@
+#-------------------------------------------------------------------------------
+# Copyright 2023-2026 Norconex Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#-------------------------------------------------------------------------------
+
+# Bumps the project version on a release/* branch and pushes the commit,
+# which triggers the main CI/CD workflow to deploy to Maven Central and
+# publish distribution zips.
+#
+# PREREQUISITES
+# =============
+# A Personal Access Token (PAT) with "Contents: write" permission must be
+# stored as the repository secret RELEASE_PAT.
+# Using a PAT (instead of GITHUB_TOKEN) is required so that the version-bump
+# commit pushed here re-triggers the main CI/CD workflow — GitHub does not
+# re-trigger workflows for commits made with GITHUB_TOKEN.
+#
+# HOW TO USE
+# ==========
+# 1. Create a release/* branch from main (e.g. release/4.0.x).
+#    The branch may stay at X.Y.Z-SNAPSHOT for stabilization work.
+# 2. When ready to release, go to:
+#      Actions → "Release" → "Run workflow"
+#    Select the release/* branch and enter the target version (e.g. 4.0.0).
+# 3. This workflow sets the version in all POMs and pushes the commit.
+# 4. The CI/CD workflow detects the non-SNAPSHOT version on a release/* branch
+#    and fires: Maven Central deploy → git tag → zip packaging → GitHub Release
+#    → bump to next patch SNAPSHOT.
+
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. 4.0.0) — must not contain SNAPSHOT'
+        required: true
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      #--- Step ------------------------------------------------------------------
+
+      - name: Validate branch is release/*
+        run: |
+          if [[ ! "$GITHUB_REF" =~ ^refs/heads/release/ ]]; then
+            echo "ERROR: This workflow must be run on a release/* branch."
+            echo "Current ref: $GITHUB_REF"
+            echo "Select a release/* branch from the 'Run workflow' dropdown."
+            exit 1
+          fi
+
+      #--- Step ------------------------------------------------------------------
+
+      - name: Validate version input has no SNAPSHOT
+        run: |
+          if [[ "${{ inputs.version }}" == *SNAPSHOT* ]]; then
+            echo "ERROR: Version '${{ inputs.version }}' must not contain SNAPSHOT."
+            exit 1
+          fi
+
+      #--- Step ------------------------------------------------------------------
+
+      - name: Validate version major matches branch major
+        run: |
+          # Branch name after release/ may be e.g. "4.x" or "4.0.x" — extract
+          # the leading integer as the branch major.
+          BRANCH_SEGMENT="${GITHUB_REF#refs/heads/release/}"
+          BRANCH_MAJOR=$(echo "$BRANCH_SEGMENT" | cut -d. -f1)
+          INPUT_MAJOR=$(echo "${{ inputs.version }}" | cut -d. -f1)
+          if [[ "$INPUT_MAJOR" != "$BRANCH_MAJOR" ]]; then
+            echo "ERROR: Version '${{ inputs.version }}' (major: ${INPUT_MAJOR}) does not match branch '${BRANCH_SEGMENT}' (major: ${BRANCH_MAJOR})."
+            exit 1
+          fi
+
+      #--- Step ------------------------------------------------------------------
+
+      # Token must be a PAT so the pushed commit triggers the CI/CD workflow.
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.RELEASE_PAT }}
+          fetch-depth: 0
+
+      #--- Step ------------------------------------------------------------------
+
+      - name: Set up JDK 21 and Maven
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      #--- Step ------------------------------------------------------------------
+
+      - name: Validate current POM is SNAPSHOT
+        run: |
+          CURRENT=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          if [[ "$CURRENT" != *-SNAPSHOT ]]; then
+            echo "ERROR: Current POM version '$CURRENT' is not a SNAPSHOT."
+            echo "This branch may have already been released."
+            exit 1
+          fi
+          echo "Current version: $CURRENT → releasing as: ${{ inputs.version }}"
+
+      #--- Step ------------------------------------------------------------------
+
+      - name: Set release version in all POMs
+        run: |
+          mvn versions:set \
+            -DnewVersion=${{ inputs.version }} \
+            -DgenerateBackupPoms=false \
+            -B
+
+      #--- Step ------------------------------------------------------------------
+
+      - name: Commit and push version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore(release): set version to ${{ inputs.version }}"
+          git push
