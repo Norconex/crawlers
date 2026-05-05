@@ -219,6 +219,7 @@
     <dependency>
       <groupId>com.norconex.crawler</groupId>
       <artifactId>nx-crawler-core</artifactId>
+      <version>${project.parent.version}</version>
     </dependency>
     <!-- Playwright browser automation (alternative to Selenium WebDriver).
          Declared provided: not bundled in the distribution zip (too large);
