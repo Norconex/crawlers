@@ -1,0 +1,70 @@
+---
+component: HttpAuthConfig
+module: crawler/web
+locale: en
+propertyCoverage: all
+---
+
+# HttpAuthConfig
+
+## Summary
+
+Configuration schema for Http Auth Config.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### credentials
+
+Username and password to a protected website.
+
+### domain
+
+NTLM authentication domain, if applicable.
+
+### formCharset
+
+The authentication form character set for the form field values. Default is UTF-8.
+
+### formParams
+
+Extra form parameters to submit with the authentication request.
+
+### formPasswordField
+
+Name of the HTML field where the password is set. This is used only for "form" authentication.
+
+### formSelector
+
+CSS selector that identifies the form in a login page. When set, it requires the specified form URL to be pointing to a login page containing a login form.
+
+### formUsernameField
+
+Name of the HTML field where the username is set. This is used only for "form" authentication.
+
+### host
+
+Host for the current authentication scope. Leave blank (default value) to indicate "any host" for the scope. Used for `BASIC` and `DIGEST` authentication.
+
+### method
+
+One of the supported authentication methods.
+
+### preemptive
+
+Whether to perform preemptive authentication (valid for basic authentication method).
+
+### realm
+
+Realm name for the current authentication scope. Leave blank (default) to indicate "any realm" for the scope. Used for `BASIC` and `DIGEST` authentication.
+
+### url
+
+URL for "form" authentication. The username and password will be posted to this URL (HTTP `POST`). This is used only for "form" authentication.
+
+### workstation
+
+The NTLM authentication workstation name.

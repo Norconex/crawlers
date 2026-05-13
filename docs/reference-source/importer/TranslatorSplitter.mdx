@@ -1,0 +1,102 @@
+---
+component: TranslatorSplitter
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# TranslatorSplitter
+
+## Summary
+
+Translate documents using one of the supported translation API.
+
+## Notes
+
+Translate documents using one of the supported translation APIs. The following lists the supported APIs and their required authentication properties:
+
+- **microsoft**  
+  - `clientId`  
+  - `clientSecret`  
+
+- **google**  
+  - `apiKey`  
+
+- **lingo24**  
+  - `userKey`  
+
+- **moses**  
+  - `smtPath`  
+  - `scriptPath`  
+
+- **yandex**  
+  - `apiKey`  
+
+For example, the Microsoft Translation API requires a client ID and a client secret, both obtained from the Microsoft Azure Marketplace using your Microsoft account.
+
+Translated documents will have the original language stored in the field:  
+`document.translatedFrom`
+
+Note: This class is not a document "splitter" in the strict sense, but like splitters, translation creates child documents for each translated version. The original document remains the **parent**, and each translation becomes a **child document**.
+
+## Properties
+
+### api
+
+TODO: Add documentation for this property.
+
+### apiKey
+
+API key for the translation service.
+
+### clientId
+
+TODO: Add documentation for this property.
+
+### clientSecret
+
+TODO: Add documentation for this property.
+
+### discardOriginal
+
+TODO: Add documentation for this property.
+
+### fieldMatcher
+
+TODO: Add documentation for this property.
+
+### ignoreNonTranslatedFields
+
+TODO: Add documentation for this property.
+
+### scriptPath
+
+TODO: Add documentation for this property.
+
+### smtPath
+
+TODO: Add documentation for this property.
+
+### sourceLanguage
+
+TODO: Add documentation for this property.
+
+### sourceLanguageField
+
+TODO: Add documentation for this property.
+
+### targetLanguages
+
+TODO: Add documentation for this property.
+
+### userKey
+
+TODO: Add documentation for this property.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"TranslatorSplitter\",\n    \"api\": \"google\",\n    \"sourceLanguageField\": \"langField\",\n    \"targetLanguages\": [\n      \"en\",\n      \"fr\"\n    ],\n    \"apiKey\": \"MYKEYHERE\"\n  }\n}","yaml":"handler:\n  class: TranslatorSplitter\n  api: google\n  sourceLanguageField: langField\n  targetLanguages:\n    - en\n    - fr\n  apiKey: MYKEYHERE","xml":"<handler>\n  <class>TranslatorSplitter</class>\n  <api>google</api>\n  <sourceLanguageField>langField</sourceLanguageField>\n  <targetLanguages>\n    <targetLanguage>en</targetLanguage>\n    <targetLanguage>fr</targetLanguage>\n  </targetLanguages>\n  <apiKey>MYKEYHERE</apiKey>\n</handler>"}}
+  ]}
+/>

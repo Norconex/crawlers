@@ -1,0 +1,45 @@
+---
+component: CopyTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# CopyTransformer
+
+## Summary
+
+Copies metadata fields to new fields
+
+## Notes
+
+This functionality duplicates the value(s) of one or more document fields (or metadata) into other fields. It is useful for retaining original data while making modifications, or for mapping data to new fields during processing.
+
+### Storing values in an existing field
+
+If a document already has a target field with the same name, 
+new values are appended to the existing list by default. Use `onSet` to manage this default behavior.
+
+The root-level `onSet` applies to all operations, while fieldMatcher-level `onSet` overrides the behavior for specific fields.
+
+### Parser Handler Compatibility
+
+This functionality can be applied as either a `pre-parse` or `post-parse` handler.
+
+## Properties
+
+### onSet
+
+TODO: Add documentation for this property.
+
+### operations
+
+Allows defining multiple operations as a list.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example copies the value of a \"creator\" and \"publisher\" fields into an \"author\" field, adding to any existing values in the \"author\" field.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"CopyTransformer\",\n    \"operations\": [\n      {\n        \"toField\": \"author\",\n        \"onSet\": \"APPEND\",\n        \"fieldMatcher\": {\n          \"method\": \"REGEX\",\n          \"pattern\": \"(creator|publisher)\"\n        }\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: CopyTransformer\n  operations:\n    - toField: author\n      onSet: APPEND\n      fieldMatcher:\n        method: REGEX\n        pattern: (creator|publisher)","xml":"<handler>\n  <class>CopyTransformer</class>\n  <operations>\n    <op>\n      <toField>author</toField>\n      <onSet>APPEND</onSet>\n      <fieldMatcher>\n        <method>REGEX</method>\n        <pattern>(creator|publisher)</pattern>\n      </fieldMatcher>\n    </op>\n  </operations>\n</handler>"}}
+  ]}
+/>

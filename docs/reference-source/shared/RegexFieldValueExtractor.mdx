@@ -1,0 +1,46 @@
+---
+component: RegexFieldValueExtractor
+module: unknown
+locale: en
+propertyCoverage: all
+---
+
+# RegexFieldValueExtractor
+
+## Summary
+
+Configuration schema for Regex Field Value Extractor.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### fieldGroup
+
+TODO: Add documentation for this property.
+
+### onSet
+
+TODO: Add documentation for this property.
+
+### regex
+
+TODO: Add documentation for this property.
+
+### toField
+
+TODO: Add documentation for this property.
+
+### valueGroup
+
+TODO: Add documentation for this property.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following is configured to extract \"DocNo\" as the `toField`, and the  following numeric characters will make up the value.","codeByLanguage":{"json":"{\n  \"fieldGroup\": 1,\n  \"valueGroup\": 2,\n  \"regex\": {\n    \"pattern\": \"(DocNo):(\\\\d+)\"\n  }\n}","yaml":"fieldGroup: 1\nvalueGroup: 2\nregex:\n  pattern: (DocNo):(\\d+)","xml":"<fieldGroup>1</fieldGroup>\n<valueGroup>2</valueGroup>\n<regex>\n  <pattern>(DocNo):(\\d+)</pattern>\n</regex>"}}
+  ]}
+/>

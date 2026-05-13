@@ -1,0 +1,50 @@
+---
+component: RegexLinkExtractor
+module: crawler/web
+locale: en
+propertyCoverage: all
+---
+
+# RegexLinkExtractor
+
+## Summary
+
+Configuration schema for Regex Link Extractor.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### charset
+
+TODO: Add documentation for this property.
+
+### contentTypeMatcher
+
+TODO: Add documentation for this property.
+
+### fieldMatcher
+
+TODO: Add documentation for this property.
+
+### maxUrlLength
+
+TODO: Add documentation for this property.
+
+### patterns
+
+TODO: Add documentation for this property.
+
+### restrictions
+
+TODO: Add documentation for this property.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example extracts page \"ids\" contained in square brackets and add them to a custom URL.","codeByLanguage":{"json":"{\n  \"class\": \"RegexLinkExtractor\",\n  \"patterns\": [\n    {\n      \"match\": \"\\\\[(\\\\d+)\\\\]\",\n      \"replace\": \"http://www.example.com/page?id=$1\"\n    }\n  ]\n}","yaml":"class: RegexLinkExtractor\npatterns:\n  - match: \\[(\\d+)\\]\n    replace: http://www.example.com/page?id=$1","xml":"<class>RegexLinkExtractor</class>\n<patterns>\n  <pattern>\n    <match>\\[(\\d+)\\]</match>\n    <replace>http://www.example.com/page?id=$1</replace>\n  </pattern>\n</patterns>"}}
+  ]}
+/>

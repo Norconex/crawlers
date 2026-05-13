@@ -1,0 +1,51 @@
+---
+component: ForceSingleValueTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# ForceSingleValueTransformer
+
+## Summary
+
+Forces a metadata field to be single-value
+
+## Notes
+
+The action can be one of the following:
+
+- **keepFirst**: Keeps the first occurrence found.
+- **keepLast**: Keeps the first occurrence found.
+- **mergeWith:<sep>**: Merges all values into one, separated by <sep>..
+
+If you do not specify any action, the default behavior is to merge all occurrences, joining values with a comma.
+
+Can be used both as a pre-parse or post-parse handler.
+
+## Properties
+
+### action
+
+The action can be one of the following:
+
+`"action"="[keepFirst|keepLast|mergeWith:separator]"`
+
+- **keepFirst**: Keeps the first occurrence found.
+- **keepLast**: Keeps the first occurrence found.
+- **mergeWith:<sep>**: Merges all values into one, separated by <sep>..
+
+If you do not specify any action, the default behavior is to merge all occurrences, joining values with a comma.
+ **TODO: redo this??**
+
+### fieldMatcher
+
+Matches document fields based on specified patterns and methods
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"For documents where multiple title fields are found, The following example only keeps the first title value captured.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"ExternalParser\",\n    \"action\": \"keepFirst\",\n    \"fieldMatcher\": {\n      \"pattern\": \"title\"\n    }\n  }\n}","yaml":"handler:\n  class: ExternalParser\n  action: keepFirst\n  fieldMatcher:\n    pattern: title","xml":"<handler>\n  <class>ExternalParser</class>\n  <action>keepFirst</action>\n  <fieldMatcher>\n    <pattern>title</pattern>\n  </fieldMatcher>\n</handler>"}}
+  ]}
+/>

@@ -1,0 +1,55 @@
+---
+component: TextStatisticsTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# TextStatisticsTransformer
+
+## Summary
+
+Document content analysis and statistical metadata generation.
+
+## Notes
+
+This feature analyzes the content of the supplied document and adds statistical information as metadata fields. 
+Default behavior provide the statistics about the content. Refer to the following for the new metadata fields to be created along with their description.
+
+**TODO: show table in MD? using HTML??**
+
+### Statistic fields
+| Field name                                      | Description                                                                                       |
+| :------------------------------------------------| :---------------------------------------------------------------------------------------------------|
+| document.stat.characterCount                   | Total number of characters (excluding carriage returns/line feed).                                |
+| document.stat.wordCount                        | Total number of words.                                                                            |
+| document.stat.sentenceCount                    | Total number of sentences.                                                                        |
+| document.stat.paragraphCount                   | Total number of paragraphs.                                                                       |
+| document.stat.averageWordCharacterCount        | Average number of characters in every word.                                                      |
+| document.stat.averageSentenceCharacterCount    | Average number of characters in sentences (including non-word characters, such as spaces or slashes). |
+| document.stat.averageSentenceWordCount         | Average number of words per sentence.                                                            |
+| document.stat.averageParagraphCharacterCount   | Average number of characters in paragraphs (including non-word characters, such as spaces or slashes). |
+| document.stat.averageParagraphSentenceCount    | Average number of sentences per paragraph.                                                       |
+| document.stat.averageParagraphWordCount        | Average number of words per paragraph.                                                           |
+
+You can specify a field matcher to obtain statistics about matching fields instead. When you do so, the field name will be inserted in the above names, right after `document.stat.`. E.g.: `document.stat.myfield.characterCount`
+
+Can be used both as a pre-parse (text-only) or post-parse handler.
+
+## Properties
+
+### fieldMatcher
+
+Matches document fields based on specified patterns and methods
+
+### sourceCharset
+
+Sets the character encoding of the source document to ensure proper reading and processing.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example create statistics from the value of a field called \"statistics\".","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"TextStatisticsTransformer\",\n    \"fieldMatcher\": {\n      \"pattern\": \"statistics\"\n    }\n  }\n}","yaml":"handler:\n  class: TextStatisticsTransformer\n  fieldMatcher:\n    pattern: statistics","xml":"<handler>\n  <class>TextStatisticsTransformer</class>\n  <fieldMatcher>\n    <pattern>statistics</pattern>\n  </fieldMatcher>\n</handler>"}}
+  ]}
+/>

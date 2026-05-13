@@ -1,0 +1,94 @@
+---
+component: AzureSearchCommitter
+module: committer/azurecognitivesearch
+locale: en
+propertyCoverage: all
+---
+
+# AzureSearchCommitter
+
+## Summary
+
+Commit documents to Microsoft Azure Search.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### apiKey
+
+Azure Search API admin key.
+
+### apiVersion
+
+A specific Azure Search API version to use.
+
+### arrayFields
+
+Field whose values are forcefully sent as array, even if they are single values. Unless "Use Regular Expression for Array Fields" is checked, expects a comma-separated list of field names.
+
+### arrayFieldsRegex
+
+Use regular expression instead of comma-separated values when defining "Array Fields".
+
+### disableDocKeyEncoding
+
+Disable Base64 encoding of the document document reference (Azure  Search Document Key). Base64 is the preferred approach when your document key can contain special characters.
+
+### endpoint
+
+Azure Search endpoint.
+
+### fieldMappings
+
+Mapping of source fields to target ones (Azure Search fields).
+
+### ignoreResponseErrors
+
+Log Azure Search response errors instead of throwing an exception.
+
+### ignoreValidationErrors
+
+Do not perform validation of field names before sending a batch of documents to Azure Search.
+
+### indexName
+
+Name of the target Azure Search index where to send documents.
+
+### proxySettings
+
+TODO: Add documentation for this property.
+
+### queue
+
+TODO: Add documentation for this property.
+
+### restrictions
+
+TODO: Add documentation for this property.
+
+### sourceKeyField
+
+Source document field name containing the value that will be stored in Azure Search target document key field. Default is the document reference.
+
+### targetContentField
+
+Name of Azure Search document field name to store document content. Default is "content".
+
+### targetKeyField
+
+Name of Azure Search document field where to store a document unique key identifier ("Source Key Field"). Default is "id".
+
+### useWindowsAuth
+
+Use Windows authentication to connect.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example uses the minimum required settings to configure Microsoft Azure Search Committer.","codeByLanguage":{"json":"{\n  \"class\": \"AzureSearchCommitter\",\n  \"endpoint\": \"https://example.search.windows.net\",\n  \"apiKey\": \"1234567890ABCDEF1234567890ABCDEF\",\n  \"indexName\": \"sample-index\"\n}","yaml":"class: AzureSearchCommitter\nendpoint: https://example.search.windows.net\napiKey: 1234567890ABCDEF1234567890ABCDEF\nindexName: sample-index","xml":"<committer>\n  <class>AzureSearchCommitter</class>\n  <endpoint>https://example.search.windows.net</endpoint>\n  <apiKey>1234567890ABCDEF1234567890ABCDEF</apiKey>\n  <indexName>sample-index</indexName>\n</committer>"}}
+  ]}
+/>

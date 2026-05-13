@@ -1,0 +1,56 @@
+---
+component: HierarchyTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# HierarchyTransformer
+
+## Summary
+
+Adds hierarchical tags to documents using a delimiter for structured categorization.
+
+## Notes
+
+Given a separator, split a field string into multiple segments representing each node of a hierarchical branch. This is useful when faceting, to find out how many documents fall under each node of a hierarchy. For example, take this hierarchical string:
+
+```
+/vegetable/potato/sweet
+```
+
+We specify a slash (/) separator and it will produce the following entries in the specified document metadata field:
+
+```
+/vegetable
+
+/vegetable/potato
+ /vegetable/potato/sweet
+```
+
+If no target field is specified `toField` the source field `fromField` will be used to store the resulting values. The same applies to the source and target hierarchy separators (`fromSeparator` and `toSeparator`).
+
+You can `keepEmptySegments`, as well as specify whether the `fromSeparator` is a regular expression. When using regular expression without a "toSeparator", the text matching the expression is kept as is and thus can be different for each segment.
+
+### Storing values in an existing field
+If a target field with the same name already exists for a document, values will be added to the end of the existing value list. It is possible to change this default behavior by supplying a PropertySetter.
+
+Can be used both as a pre-parse or post-parse handler.
+
+**TODO: fix the xpath space issue**
+
+**TODO: how to add child document for operations/op/* **
+
+## Properties
+
+### operations
+
+this work
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The example will expand a slash-separated vegetable hierarchy found in a \"vegetable\" field into a \"vegetableHierarchy\" field.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"HierarchyTransformer\",\n    \"operations\": [\n      {\n        \"fromField\": \"vegetable\",\n        \"toField\": \"vegetableHierarchy\",\n        \"fromSeparator\": \"/\"\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: HierarchyTransformer\n  operations:\n    - fromField: vegetable\n      toField: vegetableHierarchy\n      fromSeparator: /","xml":"<handler>\n  <class>HierarchyTransformer</class>\n  <operations>\n    <fromField>vegetable</fromField>\n    <toField>vegetableHierarchy</toField>\n    <fromSeparator>/</fromSeparator>\n  </operations>\n</handler>"}}
+  ]}
+/>

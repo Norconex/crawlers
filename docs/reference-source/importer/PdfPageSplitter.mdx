@@ -1,0 +1,62 @@
+---
+component: PdfPageSplitter
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# PdfPageSplitter
+
+## Summary
+
+Split PDFs pages so each pages are treated as individual documents.
+
+## Notes
+
+**TODO: convert the XML example to ts**
+**where is EmptyFilter**
+
+May not work on all PDFs (e.g., encrypted PDFs).
+
+The original PDF is kept intact. If you want to eliminate it to keep only the split pages, make sure to filter it. You can do so by filtering out PDFs without one of these two fields added to each pages: `document.pdf.pageNumber` or `document.pdf.numberOfPages`. A filtering example:
+
+``` xml
+<filter
+  class="com.norconex.importer.handler.filter.impl.EmptyFilter"     
+  onMatch="exclude">
+    <fieldMatcher
+      matchWhole="true">
+      document.pdf.pageNumber
+    </fieldMatcher>
+</filter>
+```
+
+By default this splitter restricts its use to` document.contentType` matching `application/pdf`.
+
+Should be used as a pre-parse handler.
+
+## Properties
+
+### contentTypeMatcher
+
+TODO: Add documentation for this property.
+
+### discardOriginal
+
+Discard the original document after the split is performed.
+
+### referencePagePrefix
+
+Defines the prefix added before the page number in a document reference. Default is "#" such as:
+
+- https://norconex.com/tests/pdf/dummy.pdf#1
+- https://norconex.com/tests/pdf/dummy.pdf#2
+- https://norconex.com/tests/pdf/dummy.pdf#3
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example will split PDFs and will append the page number to the original PDF reference as \"#page1\", \"#page2\", etc.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"PdfPageSplitter\",\n    \"referencePagePrefix\": \"#page\"\n  }\n}","yaml":"handler:\n  class: PdfPageSplitter\n  referencePagePrefix: \"#page\"","xml":"<handler>\n  <class>PdfPageSplitter</class>\n  <referencePagePrefix>#page</referencePagePrefix>\n</handler>"}}
+  ]}
+/>

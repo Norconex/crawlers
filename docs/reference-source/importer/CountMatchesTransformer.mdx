@@ -1,0 +1,52 @@
+---
+component: CountMatchesTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# CountMatchesTransformer
+
+## Summary
+
+Counts the occurrences of matches within a field.
+
+## Notes
+
+This functionality counts the occurrences of a specified string or string pattern and stores the resulting value in the target field defined by "toField.".
+
+If no "fieldMatcher" expression is specified, the document content will be used. If the "fieldMatcher" matches more than one field, the sum of all matches will be stored as a single value. More often than not, you probably want to set your "countMatcher" to "partial".
+
+## Properties
+
+### countMatcher
+
+Counts occurrences of patterns in document fields.
+
+### fieldMatcher
+
+TODO: Add documentation for this property.
+
+### maxReadSize
+
+TODO: Add documentation for this property.
+
+### onSet
+
+TODO: Add documentation for this property.
+
+### sourceCharset
+
+Sets the character encoding of the source document to ensure proper reading and processing.
+
+### toField
+
+A target field name used to store the value.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example will count the number of segments in a URL.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"CountMatchesTransformer\",\n    \"toField\": \"urlSegmentCount\",\n    \"fieldMatcher\": {\n      \"pattern\": \"document.reference\"\n    },\n    \"countMatcher\": {\n      \"method\": \"REGEX\",\n      \"pattern\": \"/[^/]+\"\n    }\n  }\n}","yaml":"handler:\n  class: CountMatchesTransformer\n  toField: urlSegmentCount\n  fieldMatcher:\n    pattern: document.reference\n  countMatcher:\n    method: REGEX\n    pattern: /[^/]+","xml":"<handler>\n  <class>CountMatchesTransformer</class>\n  <toField>urlSegmentCount</toField>\n  <fieldMatcher>\n    <pattern>document.reference</pattern>\n  </fieldMatcher>\n  <countMatcher>\n    <method>REGEX</method>\n    <pattern>/[^/]+</pattern>\n  </countMatcher>\n</handler>"}}
+  ]}
+/>

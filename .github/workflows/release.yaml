@@ -30,13 +30,20 @@
 # ==========
 # 1. Create a release/* branch from main (e.g. release/4.0.x).
 #    The branch may stay at X.Y.Z-SNAPSHOT for stabilization work.
-# 2. When ready to release, go to:
+# 2. Create a CHANGELOG file with the version in its name on the release branch
+#    (e.g., changelogs/changelog-4.0.0.md). This file must exist and have content.
+#    Use changelogs/TEMPLATE.md as a guide.
+#    This prevents accidental reuse of old changelogs.
+# 3. When ready to release, go to:
 #      Actions → "Release" → "Run workflow"
 #    Select the release/* branch and enter the target version (e.g. 4.0.0).
-# 3. This workflow sets the version in all POMs and pushes the commit.
-# 4. The CI/CD workflow detects the non-SNAPSHOT version on a release/* branch
-#    and fires: Maven Central deploy → git tag → zip packaging → GitHub Release
-#    → bump to next patch SNAPSHOT.
+# 4. This workflow validates the changelog exists, sets the version in all POMs, and pushes.
+# 5. The CI/CD workflow detects the non-SNAPSHOT version and fires:
+#    Maven Central deploy → git tag → zip packaging → GitHub Release.
+#    The changelog is preserved in git history at that tag.
+# 6. AFTER successful release: Delete changelogs/changelog-X.Y.Z.md from the release
+#    branch before merging back to main. This keeps main clean and prevents duplication.
+#    See changelogs/README.md for details.
 
 name: Release
 
@@ -50,9 +57,12 @@ on:
 jobs:
   prepare:
     runs-on: ubuntu-latest
+    outputs:
+      source_branch: ${{ github.ref_name }}
+      source_ref: ${{ github.ref }}
+      source_sha: ${{ steps.push_release_commit.outputs.sha }}
 
     steps:
-
       #--- Step ------------------------------------------------------------------
 
       - name: Validate branch is release/*
@@ -119,6 +129,26 @@ jobs:
 
       #--- Step ------------------------------------------------------------------
 
+      - name: Validate changelog file exists and has content
+        run: |
+          CHANGELOG_FILE="changelogs/changelog-${{ inputs.version }}.md"
+          if [[ ! -f "$CHANGELOG_FILE" ]]; then
+            echo "ERROR: Changelog file not found: $CHANGELOG_FILE"
+            echo "You must create a changelog file with the version in its name to prevent reuse."
+            echo "Example: changelogs/changelog-${{ inputs.version }}.md"
+            exit 1
+          fi
+          # Verify the file has content (more than just whitespace/header)
+          if ! grep -q '[a-zA-Z0-9]' "$CHANGELOG_FILE"; then
+            echo "ERROR: Changelog file is empty or contains only whitespace."
+            echo "File: $CHANGELOG_FILE"
+            echo "Add meaningful release notes."
+            exit 1
+          fi
+          echo "✓ Changelog found and validated: $CHANGELOG_FILE"
+
+      #--- Step ------------------------------------------------------------------
+
       - name: Set release version in all POMs
         run: |
           mvn versions:set \
@@ -129,9 +159,62 @@ jobs:
       #--- Step ------------------------------------------------------------------
 
       - name: Commit and push version bump
+        id: push_release_commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -m "chore(release): set version to ${{ inputs.version }}"
           git push
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  # Notify the private site repository so it can clone the version-bumped
+  # public sources, regenerate docs, build Javadoc, and publish the site.
+  notify-website-release:
+    needs: prepare
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    env:
+      TARGET_REPOSITORY: Norconex/crawlers-website
+
+    steps:
+      - name: Validate dispatch secret
+        env:
+          DISPATCH_TOKEN: ${{ secrets.CRAWLERS_WEBSITE_DISPATCH_TOKEN }}
+        run: |
+          if [ -z "$DISPATCH_TOKEN" ]; then
+            echo "Missing required secret: CRAWLERS_WEBSITE_DISPATCH_TOKEN"
+            exit 1
+          fi
+
+      - name: Trigger private website release build
+        env:
+          DISPATCH_TOKEN: ${{ secrets.CRAWLERS_WEBSITE_DISPATCH_TOKEN }}
+          SOURCE_BRANCH: ${{ needs.prepare.outputs.source_branch }}
+          SOURCE_REF: ${{ needs.prepare.outputs.source_ref }}
+          SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          curl -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $DISPATCH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$TARGET_REPOSITORY/dispatches" \
+            -d @- <<EOF
+          {
+            "event_type": "public-release-prepared",
+            "client_payload": {
+              "source_repository": "${{ github.repository }}",
+              "source_branch": "$SOURCE_BRANCH",
+              "source_ref": "$SOURCE_REF",
+              "source_sha": "$SOURCE_SHA",
+              "release_version": "$RELEASE_VERSION",
+              "site_docs_dir": "docs/site",
+              "reference_source_dir": "docs/reference-source"
+            }
+          }
+          EOF

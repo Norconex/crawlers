@@ -1,0 +1,54 @@
+---
+component: FieldReportTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# FieldReportTransformer
+
+## Summary
+
+Generates CSV reports of discovered fields.
+
+## Notes
+
+This utility creates a CSV file listing the fields identified during a crawl session, capturing them at your chosen stage of the importing process. To ensure all discovered fields are included, use this class as a `post-parse handler` before applying any field filtering.
+
+The report will list one field per row, along with a few sample values (3 by default). The samples will be the first ones encountered.
+
+This handler does not impact the data being imported at all (it only reads it). It also do not store the "content" as a field.
+
+When not specified with [setFile(Path)](link TODO), a file called `field-report.csv` will be created in the working directory.
+
+Can be used both as a pre-parse or post-parse handler.
+
+## Properties
+
+### file
+
+Specifies the output file path where the generated report is saved.
+
+### maxSamples
+
+Limits the maximum number of field samples included in the report.
+
+### truncateSamplesAt
+
+Sets the character limit for truncating field samples in the report.
+
+### withHeaders
+
+Determines whether the report includes headers for easier readability.
+
+### withOccurences
+
+Indicates whether to include the count of occurrences for each field value.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example logs all discovered fields into a `field-report.csv` file, along with only 1 example value.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"ExternalTransformer\",\n    \"file\": \"C:\\\\reports\\\\field-report.csv\",\n    \"maxSamples\": 1\n  }\n}","yaml":"handler:\n  class: ExternalTransformer\n  file: C:\\reports\\field-report.csv\n  maxSamples: 1","xml":"<handler>\n  <class>ExternalTransformer</class>\n  <file>C:\\reports\\field-report.csv</file>\n  <maxSamples>1</maxSamples>\n</handler>"}}
+  ]}
+/>

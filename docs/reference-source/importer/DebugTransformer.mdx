@@ -1,0 +1,50 @@
+---
+component: DebugTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# DebugTransformer
+
+## Summary
+
+Logs document details for debugging during processing.
+
+## Notes
+
+This functionality help with troubleshooting of document importing. Place this transformer anywhere in your handler configuration to print to the log stream the metadata fields or content so far when this handler gets invoked. This handler does not impact the data being imported at all (it only reads it).
+
+The default behavior logs all metadata fields using the `DEBUG` log level. You can optionally set which fields to log and whether to also log the document content or not, as well as specifying a different log level.
+
+**Be careful**: Logging the content when you deal with very large content can result in memory exceptions.
+
+### Parser Handler Compatibility
+
+This functionality can be applied as either a `pre-parse` or `post-parse` handler.
+
+## Properties
+
+### logContent
+
+**Be careful**: Logging the content when you deal with very large content can result in memory exceptions.
+
+### logFields
+
+Logs the document's metadata fields for debugging.
+
+### logLevel
+
+Specifies the logging level.
+
+### prefix
+
+Adds a custom prefix to log messages for identification.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following logs the value of any `document.reference` and `document.title` document metadata fields.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"DebugTransformer\",\n    \"logFields\": [\n      \"document.reference\",\n      \"document.title\"\n    ],\n    \"logLevel\": \"INFO\"\n  }\n}","yaml":"handler:\n  class: DebugTransformer\n  logFields:\n    - document.reference\n    - document.title\n  logLevel: INFO","xml":"<handler>\n  <class>DebugTransformer</class>\n  <logFields>\n    <logField>document.reference</logField>\n    <logField>document.title</logField>\n  </logFields>\n  <logLevel>INFO</logLevel>\n</handler>"}}
+  ]}
+/>

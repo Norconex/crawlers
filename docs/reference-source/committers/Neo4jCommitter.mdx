@@ -1,0 +1,74 @@
+---
+component: Neo4jCommitter
+module: committer/neo4j
+locale: en
+propertyCoverage: all
+---
+
+# Neo4jCommitter
+
+## Summary
+
+Commit documents to a Neo4j graph database.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### credentials
+
+Username and password to Neo4j.
+
+### database
+
+Database name when using one other than the default.
+
+### deleteCypher
+
+Cypher query for deleting relationships in Neo4j. Typically, you want to use "nodeIdProperty" value to delete nodes having a matching property value. The query parameters correspond the document fields.
+
+### fieldMappings
+
+Mapping of source fields to target ones (Neo4j property).
+
+### multiValuesJoiner
+
+TODO: Add documentation for this property.
+
+### nodeContentProperty
+
+Property name where to store the document content in Neo4j graph entries.  Use it as a cypher parameter in your configured "upsertCypher" query. Default is "content".
+
+### nodeIdProperty
+
+Property name where to store the document reference in Neo4j graph entries.  Use it as a cypher parameter to uniquely identify your graph entries in your configured "upsertCypher" and "deleteCypher" queries. Default is "id".
+
+### optionalParameters
+
+Comma-separated list of parameter names that can be missing when creating the query. They will be set to `NullValue` to avoid client exception for missing parameters.
+
+### queue
+
+TODO: Add documentation for this property.
+
+### restrictions
+
+TODO: Add documentation for this property.
+
+### upsertCypher
+
+Cypher query for adding relationships to Neo4j. Typically, you want to use MERGE and the "nodeIdProperty" value to update existing entries matching the ID. In order to later delete all nodes related to an entry, make sure to add the ID property on all appropriate nodes. The query parameters correspond the document fields.
+
+### uri
+
+Required connection URI. E.g., `bolt://localhost:7687`.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example creates a graph of collected documents.","codeByLanguage":{"json":"{\n  \"class\": \"Neo4jCommitter\",\n  \"uri\": \"bolt://localhost:7687\",\n  \"upsertCypher\": \"MERGE (a:Document { docId: $id }) SET a += { title: $title } SET a += { author: $author }\",\n  \"deleteCypher\": \"MATCH (a:Document { docId: $id }) DETACH DELETE a\",\n  \"credentials\": {\n    \"username\": \"neo4j\",\n    \"password\": \"AcwFJPHITfk6LrRp7HW7Ag6hvDZotXcvWt2WvDMcGIo=\",\n    \"passwordKey\": {\n      \"value\": \"key.txt\",\n      \"source\": \"FILE\"\n    }\n  },\n  \"multiValuesJoiner\": \"_\"\n}","yaml":"class: Neo4jCommitter\nuri: bolt://localhost:7687\nupsertCypher: \"MERGE (a:Document { docId: $id }) SET a += { title: $title } SET\n  a += { author: $author }\"\ndeleteCypher: \"MATCH (a:Document { docId: $id }) DETACH DELETE a\"\ncredentials:\n  username: neo4j\n  password: AcwFJPHITfk6LrRp7HW7Ag6hvDZotXcvWt2WvDMcGIo=\n  passwordKey:\n    value: key.txt\n    source: FILE\nmultiValuesJoiner: _","xml":"<committer>\n  <class>Neo4jCommitter</class>\n  <uri>bolt://localhost:7687</uri>\n  <upsertCypher>MERGE (a:Document { docId: $id }) SET a += { title: $title } SET a += { author: $author }</upsertCypher>\n  <deleteCypher>MATCH (a:Document { docId: $id }) DETACH DELETE a</deleteCypher>\n  <credentials>\n    <username>neo4j</username>\n    <password>AcwFJPHITfk6LrRp7HW7Ag6hvDZotXcvWt2WvDMcGIo=</password>\n    <passwordKey>\n      <value>key.txt</value>\n      <source>FILE</source>\n    </passwordKey>\n  </credentials>\n  <multiValuesJoiner>_</multiValuesJoiner>\n</committer>"}}
+  ]}
+/>

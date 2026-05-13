@@ -158,6 +158,23 @@
         <jacocoArgLine>@{argLine}</jacocoArgLine>
       </properties>
     </profile>
+    <!-- Activating this profile forces aggregate Javadoc to read delombok
+         outputs from all modules, so Lombok-generated types (builders, etc.)
+         are visible to the Javadoc tool. -->
+    <profile>
+      <id>aggregate-javadoc</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <sourcepath>${project.basedir}/committer/core/target/generated-sources/delombok${path.separator}${project.basedir}/committer/solr/target/generated-sources/delombok${path.separator}${project.basedir}/committer/elasticsearch/target/generated-sources/delombok${path.separator}${project.basedir}/committer/idol/target/generated-sources/delombok${path.separator}${project.basedir}/committer/amazoncloudsearch/target/generated-sources/delombok${path.separator}${project.basedir}/committer/sql/target/generated-sources/delombok${path.separator}${project.basedir}/committer/neo4j/target/generated-sources/delombok${path.separator}${project.basedir}/committer/azurecognitivesearch/target/generated-sources/delombok${path.separator}${project.basedir}/committer/apachekafka/target/generated-sources/delombok${path.separator}${project.basedir}/importer/target/generated-sources/delombok${path.separator}${project.basedir}/crawler/core/target/generated-sources/delombok${path.separator}${project.basedir}/crawler/web/target/generated-sources/delombok${path.separator}${project.basedir}/crawler/fs/target/generated-sources/delombok</sourcepath>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
   <inceptionYear>2022</inceptionYear>
@@ -629,8 +646,10 @@
           <version>${maven-javadoc-plugin.version}</version>
           <configuration>
             <skip>${maven.javadoc.skip}</skip>
-            <outputDirectory>${project.build.directory}</outputDirectory>
-            <sourcepath>${project.build.directory}/generated-sources/delombok</sourcepath>
+            <!-- The plugin appends 'apidocs/' to outputDirectory, so setting it to
+                 target/site makes the final output land at target/site/apidocs/
+                 (the Maven standard location), regardless of Maven/site-plugin version. -->
+            <outputDirectory>${project.build.directory}/site</outputDirectory>
             <sourceFileIncludes>
               <sourceInclude>com/norconex/**/*.java</sourceInclude>
             </sourceFileIncludes>
@@ -683,6 +702,9 @@
               <goals>
                 <goal>jar</goal>
               </goals>
+              <configuration>
+                <sourcepath>${project.build.directory}/generated-sources/delombok</sourcepath>
+              </configuration>
             </execution>
           </executions>
           <inherited>true</inherited>
@@ -1098,9 +1120,6 @@
                 and when we do, it is sometimes to test oddities.
                 -->
             </includes>
-            <excludes>
-              <exclude>website/**</exclude>
-            </excludes>
           </configuration>          
           <inherited>true</inherited>
         </plugin>

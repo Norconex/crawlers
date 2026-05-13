@@ -1,0 +1,70 @@
+---
+component: AmazonCloudSearchCommitter
+module: committer/amazoncloudsearch
+locale: en
+propertyCoverage: all
+---
+
+# AmazonCloudSearchCommitter
+
+## Summary
+
+Commit documents to Amazon CloudSearch.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### accessKey
+
+CloudSearch access key. Leave blank to take it from the environment.
+
+### fieldMappings
+
+Mapping of source fields to target ones (index field name).
+
+### fixBadIds
+
+Forces references to fit into a CloudSearch id field. Truncate references that are too long and append a hash code to it to keep uniqueness. It will also convert invalid characters to  underscore.  This approach is not 100% collision-free (uniqueness),  but it should safely cover the vast majority of cases.
+
+### proxySettings
+
+TODO: Add documentation for this property.
+
+### queue
+
+TODO: Add documentation for this property.
+
+### restrictions
+
+TODO: Add documentation for this property.
+
+### secretKey
+
+CloudSearch secret key. Leave blank to take it from the environment.
+
+### serviceEndpoint
+
+CloudSearch service endpoint.
+
+### signingRegion
+
+CloudSearch signing region.
+
+### sourceIdField
+
+Document field name containing the value that will be stored in CloudSearch "id" field. Default is the document reference.
+
+### targetContentField
+
+CloudSearch field name to store the document content. Default is "content".
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example uses the minimum required settings to configure the Amazon CloudSearch Committer. This example relies on environment  variables for AWS keys.","codeByLanguage":{"json":"{\n  \"class\": \"CloudSearchCommitter\",\n  \"serviceEndpoint\": \"search-example-xyz.some-region.cloudsearch.amazonaws.com\"\n}","yaml":"class: CloudSearchCommitter\nserviceEndpoint: search-example-xyz.some-region.cloudsearch.amazonaws.com","xml":"<committer>\n  <class>CloudSearchCommitter</class>\n  <serviceEndpoint>search-example-xyz.some-region.cloudsearch.amazonaws.com</serviceEndpoint>\n</committer>"}}
+  ]}
+/>

@@ -1,0 +1,120 @@
+---
+component: DefaultParser
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# DefaultParser
+
+## Summary
+
+Generic document parser for raw content passthrough or text decoding
+
+## Notes
+
+It uses Apacke Tika for most of its supported content types. For unknown content types, it falls back to Tika generic media detector/parser.
+
+### Embedded
+
+By default, embedded documents (e.g., attachments in emails, files in ZIP archives) are merged into their container (parent) document. You can configure the parser to split embedded documents, allowing each to be processed individually through the full import cycle. You can also control whether embedded documents should be skipped during processing.
+
+#### Options
+
+**splitContentTypes**: Defines which container documents should have their embedded documents split into individual documents.
+
+>Example: Splits embedded documents found in ZIP archives or email messages.*
+- ```xml
+  <pattern>application/zip|message/rfc822</pattern>
+  ``` 
+
+
+**skipEmbeddedContentTypes**: Specifies embedded document types that should not be extracted from their containers. Skipping embedded documents depends on the child content type itself
+
+>*Example: Skips extracting image files and PDFs from any container.*
+- ```xml
+  <pattern>image/.*|application/pdf</pattern>
+  ```
+
+
+**skipEmbeddedOfContentTypes**: Specifies container document types from which embedded documents should not be extracted. Skipping embeded documents base on the container types.
+
+  >*Example:Prevents extracting embedded documents from Microsoft Word files and still process the container, Word document, itself*
+  - ```xml
+    <pattern>application/msword</pattern>
+    ```
+
+### Optical character recognition (OCR):
+
+You can configure this parser to use the [Tesseract](https://code.google.com/p/tesseract-ocr/) open-source OCR application to extract text out of images or documents containing embedded images (e.g. PDF). Supported image formats are TIFF, PNG, JPEG, GIF, and BMP.
+
+To enable this feature, you must first download and install a copy of Tesseract appropriate for your platform (supported are Linux, Windows, Mac and other platforms). It will only be activated once you configure the path to its install location. Default language detection is for English. To support additional or different languages, you can provide a list of three-letter ISO language codes supported by Tesseract. These languages must be part of your Tesseract installation. You can [download additional languages](https://code.google.com/p/tesseract-ocr/downloads/list) form the Tesseract web site.
+
+When enabled, OCR is attempted on all supported image formats. To limit OCR to a subset of document content types, configure the corresponding content-types (e.g. application/pdf, image/tiff, image/png, etc.).
+
+## Properties
+
+### embedded
+
+### Embedded
+
+By default, embedded documents (e.g., attachments in emails, files in ZIP archives) are merged into their container (parent) document. You can configure the parser to split embedded documents, allowing each to be processed individually through the full import cycle. You can also control whether embedded documents should be skipped during processing.
+
+#### Options
+
+**splitContentTypes**: Defines which container documents should have their embedded documents split into individual documents.
+
+>Example: Splits embedded documents found in ZIP archives or email messages.*
+- ```xml
+  <pattern>application/zip|message/rfc822</pattern>
+  ``` 
+
+
+**skipEmbeddedContentTypes**: Specifies embedded document types that should not be extracted from their containers. Skipping embedded documents depends on the child content type itself
+
+>*Example: Skips extracting image files and PDFs from any container.*
+- ```xml
+  <pattern>image/.*|application/pdf</pattern>
+  ```
+
+
+**skipEmbeddedOfContentTypes**: Specifies container document types from which embedded documents should not be extracted. Skipping embeded documents base on the container types.
+
+  >*Example:Prevents extracting embedded documents from Microsoft Word files and still process the container, Word document, itself*
+  - ```xml
+    <pattern>application/msword</pattern>
+    ```
+
+### errorsSaveDir
+
+Save Error Parse to a directory
+
+### grobid
+
+TODO: Add documentation for this property.
+
+### ocr
+
+### Optical character recognition (OCR):
+
+You can configure this parser to use the [Tesseract](https://code.google.com/p/tesseract-ocr/) open-source OCR application to extract text out of images or documents containing embedded images (e.g. PDF). Supported image formats are TIFF, PNG, JPEG, GIF, and BMP.
+
+To enable this feature, you must first download and install a copy of Tesseract appropriate for your platform (supported are Linux, Windows, Mac and other platforms). It will only be activated once you configure the path to its install location. Default language detection is for English. To support additional or different languages, you can provide a list of three-letter ISO language codes supported by Tesseract. These languages must be part of your Tesseract installation. You can [download additional languages](https://code.google.com/p/tesseract-ocr/downloads/list) form the Tesseract web site.
+
+When enabled, OCR is attempted on all supported image formats. To limit OCR to a subset of document content types, configure the corresponding content-types (e.g. application/pdf, image/tiff, image/png, etc.).
+
+### Options: (TODO) 
+
+- applyRotation: 
+- colorSpace:
+- ...etc
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"Save Error Parse to a directory","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"DefaultParser\",\n    \"errorsSaveDir\": \"C:\\\\reports\\\\errors\"\n  }\n}","yaml":"handler:\n  class: DefaultParser\n  errorsSaveDir: C:\\reports\\errors","xml":"<handler>\n  <class>DefaultParser</class>\n  <errorsSaveDir>C:\\reports\\errors</errorsSaveDir>\n</handler>"}},
+    {"title":"ocr","description":"The following example uses Tesseract to convert English images in PDF into text.\n\n***OCR***","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"DefaultParser\",\n    \"ocr\": {\n      \"tessdataPath\": \"/app/ocr/tesseract.exe\",\n      \"contentTypeMatcher\": {\n        \"method\": \"BASIC\",\n        \"pattern\": \"application/pdf\",\n        \"ignoreCase\": true\n      },\n      \"language\": \"eng\"\n    }\n  }\n}","yaml":"handler:\n  class: DefaultParser\n  ocr:\n    tessdataPath: /app/ocr/tesseract.exe\n    contentTypeMatcher:\n      method: BASIC\n      pattern: application/pdf\n      ignoreCase: true\n    language: eng","xml":"<handler>\n  <class>DefaultParser</class>\n  <ocr>\n    <tessdataPath>/app/ocr/tesseract.exe</tessdataPath>\n    <contentTypeMatcher>\n      <method>BASIC</method>\n      <pattern>application/pdf</pattern>\n      <ignoreCase>true</ignoreCase>\n    </contentTypeMatcher>\n    <language>eng</language>\n  </ocr>\n</handler>"}},
+    {"title":"embedded","description":"The following example separates embedded content into individual documents for ZIP files, skips extracting image-type content (e.g., PNG, JPEG) from all container types—including ZIPs, and entirely skips embedded content when the parent document is a Microsoft Word file.\n\n***Embedded***","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"DefaultParser\",\n    \"embedded\": {\n      \"splitContentTypes\": [\n        {\n          \"method\": \"BASIC\",\n          \"pattern\": \"application/zip\",\n          \"ignoreCase\": true\n        }\n      ],\n      \"skipEmbeddedContentTypes\": [\n        {\n          \"method\": \"REGEX\",\n          \"pattern\": \"image/.*\",\n          \"ignoreCase\": true\n        }\n      ],\n      \"skipEmbeddedofContentTypes\": [\n        {\n          \"method\": \"BASIC\",\n          \"pattern\": \"application/msword\",\n          \"ignoreCase\": true\n        }\n      ]\n    }\n  }\n}","yaml":"handler:\n  class: DefaultParser\n  embedded:\n    splitContentTypes:\n      - method: BASIC\n        pattern: application/zip\n        ignoreCase: true\n    skipEmbeddedContentTypes:\n      - method: REGEX\n        pattern: image/.*\n        ignoreCase: true\n    skipEmbeddedofContentTypes:\n      - method: BASIC\n        pattern: application/msword\n        ignoreCase: true","xml":"<handler>\n  <class>DefaultParser</class>\n  <embedded>\n    <splitContentTypes>\n      <splitContentType>\n        <method>BASIC</method>\n        <pattern>application/zip</pattern>\n        <ignoreCase>true</ignoreCase>\n      </splitContentType>\n    </splitContentTypes>\n  </embedded>\n</handler>"}}
+  ]}
+/>

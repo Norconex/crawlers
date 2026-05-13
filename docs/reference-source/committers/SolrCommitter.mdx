@@ -1,0 +1,70 @@
+---
+component: SolrCommitter
+module: committer/solr
+locale: en
+propertyCoverage: all
+---
+
+# SolrCommitter
+
+## Summary
+
+Commit documents to Apache Solr search engine.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### credentials
+
+Username and password to a protected Solr.
+
+### fieldMappings
+
+Mapping of source fields to target ones (Solr fields).
+
+### queue
+
+TODO: Add documentation for this property.
+
+### restrictions
+
+TODO: Add documentation for this property.
+
+### solrClientType
+
+Type of [Solr Client](https://solr.apache.org/guide/solr/latest/deployment-guide/solrj.html#types-of-solrclients) to use. Default client type is `Http2SolrClient`.
+
+### solrCommitDisabled
+
+Disable sending an explicit Solr commit request at the end of every batch sent, relying Solr to perform auto-commit instead.
+
+### solrURL
+
+URL to Solr. Influenced by the client type chosen.
+
+### sourceIdField
+
+Document field name containing the value that will be stored in Solr target ID field. Default is the document reference.
+
+### targetContentField
+
+Solr field name to store a document content. Default is "content".
+
+### targetIdField
+
+Solr field name where to store a document unique identifier (source ID field). Default is "id".
+
+### updateUrlParams
+
+Parameters to be added on Solr HTTP calls.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","codeByLanguage":{"json":"{\n  \"class\": \"SolrCommitter\",\n  \"solrUrl\": \"http://localhost:8983/solr\",\n  \"solrCollection\": \"mycollection\"\n}","yaml":"class: SolrCommitter\nsolrUrl: http://localhost:8983/solr\nsolrCollection: mycollection","xml":"<class>SolrCommitter</class>\n<solrUrl>http://localhost:8983/solr</solrUrl>\n<solrCollection>mycollection</solrCollection>"}}
+  ]}
+/>

@@ -1,0 +1,34 @@
+---
+component: OnCommitFailure
+module: committer/core
+locale: en
+propertyCoverage: all
+---
+
+# OnCommitFailure
+
+## Summary
+
+Configuration schema for On Commit Failure.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### ignoreErrors
+
+Ignore non-critical errors in an attempt to keep going.
+
+### maxRetries
+
+Maximum retries upon commit failures. Default is 0 (does not retry).
+
+### retryDelay
+
+Delay in milliseconds between retries. Default is 0 (does not wait).
+
+### splitBatch
+
+Whether and how to split batches when re-attempting them, to send them in smaller size. Default does not split.

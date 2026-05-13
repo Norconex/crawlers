@@ -1,0 +1,76 @@
+---
+component: XmlStreamSplitter
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# XmlStreamSplitter
+
+## Summary
+
+Splits XML document on a specific element.
+
+## Notes
+
+This class is suited for large XML documents. It will read the XML as a stream and split as it is read, preserving memory during parsing. For this reason, element matching is not as flexible as DOM-based XML parsers, such as DOMSplitter, but is more efficient on large documents.
+
+## Element matching
+To identify the element to split on, you give the full path to it from the document root, where each element is separated by a forward slash. Let's take this XML as an example:
+
+``` XML   
+<animals>
+  <species name="mouse">
+    <animal>
+      <name>Itchy</name>
+      <race>cartoon</race>
+    </animal>
+  </species>
+  <species name="cat">
+    <animal>
+      <name>Scratchy</name>
+      <race>cartoon</race>
+    </animal>
+  </species>
+</animals>
+```
+
+To split on `<animal>`, you would use this in `path`:
+
+``` XML
+/animals/species/animal
+```
+
+Should be used as a pre-parse handler.
+
+### Content-types
+By default, this filter is restricted to (applies only to) documents matching the restrictions returned by CommonRestrictions.xmlContentTypes(String). You can specify your own restrictions to further narrow, or loosen what documents this splitter applies to.
+
+**TODO: restricted to is no longer valid, remove and mention flow-control???**
+**what about ContentTypes???**
+
+## Properties
+
+### contentTypeMatcher
+
+The content type of the XML document.
+
+### discardOriginal
+
+Discard the original document after the split is performed.
+
+### fieldMatcher
+
+Matches document fields based on specified patterns and methods
+
+### path
+
+The path to the element to split on.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example will create one document per animals, based on the sample XML given above.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"XmlStreamSplitter\",\n    \"path\": \"/animals/species/animal\"\n  }\n}","yaml":"handler:\n  class: XmlStreamSplitter\n  path: /animals/species/animal","xml":"<handler>\n  <class>XmlStreamSplitter</class>\n  <path>/animals/species/animal</path>\n</handler>"}}
+  ]}
+/>

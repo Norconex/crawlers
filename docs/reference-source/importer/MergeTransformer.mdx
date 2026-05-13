@@ -1,0 +1,42 @@
+---
+component: MergeTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# MergeTransformer
+
+## Summary
+
+Merge multiple metadata fields into a single one.
+
+## Notes
+
+**TODO: outdated document, need to rewrite**
+
+Use `fromFields ` to list all fields to merge, separated by commas. Use `fromFieldsRegex` to match fields to merge using a regular expression. Both `fromFields` and `fromFieldsRegex` can be used together. Matching fields from both will be combined, in the order provided/matched, starting with `fromFields` entries.
+
+Unless `singleValue` is set to true, each value will be added to the target field, making it a multi-value field. If `singleValue` is set to `true`, all values will be combined into one string, optionally separated by the `singleValueSeparator`. Single values will be constructed without any separator if none are specified.
+
+You can optionally decide do delete source fields after they were merged by setting `deleteFromFields` to `true`.
+
+The target field can be one of the "from" fields. In such case its content will be replaced with the result of the merge (it will not be deleted even if deleteFromFields is true).
+
+If only a single source field is specified or found, it will be copied to the target field and its multi-values will still be merged to a single one if configured to do so. In such cases, this class can become an alternative to using [ForceSingleValueTagger TODO](https://opensource.norconex.com/importer/v3/apidocs/com/norconex/importer/handler/tagger/impl/ForceSingleValueTagger.html) with a `mergeWith` action.
+
+Can be used both as a pre-parse or post-parse handler.
+
+## Properties
+
+### operations
+
+Specifies the type of merge operation to be performed. (TODO- "operations" redundancy)
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example merges several title fields into one, joining multiple occurrences with a coma, and deleting original fields.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"MergeTransformer\",\n    \"operations\": [\n      {\n        \"toField\": \"title\",\n        \"deleteFromFields\": true,\n        \"singleValue\": true,\n        \"singleValueSeparator\": \",\",\n        \"fieldMatcher\": {\n          \"method\": \"REGEX\",\n          \"pattern\": \"(title|dc.title|dc:title|doctitle)\"\n        }\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: MergeTransformer\n  operations:\n    - toField: title\n      deleteFromFields: true\n      singleValue: true\n      singleValueSeparator: \",\"\n      fieldMatcher:\n        method: REGEX\n        pattern: (title|dc.title|dc:title|doctitle)","xml":"<handler>\n  <class>MergeTransformer</class>\n  <operations>\n    <op>\n      <toField>title</toField>\n      <deleteFromFields>true</deleteFromFields>\n      <singleValue>true</singleValue>\n      <singleValueSeparator>,</singleValueSeparator>\n      <fieldMatcher>\n        <method>REGEX</method>\n        <pattern>(title|dc.title|dc:title|doctitle)</pattern>\n      </fieldMatcher>\n    </op>\n  </operations>\n</handler>"}}
+  ]}
+/>

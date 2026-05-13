@@ -1,0 +1,59 @@
+---
+component: CurrentDateTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# CurrentDateTransformer
+
+## Summary
+
+Adds the current computer UTC date to the specified field
+
+## Notes
+
+This functionality allows you to adds the current computer UTC date to the specified field. If no field is provided, the date will be added to document.importedDate.
+
+The default date format is EPOCH (the difference, measured in milliseconds, between the current time and midnight, January 1, 1970 UTC). A custom date format can be specified with the format attribute, as per the formatting options found on [SimpleDateFormat](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/text/SimpleDateFormat.html?is-external=true).
+
+It is possible to specify a locale used for formatting dates. The locale is the ISO two-letter language code, with an optional ISO country code, separated with an underscore (e.g., `"fr"` for French, `"fr_CA"` for Canadian French). When no locale is specified, the default is `"en_US"` (US English).
+
+### Storing values in an existing field
+
+If a document already has a target field with the same name, 
+new values are appended to the existing list by default. Use `onSet` to manage this default behavior.
+
+### Parser Handler Compatibility
+
+This functionality can be applied as either a `pre-parse` or `post-parse` handler.
+
+### Locale of Date Formatting
+
+It is possible to specify a locale used for formatting dates. The locale is the ISO two-letter language code, with an optional ISO country code, separated with an underscore (e.g., `fr` for French, `fr_CA` for Canadian French). When no locale is specified, the default is `en_US` (US English).
+
+## Properties
+
+### format
+
+Specifies the format of the date to be added.
+
+### locale
+
+Specifies the locale used for formatting
+
+### onSet
+
+What to do if a target field of the same name already exist.
+
+### toField
+
+A target field name used to store the value.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example store the current date along with hours and minutes in a \"crawl_date\" field.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"CurrentDateTransformer\",\n    \"format\": \"yyyy-MM-dd HH:mm\",\n    \"toField\": \"crawl_date\"\n  }\n}","yaml":"handler:\n  class: CurrentDateTransformer\n  format: yyyy-MM-dd HH:mm\n  toField: crawl_date","xml":"<handler>\n  <class>CurrentDateTransformer</class>\n  <format>yyyy-MM-dd HH:mm</format>\n  <toField>crawl_date</toField>\n</handler>"}}
+  ]}
+/>

@@ -1,0 +1,45 @@
+---
+component: TextBetweenTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# TextBetweenTransformer
+
+## Summary
+
+Extracts and add values found between a matching start and end strings to a document metadata field
+
+## Notes
+
+The matching string end-points are defined in pairs and multiple ones can be specified at once. The field specified for a pair of end-points is considered a multi-value field.
+
+If `fieldMatcher` is specified, it will use content from matching fields and storing all text extracted into the target field, multi-value. Else, the document content is used.
+
+### Storing values in an existing field
+If a target field with the same name already exists for a document, values will be added to the end of the existing value list. It is possible to change this default behavior by supplying a PropertySetter.
+
+This class can be used as a pre-parsing handler on text documents only or a post-parsing handler.
+
+## Properties
+
+### maxReadSize
+
+Max characters to read at once
+
+### operations
+
+Allows defining multiple operations as a list.
+
+### sourceCharset
+
+Sets the character encoding of the source document to ensure proper reading and processing.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The above example extract the content between **OPEN** and **CLOSE** strings, excluding these strings, and store it in a `content` field.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"TextBetweenTransformer\",\n    \"operations\": [\n      {\n        \"toField\": \"content\",\n        \"startMatcher\": {\n          \"pattern\": \"OPEN\"\n        },\n        \"endMatcher\": {\n          \"pattern\": \"CLOSE\"\n        }\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: TextBetweenTransformer\n  operations:\n    - toField: content\n      startMatcher:\n        pattern: OPEN\n      endMatcher:\n        pattern: CLOSE","xml":"<handler>\n  <class>TextBetweenTransformer</class>\n  <operations>\n    <op>\n      <toField>content</toField>\n      <startMatcher>\n        <pattern>OPEN</pattern>\n      </startMatcher>\n      <endMatcher>\n        <pattern>CLOSE</pattern>\n      </endMatcher>\n    </op>\n  </operations>\n</handler>"}}
+  ]}
+/>

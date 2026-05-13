@@ -1,0 +1,39 @@
+---
+component: UuidTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# UuidTransformer
+
+## Summary
+
+Generates a random Universally unique identifier
+
+## Notes
+
+Generates a random Universally unique identifier (UUID) and stores it in the specified field. If no field is provided, the UUID will be added to document.uuid.
+
+### Storing values in an existing field
+If a target field with the same name already exists for a document, values will be added to the end of the existing value list. It is possible to change this default behavior by supplying a PropertySetter.
+
+Can be used both as a pre-parse or post-parse handler.
+
+## Properties
+
+### onSet
+
+What to do if a target field of the same name already exist.
+
+### toField
+
+A target field name used to store the value.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example generates a UUID and stores it in a \"uuid\" field, overwriting any existing values under that field.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"UuidTransformer\",\n    \"toField\": \"uuid\",\n    \"onSet\": \"REPLACE\"\n  }\n}","yaml":"handler:\n  class: UuidTransformer\n  toField: uuid\n  onSet: REPLACE","xml":"<handler>\n  <class>UuidTransformer</class>\n  <toField>uuid</toField>\n  <onSet>REPLACE</onSet>\n</handler>"}}
+  ]}
+/>

@@ -1,0 +1,53 @@
+---
+component: ReplaceTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# ReplaceTransformer
+
+## Summary
+
+Replaces an existing metadata value with another one.
+
+## Notes
+
+It is possible to only keep values that changed from a replacement and discard others by setting `discardUnchanged` to true.
+
+The `toField` argument is optional.
+
+Not specifying a `toValue` will delete the matches from sources values.
+
+### Storing values in an existing field
+If a target field with the same name already exists for a document, values will be added to the end of the existing value list. It is possible to change this default behavior by supplying a PropertySetter.
+
+Can be used both as a pre-parse or post-parse handler.
+
+You can specify whether matches should be made against the whole field value or not (default). You can also specify whether replacement should be attempted on first match only (default) or all occurrences. This last option is only applicable when whole value matching is false.
+
+## Properties
+
+### maxReadSize
+
+Max characters to read at once
+
+### operations
+
+- **fieldMatcher**: Defines the fields in which replacements should occur, using patterns or expressions to specify the target fields.
+- **valueMatcher**: Specifies the criteria or pattern to identify the values within the matched fields that should be replaced.
+- **toValue**: Indicates the new value to substitute for the matched values in the specified fields.
+
+**TODO: insert to the children nodes**
+
+### sourceCharset
+
+Sets the character encoding of the source document to ensure proper reading and processing.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example replaces occurrences of \"apple\" to \"orange\" in the \"fruit\" field.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"ReplaceTransformer\",\n    \"operations\": [\n      {\n        \"fieldMatcher\": {\n          \"pattern\": \"fruit\"\n        },\n        \"valueMatcher\": {\n          \"replaceAll\": true,\n          \"pattern\": \"apple\"\n        },\n        \"toValue\": \"orange\"\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: ReplaceTransformer\n  operations:\n    - fieldMatcher:\n        pattern: fruit\n      valueMatcher:\n        replaceAll: true\n        pattern: apple\n      toValue: orange","xml":"<handler>\n  <class>ReplaceTransformer</class>\n  <operations>\n    <op>\n      <fieldMatcher>\n        <pattern>fruit</pattern>\n      </fieldMatcher>\n      <valueMatcher>\n        <replaceAll>true</replaceAll>\n        <pattern>apple</pattern>\n      </valueMatcher>\n      <toValue>orange</toValue>\n    </op>\n  </operations>\n</handler>"}}
+  ]}
+/>

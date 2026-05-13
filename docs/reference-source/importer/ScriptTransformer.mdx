@@ -1,0 +1,61 @@
+---
+component: ScriptTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# ScriptTransformer
+
+## Summary
+
+Transformer incoming documents using a scripting language.
+
+## Notes
+
+The default script engine is JavaScript.
+
+Refer to [ScriptRunner](https://opensource.norconex.com/importer/v3/apidocs/com/norconex/importer/handler/ScriptRunner.html) for more information on using a scripting language with Norconex Importer.
+
+### How to tag documents with scripting:
+The following are variables made available to your script for each document:
+
+- `reference`: Document unique reference as a string.
+- `content`: Document content, as a string (of maxReadSize length).
+- `metadata`: Document metadata as an [Properties](https://opensource.norconex.com/commons/lang/v2/apidocs/com/norconex/commons/lang/map/Properties.html?is-external=true) object.
+- `parsed`: Whether the document was already parsed, as a boolean.
+- `sectionIndex`: Content section index if it had to be split, as an integer.
+There are no expected return value from your script. Returning one has no effect.
+
+**TODO: rewrite it as lua do not support in some case, and some issue in js(recall in DnD)**
+
+## Properties
+
+### engineName
+
+TODO: Add documentation for this property.
+
+### fieldMatcher
+
+Matches document fields based on specified patterns and methods
+
+### maxReadSize
+
+Max characters to read at once
+
+### script
+
+TODO: Add documentation for this property.
+
+### sourceCharset
+
+Sets the character encoding of the source document to ensure proper reading and processing.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following examples add new metadata field indicating which fruit is the document about.\n\n**JavaScript**","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"ScriptTransformer\",\n    \"script\": \"<![CDATA[metadata.add('fruit', 'apple');]]\"\n  }\n}","yaml":"handler:\n  class: ScriptTransformer\n  script: <![CDATA[metadata.add('fruit', 'apple');]]","xml":"<handler>\n  <class>ScriptTransformer</class>\n  <script><![CDATA[metadata.add('fruit', 'apple');]]</script>\n</handler>"}},
+    {"title":"lua","description":"***LUA***","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"ScriptTransformer\",\n    \"engineName\": \"LUA\",\n    \"script\": \"<![CDATA[metadata:addString('fruit', {'apple'});]]>\"\n  }\n}","yaml":"handler:\n  class: ScriptTransformer\n  engineName: LUA\n  script: <![CDATA[metadata:addString('fruit', {'apple'});]]>","xml":"<handler>\n  <class>ScriptTransformer</class>\n  <engineName>LUA</engineName>\n  <script><![CDATA[metadata:addString('fruit', {'apple'});]]></script>\n</handler>"}}
+  ]}
+/>

@@ -1,0 +1,122 @@
+---
+validateComponent: false
+---
+
+# Reference Docs Source
+
+This folder contains the human-authored source for generated reference docs.
+
+## Goal
+
+Keep generated pages fully structured from schema while allowing contributors to edit narrative content and examples in MDX.
+
+## Layout
+
+- `<category>/<ComponentName>.mdx`
+- Categories: `crawler`, `importer`, `committers`, `shared`
+
+Examples:
+
+- `importer/CountMatchesTransformer.mdx`
+- `crawler/WebCrawlConfig.mdx`
+
+## Frontmatter
+
+Each schema-backed file should include frontmatter:
+
+```yaml
+---
+component: CountMatchesTransformer
+module: importer
+propertyCoverage: all
+---
+```
+
+Fields:
+
+- `component`: Exact schema component name.
+- `module`: Informational module/category label.
+- `propertyCoverage`: `all` or `listed`.
+
+## Missing Docs Highlights
+
+To make missing content obvious during review, generated pages highlight gaps:
+
+- Missing summary in property table renders as `[MISSING DOCS]`.
+- TODO text in property table renders with a `[TODO]` prefix.
+- Missing property details render as a `Missing Documentation` warning block.
+
+Starter files also use warning callouts for missing summary/notes/property docs.
+
+## Sections
+
+Use this structure:
+
+```markdown
+# CountMatchesTransformer
+
+## Summary
+
+One short paragraph.
+
+## Notes
+
+Long-form narrative text.
+
+## Properties
+
+### `countMatcher`
+
+Property-specific documentation.
+
+### `toField`
+
+Property-specific documentation.
+
+## Examples
+
+<ReferenceExamples
+examples={[
+{
+title: "Minimal Example",
+description: "Short context for this example.",
+codeByLanguage: {
+yaml: `toField: myField`,
+json: `{"toField":"myField"}`,
+xml: `<toField>myField</toField>`,
+},
+},
+{
+title: "Advanced Example",
+codeByLanguage: {
+yaml: `toField: myField\ncountMatcher: ".*"`,
+},
+},
+]}
+/>
+```
+
+## Examples Authoring
+
+- The generator now uses only the `## Examples` section from docs-source.
+- Legacy snippet files are no longer used.
+- `## Examples` content is injected as raw MDX in generated docs, so you can use Markdown, fenced code blocks, and JSX/MDX components.
+- For multi-language or multiple examples, use `ReferenceExamples`.
+- You can also use `ReferenceExample` directly when you want full manual layout control.
+
+## Validation Rules
+
+The generator validates docs-source files:
+
+- Component must exist in schema.
+- Property headings under `## Properties` should use backticks and match schema property names.
+- `propertyCoverage: all` requires all schema properties to be present.
+- `propertyCoverage: listed` requires `frontmatter.properties` and checks that entries exist in schema.
+
+If validation fails, docs generation fails.
+
+## Editing Workflow
+
+1. Edit the matching file in this folder.
+2. Commit the source changes in this repository.
+3. The `crawlers-website` project rebuilds the generated reference pages and sidebar from this source during its site build.

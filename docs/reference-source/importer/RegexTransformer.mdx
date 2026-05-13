@@ -1,0 +1,49 @@
+---
+component: RegexTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# RegexTransformer
+
+## Summary
+
+Extracts field names and their values with regular expression
+
+## Notes
+
+This is done by using match groups in your regular expressions (parenthesis). For each `pattern` you define, you can specify which match group hold the field name(`fieldGroup`) and which one holds the value(`valueGroup`). Specifying a field match group is optional if a field is provided. If no match groups are specified, a `toField` is expected.
+
+If `fieldMatcher` is specified, it will use content from matching fields and storing all text extracted into the target field, multi-value. Else, the document content is used.
+
+### Storing values in an existing field
+If a target field with the same name already exists for a document, values will be added to the end of the existing value list. It is possible to change this default behavior by supplying a PropertySetter.
+
+This class can be used as a `pre-parsing` handler on text documents only or a `post-parsing` handler.
+
+## Properties
+
+### fieldMatcher
+
+Matches document fields based on specified patterns and methods
+
+### maxReadSize
+
+Max characters to read at once
+
+### patterns
+
+Regular expression list of patterns to match.
+
+### sourceCharset
+
+Sets the character encoding of the source document to ensure proper reading and processing.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"**TODO: quotation different??**\n\nThe first pattern in The following example extracts what look like email addresses in to an `email` field (simplified regex). The second pattern extracts field names and values from `label` and `value` cells on a given HTML table.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"RegexTransformer\",\n    \"patterns\": [\n      {\n        \"toField\": \"emails\",\n        \"regex\": {\n          \"pattern\": \"([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\\\\[a-zA-Z0-9_-]+)\"\n        }\n      },\n      {\n        \"fieldGroup\": 1,\n        \"valueGroup\": 2,\n        \"regex\": {\n          \"pattern\": \"<![CDATA[<tr><td class=\\\"label\\\">(.*?)</td><td class=\\\"value\\\">(.*?)</td></tr>]]>\"\n        }\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: RegexTransformer\n  patterns:\n    - toField: emails\n      regex:\n        pattern: ([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\\[a-zA-Z0-9_-]+)\n    - fieldGroup: 1\n      valueGroup: 2\n      regex:\n        pattern: <![CDATA[<tr><td class=\"label\">(.*?)</td><td\n          class=\"value\">(.*?)</td></tr>]]>","xml":"<handler>\n  <class>RegexTransformer</class>\n  <patterns>\n    <pattern>\n      <toField>emails</toField>\n      <regex>\n        <pattern>([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\\[a-zA-Z0-9_-]+)</pattern>\n      </regex>\n    </pattern>\n    <pattern>\n      <fieldGroup>1</fieldGroup>\n      <valueGroup>2</valueGroup>\n      <regex>\n        <pattern><![CDATA[<tr><td class=\"label\">(.*?)</td><td class=\"value\">(.*?)</td></tr>]]></pattern>\n      </regex>\n    </pattern>\n  </patterns>\n</handler>"}}
+  ]}
+/>

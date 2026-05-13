@@ -1,0 +1,122 @@
+---
+component: FtpFetcher
+module: crawler/fs
+locale: en
+propertyCoverage: all
+---
+
+# FtpFetcher
+
+## Summary
+
+File Transfer Protocol (FTP and FTPS) fetcher.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### autodetectUtf8
+
+Autodetect if the server is using UTF-8.
+
+### connectionMode
+
+FTPS connection mode.
+
+### connectTimeout
+
+The timeout for the initial control connection. Leave blank for no timeout.
+
+### controlEncoding
+
+Save the character encoding to be used by the FTP control connection.
+
+### controlKeepAliveReplyTimeout
+
+The control keep alive reply timeout for the FTP client.
+
+### controlKeepAliveTimeout
+
+The control keep alive timeout for the FTP client.
+
+### credentials
+
+Username and password to a protected FTP site.
+
+### dataChannelProtectionLevel
+
+The data channel protection level (PROT).
+
+### dataTimeout
+
+The data timeout for the FTP client. Leave blank for no timeout.
+
+### defaultDateFormat
+
+The default date format used by the server.
+
+### domain
+
+TODO: Add documentation for this property.
+
+### fileType
+
+The file type parameter.
+
+### mdtmLastModifiedTime
+
+Use FTP `MDTM`` to return the last-modified time of a specified file.
+
+### passiveMode
+
+Use FTP `PASV` command to connect in passive mode.
+
+### proxySettings
+
+TODO: Add documentation for this property.
+
+### recentDateFormat
+
+The server date format, if different than US format.
+
+### referenceFilters
+
+TODO: Add documentation for this property.
+
+### remoteVerificationDisabled
+
+Disable verification that the remote host making a connection to the  FTP client is the intended one (based on host and port).
+
+### serverLanguageCode
+
+The server language code, if different than English (`en`).
+
+### serverTimeZoneId
+
+Time zone of the remote server, if different than the local time zone.
+
+### shortMonthNames
+
+A set of month names used by the server if different than  those expected by the client (considering the server language code).
+
+### socketTimeout
+
+TODO: Add documentation for this property.
+
+### transferAbortedOkReplyCodes
+
+List of reply codes (apart from 200) considered as OK when prematurely closing a stream.
+
+### userDirIsRoot
+
+TODO: Add documentation for this property.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example sets the FTP settings required by some hosts  to get file listings on server directories.","codeByLanguage":{"json":"{\n  \"class\": \"FtpFetcher\",\n  \"passiveMode\": true,\n  \"userDirIsRoot\": false\n}","yaml":"class: FtpFetcher\npassiveMode: true\nuserDirIsRoot: false","xml":"<class>FtpFetcher</class>\n<passiveMode>true</passiveMode>\n<userDirIsRoot>false</userDirIsRoot>"}}
+  ]}
+/>

@@ -1,0 +1,58 @@
+---
+component: ApacheKafkaCommitter
+module: committer/apachekafka
+locale: en
+propertyCoverage: all
+---
+
+# ApacheKafkaCommitter
+
+## Summary
+
+Commit documents to Apache Kafka.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### bootstrapServers
+
+A list of host/port pairs in the form `host1:port1,host2:port2,...` to use for establishing a connection to the Kafka cluster.
+
+### createTopic
+
+Create the "Topic Name" in Kafka if it does not exist already.
+
+### fieldMappings
+
+Mapping of source fields to target ones (Kafka fields).
+
+### partitions
+
+Number of partitions set at topic creation.
+
+### queue
+
+TODO: Add documentation for this property.
+
+### replicationFactor
+
+Replication factor set at topic creation.
+
+### restrictions
+
+TODO: Add documentation for this property.
+
+### topicName
+
+The Kafka topic name to possibly create and use as the target for storing documents.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example uses the minimum required settings to configure Apache Kafka Committer. The Kafka topic won't be created. As such, the topic must already exist in Apache Kafka.","codeByLanguage":{"json":"{\n  \"class\": \"ApacheKafkaCommitter\",\n  \"bootstrapServers\": \"http://some_host:1234\",\n  \"topicName\": \"my-topic\"\n}","yaml":"class: ApacheKafkaCommitter\nbootstrapServers: http://some_host:1234\ntopicName: my-topic","xml":"<committer>\n  <class>ApacheKafkaCommitter</class>\n  <bootstrapServers>http://some_host:1234</bootstrapServers>\n  <topicName>my-topic</topicName>\n</committer>"}}
+  ]}
+/>

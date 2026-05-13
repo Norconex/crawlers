@@ -1,0 +1,94 @@
+---
+component: CsvFileCommitter
+module: committer/core
+locale: en
+propertyCoverage: all
+---
+
+# CsvFileCommitter
+
+## Summary
+
+Local comma-separated values files.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### columns
+
+Target columns for desired document field values.
+
+### compress
+
+Compress the generated CSV files using the GZIP file format.
+
+### delimiter
+
+Delimiter
+
+### directory
+
+Local path where CSV files will be written.
+
+### docsPerFile
+
+Maximum number of documents per CSV files.
+
+### escape
+
+The escape character to use when needed.
+
+### fieldMappings
+
+Mapping of source fields to target ones (CSV columns).
+
+### fileNamePrefix
+
+TODO: Add documentation for this property.
+
+### fileNameSuffix
+
+TODO: Add documentation for this property.
+
+### format
+
+Configuration presets optimized for specific applications consuming CSV files.
+
+### multiValueJoinDelimiter
+
+One or more characters to be used as a delimiter when combining multi-value fields to become single-value.
+
+### quote
+
+A character used to quote values.
+
+### restrictions
+
+TODO: Add documentation for this property.
+
+### showHeaders
+
+Write column headers at the first of a generated document.
+
+### splitUpsertDelete
+
+TODO: Add documentation for this property.
+
+### truncateAt
+
+Truncate values larger than N characters. Default is 5096. Use -1 for unlimited.
+
+### typeHeader
+
+Name of the column holding the operation type (`upsert` or `delete`). Default is `type`.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","codeByLanguage":{"json":"{\n  \"class\": \"CsvFileCommitter\",\n  \"filePath\": \"/path/to/committer.csv\"\n}","yaml":"class: CsvFileCommitter\nfilePath: /path/to/committer.csv","xml":"<class>CsvFileCommitter</class>\n<filePath>/path/to/committer.csv</filePath>"}}
+  ]}
+/>
