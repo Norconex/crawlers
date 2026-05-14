@@ -1,0 +1,34 @@
+---
+component: GenericReferenceFilter
+module: crawler/core
+locale: en
+propertyCoverage: all
+---
+
+# GenericReferenceFilter
+
+## Summary
+
+Filter references by matching text expression.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### onMatch
+
+What to do with a matching reference.
+
+### valueMatcher
+
+Use the following fields to dictate how references should be matched  by this filter.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following will reject documents having \"/login/\" in their reference.","codeByLanguage":{"json":"{\n  \"class\": \"GenericReferenceFilter\",\n  \"onMatch\": \"EXCLUDE\",\n  \"valueMatcher\": {\n    \"method\": \"REGEX\",\n    \"pattern\": \".*&#47;login/.*\"\n  }\n}","yaml":"class: GenericReferenceFilter\nonMatch: EXCLUDE\nvalueMatcher:\n  method: REGEX\n  pattern: .*&#47;login/.*","xml":"<class>GenericReferenceFilter</class>\n<onMatch>EXCLUDE</onMatch>\n<valueMatcher>\n  <method>REGEX</method>\n  <pattern>.*&#47;login/.*</pattern>\n</valueMatcher>"}}
+  ]}
+/>

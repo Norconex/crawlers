@@ -1,0 +1,42 @@
+---
+component: ReferenceDelayResolver
+module: crawler/web
+locale: en
+propertyCoverage: all
+---
+
+# ReferenceDelayResolver
+
+## Summary
+
+Apply different delays per different URL patterns.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### defaultDelay
+
+The default delay in milliseconds.
+
+### delayReferencePatterns
+
+Use different delays by corresponding URLs.
+
+### ignoreRobotsCrawlDelay
+
+By default the crawl delay specified in `robots.txt` takes precedence over custom settings. Check to disable robot delay instructions.
+
+### scope
+
+The delay scope.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example will increase the delay to 10 seconds when  encountering PDFs from a default of 3 seconds.","codeByLanguage":{"json":"{\n  \"class\": \"ReferenceDelayResolver\",\n  \"defaultDelay\": 3000,\n  \"delayReferencePatterns\": [\n    {\n      \"delay\": 10000,\n      \"pattern\": \".*\\\\.pdf\"\n    }\n  ]\n}","yaml":"class: ReferenceDelayResolver\ndefaultDelay: 3000\ndelayReferencePatterns:\n  - delay: 10000\n    pattern: .*\\.pdf","xml":"<class>ReferenceDelayResolver</class>\n<defaultDelay>3000</defaultDelay>\n<delayReferencePatterns>\n  <delayReferencePattern>\n    <delay>10000</delay>\n    <pattern>.*\\.pdf</pattern>\n  </delayReferencePattern>\n</delayReferencePatterns>"}}
+  ]}
+/>

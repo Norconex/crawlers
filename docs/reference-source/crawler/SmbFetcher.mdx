@@ -1,0 +1,42 @@
+---
+component: SmbFetcher
+module: crawler/fs
+locale: en
+propertyCoverage: all
+---
+
+# SmbFetcher
+
+## Summary
+
+Server Message Block (SMB, CIFS, Samba, Windows share) fetcher.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### aclDisabled
+
+TODO: Add documentation for this property.
+
+### credentials
+
+Username and password required to connect.
+
+### domain
+
+TODO: Add documentation for this property.
+
+### referenceFilters
+
+TODO: Add documentation for this property.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","codeByLanguage":{"json":"{\n  \"class\": \"SmbFetcher\",\n  \"credentials\": {\n    \"username\": \"joe\",\n    \"password\": \"joe's-password\"\n  },\n  \"domain\": \"WORKGROUP\"\n}","yaml":"class: SmbFetcher\ncredentials:\n  username: joe\n  password: joe's-password\ndomain: WORKGROUP","xml":"<class>SmbFetcher</class>\n<credentials>\n  <username>joe</username>\n  <password>joe's-password</password>\n</credentials>\n<domain>WORKGROUP</domain>"}}
+  ]}
+/>

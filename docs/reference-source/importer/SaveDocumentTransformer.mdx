@@ -1,0 +1,50 @@
+---
+component: SaveDocumentTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# SaveDocumentTransformer
+
+## Summary
+
+Saves document content or metadata to a specified directory.
+
+## Notes
+
+Saves a copy of the document in its current processing state to a specified directory. To save the original, unmodified file, it is recommended to use this transformer as a pre-parse handler.
+
+## Properties
+
+### defaultFileName
+
+TODO: Add documentation for this property.
+
+### dirSplitPattern
+
+TODO: Add documentation for this property.
+
+### escape
+
+TODO: Add documentation for this property.
+
+### maxPathLength
+
+TODO: Add documentation for this property.
+
+### pathToField
+
+TODO: Add documentation for this property.
+
+### saveDir
+
+TODO: Add documentation for this property.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"SaveDocumentTransformer\",\n    \"saveDir\": \"/path/to/save/documents\",\n    \"pathToField\": \"file.path\",\n    \"defaultFileName\": \"index.html\"\n  }\n}","yaml":"handler:\n  class: SaveDocumentTransformer\n  saveDir: /path/to/save/documents\n  pathToField: file.path\n  defaultFileName: index.html","xml":"<handler>\n  <class>SaveDocumentTransformer</class>\n  <saveDir>/path/to/save/documents</saveDir>\n  <pathToField>file.path</pathToField>\n  <defaultFileName>index.html</defaultFileName>\n</handler>"}}
+  ]}
+/>

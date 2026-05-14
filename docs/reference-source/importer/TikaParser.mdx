@@ -1,0 +1,30 @@
+---
+component: TikaParser
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# TikaParser
+
+## Summary
+
+Provides direct access to Apache Tika's parsing capabilities
+
+## Notes
+
+The importer mostly uses Apache Tika as its default parser to automatically extract textual content and metadata from diverse file types (including PDFs, Microsoft Office documents, images, and HTML). The TikaParser class offers users explicit control over this parsing process, enabling advanced configurations like custom MIME type handling, embedded resource extraction, OCR support, and user-defined Tika configuration files. If direct interaction or detailed customization of Tika parsing is required beyond Norconex’s default settings, users should explicitly configure and use TikaParser.
+
+## Properties
+
+### tikaConfigFile
+
+TODO: Add documentation for this property.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example defined a TikaParser with a custom configuration file.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"TikaParser\",\n    \"tikaConfigFile\": \"/path/to/tika-config.xml\"\n  }\n}","yaml":"handler:\n  class: TikaParser\n  tikaConfigFile: /path/to/tika-config.xml","xml":"<handler>\n  <class>TikaParser</class>\n  <tikaConfigFile>/path/to/tika-config.xml</tikaConfigFile>\n</handler>"}}
+  ]}
+/>

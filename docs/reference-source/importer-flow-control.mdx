@@ -1,0 +1,74 @@
+---
+title: Importer Flow Control
+sidebar_label: Flow Control
+validateComponent: false
+---
+
+# Importer Flow Control
+
+Flow control defines how document handling branches and sequences inside importer pipelines.
+
+Use flow control when you need conditional behavior such as:
+
+- route a document to different handlers based on metadata or content
+- apply one handler chain when a condition matches and another when it does not
+- combine multiple conditions for advanced branching
+
+## Where It Applies
+
+Flow control is specific to Importer configuration.
+
+Start with these related types:
+
+- [ImporterConfig](./importer/ImporterConfig)
+- [If](./importer/If)
+- [IfNot](./importer/IfNot)
+- [Condition](./importer/Condition)
+- [AllOf](./importer/AllOf)
+- [AnyOf](./importer/AnyOf)
+- [NoneOf](./importer/NoneOf)
+
+## Typical Pattern
+
+A common pattern is:
+
+1. define a condition that inspects one or more fields
+2. branch into `then` and `else` handler blocks
+3. continue normal importer processing
+
+## Example
+
+```json
+{
+  "handlers": {
+    "if": {
+      "condition": {
+        "class": "DateCondition",
+        "fieldMatcher": {
+          "pattern": "date_created"
+        },
+        "valueMatcherStart": {
+          "operator": ">=",
+          "date": "NOW-10Y"
+        },
+        "valueMatcherEnd": {
+          "operator": "<",
+          "date": "NOW-1Y"
+        }
+      },
+      "then": {
+        "handler": {
+          "class": "CsvSplitter",
+          "separatorCharacter": ",",
+          "referenceColumn": "id"
+        }
+      },
+      "else": {
+        "handler": {
+          "class": "Reject"
+        }
+      }
+    }
+  }
+}
+```

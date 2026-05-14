@@ -1,0 +1,66 @@
+---
+component: IdolCommitter
+module: committer/idol
+locale: en
+propertyCoverage: all
+---
+
+# IdolCommitter
+
+## Summary
+
+Commit documents to OpenText IDOL search engine.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### cfs
+
+The URL points to a Connector Framework Server (CFS).
+
+### databaseName
+
+Optional name of IDOL database where documents will be stored.
+
+### dreAddDataParams
+
+Additional parameters sent with requests for new and updated documents.
+
+### dreDeleteRefParams
+
+Additional parameters sent with requests for deleted documents.
+
+### fieldMappings
+
+Mapping of source fields to target ones (IDOL fields).
+
+### queue
+
+TODO: Add documentation for this property.
+
+### restrictions
+
+TODO: Add documentation for this property.
+
+### sourceContentField
+
+The document field name containing the value to be stored in IDOL `DRECONTENT` field. Leave blank to use the document content  instead of a field (default).
+
+### sourceReferenceField
+
+The document field name containing the value to be stored in IDOL  `DREREFERENCE` field. Leave blank to use the document reference  instead of a field (default).
+
+### url
+
+The IDOL index URL. Default is `http://localhost:9001`)
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example uses the minimum required settings to configure IDOL Committer.","codeByLanguage":{"json":"{\n  \"class\": \"IdolCommitter\",\n  \"url\": \"http://some_host:9100\",\n  \"databaseName\": \"some_database\"\n}","yaml":"class: IdolCommitter\nurl: http://some_host:9100\ndatabaseName: some_database","xml":"<committer>\n  <class>IdolCommitter</class>\n  <url>http://some_host:9100</url>\n  <databaseName>some_database</databaseName>\n</committer>"}}
+  ]}
+/>

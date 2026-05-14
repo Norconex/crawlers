@@ -34,16 +34,18 @@ on:
       - ./V4_MIGRATION.md
       - "**/README.md"
       - "**/TODO.txt"
+      - "docs/**"
   pull_request:
     branches:
       - "*"
-    types: [ opened, synchronize, reopened ]
+    types: [opened, synchronize, reopened]
     # Unfortunately GitHub actions does not yet support Yaml anchors and aliases
     # so we have to repeat the paths-ignore here.
     paths-ignore:
       - ./V4_MIGRATION.md
       - "**/README.md"
       - "**/TODO.txt"
+      - "docs/**"
 
 jobs:
   build:
@@ -52,7 +54,8 @@ jobs:
     # Env. vars. defined here are available to all steps.
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SHOULD_UPDATE_DEPENDENCY_GRAPH: ${{ github.repository == 'Norconex/crawlers' &&
+      SHOULD_UPDATE_DEPENDENCY_GRAPH:
+        ${{ github.repository == 'Norconex/crawlers' &&
         github.event_name == 'push' && (github.ref == 'refs/heads/main' ||
         startsWith(github.ref, 'refs/heads/release/')) }}
 
@@ -62,7 +65,6 @@ jobs:
       contents: write
 
     steps:
-
       #--- Step ------------------------------------------------------------------
 
       - name: Checkout code

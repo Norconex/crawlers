@@ -1,0 +1,89 @@
+---
+component: ExternalTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# ExternalTransformer
+
+## Summary
+
+Transforms a document using an external application to do so
+
+## Notes
+
+**TODO: Example of fieldGroup and valueGroup doc
+**https://opensource.norconex.com/importer/v3/apidocs/com/norconex/importer/handler/ExternalHandler.html
+** Metadata extraction patterns:
+
+
+Executing an external application to extract data from and/or manipulate a document.
+
+### Command-line arguments:
+
+When constructing the command to launch the external application, it will look for specific tokens to be replaced by file paths arguments (in addition to other arguments you may have). The path arguments are created by this class. They are case-sensitive and the file they represent are temporary (will be deleted after they have been dealt with). It is possible to omit one or more tokens to use standard streams instead where applicable.
+
+### Tokens supported by: 
+
+${INPUT}
+
+Path to document to be handled by the external application. When omitted, the document content is sent to the external application using the standard input stream (STDIN).
+
+${INPUT_META}
+
+Path to file containing metadata information available so far for the document to be handled by the external application. By default in JSON format. When omitted, no metadata will be made available to the external application.
+
+${REFERENCE}
+
+Unique reference to the document being handled (URL, original file system location, etc.). When omitted, the document reference will not be made available to the external application.
+
+*There is no `${OUTPUT}` token (since Transformer do not modify content).????? TODO: not input or no output???*
+
+To parse/extract raw text from files, it is recommended to use [ExternalParser](http://localhost:3000/en/crawler-doc/web#crawler.importer.handlers.handler.ExternalParser) instead.
+
+### Parser Handler Compatibility
+
+This functionality can be applied as either a `pre-parse` or `post-parse` handler.
+
+## Properties
+
+### command
+
+### Sample command line
+
+```
+c:\Apps\myapp.exe ${INPUT} ${INPUT_META} ${OUTPUT_META} ${REFERENCE}
+```
+
+### environmentVariables
+
+Defines environment variables to set when executing the external command.
+
+### extractionPatterns
+
+Pattern only used when `metadataOutputFormat` is not specified
+
+### metadataInputFormat
+
+json|xml|properties **TODO**
+
+### metadataOutputFormat
+
+json|xml|properties **TODO**
+
+### onSet
+
+What to do if a target field of the same name already exist.
+
+### tempDir
+
+Sets the directory where to store temporary files used for the process.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example invokes an external application that accepts a document to transform and outputs a file containing the new metadata information.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"ExternalTransformer\",\n    \"command\": \"/path/tag/app ${INPUT} ${OUTPUT_META}\"\n  }\n}","yaml":"handler:\n  class: ExternalTransformer\n  command: /path/tag/app ${INPUT} ${OUTPUT_META}","xml":"<handler>\n  <class>ExternalTransformer</class>\n  <command>/path/tag/app ${INPUT} ${OUTPUT_META}</command>\n</handler>"}}
+  ]}
+/>

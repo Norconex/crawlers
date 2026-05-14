@@ -1,0 +1,87 @@
+---
+component: TitleGeneratorTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# TitleGeneratorTransformer
+
+## Summary
+
+Title Generation from Document Content
+
+## Notes
+
+Attempts to generate a title from the document content (default) or a specified metadata field. It does not consider the document format/structure nor does it weight some terms more than others. For instance, it would not consider text found in `<H1>` tags more importantly than other text in HTML documents.
+
+If [isDetectHeading()](https://todo) returns true, this handler will check if the content starts with a stand-alone, single-sentence line (which is assumed to be the actual title). That is, a line of text with only one sentence in it, followed by one or more new line characters. To help eliminate cases where such sentence are inappropriate, you can specify a minimum and maximum number of characters that first line should have with `setDetectHeadingMinLength(int)` and `setDetectHeadingMaxLength(int)` (e.g. to ignore "Page 1" text and the like).
+
+Unless a target field name is provided, the default field name where the title will be stored is `document.generatedTitle`.
+
+### Storing values in an existing field
+If a target field with the same name already exists for a document, values will be added to the end of the existing value list. It is possible to change this default behavior by supplying a PropertySetter.
+
+If it cannot generate a title, it will fall-back to retrieving the first sentence from the text.
+
+The generated title length is limited to 150 characters by default. You can change that limit by using `setTitleMaxLength(int)`. Text larger than the max limit will be truncated and three dots will be added in square brackets ([...]). To remove the limit, use -1 (or constant `UNLIMITED_TITLE_LENGTH`).
+
+This class should be used as a post-parsing handler only (or otherwise on unformatted text).
+
+The algorithm to detect titles is quite basic. It uses a generic statistics-based approach to weight each sentences up to a certain amount, and simply returns the sentence with the highest attributed weight given a minimum threshold has been met. You are strongly encouraged to use a more sophisticated summarization engine if you want more accurate titles generated.
+
+### Max read size
+This tagger will only analyze up to the first 10,000 characters. You can change this maximum with `AbstractStringTagger.setMaxReadSize(int)`. Given this class is not optimized for large content analysis, setting a huge maximum number of characters could cause serious performance issues on large large files.
+
+**TODO: what to do for inline document**
+**TODO: do we need function description here?? e.g. the paragraph of the isDetectHeading, setDetectHeadingMinLength..etc**
+
+## Properties
+
+### detectHeading
+
+Determines if headings in the document should be prioritized for title generation
+
+### detectHeadingMaxLength
+
+Specifies the maximum length of a heading to be considered for title generation.
+
+### detectHeadingMinLength
+
+TODO: Add documentation for this property.
+
+### fieldMatcher
+
+Matches document fields based on specified patterns and methods
+
+### fromField
+
+TODO- remove the redundancy `fromField` and `toField`
+
+### maxReadSize
+
+Max characters to read at once
+
+### onSet
+
+What to do if a target field of the same name already exist.
+
+### sourceCharset
+
+Sets the character encoding of the source document to ensure proper reading and processing.
+
+### titleMaxLength
+
+Sets the maximum allowable length for the generated title.
+
+### toField
+
+A target field name used to store the value.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The follow example will check if the first line looks like a title and if not, it will store the first sentence, up to 200 characters, in a field called title.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"TitleGeneratorTransformer\",\n    \"toField\": \"title\",\n    \"titleMaxLength\": 200,\n    \"detectHeading\": true\n  }\n}","yaml":"handler:\n  class: TitleGeneratorTransformer\n  toField: title\n  titleMaxLength: 200\n  detectHeading: true","xml":"<handler>\n  <class>TitleGeneratorTransformer</class>\n  <toField>title</toField>\n  <titleMaxLength>200</titleMaxLength>\n  <detectHeading>true</detectHeading>\n</handler>"}}
+  ]}
+/>

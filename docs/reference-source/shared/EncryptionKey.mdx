@@ -1,0 +1,40 @@
+---
+component: EncryptionKey
+module: unknown
+locale: en
+propertyCoverage: all
+---
+
+# EncryptionKey
+
+## Summary
+
+Passwords can be encrypted using the EncryptionUtil Java class, or the command-line "encrypt.bat" or "encrypt.sh" scripts if those are available to you. In order for the passwor...
+
+## Notes
+
+Passwords can be encrypted using the `EncryptionUtil` Java class, or the command-line "encrypt.bat" or "encrypt.sh" scripts if those are  available to you.
+
+In order for the password to be decrypted properly, you need to specify the encryption key used to encrypt it. The key can obtained from a few supported locations. The combination of the password key "value" and "source" is used to properly locate the key.
+
+## Properties
+
+### size
+
+Size of the encryption key, in bits. If specified, it must be supported by your version of Java
+
+### source
+
+What the encryption key value refers to.
+
+### value
+
+Pointer to the an encryption key, or the encryption key itself.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following looks for the encryption key in an environment  variable named `MY_KEY_VAR`.","codeByLanguage":{"json":"{\n  \"passwordKey\": {\n    \"source\": \"ENVIRONMENT\",\n    \"value\": \"MY_KEY_VAR\"\n  }\n}","yaml":"passwordKey:\n  source: ENVIRONMENT\n  value: MY_KEY_VAR","xml":"<passwordKey>\n  <source>ENVIRONMENT</source>\n  <value>MY_KEY_VAR</value>\n</passwordKey>"}}
+  ]}
+/>

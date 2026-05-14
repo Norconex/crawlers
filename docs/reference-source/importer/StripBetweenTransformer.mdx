@@ -1,0 +1,44 @@
+---
+component: StripBetweenTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# StripBetweenTransformer
+
+## Summary
+
+Removes any content found between a matching start and end strings.
+
+## Notes
+
+The matching strings are defined in pairs and multiple ones can be specified at once.
+
+This class can be used as a pre-parsing (text content-types only) or post-parsing handlers.
+
+## Properties
+
+### fieldMatcher
+
+Matches document fields based on specified patterns and methods
+
+### maxReadSize
+
+Max characters to read at once
+
+### operations
+
+Allows defining multiple operations as a list.
+
+### sourceCharset
+
+Sets the character encoding of the source document to ensure proper reading and processing.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following will strip all text between (and including) these two HTML comments: `<!-- SIDENAV_START -->` and `<!-- SIDENAV_END -->`.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"StripBetweenTransformer\",\n    \"operations\": [\n      {\n        \"inclusive\": true,\n        \"startMatcher\": {\n          \"method\": \"REGEX\",\n          \"pattern\": \"<![CDATA[<!-- SIDENAV_START -->]]>\"\n        },\n        \"endMatcher\": {\n          \"method\": \"REGEX\",\n          \"pattern\": \"<![CDATA[<!-- SIDENAV_END -->]]>\"\n        }\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: StripBetweenTransformer\n  operations:\n    - inclusive: true\n      startMatcher:\n        method: REGEX\n        pattern: <![CDATA[<!-- SIDENAV_START -->]]>\n      endMatcher:\n        method: REGEX\n        pattern: <![CDATA[<!-- SIDENAV_END -->]]>","xml":"<handler>\n  <class>StripBetweenTransformer</class>\n  <operations>\n    <op>\n      <inclusive>true</inclusive>\n      <startMatcher>\n        <method>REGEX</method>\n        <pattern><![CDATA[<!-- SIDENAV_START -->]]></pattern>\n      </startMatcher>\n      <endMatcher>\n        <method>REGEX</method>\n        <pattern><![CDATA[<!-- SIDENAV_END -->]]></pattern>\n      </endMatcher>\n    </op>\n  </operations>\n</handler>"}}
+  ]}
+/>

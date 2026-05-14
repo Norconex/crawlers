@@ -1,0 +1,34 @@
+---
+component: GenericSpoiledReferenceStrategizer
+module: crawler/core
+locale: en
+propertyCoverage: all
+---
+
+# GenericSpoiledReferenceStrategizer
+
+## Summary
+
+Generic strategy mapping between each references that have turned "bad" and their state.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### fallbackStrategy
+
+TODO: Add documentation for this property.
+
+### mappings
+
+TODO: Add documentation for this property.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example represents the default configuration. It indicates that documents that are no longer found (e.g., 404) are to result in a Committer deletion request. Other causes for not being able to  obtain a document will be graced once (re-attempted one last time on next run).","codeByLanguage":{"json":"{\n  \"class\": \"GenericSpoiledReferenceStrategizer\",\n  \"fallbackStrategy\": \"DELETE\",\n  \"mappings\": {\n    \"NOT_FOUND\": \"DELETE\",\n    \"BAD_STATUS\": \"GRACE_ONCE\",\n    \"ERROR\": \"GRACE_ONCE\"\n  }\n}","yaml":"class: GenericSpoiledReferenceStrategizer\nfallbackStrategy: DELETE\nmappings:\n  NOT_FOUND: DELETE\n  BAD_STATUS: GRACE_ONCE\n  ERROR: GRACE_ONCE","xml":"<class>GenericSpoiledReferenceStrategizer</class>\n<fallbackStrategy>DELETE</fallbackStrategy>\n<mappings>\n  <mapping>\n    <key>NOT_FOUND</key>\n    <value>DELETE</value>\n  </mapping>\n  <mapping>\n    <key>BAD_STATUS</key>\n    <value>GRACE_ONCE</value>\n  </mapping>\n  <mapping>\n    <key>ERROR</key>\n    <value>GRACE_ONCE</value>\n  </mapping>\n</mappings>"}}
+  ]}
+/>

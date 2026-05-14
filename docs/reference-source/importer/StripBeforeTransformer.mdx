@@ -1,0 +1,46 @@
+---
+component: StripBeforeTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# StripBeforeTransformer
+
+## Summary
+
+Removes all content preceding the first occurrence of the specified pattern.
+
+## Notes
+
+This class can be used as a pre-parsing (text content-types only) or post-parsing handlers.
+
+## Properties
+
+### fieldMatcher
+
+Matches document fields based on specified patterns and methods
+
+### inclusive
+
+TODO: Add documentation for this property.
+
+### maxReadSize
+
+Max characters to read at once
+
+### sourceCharset
+
+Sets the character encoding of the source document to ensure proper reading and processing.
+
+### stripBeforeMatcher
+
+Specifies the pattern to match for stripping content before.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The above example will strip all text up to and including this HTML comment: <!-- HEADER_END -->.\n\n**TODO: do example still need CDATA??**","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"StripBeforeTransformer\",\n    \"inclusive\": true,\n    \"stripBeforeMatcher\": {\n      \"method\": \"REGEX\",\n      \"pattern\": \"<![CDATA[<!-- HEADER_END -->]]>\"\n    }\n  }\n}","yaml":"handler:\n  class: StripBeforeTransformer\n  inclusive: true\n  stripBeforeMatcher:\n    method: REGEX\n    pattern: <![CDATA[<!-- HEADER_END -->]]>","xml":"<handler>\n  <class>StripBeforeTransformer</class>\n  <inclusive>true</inclusive>\n  <stripBeforeMatcher>\n    <method>REGEX</method>\n    <pattern><![CDATA[<!-- HEADER_END -->]]></pattern>\n  </stripBeforeMatcher>\n</handler>"}}
+  ]}
+/>

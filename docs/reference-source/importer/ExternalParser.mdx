@@ -1,0 +1,84 @@
+---
+component: ExternalParser
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# ExternalParser
+
+## Summary
+
+Parses and extracts text from a file using an external application
+
+## Notes
+
+Content and metadata are extracted from documents using an external parser. The `ExternalParser` functions similarly to the `ExternalTransformer`, but with a key difference: after parsing, the document is marked with the status `"parsed"`. As a result, only handlers that support `post-parse` processing can be applied afterward. In contrast, the `ExternalTransformer` does not alter the document’s status. To use an external application to change a file content after parsing has already occurred, consider using [ExternalTransformer](http://localhost:3000/en/crawler-doc/web#crawler.importer.handlers.handler.ExternalTransformer) instead.
+
+### Command-line arguments:
+
+When constructing the command to launch the external application, it will look for specific tokens to be replaced by file paths arguments (in addition to other arguments you may have). The path arguments are created by this class. They are case-sensitive and the file they represent are temporary (will be deleted after they have been dealt with). It is possible to omit one or more tokens to use standard streams instead where applicable.
+
+### Tokens supported by: 
+
+${INPUT}
+
+Path to document to be handled by the external application. When omitted, the document content is sent to the external application using the standard input stream (STDIN).
+
+${INPUT_META}
+
+Path to file containing metadata information available so far for the document to be handled by the external application. By default in JSON format. When omitted, no metadata will be made available to the external application.
+
+${OUTPUT}
+
+Path to document resulting from this external handler. When omitted, the output content will be read from the external application standard output (STDOUT).
+
+${OUTPUT_META}
+
+Path to file containing new metadata for the document. By default, the expected format is JSON. When omitted, any metadata extraction patterns defined will be applied against both the external program standard output (STDOUT) and standard error (STDERR). If no patterns are defined, it is assumed no new metadata resulted from the external application.
+
+${REFERENCE}
+
+Unique reference to the document being handled (URL, original file system location, etc.). When omitted, the document reference will not be made available to the external application.
+
+## Properties
+
+### command
+
+### Sample command line
+
+```
+c:\Apps\myapp.exe ${INPUT} ${OUTPUT} ${INPUT_META} ${OUTPUT_META} ${REFERENCE}
+```
+
+### environmentVariables
+
+Defines environment variables to set when executing the external command.
+
+### extractionPatterns
+
+Pattern only used when `metadataOutputFormat` is not specified
+
+### metadataInputFormat
+
+Sets the format of the metadata input file sent to the external application. One of `json` (default), `xml`, or `properties` is expected. Only applicable when the `${INPUT}` token is part of the command.
+
+### metadataOutputFormat
+
+Sets the format of the metadata output file from the external application. One of `json` (default), `xml`, or `properties` is expected. Set to null for relying metadata extraction patterns instead. Only applicable when the `${OUTPUT}` token is part of the command.
+
+### onSet
+
+What to do if a target field of the same name already exist.
+
+### tempDir
+
+Sets the directory where to store temporary files used for the parser.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example invokes an external application processing for simple text files that accepts two files as arguments: the first one being the file to transform, the second one being holding the transformation result. It also extract a document number from STDOUT, found as \"DocNo:1234\" and storing it as \"docnumber\".  \n`TODO:` Add what fieldGroup and valueGroup doc","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"ExternalParser\",\n    \"command\": \"/path/transform/app ${INPUT} ${OUTPUT}\",\n    \"environmentVariables\": {\n      \"ENV\": \"dev\",\n      \"VERSION\": \"2.0.3\"\n    },\n    \"extractionPatterns\": [\n      {\n        \"fieldGroup\": 1,\n        \"regex\": {\n          \"pattern\": \"(DocNo):(\\\\d+)\"\n        },\n        \"toField\": \"docnumber\",\n        \"valueGroup\": 2\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: ExternalParser\n  command: /path/transform/app ${INPUT} ${OUTPUT}\n  environmentVariables:\n    ENV: dev\n    VERSION: 2.0.3\n  extractionPatterns:\n    - fieldGroup: 1\n      regex:\n        pattern: (DocNo):(\\d+)\n      toField: docnumber\n      valueGroup: 2","xml":"<handler>\n  <class>ExternalParser</class>\n  <command>/path/transform/app ${INPUT} ${OUTPUT}</command>\n  <environmentVariables>\n    <ENV>dev</ENV>\n    <VERSION>2.0.3</VERSION>\n  </environmentVariables>\n  <extractionPatterns>\n    <extractionPattern>\n      <fieldGroup>1</fieldGroup>\n      <regex>\n        <pattern>(DocNo):(\\d+)</pattern>\n      </regex>\n      <toField>docnumber</toField>\n      <valueGroup>2</valueGroup>\n    </extractionPattern>\n  </extractionPatterns>\n</handler>"}}
+  ]}
+/>

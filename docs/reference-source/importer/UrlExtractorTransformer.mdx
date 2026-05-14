@@ -1,0 +1,63 @@
+---
+component: UrlExtractorTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# UrlExtractorTransformer
+
+## Summary
+
+Extracts unique URLs matching patterns
+
+## Notes
+
+Extracts unique URLs matching specific patterns in plain text content and store them in a given field.
+
+URL-matching patterns used are relatively simple. It looks for strings starting with `http://`, `https://`, or `www..` The later is prefixed with `https://` when encountered (to make it absolute).
+
+The matching is case-insensitive. If you need alternate ways to detect URLs, you can use a combination of [RegexTransformer](./RegexTransformer), [ReplaceTransformer](./ReplaceTransformer), or create your own implementation.
+
+
+### Storing values in an existing field
+If a target field with the same name already exists for a document, values will be added to the end of the existing value list. It is possible to change this default behavior by supplying a PropertySetter.
+
+If no URLs are found, the target field values (if any) are left intact.
+
+### Content source
+It is possible to specify a fromField as the source of the text to use instead of using the document content.
+
+This class is typically e used as a post-parsing handler only (to ensure we are dealing with text).
+
+**TODO: how to show example restrictto for valueMatcher???**
+
+## Properties
+
+### fieldMatcher
+
+Matches document fields based on specified patterns and methods
+
+### maxReadSize
+
+Max characters to read at once
+
+### onSet
+
+What to do if a target field of the same name already exist.
+
+### sourceCharset
+
+Sets the character encoding of the source document to ensure proper reading and processing.
+
+### toField
+
+A target field name used to store the value.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The above example is used as a post-parse handler. It detects URLs in parsed PDFs and store those URLs in a field call \"documentURLs\".","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"UrlExtractorTransformer\",\n    \"toField\": \"documentURLs\",\n    \"fieldMatcher\": {\n      \"pattern\": \"document.contentType\"\n    }\n  }\n}","yaml":"handler:\n  class: UrlExtractorTransformer\n  toField: documentURLs\n  fieldMatcher:\n    pattern: document.contentType","xml":"<handler>\n  <class>UrlExtractorTransformer</class>\n  <toField>documentURLs</toField>\n  <fieldMatcher>\n    <pattern>document.contentType</pattern>\n  </fieldMatcher>\n</handler>"}}
+  ]}
+/>

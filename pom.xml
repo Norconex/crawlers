@@ -158,6 +158,75 @@
         <jacocoArgLine>@{argLine}</jacocoArgLine>
       </properties>
     </profile>
+    <!-- Activating this profile produces an aggregate Javadoc for all modules
+         in one shot. Delombok sources are needed so that Lombok-generated types
+         (builders, etc.) are visible to the Javadoc tool.
+         The profile is self-sufficient: run from the root with
+           mvn prepare-package -Paggregate-javadoc
+         This will first compile + delombok every sub-module (process-sources),
+         then produce the aggregate Javadoc (prepare-package). -->
+    <profile>
+      <id>aggregate-javadoc</id>
+      <build>
+        <plugins>
+          <!-- Derives the aggregate Javadoc sourcepath dynamically from the
+               reactor module list so the list stays in sync with <modules>
+               automatically and cannot drift when modules are added, removed,
+               or renamed. Only modules with an existing delombok output
+               directory are included. inherited=false: root-only execution. -->
+          <plugin>
+            <groupId>org.codehaus.gmavenplus</groupId>
+            <artifactId>gmavenplus-plugin</artifactId>
+            <executions>
+              <execution>
+                <?m2e ignore?>
+                <id>aggregate-javadoc-sourcepath</id>
+                <phase>initialize</phase>
+                <goals>
+                  <goal>execute</goal>
+                </goals>
+                <configuration>
+                  <scripts>
+                    <script>
+                      def sep = File.pathSeparator
+                      def base = project.basedir
+                      def sourcepath = project.modules.collect { module ->
+                        new File(base, "${module}/target/generated-sources/delombok")
+                      }.findAll { it.exists() }
+                       .collect { it.absolutePath }
+                       .join(sep)
+                      project.properties['aggregate.javadoc.sourcepath'] = sourcepath
+                      log.info("Aggregate Javadoc sourcepath: ${sourcepath}")
+                    </script>
+                  </scripts>
+                </configuration>
+              </execution>
+            </executions>
+            <inherited>false</inherited>
+          </plugin>
+          <!-- Bind javadoc:aggregate to prepare-package so that delombok runs
+               first (process-sources phase) when the lifecycle is invoked.
+               inherited=false: aggregate only makes sense at the root. -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <sourcepath>${aggregate.javadoc.sourcepath}</sourcepath>
+            </configuration>
+            <executions>
+              <execution>
+                <id>aggregate-javadoc</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>aggregate</goal>
+                </goals>
+              </execution>
+            </executions>
+            <inherited>false</inherited>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
   <inceptionYear>2022</inceptionYear>
@@ -629,8 +698,10 @@
           <version>${maven-javadoc-plugin.version}</version>
           <configuration>
             <skip>${maven.javadoc.skip}</skip>
-            <outputDirectory>${project.build.directory}</outputDirectory>
-            <sourcepath>${project.build.directory}/generated-sources/delombok</sourcepath>
+            <!-- The plugin appends 'apidocs/' to outputDirectory, so setting it to
+                 target/site makes the final output land at target/site/apidocs/
+                 (the Maven standard location), regardless of Maven/site-plugin version. -->
+            <outputDirectory>${project.build.directory}/site</outputDirectory>
             <sourceFileIncludes>
               <sourceInclude>com/norconex/**/*.java</sourceInclude>
             </sourceFileIncludes>
@@ -683,6 +754,9 @@
               <goals>
                 <goal>jar</goal>
               </goals>
+              <configuration>
+                <sourcepath>${project.build.directory}/generated-sources/delombok</sourcepath>
+              </configuration>
             </execution>
           </executions>
           <inherited>true</inherited>
@@ -1098,9 +1172,6 @@
                 and when we do, it is sometimes to test oddities.
                 -->
             </includes>
-            <excludes>
-              <exclude>website/**</exclude>
-            </excludes>
           </configuration>          
           <inherited>true</inherited>
         </plugin>

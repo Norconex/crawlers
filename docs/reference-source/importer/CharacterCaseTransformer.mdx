@@ -1,0 +1,95 @@
+---
+component: CharacterCaseTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# CharacterCaseTransformer
+
+## Summary
+
+Changes the character case.
+
+## Notes
+
+Modifies the character case of matching fields and values by `caseType` using one of the following:
+
+  - `UPPER`
+  - `LOWER`
+  - `WORDS`
+  - `WORDSFULLY`
+  - `SENTENCES`
+  - `SENTENCESFULLY`
+  - `STRING`
+  - `STRINGFULLY`
+  - `SWAP`
+
+The `applyTo` property specifies the target for the change, defaulting to `VALUE`:
+
+  - `VALUE`
+  - `FIELD`
+  - `BOTH`
+
+### Parser Handler Compatibility
+
+This functionality can be applied as either a `pre-parse` or `post-parse` handler.
+
+## Properties
+
+### applyTo
+
+The default behavior can be adjusted as follows:
+
+- **VALUE**: Changes are applied only to the field values.
+  - Example: Field Name: `"Title"`, Field Value: `"hello world"` → 
+  Field Value becomes `"HELLO WORLD"`
+- **FIELD**: Changes are applied only to the field name.
+  - Example: Field Name: `"title"`, Field Value: `"hello world"` → 
+  Field Name becomes `"TITLE"`
+- **BOTH**: Changes are applied to both the field name and its values.
+  - Example: Field Name: `"title"`, Field Value: `"hello world"` → 
+  Field Name becomes `"TITLE"`, Field Value becomes `"HELLO WORLD"`
+
+### caseType
+
+Transforms the character case of matching fields and values using one 
+of these methods:
+
+- **UPPER**: Converts all characters to upper case.
+  - Example: `"hello world"` → `"HELLO WORLD"`
+- **LOWER**: Converts all characters to lower case.
+  - Example: `"HELLO WORLD"` → `"hello world"`
+- **WORDS**: Capitalizes the first letter of each word, leaving other 
+characters unchanged.
+  - Example: `"hello WORLD"` → `"Hello WORLD"`
+- **WORDSFULLY**: Capitalizes the first letter of each word and converts 
+all other characters to lower case.
+  - Example: `"hello WORLD"` → `"Hello World"`
+- **SENTENCES**: Capitalizes the first letter of each sentence, leaving 
+other characters unchanged.
+  - Example: `"hello world. HOW are you?"` → `"Hello world. HOW are you?"`
+- **SENTENCESFULLY**: Capitalizes the first letter of each sentence and 
+converts all other characters to lower case.
+  - Example: `"hello world. HOW are you?"` → `"Hello world. How are you?"`
+- **STRING**: Capitalizes the first letter of the entire string, leaving 
+other characters unchanged.
+  - Example: `"hello WORLD"` → `"Hello WORLD"`
+- **STRINGFULLY**: Capitalizes the first letter of the entire string and 
+converts all other characters to lower case.
+  - Example: `"hello WORLD"` → `"Hello world"`
+- **SWAP**: Swaps the case of all characters, converting upper case to 
+lower case and vice versa.
+  - Example: `"Hello World"` → `"hELLO wORLD"`
+
+### fieldMatcher
+
+Matches document fields based on specified patterns and methods
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example first convert a title to lower case except for  the first character.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"CharacterCaseTransformer\",\n    \"applyTo\": \"FIELD\",\n    \"caseType\": \"LOWER\",\n    \"fieldMatcher\": {\n      \"pattern\": \"title\"\n    }\n  }\n}","yaml":"handler:\n  class: CharacterCaseTransformer\n  applyTo: FIELD\n  caseType: LOWER\n  fieldMatcher:\n    pattern: title","xml":"<handler>\n  <class>CharacterCaseTransformer</class>\n  <applyTo>FIELD</applyTo>\n  <caseType>LOWER</caseType>\n  <fieldMatcher>\n    <pattern>title</pattern>\n  </fieldMatcher>\n</handler>"}}
+  ]}
+/>

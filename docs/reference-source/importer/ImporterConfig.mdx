@@ -1,0 +1,67 @@
+---
+component: ImporterConfig
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# ImporterConfig
+
+## Summary
+
+TODO:[ImporterConfig description placeholder]
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### handlers
+
+Specify handlers for imported documents in their original format or applied before or after parsing. Combine with condition wrappers to create a processing "flowControl"
+
+### Transformer
+- Transformers are used to manipulate or annotate crawled data before it is stored or processed further. They can add metadata, modify existing fields, or remove unnecessary information to prepare the data for downstream applications.
+
+- Transformers can be applied at various stages, such as after parsing or before storage, making them versatile tools in data enrichment and normalization.
+
+### Parser
+- The parser processes the raw content of documents to extract meaningful data. It converts the raw bytes of a document into structured or semi-structured data by recognizing its format and interpreting its content.
+
+- Parsers can be customized to focus on specific document elements, such as extracting only the main content of a webpage or handling complex formats with external libraries.
+
+### Splitter
+- The splitter breaks down large or complex documents into smaller, manageable segments for more targeted processing or storage. This is particularly useful for documents that contain multiple sections, such as a webpage with several articles or a PDF with multiple chapters.
+
+- Some splitters are designed for use in the preprocessing stage, while others can be applied in both preprocessing and postprocessing; refer to the Splitter Documentation for more details.
+
+### Flow Control
+
+- Flow control mechanisms manage the sequence and conditions under which various operations are executed during the crawling process.
+
+- Flow control can be applied both in preprocessing and postprocessing stages.
+
+### maxMemoryInstance
+
+TODO: Add documentation for this property.
+
+### maxMemoryPool
+
+TODO: Add documentation for this property.
+
+### responseProcessors
+
+One or more optional custom classes that processes an Importer response to modify it or perform other actions as required before it is returned.
+
+### tempDir
+
+TODO: Add documentation for this property.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example demonstrates a flexible handler configuration that processes data based on its content type and metadata. \n\nFirst, the conditional checks the `Content-Type` field to determine if the content is HTML. It rejected using the `Reject` handler, if the content is HTML. Otherwise, the `DefaultParser` is applied to parse the non-HTML data. \n\nFollowing parsing, another conditional handler evaluates the `date_created` field using a `DateCondition`. If the date is within the range, the content is committed to an Elasticsearch index named `new` using the `ElasticsearchCommitter`. If the date does not meet the condition, the content is committed to an Elasticsearch index named `archive`.\n\n**TODO: Importer example under ImporterConfig but Importer documentation is under WebCrawlerconfig**\n\n**TODO:check Markdown show differe in Document and Example**\n\n**TODO:add example for responseProcessors and tempDir**","codeByLanguage":{"json":"{\n  \"handlers\": {\n    \"if\": {\n      \"condition\": {\n        \"class\": \"DateCondition\",\n        \"fieldMatcher\": {\n          \"pattern\": \"date_created\"\n        },\n        \"valueMatcherStart\": {\n          \"operator\": \">=\",\n          \"date\": \"NOW-10Y\"\n        },\n        \"valueMatcherEnd\": {\n          \"operator\": \"<\",\n          \"date\": \"NOW-1Y\"\n        }\n      },\n      \"then\": {\n        \"handler\": {\n          \"class\": \"CsvSplitter\",\n          \"separatorCharacter\": \",\",\n          \"referenceColumn\": \"id\"\n        }\n      },\n      \"else\": {\n        \"handler\": {\n          \"class\": \"Reject\"\n        }\n      }\n    }\n  }\n}","yaml":"handlers:\n  if:\n    condition:\n      class: DateCondition\n      fieldMatcher:\n        pattern: date_created\n      valueMatcherStart:\n        operator: \">=\"\n        date: NOW-10Y\n      valueMatcherEnd:\n        operator: <\n        date: NOW-1Y\n    then:\n      handler:\n        class: CsvSplitter\n        separatorCharacter: \",\"\n        referenceColumn: id\n    else:\n      handler:\n        class: Reject","xml":"<handlers>\n  <if>\n    <condition>\n      <class>DateCondition</class>\n      <fieldMatcher>\n        <pattern>date_created</pattern>\n      </fieldMatcher>\n      <valueMatcherStart>\n        <operator>&gt;=</operator>\n        <date>NOW-10Y</date>\n      </valueMatcherStart>\n      <valueMatcherEnd>\n        <operator>&lt;</operator>\n        <date>NOW-1Y</date>\n      </valueMatcherEnd>\n    </condition>\n    <then>\n      <handler>\n        <class>CsvSplitter</class>\n        <separatorCharacter>,</separatorCharacter>\n        <referenceColumn>id</referenceColumn>\n      </handler>\n    </then>\n    <else>\n      <handler>\n        <class>Reject</class>\n      </handler>\n    </else>\n  </if>\n</handlers>"}}
+  ]}
+/>

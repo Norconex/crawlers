@@ -1,0 +1,43 @@
+---
+component: DocumentLengthTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# DocumentLengthTransformer
+
+## Summary
+
+Adds the document length to a specified field
+
+## Notes
+
+The length is the document content length as it is in its current processing stage. If for instance you set this transformer after a transformer that modifies the content, the obtained length will be for the modified content, and not the original length. To obtain a document's length before any modification was made to it, use this transformer as one of the first handler in your `pre-parse handlers`.
+
+### Storing values in an existing field
+
+If a document already has a target field with the same name, 
+new values are appended to the existing list by default. Use `onSet` to manage this default behavior.
+
+### Parser Handler Compatibility
+
+This functionality can be applied as either a `pre-parse` or `post-parse` handler.
+
+## Properties
+
+### onSet
+
+What to do if a target field of the same name already exist.
+
+### toField
+
+A target field name used to store the value.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example stores the document length into a \"docSize\" field.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"DocumentLengthTransformer\",\n    \"toField\": \"docSize\"\n  }\n}","yaml":"handler:\n  class: DocumentLengthTransformer\n  toField: docSize","xml":"<handler>\n  <class>DocumentLengthTransformer</class>\n  <toField>docSize</toField>\n</handler>"}}
+  ]}
+/>

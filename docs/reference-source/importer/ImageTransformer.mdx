@@ -1,0 +1,52 @@
+---
+component: ImageTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# ImageTransformer
+
+## Summary
+
+Transforms an image using common image operations.
+
+## Notes
+
+This class should only be used as a pre-parsing handler, on image files. It may also be appropriate to disable parsing of those images if you want to keep the transformed version intact. This can be done with [GenericDocumentParserFactory]{TODO link}.
+
+### Content-types
+By default, this filter is restricted to (applies only to) documents matching the restrictions returned by [CommonRestrictions.imageIOStandardContentTypes(String)](TODO link). You can specify your own content types if you know they represent a supported image.
+
+### Image dimension format
+For a list of supported image dimension formats, refer to [DimensionConverter](TODO link).
+
+## Properties
+
+### contentTypeMatcher
+
+TODO??? whats the diff between this and the one below??? Defines the character encoding to be applied to the document after processing, ensuring correct output formatting.
+
+### crop
+
+Specifies the cropping dimensions for the image.
+
+### rotation
+
+Specifies the rotation angle for the image.
+
+### scale
+
+Specifies the scaling factor for the image.
+
+### targetFormat
+
+TODO: Add documentation for this property.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example converts images to PNG while scaling it to a maximum dimension of 400 pixels wide and 250 pixel high.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"ExternalTransformer\",\n    \"targetFormat\": \"png\",\n    \"scale\": {\n      \"width\": 400,\n      \"height\": 250\n    }\n  }\n}","yaml":"handler:\n  class: ExternalTransformer\n  targetFormat: png\n  scale:\n    width: 400\n    height: 250","xml":"<handler>\n  <class>ExternalTransformer</class>\n  <targetFormat>png</targetFormat>\n  <scale>\n    <width>400</width>\n    <height>250</height>\n  </scale>\n</handler>"}}
+  ]}
+/>

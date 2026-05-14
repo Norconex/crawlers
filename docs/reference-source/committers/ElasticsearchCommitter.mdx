@@ -1,0 +1,90 @@
+---
+component: ElasticsearchCommitter
+module: committer/elasticsearch
+locale: en
+propertyCoverage: all
+---
+
+# ElasticsearchCommitter
+
+## Summary
+
+Commit documents to Elasticsearch or Amazon OpenSearch.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### connectionTimeout
+
+Maximum wait time for a requested connection to be fully established, in milliseconds. Default is 1 second (1000 ms).
+
+### credentials
+
+Username and password to a protected Elasticsearch.
+
+### discoverNodes
+
+Enable automatic discovery of Elasticsearch cluster nodes.
+
+### dotReplacement
+
+The character used to replace dots in field names. Leave blank to keep the dots in field names (nested fields).
+
+### fieldMappings
+
+Mapping of source fields to target ones (Elasticsearch fields).
+
+### fixBadIds
+
+Fix IDs that are too long for Elasticsearch ID limitation (512 bytes  max). When enabled, long IDs will be truncated and a hash code  representing the truncated part will be appended.
+
+### ignoreResponseErrors
+
+Log Elasticsearch response errors instead of throwing an exception.
+
+### indexName
+
+Name of target Elasticsearch index where documents will be stored.
+
+### jsonFieldsPattern
+
+Regular expression matching fields containing a JSON object for value, as opposed to a regular string.
+
+### nodes
+
+One or more Elasticsearch nodes to connect to. Defaults to `http://localhost:9200`.
+
+### queue
+
+TODO: Add documentation for this property.
+
+### restrictions
+
+TODO: Add documentation for this property.
+
+### socketTimeout
+
+TODO: Add documentation for this property.
+
+### sourceIdField
+
+Source document field name containing the value to be stored in Elasticsearch "_id" field. Leave blank to use the document reference instead of a field (default).
+
+### targetContentField
+
+Target Elasticsearch field name where content will be stored. Default is "content". Leave blank to disable storing the content.
+
+### typeName
+
+Type name used in older versions of Elasticsearch. Leave blank if using Elasticsearch 7.0. or higher.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example uses the minimum required settings to configure Elasticsearch (or AWS OpenSearch) Committer.","codeByLanguage":{"json":"{\n  \"class\": \"ElasticsearchCommitter\",\n  \"indexName\": \"some_index\"\n}","yaml":"class: ElasticsearchCommitter\nindexName: some_index","xml":"<committer>\n  <class>ElasticsearchCommitter</class>\n  <indexName>some_index</indexName>\n</committer>"}}
+  ]}
+/>

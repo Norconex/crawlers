@@ -1,0 +1,63 @@
+---
+component: TextMatcher
+module: unknown
+locale: en
+propertyCoverage: all
+---
+
+# TextMatcher
+
+## Summary
+
+A configurable class offering a few different ways to perform text matching and replacing. Note the replaceAll property is only applicable where replacement is supported.
+
+## Notes
+
+A configurable class offering a few different ways to perform text matching and replacing. Note the `replaceAll` property is only applicable where replacement is supported.
+
+## Properties
+
+### ignoreCase
+
+TODO: Add documentation for this property.
+
+### ignoreDiacritic
+
+TODO: Add documentation for this property.
+
+### matchEmpty
+
+TODO: Add documentation for this property.
+
+### method
+
+TODO: Add documentation for this property.
+
+### negateMatches
+
+TODO: Add documentation for this property.
+
+### partial
+
+TODO: Add documentation for this property.
+
+### pattern
+
+TODO: Add documentation for this property.
+
+### replaceAll
+
+TODO: Add documentation for this property.
+
+### trim
+
+TODO: Add documentation for this property.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"basic","description":"The most basic form, performing an exact match on entire text.  It will match \"Paul\", but not \"paul\", and not \"I am Paul\".","codeByLanguage":{"json":"{\n  \"pattern\": \"Paul\"\n}","yaml":"pattern: Paul","xml":"<pattern>Paul</pattern>"}},
+    {"title":"wildcard","description":"The following will successfully match this sentence:  \"It seems Paul and Marc are friends\".","codeByLanguage":{"json":"{\n  \"method\": \"WILDCARD\",\n  \"ignoreCase\": true,\n  \"partial\": true,\n  \"pattern\": \"paul*mar?\"\n}","yaml":"method: WILDCARD\nignoreCase: true\npartial: true\npattern: paul*mar?","xml":"<method>WILDCARD</method>\n<ignoreCase>true</ignoreCase>\n<partial>true</partial>\n<pattern>paul*mar?</pattern>"}}
+  ]}
+/>

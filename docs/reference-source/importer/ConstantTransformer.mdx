@@ -1,0 +1,45 @@
+---
+component: ConstantTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# ConstantTransformer
+
+## Summary
+
+Define and add constant values to documents.
+
+## Notes
+
+To add multiple constant values under the same constant name, repeat the constant entry with a different value.
+
+**onSet** property determines how constant values are applied to fields that may already exist in a document. It can be configured globally (at the root of the handler) or individually for each constant
+
+### Storing values in an existing field
+
+If a document already has a target field with the same name, 
+new values are appended to the existing list by default. Use `onSet` to manage this default behavior.
+
+### Parser Handler Compatibility
+
+This functionality can be applied as either a `pre-parse` or `post-parse` handler.
+
+## Properties
+
+### constants
+
+Manage the constants list
+
+### onSet
+
+What to do if a target field of the same name already exist.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example adds a constant to incoming documents to identify they were web and mobile documents plus a constant number","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"ConstantTransformer\",\n    \"constants\": [\n      {\n        \"name\": \"source\",\n        \"values\": [\n          \"web\",\n          \"mobile\"\n        ]\n      },\n      {\n        \"name\": \"limit\",\n        \"values\": [\n          \"3\"\n        ]\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: ConstantTransformer\n  constants:\n    - name: source\n      values:\n        - web\n        - mobile\n    - name: limit\n      values:\n        - \"3\"","xml":"<handler>\n  <class>ConstantTransformer</class>\n  <constants>\n    <constant>source</constant>\n    <values>\n      <value>web</value>\n      <value>mobile</value>\n    </values>\n    <constant>limit</constant>\n    <values>\n      <value>3</value>\n    </values>\n  </constants>\n</handler>"}}
+  ]}
+/>

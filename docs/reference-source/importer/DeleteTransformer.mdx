@@ -1,0 +1,34 @@
+---
+component: DeleteTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# DeleteTransformer
+
+## Summary
+
+Delete the metadata fields provided
+
+## Notes
+
+This functionality allows you to delete a document from the index. Exact field names (case-insensitive) to delete can be provided as well as a regular expression that matches one or many fields.
+
+### Parser Handler Compatibility
+
+This functionality can be applied as either a `pre-parse` or `post-parse` handler.
+
+## Properties
+
+### fieldMatcher
+
+TODO: Add documentation for this property.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example deletes all metadata fields starting with \"X-\".","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"DeleteTransformer\",\n    \"fieldMatcher\": {\n      \"method\": \"REGEX\",\n      \"pattern\": \"^[Xx]-.*\"\n    }\n  }\n}","yaml":"handler:\n  class: DeleteTransformer\n  fieldMatcher:\n    method: REGEX\n    pattern: ^[Xx]-.*","xml":"<handler>\n  <class>DeleteTransformer</class>\n  <fieldMatcher>\n    <method>REGEX</method>\n    <pattern>^[Xx]-.*</pattern>\n  </fieldMatcher>\n</handler>"}}
+  ]}
+/>

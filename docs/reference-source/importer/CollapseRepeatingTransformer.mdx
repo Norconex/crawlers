@@ -1,0 +1,59 @@
+---
+component: CollapseRepeatingTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# CollapseRepeatingTransformer
+
+## Summary
+
+Reduces specified consecutive characters or strings
+
+## Notes
+
+This feature reduces repeated consecutive characters in a text to a single instance or a specified number of occurrences. This transformer is useful for normalizing text by removing unnecessary repetitions, such as excessive punctuation or repeated whitespace. For instance, it can reduce "aaaabbb" to "ab" or limit it to a specific pattern like "aa". It operates on text fields based on specified conditions and is often applied during preprocessing to clean and normalize data for further processing.
+
+In addition to regular characters, you can specify these special characters in `reduce` as:
+
+- \r (carriage returns)
+- \n (line feed)
+- \t (tab)
+- \s (space)
+
+For more advanced replacement needs, consider using [ReplaceTransformer](http://localhost:3000/en/crawler-doc/web#crawler.importer.handlers.handler.ReplaceTransformer) instead.
+
+### Parser Handler Compatibility
+
+This functionality can be applied as either a `pre-parse` or `post-parse` handler.
+
+## Properties
+
+### fieldMatcher
+
+TODO: Add documentation for this property.
+
+### ignoreCase
+
+TODO: Add documentation for this property.
+
+### maxReadSize
+
+TODO: Add documentation for this property.
+
+### sourceCharset
+
+Sets the character encoding of the source document to ensure proper reading and processing.
+
+### strings
+
+TODO: Add documentation for this property.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example reduces multiple `line feed` and `tab` into a single one.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"CollapseRepeatingTransformer\",\n    \"strings\": [\n      \"\\n\",\n      \"\\t\"\n    ]\n  }\n}","yaml":"handler:\n  class: CollapseRepeatingTransformer\n  strings:\n    - |+\n      \n    - \"\\t\"","xml":"<handler>\n  <class>CollapseRepeatingTransformer</class>\n  <strings>\n    <string>\\n</string>\n    <string>\\t</string>\n  </strings>\n</handler>"}}
+  ]}
+/>

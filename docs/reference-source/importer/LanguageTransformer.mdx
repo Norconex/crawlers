@@ -1,0 +1,140 @@
+---
+component: LanguageTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# LanguageTransformer
+
+## Summary
+
+Tags documents with detected language metadata
+
+## Notes
+
+Detects a document language based on Apache Tika language detection capability. It adds the detected language to the `document.language` metadata field. Optionally adds all potential languages detected with their probability score as well as additional fields following this pattern:
+```
+document.language.<rank>.tag
+document.language.<rank>.probability
+```
+`<rank>` is to indicate the match order, based on match probability score (starting at 1).
+
+This transformer can be used both as a pre-parse (on text only) or post-parse handler.
+
+Accuracy:
+To obtain optimal detection, long enough text is expected. The default detection algorithm is optimized for document with lots of text. This transformer relies on Tika language detection capabilities and future versions may provide better precision for documents made of short text (e.g. tweets, comments, etc).
+
+If you know what mix of languages are used by your site(s), you can increase accuracy in many cases by limiting the set of languages supported for detection.
+
+Supported Languages:
+Languages are represented as code values. As of 2.6.0, at least the following 70 languages are supported by the Tika version used:
+
+- af Afrikaans
+- an Aragonese
+- ar Arabic
+- ast Asturian
+- be Belarusian
+- br Breton
+- ca Catalan
+- bg Bulgarian
+- bn Bengali
+- cs Czech
+- cy Welsh
+- da Danish
+- de German
+- el Greek
+- en English
+- es Spanish
+- et Estonian
+- eu Basque
+- fa Persian
+- fi Finnish
+- fr French
+- ga Irish
+- gl Galician
+- gu Gujarati
+- he Hebrew
+- hi Hindi
+- hr Croatian
+- ht Haitian
+- hu Hungarian
+- id Indonesian
+- is Icelandic
+- it Italian
+- ja Japanese
+- km Khmer
+- kn Kannada
+- ko Korean
+- lt Lithuanian
+- lv Latvian
+- mk Macedonian
+- ml Malayalam
+- mr Marathi
+- ms Malay
+- mt Maltese
+- ne Nepali
+- nl Dutch
+- no Norwegian
+- oc Occitan
+- pa Punjabi
+- pl Polish
+- pt Portuguese
+- ro Romanian
+- ru Russian
+- sk Slovak
+- sl Slovene
+- so Somali
+- sq Albanian
+- sr Serbian
+- sv Swedish
+- sw Swahili
+- ta Tamil
+- te Telugu
+- th Thai
+- tl Tagalog
+- tr Turkish
+- uk Ukrainian
+- ur Urdu
+- vi Vietnamese
+- yi Yiddish
+- zh-cn Simplified Chinese
+- zh-tw Traditional Chinese
+
+It is possible more will be supported automatically with future Tika upgrades.
+
+If you do not restrict the list of language candidates to detect, the default behavior is to try match all languages currently supported.
+
+## Properties
+
+### fallbackLanguage
+
+Defines a default language to assign if detection fails.
+
+### fieldMatcher
+
+Matches document fields based on specified patterns and methods
+
+### keepProbabilities
+
+Keeps detection probabilities in the metadata for each language.
+
+### languages
+
+TODO: Add documentation for this property.
+
+### maxReadSize
+
+Limits the number of characters read from the document for language detection.
+
+### sourceCharset
+
+Sets the character encoding of the source document to ensure proper reading and processing.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example detects whether pages are English or French, falling back to English if detection failed.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"ExternalParser\",\n    \"fallbackLanguage\": \"en\",\n    \"languages\": [\n      \"en\",\n      \"fr\"\n    ]\n  }\n}","yaml":"handler:\n  class: ExternalParser\n  fallbackLanguage: en\n  languages:\n    - en\n    - fr","xml":"<handler>\n  <class>ExternalParser</class>\n  <fallbackLanguage>en</fallbackLanguage>\n  <languages>\n    <language>en</language>\n    <language>fr</language>\n  </languages>\n</handler>"}}
+  ]}
+/>

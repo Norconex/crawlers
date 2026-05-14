@@ -1,0 +1,46 @@
+---
+component: Md5DocumentChecksummer
+module: crawler/core
+locale: en
+propertyCoverage: all
+---
+
+# Md5DocumentChecksummer
+
+## Summary
+
+Generate a MD5 checksum from content (default) or fields.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### combineFieldsAndContent
+
+Combine content and matching field values to create the MD5 checksum. Otherwise, only content or fields will be used based on whether a field expression was used or not.
+
+### fieldMatcher
+
+Use the values of matching fields to create the MD5 checksum. When set, it is used in lieu of the document content unless you opt to combine both.
+
+### keep
+
+Add the checksum to the document metadata.
+
+### onSet
+
+What to do if a target field of the same name already exist.
+
+### toField
+
+A target field name used to store the value.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example uses the document body (default) to create the checksum.","codeByLanguage":{"json":"{\n  \"documentChecksummer\": {\n    \"class\": \"Md5DocumentChecksummer\"\n  }\n}","yaml":"documentChecksummer:\n  class: Md5DocumentChecksummer","xml":"<documentChecksummer>\n  <class>Md5DocumentChecksummer</class>\n</documentChecksummer>"}}
+  ]}
+/>

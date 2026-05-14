@@ -1,0 +1,38 @@
+---
+component: GenericUrlScopeResolver
+module: crawler/web
+locale: en
+propertyCoverage: all
+---
+
+# GenericUrlScopeResolver
+
+## Summary
+
+Generic implementation that should satisfy most common site adherence scenarios.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### includeSubdomains
+
+Whether sub-domains are considered to be the same as a start URL domain.
+
+### stayOnDomain
+
+Whether the crawler should always stay on the same domain name as the domain of each start URLs. By default the crawler will try follow any discovered links not otherwise rejected by other configuration settings (like regular filtering rules you may have).
+
+### stayOnPort
+
+Whether the crawler should always stay on the same port as the port for each URL specified as a start URL. By default the crawler will try follow any discovered links not otherwise rejected by other settings (like regular filtering rules you may have).
+
+### stayOnProtocol
+
+Whether the crawler should always stay on the same protocol as the protocol for each URL specified as a start URL. By default the crawler will try follow any discovered links not otherwise rejected by other settings (like regular filtering rules you may have).
+
+### stayOnSitemap
+
+If a sitemap is provided or detected for a site, only crawl URLs that are defined in that sitemap.

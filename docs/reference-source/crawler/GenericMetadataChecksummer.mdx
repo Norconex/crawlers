@@ -1,0 +1,42 @@
+---
+component: GenericMetadataChecksummer
+module: crawler/core
+locale: en
+propertyCoverage: all
+---
+
+# GenericMetadataChecksummer
+
+## Summary
+
+Use one or more matching metadata field values.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### fieldMatcher
+
+The values of matching fields will be used to create the checksum.
+
+### keep
+
+Add the checksum to the document metadata.
+
+### onSet
+
+What to do if a target field of the same name already exist.
+
+### toField
+
+A target field name used to store the value.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example uses a combination of two (fictitious) fields  called \"docLastModified\" and \"docSize\" to make the checksum.","codeByLanguage":{"json":"{\n  \"metadataChecksummer\": {\n    \"class\": \"GenericMetadataChecksummer\",\n    \"fieldMatcher\": {\n      \"method\": \"CSV\",\n      \"pattern\": \"docLastModified,docSize\"\n    }\n  }\n}","yaml":"metadataChecksummer:\n  class: GenericMetadataChecksummer\n  fieldMatcher:\n    method: CSV\n    pattern: docLastModified,docSize","xml":"<metadataChecksummer>\n  <class>GenericMetadataChecksummer</class>\n  <fieldMatcher>\n    <method>CSV</method>\n    <pattern>docLastModified,docSize</pattern>\n  </fieldMatcher>\n</metadataChecksummer>"}}
+  ]}
+/>

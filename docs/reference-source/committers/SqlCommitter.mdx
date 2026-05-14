@@ -1,0 +1,90 @@
+---
+component: SqlCommitter
+module: committer/sql
+locale: en
+propertyCoverage: all
+---
+
+# SqlCommitter
+
+## Summary
+
+Commit documents to an SQL table.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### connectionUrl
+
+JDBC connection URL.
+
+### createFieldSQL
+
+The `ALTER` statement used to create missing table fields. Use  `{tableName}` to represent the table name and `{fieldName}` to represent newly encountered field names.
+
+### createTableSQL
+
+The `CREATE` statement used to create a table if it does not already exist. If you need fields of specific data types, specify them here. Use `{tableName}` and `{primaryKey}` to represent  the table name and primary key, respectively.
+
+### credentials
+
+Username and password to a protected database.
+
+### driverClass
+
+Class name of the JDBC driver to use.
+
+### driverPath
+
+Path to JDBC driver `.jar` file. Not required if already in classpath (i.e., crawler's `lib` folder).
+
+### fieldMappings
+
+Mapping of source fields to target ones (table field names).
+
+### fixFieldNames
+
+Attempt to prevent insertion errors due to unsupported characters in field names by converting them to underscores. Convert any first character that is not alphanumeric and any following characters that are not underscore or alphanumeric.
+
+### fixFieldValues
+
+Attempt to prevent insertion errors by truncating values that are  larger than their defined maximum field length.
+
+### multiValuesJoiner
+
+TODO: Add documentation for this property.
+
+### primaryKey
+
+The name of the table primary key field where to store the document  reference value. The document reference from the source document is used unless the source document has a field matching this name. Then the matching source field will be used to populate the  primary key. If for some reason it is not possible to define a table field as the primary key, at a minimum, the target field should be "unique" and ideally "indexed".
+
+### properties
+
+Additional connection properties as per database vendor specifications.
+
+### queue
+
+TODO: Add documentation for this property.
+
+### restrictions
+
+TODO: Add documentation for this property.
+
+### tableName
+
+The target database table name where documents will be committed.
+
+### targetContentField
+
+Table field name where to store the document content. Leave blank  if you do not want to store the document content. Since document  content can sometimes be quite large, a CLOB field (or equivalent) is  usually advised. If the source document contains a field of the same name, that field value will take precedence over the document content and the document content is ignored. Default is "content".
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example uses an H2 database and creates the table and  fields as they are encountered, storing all new fields as `VARCHAR`,  making sure those new fields are no longer than 5000 characters.","codeByLanguage":{"json":"{\n  \"class\": \"SqlCommitter\",\n  \"driverPath\": \"/path/to/driver/h2.jar\",\n  \"driverClass\": \"org.h2.Driver\",\n  \"connectionUrl\": \"jdbc:h2:file:///path/to/db/h2\",\n  \"tableName\": \"test_table\",\n  \"createTableSQL\": \"CREATE TABLE {tableName} (\\n{primaryKey} VARCHAR(32672) NOT NULL, \\ncontent CLOB, \\nPRIMARY KEY ( {primaryKey} ), \\ntitle   VARCHAR(256),\\nauthor  VARCHAR(256))\",\n  \"createFieldSQL\": \"\",\n  \"fixFieldValues\": true\n}","yaml":"class: SqlCommitter\ndriverPath: /path/to/driver/h2.jar\ndriverClass: org.h2.Driver\nconnectionUrl: jdbc:h2:file:///path/to/db/h2\ntableName: test_table\ncreateTableSQL: |-\n  CREATE TABLE {tableName} (\n  {primaryKey} VARCHAR(32672) NOT NULL, \n  content CLOB, \n  PRIMARY KEY ( {primaryKey} ), \n  title   VARCHAR(256),\n  author  VARCHAR(256))\ncreateFieldSQL: \"\"\nfixFieldValues: true","xml":"<committer>\n  <class>SqlCommitter</class>\n  <driverPath>/path/to/driver/h2.jar</driverPath>\n  <driverClass>org.h2.Driver</driverClass>\n  <connectionUrl>jdbc:h2:file:///path/to/db/h2</connectionUrl>\n  <tableName>test_table</tableName>\n  <createTableSQL>CREATE TABLE {tableName} (\n{primaryKey} VARCHAR(32672) NOT NULL, \ncontent CLOB, \nPRIMARY KEY ( {primaryKey} ), \ntitle   VARCHAR(256),\nauthor  VARCHAR(256))</createTableSQL>\n  <createFieldSQL/>\n  <fixFieldValues>true</fixFieldValues>\n</committer>"}}
+  ]}
+/>

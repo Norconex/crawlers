@@ -1,0 +1,38 @@
+---
+component: LastModifiedMetadataChecksummer
+module: crawler/core
+locale: en
+propertyCoverage: all
+---
+
+# LastModifiedMetadataChecksummer
+
+## Summary
+
+Uses the exact value of the "Last-Modified" HTTP header field.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### keep
+
+Add the checksum to the document metadata.
+
+### onSet
+
+What to do if a target field of the same name already exist.
+
+### toField
+
+A target field name used to store the value.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example will store the last modified date used for checksum purposes in a field called \"metaChecksum\".","codeByLanguage":{"json":"{\n  \"class\": \"LastModifiedMetadataChecksummer\",\n  \"keep\": true,\n  \"toField\": \"metaChecksum\"\n}","yaml":"class: LastModifiedMetadataChecksummer\nkeep: true\ntoField: metaChecksum","xml":"<class>LastModifiedMetadataChecksummer</class>\n<keep>true</keep>\n<toField>metaChecksum</toField>"}}
+  ]}
+/>

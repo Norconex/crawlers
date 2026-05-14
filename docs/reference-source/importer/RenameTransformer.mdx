@@ -1,0 +1,35 @@
+---
+component: RenameTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# RenameTransformer
+
+## Summary
+
+Rename metadata fields to different names.
+
+## Notes
+
+### Storing values in an existing field
+If a target field with the same name already exists for a document, values will be added to the end of the existing value list. It is possible to change this default behavior by supplying a PropertySetter.
+
+When using regular expressions, `toField` can also hold replacement patterns (e.g. $1, $2, etc).
+
+Can be used both as a `pre-parse` or `post-parse` handler.
+
+## Properties
+
+### operations
+
+TODO: Add documentation for this property.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The above example renames a \"dc.title\" field to \"title\", overwriting any existing values in \"title\".","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"RenameTransformer\",\n    \"operations\": [\n      {\n        \"toField\": \"title\",\n        \"onSet\": \"REPLACE\",\n        \"fieldMatcher\": {\n          \"method\": \"REGEX\",\n          \"pattern\": \"dc.title\"\n        }\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: RenameTransformer\n  operations:\n    - toField: title\n      onSet: REPLACE\n      fieldMatcher:\n        method: REGEX\n        pattern: dc.title","xml":"<handler>\n  <class>RenameTransformer</class>\n  <operations>\n    <op>\n      <toField>title</toField>\n      <onSet>REPLACE</onSet>\n      <fieldMatcher>\n        <method>REGEX</method>\n        <pattern>dc.title</pattern>\n      </fieldMatcher>\n    </op>\n  </operations>\n</handler>"}}
+  ]}
+/>

@@ -1,0 +1,142 @@
+---
+component: HttpClientFetcher
+module: crawler/web
+locale: en
+propertyCoverage: all
+---
+
+# HttpClientFetcher
+
+## Summary
+
+Configuration schema for Http Client Fetcher.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### authentication
+
+TODO: Add documentation for this property.
+
+### connectionRequestTimeout
+
+TODO: Add documentation for this property.
+
+### connectionTimeout
+
+TODO: Add documentation for this property.
+
+### cookieSpec
+
+TODO: Add documentation for this property.
+
+### etagDisabled
+
+TODO: Add documentation for this property.
+
+### expectContinueEnabled
+
+TODO: Add documentation for this property.
+
+### forceCharsetDetection
+
+TODO: Add documentation for this property.
+
+### forceContentTypeDetection
+
+TODO: Add documentation for this property.
+
+### headersPrefix
+
+TODO: Add documentation for this property.
+
+### hstsDisabled
+
+TODO: Add documentation for this property.
+
+### httpMethods
+
+TODO: Add documentation for this property.
+
+### ifModifiedSinceDisabled
+
+TODO: Add documentation for this property.
+
+### localAddress
+
+TODO: Add documentation for this property.
+
+### maxConnectionIdleTime
+
+TODO: Add documentation for this property.
+
+### maxConnectionInactiveTime
+
+TODO: Add documentation for this property.
+
+### maxConnections
+
+TODO: Add documentation for this property.
+
+### maxConnectionsPerRoute
+
+TODO: Add documentation for this property.
+
+### maxRedirects
+
+TODO: Add documentation for this property.
+
+### notFoundStatusCodes
+
+TODO: Add documentation for this property.
+
+### proxySettings
+
+TODO: Add documentation for this property.
+
+### redirectUrlProvider
+
+TODO: Add documentation for this property.
+
+### referenceFilters
+
+TODO: Add documentation for this property.
+
+### requestHeaders
+
+TODO: Add documentation for this property.
+
+### sniDisabled
+
+TODO: Add documentation for this property.
+
+### socketTimeout
+
+TODO: Add documentation for this property.
+
+### sslProtocols
+
+TODO: Add documentation for this property.
+
+### trustAllSSLCertificates
+
+TODO: Add documentation for this property.
+
+### userAgent
+
+TODO: Add documentation for this property.
+
+### validStatusCodes
+
+TODO: Add documentation for this property.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","codeByLanguage":{"json":"{\n  \"class\": \"HttpClientFetcher\",\n  \"authentication\": {\n    \"method\": \"FORM\",\n    \"credentials\": {\n      \"username\": \"joeUser\",\n      \"password\": \"joePassword\"\n    },\n    \"formUsernameField\": \"loginUser\",\n    \"formPasswordField\": \"loginPwd\",\n    \"url\": \"http://www.example.com/login/submit\"\n  }\n}","yaml":"class: HttpClientFetcher\nauthentication:\n  method: FORM\n  credentials:\n    username: joeUser\n    password: joePassword\n  formUsernameField: loginUser\n  formPasswordField: loginPwd\n  url: http://www.example.com/login/submit","xml":"<class>HttpClientFetcher</class>\n<authentication>\n  <method>FORM</method>\n  <credentials>\n    <username>joeUser</username>\n    <password>joePassword</password>\n  </credentials>\n  <formUsernameField>loginUser</formUsernameField>\n  <formPasswordField>loginPwd</formPasswordField>\n  <url>http://www.example.com/login/submit</url>\n</authentication>"}}
+  ]}
+/>

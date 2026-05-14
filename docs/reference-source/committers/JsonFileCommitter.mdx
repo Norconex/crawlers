@@ -1,0 +1,90 @@
+---
+component: JsonFileCommitter
+module: committer/core
+locale: en
+propertyCoverage: all
+---
+
+# JsonFileCommitter
+
+## Summary
+
+Local files of JSON format.
+
+## Notes
+
+File Format
+-----------
+The generated file content will contain any number of "upsert" and 
+"delete" objects. Both objects will contain the document "reference" and 
+"metadata". The metadata is made of names followed by an undefined
+number of values as an array. The "upsert" entries also have a "content"
+property. Like this example containing 1 "upsert" and 1 "delete":
+
+```
+[
+  {"upsert": {
+    "reference": "https://example.com/my-document.html",
+    "metadata": {
+      "title": ["My Example Document"],
+      "keywords": [
+        "Example",
+        "Demo"
+      ],
+    },
+    "content": "Document content goes here."
+  }},
+  {"delete": {
+    "reference": "https://example.com/i-was-deleted.html",
+    "metadata": {
+      "contentType": ["text/html"],
+    }
+  }},
+]
+```
+
+## Properties
+
+### compress
+
+Compress the generated JSON files using the GZIP file format.
+
+### directory
+
+Local path where JSON files will be written.
+
+### docsPerFile
+
+Maximum number of documents per JSON files.
+
+### fieldMappings
+
+Mapping of source fields to target JSON properties.
+
+### fileNamePrefix
+
+TODO: Add documentation for this property.
+
+### fileNameSuffix
+
+TODO: Add documentation for this property.
+
+### indent
+
+Number of indentation spaces. Default does not indent.
+
+### restrictions
+
+TODO: Add documentation for this property.
+
+### splitUpsertDelete
+
+TODO: Add documentation for this property.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","codeByLanguage":{"json":"{\n  \"class\": \"JsonFileCommitter\",\n  \"filePath\": \"/path/to/committer.json\"\n}","yaml":"class: JsonFileCommitter\nfilePath: /path/to/committer.json","xml":"<class>JsonFileCommitter</class>\n<filePath>/path/to/committer.json</filePath>"}}
+  ]}
+/>

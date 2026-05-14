@@ -1,0 +1,52 @@
+---
+component: CharsetTransformer
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# CharsetTransformer
+
+## Summary
+
+Converts a document's character encoding.
+
+## Notes
+
+Converts one or more field values (if needed) from a source character 
+encoding (charset) to a target one. Both the source and target character 
+encodings are optional. If no source character encoding is explicitly provided, 
+it first tries to detect the encoding of the field values before converting them 
+to the target encoding. If the source character encoding cannot be established, 
+the content encoding will remain unchanged. When no target character encoding is 
+specified, UTF-8 is assumed.
+
+### Should I use this transformer?
+
+Before using this transformer, you need to know the parsing of documents by the importer (using the default document parser factory) will try to convert and return fields as UTF-8 (for most, if not all content-types). If UTF-8 is your desired target, it only make sense to use this transformer before `parsing handler` (for text content-types only) when it is important to work with a specific character encoding before parsing. If on the other hand you wish to convert to a character encoding to a target different than UTF-8, you can use this transformer after `parsing handler` to do so.
+
+### Conversion is not flawless
+
+Because character encoding detection is not always accurate and because documents sometime mix different encoding, there is no guarantee this class will handle ALL character encoding conversions properly.
+
+## Properties
+
+### fieldMatcher
+
+TODO: Add documentation for this property.
+
+### sourceCharset
+
+Sets the character encoding of the source document to ensure proper reading and processing.
+
+### targetCharset
+
+Defines the character encoding to be applied to the document after processing, ensuring correct output formatting.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example converts the characters of a \"description\" field from \"ISO-8859-1\" to \"UTF-8\".","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"CharsetTransformer\",\n    \"sourceCharset\": \"ISO-8859-1\",\n    \"targetCharset\": \"UTF-8\",\n    \"fieldMatcher\": {\n      \"pattern\": \"description\"\n    }\n  }\n}","yaml":"handler:\n  class: CharsetTransformer\n  sourceCharset: ISO-8859-1\n  targetCharset: UTF-8\n  fieldMatcher:\n    pattern: description","xml":"<handler>\n  <class>CharsetTransformer</class>\n  <sourceCharset>ISO-8859-1</sourceCharset>\n  <targetCharset>UTF-8</targetCharset>\n  <fieldMatcher>\n    <pattern>description</pattern>\n  </fieldMatcher>\n</handler>"}}
+  ]}
+/>

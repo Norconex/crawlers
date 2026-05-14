@@ -1,0 +1,82 @@
+---
+component: HtmlLinkExtractor
+module: crawler/web
+locale: en
+propertyCoverage: all
+---
+
+# HtmlLinkExtractor
+
+## Summary
+
+Configuration schema for Html Link Extractor.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### charset
+
+TODO: Add documentation for this property.
+
+### commentsEnabled
+
+TODO: Add documentation for this property.
+
+### contentTypeMatcher
+
+TODO: Add documentation for this property.
+
+### extractBetweens
+
+TODO: Add documentation for this property.
+
+### extractSelectors
+
+TODO: Add documentation for this property.
+
+### fieldMatcher
+
+TODO: Add documentation for this property.
+
+### ignoreLinkData
+
+TODO: Add documentation for this property.
+
+### ignoreNofollow
+
+TODO: Add documentation for this property.
+
+### maxURLLength
+
+TODO: Add documentation for this property.
+
+### noExtractBetweens
+
+TODO: Add documentation for this property.
+
+### noExtractSelectors
+
+TODO: Add documentation for this property.
+
+### restrictions
+
+TODO: Add documentation for this property.
+
+### schemes
+
+TODO: Add documentation for this property.
+
+### tagAttribs
+
+TODO: Add documentation for this property.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example adds URLs from `<script>` tags to the  default list of URLs to be extracted.","codeByLanguage":{"json":"{\n  \"class\": \"HtmlLinkExtractor\",\n  \"tagAttribs\": {\n    \"a\": [\n      \"href\"\n    ],\n    \"frame\": [\n      \"src\"\n    ],\n    \"iframe\": [\n      \"src\"\n    ],\n    \"img\": [\n      \"src\"\n    ],\n    \"meta\": [\n      \"http-equiv\"\n    ],\n    \"script\": [\n      \"src\"\n    ]\n  }\n}","yaml":"class: HtmlLinkExtractor\ntagAttribs:\n  a:\n    - href\n  frame:\n    - src\n  iframe:\n    - src\n  img:\n    - src\n  meta:\n    - http-equiv\n  script:\n    - src","xml":"<class>HtmlLinkExtractor</class>\n<tagAttribs>\n  <a>href</a>\n  <frame>src</frame>\n  <iframe>src</iframe>\n  <img>src</img>\n  <meta>http-equiv</meta>\n  <script>src</script>\n</tagAttribs>"}}
+  ]}
+/>

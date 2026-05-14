@@ -1,0 +1,34 @@
+---
+component: GenericUrlNormalizer
+module: crawler/web
+locale: en
+propertyCoverage: all
+---
+
+# GenericUrlNormalizer
+
+## Summary
+
+Generic implementation that should satisfy most URL normalization needs.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### normalizations
+
+URL normalization rules. Rules prefixed with an asterisk (*) preserve semantic equivalence, as per the [RFC 3986](http://tools.ietf.org/html/rfc3986) standard.
+
+### replacements
+
+Replace one or more matching portions of URLs with different text.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following adds a normalization to add `www.` to URL domains when missing, to the default set of normalizations. It also add custom URL \"search-and-replace\" to remove any `&amp;view=print` strings from  URLs as well as replace `&amp;type=summary` with `&amp;type=full`.","codeByLanguage":{"json":"{\n  \"class\": \"GenericUrlNormalizer\",\n  \"normalizations\": [\n    \"REMOVE_FRAGMENT\",\n    \"LOWERCASE_SCHEME_HOST\",\n    \"UPPERCASE_ESCAPESEQUENCE\",\n    \"DECODE_UNRESERVED_CHARACTERS\",\n    \"REMOVE_DEFAULT_PORT\",\n    \"ENCODE_NON_URI_CHARACTERS\",\n    \"ADD_WWW\"\n  ],\n  \"replacements\": [\n    {\n      \"match\": \"&amp;amp;view=print\",\n      \"value\": \"\"\n    },\n    {\n      \"match\": \"(&amp;amp;type=)(summary)\",\n      \"value\": \"$1full\"\n    }\n  ]\n}","yaml":"class: GenericUrlNormalizer\nnormalizations:\n  - REMOVE_FRAGMENT\n  - LOWERCASE_SCHEME_HOST\n  - UPPERCASE_ESCAPESEQUENCE\n  - DECODE_UNRESERVED_CHARACTERS\n  - REMOVE_DEFAULT_PORT\n  - ENCODE_NON_URI_CHARACTERS\n  - ADD_WWW\nreplacements:\n  - match: \"&amp;amp;view=print\"\n    value: \"\"\n  - match: (&amp;amp;type=)(summary)\n    value: $1full","xml":"<class>GenericUrlNormalizer</class>\n<normalizations>\n  <normalization>REMOVE_FRAGMENT</normalization>\n  <normalization>LOWERCASE_SCHEME_HOST</normalization>\n  <normalization>UPPERCASE_ESCAPESEQUENCE</normalization>\n  <normalization>DECODE_UNRESERVED_CHARACTERS</normalization>\n  <normalization>REMOVE_DEFAULT_PORT</normalization>\n  <normalization>ENCODE_NON_URI_CHARACTERS</normalization>\n  <normalization>ADD_WWW</normalization>\n</normalizations>\n<replacements>\n  <replacement>\n    <match>&amp;amp;view=print</match>\n    <value/>\n  </replacement>\n  <replacement>\n    <match>(&amp;amp;type=)(summary)</match>\n    <value>$1full</value>\n  </replacement>\n</replacements>"}}
+  ]}
+/>

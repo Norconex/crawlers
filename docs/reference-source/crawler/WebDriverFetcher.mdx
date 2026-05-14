@@ -1,0 +1,118 @@
+---
+component: WebDriverFetcher
+module: crawler/web
+locale: en
+propertyCoverage: all
+---
+
+# WebDriverFetcher
+
+## Summary
+
+Configuration schema for Web Driver Fetcher.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### arguments
+
+TODO: Add documentation for this property.
+
+### browser
+
+TODO: Add documentation for this property.
+
+### browserMaxAge
+
+TODO: Add documentation for this property.
+
+### browserMaxNavigations
+
+TODO: Add documentation for this property.
+
+### browserPath
+
+TODO: Add documentation for this property.
+
+### capabilities
+
+TODO: Add documentation for this property.
+
+### cleanupInterval
+
+TODO: Add documentation for this property.
+
+### driverPath
+
+TODO: Add documentation for this property.
+
+### earlyPageScript
+
+TODO: Add documentation for this property.
+
+### httpSniffer
+
+TODO: Add documentation for this property.
+
+### implicitlyWait
+
+TODO: Add documentation for this property.
+
+### latePageScript
+
+TODO: Add documentation for this property.
+
+### pageLoadTimeout
+
+TODO: Add documentation for this property.
+
+### referenceFilters
+
+TODO: Add documentation for this property.
+
+### remoteURL
+
+TODO: Add documentation for this property.
+
+### screenshotHandler
+
+TODO: Add documentation for this property.
+
+### scriptTimeout
+
+TODO: Add documentation for this property.
+
+### threadWait
+
+TODO: Add documentation for this property.
+
+### useHtmlUnit
+
+TODO: Add documentation for this property.
+
+### waitForElementSelector
+
+TODO: Add documentation for this property.
+
+### waitForElementTimeout
+
+TODO: Add documentation for this property.
+
+### waitForElementType
+
+TODO: Add documentation for this property.
+
+### windowSize
+
+TODO: Add documentation for this property.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","codeByLanguage":{"json":"{\n  \"class\": \"WebDriverFetcher\",\n  \"browser\": \"FIREFOX\",\n  \"driverPath\": \"/drivers/geckodriver.exe\",\n  \"referenceFilters\": [\n    {\n      \"class\": \"GenericReferenceFilter\",\n      \"valueMatcher\": {\n        \"method\": \"REGEX\",\n        \"pattern\": \".*dynamic.*$\"\n      }\n    }\n  ]\n}","yaml":"class: WebDriverFetcher\nbrowser: FIREFOX\ndriverPath: /drivers/geckodriver.exe\nreferenceFilters:\n  - class: GenericReferenceFilter\n    valueMatcher:\n      method: REGEX\n      pattern: .*dynamic.*$","xml":"<class>WebDriverFetcher</class>\n<browser>FIREFOX</browser>\n<driverPath>/drivers/geckodriver.exe</driverPath>\n<referenceFilters>\n  <referenceFilter>\n    <class>GenericReferenceFilter</class>\n    <valueMatcher>\n      <method>REGEX</method>\n      <pattern>.*dynamic.*$</pattern>\n    </valueMatcher>\n  </referenceFilter>\n</referenceFilters>"}}
+  ]}
+/>

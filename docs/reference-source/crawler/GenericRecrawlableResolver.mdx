@@ -1,0 +1,34 @@
+---
+component: GenericRecrawlableResolver
+module: crawler/web
+locale: en
+propertyCoverage: all
+---
+
+# GenericRecrawlableResolver
+
+## Summary
+
+Configuration schema for Generic Recrawlable Resolver.
+
+## Notes
+
+TODO: Add notes.
+
+## Properties
+
+### minFrequencies
+
+TODO: Add documentation for this property.
+
+### sitemapSupport
+
+TODO: Add documentation for this property.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example ensures PDFs are re-crawled no more frequently than once a month, while HTML news can be re-crawled frequently at every half hour. For the rest, it relies on the website sitemap directives  (if any).","codeByLanguage":{"json":"{\n  \"class\": \"GenericRecrawlableResolver\",\n  \"sitemapSupport\": \"LAST\",\n  \"minFrequencies\": [\n    {\n      \"applyTo\": \"CONTENT_TYPE\",\n      \"value\": \"monthly\",\n      \"matcher\": {\n        \"pattern\": \"application/pdf\"\n      }\n    },\n    {\n      \"applyTo\": \"REFERENCE\",\n      \"value\": \"1800000\",\n      \"matcher\": {\n        \"method\": \"REGEX\",\n        \"pattern\": \".*latest-news.*\\\\.html\"\n      }\n    }\n  ]\n}","yaml":"class: GenericRecrawlableResolver\nsitemapSupport: LAST\nminFrequencies:\n  - applyTo: CONTENT_TYPE\n    value: monthly\n    matcher:\n      pattern: application/pdf\n  - applyTo: REFERENCE\n    value: \"1800000\"\n    matcher:\n      method: REGEX\n      pattern: .*latest-news.*\\.html","xml":"<class>GenericRecrawlableResolver</class>\n<sitemapSupport>LAST</sitemapSupport>\n<minFrequencies>\n  <minFrequency>\n    <applyTo>CONTENT_TYPE</applyTo>\n    <value>monthly</value>\n    <matcher>\n      <pattern>application/pdf</pattern>\n    </matcher>\n  </minFrequency>\n  <minFrequency>\n    <applyTo>REFERENCE</applyTo>\n    <value>1800000</value>\n    <matcher>\n      <method>REGEX</method>\n      <pattern>.*latest-news.*\\.html</pattern>\n    </matcher>\n  </minFrequency>\n</minFrequencies>"}}
+  ]}
+/>

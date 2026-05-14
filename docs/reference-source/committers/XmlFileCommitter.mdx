@@ -1,0 +1,91 @@
+---
+component: XmlFileCommitter
+module: committer/core
+locale: en
+propertyCoverage: all
+---
+
+# XmlFileCommitter
+
+## Summary
+
+Local files of XML format.
+
+## Notes
+
+File Format
+-----------
+The generated file content will contain any number of "upsert" and 
+"delete" entries. Both types will contain the document "reference" and 
+"metadata". The metadata is made of names followed by a value. Multi-value
+fields will appear as repeated entries with the same name and different
+value. The "upsert" entries also have a "content"
+tag. Like this example containing 1 "upsert" and 1 "delete":
+
+```
+<docs>
+  <upsert>
+    <reference>https://example.com/my-document.html</reference>
+    <metadata>
+      <meta name="title">My Example Document</meta>
+      <meta name="keywords">Exemple</meta>
+      <meta name="keywords">Demo</meta>
+    </metadata>
+    <content>
+      Document content goes here.
+    </content>
+  </upsert>
+  <delete>
+    <reference>https://example.com/i-was-deleted.html</reference>
+    <metadata>
+      <meta name="contentType">text/html</meta>
+    </metadata>
+  </delete>
+</docs>
+```
+
+## Properties
+
+### compress
+
+Compress the generated XML files using the GZIP file format.
+
+### directory
+
+Local path where XML files will be written.
+
+### docsPerFile
+
+Maximum number of documents per XML files.
+
+### fieldMappings
+
+Mapping of source fields to target ones (XML tag name).
+
+### fileNamePrefix
+
+TODO: Add documentation for this property.
+
+### fileNameSuffix
+
+TODO: Add documentation for this property.
+
+### indent
+
+Number of indentation spaces. Default does not indent.
+
+### restrictions
+
+TODO: Add documentation for this property.
+
+### splitUpsertDelete
+
+TODO: Add documentation for this property.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","codeByLanguage":{"json":"{\n  \"class\": \"XmlFileCommitter\",\n  \"filePath\": \"/path/to/committer.xml\"\n}","yaml":"class: XmlFileCommitter\nfilePath: /path/to/committer.xml","xml":"<class>XmlFileCommitter</class>\n<filePath>/path/to/committer.xml</filePath>"}}
+  ]}
+/>

@@ -1,0 +1,32 @@
+---
+component: Reject
+module: importer
+locale: en
+propertyCoverage: all
+---
+
+# Reject
+
+## Summary
+
+Rejects a document from further processing
+
+## Notes
+
+The `Reject` handler in the Importer's `[flow-control]` configuration immediately removes documents from processing. It is commonly used within logic blocks (`if/then/else`) to exclude documents that don't meet conditions like date ranges, field values, or metadata patterns. When triggered, the handler discards the document, halting further processing.
+
+The handler logs a custom rejection message if provided; otherwise, it logs the rejection condition or defaults to its class name.
+
+## Properties
+
+### message
+
+TODO: Add documentation for this property.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"default","description":"The following example rejected a document and logging out a custom message.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"Reject\",\n    \"reason\": \"Rejected by condiction A\"\n  }\n}","yaml":"handler:\n  class: Reject\n  reason: Rejected by condiction A","xml":"<handler>\n  <class>Reject</class>\n  <reason>Rejected by condiction A</reason>\n</handler>"}}
+  ]}
+/>
