@@ -160,16 +160,55 @@
     </profile>
     <!-- Activating this profile forces aggregate Javadoc to read delombok
          outputs from all modules, so Lombok-generated types (builders, etc.)
-         are visible to the Javadoc tool. -->
+         are visible to the Javadoc tool.
+         Run as a two-step process from the root:
+           1. mvn compile -Paggregate-javadoc   (generates delombok in all modules)
+           2. mvn javadoc:aggregate -Paggregate-javadoc -->
     <profile>
       <id>aggregate-javadoc</id>
       <build>
         <plugins>
+          <!-- Derive aggregate Javadoc sourcepath dynamically from the reactor
+               module list so the list stays in sync with <modules> automatically
+               and cannot drift when modules are added, removed, or renamed.
+               Only modules with an existing delombok output directory are included
+               (delombok must be generated first: mvn compile -Paggregate-javadoc).
+               inherited=false: this script must run only at the root level. -->
+          <plugin>
+            <groupId>org.codehaus.gmavenplus</groupId>
+            <artifactId>gmavenplus-plugin</artifactId>
+            <executions>
+              <execution>
+                <?m2e ignore?>
+                <id>aggregate-javadoc-sourcepath</id>
+                <phase>initialize</phase>
+                <goals>
+                  <goal>execute</goal>
+                </goals>
+                <configuration>
+                  <scripts>
+                    <script>
+                      def sep = File.pathSeparator
+                      def base = project.basedir
+                      def sourcepath = project.modules.collect { module ->
+                        new File(base, "${module}/target/generated-sources/delombok")
+                      }.findAll { it.exists() }
+                       .collect { it.absolutePath }
+                       .join(sep)
+                      project.properties['aggregate.javadoc.sourcepath'] = sourcepath
+                      log.info("Aggregate Javadoc sourcepath: ${sourcepath}")
+                    </script>
+                  </scripts>
+                </configuration>
+              </execution>
+            </executions>
+            <inherited>false</inherited>
+          </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
             <configuration>
-              <sourcepath>${project.basedir}/committer/core/target/generated-sources/delombok${path.separator}${project.basedir}/committer/solr/target/generated-sources/delombok${path.separator}${project.basedir}/committer/elasticsearch/target/generated-sources/delombok${path.separator}${project.basedir}/committer/idol/target/generated-sources/delombok${path.separator}${project.basedir}/committer/amazoncloudsearch/target/generated-sources/delombok${path.separator}${project.basedir}/committer/sql/target/generated-sources/delombok${path.separator}${project.basedir}/committer/neo4j/target/generated-sources/delombok${path.separator}${project.basedir}/committer/azurecognitivesearch/target/generated-sources/delombok${path.separator}${project.basedir}/committer/apachekafka/target/generated-sources/delombok${path.separator}${project.basedir}/importer/target/generated-sources/delombok${path.separator}${project.basedir}/crawler/core/target/generated-sources/delombok${path.separator}${project.basedir}/crawler/web/target/generated-sources/delombok${path.separator}${project.basedir}/crawler/fs/target/generated-sources/delombok</sourcepath>
+              <sourcepath>${aggregate.javadoc.sourcepath}</sourcepath>
             </configuration>
           </plugin>
         </plugins>
