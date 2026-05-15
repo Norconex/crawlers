@@ -1,0 +1,153 @@
+---
+component: PlaywrightFetcher
+module: crawler/web
+locale: en
+propertyCoverage: all
+---
+
+# PlaywrightFetcher
+
+## Summary
+
+Uses [Microsoft Playwright](https://playwright.dev/java/) for browser-based
+crawling, driving real browser engines (Chromium, Firefox, WebKit) across
+Windows, macOS, and Linux. Unlike `WebDriverFetcher`, no external WebDriver
+binary is required — Playwright downloads browser binaries automatically on
+first use, and HTTP response headers including status codes are captured
+natively via Playwright's response interception without a proxy sniffer.
+
+## Notes
+
+By default, Playwright downloads and uses its own browser binaries stored
+under `~/.cache/ms-playwright`. To use a system-installed browser instead
+(e.g., Chrome, Edge, or Firefox already present on the machine or CI runner),
+set the `channel` property (e.g., `chrome`, `msedge`, `firefox`).
+
+Because Playwright manages one browser instance per thread, it is safe to
+use with multi-threaded crawling. Browsers are automatically restarted
+after `browserMaxNavigations` navigations or after they exceed
+`browserMaxAge`, whichever comes first.
+
+## Properties
+
+### args
+
+Optional command-line arguments passed to the browser at launch
+(e.g., `--disable-extensions`).
+
+### browser
+
+The browser engine to use for crawling. Supported values are
+`CHROMIUM` (default), `FIREFOX`, and `WEBKIT`. Ignored when `channel`
+is set.
+
+### browserMaxAge
+
+Maximum age of a per-thread browser instance before it is automatically
+restarted. Helps prevent memory accumulation over long crawls.
+Default is no age-based restart.
+
+### browserMaxNavigations
+
+Maximum number of page navigations per thread browser instance before it
+is automatically restarted. Helps prevent memory accumulation.
+Default is `-1` (unlimited).
+
+### channel
+
+Optional browser channel that instructs Playwright to use a
+system-installed browser instead of its own downloaded binaries.
+Supported values: `chrome`, `msedge`, `firefox`. Leave blank (the
+default) to use Playwright's bundled browser binaries.
+
+### cleanupInterval
+
+How often idle (unused) per-thread browser instances are checked and
+closed. Defaults to 10 seconds.
+
+### earlyPageScript
+
+Optional JavaScript snippet executed immediately after page navigation,
+before any wait conditions (such as `waitForElementSelector`) are applied.
+Useful for dismissing popups or injecting page-level state.
+
+### executablePath
+
+Optional path to a custom browser executable. When not set, Playwright
+uses the bundled browser binary it downloaded.
+
+### headless
+
+Whether to run the browser in headless (no visible window) mode.
+Default is `true`.
+
+### ignoreHttpsErrors
+
+When `true`, HTTPS certificate errors (e.g., self-signed or expired
+certificates) are ignored. Default is `false`.
+
+### latePageScript
+
+Optional JavaScript snippet executed after all wait conditions have been
+satisfied. Useful for final page manipulation before the content is
+captured.
+
+### pageLoadTimeout
+
+Maximum time to wait for the page load event to fire. When not set,
+the Playwright default (30 seconds) applies.
+
+### proxySettings
+
+Proxy settings used when launching the browser. When not configured,
+no proxy is applied.
+
+### referenceFilters
+
+One or more reference filters that restrict which URLs this fetcher
+will handle. When multiple fetchers are configured, each document URL
+is offered to fetchers in order; the first fetcher whose filters accept
+the URL handles the request.
+
+### screenshotHandler
+
+When configured, captures a screenshot of each fetched page and stores
+it according to the handler's settings (document metadata field or
+local directory).
+
+### slowMo
+
+Optional slow-motion delay applied between Playwright operations.
+Useful for debugging or visually tracing a crawl. Default is no delay.
+
+### waitForElementSelector
+
+Selector expression used to wait for a specific element to appear in
+the page before the content is captured. The type of expression is
+controlled by `waitForElementType`. When not set, no element wait is
+performed.
+
+### waitForElementTimeout
+
+Maximum time to wait for the element identified by
+`waitForElementSelector` to appear. When not set, the Playwright
+default timeout applies.
+
+### waitForElementType
+
+The locator strategy used by `waitForElementSelector`. Supported
+values: `TAGNAME`, `CLASSNAME`, `CSSSELECTOR` (default), `ID`,
+`LINKTEXT`, `NAME`, `PARTIALLINKTEXT`, `XPATH`.
+
+### windowSize
+
+Optional browser viewport size. When not set, the Playwright default
+viewport is used.
+
+## Examples
+
+<ReferenceExamples
+  examples={[
+    {"title":"Chromium with element wait","codeByLanguage":{"yaml":"class: PlaywrightFetcher\nbrowser: CHROMIUM\nheadless: true\nwaitForElementType: CSSSELECTOR\nwaitForElementSelector: \"#main-content\"\nwaitForElementTimeout: PT10S\nreferenceFilters:\n  - class: GenericReferenceFilter\n    valueMatcher:\n      method: REGEX\n      pattern: \".*dynamic.*\"","json":"{\n  \"class\": \"PlaywrightFetcher\",\n  \"browser\": \"CHROMIUM\",\n  \"headless\": true,\n  \"waitForElementType\": \"CSSSELECTOR\",\n  \"waitForElementSelector\": \"#main-content\",\n  \"waitForElementTimeout\": \"PT10S\",\n  \"referenceFilters\": [\n    {\n      \"class\": \"GenericReferenceFilter\",\n      \"valueMatcher\": {\n        \"method\": \"REGEX\",\n        \"pattern\": \".*dynamic.*\"\n      }\n    }\n  ]\n}","xml":"<class>PlaywrightFetcher</class>\n<browser>CHROMIUM</browser>\n<headless>true</headless>\n<waitForElementType>CSSSELECTOR</waitForElementType>\n<waitForElementSelector>#main-content</waitForElementSelector>\n<waitForElementTimeout>PT10S</waitForElementTimeout>\n<referenceFilters>\n  <referenceFilter>\n    <class>GenericReferenceFilter</class>\n    <valueMatcher>\n      <method>REGEX</method>\n      <pattern>.*dynamic.*</pattern>\n    </valueMatcher>\n  </referenceFilter>\n</referenceFilters>"}}
+  ]}
+/>

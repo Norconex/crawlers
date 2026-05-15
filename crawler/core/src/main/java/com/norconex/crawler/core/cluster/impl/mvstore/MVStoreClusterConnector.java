@@ -18,6 +18,8 @@ import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.ClusterConnector;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 
 /**
@@ -36,6 +38,8 @@ public class MVStoreClusterConnector implements ClusterConnector {
     private MVStoreClusterConnectorConfig configuration =
             new MVStoreClusterConnectorConfig();
 
+    @Getter(lombok.AccessLevel.NONE)
+    @Setter(lombok.AccessLevel.NONE)
     private MVStoreCluster cluster;
 
     @Override

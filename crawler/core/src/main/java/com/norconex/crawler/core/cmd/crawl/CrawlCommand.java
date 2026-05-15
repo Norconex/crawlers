@@ -219,7 +219,19 @@ public class CrawlCommand implements Command {
         var state = switch (pipeStatus) {
             case FAILED, EXPIRED, STOPPING, PENDING, RUNNING ->
                     CrawlState.FAILED;
-            case COMPLETED -> CrawlState.COMPLETED;
+            case COMPLETED -> {
+                // Guard against a race where another node already wrote STOPPED
+                // via handleException (CancellationException path). The
+                // oncePerRunAndGet winner could be a node whose pipeline
+                // completed normally after the stop signal was issued, in which
+                // case we must not downgrade STOPPED to COMPLETED.
+                var timedState = session.loadState();
+                if (timedState != null
+                        && timedState.getCrawlState() == CrawlState.STOPPED) {
+                    yield CrawlState.STOPPED;
+                }
+                yield CrawlState.COMPLETED;
+            }
             case STOPPED -> CrawlState.STOPPED;
             default -> throw new IllegalArgumentException(
                     "Unexpected value: " + pipeStatus);

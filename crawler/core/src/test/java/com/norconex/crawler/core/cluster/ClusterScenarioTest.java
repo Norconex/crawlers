@@ -36,8 +36,6 @@ import com.norconex.committer.core.service.CommitterServiceEvent;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
-import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.junit.annotations.SlowTest;
@@ -355,7 +353,7 @@ class ClusterScenarioTest {
     void lateJoiningNodeContinuesCurrentStep() throws Exception {
         var timing = ScenarioTiming.start(
                 "lateJoiningNodeContinuesCurrentStep", 2);
-        var numOfRefs = 120;
+        var numOfRefs = 300;
         var initialNodeNames = new String[] { "node-1" };
         var lateNodeName = "node-2";
         var completionDeadlineNanos = System.nanoTime()
@@ -367,21 +365,11 @@ class ClusterScenarioTest {
                         .setRecordCaches(false)
                         .setConfigModifier(cfg -> {
                             baseConfig(numOfRefs,
-                                    20).accept(cfg);
+                                    150).accept(cfg);
                             cfg.setId("scenario-late-join-"
                                     + numOfRefs);
                             cfg.setMaxQueueBatchSize(
                                     5);
-
-                            var connector = (HazelcastClusterConnector) cfg
-                                    .getClusterConfig()
-                                    .getConnector();
-                            var hzConfig = connector
-                                    .getConfiguration();
-                            var configurer = (JdbcHazelcastConfigurer) hzConfig
-                                    .getConfigurer();
-                            configurer.setAutoDiscoveryEnabled(
-                                    true);
                         }))) {
             try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
                 var initialFuture = timing.measure(

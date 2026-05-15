@@ -43,3 +43,4 @@ crawler/core/src/main/resources/log4j2-local.xml
 /benchmark/**/target/
 .codex
 
+.claude/settings.local.json
