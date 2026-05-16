@@ -14,11 +14,10 @@
 # limitations under the License.
 #-------------------------------------------------------------------------------
 
-# Nightly Test Suite
-# Runs slow tests (tagged @SlowTest / "slow" JUnit tag) every night at 2 AM UTC.
-# Slow tests are excluded from the main CI workflow (maven-ci-cd.yaml) by default
-# via <surefire.excludedGroups>slow</surefire.excludedGroups> in the parent POM.
-# This workflow overrides that exclusion to run the full suite, including slow tests.
+# Nightly Integration Test Suite
+# Runs integration tests (*IT.java) every night at 2 AM UTC via Maven Failsafe.
+# Integration tests are skipped during regular builds (mvn test) because Failsafe
+# only runs during the verify phase. Use "mvn verify" to run them locally.
 
 name: Nightly Tests
 
@@ -31,8 +30,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  nightly-slow-tests:
-    name: Slow Test Suite (Nightly)
+  nightly-integration-tests:
+    name: Integration Test Suite (Nightly)
     runs-on: ubuntu-latest
     timeout-minutes: 120  # 2-hour timeout for comprehensive tests
 
@@ -52,12 +51,9 @@ jobs:
             -Dmaven.wagon.rss.buffer.size=2048 \
             -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 
-      - name: Run Slow Tests
-        # Override the default surefire.excludedGroups=slow from the parent POM
-        # so that tests tagged @SlowTest are included.
+      - name: Run Integration Tests
         run: |
-          mvn -B test \
-            -Dsurefire.excludedGroups= \
+          mvn -B verify \
             -Dmaven.wagon.rss.buffer.size=2048 \
             -Dlog4j.configurationFile=${{ github.workspace }}/.github/log4j2-ci.xml \
             -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \

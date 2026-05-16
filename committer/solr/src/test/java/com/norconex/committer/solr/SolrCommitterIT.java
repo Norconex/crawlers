@@ -37,7 +37,7 @@ import com.norconex.commons.lang.map.Properties;
  * @author Pascal Essiembre
  */
 @Timeout(30)
-class SolrCommitterTest extends AbstractSolrTest {
+class SolrCommitterIT extends AbstractSolrIT {
 
     //TODO test update/delete URL params
 

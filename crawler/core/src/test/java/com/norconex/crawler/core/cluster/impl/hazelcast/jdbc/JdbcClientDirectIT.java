@@ -34,8 +34,6 @@ import com.hazelcast.core.HazelcastInstance;
 import com.norconex.crawler.core.cluster.ClusterException;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastConfigurerContext;
 import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
-
 /**
  * Direct unit tests for {@link JdbcClient} covering
  * {@code getConnection()}, {@code tableExists()}, {@code ensureTableExists()},
@@ -45,8 +43,7 @@ import com.norconex.crawler.core.junit.annotations.SlowTest;
  */
 @Timeout(60)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@SlowTest
-class JdbcClientDirectTest {
+class JdbcClientDirectIT {
 
     private Path tempDir;
     private HazelcastInstance hz;

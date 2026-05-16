@@ -33,11 +33,8 @@ import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
-
 @Timeout(30)
-@SlowTest
-class HazelcastUtilTest {
+class HazelcastUtilIT {
 
     private HazelcastInstance hz;
 

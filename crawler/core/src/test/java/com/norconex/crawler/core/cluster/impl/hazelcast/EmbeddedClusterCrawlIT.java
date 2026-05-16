@@ -35,7 +35,6 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 import com.norconex.crawler.core.test.CrawlTestDriver;
 
@@ -53,8 +52,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Timeout(60)
-@SlowTest
-class EmbeddedClusterCrawlTest {
+class EmbeddedClusterCrawlIT {
 
     private static final long CRAWL_TIMEOUT_SECONDS = 90;
     private static final long EXECUTOR_SHUTDOWN_SECONDS = 15;

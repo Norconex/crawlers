@@ -25,8 +25,6 @@ import org.junit.jupiter.api.Timeout;
 
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
-
 /**
  * Component tests for {@link HazelcastClusterNode}.
  *
@@ -38,8 +36,7 @@ import com.norconex.crawler.core.junit.annotations.SlowTest;
  * a simple polling loop (Awaitility is not a project dependency).</p>
  */
 @Timeout(30)
-@SlowTest
-class HazelcastClusterNodeTest {
+class HazelcastClusterNodeIT {
 
     /**
      * Tear down all instances unconditionally so no port conflicts bleed

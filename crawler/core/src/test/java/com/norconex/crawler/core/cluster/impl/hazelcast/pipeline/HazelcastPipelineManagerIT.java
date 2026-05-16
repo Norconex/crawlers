@@ -34,7 +34,6 @@ import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.session.CrawlSession;
 
 /**
@@ -44,8 +43,7 @@ import com.norconex.crawler.core.session.CrawlSession;
  */
 @Timeout(60)
 @WithTestWatcherLogging
-@SlowTest
-class HazelcastPipelineManagerTest {
+class HazelcastPipelineManagerIT {
 
     @TempDir
     java.nio.file.Path tempDir;

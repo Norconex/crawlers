@@ -309,6 +309,26 @@
         </configuration>
       </plugin>
 
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <argLine>
+            ${jacocoArgLine}
+            -Xms512m
+            -Xmx512m
+            --add-modules java.se
+            --add-exports java.base/jdk.internal.ref=ALL-UNNAMED
+            --add-opens java.base/java.lang=ALL-UNNAMED
+            --add-opens java.base/sun.nio.ch=ALL-UNNAMED
+            --add-opens java.management/sun.management=ALL-UNNAMED
+            --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED
+            -Djava.net.preferIPv4Stack=true
+            -Dio.netty.tryReflectionSetAccessible=true
+          </argLine>
+        </configuration>
+      </plugin>
+
     </plugins>
   </build>
 

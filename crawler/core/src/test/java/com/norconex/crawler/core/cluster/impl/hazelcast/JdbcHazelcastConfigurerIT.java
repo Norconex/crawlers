@@ -23,11 +23,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.junit.annotations.SlowTest;
-
 @Timeout(30)
-@SlowTest
-class JdbcHazelcastConfigurerTest {
+class JdbcHazelcastConfigurerIT {
 
     @TempDir
     Path tempDir;

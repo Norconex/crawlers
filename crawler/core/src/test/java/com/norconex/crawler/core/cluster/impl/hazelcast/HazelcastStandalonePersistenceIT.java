@@ -30,15 +30,12 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
-
 /**
  * Smoke-tests JDBC persistence via the real hazelcast-standalone.yaml config.
  */
 @Timeout(60)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@SlowTest
-class HazelcastStandalonePersistenceTest {
+class HazelcastStandalonePersistenceIT {
 
     private Path tempDir;
 

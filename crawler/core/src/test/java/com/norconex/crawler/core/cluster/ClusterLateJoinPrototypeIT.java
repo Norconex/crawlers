@@ -34,15 +34,13 @@ import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnecto
 import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 import com.norconex.crawler.core.test.CrawlTestHarness;
 import com.norconex.crawler.core.test.CrawlTestInstrument;
 
 @WithTestWatcherLogging
 @Timeout(180)
-@SlowTest
-class ClusterLateJoinPrototypeTest {
+class ClusterLateJoinPrototypeIT {
 
     private static final Duration CLUSTER_JOIN_WAIT = Duration.ofSeconds(120);
     private static final Duration RESULT_RECORD_INTERVAL =

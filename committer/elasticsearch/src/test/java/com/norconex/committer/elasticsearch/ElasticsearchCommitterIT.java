@@ -44,7 +44,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.Timeout;
@@ -67,10 +66,9 @@ import com.norconex.commons.lang.security.Credentials;
 import lombok.extern.slf4j.Slf4j;
 
 @Testcontainers(disabledWithoutDocker = true)
-@Tag("slow")
 @Slf4j
 @Timeout(30)
-class ElasticsearchCommitterTest {
+class ElasticsearchCommitterIT {
 
     private static final String TEST_ES_VERSION = "9.3.1";
     private static final String TEST_INDEX = "tests";

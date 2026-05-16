@@ -23,7 +23,6 @@ import org.apache.solr.client.solrj.jetty.HttpJettySolrClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.io.TempDir;
@@ -44,10 +43,9 @@ import com.norconex.commons.lang.TimeIdGenerator;
  * @author Harinder Hanjan
  */
 @Testcontainers(disabledWithoutDocker = true)
-@Tag("slow")
 @TestInstance(Lifecycle.PER_CLASS)
 @Timeout(30)
-public abstract class AbstractSolrTest {
+public abstract class AbstractSolrIT {
 
     private static final String SOLR_VERSION = "10.0.0";
 

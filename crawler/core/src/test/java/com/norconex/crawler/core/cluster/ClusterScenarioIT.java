@@ -38,7 +38,6 @@ import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 import com.norconex.crawler.core.session.CrawlResumeState;
 import com.norconex.crawler.core.test.CoreTestUtil;
@@ -52,8 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @WithTestWatcherLogging
 @Timeout(30)
-@SlowTest
-class ClusterScenarioTest {
+class ClusterScenarioIT {
 
     private static final Duration CLUSTER_JOIN_WAIT =
             Duration.ofSeconds(120);

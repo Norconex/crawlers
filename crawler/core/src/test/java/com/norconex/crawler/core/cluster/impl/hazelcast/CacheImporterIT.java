@@ -27,7 +27,6 @@ import com.norconex.crawler.core.cluster.SerializedCache;
 import com.norconex.crawler.core.cluster.SerializedCache.CacheType;
 import com.norconex.crawler.core.cluster.SerializedCache.SerializedEntry;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.ledger.CrawlEntry;
 import com.norconex.crawler.core.util.SerialUtil;
 
@@ -38,8 +37,7 @@ import com.norconex.crawler.core.util.SerialUtil;
  */
 @Timeout(30)
 @WithTestWatcherLogging
-@SlowTest
-class CacheImporterTest {
+class CacheImporterIT {
 
     private HazelcastCacheManager manager;
 

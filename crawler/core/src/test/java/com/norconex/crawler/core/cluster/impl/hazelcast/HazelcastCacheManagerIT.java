@@ -28,8 +28,6 @@ import org.junit.jupiter.api.Timeout;
 import com.hazelcast.core.HazelcastInstance;
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListener;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
-
 /**
  * Tests for {@link HazelcastCacheManager} covering methods not exercised by
  * map/queue adapter tests (cacheExists, clearCaches, getCacheSet,
@@ -37,8 +35,7 @@ import com.norconex.crawler.core.junit.annotations.SlowTest;
  */
 @Timeout(30)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@SlowTest
-class HazelcastCacheManagerTest {
+class HazelcastCacheManagerIT {
 
     private HazelcastInstance hz;
     private HazelcastCacheManager cacheManager;

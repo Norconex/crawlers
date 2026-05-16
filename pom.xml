@@ -121,6 +121,7 @@
     <maven-remote-resources-plugin.version>3.2.0</maven-remote-resources-plugin.version>
     <maven-site-plugin.version>4.0.0-M14</maven-site-plugin.version>
     <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
+    <maven-failsafe-plugin.version>3.5.5</maven-failsafe-plugin.version>
     <maven-surefire-plugin.version>3.5.5</maven-surefire-plugin.version>
     <nexus-staging-maven-plugin.version>1.7.0</nexus-staging-maven-plugin.version>
     <therapi.version>0.15.0</therapi.version>
@@ -130,8 +131,6 @@
     <!-- Empty by default, see "jacoco" profile-->
     <jacocoArgLine></jacocoArgLine>
 
-    <!-- Slow test exclusion: override with -Dsurefire.excludedGroups= to run slow tests -->
-    <surefire.excludedGroups>slow</surefire.excludedGroups>
   </properties>
 
   <distributionManagement>
@@ -816,7 +815,7 @@
           <configuration>
             <!-- Most of the following is currently required by Ignite -->
             <argLine>
-              ${jacocoArgLine} 
+              ${jacocoArgLine}
               -Xms512m
               -Xmx512m
               -Djava.net.preferIPv4Stack=true
@@ -825,11 +824,25 @@
             <forkCount>1</forkCount>
             <forkedProcessTimeoutInSeconds>1800</forkedProcessTimeoutInSeconds>
             <forkedProcessExitTimeoutInSeconds>60</forkedProcessExitTimeoutInSeconds>
-              <!-- By default, exclude slow tests for fast development feedback.
-                Developers can run slow tests with:
-                  mvn test -Dsurefire.excludedGroups= -Dgroups=slow
-                CI/CD pipelines can override similarly. -->
-              <excludedGroups>${surefire.excludedGroups}</excludedGroups>
+          </configuration>
+          <inherited>true</inherited>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${maven-failsafe-plugin.version}</version>
+          <configuration>
+            <argLine>
+              ${jacocoArgLine}
+              -Xms512m
+              -Xmx512m
+              -Djava.net.preferIPv4Stack=true
+              -Dio.netty.tryReflectionSetAccessible=true
+            </argLine>
+            <forkCount>1</forkCount>
+            <forkedProcessTimeoutInSeconds>1800</forkedProcessTimeoutInSeconds>
+            <forkedProcessExitTimeoutInSeconds>60</forkedProcessExitTimeoutInSeconds>
           </configuration>
           <inherited>true</inherited>
         </plugin>
@@ -1229,6 +1242,19 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
 
       <plugin>

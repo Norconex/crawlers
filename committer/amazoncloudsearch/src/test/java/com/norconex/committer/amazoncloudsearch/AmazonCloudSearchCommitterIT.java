@@ -35,7 +35,6 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
@@ -66,12 +65,11 @@ import com.norconex.commons.lang.url.UrlStreamer;
  */
 
 @Testcontainers(disabledWithoutDocker = true)
-@Tag("slow")
 @Timeout(30)
-class AmazonCloudSearchCommitterTest {
+class AmazonCloudSearchCommitterIT {
 
     private static final Logger LOG = LoggerFactory.getLogger(
-            AmazonCloudSearchCommitterTest.class);
+            AmazonCloudSearchCommitterIT.class);
 
     //TO DO test update/delete URL params
     //TO DO test source + target mappings + other mappings

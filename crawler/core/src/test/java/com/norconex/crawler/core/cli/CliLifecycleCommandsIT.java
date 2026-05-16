@@ -35,7 +35,6 @@ import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.CrawlerExecutionAssertions;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
 import com.norconex.crawler.core.test.standalone.StandaloneCliCrawlerLauncher;
 import com.norconex.importer.ImporterEvent;
 import com.sun.net.httpserver.HttpServer;
@@ -47,8 +46,7 @@ import com.sun.net.httpserver.HttpServer;
  */
 @Timeout(value = 120, unit = TimeUnit.SECONDS)
 @WithTestWatcherLogging
-@SlowTest
-class CliLifecycleCommandsTest {
+class CliLifecycleCommandsIT {
 
     @TempDir
     private Path tempDir;

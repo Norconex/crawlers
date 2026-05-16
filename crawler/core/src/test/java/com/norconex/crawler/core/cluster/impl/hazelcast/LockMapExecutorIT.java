@@ -30,12 +30,9 @@ import org.junit.jupiter.api.Timeout;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.norconex.crawler.core.cluster.ClusterException;
-import com.norconex.crawler.core.junit.annotations.SlowTest;
-
 @Timeout(30)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@SlowTest
-class LockMapExecutorTest {
+class LockMapExecutorIT {
 
     private HazelcastInstance hz;
 

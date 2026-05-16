@@ -24,15 +24,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.junit.annotations.SlowTest;
-
 /**
  * Tests {@link HazelcastCluster} standalone startup, node introspection,
  * and shutdown.
  */
 @Timeout(60)
-@SlowTest
-class HazelcastClusterStartupTest {
+class HazelcastClusterStartupIT {
 
     @TempDir
     Path tempDir;
