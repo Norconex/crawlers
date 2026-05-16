@@ -53,9 +53,29 @@ Sets the character encoding of the source document to ensure proper reading and 
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following examples add new metadata field indicating which fruit is the document about.\n\n**JavaScript**","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"ScriptTransformer\",\n    \"script\": \"<![CDATA[metadata.add('fruit', 'apple');]]\"\n  }\n}","yaml":"handler:\n  class: ScriptTransformer\n  script: <![CDATA[metadata.add('fruit', 'apple');]]","xml":"<handler>\n  <class>ScriptTransformer</class>\n  <script><![CDATA[metadata.add('fruit', 'apple');]]</script>\n</handler>"}},
-    {"title":"lua","description":"***LUA***","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"ScriptTransformer\",\n    \"engineName\": \"LUA\",\n    \"script\": \"<![CDATA[metadata:addString('fruit', {'apple'});]]>\"\n  }\n}","yaml":"handler:\n  class: ScriptTransformer\n  engineName: LUA\n  script: <![CDATA[metadata:addString('fruit', {'apple'});]]>","xml":"<handler>\n  <class>ScriptTransformer</class>\n  <engineName>LUA</engineName>\n  <script><![CDATA[metadata:addString('fruit', {'apple'});]]></script>\n</handler>"}}
-  ]}
+The following examples add new metadata field indicating which fruit is the document about.
+
+**JavaScript**
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "ScriptTransformer",
+      "script": "<![CDATA[metadata.add('fruit', 'apple');]]"
+    }
+  }}
+/>
+
+### lua
+
+***LUA***
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "ScriptTransformer",
+      "engineName": "LUA",
+      "script": "<![CDATA[metadata:addString('fruit', {'apple'});]]>"
+    }
+  }}
 />

@@ -27,8 +27,52 @@ Replace one or more matching portions of URLs with different text.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following adds a normalization to add `www.` to URL domains when missing, to the default set of normalizations. It also add custom URL \"search-and-replace\" to remove any `&amp;view=print` strings from  URLs as well as replace `&amp;type=summary` with `&amp;type=full`.","codeByLanguage":{"json":"{\n  \"class\": \"GenericUrlNormalizer\",\n  \"normalizations\": [\n    \"REMOVE_FRAGMENT\",\n    \"LOWERCASE_SCHEME_HOST\",\n    \"UPPERCASE_ESCAPESEQUENCE\",\n    \"DECODE_UNRESERVED_CHARACTERS\",\n    \"REMOVE_DEFAULT_PORT\",\n    \"ENCODE_NON_URI_CHARACTERS\",\n    \"ADD_WWW\"\n  ],\n  \"replacements\": [\n    {\n      \"match\": \"&amp;amp;view=print\",\n      \"value\": \"\"\n    },\n    {\n      \"match\": \"(&amp;amp;type=)(summary)\",\n      \"value\": \"$1full\"\n    }\n  ]\n}","yaml":"class: GenericUrlNormalizer\nnormalizations:\n  - REMOVE_FRAGMENT\n  - LOWERCASE_SCHEME_HOST\n  - UPPERCASE_ESCAPESEQUENCE\n  - DECODE_UNRESERVED_CHARACTERS\n  - REMOVE_DEFAULT_PORT\n  - ENCODE_NON_URI_CHARACTERS\n  - ADD_WWW\nreplacements:\n  - match: \"&amp;amp;view=print\"\n    value: \"\"\n  - match: (&amp;amp;type=)(summary)\n    value: $1full","xml":"<class>GenericUrlNormalizer</class>\n<normalizations>\n  <normalization>REMOVE_FRAGMENT</normalization>\n  <normalization>LOWERCASE_SCHEME_HOST</normalization>\n  <normalization>UPPERCASE_ESCAPESEQUENCE</normalization>\n  <normalization>DECODE_UNRESERVED_CHARACTERS</normalization>\n  <normalization>REMOVE_DEFAULT_PORT</normalization>\n  <normalization>ENCODE_NON_URI_CHARACTERS</normalization>\n  <normalization>ADD_WWW</normalization>\n</normalizations>\n<replacements>\n  <replacement>\n    <match>&amp;amp;view=print</match>\n    <value/>\n  </replacement>\n  <replacement>\n    <match>(&amp;amp;type=)(summary)</match>\n    <value>$1full</value>\n  </replacement>\n</replacements>"}}
-  ]}
+The following adds a normalization to add `www.` to URL domains when missing, to the default set of normalizations. It also add custom URL "search-and-replace" to remove any `&amp;view=print` strings from  URLs as well as replace `&amp;type=summary` with `&amp;type=full`.
+
+
+
+<ConfigExample
+  json={{
+    "class": "GenericUrlNormalizer",
+    "normalizations": [
+      "REMOVE_FRAGMENT",
+      "LOWERCASE_SCHEME_HOST",
+      "UPPERCASE_ESCAPESEQUENCE",
+      "DECODE_UNRESERVED_CHARACTERS",
+      "REMOVE_DEFAULT_PORT",
+      "ENCODE_NON_URI_CHARACTERS",
+      "ADD_WWW"
+    ],
+    "replacements": [
+      {
+        "match": "&amp;amp;view=print",
+        "value": ""
+      },
+      {
+        "match": "(&amp;amp;type=)(summary)",
+        "value": "$1full"
+      }
+    ]
+  }}
+  xml={`
+<class>GenericUrlNormalizer</class>
+<normalizations>
+  <normalization>REMOVE_FRAGMENT</normalization>
+  <normalization>LOWERCASE_SCHEME_HOST</normalization>
+  <normalization>UPPERCASE_ESCAPESEQUENCE</normalization>
+  <normalization>DECODE_UNRESERVED_CHARACTERS</normalization>
+  <normalization>REMOVE_DEFAULT_PORT</normalization>
+  <normalization>ENCODE_NON_URI_CHARACTERS</normalization>
+  <normalization>ADD_WWW</normalization>
+</normalizations>
+<replacements>
+  <replacement>
+    <match>&amp;amp;view=print</match>
+    <value/>
+  </replacement>
+  <replacement>
+    <match>(&amp;amp;type=)(summary)</match>
+    <value>$1full</value>
+  </replacement>
+</replacements>`}
 />

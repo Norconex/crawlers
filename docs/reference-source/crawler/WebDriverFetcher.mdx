@@ -111,8 +111,34 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","codeByLanguage":{"json":"{\n  \"class\": \"WebDriverFetcher\",\n  \"browser\": \"FIREFOX\",\n  \"driverPath\": \"/drivers/geckodriver.exe\",\n  \"referenceFilters\": [\n    {\n      \"class\": \"GenericReferenceFilter\",\n      \"valueMatcher\": {\n        \"method\": \"REGEX\",\n        \"pattern\": \".*dynamic.*$\"\n      }\n    }\n  ]\n}","yaml":"class: WebDriverFetcher\nbrowser: FIREFOX\ndriverPath: /drivers/geckodriver.exe\nreferenceFilters:\n  - class: GenericReferenceFilter\n    valueMatcher:\n      method: REGEX\n      pattern: .*dynamic.*$","xml":"<class>WebDriverFetcher</class>\n<browser>FIREFOX</browser>\n<driverPath>/drivers/geckodriver.exe</driverPath>\n<referenceFilters>\n  <referenceFilter>\n    <class>GenericReferenceFilter</class>\n    <valueMatcher>\n      <method>REGEX</method>\n      <pattern>.*dynamic.*$</pattern>\n    </valueMatcher>\n  </referenceFilter>\n</referenceFilters>"}}
-  ]}
+
+
+<ConfigExample
+  json={{
+    "class": "WebDriverFetcher",
+    "browser": "FIREFOX",
+    "driverPath": "/drivers/geckodriver.exe",
+    "referenceFilters": [
+      {
+        "class": "GenericReferenceFilter",
+        "valueMatcher": {
+          "method": "REGEX",
+          "pattern": ".*dynamic.*$"
+        }
+      }
+    ]
+  }}
+  xml={`
+<class>WebDriverFetcher</class>
+<browser>FIREFOX</browser>
+<driverPath>/drivers/geckodriver.exe</driverPath>
+<referenceFilters>
+  <referenceFilter>
+    <class>GenericReferenceFilter</class>
+    <valueMatcher>
+      <method>REGEX</method>
+      <pattern>.*dynamic.*$</pattern>
+    </valueMatcher>
+  </referenceFilter>
+</referenceFilters>`}
 />

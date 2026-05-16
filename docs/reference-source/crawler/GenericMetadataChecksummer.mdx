@@ -35,8 +35,16 @@ A target field name used to store the value.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example uses a combination of two (fictitious) fields  called \"docLastModified\" and \"docSize\" to make the checksum.","codeByLanguage":{"json":"{\n  \"metadataChecksummer\": {\n    \"class\": \"GenericMetadataChecksummer\",\n    \"fieldMatcher\": {\n      \"method\": \"CSV\",\n      \"pattern\": \"docLastModified,docSize\"\n    }\n  }\n}","yaml":"metadataChecksummer:\n  class: GenericMetadataChecksummer\n  fieldMatcher:\n    method: CSV\n    pattern: docLastModified,docSize","xml":"<metadataChecksummer>\n  <class>GenericMetadataChecksummer</class>\n  <fieldMatcher>\n    <method>CSV</method>\n    <pattern>docLastModified,docSize</pattern>\n  </fieldMatcher>\n</metadataChecksummer>"}}
-  ]}
+The following example uses a combination of two (fictitious) fields  called "docLastModified" and "docSize" to make the checksum.
+
+<ConfigExample
+  json={{
+    "metadataChecksummer": {
+      "class": "GenericMetadataChecksummer",
+      "fieldMatcher": {
+        "method": "CSV",
+        "pattern": "docLastModified,docSize"
+      }
+    }
+  }}
 />

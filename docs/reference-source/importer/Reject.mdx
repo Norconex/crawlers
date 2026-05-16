@@ -25,8 +25,13 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example rejected a document and logging out a custom message.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"Reject\",\n    \"reason\": \"Rejected by condiction A\"\n  }\n}","yaml":"handler:\n  class: Reject\n  reason: Rejected by condiction A","xml":"<handler>\n  <class>Reject</class>\n  <reason>Rejected by condiction A</reason>\n</handler>"}}
-  ]}
+The following example rejected a document and logging out a custom message.
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "Reject",
+      "reason": "Rejected by condiction A"
+    }
+  }}
 />

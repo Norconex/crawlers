@@ -45,8 +45,17 @@ Defines the character encoding to be applied to the document after processing, e
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example converts the characters of a \"description\" field from \"ISO-8859-1\" to \"UTF-8\".","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"CharsetTransformer\",\n    \"sourceCharset\": \"ISO-8859-1\",\n    \"targetCharset\": \"UTF-8\",\n    \"fieldMatcher\": {\n      \"pattern\": \"description\"\n    }\n  }\n}","yaml":"handler:\n  class: CharsetTransformer\n  sourceCharset: ISO-8859-1\n  targetCharset: UTF-8\n  fieldMatcher:\n    pattern: description","xml":"<handler>\n  <class>CharsetTransformer</class>\n  <sourceCharset>ISO-8859-1</sourceCharset>\n  <targetCharset>UTF-8</targetCharset>\n  <fieldMatcher>\n    <pattern>description</pattern>\n  </fieldMatcher>\n</handler>"}}
-  ]}
+The following example converts the characters of a "description" field from "ISO-8859-1" to "UTF-8".
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "CharsetTransformer",
+      "sourceCharset": "ISO-8859-1",
+      "targetCharset": "UTF-8",
+      "fieldMatcher": {
+        "pattern": "description"
+      }
+    }
+  }}
 />

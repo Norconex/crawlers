@@ -35,8 +35,28 @@ The delay scope.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example will increase the delay to 10 seconds when  encountering PDFs from a default of 3 seconds.","codeByLanguage":{"json":"{\n  \"class\": \"ReferenceDelayResolver\",\n  \"defaultDelay\": 3000,\n  \"delayReferencePatterns\": [\n    {\n      \"delay\": 10000,\n      \"pattern\": \".*\\\\.pdf\"\n    }\n  ]\n}","yaml":"class: ReferenceDelayResolver\ndefaultDelay: 3000\ndelayReferencePatterns:\n  - delay: 10000\n    pattern: .*\\.pdf","xml":"<class>ReferenceDelayResolver</class>\n<defaultDelay>3000</defaultDelay>\n<delayReferencePatterns>\n  <delayReferencePattern>\n    <delay>10000</delay>\n    <pattern>.*\\.pdf</pattern>\n  </delayReferencePattern>\n</delayReferencePatterns>"}}
-  ]}
+The following example will increase the delay to 10 seconds when  encountering PDFs from a default of 3 seconds.
+
+
+
+<ConfigExample
+  json={{
+    "class": "ReferenceDelayResolver",
+    "defaultDelay": 3000,
+    "delayReferencePatterns": [
+      {
+        "delay": 10000,
+        "pattern": ".*\\.pdf"
+      }
+    ]
+  }}
+  xml={`
+<class>ReferenceDelayResolver</class>
+<defaultDelay>3000</defaultDelay>
+<delayReferencePatterns>
+  <delayReferencePattern>
+    <delay>10000</delay>
+    <pattern>.*\.pdf</pattern>
+  </delayReferencePattern>
+</delayReferencePatterns>`}
 />

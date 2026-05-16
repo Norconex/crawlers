@@ -31,8 +31,14 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","codeByLanguage":{"json":"{\n  \"class\": \"StopCrawlerOnMaxEventListener\",\n  \"maximum\": 100,\n  \"onMultiple\": \"SUM\",\n  \"eventMatcher\": {\n    \"method\": \"CSV\",\n    \"pattern\": \"DOCUMENT_COMMITTED_UPSERT,DOCUMENT_COMMITTED_DELETE\"\n  }\n}","yaml":"class: StopCrawlerOnMaxEventListener\nmaximum: 100\nonMultiple: SUM\neventMatcher:\n  method: CSV\n  pattern: DOCUMENT_COMMITTED_UPSERT,DOCUMENT_COMMITTED_DELETE","xml":"<class>StopCrawlerOnMaxEventListener</class>\n<maximum>100</maximum>\n<onMultiple>SUM</onMultiple>\n<eventMatcher>\n  <method>CSV</method>\n  <pattern>DOCUMENT_COMMITTED_UPSERT,DOCUMENT_COMMITTED_DELETE</pattern>\n</eventMatcher>"}}
-  ]}
+<ConfigExample
+  json={{
+    "class": "StopCrawlerOnMaxEventListener",
+    "maximum": 100,
+    "onMultiple": "SUM",
+    "eventMatcher": {
+      "method": "CSV",
+      "pattern": "DOCUMENT_COMMITTED_UPSERT,DOCUMENT_COMMITTED_DELETE"
+    }
+  }}
 />

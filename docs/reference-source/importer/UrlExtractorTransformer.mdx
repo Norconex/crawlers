@@ -56,8 +56,16 @@ A target field name used to store the value.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The above example is used as a post-parse handler. It detects URLs in parsed PDFs and store those URLs in a field call \"documentURLs\".","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"UrlExtractorTransformer\",\n    \"toField\": \"documentURLs\",\n    \"fieldMatcher\": {\n      \"pattern\": \"document.contentType\"\n    }\n  }\n}","yaml":"handler:\n  class: UrlExtractorTransformer\n  toField: documentURLs\n  fieldMatcher:\n    pattern: document.contentType","xml":"<handler>\n  <class>UrlExtractorTransformer</class>\n  <toField>documentURLs</toField>\n  <fieldMatcher>\n    <pattern>document.contentType</pattern>\n  </fieldMatcher>\n</handler>"}}
-  ]}
+The above example is used as a post-parse handler. It detects URLs in parsed PDFs and store those URLs in a field call "documentURLs".
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "UrlExtractorTransformer",
+      "toField": "documentURLs",
+      "fieldMatcher": {
+        "pattern": "document.contentType"
+      }
+    }
+  }}
 />

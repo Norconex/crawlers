@@ -43,8 +43,13 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"SaveDocumentTransformer\",\n    \"saveDir\": \"/path/to/save/documents\",\n    \"pathToField\": \"file.path\",\n    \"defaultFileName\": \"index.html\"\n  }\n}","yaml":"handler:\n  class: SaveDocumentTransformer\n  saveDir: /path/to/save/documents\n  pathToField: file.path\n  defaultFileName: index.html","xml":"<handler>\n  <class>SaveDocumentTransformer</class>\n  <saveDir>/path/to/save/documents</saveDir>\n  <pathToField>file.path</pathToField>\n  <defaultFileName>index.html</defaultFileName>\n</handler>"}}
-  ]}
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "SaveDocumentTransformer",
+      "saveDir": "/path/to/save/documents",
+      "pathToField": "file.path",
+      "defaultFileName": "index.html"
+    }
+  }}
 />

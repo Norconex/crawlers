@@ -23,8 +23,13 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example defined a TikaParser with a custom configuration file.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"TikaParser\",\n    \"tikaConfigFile\": \"/path/to/tika-config.xml\"\n  }\n}","yaml":"handler:\n  class: TikaParser\n  tikaConfigFile: /path/to/tika-config.xml","xml":"<handler>\n  <class>TikaParser</class>\n  <tikaConfigFile>/path/to/tika-config.xml</tikaConfigFile>\n</handler>"}}
-  ]}
+The following example defined a TikaParser with a custom configuration file.
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "TikaParser",
+      "tikaConfigFile": "/path/to/tika-config.xml"
+    }
+  }}
 />

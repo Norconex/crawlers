@@ -115,8 +115,12 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example sets the FTP settings required by some hosts  to get file listings on server directories.","codeByLanguage":{"json":"{\n  \"class\": \"FtpFetcher\",\n  \"passiveMode\": true,\n  \"userDirIsRoot\": false\n}","yaml":"class: FtpFetcher\npassiveMode: true\nuserDirIsRoot: false","xml":"<class>FtpFetcher</class>\n<passiveMode>true</passiveMode>\n<userDirIsRoot>false</userDirIsRoot>"}}
-  ]}
+The following example sets the FTP settings required by some hosts  to get file listings on server directories.
+
+<ConfigExample
+  json={{
+    "class": "FtpFetcher",
+    "passiveMode": true,
+    "userDirIsRoot": false
+  }}
 />

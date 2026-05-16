@@ -60,8 +60,49 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example demonstrates a flexible handler configuration that processes data based on its content type and metadata. \n\nFirst, the conditional checks the `Content-Type` field to determine if the content is HTML. It rejected using the `Reject` handler, if the content is HTML. Otherwise, the `DefaultParser` is applied to parse the non-HTML data. \n\nFollowing parsing, another conditional handler evaluates the `date_created` field using a `DateCondition`. If the date is within the range, the content is committed to an Elasticsearch index named `new` using the `ElasticsearchCommitter`. If the date does not meet the condition, the content is committed to an Elasticsearch index named `archive`.\n\n**TODO: Importer example under ImporterConfig but Importer documentation is under WebCrawlerconfig**\n\n**TODO:check Markdown show differe in Document and Example**\n\n**TODO:add example for responseProcessors and tempDir**","codeByLanguage":{"json":"{\n  \"handlers\": {\n    \"if\": {\n      \"condition\": {\n        \"class\": \"DateCondition\",\n        \"fieldMatcher\": {\n          \"pattern\": \"date_created\"\n        },\n        \"valueMatcherStart\": {\n          \"operator\": \">=\",\n          \"date\": \"NOW-10Y\"\n        },\n        \"valueMatcherEnd\": {\n          \"operator\": \"<\",\n          \"date\": \"NOW-1Y\"\n        }\n      },\n      \"then\": {\n        \"handler\": {\n          \"class\": \"CsvSplitter\",\n          \"separatorCharacter\": \",\",\n          \"referenceColumn\": \"id\"\n        }\n      },\n      \"else\": {\n        \"handler\": {\n          \"class\": \"Reject\"\n        }\n      }\n    }\n  }\n}","yaml":"handlers:\n  if:\n    condition:\n      class: DateCondition\n      fieldMatcher:\n        pattern: date_created\n      valueMatcherStart:\n        operator: \">=\"\n        date: NOW-10Y\n      valueMatcherEnd:\n        operator: <\n        date: NOW-1Y\n    then:\n      handler:\n        class: CsvSplitter\n        separatorCharacter: \",\"\n        referenceColumn: id\n    else:\n      handler:\n        class: Reject","xml":"<handlers>\n  <if>\n    <condition>\n      <class>DateCondition</class>\n      <fieldMatcher>\n        <pattern>date_created</pattern>\n      </fieldMatcher>\n      <valueMatcherStart>\n        <operator>&gt;=</operator>\n        <date>NOW-10Y</date>\n      </valueMatcherStart>\n      <valueMatcherEnd>\n        <operator>&lt;</operator>\n        <date>NOW-1Y</date>\n      </valueMatcherEnd>\n    </condition>\n    <then>\n      <handler>\n        <class>CsvSplitter</class>\n        <separatorCharacter>,</separatorCharacter>\n        <referenceColumn>id</referenceColumn>\n      </handler>\n    </then>\n    <else>\n      <handler>\n        <class>Reject</class>\n      </handler>\n    </else>\n  </if>\n</handlers>"}}
-  ]}
+The following example demonstrates a flexible handler configuration that processes data based on its content type and metadata. 
+
+First, the conditional checks the `Content-Type` field to determine if the content is HTML. It rejected using the `Reject` handler, if the content is HTML. Otherwise, the `DefaultParser` is applied to parse the non-HTML data. 
+
+Following parsing, another conditional handler evaluates the `date_created` field using a `DateCondition`. If the date is within the range, the content is committed to an Elasticsearch index named `new` using the `ElasticsearchCommitter`. If the date does not meet the condition, the content is committed to an Elasticsearch index named `archive`.
+
+**TODO: Importer example under ImporterConfig but Importer documentation is under WebCrawlerconfig**
+
+**TODO:check Markdown show differe in Document and Example**
+
+**TODO:add example for responseProcessors and tempDir**
+
+<ConfigExample
+  json={{
+    "handlers": {
+      "if": {
+        "condition": {
+          "class": "DateCondition",
+          "fieldMatcher": {
+            "pattern": "date_created"
+          },
+          "valueMatcherStart": {
+            "operator": ">=",
+            "date": "NOW-10Y"
+          },
+          "valueMatcherEnd": {
+            "operator": "<",
+            "date": "NOW-1Y"
+          }
+        },
+        "then": {
+          "handler": {
+            "class": "CsvSplitter",
+            "separatorCharacter": ",",
+            "referenceColumn": "id"
+          }
+        },
+        "else": {
+          "handler": {
+            "class": "Reject"
+          }
+        }
+      }
+    }
+  }}
 />

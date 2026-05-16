@@ -63,8 +63,56 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example represents the default link extraction selectors  with the addition of one for URLs found in custom element attributes  named `data-myurl`.","codeByLanguage":{"json":"{\n  \"class\": \"DomLinkExtractor\",\n  \"linkSelectors\": [\n    {\n      \"extract\": \"attr(href)\",\n      \"selector\": \"a[href]\"\n    },\n    {\n      \"extract\": \"attr(src)\",\n      \"selector\": \"[src]\"\n    },\n    {\n      \"extract\": \"attr(href)\",\n      \"selector\": \"link[href]\"\n    },\n    {\n      \"extract\": \"attr(content)\",\n      \"selector\": \"meta[http-equiv='refresh']\"\n    },\n    {\n      \"extract\": \"attr(data-myurl)\",\n      \"selector\": \"[data-myurl]\"\n    }\n  ]\n}","yaml":"class: DomLinkExtractor\nlinkSelectors:\n  - extract: attr(href)\n    selector: a[href]\n  - extract: attr(src)\n    selector: \"[src]\"\n  - extract: attr(href)\n    selector: link[href]\n  - extract: attr(content)\n    selector: meta[http-equiv='refresh']\n  - extract: attr(data-myurl)\n    selector: \"[data-myurl]\"","xml":"<class>DomLinkExtractor</class>\n<linkSelectors>\n  <linkSelector>\n    <extract>attr(href)</extract>\n    <selector>a[href]</selector>\n  </linkSelector>\n  <linkSelector>\n    <extract>attr(src)</extract>\n    <selector>[src]</selector>\n  </linkSelector>\n  <linkSelector>\n    <extract>attr(href)</extract>\n    <selector>link[href]</selector>\n  </linkSelector>\n  <linkSelector>\n    <extract>attr(content)</extract>\n    <selector>meta[http-equiv='refresh']</selector>\n  </linkSelector>\n  <linkSelector>\n    <extract>attr(data-myurl)</extract>\n    <selector>[data-myurl]</selector>\n  </linkSelector>\n</linkSelectors>"}}
-  ]}
+The following example represents the default link extraction selectors  with the addition of one for URLs found in custom element attributes  named `data-myurl`.
+
+<ConfigExample
+  json={{
+    "class": "DomLinkExtractor",
+    "linkSelectors": [
+      {
+        "extract": "attr(href)",
+        "selector": "a[href]"
+      },
+      {
+        "extract": "attr(src)",
+        "selector": "[src]"
+      },
+      {
+        "extract": "attr(href)",
+        "selector": "link[href]"
+      },
+      {
+        "extract": "attr(content)",
+        "selector": "meta[http-equiv='refresh']"
+      },
+      {
+        "extract": "attr(data-myurl)",
+        "selector": "[data-myurl]"
+      }
+    ]
+  }}
+  xml={`
+    <class>DomLinkExtractor</class>
+    <linkSelectors>
+      <linkSelector>
+        <extract>attr(href)</extract>
+        <selector>a[href]</selector>
+      </linkSelector>
+      <linkSelector>
+        <extract>attr(src)</extract>
+        <selector>[src]</selector>
+      </linkSelector>
+      <linkSelector>
+        <extract>attr(href)</extract>
+        <selector>link[href]</selector>
+      </linkSelector>
+      <linkSelector>
+        <extract>attr(content)</extract>
+        <selector>meta[http-equiv='refresh']</selector>
+      </linkSelector>
+      <linkSelector>
+        <extract>attr(data-myurl)</extract>
+        <selector>[data-myurl]</selector>
+      </linkSelector>
+    </linkSelectors>`}
 />

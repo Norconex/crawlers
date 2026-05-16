@@ -35,8 +35,12 @@ Regular expression matching an alternate segment separator (default is: /)
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The above example will reject URLs with more than 5 forward slashes after the domain.","codeByLanguage":{"json":"{\n  \"class\": \"SegmentCountUrlFilter\",\n  \"onMatch\": \"EXCLUDE\",\n  \"count\": 5\n}","yaml":"class: SegmentCountUrlFilter\nonMatch: EXCLUDE\ncount: 5","xml":"<class>SegmentCountUrlFilter</class>\n<onMatch>EXCLUDE</onMatch>\n<count>5</count>"}}
-  ]}
+The above example will reject URLs with more than 5 forward slashes after the domain.
+
+<ConfigExample
+  json={{
+    "class": "SegmentCountUrlFilter",
+    "onMatch": "EXCLUDE",
+    "count": 5
+  }}
 />

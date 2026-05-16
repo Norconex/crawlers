@@ -31,8 +31,36 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example ensures this link extractor should only apply  on documents that have their URL ending with \"rss\" (in addition to  the default content types filtering).","codeByLanguage":{"json":"{\n  \"class\": \"XmlFeedLinkExtractor\",\n  \"restrictions\": [\n    {\n      \"fieldMatcher\": {\n        \"pattern\": \"document.reference\"\n      },\n      \"valueMatcher\": {\n        \"method\": \"REGEX\",\n        \"pattern\": \".*rss$\"\n      }\n    }\n  ]\n}","yaml":"class: XmlFeedLinkExtractor\nrestrictions:\n  - fieldMatcher:\n      pattern: document.reference\n    valueMatcher:\n      method: REGEX\n      pattern: .*rss$","xml":"<class>XmlFeedLinkExtractor</class>\n<restrictions>\n  <restriction>\n    <fieldMatcher>\n      <pattern>document.reference</pattern>\n    </fieldMatcher>\n    <valueMatcher>\n      <method>REGEX</method>\n      <pattern>.*rss$</pattern>\n    </valueMatcher>\n  </restriction>\n</restrictions>"}}
-  ]}
+The following example ensures this link extractor should only apply  on documents that have their URL ending with "rss" (in addition to  the default content types filtering).
+
+
+
+<ConfigExample
+  json={{
+    "class": "XmlFeedLinkExtractor",
+    "restrictions": [
+      {
+        "fieldMatcher": {
+          "pattern": "document.reference"
+        },
+        "valueMatcher": {
+          "method": "REGEX",
+          "pattern": ".*rss$"
+        }
+      }
+    ]
+  }}
+  xml={`
+<class>XmlFeedLinkExtractor</class>
+<restrictions>
+  <restriction>
+    <fieldMatcher>
+      <pattern>document.reference</pattern>
+    </fieldMatcher>
+    <valueMatcher>
+      <method>REGEX</method>
+      <pattern>.*rss$</pattern>
+    </valueMatcher>
+  </restriction>
+</restrictions>`}
 />

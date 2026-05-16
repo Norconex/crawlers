@@ -38,8 +38,46 @@ What to do if a target field of the same name already exist.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example adds a constant to incoming documents to identify they were web and mobile documents plus a constant number","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"ConstantTransformer\",\n    \"constants\": [\n      {\n        \"name\": \"source\",\n        \"values\": [\n          \"web\",\n          \"mobile\"\n        ]\n      },\n      {\n        \"name\": \"limit\",\n        \"values\": [\n          \"3\"\n        ]\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: ConstantTransformer\n  constants:\n    - name: source\n      values:\n        - web\n        - mobile\n    - name: limit\n      values:\n        - \"3\"","xml":"<handler>\n  <class>ConstantTransformer</class>\n  <constants>\n    <constant>source</constant>\n    <values>\n      <value>web</value>\n      <value>mobile</value>\n    </values>\n    <constant>limit</constant>\n    <values>\n      <value>3</value>\n    </values>\n  </constants>\n</handler>"}}
-  ]}
+The following example adds a constant to incoming documents to identify they were web and mobile documents plus a constant number
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "ConstantTransformer",
+      "constants": [
+        {
+          "name": "source",
+          "values": [
+            "web",
+            "mobile"
+          ]
+        },
+        {
+          "name": "limit",
+          "values": [
+            "3"
+          ]
+        }
+      ]
+    }
+  }}
+  xml={`
+    <handler>
+      <class>ConstantTransformer</class>
+      <constants>
+        <constant>
+          <name>source</name>
+          <values>
+            <value>web</value>
+            <value>mobile</value>
+          </values>
+        </constant>
+        <constant>
+          <name>limit</name>
+          <values>
+            <value>3</value>
+          </values>
+        </constant>
+      </constants>
+    </handler>`}
 />

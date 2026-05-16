@@ -47,8 +47,14 @@ Indicates whether to include the count of occurrences for each field value.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example logs all discovered fields into a `field-report.csv` file, along with only 1 example value.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"ExternalTransformer\",\n    \"file\": \"C:\\\\reports\\\\field-report.csv\",\n    \"maxSamples\": 1\n  }\n}","yaml":"handler:\n  class: ExternalTransformer\n  file: C:\\reports\\field-report.csv\n  maxSamples: 1","xml":"<handler>\n  <class>ExternalTransformer</class>\n  <file>C:\\reports\\field-report.csv</file>\n  <maxSamples>1</maxSamples>\n</handler>"}}
-  ]}
+The following example logs all discovered fields into a `field-report.csv` file, along with only 1 example value.
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "ExternalTransformer",
+      "file": "C:\\reports\\field-report.csv",
+      "maxSamples": 1
+    }
+  }}
 />

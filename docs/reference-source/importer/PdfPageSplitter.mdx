@@ -55,8 +55,13 @@ Defines the prefix added before the page number in a document reference. Default
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example will split PDFs and will append the page number to the original PDF reference as \"#page1\", \"#page2\", etc.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"PdfPageSplitter\",\n    \"referencePagePrefix\": \"#page\"\n  }\n}","yaml":"handler:\n  class: PdfPageSplitter\n  referencePagePrefix: \"#page\"","xml":"<handler>\n  <class>PdfPageSplitter</class>\n  <referencePagePrefix>#page</referencePagePrefix>\n</handler>"}}
-  ]}
+The following example will split PDFs and will append the page number to the original PDF reference as "#page1", "#page2", etc.
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "PdfPageSplitter",
+      "referencePagePrefix": "#page"
+    }
+  }}
 />

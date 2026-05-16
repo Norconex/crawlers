@@ -38,8 +38,40 @@ Sets the character encoding of the source document to ensure proper reading and 
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The above example extract the content between **OPEN** and **CLOSE** strings, excluding these strings, and store it in a `content` field.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"TextBetweenTransformer\",\n    \"operations\": [\n      {\n        \"toField\": \"content\",\n        \"startMatcher\": {\n          \"pattern\": \"OPEN\"\n        },\n        \"endMatcher\": {\n          \"pattern\": \"CLOSE\"\n        }\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: TextBetweenTransformer\n  operations:\n    - toField: content\n      startMatcher:\n        pattern: OPEN\n      endMatcher:\n        pattern: CLOSE","xml":"<handler>\n  <class>TextBetweenTransformer</class>\n  <operations>\n    <op>\n      <toField>content</toField>\n      <startMatcher>\n        <pattern>OPEN</pattern>\n      </startMatcher>\n      <endMatcher>\n        <pattern>CLOSE</pattern>\n      </endMatcher>\n    </op>\n  </operations>\n</handler>"}}
-  ]}
+The above example extract the content between **OPEN** and **CLOSE** strings, excluding these strings, and store it in a `content` field.
+
+
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "TextBetweenTransformer",
+      "operations": [
+        {
+          "toField": "content",
+          "startMatcher": {
+            "pattern": "OPEN"
+          },
+          "endMatcher": {
+            "pattern": "CLOSE"
+          }
+        }
+      ]
+    }
+  }}
+  xml={`
+<handler>
+  <class>TextBetweenTransformer</class>
+  <operations>
+    <op>
+      <toField>content</toField>
+      <startMatcher>
+        <pattern>OPEN</pattern>
+      </startMatcher>
+      <endMatcher>
+        <pattern>CLOSE</pattern>
+      </endMatcher>
+    </op>
+  </operations>
+</handler>`}
 />

@@ -82,8 +82,13 @@ Sets the directory where to store temporary files used for the process.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example invokes an external application that accepts a document to transform and outputs a file containing the new metadata information.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"ExternalTransformer\",\n    \"command\": \"/path/tag/app ${INPUT} ${OUTPUT_META}\"\n  }\n}","yaml":"handler:\n  class: ExternalTransformer\n  command: /path/tag/app ${INPUT} ${OUTPUT_META}","xml":"<handler>\n  <class>ExternalTransformer</class>\n  <command>/path/tag/app ${INPUT} ${OUTPUT_META}</command>\n</handler>"}}
-  ]}
+The following example invokes an external application that accepts a document to transform and outputs a file containing the new metadata information.
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "ExternalTransformer",
+      "command": "/path/tag/app ${INPUT} ${OUTPUT_META}"
+    }
+  }}
 />

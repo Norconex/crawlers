@@ -138,8 +138,44 @@ Sets the character encoding of the source document to ensure proper reading and 
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"Given this HTML snippet...\n\n``` html\n<div class=\"firstName\">Joe</div>\n<div class=\"lastName\">Dalton</div>\n```\nThe following example will store \"Joe\" in a \"firstName\" field and \"Dalton\" in a \"lastName\" field.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"DomTransformer\",\n    \"operations\": [\n      {\n        \"selector\": \"div.firstName\",\n        \"toField\": \"firstName\"\n      },\n      {\n        \"selector\": \"div.lastname\",\n        \"toField\": \"lastName\"\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: DomTransformer\n  operations:\n    - selector: div.firstName\n      toField: firstName\n    - selector: div.lastname\n      toField: lastName","xml":"<handler>\n  <class>DomTransformer</class>\n  <operations>\n    <op>\n      <selector>div.firstName</selector>\n      <toField>firstName</toField>\n    </op>\n    <op>\n      <selector>div.lastname</selector>\n      <toField>lastName</toField>\n    </op>\n  </operations>\n</handler>"}}
-  ]}
+Given this HTML snippet...
+
+``` html
+<div class="firstName">Joe</div>
+<div class="lastName">Dalton</div>
+```
+The following example will store "Joe" in a "firstName" field and "Dalton" in a "lastName" field.
+
+
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "DomTransformer",
+      "operations": [
+        {
+          "selector": "div.firstName",
+          "toField": "firstName"
+        },
+        {
+          "selector": "div.lastname",
+          "toField": "lastName"
+        }
+      ]
+    }
+  }}
+  xml={`
+<handler>
+  <class>DomTransformer</class>
+  <operations>
+    <op>
+      <selector>div.firstName</selector>
+      <toField>firstName</toField>
+    </op>
+    <op>
+      <selector>div.lastname</selector>
+      <toField>lastName</toField>
+    </op>
+  </operations>
+</handler>`}
 />

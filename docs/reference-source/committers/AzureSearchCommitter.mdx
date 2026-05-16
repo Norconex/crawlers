@@ -87,8 +87,20 @@ Use Windows authentication to connect.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example uses the minimum required settings to configure Microsoft Azure Search Committer.","codeByLanguage":{"json":"{\n  \"class\": \"AzureSearchCommitter\",\n  \"endpoint\": \"https://example.search.windows.net\",\n  \"apiKey\": \"1234567890ABCDEF1234567890ABCDEF\",\n  \"indexName\": \"sample-index\"\n}","yaml":"class: AzureSearchCommitter\nendpoint: https://example.search.windows.net\napiKey: 1234567890ABCDEF1234567890ABCDEF\nindexName: sample-index","xml":"<committer>\n  <class>AzureSearchCommitter</class>\n  <endpoint>https://example.search.windows.net</endpoint>\n  <apiKey>1234567890ABCDEF1234567890ABCDEF</apiKey>\n  <indexName>sample-index</indexName>\n</committer>"}}
-  ]}
+The following example uses the minimum required settings to configure Microsoft Azure Search Committer.
+
+<ConfigExample
+  json={{
+    "class": "AzureSearchCommitter",
+    "endpoint": "https://example.search.windows.net",
+    "apiKey": "1234567890ABCDEF1234567890ABCDEF",
+    "indexName": "sample-index"
+  }}
+  xml={`
+    <committer>
+      <class>AzureSearchCommitter</class>
+      <endpoint>https://example.search.windows.net</endpoint>
+      <apiKey>1234567890ABCDEF1234567890ABCDEF</apiKey>
+      <indexName>sample-index</indexName>
+    </committer>`}
 />

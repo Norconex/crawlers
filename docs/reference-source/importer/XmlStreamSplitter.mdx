@@ -69,8 +69,13 @@ The path to the element to split on.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example will create one document per animals, based on the sample XML given above.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"XmlStreamSplitter\",\n    \"path\": \"/animals/species/animal\"\n  }\n}","yaml":"handler:\n  class: XmlStreamSplitter\n  path: /animals/species/animal","xml":"<handler>\n  <class>XmlStreamSplitter</class>\n  <path>/animals/species/animal</path>\n</handler>"}}
-  ]}
+The following example will create one document per animals, based on the sample XML given above.
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "XmlStreamSplitter",
+      "path": "/animals/species/animal"
+    }
+  }}
 />

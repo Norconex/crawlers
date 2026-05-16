@@ -87,8 +87,9 @@ Name of the column holding the operation type (`upsert` or `delete`). Default is
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","codeByLanguage":{"json":"{\n  \"class\": \"CsvFileCommitter\",\n  \"filePath\": \"/path/to/committer.csv\"\n}","yaml":"class: CsvFileCommitter\nfilePath: /path/to/committer.csv","xml":"<class>CsvFileCommitter</class>\n<filePath>/path/to/committer.csv</filePath>"}}
-  ]}
+<ConfigExample
+  json={{
+    "class": "CsvFileCommitter",
+    "filePath": "/path/to/committer.csv"
+  }}
 />

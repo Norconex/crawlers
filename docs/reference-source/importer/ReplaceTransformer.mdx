@@ -46,8 +46,42 @@ Sets the character encoding of the source document to ensure proper reading and 
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example replaces occurrences of \"apple\" to \"orange\" in the \"fruit\" field.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"ReplaceTransformer\",\n    \"operations\": [\n      {\n        \"fieldMatcher\": {\n          \"pattern\": \"fruit\"\n        },\n        \"valueMatcher\": {\n          \"replaceAll\": true,\n          \"pattern\": \"apple\"\n        },\n        \"toValue\": \"orange\"\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: ReplaceTransformer\n  operations:\n    - fieldMatcher:\n        pattern: fruit\n      valueMatcher:\n        replaceAll: true\n        pattern: apple\n      toValue: orange","xml":"<handler>\n  <class>ReplaceTransformer</class>\n  <operations>\n    <op>\n      <fieldMatcher>\n        <pattern>fruit</pattern>\n      </fieldMatcher>\n      <valueMatcher>\n        <replaceAll>true</replaceAll>\n        <pattern>apple</pattern>\n      </valueMatcher>\n      <toValue>orange</toValue>\n    </op>\n  </operations>\n</handler>"}}
-  ]}
+The following example replaces occurrences of "apple" to "orange" in the "fruit" field.
+
+
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "ReplaceTransformer",
+      "operations": [
+        {
+          "fieldMatcher": {
+            "pattern": "fruit"
+          },
+          "valueMatcher": {
+            "replaceAll": true,
+            "pattern": "apple"
+          },
+          "toValue": "orange"
+        }
+      ]
+    }
+  }}
+  xml={`
+<handler>
+  <class>ReplaceTransformer</class>
+  <operations>
+    <op>
+      <fieldMatcher>
+        <pattern>fruit</pattern>
+      </fieldMatcher>
+      <valueMatcher>
+        <replaceAll>true</replaceAll>
+        <pattern>apple</pattern>
+      </valueMatcher>
+      <toValue>orange</toValue>
+    </op>
+  </operations>
+</handler>`}
 />

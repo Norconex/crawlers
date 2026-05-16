@@ -31,8 +31,26 @@ What to do with a reference once its file extension is matched.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example will only accept references with the following extensions, regardless of character case: `.html`, `.htm`, `.php`, and `.asp`.","codeByLanguage":{"json":"{\n  \"class\": \"ExtensionReferenceFilter\",\n  \"extensions\": [\n    \"html\",\n    \"htm\",\n    \"php\",\n    \"asp\"\n  ],\n  \"ignoreCase\": true\n}","yaml":"class: ExtensionReferenceFilter\nextensions:\n  - html\n  - htm\n  - php\n  - asp\nignoreCase: true","xml":"<class>ExtensionReferenceFilter</class>\n<extensions>\n  <extension>html</extension>\n  <extension>htm</extension>\n  <extension>php</extension>\n  <extension>asp</extension>\n</extensions>\n<ignoreCase>true</ignoreCase>"}}
-  ]}
+The following example will only accept references with the following extensions, regardless of character case: `.html`, `.htm`, `.php`, and `.asp`.
+
+<ConfigExample
+  json={{
+    "class": "ExtensionReferenceFilter",
+    "extensions": [
+      "html",
+      "htm",
+      "php",
+      "asp"
+    ],
+    "ignoreCase": true
+  }}
+  xml={`
+    <class>ExtensionReferenceFilter</class>
+    <extensions>
+      <extension>html</extension>
+      <extension>htm</extension>
+      <extension>php</extension>
+      <extension>asp</extension>
+    </extensions>
+    <ignoreCase>true</ignoreCase>`}
 />

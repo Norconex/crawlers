@@ -133,8 +133,28 @@ Sets the character encoding of the source document to ensure proper reading and 
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example detects whether pages are English or French, falling back to English if detection failed.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"ExternalParser\",\n    \"fallbackLanguage\": \"en\",\n    \"languages\": [\n      \"en\",\n      \"fr\"\n    ]\n  }\n}","yaml":"handler:\n  class: ExternalParser\n  fallbackLanguage: en\n  languages:\n    - en\n    - fr","xml":"<handler>\n  <class>ExternalParser</class>\n  <fallbackLanguage>en</fallbackLanguage>\n  <languages>\n    <language>en</language>\n    <language>fr</language>\n  </languages>\n</handler>"}}
-  ]}
+The following example detects whether pages are English or French, falling back to English if detection failed.
+
+
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "ExternalParser",
+      "fallbackLanguage": "en",
+      "languages": [
+        "en",
+        "fr"
+      ]
+    }
+  }}
+  xml={`
+<handler>
+  <class>ExternalParser</class>
+  <fallbackLanguage>en</fallbackLanguage>
+  <languages>
+    <language>en</language>
+    <language>fr</language>
+  </languages>
+</handler>`}
 />

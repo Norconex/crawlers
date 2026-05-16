@@ -38,8 +38,38 @@ Allows defining multiple operations as a list.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example copies the value of a \"creator\" and \"publisher\" fields into an \"author\" field, adding to any existing values in the \"author\" field.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"CopyTransformer\",\n    \"operations\": [\n      {\n        \"toField\": \"author\",\n        \"onSet\": \"APPEND\",\n        \"fieldMatcher\": {\n          \"method\": \"REGEX\",\n          \"pattern\": \"(creator|publisher)\"\n        }\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: CopyTransformer\n  operations:\n    - toField: author\n      onSet: APPEND\n      fieldMatcher:\n        method: REGEX\n        pattern: (creator|publisher)","xml":"<handler>\n  <class>CopyTransformer</class>\n  <operations>\n    <op>\n      <toField>author</toField>\n      <onSet>APPEND</onSet>\n      <fieldMatcher>\n        <method>REGEX</method>\n        <pattern>(creator|publisher)</pattern>\n      </fieldMatcher>\n    </op>\n  </operations>\n</handler>"}}
-  ]}
+The following example copies the value of a "creator" and "publisher" fields into an "author" field, adding to any existing values in the "author" field.
+
+
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "CopyTransformer",
+      "operations": [
+        {
+          "toField": "author",
+          "onSet": "APPEND",
+          "fieldMatcher": {
+            "method": "REGEX",
+            "pattern": "(creator|publisher)"
+          }
+        }
+      ]
+    }
+  }}
+  xml={`
+<handler>
+  <class>CopyTransformer</class>
+  <operations>
+    <op>
+      <toField>author</toField>
+      <onSet>APPEND</onSet>
+      <fieldMatcher>
+        <method>REGEX</method>
+        <pattern>(creator|publisher)</pattern>
+      </fieldMatcher>
+    </op>
+  </operations>
+</handler>`}
 />

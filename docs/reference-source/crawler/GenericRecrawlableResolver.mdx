@@ -27,8 +27,50 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example ensures PDFs are re-crawled no more frequently than once a month, while HTML news can be re-crawled frequently at every half hour. For the rest, it relies on the website sitemap directives  (if any).","codeByLanguage":{"json":"{\n  \"class\": \"GenericRecrawlableResolver\",\n  \"sitemapSupport\": \"LAST\",\n  \"minFrequencies\": [\n    {\n      \"applyTo\": \"CONTENT_TYPE\",\n      \"value\": \"monthly\",\n      \"matcher\": {\n        \"pattern\": \"application/pdf\"\n      }\n    },\n    {\n      \"applyTo\": \"REFERENCE\",\n      \"value\": \"1800000\",\n      \"matcher\": {\n        \"method\": \"REGEX\",\n        \"pattern\": \".*latest-news.*\\\\.html\"\n      }\n    }\n  ]\n}","yaml":"class: GenericRecrawlableResolver\nsitemapSupport: LAST\nminFrequencies:\n  - applyTo: CONTENT_TYPE\n    value: monthly\n    matcher:\n      pattern: application/pdf\n  - applyTo: REFERENCE\n    value: \"1800000\"\n    matcher:\n      method: REGEX\n      pattern: .*latest-news.*\\.html","xml":"<class>GenericRecrawlableResolver</class>\n<sitemapSupport>LAST</sitemapSupport>\n<minFrequencies>\n  <minFrequency>\n    <applyTo>CONTENT_TYPE</applyTo>\n    <value>monthly</value>\n    <matcher>\n      <pattern>application/pdf</pattern>\n    </matcher>\n  </minFrequency>\n  <minFrequency>\n    <applyTo>REFERENCE</applyTo>\n    <value>1800000</value>\n    <matcher>\n      <method>REGEX</method>\n      <pattern>.*latest-news.*\\.html</pattern>\n    </matcher>\n  </minFrequency>\n</minFrequencies>"}}
-  ]}
+The following example ensures PDFs are re-crawled no more frequently than once a month, while HTML news can be re-crawled frequently at every half hour. For the rest, it relies on the website sitemap directives  (if any).
+
+
+
+<ConfigExample
+  json={{
+    "class": "GenericRecrawlableResolver",
+    "sitemapSupport": "LAST",
+    "minFrequencies": [
+      {
+        "applyTo": "CONTENT_TYPE",
+        "value": "monthly",
+        "matcher": {
+          "pattern": "application/pdf"
+        }
+      },
+      {
+        "applyTo": "REFERENCE",
+        "value": "1800000",
+        "matcher": {
+          "method": "REGEX",
+          "pattern": ".*latest-news.*\\.html"
+        }
+      }
+    ]
+  }}
+  xml={`
+<class>GenericRecrawlableResolver</class>
+<sitemapSupport>LAST</sitemapSupport>
+<minFrequencies>
+  <minFrequency>
+    <applyTo>CONTENT_TYPE</applyTo>
+    <value>monthly</value>
+    <matcher>
+      <pattern>application/pdf</pattern>
+    </matcher>
+  </minFrequency>
+  <minFrequency>
+    <applyTo>REFERENCE</applyTo>
+    <value>1800000</value>
+    <matcher>
+      <method>REGEX</method>
+      <pattern>.*latest-news.*\.html</pattern>
+    </matcher>
+  </minFrequency>
+</minFrequencies>`}
 />

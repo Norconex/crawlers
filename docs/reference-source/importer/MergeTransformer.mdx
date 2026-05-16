@@ -35,8 +35,42 @@ Specifies the type of merge operation to be performed. (TODO- "operations" redun
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example merges several title fields into one, joining multiple occurrences with a coma, and deleting original fields.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"MergeTransformer\",\n    \"operations\": [\n      {\n        \"toField\": \"title\",\n        \"deleteFromFields\": true,\n        \"singleValue\": true,\n        \"singleValueSeparator\": \",\",\n        \"fieldMatcher\": {\n          \"method\": \"REGEX\",\n          \"pattern\": \"(title|dc.title|dc:title|doctitle)\"\n        }\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: MergeTransformer\n  operations:\n    - toField: title\n      deleteFromFields: true\n      singleValue: true\n      singleValueSeparator: \",\"\n      fieldMatcher:\n        method: REGEX\n        pattern: (title|dc.title|dc:title|doctitle)","xml":"<handler>\n  <class>MergeTransformer</class>\n  <operations>\n    <op>\n      <toField>title</toField>\n      <deleteFromFields>true</deleteFromFields>\n      <singleValue>true</singleValue>\n      <singleValueSeparator>,</singleValueSeparator>\n      <fieldMatcher>\n        <method>REGEX</method>\n        <pattern>(title|dc.title|dc:title|doctitle)</pattern>\n      </fieldMatcher>\n    </op>\n  </operations>\n</handler>"}}
-  ]}
+The following example merges several title fields into one, joining multiple occurrences with a coma, and deleting original fields.
+
+
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "MergeTransformer",
+      "operations": [
+        {
+          "toField": "title",
+          "deleteFromFields": true,
+          "singleValue": true,
+          "singleValueSeparator": ",",
+          "fieldMatcher": {
+            "method": "REGEX",
+            "pattern": "(title|dc.title|dc:title|doctitle)"
+          }
+        }
+      ]
+    }
+  }}
+  xml={`
+<handler>
+  <class>MergeTransformer</class>
+  <operations>
+    <op>
+      <toField>title</toField>
+      <deleteFromFields>true</deleteFromFields>
+      <singleValue>true</singleValue>
+      <singleValueSeparator>,</singleValueSeparator>
+      <fieldMatcher>
+        <method>REGEX</method>
+        <pattern>(title|dc.title|dc:title|doctitle)</pattern>
+      </fieldMatcher>
+    </op>
+  </operations>
+</handler>`}
 />

@@ -43,8 +43,26 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example extracts page \"ids\" contained in square brackets and add them to a custom URL.","codeByLanguage":{"json":"{\n  \"class\": \"RegexLinkExtractor\",\n  \"patterns\": [\n    {\n      \"match\": \"\\\\[(\\\\d+)\\\\]\",\n      \"replace\": \"http://www.example.com/page?id=$1\"\n    }\n  ]\n}","yaml":"class: RegexLinkExtractor\npatterns:\n  - match: \\[(\\d+)\\]\n    replace: http://www.example.com/page?id=$1","xml":"<class>RegexLinkExtractor</class>\n<patterns>\n  <pattern>\n    <match>\\[(\\d+)\\]</match>\n    <replace>http://www.example.com/page?id=$1</replace>\n  </pattern>\n</patterns>"}}
-  ]}
+The following example extracts page "ids" contained in square brackets and add them to a custom URL.
+
+
+
+<ConfigExample
+  json={{
+    "class": "RegexLinkExtractor",
+    "patterns": [
+      {
+        "match": "\\[(\\d+)\\]",
+        "replace": "http://www.example.com/page?id=$1"
+      }
+    ]
+  }}
+  xml={`
+<class>RegexLinkExtractor</class>
+<patterns>
+  <pattern>
+    <match>\[(\d+)\]</match>
+    <replace>http://www.example.com/page?id=$1</replace>
+  </pattern>
+</patterns>`}
 />

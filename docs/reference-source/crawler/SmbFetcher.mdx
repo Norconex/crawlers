@@ -35,8 +35,13 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","codeByLanguage":{"json":"{\n  \"class\": \"SmbFetcher\",\n  \"credentials\": {\n    \"username\": \"joe\",\n    \"password\": \"joe's-password\"\n  },\n  \"domain\": \"WORKGROUP\"\n}","yaml":"class: SmbFetcher\ncredentials:\n  username: joe\n  password: joe's-password\ndomain: WORKGROUP","xml":"<class>SmbFetcher</class>\n<credentials>\n  <username>joe</username>\n  <password>joe's-password</password>\n</credentials>\n<domain>WORKGROUP</domain>"}}
-  ]}
+<ConfigExample
+  json={{
+    "class": "SmbFetcher",
+    "credentials": {
+      "username": "joe",
+      "password": "joe's-password"
+    },
+    "domain": "WORKGROUP"
+  }}
 />

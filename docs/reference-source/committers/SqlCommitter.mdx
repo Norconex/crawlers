@@ -83,8 +83,35 @@ Table field name where to store the document content. Leave blank  if you do not
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example uses an H2 database and creates the table and  fields as they are encountered, storing all new fields as `VARCHAR`,  making sure those new fields are no longer than 5000 characters.","codeByLanguage":{"json":"{\n  \"class\": \"SqlCommitter\",\n  \"driverPath\": \"/path/to/driver/h2.jar\",\n  \"driverClass\": \"org.h2.Driver\",\n  \"connectionUrl\": \"jdbc:h2:file:///path/to/db/h2\",\n  \"tableName\": \"test_table\",\n  \"createTableSQL\": \"CREATE TABLE {tableName} (\\n{primaryKey} VARCHAR(32672) NOT NULL, \\ncontent CLOB, \\nPRIMARY KEY ( {primaryKey} ), \\ntitle   VARCHAR(256),\\nauthor  VARCHAR(256))\",\n  \"createFieldSQL\": \"\",\n  \"fixFieldValues\": true\n}","yaml":"class: SqlCommitter\ndriverPath: /path/to/driver/h2.jar\ndriverClass: org.h2.Driver\nconnectionUrl: jdbc:h2:file:///path/to/db/h2\ntableName: test_table\ncreateTableSQL: |-\n  CREATE TABLE {tableName} (\n  {primaryKey} VARCHAR(32672) NOT NULL, \n  content CLOB, \n  PRIMARY KEY ( {primaryKey} ), \n  title   VARCHAR(256),\n  author  VARCHAR(256))\ncreateFieldSQL: \"\"\nfixFieldValues: true","xml":"<committer>\n  <class>SqlCommitter</class>\n  <driverPath>/path/to/driver/h2.jar</driverPath>\n  <driverClass>org.h2.Driver</driverClass>\n  <connectionUrl>jdbc:h2:file:///path/to/db/h2</connectionUrl>\n  <tableName>test_table</tableName>\n  <createTableSQL>CREATE TABLE {tableName} (\n{primaryKey} VARCHAR(32672) NOT NULL, \ncontent CLOB, \nPRIMARY KEY ( {primaryKey} ), \ntitle   VARCHAR(256),\nauthor  VARCHAR(256))</createTableSQL>\n  <createFieldSQL/>\n  <fixFieldValues>true</fixFieldValues>\n</committer>"}}
-  ]}
+The following example uses an H2 database and creates the table and  fields as they are encountered, storing all new fields as `VARCHAR`,  making sure those new fields are no longer than 5000 characters.
+
+<ConfigExample
+  json={{
+    "class": "SqlCommitter",
+    "driverPath": "/path/to/driver/h2.jar",
+    "driverClass": "org.h2.Driver",
+    "connectionUrl": "jdbc:h2:file:///path/to/db/h2",
+    "tableName": "test_table",
+    "createTableSQL": "CREATE TABLE {tableName} (\n{primaryKey} VARCHAR(32672) NOT NULL, \ncontent CLOB, \nPRIMARY KEY ( {primaryKey} ), \ntitle   VARCHAR(256),\nauthor  VARCHAR(256))",
+    "createFieldSQL": "",
+    "fixFieldValues": true
+  }}
+  xml={`
+    <committer>
+      <class>SqlCommitter</class>
+      <driverPath>/path/to/driver/h2.jar</driverPath>
+      <driverClass>org.h2.Driver</driverClass>
+      <connectionUrl>jdbc:h2:file:///path/to/db/h2</connectionUrl>
+      <tableName>test_table</tableName>
+      <createTableSQL>
+        CREATE TABLE {tableName} (
+        {primaryKey} VARCHAR(32672) NOT NULL, 
+        content CLOB, 
+        PRIMARY KEY ( {primaryKey} ), 
+        title   VARCHAR(256),
+        author  VARCHAR(256))
+      </createTableSQL>
+      <createFieldSQL/>
+      <fixFieldValues>true</fixFieldValues>
+    </committer>`}
 />

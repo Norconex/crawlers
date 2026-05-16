@@ -67,8 +67,38 @@ Required connection URI. E.g., `bolt://localhost:7687`.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example creates a graph of collected documents.","codeByLanguage":{"json":"{\n  \"class\": \"Neo4jCommitter\",\n  \"uri\": \"bolt://localhost:7687\",\n  \"upsertCypher\": \"MERGE (a:Document { docId: $id }) SET a += { title: $title } SET a += { author: $author }\",\n  \"deleteCypher\": \"MATCH (a:Document { docId: $id }) DETACH DELETE a\",\n  \"credentials\": {\n    \"username\": \"neo4j\",\n    \"password\": \"AcwFJPHITfk6LrRp7HW7Ag6hvDZotXcvWt2WvDMcGIo=\",\n    \"passwordKey\": {\n      \"value\": \"key.txt\",\n      \"source\": \"FILE\"\n    }\n  },\n  \"multiValuesJoiner\": \"_\"\n}","yaml":"class: Neo4jCommitter\nuri: bolt://localhost:7687\nupsertCypher: \"MERGE (a:Document { docId: $id }) SET a += { title: $title } SET\n  a += { author: $author }\"\ndeleteCypher: \"MATCH (a:Document { docId: $id }) DETACH DELETE a\"\ncredentials:\n  username: neo4j\n  password: AcwFJPHITfk6LrRp7HW7Ag6hvDZotXcvWt2WvDMcGIo=\n  passwordKey:\n    value: key.txt\n    source: FILE\nmultiValuesJoiner: _","xml":"<committer>\n  <class>Neo4jCommitter</class>\n  <uri>bolt://localhost:7687</uri>\n  <upsertCypher>MERGE (a:Document { docId: $id }) SET a += { title: $title } SET a += { author: $author }</upsertCypher>\n  <deleteCypher>MATCH (a:Document { docId: $id }) DETACH DELETE a</deleteCypher>\n  <credentials>\n    <username>neo4j</username>\n    <password>AcwFJPHITfk6LrRp7HW7Ag6hvDZotXcvWt2WvDMcGIo=</password>\n    <passwordKey>\n      <value>key.txt</value>\n      <source>FILE</source>\n    </passwordKey>\n  </credentials>\n  <multiValuesJoiner>_</multiValuesJoiner>\n</committer>"}}
-  ]}
+The following example creates a graph of collected documents.
+
+<ConfigExample
+  json={{
+    "class": "Neo4jCommitter",
+    "uri": "bolt://localhost:7687",
+    "upsertCypher": "MERGE (a:Document { docId: $id }) SET a += { title: $title } SET a += { author: $author }",
+    "deleteCypher": "MATCH (a:Document { docId: $id }) DETACH DELETE a",
+    "credentials": {
+      "username": "neo4j",
+      "password": "AcwFJPHITfk6LrRp7HW7Ag6hvDZotXcvWt2WvDMcGIo=",
+      "passwordKey": {
+        "value": "key.txt",
+        "source": "FILE"
+      }
+    },
+    "multiValuesJoiner": "_"
+  }}
+  xml={`
+    <committer>
+      <class>Neo4jCommitter</class>
+      <uri>bolt://localhost:7687</uri>
+      <upsertCypher>MERGE (a:Document { docId: $id }) SET a += { title: $title } SET a += { author: $author }</upsertCypher>
+      <deleteCypher>MATCH (a:Document { docId: $id }) DETACH DELETE a</deleteCypher>
+      <credentials>
+        <username>neo4j</username>
+        <password>AcwFJPHITfk6LrRp7HW7Ag6hvDZotXcvWt2WvDMcGIo=</password>
+        <passwordKey>
+          <value>key.txt</value>
+          <source>FILE</source>
+        </passwordKey>
+      </credentials>
+      <multiValuesJoiner>_</multiValuesJoiner>
+    </committer>`}
 />

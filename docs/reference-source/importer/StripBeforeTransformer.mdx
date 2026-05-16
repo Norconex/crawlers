@@ -39,8 +39,19 @@ Specifies the pattern to match for stripping content before.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The above example will strip all text up to and including this HTML comment: <!-- HEADER_END -->.\n\n**TODO: do example still need CDATA??**","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"StripBeforeTransformer\",\n    \"inclusive\": true,\n    \"stripBeforeMatcher\": {\n      \"method\": \"REGEX\",\n      \"pattern\": \"<![CDATA[<!-- HEADER_END -->]]>\"\n    }\n  }\n}","yaml":"handler:\n  class: StripBeforeTransformer\n  inclusive: true\n  stripBeforeMatcher:\n    method: REGEX\n    pattern: <![CDATA[<!-- HEADER_END -->]]>","xml":"<handler>\n  <class>StripBeforeTransformer</class>\n  <inclusive>true</inclusive>\n  <stripBeforeMatcher>\n    <method>REGEX</method>\n    <pattern><![CDATA[<!-- HEADER_END -->]]></pattern>\n  </stripBeforeMatcher>\n</handler>"}}
-  ]}
+The above example will strip all text up to and including this HTML comment: &gt;!-- HEADER_END --&lt;.
+
+**TODO: do example still need CDATA??**
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "StripBeforeTransformer",
+      "inclusive": true,
+      "stripBeforeMatcher": {
+        "method": "REGEX",
+        "pattern": "<![CDATA[<!-- HEADER_END -->]]>"
+      }
+    }
+  }}
 />

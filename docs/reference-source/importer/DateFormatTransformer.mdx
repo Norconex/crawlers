@@ -68,8 +68,32 @@ Defines the locale to apply when formatting the output date string.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following converts a date that is sometimes obtained from the HTTP header \"Last-Modified\" and sometimes is an EPOCH date, into an Apache Solr date format","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"DateFormatTransformer\",\n    \"fromField\": \"Last-Modified\",\n    \"toField\": \"solr_date\",\n    \"toFormat\": \"yyyy-MM-dd'T'HH:mm:ss.SSS'Z\",\n    \"fromFormats\": [\n      \"EEE, dd MMM yyyy HH:mm:ss zzz\",\n      \"EPOCH\"\n    ]\n  }\n}","yaml":"handler:\n  class: DateFormatTransformer\n  fromField: Last-Modified\n  toField: solr_date\n  toFormat: yyyy-MM-dd'T'HH:mm:ss.SSS'Z\n  fromFormats:\n    - EEE, dd MMM yyyy HH:mm:ss zzz\n    - EPOCH","xml":"<handler>\n  <class>DateFormatTransformer</class>\n  <fromField>Last-Modified</fromField>\n  <toField>solr_date</toField>\n  <toFormat>yyyy-MM-dd'T'HH:mm:ss.SSS'Z</toFormat>\n  <fromFormats>\n    <fromFormat>EEE, dd MMM yyyy HH:mm:ss zzz</fromFormat>\n    <fromFormat>EPOCH</fromFormat>\n  </fromFormats>\n</handler>"}}
-  ]}
+The following converts a date that is sometimes obtained from the HTTP header "Last-Modified" and sometimes is an EPOCH date, into an Apache Solr date format
+
+
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "DateFormatTransformer",
+      "fromField": "Last-Modified",
+      "toField": "solr_date",
+      "toFormat": "yyyy-MM-dd'T'HH:mm:ss.SSS'Z",
+      "fromFormats": [
+        "EEE, dd MMM yyyy HH:mm:ss zzz",
+        "EPOCH"
+      ]
+    }
+  }}
+  xml={`
+<handler>
+  <class>DateFormatTransformer</class>
+  <fromField>Last-Modified</fromField>
+  <toField>solr_date</toField>
+  <toFormat>yyyy-MM-dd'T'HH:mm:ss.SSS'Z</toFormat>
+  <fromFormats>
+    <fromFormat>EEE, dd MMM yyyy HH:mm:ss zzz</fromFormat>
+    <fromFormat>EPOCH</fromFormat>
+  </fromFormats>
+</handler>`}
 />

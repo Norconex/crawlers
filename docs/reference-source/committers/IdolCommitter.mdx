@@ -59,8 +59,18 @@ The IDOL index URL. Default is `http://localhost:9001`)
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example uses the minimum required settings to configure IDOL Committer.","codeByLanguage":{"json":"{\n  \"class\": \"IdolCommitter\",\n  \"url\": \"http://some_host:9100\",\n  \"databaseName\": \"some_database\"\n}","yaml":"class: IdolCommitter\nurl: http://some_host:9100\ndatabaseName: some_database","xml":"<committer>\n  <class>IdolCommitter</class>\n  <url>http://some_host:9100</url>\n  <databaseName>some_database</databaseName>\n</committer>"}}
-  ]}
+The following example uses the minimum required settings to configure IDOL Committer.
+
+<ConfigExample
+  json={{
+    "class": "IdolCommitter",
+    "url": "http://some_host:9100",
+    "databaseName": "some_database"
+  }}
+  xml={`
+    <committer>
+      <class>IdolCommitter</class>
+      <url>http://some_host:9100</url>
+      <databaseName>some_database</databaseName>
+    </committer>`}
 />

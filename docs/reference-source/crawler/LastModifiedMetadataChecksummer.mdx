@@ -31,8 +31,12 @@ A target field name used to store the value.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example will store the last modified date used for checksum purposes in a field called \"metaChecksum\".","codeByLanguage":{"json":"{\n  \"class\": \"LastModifiedMetadataChecksummer\",\n  \"keep\": true,\n  \"toField\": \"metaChecksum\"\n}","yaml":"class: LastModifiedMetadataChecksummer\nkeep: true\ntoField: metaChecksum","xml":"<class>LastModifiedMetadataChecksummer</class>\n<keep>true</keep>\n<toField>metaChecksum</toField>"}}
-  ]}
+The following example will store the last modified date used for checksum purposes in a field called "metaChecksum".
+
+<ConfigExample
+  json={{
+    "class": "LastModifiedMetadataChecksummer",
+    "keep": true,
+    "toField": "metaChecksum"
+  }}
 />

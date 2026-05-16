@@ -63,8 +63,16 @@ CloudSearch field name to store the document content. Default is "content".
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example uses the minimum required settings to configure the Amazon CloudSearch Committer. This example relies on environment  variables for AWS keys.","codeByLanguage":{"json":"{\n  \"class\": \"CloudSearchCommitter\",\n  \"serviceEndpoint\": \"search-example-xyz.some-region.cloudsearch.amazonaws.com\"\n}","yaml":"class: CloudSearchCommitter\nserviceEndpoint: search-example-xyz.some-region.cloudsearch.amazonaws.com","xml":"<committer>\n  <class>CloudSearchCommitter</class>\n  <serviceEndpoint>search-example-xyz.some-region.cloudsearch.amazonaws.com</serviceEndpoint>\n</committer>"}}
-  ]}
+The following example uses the minimum required settings to configure the Amazon CloudSearch Committer. This example relies on environment  variables for AWS keys.
+
+<ConfigExample
+  json={{
+    "class": "CloudSearchCommitter",
+    "serviceEndpoint": "search-example-xyz.some-region.cloudsearch.amazonaws.com"
+  }}
+  xml={`
+    <committer>
+      <class>CloudSearchCommitter</class>
+      <serviceEndpoint>search-example-xyz.some-region.cloudsearch.amazonaws.com</serviceEndpoint>
+    </committer>`}
 />

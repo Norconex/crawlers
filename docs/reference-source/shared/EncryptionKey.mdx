@@ -33,8 +33,13 @@ Pointer to the an encryption key, or the encryption key itself.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following looks for the encryption key in an environment  variable named `MY_KEY_VAR`.","codeByLanguage":{"json":"{\n  \"passwordKey\": {\n    \"source\": \"ENVIRONMENT\",\n    \"value\": \"MY_KEY_VAR\"\n  }\n}","yaml":"passwordKey:\n  source: ENVIRONMENT\n  value: MY_KEY_VAR","xml":"<passwordKey>\n  <source>ENVIRONMENT</source>\n  <value>MY_KEY_VAR</value>\n</passwordKey>"}}
-  ]}
+The following looks for the encryption key in an environment  variable named `MY_KEY_VAR`.
+
+<ConfigExample
+  json={{
+    "passwordKey": {
+      "source": "ENVIRONMENT",
+      "value": "MY_KEY_VAR"
+    }
+  }}
 />

@@ -48,8 +48,15 @@ Sets the character encoding of the source document to ensure proper reading and 
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example create statistics from the value of a field called \"statistics\".","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"TextStatisticsTransformer\",\n    \"fieldMatcher\": {\n      \"pattern\": \"statistics\"\n    }\n  }\n}","yaml":"handler:\n  class: TextStatisticsTransformer\n  fieldMatcher:\n    pattern: statistics","xml":"<handler>\n  <class>TextStatisticsTransformer</class>\n  <fieldMatcher>\n    <pattern>statistics</pattern>\n  </fieldMatcher>\n</handler>"}}
-  ]}
+The following example create statistics from the value of a field called "statistics".
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "TextStatisticsTransformer",
+      "fieldMatcher": {
+        "pattern": "statistics"
+      }
+    }
+  }}
 />

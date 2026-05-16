@@ -37,8 +37,44 @@ Sets the character encoding of the source document to ensure proper reading and 
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following will strip all text between (and including) these two HTML comments: `<!-- SIDENAV_START -->` and `<!-- SIDENAV_END -->`.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"StripBetweenTransformer\",\n    \"operations\": [\n      {\n        \"inclusive\": true,\n        \"startMatcher\": {\n          \"method\": \"REGEX\",\n          \"pattern\": \"<![CDATA[<!-- SIDENAV_START -->]]>\"\n        },\n        \"endMatcher\": {\n          \"method\": \"REGEX\",\n          \"pattern\": \"<![CDATA[<!-- SIDENAV_END -->]]>\"\n        }\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: StripBetweenTransformer\n  operations:\n    - inclusive: true\n      startMatcher:\n        method: REGEX\n        pattern: <![CDATA[<!-- SIDENAV_START -->]]>\n      endMatcher:\n        method: REGEX\n        pattern: <![CDATA[<!-- SIDENAV_END -->]]>","xml":"<handler>\n  <class>StripBetweenTransformer</class>\n  <operations>\n    <op>\n      <inclusive>true</inclusive>\n      <startMatcher>\n        <method>REGEX</method>\n        <pattern><![CDATA[<!-- SIDENAV_START -->]]></pattern>\n      </startMatcher>\n      <endMatcher>\n        <method>REGEX</method>\n        <pattern><![CDATA[<!-- SIDENAV_END -->]]></pattern>\n      </endMatcher>\n    </op>\n  </operations>\n</handler>"}}
-  ]}
+The following will strip all text between (and including) these two HTML comments: `<!-- SIDENAV_START -->` and `<!-- SIDENAV_END -->`.
+
+
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "StripBetweenTransformer",
+      "operations": [
+        {
+          "inclusive": true,
+          "startMatcher": {
+            "method": "REGEX",
+            "pattern": "<![CDATA[<!-- SIDENAV_START -->]]>"
+          },
+          "endMatcher": {
+            "method": "REGEX",
+            "pattern": "<![CDATA[<!-- SIDENAV_END -->]]>"
+          }
+        }
+      ]
+    }
+  }}
+  xml={`
+<handler>
+  <class>StripBetweenTransformer</class>
+  <operations>
+    <op>
+      <inclusive>true</inclusive>
+      <startMatcher>
+        <method>REGEX</method>
+        <pattern><![CDATA[<!-- SIDENAV_START -->]]></pattern>
+      </startMatcher>
+      <endMatcher>
+        <method>REGEX</method>
+        <pattern><![CDATA[<!-- SIDENAV_END -->]]></pattern>
+      </endMatcher>
+    </op>
+  </operations>
+</handler>`}
 />

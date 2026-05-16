@@ -77,8 +77,49 @@ Sets the directory where to store temporary files used for the parser.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example invokes an external application processing for simple text files that accepts two files as arguments: the first one being the file to transform, the second one being holding the transformation result. It also extract a document number from STDOUT, found as \"DocNo:1234\" and storing it as \"docnumber\".  \n`TODO:` Add what fieldGroup and valueGroup doc","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"ExternalParser\",\n    \"command\": \"/path/transform/app ${INPUT} ${OUTPUT}\",\n    \"environmentVariables\": {\n      \"ENV\": \"dev\",\n      \"VERSION\": \"2.0.3\"\n    },\n    \"extractionPatterns\": [\n      {\n        \"fieldGroup\": 1,\n        \"regex\": {\n          \"pattern\": \"(DocNo):(\\\\d+)\"\n        },\n        \"toField\": \"docnumber\",\n        \"valueGroup\": 2\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: ExternalParser\n  command: /path/transform/app ${INPUT} ${OUTPUT}\n  environmentVariables:\n    ENV: dev\n    VERSION: 2.0.3\n  extractionPatterns:\n    - fieldGroup: 1\n      regex:\n        pattern: (DocNo):(\\d+)\n      toField: docnumber\n      valueGroup: 2","xml":"<handler>\n  <class>ExternalParser</class>\n  <command>/path/transform/app ${INPUT} ${OUTPUT}</command>\n  <environmentVariables>\n    <ENV>dev</ENV>\n    <VERSION>2.0.3</VERSION>\n  </environmentVariables>\n  <extractionPatterns>\n    <extractionPattern>\n      <fieldGroup>1</fieldGroup>\n      <regex>\n        <pattern>(DocNo):(\\d+)</pattern>\n      </regex>\n      <toField>docnumber</toField>\n      <valueGroup>2</valueGroup>\n    </extractionPattern>\n  </extractionPatterns>\n</handler>"}}
-  ]}
+The following example invokes an external application processing for simple text files that accepts two files as arguments: the first one being the file to transform, the second one being holding the transformation result. It also extract a document number from STDOUT, found as "DocNo:1234" and storing it as "docnumber".  
+`TODO:` Add what fieldGroup and valueGroup doc
+
+
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "ExternalParser",
+      "command": "/path/transform/app ${INPUT} ${OUTPUT}",
+      "environmentVariables": {
+        "ENV": "dev",
+        "VERSION": "2.0.3"
+      },
+      "extractionPatterns": [
+        {
+          "fieldGroup": 1,
+          "regex": {
+            "pattern": "(DocNo):(\\d+)"
+          },
+          "toField": "docnumber",
+          "valueGroup": 2
+        }
+      ]
+    }
+  }}
+  xml={`
+<handler>
+  <class>ExternalParser</class>
+  <command>/path/transform/app \${INPUT} \${OUTPUT}</command>
+  <environmentVariables>
+    <ENV>dev</ENV>
+    <VERSION>2.0.3</VERSION>
+  </environmentVariables>
+  <extractionPatterns>
+    <extractionPattern>
+      <fieldGroup>1</fieldGroup>
+      <regex>
+        <pattern>(DocNo):(\d+)</pattern>
+      </regex>
+      <toField>docnumber</toField>
+      <valueGroup>2</valueGroup>
+    </extractionPattern>
+  </extractionPatterns>
+</handler>`}
 />

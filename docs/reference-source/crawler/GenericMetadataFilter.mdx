@@ -31,8 +31,17 @@ Use the following fields to dictate how field values should be matched by this f
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example filters out Zip documents base on a \"Content-Type\" metadata field.","codeByLanguage":{"json":"{\n  \"class\": \"GenericMetadataFilter\",\n  \"onMatch\": \"EXCLUDE\",\n  \"fieldMatcher\": {\n    \"pattern\": \"Content-Type\"\n  },\n  \"valueMatcher\": {\n    \"pattern\": \"application/zip\"\n  }\n}","yaml":"class: GenericMetadataFilter\nonMatch: EXCLUDE\nfieldMatcher:\n  pattern: Content-Type\nvalueMatcher:\n  pattern: application/zip","xml":"<class>GenericMetadataFilter</class>\n<onMatch>EXCLUDE</onMatch>\n<fieldMatcher>\n  <pattern>Content-Type</pattern>\n</fieldMatcher>\n<valueMatcher>\n  <pattern>application/zip</pattern>\n</valueMatcher>"}}
-  ]}
+The following example filters out Zip documents base on a "Content-Type" metadata field.
+
+<ConfigExample
+  json={{
+    "class": "GenericMetadataFilter",
+    "onMatch": "EXCLUDE",
+    "fieldMatcher": {
+      "pattern": "Content-Type"
+    },
+    "valueMatcher": {
+      "pattern": "application/zip"
+    }
+  }}
 />

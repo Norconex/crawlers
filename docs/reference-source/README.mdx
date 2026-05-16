@@ -75,34 +75,96 @@ Property-specific documentation.
 
 ## Examples
 
-<ReferenceExamples
-examples={[
-{
-title: "Minimal Example",
-description: "Short context for this example.",
-codeByLanguage: {
-yaml: `toField: myField`,
-json: `{"toField":"myField"}`,
-xml: `<toField>myField</toField>`,
-},
-},
-{
-title: "Advanced Example",
-codeByLanguage: {
-yaml: `toField: myField\ncountMatcher: ".*"`,
-},
-},
-]}
+Short description of what this example shows.
+
+<ConfigExample
+  json={{ handler: { class: "CountMatchesTransformer", toField: "myField" } }}
 />
 ```
 
 ## Examples Authoring
 
-- The generator now uses only the `## Examples` section from docs-source.
-- Legacy snippet files are no longer used.
-- `## Examples` content is injected as raw MDX in generated docs, so you can use Markdown, fenced code blocks, and JSX/MDX components.
-- For multi-language or multiple examples, use `ReferenceExamples`.
-- You can also use `ReferenceExample` directly when you want full manual layout control.
+The `## Examples` section is passed through as raw MDX into the generated 
+reference page. You can use Markdown and the `<ConfigExample>` component to 
+present configuration in multiple languages (YAML, JSON, XML).
+
+Each `<ConfigExample>` is one standalone example. Title and description go in 
+regular Markdown above the component — a `### heading` for a title, 
+a paragraph for description.
+
+### Providing code: three approaches
+
+#### 1. Object only (recommended) — all three tabs auto-generated
+
+Provide the config as a plain JavaScript object under `json`. YAML and XML are 
+derived automatically.
+
+```jsx
+<ConfigExample
+  json={{ handler: { class: "MyHandler", someField: "value" } }}
+/>
+```
+
+YAML and XML are serialized from the same object. Use this approach whenever 
+the structure is the same across all three formats.
+
+#### 2. Object with per-language overrides
+
+When XML (or YAML) needs a different structure — for example, a wrapper 
+element — provide it separately. Any language you supply explicitly overrides 
+the auto-derived version.
+
+```jsx
+<ConfigExample
+  json={{ class: "MyCommitter", url: "http://host:9100" }}
+  xml={{ committer: { class: "MyCommitter", url: "http://host:9100" } }}
+/>
+```
+
+#### 3. Raw strings — full manual control
+
+When the auto-generated output doesn't fit, provide strings directly. Template 
+literals keep things readable without escaping.
+
+```jsx
+<ConfigExample
+  json={ `{ "handler": { "class": "MyHandler" } }` }
+  xml={ `<handler><class>MyHandler</class></handler>` }
+/>
+```
+
+You can mix approaches freely — for instance, use an object for `json` 
+(auto-derives YAML) and a string for `xml`:
+
+```jsx
+<ConfigExample
+  json= { handler: { class: "MyHandler" } }
+  xml={ `<handler><class>MyHandler</class></handler>` }
+/>
+```
+
+### Multiple examples
+
+Use one `<ConfigExample>` per example, with Markdown headings and paragraphs for context:
+
+```markdown
+### Basic usage
+
+Short description of what this example shows.
+
+<ConfigExample
+  json={{ handler: { class: "MyHandler", field: "value" } }}
+/>
+
+### Advanced usage
+
+Description of the more complex scenario.
+
+<ConfigExample
+  json={{ handler: { class: "MyHandler", field: "value", extra: true } }}
+  xml={{ handler: { class: "MyHandler", field: "value", extra: "true" } }}
+/>
+```
 
 ## Validation Rules
 

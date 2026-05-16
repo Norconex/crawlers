@@ -88,8 +88,17 @@ Matches document fields based on specified patterns and methods
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example first convert a title to lower case except for  the first character.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"CharacterCaseTransformer\",\n    \"applyTo\": \"FIELD\",\n    \"caseType\": \"LOWER\",\n    \"fieldMatcher\": {\n      \"pattern\": \"title\"\n    }\n  }\n}","yaml":"handler:\n  class: CharacterCaseTransformer\n  applyTo: FIELD\n  caseType: LOWER\n  fieldMatcher:\n    pattern: title","xml":"<handler>\n  <class>CharacterCaseTransformer</class>\n  <applyTo>FIELD</applyTo>\n  <caseType>LOWER</caseType>\n  <fieldMatcher>\n    <pattern>title</pattern>\n  </fieldMatcher>\n</handler>"}}
-  ]}
+The following example first convert a title to lower case except for  the first character.
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "CharacterCaseTransformer",
+      "applyTo": "FIELD",
+      "caseType": "LOWER",
+      "fieldMatcher": {
+        "pattern": "title"
+      }
+    }
+  }}
 />

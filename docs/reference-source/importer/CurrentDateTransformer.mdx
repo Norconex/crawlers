@@ -52,8 +52,14 @@ A target field name used to store the value.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example store the current date along with hours and minutes in a \"crawl_date\" field.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"CurrentDateTransformer\",\n    \"format\": \"yyyy-MM-dd HH:mm\",\n    \"toField\": \"crawl_date\"\n  }\n}","yaml":"handler:\n  class: CurrentDateTransformer\n  format: yyyy-MM-dd HH:mm\n  toField: crawl_date","xml":"<handler>\n  <class>CurrentDateTransformer</class>\n  <format>yyyy-MM-dd HH:mm</format>\n  <toField>crawl_date</toField>\n</handler>"}}
-  ]}
+The following example store the current date along with hours and minutes in a "crawl_date" field.
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "CurrentDateTransformer",
+      "format": "yyyy-MM-dd HH:mm",
+      "toField": "crawl_date"
+    }
+  }}
 />

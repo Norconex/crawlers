@@ -31,8 +31,12 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following will store the generated metadata checksum in a field called \"checksum\".","codeByLanguage":{"json":"{\n  \"class\": \"FsMetadataChecksummer\",\n  \"keep\": true,\n  \"toField\": \"checksum\"\n}","yaml":"class: FsMetadataChecksummer\nkeep: true\ntoField: checksum","xml":"<class>FsMetadataChecksummer</class>\n<keep>true</keep>\n<toField>checksum</toField>"}}
-  ]}
+The following will store the generated metadata checksum in a field called "checksum".
+
+<ConfigExample
+  json={{
+    "class": "FsMetadataChecksummer",
+    "keep": true,
+    "toField": "checksum"
+  }}
 />

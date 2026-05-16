@@ -42,8 +42,50 @@ Sets the character encoding of the source document to ensure proper reading and 
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"**TODO: quotation different??**\n\nThe first pattern in The following example extracts what look like email addresses in to an `email` field (simplified regex). The second pattern extracts field names and values from `label` and `value` cells on a given HTML table.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"RegexTransformer\",\n    \"patterns\": [\n      {\n        \"toField\": \"emails\",\n        \"regex\": {\n          \"pattern\": \"([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\\\\[a-zA-Z0-9_-]+)\"\n        }\n      },\n      {\n        \"fieldGroup\": 1,\n        \"valueGroup\": 2,\n        \"regex\": {\n          \"pattern\": \"<![CDATA[<tr><td class=\\\"label\\\">(.*?)</td><td class=\\\"value\\\">(.*?)</td></tr>]]>\"\n        }\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: RegexTransformer\n  patterns:\n    - toField: emails\n      regex:\n        pattern: ([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\\[a-zA-Z0-9_-]+)\n    - fieldGroup: 1\n      valueGroup: 2\n      regex:\n        pattern: <![CDATA[<tr><td class=\"label\">(.*?)</td><td\n          class=\"value\">(.*?)</td></tr>]]>","xml":"<handler>\n  <class>RegexTransformer</class>\n  <patterns>\n    <pattern>\n      <toField>emails</toField>\n      <regex>\n        <pattern>([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\\[a-zA-Z0-9_-]+)</pattern>\n      </regex>\n    </pattern>\n    <pattern>\n      <fieldGroup>1</fieldGroup>\n      <valueGroup>2</valueGroup>\n      <regex>\n        <pattern><![CDATA[<tr><td class=\"label\">(.*?)</td><td class=\"value\">(.*?)</td></tr>]]></pattern>\n      </regex>\n    </pattern>\n  </patterns>\n</handler>"}}
-  ]}
+**TODO: quotation different??**
+
+The first pattern in The following example extracts what look like email addresses in to an `email` field (simplified regex). The second pattern extracts field names and values from `label` and `value` cells on a given HTML table.
+
+
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "RegexTransformer",
+      "patterns": [
+        {
+          "toField": "emails",
+          "regex": {
+            "pattern": "([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\\[a-zA-Z0-9_-]+)"
+          }
+        },
+        {
+          "fieldGroup": 1,
+          "valueGroup": 2,
+          "regex": {
+            "pattern": "<![CDATA[<tr><td class=\"label\">(.*?)</td><td class=\"value\">(.*?)</td></tr>]]>"
+          }
+        }
+      ]
+    }
+  }}
+  xml={`
+<handler>
+  <class>RegexTransformer</class>
+  <patterns>
+    <pattern>
+      <toField>emails</toField>
+      <regex>
+        <pattern>([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\[a-zA-Z0-9_-]+)</pattern>
+      </regex>
+    </pattern>
+    <pattern>
+      <fieldGroup>1</fieldGroup>
+      <valueGroup>2</valueGroup>
+      <regex>
+        <pattern><![CDATA[<tr><td class="label">(.*?)</td><td class="value">(.*?)</td></tr>]]></pattern>
+      </regex>
+    </pattern>
+  </patterns>
+</handler>`}
 />

@@ -36,8 +36,13 @@ A target field name used to store the value.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example stores the document length into a \"docSize\" field.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"DocumentLengthTransformer\",\n    \"toField\": \"docSize\"\n  }\n}","yaml":"handler:\n  class: DocumentLengthTransformer\n  toField: docSize","xml":"<handler>\n  <class>DocumentLengthTransformer</class>\n  <toField>docSize</toField>\n</handler>"}}
-  ]}
+The following example stores the document length into a "docSize" field.
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "DocumentLengthTransformer",
+      "toField": "docSize"
+    }
+  }}
 />

@@ -45,8 +45,17 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example converts images to PNG while scaling it to a maximum dimension of 400 pixels wide and 250 pixel high.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"ExternalTransformer\",\n    \"targetFormat\": \"png\",\n    \"scale\": {\n      \"width\": 400,\n      \"height\": 250\n    }\n  }\n}","yaml":"handler:\n  class: ExternalTransformer\n  targetFormat: png\n  scale:\n    width: 400\n    height: 250","xml":"<handler>\n  <class>ExternalTransformer</class>\n  <targetFormat>png</targetFormat>\n  <scale>\n    <width>400</width>\n    <height>250</height>\n  </scale>\n</handler>"}}
-  ]}
+The following example converts images to PNG while scaling it to a maximum dimension of 400 pixels wide and 250 pixel high.
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "ExternalTransformer",
+      "targetFormat": "png",
+      "scale": {
+        "width": 400,
+        "height": 250
+      }
+    }
+  }}
 />

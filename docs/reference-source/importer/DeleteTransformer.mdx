@@ -27,8 +27,16 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example deletes all metadata fields starting with \"X-\".","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"DeleteTransformer\",\n    \"fieldMatcher\": {\n      \"method\": \"REGEX\",\n      \"pattern\": \"^[Xx]-.*\"\n    }\n  }\n}","yaml":"handler:\n  class: DeleteTransformer\n  fieldMatcher:\n    method: REGEX\n    pattern: ^[Xx]-.*","xml":"<handler>\n  <class>DeleteTransformer</class>\n  <fieldMatcher>\n    <method>REGEX</method>\n    <pattern>^[Xx]-.*</pattern>\n  </fieldMatcher>\n</handler>"}}
-  ]}
+The following example deletes all metadata fields starting with "X-".
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "DeleteTransformer",
+      "fieldMatcher": {
+        "method": "REGEX",
+        "pattern": "^[Xx]-.*"
+      }
+    }
+  }}
 />

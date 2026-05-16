@@ -103,9 +103,35 @@ Sets the character encoding of the source document to ensure proper reading and 
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example splits contant found in an HTML document, each one being stored within a div with a class named \"contact\".","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"DomSplitter\",\n    \"selector\": \"div.contact\"\n  }\n}","yaml":"handler:\n  class: DomSplitter\n  selector: div.contact","xml":"<handler>\n  <class>DomSplitter</class>\n  <selector>div.contact</selector>\n</handler>"}},
-    {"title":"content Type","description":"The following example splits content from a field named `embedded_file`, but only when the content type is `text/html`. It targets HTML elements matching the `div.contact` selector within that field","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"DomSplitter\",\n    \"selector\": \"div.contact\",\n    \"parser\": \"HTML\",\n    \"contentTypeMatcher\": {\n      \"method\": \"BASIC\",\n      \"pattern\": \"text/html\"\n    },\n    \"fieldMatcher\": {\n      \"method\": \"BASIC\",\n      \"pattern\": \"embedded_file\"\n    }\n  }\n}","yaml":"handler:\n  class: DomSplitter\n  selector: div.contact\n  parser: HTML\n  contentTypeMatcher:\n    method: BASIC\n    pattern: text/html\n  fieldMatcher:\n    method: BASIC\n    pattern: embedded_file","xml":"<handler>\n  <class>DomSplitter</class>\n  <selector>div.contact</selector>\n  <parser>HTML</parser>\n  <contentTypeMatcher>\n    <method>BASIC</method>\n    <pattern>text/html</pattern>\n  </contentTypeMatcher>\n  <fieldMatcher>\n    <method>BASIC</method>\n    <pattern>embedded_file</pattern>\n  </fieldMatcher>\n</handler>"}}
-  ]}
+The following example splits contant found in an HTML document, each one being stored within a div with a class named "contact".
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "DomSplitter",
+      "selector": "div.contact"
+    }
+  }}
+/>
+
+### content Type
+
+The following example splits content from a field named `embedded_file`, but only when the content type is `text/html`. It targets HTML elements matching the `div.contact` selector within that field
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "DomSplitter",
+      "selector": "div.contact",
+      "parser": "HTML",
+      "contentTypeMatcher": {
+        "method": "BASIC",
+        "pattern": "text/html"
+      },
+      "fieldMatcher": {
+        "method": "BASIC",
+        "pattern": "embedded_file"
+      }
+    }
+  }}
 />

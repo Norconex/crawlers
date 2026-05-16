@@ -45,8 +45,20 @@ A target field name used to store the value.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example will count the number of segments in a URL.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"CountMatchesTransformer\",\n    \"toField\": \"urlSegmentCount\",\n    \"fieldMatcher\": {\n      \"pattern\": \"document.reference\"\n    },\n    \"countMatcher\": {\n      \"method\": \"REGEX\",\n      \"pattern\": \"/[^/]+\"\n    }\n  }\n}","yaml":"handler:\n  class: CountMatchesTransformer\n  toField: urlSegmentCount\n  fieldMatcher:\n    pattern: document.reference\n  countMatcher:\n    method: REGEX\n    pattern: /[^/]+","xml":"<handler>\n  <class>CountMatchesTransformer</class>\n  <toField>urlSegmentCount</toField>\n  <fieldMatcher>\n    <pattern>document.reference</pattern>\n  </fieldMatcher>\n  <countMatcher>\n    <method>REGEX</method>\n    <pattern>/[^/]+</pattern>\n  </countMatcher>\n</handler>"}}
-  ]}
+The following example will count the number of segments in a URL.
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "CountMatchesTransformer",
+      "toField": "urlSegmentCount",
+      "fieldMatcher": {
+        "pattern": "document.reference"
+      },
+      "countMatcher": {
+        "method": "REGEX",
+        "pattern": "/[^/]+"
+      }
+    }
+  }}
 />

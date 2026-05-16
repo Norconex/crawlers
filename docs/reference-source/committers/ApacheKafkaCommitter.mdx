@@ -51,8 +51,18 @@ The Kafka topic name to possibly create and use as the target for storing docume
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example uses the minimum required settings to configure Apache Kafka Committer. The Kafka topic won't be created. As such, the topic must already exist in Apache Kafka.","codeByLanguage":{"json":"{\n  \"class\": \"ApacheKafkaCommitter\",\n  \"bootstrapServers\": \"http://some_host:1234\",\n  \"topicName\": \"my-topic\"\n}","yaml":"class: ApacheKafkaCommitter\nbootstrapServers: http://some_host:1234\ntopicName: my-topic","xml":"<committer>\n  <class>ApacheKafkaCommitter</class>\n  <bootstrapServers>http://some_host:1234</bootstrapServers>\n  <topicName>my-topic</topicName>\n</committer>"}}
-  ]}
+The following example uses the minimum required settings to configure Apache Kafka Committer. The Kafka topic won't be created. As such, the topic must already exist in Apache Kafka.
+
+<ConfigExample
+  json={{
+    "class": "ApacheKafkaCommitter",
+    "bootstrapServers": "http://some_host:1234",
+    "topicName": "my-topic"
+  }}
+  xml={`
+    <committer>
+      <class>ApacheKafkaCommitter</class>
+      <bootstrapServers>http://some_host:1234</bootstrapServers>
+      <topicName>my-topic</topicName>
+    </committer>`}
 />

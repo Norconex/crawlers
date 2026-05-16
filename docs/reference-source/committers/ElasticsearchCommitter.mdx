@@ -87,8 +87,16 @@ Type name used in older versions of Elasticsearch. Leave blank if using Elastics
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example uses the minimum required settings to configure Elasticsearch (or AWS OpenSearch) Committer.","codeByLanguage":{"json":"{\n  \"class\": \"ElasticsearchCommitter\",\n  \"indexName\": \"some_index\"\n}","yaml":"class: ElasticsearchCommitter\nindexName: some_index","xml":"<committer>\n  <class>ElasticsearchCommitter</class>\n  <indexName>some_index</indexName>\n</committer>"}}
-  ]}
+The following example uses the minimum required settings to configure Elasticsearch (or AWS OpenSearch) Committer.
+
+<ConfigExample
+  json={{
+    "class": "ElasticsearchCommitter",
+    "indexName": "some_index"
+  }}
+  xml={`
+    <committer>
+      <class>ElasticsearchCommitter</class>
+      <indexName>some_index</indexName>
+    </committer>`}
 />

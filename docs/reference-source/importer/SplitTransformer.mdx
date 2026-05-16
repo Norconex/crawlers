@@ -32,8 +32,36 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example splits a single value field holding a comma-separated list into multiple values.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"SplitTransformer\",\n    \"operations\": [\n      {\n        \"separator\": \"\\\\s*,\\\\s*\",\n        \"separatorRegex\": true,\n        \"fieldMatcher\": {\n          \"pattern\": \"myField\"\n        }\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: SplitTransformer\n  operations:\n    - separator: \\s*,\\s*\n      separatorRegex: true\n      fieldMatcher:\n        pattern: myField","xml":"<handler>\n  <class>SplitTransformer</class>\n  <operations>\n    <op>\n      <separator>\\s*,\\s*</separator>\n      <separatorRegex>true</separatorRegex>\n      <fieldMatcher>\n        <pattern>myField</pattern>\n      </fieldMatcher>\n    </op>\n  </operations>\n</handler>"}}
-  ]}
+The following example splits a single value field holding a comma-separated list into multiple values.
+
+
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "SplitTransformer",
+      "operations": [
+        {
+          "separator": "\\s*,\\s*",
+          "separatorRegex": true,
+          "fieldMatcher": {
+            "pattern": "myField"
+          }
+        }
+      ]
+    }
+  }}
+  xml={`
+<handler>
+  <class>SplitTransformer</class>
+  <operations>
+    <op>
+      <separator>\s*,\s*</separator>
+      <separatorRegex>true</separatorRegex>
+      <fieldMatcher>
+        <pattern>myField</pattern>
+      </fieldMatcher>
+    </op>
+  </operations>
+</handler>`}
 />

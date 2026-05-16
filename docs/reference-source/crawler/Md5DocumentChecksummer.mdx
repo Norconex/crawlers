@@ -39,8 +39,12 @@ A target field name used to store the value.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example uses the document body (default) to create the checksum.","codeByLanguage":{"json":"{\n  \"documentChecksummer\": {\n    \"class\": \"Md5DocumentChecksummer\"\n  }\n}","yaml":"documentChecksummer:\n  class: Md5DocumentChecksummer","xml":"<documentChecksummer>\n  <class>Md5DocumentChecksummer</class>\n</documentChecksummer>"}}
-  ]}
+The following example uses the document body (default) to create the checksum.
+
+<ConfigExample
+  json={{
+    "documentChecksummer": {
+      "class": "Md5DocumentChecksummer"
+    }
+  }}
 />

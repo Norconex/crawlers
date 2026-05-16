@@ -35,8 +35,22 @@ The delay scope.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example set the minimum delay between each document download on a given site to 5 seconds, no matter what the crawler `robots.txt` may say, excepted on weekend, where it is more agressive (1 second).","codeByLanguage":{"json":"{\n  \"class\": \"GenericDelayResolver\",\n  \"defaultDelay\": 5000,\n  \"ignoreRobotsCrawlDelay\": true,\n  \"scope\": \"SITE\",\n  \"schedules\": [\n    {\n      \"dayOfWeekRange\": {\n        \"start\": \"SAT\",\n        \"end\": \"SUN\"\n      },\n      \"delay\": 1000\n    }\n  ]\n}","yaml":"class: GenericDelayResolver\ndefaultDelay: 5000\nignoreRobotsCrawlDelay: true\nscope: SITE\nschedules:\n  - dayOfWeekRange:\n      start: SAT\n      end: SUN\n    delay: 1000","xml":"<class>GenericDelayResolver</class>\n<defaultDelay>5000</defaultDelay>\n<ignoreRobotsCrawlDelay>true</ignoreRobotsCrawlDelay>\n<scope>SITE</scope>\n<schedules>\n  <dayOfWeekRange>\n    <start>SAT</start>\n    <end>SUN</end>\n  </dayOfWeekRange>\n  <delay>1000</delay>\n</schedules>"}}
-  ]}
+The following example set the minimum delay between each document download on a given site to 5 seconds, no matter what the crawler `robots.txt` may say, excepted on weekend, where it is more agressive (1 second).
+
+<ConfigExample
+  json={{
+    "class": "GenericDelayResolver",
+    "defaultDelay": 5000,
+    "ignoreRobotsCrawlDelay": true,
+    "scope": "SITE",
+    "schedules": [
+      {
+        "dayOfWeekRange": {
+          "start": "SAT",
+          "end": "SUN"
+        },
+        "delay": 1000
+      }
+    ]
+  }}
 />

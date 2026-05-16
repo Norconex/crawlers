@@ -44,8 +44,16 @@ Matches document fields based on specified patterns and methods
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"For documents where multiple title fields are found, The following example only keeps the first title value captured.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"ExternalParser\",\n    \"action\": \"keepFirst\",\n    \"fieldMatcher\": {\n      \"pattern\": \"title\"\n    }\n  }\n}","yaml":"handler:\n  class: ExternalParser\n  action: keepFirst\n  fieldMatcher:\n    pattern: title","xml":"<handler>\n  <class>ExternalParser</class>\n  <action>keepFirst</action>\n  <fieldMatcher>\n    <pattern>title</pattern>\n  </fieldMatcher>\n</handler>"}}
-  ]}
+For documents where multiple title fields are found, The following example only keeps the first title value captured.
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "ExternalParser",
+      "action": "keepFirst",
+      "fieldMatcher": {
+        "pattern": "title"
+      }
+    }
+  }}
 />

@@ -27,8 +27,16 @@ Matches document fields based on specified patterns and methods
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example keeps only the title and description fields from all extracted fields.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"ExternalParser\",\n    \"fieldMatcher\": {\n      \"method\": \"REGEX\",\n      \"pattern\": \"title|description\"\n    }\n  }\n}","yaml":"handler:\n  class: ExternalParser\n  fieldMatcher:\n    method: REGEX\n    pattern: title|description","xml":"<handler>\n  <class>ExternalParser</class>\n  <fieldMatcher>\n    <method>REGEX</method>\n    <pattern>title|description</pattern>\n  </fieldMatcher>\n</handler>"}}
-  ]}
+The following example keeps only the title and description fields from all extracted fields.
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "ExternalParser",
+      "fieldMatcher": {
+        "method": "REGEX",
+        "pattern": "title|description"
+      }
+    }
+  }}
 />

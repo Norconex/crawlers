@@ -95,8 +95,30 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"TranslatorSplitter\",\n    \"api\": \"google\",\n    \"sourceLanguageField\": \"langField\",\n    \"targetLanguages\": [\n      \"en\",\n      \"fr\"\n    ],\n    \"apiKey\": \"MYKEYHERE\"\n  }\n}","yaml":"handler:\n  class: TranslatorSplitter\n  api: google\n  sourceLanguageField: langField\n  targetLanguages:\n    - en\n    - fr\n  apiKey: MYKEYHERE","xml":"<handler>\n  <class>TranslatorSplitter</class>\n  <api>google</api>\n  <sourceLanguageField>langField</sourceLanguageField>\n  <targetLanguages>\n    <targetLanguage>en</targetLanguage>\n    <targetLanguage>fr</targetLanguage>\n  </targetLanguages>\n  <apiKey>MYKEYHERE</apiKey>\n</handler>"}}
-  ]}
+
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "TranslatorSplitter",
+      "api": "google",
+      "sourceLanguageField": "langField",
+      "targetLanguages": [
+        "en",
+        "fr"
+      ],
+      "apiKey": "MYKEYHERE"
+    }
+  }}
+  xml={`
+<handler>
+  <class>TranslatorSplitter</class>
+  <api>google</api>
+  <sourceLanguageField>langField</sourceLanguageField>
+  <targetLanguages>
+    <targetLanguage>en</targetLanguage>
+    <targetLanguage>fr</targetLanguage>
+  </targetLanguages>
+  <apiKey>MYKEYHERE</apiKey>
+</handler>`}
 />

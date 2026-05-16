@@ -39,8 +39,19 @@ Specifies the pattern to match for stripping content after.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The above example will strip all text starting with the following HTML comment and everything after it: `<!-- FOOTER -->`.\n\n**TODO: do example still need CDATA??**","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"StripAfterTransformer\",\n    \"inclusive\": true,\n    \"stripAfterMatcher\": {\n      \"method\": \"REGEX\",\n      \"pattern\": \"<![CDATA[<!-- FOOTER -->]]>\"\n    }\n  }\n}","yaml":"handler:\n  class: StripAfterTransformer\n  inclusive: true\n  stripAfterMatcher:\n    method: REGEX\n    pattern: <![CDATA[<!-- FOOTER -->]]>","xml":"<handler>\n  <class>StripAfterTransformer</class>\n  <inclusive>true</inclusive>\n  <stripAfterMatcher>\n    <method>REGEX</method>\n    <pattern><![CDATA[<!-- FOOTER -->]]></pattern>\n  </stripAfterMatcher>\n</handler>"}}
-  ]}
+The above example will strip all text starting with the following HTML comment and everything after it: `<!-- FOOTER -->`.
+
+**TODO: do example still need CDATA??**
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "StripAfterTransformer",
+      "inclusive": true,
+      "stripAfterMatcher": {
+        "method": "REGEX",
+        "pattern": "<![CDATA[<!-- FOOTER -->]]>"
+      }
+    }
+  }}
 />

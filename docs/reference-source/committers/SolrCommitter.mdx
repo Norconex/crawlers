@@ -63,8 +63,10 @@ Parameters to be added on Solr HTTP calls.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","codeByLanguage":{"json":"{\n  \"class\": \"SolrCommitter\",\n  \"solrUrl\": \"http://localhost:8983/solr\",\n  \"solrCollection\": \"mycollection\"\n}","yaml":"class: SolrCommitter\nsolrUrl: http://localhost:8983/solr\nsolrCollection: mycollection","xml":"<class>SolrCommitter</class>\n<solrUrl>http://localhost:8983/solr</solrUrl>\n<solrCollection>mycollection</solrCollection>"}}
-  ]}
+<ConfigExample
+  json={{
+    "class": "SolrCommitter",
+    "solrUrl": "http://localhost:8983/solr",
+    "solrCollection": "mycollection"
+  }}
 />

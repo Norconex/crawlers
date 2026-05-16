@@ -146,8 +146,53 @@ viewport is used.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"Chromium with element wait","codeByLanguage":{"yaml":"class: PlaywrightFetcher\nbrowser: CHROMIUM\nheadless: true\nwaitForElementType: CSSSELECTOR\nwaitForElementSelector: \"#main-content\"\nwaitForElementTimeout: PT10S\nreferenceFilters:\n  - class: GenericReferenceFilter\n    valueMatcher:\n      method: REGEX\n      pattern: \".*dynamic.*\"","json":"{\n  \"class\": \"PlaywrightFetcher\",\n  \"browser\": \"CHROMIUM\",\n  \"headless\": true,\n  \"waitForElementType\": \"CSSSELECTOR\",\n  \"waitForElementSelector\": \"#main-content\",\n  \"waitForElementTimeout\": \"PT10S\",\n  \"referenceFilters\": [\n    {\n      \"class\": \"GenericReferenceFilter\",\n      \"valueMatcher\": {\n        \"method\": \"REGEX\",\n        \"pattern\": \".*dynamic.*\"\n      }\n    }\n  ]\n}","xml":"<class>PlaywrightFetcher</class>\n<browser>CHROMIUM</browser>\n<headless>true</headless>\n<waitForElementType>CSSSELECTOR</waitForElementType>\n<waitForElementSelector>#main-content</waitForElementSelector>\n<waitForElementTimeout>PT10S</waitForElementTimeout>\n<referenceFilters>\n  <referenceFilter>\n    <class>GenericReferenceFilter</class>\n    <valueMatcher>\n      <method>REGEX</method>\n      <pattern>.*dynamic.*</pattern>\n    </valueMatcher>\n  </referenceFilter>\n</referenceFilters>"}}
-  ]}
+### Chromium with element wait
+
+
+
+<ConfigExample
+  json={`{
+  "class": "PlaywrightFetcher",
+  "browser": "CHROMIUM",
+  "headless": true,
+  "waitForElementType": "CSSSELECTOR",
+  "waitForElementSelector": "#main-content",
+  "waitForElementTimeout": "PT10S",
+  "referenceFilters": [
+    {
+      "class": "GenericReferenceFilter",
+      "valueMatcher": {
+        "method": "REGEX",
+        "pattern": ".*dynamic.*"
+      }
+    }
+  ]
+}`}
+  yaml={`class: PlaywrightFetcher
+browser: CHROMIUM
+headless: true
+waitForElementType: CSSSELECTOR
+waitForElementSelector: "#main-content"
+waitForElementTimeout: PT10S
+referenceFilters:
+  - class: GenericReferenceFilter
+    valueMatcher:
+      method: REGEX
+      pattern: ".*dynamic.*"`}
+  xml={`
+<class>PlaywrightFetcher</class>
+<browser>CHROMIUM</browser>
+<headless>true</headless>
+<waitForElementType>CSSSELECTOR</waitForElementType>
+<waitForElementSelector>#main-content</waitForElementSelector>
+<waitForElementTimeout>PT10S</waitForElementTimeout>
+<referenceFilters>
+  <referenceFilter>
+    <class>GenericReferenceFilter</class>
+    <valueMatcher>
+      <method>REGEX</method>
+      <pattern>.*dynamic.*</pattern>
+    </valueMatcher>
+  </referenceFilter>
+</referenceFilters>`}
 />

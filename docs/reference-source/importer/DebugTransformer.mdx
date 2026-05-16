@@ -43,8 +43,28 @@ Adds a custom prefix to log messages for identification.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following logs the value of any `document.reference` and `document.title` document metadata fields.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"DebugTransformer\",\n    \"logFields\": [\n      \"document.reference\",\n      \"document.title\"\n    ],\n    \"logLevel\": \"INFO\"\n  }\n}","yaml":"handler:\n  class: DebugTransformer\n  logFields:\n    - document.reference\n    - document.title\n  logLevel: INFO","xml":"<handler>\n  <class>DebugTransformer</class>\n  <logFields>\n    <logField>document.reference</logField>\n    <logField>document.title</logField>\n  </logFields>\n  <logLevel>INFO</logLevel>\n</handler>"}}
-  ]}
+The following logs the value of any `document.reference` and `document.title` document metadata fields.
+
+
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "DebugTransformer",
+      "logFields": [
+        "document.reference",
+        "document.title"
+      ],
+      "logLevel": "INFO"
+    }
+  }}
+  xml={`
+<handler>
+  <class>DebugTransformer</class>
+  <logFields>
+    <logField>document.reference</logField>
+    <logField>document.title</logField>
+  </logFields>
+  <logLevel>INFO</logLevel>
+</handler>`}
 />

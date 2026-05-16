@@ -23,8 +23,14 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example will send deletion requests whenever a reference  is not found (e.g., a 404 response from a web server) or if it was  filtered out by the crawler.","codeByLanguage":{"json":"{\n  \"class\": \"DeleteRejectedEventListener\",\n  \"eventMatcher\": {\n    \"method\": \"CSV\",\n    \"pattern\": \"REJECTED_NOTFOUND,REJECTED_FILTER\"\n  }\n}","yaml":"class: DeleteRejectedEventListener\neventMatcher:\n  method: CSV\n  pattern: REJECTED_NOTFOUND,REJECTED_FILTER","xml":"<class>DeleteRejectedEventListener</class>\n<eventMatcher>\n  <method>CSV</method>\n  <pattern>REJECTED_NOTFOUND,REJECTED_FILTER</pattern>\n</eventMatcher>"}}
-  ]}
+The following example will send deletion requests whenever a reference  is not found (e.g., a 404 response from a web server) or if it was  filtered out by the crawler.
+
+<ConfigExample
+  json={{
+    "class": "DeleteRejectedEventListener",
+    "eventMatcher": {
+      "method": "CSV",
+      "pattern": "REJECTED_NOTFOUND,REJECTED_FILTER"
+    }
+  }}
 />

@@ -50,8 +50,24 @@ A target field name used to store the value.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"Assuming this \"myField\" value...\n\n- *Please truncate me before you start thinking I am too long.*\n\nThe following  example will truncate the content to\n\n- *Please truncate me before you start thi!0996700004*","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"TruncateTransformer\",\n    \"maxLength\": 50,\n    \"appendHash\": true,\n    \"suffix\": \"!\",\n    \"fieldMatcher\": {\n      \"pattern\": \"myField\"\n    }\n  }\n}","yaml":"handler:\n  class: TruncateTransformer\n  maxLength: 50\n  appendHash: true\n  suffix: \"!\"\n  fieldMatcher:\n    pattern: myField","xml":"<handler>\n  <class>TruncateTransformer</class>\n  <maxLength>50</maxLength>\n  <appendHash>true</appendHash>\n  <suffix>!</suffix>\n  <fieldMatcher>\n    <pattern>myField</pattern>\n  </fieldMatcher>\n</handler>"}}
-  ]}
+Assuming this "myField" value...
+
+- *Please truncate me before you start thinking I am too long.*
+
+The following  example will truncate the content to
+
+- *Please truncate me before you start thi!0996700004*
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "TruncateTransformer",
+      "maxLength": 50,
+      "appendHash": true,
+      "suffix": "!",
+      "fieldMatcher": {
+        "pattern": "myField"
+      }
+    }
+  }}
 />

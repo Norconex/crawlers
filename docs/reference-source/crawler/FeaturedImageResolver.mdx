@@ -83,8 +83,40 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example extracts the first image being 300x400 or larger,  scaling it down to be 50x50 and storing it as an inline JPEG in a  document field, preserving aspect ratio and using the best quality  possible.","codeByLanguage":{"json":"{\n  \"class\": \"FeaturedImageResolver\",\n  \"minDimensions\": {\n    \"width\": 300,\n    \"height\": 400\n  },\n  \"scaleDimensions\": {\n    \"width\": 50,\n    \"height\": 50\n  },\n  \"imageFormat\": \"jpg\",\n  \"scaleQuality\": \"MAX\",\n  \"storages\": [\n    \"INLINE\"\n  ]\n}","yaml":"class: FeaturedImageResolver\nminDimensions:\n  width: 300\n  height: 400\nscaleDimensions:\n  width: 50\n  height: 50\nimageFormat: jpg\nscaleQuality: MAX\nstorages:\n  - INLINE","xml":"<class>FeaturedImageResolver</class>\n<minDimensions>\n  <width>300</width>\n  <height>400</height>\n</minDimensions>\n<scaleDimensions>\n  <width>50</width>\n  <height>50</height>\n</scaleDimensions>\n<imageFormat>jpg</imageFormat>\n<scaleQuality>MAX</scaleQuality>\n<storages>\n  <storage>INLINE</storage>\n</storages>"}}
-  ]}
+The following example extracts the first image being 300x400 or larger,  scaling it down to be 50x50 and storing it as an inline JPEG in a  document field, preserving aspect ratio and using the best quality  possible.
+
+
+
+<ConfigExample
+  json={{
+    "class": "FeaturedImageResolver",
+    "minDimensions": {
+      "width": 300,
+      "height": 400
+    },
+    "scaleDimensions": {
+      "width": 50,
+      "height": 50
+    },
+    "imageFormat": "jpg",
+    "scaleQuality": "MAX",
+    "storages": [
+      "INLINE"
+    ]
+  }}
+  xml={`
+<class>FeaturedImageResolver</class>
+<minDimensions>
+  <width>300</width>
+  <height>400</height>
+</minDimensions>
+<scaleDimensions>
+  <width>50</width>
+  <height>50</height>
+</scaleDimensions>
+<imageFormat>jpg</imageFormat>
+<scaleQuality>MAX</scaleQuality>
+<storages>
+  <storage>INLINE</storage>
+</storages>`}
 />

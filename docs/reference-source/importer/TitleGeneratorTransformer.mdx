@@ -80,8 +80,15 @@ A target field name used to store the value.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The follow example will check if the first line looks like a title and if not, it will store the first sentence, up to 200 characters, in a field called title.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"TitleGeneratorTransformer\",\n    \"toField\": \"title\",\n    \"titleMaxLength\": 200,\n    \"detectHeading\": true\n  }\n}","yaml":"handler:\n  class: TitleGeneratorTransformer\n  toField: title\n  titleMaxLength: 200\n  detectHeading: true","xml":"<handler>\n  <class>TitleGeneratorTransformer</class>\n  <toField>title</toField>\n  <titleMaxLength>200</titleMaxLength>\n  <detectHeading>true</detectHeading>\n</handler>"}}
-  ]}
+The follow example will check if the first line looks like a title and if not, it will store the first sentence, up to 200 characters, in a field called title.
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "TitleGeneratorTransformer",
+      "toField": "title",
+      "titleMaxLength": 200,
+      "detectHeading": true
+    }
+  }}
 />

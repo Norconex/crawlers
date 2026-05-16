@@ -35,8 +35,13 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example will generate a broken links report by recording 404 status codes (from HTTP responses).","codeByLanguage":{"json":"{\n  \"class\": \"UrlStatusCrawlerEventListener\",\n  \"statusCodes\": \"404\",\n  \"outputDir\": \"/report/path\",\n  \"fileNamePrefix\": \"brokenLinks\"\n}","yaml":"class: UrlStatusCrawlerEventListener\nstatusCodes: \"404\"\noutputDir: /report/path\nfileNamePrefix: brokenLinks","xml":"<class>UrlStatusCrawlerEventListener</class>\n<statusCodes>404</statusCodes>\n<outputDir>/report/path</outputDir>\n<fileNamePrefix>brokenLinks</fileNamePrefix>"}}
-  ]}
+The following example will generate a broken links report by recording 404 status codes (from HTTP responses).
+
+<ConfigExample
+  json={{
+    "class": "UrlStatusCrawlerEventListener",
+    "statusCodes": "404",
+    "outputDir": "/report/path",
+    "fileNamePrefix": "brokenLinks"
+  }}
 />

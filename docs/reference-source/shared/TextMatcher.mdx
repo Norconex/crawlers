@@ -55,9 +55,25 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"basic","description":"The most basic form, performing an exact match on entire text.  It will match \"Paul\", but not \"paul\", and not \"I am Paul\".","codeByLanguage":{"json":"{\n  \"pattern\": \"Paul\"\n}","yaml":"pattern: Paul","xml":"<pattern>Paul</pattern>"}},
-    {"title":"wildcard","description":"The following will successfully match this sentence:  \"It seems Paul and Marc are friends\".","codeByLanguage":{"json":"{\n  \"method\": \"WILDCARD\",\n  \"ignoreCase\": true,\n  \"partial\": true,\n  \"pattern\": \"paul*mar?\"\n}","yaml":"method: WILDCARD\nignoreCase: true\npartial: true\npattern: paul*mar?","xml":"<method>WILDCARD</method>\n<ignoreCase>true</ignoreCase>\n<partial>true</partial>\n<pattern>paul*mar?</pattern>"}}
-  ]}
+### basic
+
+The most basic form, performing an exact match on entire text.  It will match "Paul", but not "paul", and not "I am Paul".
+
+<ConfigExample
+  json={{
+    "pattern": "Paul"
+  }}
+/>
+
+### wildcard
+
+The following will successfully match this sentence:  "It seems Paul and Marc are friends".
+
+<ConfigExample
+  json={{
+    "method": "WILDCARD",
+    "ignoreCase": true,
+    "partial": true,
+    "pattern": "paul*mar?"
+  }}
 />

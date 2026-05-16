@@ -28,8 +28,38 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The above example renames a \"dc.title\" field to \"title\", overwriting any existing values in \"title\".","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"RenameTransformer\",\n    \"operations\": [\n      {\n        \"toField\": \"title\",\n        \"onSet\": \"REPLACE\",\n        \"fieldMatcher\": {\n          \"method\": \"REGEX\",\n          \"pattern\": \"dc.title\"\n        }\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: RenameTransformer\n  operations:\n    - toField: title\n      onSet: REPLACE\n      fieldMatcher:\n        method: REGEX\n        pattern: dc.title","xml":"<handler>\n  <class>RenameTransformer</class>\n  <operations>\n    <op>\n      <toField>title</toField>\n      <onSet>REPLACE</onSet>\n      <fieldMatcher>\n        <method>REGEX</method>\n        <pattern>dc.title</pattern>\n      </fieldMatcher>\n    </op>\n  </operations>\n</handler>"}}
-  ]}
+The above example renames a "dc.title" field to "title", overwriting any existing values in "title".
+
+
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "RenameTransformer",
+      "operations": [
+        {
+          "toField": "title",
+          "onSet": "REPLACE",
+          "fieldMatcher": {
+            "method": "REGEX",
+            "pattern": "dc.title"
+          }
+        }
+      ]
+    }
+  }}
+  xml={`
+<handler>
+  <class>RenameTransformer</class>
+  <operations>
+    <op>
+      <toField>title</toField>
+      <onSet>REPLACE</onSet>
+      <fieldMatcher>
+        <method>REGEX</method>
+        <pattern>dc.title</pattern>
+      </fieldMatcher>
+    </op>
+  </operations>
+</handler>`}
 />

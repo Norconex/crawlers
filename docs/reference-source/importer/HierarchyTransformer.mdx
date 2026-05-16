@@ -49,8 +49,19 @@ this work
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The example will expand a slash-separated vegetable hierarchy found in a \"vegetable\" field into a \"vegetableHierarchy\" field.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"HierarchyTransformer\",\n    \"operations\": [\n      {\n        \"fromField\": \"vegetable\",\n        \"toField\": \"vegetableHierarchy\",\n        \"fromSeparator\": \"/\"\n      }\n    ]\n  }\n}","yaml":"handler:\n  class: HierarchyTransformer\n  operations:\n    - fromField: vegetable\n      toField: vegetableHierarchy\n      fromSeparator: /","xml":"<handler>\n  <class>HierarchyTransformer</class>\n  <operations>\n    <fromField>vegetable</fromField>\n    <toField>vegetableHierarchy</toField>\n    <fromSeparator>/</fromSeparator>\n  </operations>\n</handler>"}}
-  ]}
+The example will expand a slash-separated vegetable hierarchy found in a "vegetable" field into a "vegetableHierarchy" field.
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "HierarchyTransformer",
+      "operations": [
+        {
+          "fromField": "vegetable",
+          "toField": "vegetableHierarchy",
+          "fromSeparator": "/"
+        }
+      ]
+    }
+  }}
 />

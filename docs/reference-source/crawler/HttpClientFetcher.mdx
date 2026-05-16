@@ -135,8 +135,18 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","codeByLanguage":{"json":"{\n  \"class\": \"HttpClientFetcher\",\n  \"authentication\": {\n    \"method\": \"FORM\",\n    \"credentials\": {\n      \"username\": \"joeUser\",\n      \"password\": \"joePassword\"\n    },\n    \"formUsernameField\": \"loginUser\",\n    \"formPasswordField\": \"loginPwd\",\n    \"url\": \"http://www.example.com/login/submit\"\n  }\n}","yaml":"class: HttpClientFetcher\nauthentication:\n  method: FORM\n  credentials:\n    username: joeUser\n    password: joePassword\n  formUsernameField: loginUser\n  formPasswordField: loginPwd\n  url: http://www.example.com/login/submit","xml":"<class>HttpClientFetcher</class>\n<authentication>\n  <method>FORM</method>\n  <credentials>\n    <username>joeUser</username>\n    <password>joePassword</password>\n  </credentials>\n  <formUsernameField>loginUser</formUsernameField>\n  <formPasswordField>loginPwd</formPasswordField>\n  <url>http://www.example.com/login/submit</url>\n</authentication>"}}
-  ]}
+<ConfigExample
+  json={{
+    "class": "HttpClientFetcher",
+    "authentication": {
+      "method": "FORM",
+      "credentials": {
+        "username": "joeUser",
+        "password": "joePassword"
+      },
+      "formUsernameField": "loginUser",
+      "formPasswordField": "loginPwd",
+      "url": "http://www.example.com/login/submit"
+    }
+  }}
 />

@@ -52,8 +52,26 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example reduces multiple `line feed` and `tab` into a single one.","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"CollapseRepeatingTransformer\",\n    \"strings\": [\n      \"\\n\",\n      \"\\t\"\n    ]\n  }\n}","yaml":"handler:\n  class: CollapseRepeatingTransformer\n  strings:\n    - |+\n      \n    - \"\\t\"","xml":"<handler>\n  <class>CollapseRepeatingTransformer</class>\n  <strings>\n    <string>\\n</string>\n    <string>\\t</string>\n  </strings>\n</handler>"}}
-  ]}
+The following example reduces multiple `line feed` and `tab` into a single one.
+
+
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "CollapseRepeatingTransformer",
+      "strings": [
+        "\n",
+        "\t"
+      ]
+    }
+  }}
+  xml={`
+<handler>
+  <class>CollapseRepeatingTransformer</class>
+  <strings>
+    <string>\n</string>
+    <string>\t</string>
+  </strings>
+</handler>`}
 />

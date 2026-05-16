@@ -111,10 +111,88 @@ When enabled, OCR is attempted on all supported image formats. To limit OCR to a
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"Save Error Parse to a directory","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"DefaultParser\",\n    \"errorsSaveDir\": \"C:\\\\reports\\\\errors\"\n  }\n}","yaml":"handler:\n  class: DefaultParser\n  errorsSaveDir: C:\\reports\\errors","xml":"<handler>\n  <class>DefaultParser</class>\n  <errorsSaveDir>C:\\reports\\errors</errorsSaveDir>\n</handler>"}},
-    {"title":"ocr","description":"The following example uses Tesseract to convert English images in PDF into text.\n\n***OCR***","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"DefaultParser\",\n    \"ocr\": {\n      \"tessdataPath\": \"/app/ocr/tesseract.exe\",\n      \"contentTypeMatcher\": {\n        \"method\": \"BASIC\",\n        \"pattern\": \"application/pdf\",\n        \"ignoreCase\": true\n      },\n      \"language\": \"eng\"\n    }\n  }\n}","yaml":"handler:\n  class: DefaultParser\n  ocr:\n    tessdataPath: /app/ocr/tesseract.exe\n    contentTypeMatcher:\n      method: BASIC\n      pattern: application/pdf\n      ignoreCase: true\n    language: eng","xml":"<handler>\n  <class>DefaultParser</class>\n  <ocr>\n    <tessdataPath>/app/ocr/tesseract.exe</tessdataPath>\n    <contentTypeMatcher>\n      <method>BASIC</method>\n      <pattern>application/pdf</pattern>\n      <ignoreCase>true</ignoreCase>\n    </contentTypeMatcher>\n    <language>eng</language>\n  </ocr>\n</handler>"}},
-    {"title":"embedded","description":"The following example separates embedded content into individual documents for ZIP files, skips extracting image-type content (e.g., PNG, JPEG) from all container types—including ZIPs, and entirely skips embedded content when the parent document is a Microsoft Word file.\n\n***Embedded***","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"DefaultParser\",\n    \"embedded\": {\n      \"splitContentTypes\": [\n        {\n          \"method\": \"BASIC\",\n          \"pattern\": \"application/zip\",\n          \"ignoreCase\": true\n        }\n      ],\n      \"skipEmbeddedContentTypes\": [\n        {\n          \"method\": \"REGEX\",\n          \"pattern\": \"image/.*\",\n          \"ignoreCase\": true\n        }\n      ],\n      \"skipEmbeddedofContentTypes\": [\n        {\n          \"method\": \"BASIC\",\n          \"pattern\": \"application/msword\",\n          \"ignoreCase\": true\n        }\n      ]\n    }\n  }\n}","yaml":"handler:\n  class: DefaultParser\n  embedded:\n    splitContentTypes:\n      - method: BASIC\n        pattern: application/zip\n        ignoreCase: true\n    skipEmbeddedContentTypes:\n      - method: REGEX\n        pattern: image/.*\n        ignoreCase: true\n    skipEmbeddedofContentTypes:\n      - method: BASIC\n        pattern: application/msword\n        ignoreCase: true","xml":"<handler>\n  <class>DefaultParser</class>\n  <embedded>\n    <splitContentTypes>\n      <splitContentType>\n        <method>BASIC</method>\n        <pattern>application/zip</pattern>\n        <ignoreCase>true</ignoreCase>\n      </splitContentType>\n    </splitContentTypes>\n  </embedded>\n</handler>"}}
-  ]}
+Save Error Parse to a directory
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "DefaultParser",
+      "errorsSaveDir": "C:\\reports\\errors"
+    }
+  }}
+/>
+
+### ocr
+
+The following example uses Tesseract to convert English images in PDF into text.
+
+***OCR***
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "DefaultParser",
+      "ocr": {
+        "tessdataPath": "/app/ocr/tesseract.exe",
+        "contentTypeMatcher": {
+          "method": "BASIC",
+          "pattern": "application/pdf",
+          "ignoreCase": true
+        },
+        "language": "eng"
+      }
+    }
+  }}
+/>
+
+### embedded
+
+The following example separates embedded content into individual documents for ZIP files, skips extracting image-type content (e.g., PNG, JPEG) from all container types—including ZIPs, and entirely skips embedded content when the parent document is a Microsoft Word file.
+
+***Embedded***
+
+
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "DefaultParser",
+      "embedded": {
+        "splitContentTypes": [
+          {
+            "method": "BASIC",
+            "pattern": "application/zip",
+            "ignoreCase": true
+          }
+        ],
+        "skipEmbeddedContentTypes": [
+          {
+            "method": "REGEX",
+            "pattern": "image/.*",
+            "ignoreCase": true
+          }
+        ],
+        "skipEmbeddedofContentTypes": [
+          {
+            "method": "BASIC",
+            "pattern": "application/msword",
+            "ignoreCase": true
+          }
+        ]
+      }
+    }
+  }}
+  xml={`
+<handler>
+  <class>DefaultParser</class>
+  <embedded>
+    <splitContentTypes>
+      <splitContentType>
+        <method>BASIC</method>
+        <pattern>application/zip</pattern>
+        <ignoreCase>true</ignoreCase>
+      </splitContentType>
+    </splitContentTypes>
+  </embedded>
+</handler>`}
 />

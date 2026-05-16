@@ -59,8 +59,57 @@ Indicates whether the first row of the CSV file should be treated as field names
 
 ## Examples
 
-<ReferenceExamples
-  examples={[
-    {"title":"default","description":"The following example demonstrates how to use the CsvSplitter to split a CSV file into multiple documents.\n\n### Sample CSV File contentTypes:\n\n``` csv\n'clientId','clientName','clientOrg','orgDesc'\n'123','Joe Dalton','ACME Inc.','Organization\\'s description'\n'345','Avrel Dalton','Daisy Town','Another one'\n```\n### Result:\n\nThe file will be split into two documents, one for each row after the header row:\n\nDocument 1\n- Reference: 123\n- Content: ACME Inc Organization's description\n\nDocument 2\n- Reference: 345\n- Content: 'Daisy Town Another one","codeByLanguage":{"json":"{\n  \"handler\": {\n    \"class\": \"CsvSplitter\",\n    \"separatorCharacter\": \",\",\n    \"quoteCharacter\": \"'\",\n    \"escapeCharacter\": \"\\\\\",\n    \"useFirstRowAsFields\": true,\n    \"linesToSkip\": 0,\n    \"referenceColumn\": \"clientId\",\n    \"contentColumns\": [\n      \"clientOrg\",\n      \"orgDesc\"\n    ]\n  }\n}","yaml":"handler:\n  class: CsvSplitter\n  separatorCharacter: \",\"\n  quoteCharacter: \"'\"\n  escapeCharacter: \\\n  useFirstRowAsFields: true\n  linesToSkip: 0\n  referenceColumn: clientId\n  contentColumns:\n    - clientOrg\n    - orgDesc","xml":"<handler>\n  <class>CsvSplitter</class>\n  <separatorCharacter>,</separatorCharacter>\n  <quoteCharacter>'</quoteCharacter>\n  <escapeCharacter>\\</escapeCharacter>\n  <useFirstRowAsFields>true</useFirstRowAsFields>\n  <linesToSkip>0</linesToSkip>\n  <referenceColumn>clientId</referenceColumn>\n  <contentColumns>\n    <contentColumn>clientOrg</contentColumn>\n    <contentColumn>orgDesc</contentColumn>\n  </contentColumns>\n</handler>"}}
-  ]}
+The following example demonstrates how to use the CsvSplitter to split a CSV file into multiple documents.
+
+### Sample CSV File contentTypes:
+
+``` csv
+'clientId','clientName','clientOrg','orgDesc'
+'123','Joe Dalton','ACME Inc.','Organization\'s description'
+'345','Avrel Dalton','Daisy Town','Another one'
+```
+### Result:
+
+The file will be split into two documents, one for each row after the header row:
+
+Document 1
+- Reference: 123
+- Content: ACME Inc Organization's description
+
+Document 2
+- Reference: 345
+- Content: 'Daisy Town Another one
+
+
+
+<ConfigExample
+  json={{
+    "handler": {
+      "class": "CsvSplitter",
+      "separatorCharacter": ",",
+      "quoteCharacter": "'",
+      "escapeCharacter": "\\",
+      "useFirstRowAsFields": true,
+      "linesToSkip": 0,
+      "referenceColumn": "clientId",
+      "contentColumns": [
+        "clientOrg",
+        "orgDesc"
+      ]
+    }
+  }}
+  xml={`
+<handler>
+  <class>CsvSplitter</class>
+  <separatorCharacter>,</separatorCharacter>
+  <quoteCharacter>'</quoteCharacter>
+  <escapeCharacter>\</escapeCharacter>
+  <useFirstRowAsFields>true</useFirstRowAsFields>
+  <linesToSkip>0</linesToSkip>
+  <referenceColumn>clientId</referenceColumn>
+  <contentColumns>
+    <contentColumn>clientOrg</contentColumn>
+    <contentColumn>orgDesc</contentColumn>
+  </contentColumns>
+</handler>`}
 />
