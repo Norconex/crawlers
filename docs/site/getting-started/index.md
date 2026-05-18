@@ -24,7 +24,7 @@ Learn one, know both.
 ## Core concepts at a glance
 
 - **Crawl session** — a named, resumable run with persistent state
-- **Pipeline** — every document flows through: Crawl → Filter → Transform → Commit
+- **Pipeline** — every document flows through: Crawl → Process → Commit
 - **Committers** — pluggable output targets (Elasticsearch, Solr, Kafka, SQL, Neo4j, ...)
 
 A hosted companion tool, the [Visual Configurator](https://crawlerconfig.norconex.com),
