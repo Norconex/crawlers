@@ -1,99 +1,137 @@
 ---
-title: Filesystem Crawler Quick Start
+title: File System Crawler Quick Start
 ---
 
-# Filesystem Crawler Quick Start
+# File System Crawler Quick Start
 
-This guide gets you from zero to a running filesystem crawl in under 5 minutes.
+This guide gets you from zero to a running file system crawl in under 5 minutes.
+
+:::note[Windows users]
+Replace `crawl-fs.sh` with `crawl-fs.bat` and `./` with `.\` in all commands below.
+:::
 
 ## Step 1 — Create a config file
 
-Create `my-fs-crawl.yaml`:
+Create `my-fs-crawl.yaml` with the following minimal configuration:
 
 ```yaml
-crawlerDefaults:
-  numThreads: 5
-  committers:
-    - class: com.norconex.committer.core.impl.LogCommitter
-
-crawlers:
-  - id: my-fs-crawl
-    startPaths:
-      - /path/to/your/documents
+id: my-first-crawl
+numThreads: 5
+startReferences:
+  - /path/to/your/documents
+committers:
+  - class: LogCommitter
+    ignoreContent: true
+    logLevel: INFO
 ```
 
-The `LogCommitter` prints each processed document to the log — ideal for testing before connecting a real backend.
+This crawl will process every file under the given path and log each document
+(`LogCommitter` is built-in and ideal for testing before connecting a real backend).
 
 ## Step 2 — Filter by file type (optional)
 
 To crawl only specific file extensions:
 
 ```yaml
-crawlers:
-  - id: my-fs-crawl
-    startPaths:
-      - /path/to/your/documents
-    pathsFilter:
-      includes:
-        - ".*\\.(pdf|docx|xlsx|pptx|txt|html)$"
+id: my-first-crawl
+startReferences:
+  - /path/to/your/documents
+referenceFilters:
+  - class: ExtensionReferenceFilter
+    onMatch: INCLUDE
+    extensions:
+      - pdf
+      - docx
+      - xlsx
+      - pptx
+      - txt
+      - html
 ```
 
 ## Step 3 — Start the crawl
 
 ```bash
-crawler-cli.sh start -config my-fs-crawl.yaml
+./crawl-fs.sh start -config=my-fs-crawl.yaml
 ```
 
-## Step 4 — Remote filesystems
+You'll see log output as files are fetched, filtered, and committed.
+
+## Step 4 — Stop and resume
+
+Stop the crawl at any time:
+
+```bash
+./crawl-fs.sh stop -config=my-fs-crawl.yaml
+```
+
+Norconex saves its state automatically. Resume exactly where you left off by running the same start command again:
+
+```bash
+./crawl-fs.sh start -config=my-fs-crawl.yaml
+```
+
+To clear the crawler state before your next run, you can issue this command:
+
+```bash
+./crawl-fs.sh clean -config=my-fs-crawl.yaml
+```
+
+Alternatively, you can combine "clean" with the start command:
+
+```bash
+./crawl-fs.sh start -clean -config=my-fs-crawl.yaml
+```
+
+## Step 5 — Remote file systems
+
+The file system crawler supports remote protocols out of the box. A few
+examples:
 
 **SFTP:**
 
 ```yaml
-crawlers:
-  - id: sftp-crawl
-    startPaths:
-      - sftp://user@fileserver.example.com/data/documents
-    credentials:
-      username: user
-      passwordFile: /etc/crawler/sftp.password
+id: my-first-crawl
+startReferences:
+  - sftp://fileserver.example.com/data/documents
+credentials:
+  username: user
+  password: myPassword
 ```
 
-**WebDAV (SharePoint, Nextcloud):**
+**WebDAV (Nextcloud, older versions of SharePoint):**
 
 ```yaml
-crawlers:
-  - id: sharepoint-crawl
-    startPaths:
-      - https://sharepoint.example.com/sites/mysite/Shared Documents/
-    credentials:
-      username: domain\\user
-      passwordFile: /etc/crawler/sp.password
+id: my-first-crawl
+startReferences:
+  - https://sharepoint.example.com/sites/mysite/Shared Documents/
+credentials:
+  username: user
+  password: myPassword
 ```
 
 **Apache HDFS:**
 
 ```yaml
-crawlers:
-  - id: hdfs-crawl
-    startPaths:
-      - hdfs://namenode:9000/user/data/corpus
+id: my-first-crawl
+startReferences:
+  - hdfs://namenode:9000/user/data/corpus
 ```
 
-## Step 5 — Send to a search engine
+## Step 6 — Send to a real target
 
-Replace the `LogCommitter` with your target. See the [Integrations](/integrations) page for all options.
+Replace the `LogCommitter` with your actual destination. See the
+[Integrations](/integrations) page for all available committers and their configuration.
 
 ## CLI reference
 
 | Command                | Description                                |
 | ---------------------- | ------------------------------------------ |
-| `start -config <file>` | Start or resume a crawl                    |
-| `stop -config <file>`  | Gracefully stop a running crawl            |
-| `clean -config <file>` | Delete crawl state (forces a full recrawl) |
-| `info -config <file>`  | Print crawl status                         |
+| `start -config=<file>` | Start or resume a crawl                    |
+| `stop -config=<file>`  | Gracefully stop a running crawl            |
+| `clean -config=<file>` | Delete crawl state (forces a full recrawl) |
 
 ## Next steps
 
-- Use the [Configuration Editor](https://crawlerconfig.norconex.com) to build your config visually
-- Read [Concepts: Crawl Pipeline](../concepts/crawl-pipeline) to understand how documents flow
-- See [Concepts: Sessions](../concepts/sessions) for resume and scheduling behavior
+- Use the [Visual Configurator](https://crawlerconfig.norconex.com) to build your config visually
+- Read [Concepts: Crawl Pipeline](../concepts/crawl-pipeline) to understand how documents are processed
+- Read [Concepts: Sessions](../concepts/sessions) to understand resume, deduplication, and scheduling

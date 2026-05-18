@@ -1,6 +1,6 @@
 ---
 component: FsMetadataChecksummer
-module: crawler/core
+module: crawler/fs
 locale: en
 propertyCoverage: all
 ---
@@ -9,31 +9,31 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Fs Metadata Checksummer.
+Generates a metadata checksum for file system documents based on file attributes.
 
 ## Notes
 
-TODO: Add notes.
+Generates a metadata checksum for file system documents using file system attributes such as last-modified date and file size. Optionally stores the generated checksum in a specified metadata field.
 
 ## Properties
 
 ### keep
 
-TODO: Add documentation for this property.
+When enabled, the generated checksum value is also stored as a metadata field on the document.
 
 ### onSet
 
-TODO: Add documentation for this property.
+Defines what to do when the target field already has one or more values. When unspecified, new values are appended to existing ones by default.
 
 ### toField
 
-TODO: Add documentation for this property.
+The target metadata field name where the extracted or computed value will be stored. If a field of the same name already exists, the behavior is controlled by `onSet`.
 
 ## Examples
 
 The following will store the generated metadata checksum in a field called "checksum".
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "FsMetadataChecksummer",
     "keep": true,

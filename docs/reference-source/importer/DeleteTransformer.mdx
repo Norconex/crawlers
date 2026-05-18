@@ -23,13 +23,13 @@ This functionality can be applied as either a `pre-parse` or `post-parse` handle
 
 ### fieldMatcher
 
-TODO: Add documentation for this property.
+Matches document fields based on specified patterns and methods. Use this to restrict the handler to operate only on fields whose names satisfy the matcher criteria.
 
 ## Examples
 
 The following example deletes all metadata fields starting with "X-".
 
-<ConfigExample
+<ConfigBlock
   json={{
     "handler": {
       "class": "DeleteTransformer",

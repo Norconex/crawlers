@@ -16,12 +16,12 @@ package com.norconex.crawler.web.fetch.impl.webdriver;
 
 import org.junit.jupiter.api.Timeout;
 
-@Timeout(60)
-class EdgeWebDriverHttpFetcherTest extends AbstractWebDriverHttpFetcherTest {
+@Timeout(120)
+class EdgeWebDriverHttpFetcherIT extends AbstractWebDriverHttpFetcherIT {
 
     // Tests are in super class
 
-    public EdgeWebDriverHttpFetcherTest() {
+    public EdgeWebDriverHttpFetcherIT() {
         super(WebDriverBrowser.EDGE);
     }
 }

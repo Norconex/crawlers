@@ -13,7 +13,7 @@ Generic implementation that should satisfy most URL normalization needs.
 
 ## Notes
 
-TODO: Add notes.
+Normalizes crawled URLs to reduce duplicate content caused by equivalent URLs that differ only in format. Supports built-in normalization rules (such as lowercasing the scheme and host, removing default ports, and encoding non-URI characters) and custom search-and-replace patterns.
 
 ## Properties
 
@@ -31,7 +31,7 @@ The following adds a normalization to add `www.` to URL domains when missing, to
 
 
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "GenericUrlNormalizer",
     "normalizations": [

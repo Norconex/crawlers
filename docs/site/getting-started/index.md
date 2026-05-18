@@ -7,16 +7,16 @@ slug: /getting-started
 # Welcome to Norconex Crawler
 
 Norconex Crawler is an open-source, enterprise-grade crawling framework that collects content
-from **websites** and **filesystems** and delivers it to search engines, databases, and data
+from **websites** and **file systems** and delivers it to search engines, databases, and data
 pipelines — without vendor lock-in.
 
 ## Two crawlers, one framework
 
-|                      | Web Crawler                   | Filesystem Crawler                      |
-| -------------------- | ----------------------------- | --------------------------------------- |
-| **Sources**          | HTTP/S websites               | Local disk, FTP, SFTP, WebDAV, HDFS, S3 |
-| **Key capability**   | Link extraction, JS rendering | Path and extension filtering            |
-| **Typical use case** | Web indexing, site monitoring | Document management, NAS indexing       |
+|                      | Web Crawler                                      | File system Crawler                                   |
+| -------------------- | ------------------------------------------------ | ----------------------------------------------------- |
+| **Sources**          | HTTP/S websites and web applications             | Local and remote file storage across many protocols   |
+| **How it navigates** | Follows hyperlinks; can render JavaScript        | Traverses directory trees; resolves paths by protocol |
+| **Typical use case** | Web indexing, site monitoring, content archiving | Document management, network storage indexing         |
 
 Both crawlers share the same configuration model, pipeline, and committer system.
 Learn one, know both.
@@ -26,11 +26,14 @@ Learn one, know both.
 - **Crawl session** — a named, resumable run with persistent state
 - **Pipeline** — every document flows through: Crawl → Filter → Transform → Commit
 - **Committers** — pluggable output targets (Elasticsearch, Solr, Kafka, SQL, Neo4j, ...)
-- **Configuration Editor** — visual tool to create, edit, and validate configs in XML, YAML, or JSON
+
+A hosted companion tool, the [Visual Configurator](https://crawlerconfig.norconex.com),
+lets you build and validate crawler configs visually — it is not part of the open-source
+distribution.
 
 ## Where to go next
 
-- **New to Norconex?** → [Installation](./installation.md) then [Web Quick Start](./quick-start-web.md) or [Filesystem Quick Start](./quick-start-fs.md)
+- **New to Norconex Crawler?** → [Installation](./installation.md) then [Web Quick Start](./quick-start-web.md) or [File System Quick Start](./quick-start-fs.md)
 - **Embedding in Java?** → [Java Integration](./java-integration.md)
 - **How does it all work?** → [Concepts](../concepts/index.md)
 - **Upgrading from v3?** → [Migration Guide](../migration/index.md)

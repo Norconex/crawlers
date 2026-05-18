@@ -13,7 +13,7 @@ Apply different delays per different URL patterns.
 
 ## Notes
 
-TODO: Add notes.
+Applies different crawl delays based on URL patterns. A default delay applies when no pattern matches, and specific URL patterns can override it with longer or shorter delays. Optionally ignores the crawl delay from `robots.txt`.
 
 ## Properties
 
@@ -39,7 +39,7 @@ The following example will increase the delay to 10 seconds when  encountering P
 
 
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "ReferenceDelayResolver",
     "defaultDelay": 3000,

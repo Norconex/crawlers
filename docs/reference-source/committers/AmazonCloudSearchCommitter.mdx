@@ -13,7 +13,7 @@ Commit documents to Amazon CloudSearch.
 
 ## Notes
 
-TODO: Add notes.
+Commits crawled documents to an Amazon CloudSearch index. Supports field mappings, optional ID normalization for CloudSearch compatibility, and AWS credential configuration via explicit keys or environment variables.
 
 ## Properties
 
@@ -31,15 +31,15 @@ Forces references to fit into a CloudSearch id field. Truncate references that a
 
 ### proxySettings
 
-TODO: Add documentation for this property.
+Configures an optional HTTP proxy for outbound connections. Leave unset to connect directly.
 
 ### queue
 
-TODO: Add documentation for this property.
+Configures the committer queue used to batch documents before sending them to the target system. Adjust queue settings to tune throughput and memory usage.
 
 ### restrictions
 
-TODO: Add documentation for this property.
+Defines filter conditions that restrict which documents this committer processes. Documents not matching the restrictions are ignored by this committer.
 
 ### secretKey
 
@@ -65,7 +65,7 @@ CloudSearch field name to store the document content. Default is "content".
 
 The following example uses the minimum required settings to configure the Amazon CloudSearch Committer. This example relies on environment  variables for AWS keys.
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "CloudSearchCommitter",
     "serviceEndpoint": "search-example-xyz.some-region.cloudsearch.amazonaws.com"

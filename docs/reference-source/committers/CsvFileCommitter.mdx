@@ -13,7 +13,7 @@ Local comma-separated values files.
 
 ## Notes
 
-TODO: Add notes.
+Commits crawled documents to local comma-separated values (CSV) files. Supports configurable delimiters, quoting, column mappings, multi-value joining, file compression, and output directory settings.
 
 ## Properties
 
@@ -47,11 +47,11 @@ Mapping of source fields to target ones (CSV columns).
 
 ### fileNamePrefix
 
-TODO: Add documentation for this property.
+A string prepended to generated file names to distinguish them from other output files.
 
 ### fileNameSuffix
 
-TODO: Add documentation for this property.
+A string appended to generated file names (before the extension) to distinguish them from other output files.
 
 ### format
 
@@ -67,7 +67,7 @@ A character used to quote values.
 
 ### restrictions
 
-TODO: Add documentation for this property.
+Defines filter conditions that restrict which documents this committer processes. Documents not matching the restrictions are ignored by this committer.
 
 ### showHeaders
 
@@ -75,7 +75,7 @@ Write column headers at the first of a generated document.
 
 ### splitUpsertDelete
 
-TODO: Add documentation for this property.
+When enabled, a single update operation is split into separate upsert and delete operations for compatibility with the target system.
 
 ### truncateAt
 
@@ -87,7 +87,7 @@ Name of the column holding the operation type (`upsert` or `delete`). Default is
 
 ## Examples
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "CsvFileCommitter",
     "filePath": "/path/to/committer.csv"

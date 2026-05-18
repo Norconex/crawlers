@@ -9,22 +9,22 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Rename Operation.
+A single field rename operation mapping source field names to a new name.
 
 ## Notes
 
-TODO: Add notes.
+Defines a single field rename operation for the RenameTransformer. Specifies which source fields to match and the target field name to rename them to. When using regex patterns, the target field name can include back-references (e.g., `$1`).
 
 ## Properties
 
 ### fieldMatcher
 
-TODO: Add documentation for this property.
+Matches document fields based on specified patterns and methods. Use this to restrict the handler to operate only on fields whose names satisfy the matcher criteria.
 
 ### onSet
 
-TODO: Add documentation for this property.
+Defines what to do when the target field already has one or more values. When unspecified, new values are appended to existing ones by default.
 
 ### toField
 
-TODO: Add documentation for this property.
+The target metadata field name where the extracted or computed value will be stored. If a field of the same name already exists, the behavior is controlled by `onSet`.

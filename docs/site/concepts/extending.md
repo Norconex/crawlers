@@ -4,114 +4,247 @@ title: Extending the Crawler
 
 # Extending the Crawler
 
-Norconex Crawler is designed for extension.
-Every major component — parsers, filters, transformers, committers, fetchers — is a plugin point.
-You can add custom behavior without forking or modifying the core.
+Norconex Crawler is designed for extension. Every major component — parsers,
+filters, transformers, committers, fetchers — is a plugin point you can
+replace or augment without forking or modifying the core.
 
-## Extension model
+## The simplest approach: drop in a class
 
-The crawler uses a **Service Provider Interface (SPI)** model backed by Java's standard `ServiceLoader`.
+The minimal path to a custom extension is three steps:
 
-To register a custom class:
+1. Implement the relevant interface
+2. Package your class in a JAR and drop it in the `lib/` folder of the distribution
+3. Reference it by **fully-qualified class name** in your configuration
 
-1. Implement the relevant interface (e.g., `IDocumentFilter`, `ICommitter`)
-2. Annotate it with `@PolymorphicType` so it can be referenced by class name in config files
-3. Register it in `META-INF/services/` or via a `PolymorphicTypeProvider` implementation
+No annotation, no registration file, no code generation required. The
+configuration loader resolves any fully-qualified class name directly at runtime.
 
-Once registered, your class appears in the [Configuration Editor](https://crawlerconfig.norconex.com)
-and can be used in any config file like a built-in class.
+```yaml
+documentFilters:
+  - class: com.example.PricingPageFilter
+```
+
+That is all that is needed for the crawler to instantiate and use your class.
 
 ## Common extension points
 
-### Custom filter
+### Crawl-stage document filter
+
+Implement `DocumentFilter` to accept or reject a fetched document before it
+enters the Importer pipeline.
 
 ```java
-@PolymorphicType
-public class PricePageFilter implements IDocumentFilter {
+package com.example;
+
+import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
+import com.norconex.importer.doc.Doc;
+
+public class PricingPageFilter implements DocumentFilter {
 
     @Override
-    public boolean acceptDocument(CrawlDoc doc) {
-        // only crawl pages with "pricing" in their URL
-        return doc.getReference().contains("pricing");
+    public boolean acceptDocument(Doc document) {
+        return document.getReference().contains("pricing");
     }
 }
 ```
 
-Reference it in your config:
+```yaml
+documentFilters:
+  - class: com.example.PricingPageFilter
+```
+
+### Importer handler
+
+Implement `DocHandler` to add custom behavior inside the Importer pipeline —
+enriching metadata, transforming content, or rejecting a document. Return
+`false` to stop processing and discard the document.
+
+```java
+package com.example;
+
+import com.norconex.importer.handler.DocHandler;
+import com.norconex.importer.handler.DocHandlerContext;
+
+public class UppercaseTitleHandler implements DocHandler {
+
+    @Override
+    public boolean handle(DocHandlerContext ctx) throws java.io.IOException {
+        var title = ctx.metadata().getString("title");
+        if (title != null) {
+            ctx.metadata().set("title", title.toUpperCase());
+        }
+        return true;
+    }
+}
+```
+
+```yaml
+handlers:
+  - class: com.example.UppercaseTitleHandler
+```
+
+### Custom committer
+
+Extend `AbstractCommitter` to send documents to any destination.
+
+```java
+package com.example;
+
+import com.norconex.committer.core.AbstractCommitter;
+import com.norconex.committer.core.DeleteRequest;
+import com.norconex.committer.core.UpsertRequest;
+
+public class MyApiCommitter extends AbstractCommitter<MyApiCommitterConfig> {
+
+    @Override
+    protected void doUpsert(UpsertRequest request) {
+        myApiClient.index(
+            request.getReference(),
+            request.getContent(),
+            request.getMetadata());
+    }
+
+    @Override
+    protected void doDelete(DeleteRequest request) {
+        myApiClient.delete(request.getReference());
+    }
+}
+```
+
+```yaml
+committers:
+  - class: com.example.MyApiCommitter
+```
+
+## Short class names via SPI (optional)
+
+By default, you must use the fully-qualified class name in configuration.
+If you want to reference your class by its **simple name** (without the
+package prefix), register it through the
+**Service Provider Interface (SPI)**.
+
+Create a class that extends `BasePolymorphicTypeProvider` and registers your
+types:
+
+```java
+package com.example.spi;
+
+import com.norconex.commons.lang.bean.spi.BasePolymorphicTypeProvider;
+import com.example.PricingPageFilter;
+import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
+
+public class MyExtensionsPtProvider extends BasePolymorphicTypeProvider {
+
+    @Override
+    protected void register(Registry registry) {
+        registry.add(DocumentFilter.class, PricingPageFilter.class);
+    }
+}
+```
+
+Then declare it as a service in your JAR:
+
+```
+META-INF/services/com.norconex.commons.lang.bean.spi.PolymorphicTypeProvider
+```
+
+with the content:
+
+```
+com.example.spi.MyExtensionsPtProvider
+```
+
+After this, the short name works in configuration:
 
 ```yaml
 documentFilters:
-  - class: com.example.PricePageFilter
+  - class: PricingPageFilter
 ```
 
-### Custom transformer
+## Event listeners
+
+All crawler events are instances of `CrawlerEvent`. There are no separate
+classes per event type — the event type is identified by a string name checked
+with `event.is(String)`.
+
+To create a reusable listener, implement `EventListener<Event>` and register
+it in your config. Its single method is `accept(Event event)`.
 
 ```java
-@PolymorphicType
-public class UppercaseTitleTransformer implements IDocumentTransformer {
+package com.example;
+
+import com.norconex.commons.lang.event.Event;
+import com.norconex.commons.lang.event.EventListener;
+import com.norconex.crawler.core.event.CrawlerEvent;
+
+public class MyAuditListener implements EventListener<Event> {
 
     @Override
-    public void transformDocument(CrawlDoc doc) {
-        String title = doc.getMetadata().getString("title");
-        if (title != null) {
-            doc.getMetadata().set("title", title.toUpperCase());
+    public void accept(Event event) {
+        if (!(event instanceof CrawlerEvent e)) {
+            return;
+        }
+        if (e.is(CrawlerEvent.DOCUMENT_FETCHED)) {
+            log.info("Fetched: {}", e.getCrawlEntry().getReference());
+        }
+        if (e.is(CrawlerEvent.REJECTED_FILTER)) {
+            log.warn("Filtered out: {}", e.getCrawlEntry().getReference());
         }
     }
 }
 ```
 
-### Custom committer
+Register it in your configuration file:
 
-Implement `AbstractCommitter` or `ICommitter` to send documents to any destination:
+```yaml
+eventListeners:
+  - class: com.example.MyAuditListener
+```
+
+If you only care about lifecycle events (start, stop, clean, error), extend the
+`CrawlerLifeCycleListener` adapter and override only the methods you need:
 
 ```java
-@PolymorphicType
-public class MyApiCommitter extends AbstractCommitter {
+public class MyCrawlLifecycle extends CrawlerLifeCycleListener {
 
     @Override
-    protected void doUpsert(CommitterRequest req) {
-        myApiClient.index(req.getReference(), req.getContent(), req.getMetadata());
+    protected void onCrawlerCrawlBegin(CrawlerEvent event) {
+        log.info("Crawl started: {}", event.getCrawlSession().getCrawlerId());
     }
 
     @Override
-    protected void doDelete(CommitterRequest req) {
-        myApiClient.delete(req.getReference());
+    protected void onCrawlerCrawlEnd(CrawlerEvent event) {
+        log.info("Crawl finished.");
     }
 }
 ```
 
-## Event listeners
+Selected event name constants on `CrawlerEvent`:
 
-The crawler fires events throughout its lifecycle that you can react to without implementing a full plugin:
+| Constant | When it fires |
+|----------|--------------|
+| `CRAWLER_CRAWL_BEGIN` | Crawl is about to begin |
+| `CRAWLER_CRAWL_END` | Crawl completed normally |
+| `CRAWLER_ERROR` | An error occurred in the crawler |
+| `DOCUMENT_FETCHED` | A document was successfully fetched |
+| `DOCUMENT_IMPORTED` | The Importer pipeline completed for a document |
+| `DOCUMENT_PROCESSED` | A document finished processing (success or not) |
+| `REJECTED_FILTER` | Discarded by a reference or document filter |
+| `REJECTED_NOTFOUND` | Discarded because it no longer exists |
+| `REJECTED_ERROR` | Discarded due to a processing error |
 
-```java
-crawler.getEventManager().addListener(event -> {
-    if (event instanceof DocumentRejectedEvent e) {
-        log.warn("Rejected: {} — {}", e.getCrawlDoc().getReference(), e.getReason());
-    }
-});
-```
+For attaching listeners programmatically when embedding the crawler in Java,
+see [Java Integration](../getting-started/java-integration).
 
-Key event types:
+## Packaging
 
-| Event                    | When it fires                          |
-| ------------------------ | -------------------------------------- |
-| `CrawlerStartedEvent`    | Crawl session begins                   |
-| `CrawlerStoppedEvent`    | Crawl session ends                     |
-| `DocumentFetchedEvent`   | After a document is fetched            |
-| `DocumentImportedEvent`  | After the Import pipeline completes    |
-| `DocumentCommittedEvent` | After a committer accepts the document |
-| `DocumentRejectedEvent`  | When a filter discards a document      |
-
-## Packaging extensions
-
-Package your extension classes in a JAR and drop it into the `lib/` directory of the crawler distribution.
-No code changes to the core are required.
-
-For Maven projects, declare a dependency on the crawler module and the `importer` module.
-Your JAR will be picked up automatically at runtime.
+Place your JAR in the `lib/` directory of the crawler distribution. No changes
+to the core are required. For Maven projects, declare a dependency on the
+crawler module and the `importer` module — your JAR will be picked up
+automatically at runtime.
 
 ## Resources
 
-- [Configuration Reference](https://crawlerconfig.norconex.com/docs) — all built-in extension points with examples
-- [GitHub: crawlers](https://github.com/Norconex/crawlers) — source code and existing implementations to use as reference
+- [Reference](/docs/reference/) — all built-in extension points with examples
+- [GitHub: crawlers](https://github.com/Norconex/crawlers) — source code and
+  existing implementations to use as a reference

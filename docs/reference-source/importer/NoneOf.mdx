@@ -9,23 +9,23 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for None Of.
+A compound condition that is true only when none of its child conditions are true.
 
 ## Notes
 
-TODO: Add notes.
+A compound condition that evaluates to true only when none of its child conditions are true. Used in importer flow control to route documents that do not satisfy any of the specified criteria.
 
 ## Properties
 
 ### conditions
 
-TODO: Add documentation for this property.
+A list of conditions that are evaluated to determine whether the handler should be applied.
 
 ## Examples
 
 
 
-<ConfigExample
+<ConfigBlock
   json={{
     "noneOf": []
   }}

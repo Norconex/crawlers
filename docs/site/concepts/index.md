@@ -21,19 +21,20 @@ Understanding these ideas will help you configure and extend the crawler effecti
 ## The big picture
 
 ```
- Source                 Pipeline                           Destination
- ──────            ─────────────────────────────────       ───────────
- Web     ──────►  Fetch → Queue → Filter → Import → Commit ──────►  Elasticsearch
- Files   ──────►                                            ──────►  Solr
-                                                            ──────►  Kafka, SQL, ...
+ Source                      Pipeline                      Destination
+ ──────          ────────────────────────────────          ───────────
+ Web    ──────►  Crawl  ──►  Process  ──►  Commit  ──────►  Elasticsearch
+ Files  ──────►                                    ──────►  Solr
+                                                   ──────►  Kafka, SQL, ...
 ```
 
-Every document — whether a web page or a file — passes through the same pipeline.
-The crawl type (Web vs. Filesystem) only affects the **Fetch** stage.
-Everything downstream is identical.
+Every document — whether a web page or a file — passes through the same
+three-stage pipeline. The crawl type (Web vs. File System) only affects the
+**Crawl** stage. Everything downstream is identical.
 
 ## Configuration model
 
 All configuration lives in a single file (XML, YAML, or JSON).
-The [Configuration Editor](https://crawlerconfig.norconex.com) provides a visual way to build and validate configs,
-with a full searchable reference for every option.
+
+- [Reference](/docs/reference/) — all built-in extension points with examples
+- The [Visual Configurator](https://crawlerconfig.norconex.com) provides a visual way to build and validate configs.

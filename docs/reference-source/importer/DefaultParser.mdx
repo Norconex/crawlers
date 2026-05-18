@@ -113,7 +113,7 @@ When enabled, OCR is attempted on all supported image formats. To limit OCR to a
 
 Save Error Parse to a directory
 
-<ConfigExample
+<ConfigBlock
   json={{
     "handler": {
       "class": "DefaultParser",
@@ -128,7 +128,7 @@ The following example uses Tesseract to convert English images in PDF into text.
 
 ***OCR***
 
-<ConfigExample
+<ConfigBlock
   json={{
     "handler": {
       "class": "DefaultParser",
@@ -153,7 +153,7 @@ The following example separates embedded content into individual documents for Z
 
 
 
-<ConfigExample
+<ConfigBlock
   json={{
     "handler": {
       "class": "DefaultParser",

@@ -13,7 +13,7 @@ Commit documents to Microsoft Azure Search.
 
 ## Notes
 
-TODO: Add notes.
+Commits crawled documents to a Microsoft Azure Cognitive Search index. Supports field mappings, Base64 document key encoding, Windows authentication, and configurable handling of response and validation errors.
 
 ## Properties
 
@@ -59,15 +59,15 @@ Name of the target Azure Search index where to send documents.
 
 ### proxySettings
 
-TODO: Add documentation for this property.
+Configures an optional HTTP proxy for outbound connections. Leave unset to connect directly.
 
 ### queue
 
-TODO: Add documentation for this property.
+Configures the committer queue used to batch documents before sending them to the target system. Adjust queue settings to tune throughput and memory usage.
 
 ### restrictions
 
-TODO: Add documentation for this property.
+Defines filter conditions that restrict which documents this committer processes. Documents not matching the restrictions are ignored by this committer.
 
 ### sourceKeyField
 
@@ -89,7 +89,7 @@ Use Windows authentication to connect.
 
 The following example uses the minimum required settings to configure Microsoft Azure Search Committer.
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "AzureSearchCommitter",
     "endpoint": "https://example.search.windows.net",

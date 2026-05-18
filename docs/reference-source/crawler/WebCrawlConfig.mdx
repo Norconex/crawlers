@@ -9,11 +9,11 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Web Crawl Config.
+The top-level configuration for a web crawler.
 
 ## Notes
 
-TODO: Add notes.
+The top-level configuration for a web crawler. Extends the base crawl configuration with web-specific settings including link extractors, URL normalization, robots.txt and robots meta handling, sitemap support, URL scope resolution, canonical link detection, delay resolution, and recrawl scheduling.
 
 ## Properties
 
@@ -147,11 +147,11 @@ TODO: Add documentation for this property.
 
 ### orphansStrategy
 
-TODO: Add documentation for this property.
+Determines what to do with previously crawled documents that are no longer found during the current crawl (orphans). Typical values are `PROCESS`, `DELETE`, or `IGNORE`.
 
 ### postImportConsumers
 
-TODO: Add documentation for this property.
+A list of document consumers invoked after the document has been processed by the importer.
 
 ### postImportLinks
 
@@ -163,7 +163,7 @@ TODO: Add documentation for this property.
 
 ### preImportConsumers
 
-TODO: Add documentation for this property.
+A list of document consumers invoked before the document is sent to the importer for content extraction and metadata enrichment.
 
 ### recrawlableResolver
 
@@ -171,7 +171,7 @@ TODO: Add documentation for this property.
 
 ### referenceFilters
 
-TODO: Add documentation for this property.
+Filters applied to document references (URLs or file paths) to control which ones are fetched. Documents whose references do not pass the filters are skipped.
 
 ### robotsMetaProvider
 
@@ -191,23 +191,23 @@ TODO: Add documentation for this property.
 
 ### spoiledReferenceStrategizer
 
-TODO: Add documentation for this property.
+Determines how to handle references that repeatedly fail to be fetched or processed. Configures the strategy for dealing with such "spoiled" references.
 
 ### startReferences
 
-TODO: Add documentation for this property.
+The initial set of document references (URLs or file paths) from which the crawl begins.
 
 ### startReferencesAsync
 
-TODO: Add documentation for this property.
+When enabled, start references are provided and consumed asynchronously, allowing the crawl to begin before all start references are available.
 
 ### startReferencesFiles
 
-TODO: Add documentation for this property.
+One or more files containing lists of start references, one reference per line.
 
 ### startReferencesProviders
 
-TODO: Add documentation for this property.
+A list of pluggable providers that supply the initial references to crawl, used when start references come from a dynamic or external source.
 
 ### startReferencesSitemaps
 
@@ -223,4 +223,4 @@ TODO: Add documentation for this property.
 
 ### workDir
 
-TODO: Add documentation for this property.
+The directory where working files (temporary data, queues, state) are stored during crawl execution.

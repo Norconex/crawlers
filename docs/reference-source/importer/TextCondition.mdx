@@ -9,26 +9,26 @@ propertyCoverage: all
 
 ## Summary
 
-TODO
+Evaluates to true when document text content or field values match a configured expression.
 
 ## Notes
 
-TODO: Add notes.
+Evaluates to true when the text content of a document or matching metadata fields satisfies a configured value matcher. Supports matching against document content or specific field values with a configurable read size limit.
 
 ## Properties
 
 ### fieldMatcher
 
-TODO: Add documentation for this property.
+Matches document fields based on specified patterns and methods. Use this to restrict the handler to operate only on fields whose names satisfy the matcher criteria.
 
 ### maxReadSize
 
-TODO: Add documentation for this property.
+The maximum number of characters to read from the document content at once. Use this to limit memory usage when processing large documents.
 
 ### sourceCharset
 
-TODO: Add documentation for this property.
+Sets the character encoding of the source document to ensure proper reading and processing.
 
 ### valueMatcher
 
-TODO: Add documentation for this property.
+Matches document field values based on specified patterns and methods. Use this to restrict the handler to operate only on fields whose values satisfy the matcher criteria.

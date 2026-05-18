@@ -6,38 +6,74 @@ title: v3 to v4 Detailed Guide
 
 ## Configuration structure
 
-The top-level structure changed significantly.
+### One file, one crawler
 
-**v3:**
+The most significant structural change in v4 is that **each configuration
+file defines exactly one crawler**. The v3 model — a collector wrapping
+multiple crawlers under a single config, with a `crawlerDefaults` block to
+share settings — is gone.
+
+**v3** grouped multiple crawlers under a collector:
 
 ```xml
-<crawler id="my-crawl">
-  <startURLs>
-    <url>https://example.com</url>
-  </startURLs>
-  <numThreads>10</numThreads>
-  ...
-</crawler>
+<httpcollector id="my-collection">
+  <crawlerDefaults>
+    <numThreads>10</numThreads>
+  </crawlerDefaults>
+  <crawlers>
+    <crawler id="site-a">
+      <startURLs><url>https://site-a.example.com</url></startURLs>
+    </crawler>
+    <crawler id="site-b">
+      <startURLs><url>https://site-b.example.com</url></startURLs>
+    </crawler>
+  </crawlers>
+</httpcollector>
 ```
 
-**v4 (YAML):**
+**v4** is a flat, single-crawler config file:
 
 ```yaml
-crawlerDefaults:
-  numThreads: 10
-
-crawlers:
-  - id: my-crawl
-    startUrls:
-      - https://example.com
+id: my-crawl
+numThreads: 10
+startReferences:
+  - https://example.com
 ```
 
-Key changes:
+### Why this changed
 
-- `<crawler>` becomes an item in the `crawlers` list
-- Shared settings move to `crawlerDefaults`
-- `startURLs/url` becomes `startUrls` (flat list)
-- `numThreads` moves to `crawlerDefaults` (or per-crawler)
+The multi-crawler-per-file model in v3 existed for two practical reasons that
+no longer apply in v4:
+
+**Config sharing was hard.** Grouping crawlers under one collector with
+`crawlerDefaults` was the primary way to share settings across crawlers
+targeting different sites. V4 addresses this in two better ways: config file
+includes (reusable config fragments you can reference from any config file),
+and per-site fetch configuration (credentials, delays, proxy, and other
+fetch settings can now be scoped to specific URL patterns or paths within a
+single crawler). A single v4 crawler can target as many sites as before, with
+site-specific settings where needed, without needing separate crawler entries.
+
+**JVM startup cost.** When v3 was designed, launching multiple JVM processes
+was expensive enough that combining crawlers into one process was worthwhile.
+That trade-off no longer applies — running multiple crawler processes
+concurrently is cheap and gives you better isolation and resource control.
+
+### Migrating a multi-crawler v3 config
+
+Each v3 `<crawler>` entry becomes its own v4 config file. If multiple crawlers
+shared settings via `crawlerDefaults`, either:
+
+- Duplicate the shared settings into each file, or
+- Extract them into a shared config fragment and include it from each file.
+
+Use the [Visual Configurator](https://crawlerconfig.norconex.com) to convert
+each crawler block individually.
+
+Key field renames:
+
+- `startURLs/url` → `startReferences` (flat list)
+- `numThreads` is now a top-level field (was in `crawlerDefaults` or per-crawler)
 
 ## Module / artifact renaming
 
@@ -118,7 +154,7 @@ The v3 `Collector`/`Crawler` split is replaced by a single class per crawl type:
 The Import module class names are largely the same.
 The main change is how transformers are configured: v3 XML attributes become YAML fields.
 
-Use the [Configuration Editor](https://crawlerconfig.norconex.com) to verify each class name —
+Use the [Visual Configurator](https://crawlerconfig.norconex.com) to verify each class name —
 it shows both the current v4 name and any renamed v3 equivalents.
 
 ## Unsupported v3 features

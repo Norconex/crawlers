@@ -9,21 +9,21 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Split Operation.
+A single value split operation for the SplitTransformer.
 
 ## Notes
 
-TODO: Add notes.
+Defines a single value split operation for the SplitTransformer. Specifies source fields, the separator character or regex used to split values, and an optional target field for storing the resulting multiple values.
 
 ## Properties
 
 ### fieldMatcher
 
-TODO: Add documentation for this property.
+Matches document fields based on specified patterns and methods. Use this to restrict the handler to operate only on fields whose names satisfy the matcher criteria.
 
 ### onSet
 
-TODO: Add documentation for this property.
+Defines what to do when the target field already has one or more values. When unspecified, new values are appended to existing ones by default.
 
 ### separator
 
@@ -35,4 +35,4 @@ TODO: Add documentation for this property.
 
 ### toField
 
-TODO: Add documentation for this property.
+The target metadata field name where the extracted or computed value will be stored. If a field of the same name already exists, the behavior is controlled by `onSet`.

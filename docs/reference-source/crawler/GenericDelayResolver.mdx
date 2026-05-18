@@ -13,7 +13,7 @@ Apply delay per time schedule.
 
 ## Notes
 
-TODO: Add notes.
+Applies configurable crawl delays based on time schedules. Supports a default delay, optional time-range-based schedules (by day of week, day of month, or time of day), and an option to ignore the crawl delay specified in `robots.txt`.
 
 ## Properties
 
@@ -37,7 +37,7 @@ The delay scope.
 
 The following example set the minimum delay between each document download on a given site to 5 seconds, no matter what the crawler `robots.txt` may say, excepted on weekend, where it is more agressive (1 second).
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "GenericDelayResolver",
     "defaultDelay": 5000,

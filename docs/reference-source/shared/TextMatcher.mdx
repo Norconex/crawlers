@@ -19,7 +19,7 @@ A configurable class offering a few different ways to perform text matching and 
 
 ### ignoreCase
 
-TODO: Add documentation for this property.
+When enabled, matching is performed without regard to character case.
 
 ### ignoreDiacritic
 
@@ -43,7 +43,7 @@ TODO: Add documentation for this property.
 
 ### pattern
 
-TODO: Add documentation for this property.
+The text or expression used for matching, whose interpretation depends on the selected method.
 
 ### replaceAll
 
@@ -51,7 +51,7 @@ TODO: Add documentation for this property.
 
 ### trim
 
-TODO: Add documentation for this property.
+When enabled, leading and trailing whitespace is removed from the field value before processing.
 
 ## Examples
 
@@ -59,7 +59,7 @@ TODO: Add documentation for this property.
 
 The most basic form, performing an exact match on entire text.  It will match "Paul", but not "paul", and not "I am Paul".
 
-<ConfigExample
+<ConfigBlock
   json={{
     "pattern": "Paul"
   }}
@@ -69,7 +69,7 @@ The most basic form, performing an exact match on entire text.  It will match "P
 
 The following will successfully match this sentence:  "It seems Paul and Marc are friends".
 
-<ConfigExample
+<ConfigBlock
   json={{
     "method": "WILDCARD",
     "ignoreCase": true,

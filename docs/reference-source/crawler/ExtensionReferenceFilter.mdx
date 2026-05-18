@@ -13,7 +13,7 @@ Filter by file extension (if present on last segment).
 
 ## Notes
 
-TODO: Add notes.
+Filters references by the file extension found in the last path segment of the URL or file path. Accepts or rejects references based on whether their extension matches the configured list.
 
 ## Properties
 
@@ -23,7 +23,7 @@ One or more file extension (e.g., html, pdf, ...).
 
 ### ignoreCase
 
-TODO: Add documentation for this property.
+When enabled, matching is performed without regard to character case.
 
 ### onMatch
 
@@ -33,7 +33,7 @@ What to do with a reference once its file extension is matched.
 
 The following example will only accept references with the following extensions, regardless of character case: `.html`, `.htm`, `.php`, and `.asp`.
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "ExtensionReferenceFilter",
     "extensions": [

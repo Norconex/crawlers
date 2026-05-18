@@ -30,7 +30,7 @@ This functionality can be applied as either a `pre-parse` or `post-parse` handle
 
 ### onSet
 
-TODO: Add documentation for this property.
+Defines what to do when the target field already has one or more values. When unspecified, new values are appended to existing ones by default.
 
 ### operations
 
@@ -42,7 +42,7 @@ The following example copies the value of a "creator" and "publisher" fields int
 
 
 
-<ConfigExample
+<ConfigBlock
   json={{
     "handler": {
       "class": "CopyTransformer",

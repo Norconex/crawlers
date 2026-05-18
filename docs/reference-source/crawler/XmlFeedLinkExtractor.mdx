@@ -9,25 +9,25 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Xml Feed Link Extractor.
+Extracts links from RSS and Atom XML feed documents.
 
 ## Notes
 
-TODO: Add notes.
+Extracts links from RSS and Atom XML feed documents by parsing standard feed elements. Supports content-type restrictions to limit extraction to feed-type documents.
 
 ## Properties
 
 ### contentTypeMatcher
 
-TODO: Add documentation for this property.
+Restricts processing to documents whose content type matches the specified pattern. When not set, the handler applies to all content types.
 
 ### fieldMatcher
 
-TODO: Add documentation for this property.
+Matches document fields based on specified patterns and methods. Use this to restrict the handler to operate only on fields whose names satisfy the matcher criteria.
 
 ### restrictions
 
-TODO: Add documentation for this property.
+Defines filter conditions that restrict which documents this committer processes. Documents not matching the restrictions are ignored by this committer.
 
 ## Examples
 
@@ -35,7 +35,7 @@ The following example ensures this link extractor should only apply  on document
 
 
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "XmlFeedLinkExtractor",
     "restrictions": [

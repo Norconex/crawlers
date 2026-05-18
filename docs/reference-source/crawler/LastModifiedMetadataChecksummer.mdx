@@ -1,6 +1,6 @@
 ---
 component: LastModifiedMetadataChecksummer
-module: crawler/core
+module: crawler/web
 locale: en
 propertyCoverage: all
 ---
@@ -13,7 +13,7 @@ Uses the exact value of the "Last-Modified" HTTP header field.
 
 ## Notes
 
-TODO: Add notes.
+Generates a metadata checksum from the value of the HTTP `Last-Modified` response header. When the header value is unchanged from the previous crawl, the document is considered unmodified and may be skipped.
 
 ## Properties
 
@@ -33,7 +33,7 @@ A target field name used to store the value.
 
 The following example will store the last modified date used for checksum purposes in a field called "metaChecksum".
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "LastModifiedMetadataChecksummer",
     "keep": true,

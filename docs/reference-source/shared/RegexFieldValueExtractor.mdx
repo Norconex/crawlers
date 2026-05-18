@@ -9,11 +9,11 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Regex Field Value Extractor.
+Extracts field names and values from text using a regular expression with capture groups.
 
 ## Notes
 
-TODO: Add notes.
+Applies a regular expression to document content or metadata and uses capture groups to extract a field name and its corresponding value. The `fieldGroup` and `valueGroup` properties identify which capture groups hold the field name and value respectively, and the extracted value is stored in the field specified by `toField`.
 
 ## Properties
 
@@ -23,15 +23,15 @@ TODO: Add documentation for this property.
 
 ### onSet
 
-TODO: Add documentation for this property.
+Defines what to do when the target field already has one or more values. When unspecified, new values are appended to existing ones by default.
 
 ### regex
 
-TODO: Add documentation for this property.
+A regular expression pattern used for matching.
 
 ### toField
 
-TODO: Add documentation for this property.
+The target metadata field name where the extracted or computed value will be stored. If a field of the same name already exists, the behavior is controlled by `onSet`.
 
 ### valueGroup
 
@@ -41,7 +41,7 @@ TODO: Add documentation for this property.
 
 The following is configured to extract "DocNo" as the `toField`, and the  following numeric characters will make up the value.
 
-<ConfigExample
+<ConfigBlock
   json={{
     "fieldGroup": 1,
     "valueGroup": 2,

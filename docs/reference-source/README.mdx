@@ -77,7 +77,7 @@ Property-specific documentation.
 
 Short description of what this example shows.
 
-<ConfigExample
+<ConfigBlock
   json={{ handler: { class: "CountMatchesTransformer", toField: "myField" } }}
 />
 ```
@@ -85,10 +85,10 @@ Short description of what this example shows.
 ## Examples Authoring
 
 The `## Examples` section is passed through as raw MDX into the generated 
-reference page. You can use Markdown and the `<ConfigExample>` component to 
+reference page. You can use Markdown and the `<ConfigBlock>` component to 
 present configuration in multiple languages (YAML, JSON, XML).
 
-Each `<ConfigExample>` is one standalone example. Title and description go in 
+Each `<ConfigBlock>` is one standalone example. Title and description go in 
 regular Markdown above the component — a `### heading` for a title, 
 a paragraph for description.
 
@@ -100,7 +100,7 @@ Provide the config as a plain JavaScript object under `json`. YAML and XML are
 derived automatically.
 
 ```jsx
-<ConfigExample
+<ConfigBlock
   json={{ handler: { class: "MyHandler", someField: "value" } }}
 />
 ```
@@ -115,7 +115,7 @@ element — provide it separately. Any language you supply explicitly overrides
 the auto-derived version.
 
 ```jsx
-<ConfigExample
+<ConfigBlock
   json={{ class: "MyCommitter", url: "http://host:9100" }}
   xml={{ committer: { class: "MyCommitter", url: "http://host:9100" } }}
 />
@@ -127,7 +127,7 @@ When the auto-generated output doesn't fit, provide strings directly. Template
 literals keep things readable without escaping.
 
 ```jsx
-<ConfigExample
+<ConfigBlock
   json={ `{ "handler": { "class": "MyHandler" } }` }
   xml={ `<handler><class>MyHandler</class></handler>` }
 />
@@ -137,7 +137,7 @@ You can mix approaches freely — for instance, use an object for `json`
 (auto-derives YAML) and a string for `xml`:
 
 ```jsx
-<ConfigExample
+<ConfigBlock
   json= { handler: { class: "MyHandler" } }
   xml={ `<handler><class>MyHandler</class></handler>` }
 />
@@ -145,14 +145,14 @@ You can mix approaches freely — for instance, use an object for `json`
 
 ### Multiple examples
 
-Use one `<ConfigExample>` per example, with Markdown headings and paragraphs for context:
+Use one `<ConfigBlock>` per example, with Markdown headings and paragraphs for context:
 
 ```markdown
 ### Basic usage
 
 Short description of what this example shows.
 
-<ConfigExample
+<ConfigBlock
   json={{ handler: { class: "MyHandler", field: "value" } }}
 />
 
@@ -160,7 +160,7 @@ Short description of what this example shows.
 
 Description of the more complex scenario.
 
-<ConfigExample
+<ConfigBlock
   json={{ handler: { class: "MyHandler", field: "value", extra: true } }}
   xml={{ handler: { class: "MyHandler", field: "value", extra: "true" } }}
 />

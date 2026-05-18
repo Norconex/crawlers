@@ -302,9 +302,7 @@
                 "type": "object"
               }
             },
-            "required": [
-              "class-name"
-            ]
+            "required": ["class-name"]
           }
         }
       }
@@ -964,10 +962,7 @@
           "default": 100
         },
         "capacity-policy": {
-          "enum": [
-            "PER_NODE",
-            "PER_PARTITION"
-          ]
+          "enum": ["PER_NODE", "PER_PARTITION"]
         },
         "split-brain-protection-ref": {
           "type": "string",
@@ -1046,11 +1041,7 @@
       }
     },
     "InMemoryFormat": {
-      "enum": [
-        "BINARY",
-        "OBJECT",
-        "NATIVE"
-      ],
+      "enum": ["BINARY", "OBJECT", "NATIVE"],
       "default": "BINARY",
       "description": "Binary type that will be used for storing records. Possible values: BINARY (default): keys and values will be stored as binary data. OBJECT: values will be stored in their object forms. NATIVE: values will be stored in non-heap region of JVM (Hazelcast Enterprise only)"
     },
@@ -1059,12 +1050,7 @@
       "additionalProperties": false,
       "properties": {
         "eviction-policy": {
-          "enum": [
-            "LRU",
-            "LFU",
-            "NONE",
-            "RANDOM"
-          ],
+          "enum": ["LRU", "LFU", "NONE", "RANDOM"],
           "default": "NONE"
         },
         "max-size-policy": {
@@ -1098,11 +1084,7 @@
       "additionalProperties": false,
       "properties": {
         "type": {
-          "enum": [
-            "SORTED",
-            "BITMAP",
-            "HASH"
-          ],
+          "enum": ["SORTED", "BITMAP", "HASH"],
           "default": "SORTED"
         },
         "name": {
@@ -1124,11 +1106,7 @@
               "default": "__key"
             },
             "unique-key-transformation": {
-              "enum": [
-                "OBJECT",
-                "LONG",
-                "RAW"
-              ],
+              "enum": ["OBJECT", "LONG", "RAW"],
               "default": "OBJECT",
               "description": "Defines an assortment of transformations which can be applied to unique-key values. OBJECT: Extracted unique key value is interpreted as an object value. Non-negative unique ID is assigned to every distinct object value. LONG: Extracted unique key value is interpreted as a whole integer value of byte, short, int or long type. The extracted value is upcasted to long (if necessary) and unique non-negative ID is assigned to every distinct value. RAW: Extracted unique key value is interpreted as a whole integer value of byte, short, int or long type. The extracted value is upcasted to long (if necessary) and the resulting value is used directly as an ID."
             }
@@ -1168,9 +1146,7 @@
           }
         }
       },
-      "required": [
-        "attributes"
-      ]
+      "required": ["attributes"]
     },
     "Map": {
       "type": "object",
@@ -1182,10 +1158,7 @@
             "$ref": "#/definitions/InMemoryFormat"
           },
           "metadata-policy": {
-            "enum": [
-              "CREATE_ON_UPDATE",
-              "OFF"
-            ],
+            "enum": ["CREATE_ON_UPDATE", "OFF"],
             "default": "OFF"
           },
           "statistics-enabled": {
@@ -1197,12 +1170,7 @@
             "default": false
           },
           "cache-deserialized-values": {
-            "enum": [
-              "INDEX_ONLY",
-              "INDEX-ONLY",
-              "NEVER",
-              "ALWAYS"
-            ],
+            "enum": ["INDEX_ONLY", "INDEX-ONLY", "NEVER", "ALWAYS"],
             "default": "INDEX_ONLY"
           },
           "backup-count": {
@@ -1312,10 +1280,7 @@
                 "default": true
               },
               "initial-mode": {
-                "enum": [
-                  "LAZY",
-                  "EAGER"
-                ],
+                "enum": ["LAZY", "EAGER"],
                 "default": "LAZY",
                 "description": "LAZY: Default load mode where load is async; EAGER: load mode where load is blocked till all partitions are loaded."
               },
@@ -1393,10 +1358,7 @@
               },
               "local-update-policy": {
                 "description": "Defines how to reflect local updates to the Near Cache. Possible values:\\n * INVALIDATE: Local put and local remove immediately invalidate Near Cache.\\n * CACHE_ON_UPDATE: While local remove immediately invalidates Near Cache, local put adds new value to it.",
-                "enum": [
-                  "INVALIDATE",
-                  "CACHE_ON_UPDATE"
-                ],
+                "enum": ["INVALIDATE", "CACHE_ON_UPDATE"],
                 "default": "INVALIDATE"
               },
               "eviction": {
@@ -1449,9 +1411,7 @@
                   "description": "Fully qualified class name of the extractor used to extract the value of the attribute."
                 }
               },
-              "required": [
-                "extractor-class-name"
-              ],
+              "required": ["extractor-class-name"],
               "description": "Contains the configuration of a custom attribute that will be extracted from a Map's entry using a given ValueExtractor."
             }
           },
@@ -1500,14 +1460,10 @@
                   },
                   "oneOf": [
                     {
-                      "required": [
-                        "class-name"
-                      ]
+                      "required": ["class-name"]
                     },
                     {
-                      "required": [
-                        "sql"
-                      ]
+                      "required": ["sql"]
                     }
                   ],
                   "description": "Predicate to filter events which will be applied to the query cache."
@@ -1599,14 +1555,10 @@
                     "description": "Name of the device for a given disk tier."
                   }
                 },
-                "required": [
-                  "enabled"
-                ]
+                "required": ["enabled"]
               }
             },
-            "required": [
-              "enabled"
-            ]
+            "required": ["enabled"]
           },
           "partition-strategy": {
             "type": "string"
@@ -1643,9 +1595,7 @@
           "description": "True if you want to listen to the entries on the local member."
         }
       },
-      "required": [
-        "class-name"
-      ]
+      "required": ["class-name"]
     },
     "Set": {
       "type": "object",
@@ -1728,10 +1678,7 @@
               "const": true
             }
           },
-          "required": [
-            "global-ordering-enabled",
-            "multi-threading-enabled"
-          ]
+          "required": ["global-ordering-enabled", "multi-threading-enabled"]
         }
       }
     },
@@ -1747,12 +1694,7 @@
             "description": "Enables or disables statistics for this reliable topic. Collects the creation time, total number of published and received messages for each member locally."
           },
           "topic-overload-policy": {
-            "enum": [
-              "DISCARD_OLDEST",
-              "DISCARD_NEWEST",
-              "BLOCK",
-              "ERROR"
-            ],
+            "enum": ["DISCARD_OLDEST", "DISCARD_NEWEST", "BLOCK", "ERROR"],
             "default": "BLOCK",
             "description": "A policy to deal with an overloaded topic; so topic where there is no place to store new messages. This policy can only be used in combination with the com.hazelcast.core.HazelcastInstance#getReliableTopic(String). The reliable topic uses a com.hazelcast.ringbuffer.Ringbuffer to store the messages. A ringbuffer doesn't track where readers are, so it has no concept of a slow consumers. This provides many advantages like high performance reads, but it also gives the ability to the reader to re-read the same message multiple times in case of an error. A ringbuffer has a limited, fixed capacity. A fast producer may overwrite old messages that are still being read by a slow consumer. To prevent this, we may configure a time-to-live on the ringbuffer (see com.hazelcast.config.RingbufferConfig#setTimeToLiveSeconds(int). Once the time-to-live is configured, the TopicOverloadPolicy controls how the publisher is going to deal with the situation that a ringbuffer is full and the oldest item in the ringbuffer is not old enough to get overwritten. Keep in mind that this retention period (time-to-live) can keep messages from being overwritten, even though all readers might have already completed reading. Its default value is BLOCK. Available values are as follows: - DISCARD_OLDEST: Using this policy, a message that has not expired can be overwritten. No matter the retention period set, the overwrite will just overwrite the item. This can be a problem for slow consumers because they were promised a certain time window to process messages. But it will benefit producers and fast consumers since they are able to continue. This policy sacrifices the slow producer in favor of fast producers/consumers. - DISCARD_NEWEST: Message that was to be published is discarded. - BLOCK: The caller will wait until there is space in the Ringbuffer. - ERROR: The publish call fails immediately. "
           },
@@ -1798,10 +1740,7 @@
             "$ref": "#/definitions/AsyncBackupCount"
           },
           "in-memory-format": {
-            "enum": [
-              "OBJECT",
-              "BINARY"
-            ],
+            "enum": ["OBJECT", "BINARY"],
             "default": "BINARY",
             "description": "Sets the in-memory format. Setting the in-memory format controls the format of the stored item in the ringbuffer: - OBJECT: the item is stored in deserialized format (a regular object) - BINARY (default): the item is stored in serialized format (a binary blob) The object in-memory format is useful when: - the object stored in object format has a smaller footprint than in binary format - if there are readers using a filter. Since for every filter invocation, the object needs to be available in object format."
           },
@@ -1999,9 +1938,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "class-name"
-      ]
+      "required": ["class-name"]
     },
     "Multimap": {
       "type": "object",
@@ -2016,10 +1953,7 @@
             "$ref": "#/definitions/AsyncBackupCount"
           },
           "value-collection-type": {
-            "enum": [
-              "SET",
-              "LIST"
-            ]
+            "enum": ["SET", "LIST"]
           },
           "binary": {
             "type": "boolean",
@@ -2177,9 +2111,7 @@
                     }
                   }
                 },
-                "required": [
-                  "timed-expiry-policy-factory"
-                ]
+                "required": ["timed-expiry-policy-factory"]
               }
             ]
           },
@@ -2245,10 +2177,7 @@
                 "description": "Filters to intercept WAN replication events before they are placed to WAN event replication queues by providing a filtering API. Just implement Hazelcast's CacheWanEventFilter interface to create your filters."
               },
               "merge-policy-class-name": {
-                "enum": [
-                  "HigherHitsMergePolicy",
-                  "PassThroughMergePolicy"
-                ],
+                "enum": ["HigherHitsMergePolicy", "PassThroughMergePolicy"],
                 "description": "Resolve conflicts that occurred when target cluster already has the replicated entry key."
               }
             }
@@ -2357,9 +2286,7 @@
           "description": "Fully qualified class name."
         }
       },
-      "required": [
-        "class-name"
-      ]
+      "required": ["class-name"]
     },
     "ClassNameWithProps": {
       "type": "object",
@@ -2373,9 +2300,7 @@
           "type": "object"
         }
       },
-      "required": [
-        "class-name"
-      ]
+      "required": ["class-name"]
     },
     "Metrics": {
       "type": "object",
@@ -2422,11 +2347,7 @@
         },
         {
           "propertyNames": {
-            "enum": [
-              "enabled",
-              "jmx",
-              "collection-frequency-seconds"
-            ]
+            "enum": ["enabled", "jmx", "collection-frequency-seconds"]
           }
         }
       ]
@@ -2467,9 +2388,7 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "enabled"
-      ],
+      "required": ["enabled"],
       "description": "When you want to use a Hazelcast member as a lite member, set this element's \"enabled\" attribute to true in that member's YAML configuration. Lite members do not store data, do not have partitions and are used mainly to execute tasks and register listeners."
     },
     "CPSubsystem": {
@@ -2536,7 +2455,7 @@
         "base-dir": {
           "type": "string",
           "default": "cp-data",
-          "description": "Base directory to store all CP data when persistence-enabled is true. This directory can be shared between multiple CP members. Each CP member creates a unique directory for itself under the base directory. This is especially useful for cloud environments where CP members generally use a shared filesystem."
+          "description": "Base directory to store all CP data when persistence-enabled is true. This directory can be shared between multiple CP members. Each CP member creates a unique directory for itself under the base directory. This is especially useful for cloud environments where CP members generally use a shared file system."
         },
         "data-load-timeout-seconds": {
           "type": "integer",
@@ -2714,11 +2633,7 @@
       }
     },
     "LdapSearchScope": {
-      "enum": [
-        "object",
-        "one-level",
-        "subtree"
-      ],
+      "enum": ["object", "one-level", "subtree"],
       "default": "subtree"
     },
     "Security": {
@@ -2743,13 +2658,7 @@
               "authentication": {
                 "type": "object",
                 "propertyNames": {
-                  "enum": [
-                    "jaas",
-                    "tls",
-                    "ldap",
-                    "kerberos",
-                    "simple"
-                  ]
+                  "enum": ["jaas", "tls", "ldap", "kerberos", "simple"]
                 },
                 "maxProperties": 1,
                 "minProperties": 1,
@@ -2777,9 +2686,7 @@
                           "type": "object"
                         }
                       },
-                      "required": [
-                        "class-name"
-                      ]
+                      "required": ["class-name"]
                     }
                   },
                   "tls": {
@@ -2815,11 +2722,7 @@
                         "type": "string"
                       },
                       "role-mapping-mode": {
-                        "enum": [
-                          "attribute",
-                          "reverse",
-                          "direct"
-                        ],
+                        "enum": ["attribute", "reverse", "direct"],
                         "default": "reverse"
                       },
                       "role-name-attribute": {
@@ -2886,10 +2789,7 @@
                               }
                             }
                           },
-                          "required": [
-                            "username",
-                            "password"
-                          ]
+                          "required": ["username", "password"]
                         }
                       }
                     }
@@ -2944,9 +2844,7 @@
               "type": "string"
             }
           },
-          "required": [
-            "realm"
-          ]
+          "required": ["realm"]
         },
         "client-authentication": {
           "type": "object",
@@ -2957,9 +2855,7 @@
               "type": "string"
             }
           },
-          "required": [
-            "realm"
-          ]
+          "required": ["realm"]
         },
         "client-permission-policy": {
           "description": "Specifies the name and properties of your class that you developed by implementing Hazelcast's IPermissionPolicy interface, which is the default permission policy (com.hazelcast.security.IPermissionPolicy). This policy defines the client authorization specifications.",
@@ -3020,11 +2916,7 @@
           },
           "properties": {
             "on-join-operation": {
-              "enum": [
-                "RECEIVE",
-                "SEND",
-                "NONE"
-              ]
+              "enum": ["RECEIVE", "SEND", "NONE"]
             },
             "priority-grant": {
               "type": "boolean",
@@ -3133,12 +3025,7 @@
       "type": "object",
       "properties": {
         "unit": {
-          "enum": [
-            "BYTES",
-            "KILOBYTES",
-            "MEGABYTES",
-            "GIGABYTES"
-          ],
+          "enum": ["BYTES", "KILOBYTES", "MEGABYTES", "GIGABYTES"],
           "default": "MEGABYTES",
           "description": "Unit can be bytes, kilobytes, megabytes and gigabytes. Default unit is MEGABYTES."
         },
@@ -3159,10 +3046,7 @@
           "description": "Set as true to enable the High-Density Memory Store usage."
         },
         "allocator-type": {
-          "enum": [
-            "STANDARD",
-            "POOLED"
-          ],
+          "enum": ["STANDARD", "POOLED"],
           "default": "POOLED",
           "description": "Type of the memory allocator. The default value is POOLED. Available values are as follows: \\n- STANDARD: Allocates/frees the memory using default OS memory manager, \\n- POOLED: Manages memory blocks in thread local pools"
         },
@@ -3178,24 +3062,8 @@
           "default": 16,
           "minimum": 1,
           "enum": [
-            1,
-            2,
-            4,
-            6,
-            8,
-            16,
-            32,
-            64,
-            128,
-            256,
-            512,
-            1024,
-            2048,
-            4096,
-            8192,
-            16384,
-            32768,
-            65536
+            1, 2, 4, 6, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192,
+            16384, 32768, 65536
           ],
           "description": "Minimum size of the blocks in bytes to split and fragment a page block to assign to an allocation request.\\n It is used only by the POOLED memory allocator. The value has to be power of two. Default value is 16."
         },
@@ -3279,9 +3147,7 @@
           },
           "value": true
         },
-        "required": [
-          "value"
-        ]
+        "required": ["value"]
       }
     },
     "JavaSerializationFilter": {
@@ -3315,10 +3181,7 @@
           "default": false
         },
         "byte-order": {
-          "enum": [
-            "BIG_ENDIAN",
-            "LITTLE_ENDIAN"
-          ],
+          "enum": ["BIG_ENDIAN", "LITTLE_ENDIAN"],
           "description": "Specifies the byte order that the serialization will use.",
           "default": "BIG_ENDIAN"
         },
@@ -3365,9 +3228,7 @@
               "description": "If you set it as true, the Java serialization step will be handled by the global serializer, not by the Java Serializable or Externalizable"
             }
           },
-          "required": [
-            "class-name"
-          ]
+          "required": ["class-name"]
         },
         "serializers": {
           "description": "Lists the serializers (classes) that you implement using Hazelcast's StreamSerializer, ByteArraySerializer etc.",
@@ -3385,10 +3246,7 @@
                 "description": "The class name of the serializer implementation."
               }
             },
-            "required": [
-              "type-class",
-              "class-name"
-            ]
+            "required": ["type-class", "class-name"]
           }
         },
         "check-class-def-errors": {
@@ -3452,10 +3310,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "factory-id",
-        "class-name"
-      ]
+      "required": ["factory-id", "class-name"]
     },
     "ClassFilter": {
       "type": "object",
@@ -3498,11 +3353,7 @@
             "description": "The minimum number of members required in a cluster for the cluster to remain in an operational state. If the number of members is below the defined minimum at any time, the operations are rejected and the rejected operations return a SplitBrainProtectionException to their callers."
           },
           "protect-on": {
-            "enum": [
-              "READ",
-              "WRITE",
-              "READ_WRITE"
-            ],
+            "enum": ["READ", "WRITE", "READ_WRITE"],
             "default": "READ_WRITE",
             "description": "Specifies for which operations the split brain protection will be applied. Available values are READ, WRITE and READ_WRITE."
           },
@@ -3523,11 +3374,7 @@
               "default": false
             },
             "protect-on": {
-              "enum": [
-                "READ",
-                "WRITE",
-                "READ_WRITE"
-              ]
+              "enum": ["READ", "WRITE", "READ_WRITE"]
             },
             "minimum-cluster-size": {
               "type": "integer"
@@ -3677,10 +3524,7 @@
                           "description": "Interval (in seconds) for polling for changes in the KeyStore. 0 (default) means no polling"
                         }
                       },
-                      "required": [
-                        "path",
-                        "password"
-                      ]
+                      "required": ["path", "password"]
                     }
                   }
                 },
@@ -3738,11 +3582,7 @@
                           }
                         }
                       },
-                      "required": [
-                        "address",
-                        "secret-path",
-                        "token"
-                      ]
+                      "required": ["address", "secret-path", "token"]
                     }
                   }
                 }
@@ -3854,10 +3694,7 @@
                           "description": "Interval (in seconds) for polling for changes in the KeyStore. 0 (default) means no polling"
                         }
                       },
-                      "required": [
-                        "path",
-                        "password"
-                      ]
+                      "required": ["path", "password"]
                     }
                   }
                 },
@@ -3915,11 +3752,7 @@
                           }
                         }
                       },
-                      "required": [
-                        "address",
-                        "secret-path",
-                        "token"
-                      ]
+                      "required": ["address", "secret-path", "token"]
                     }
                   }
                 }
@@ -4221,19 +4054,12 @@
                   "description": "After a replication event is sent to the target cluster, the source member waits for a confirmation that says the event has reached the target. If confirmation is not received for a period of `response-timeout-millis`, the event is resent to the target cluster."
                 },
                 "acknowledge-type": {
-                  "enum": [
-                    "ACK_ON_RECEIPT",
-                    "ACK_ON_OPERATION_COMPLETE"
-                  ],
+                  "enum": ["ACK_ON_RECEIPT", "ACK_ON_OPERATION_COMPLETE"],
                   "default": "ACK_ON_OPERATION_COMPLETE",
                   "description": "Acknowledgment type for each target cluster when the events are replicated. You can set it to the following values: \\n * ACK_ON_RECEIPT: Guarantees that events are received by the target cluster. It does not guarantee that the received event is actually applied, but it is faster. \\n * ACK_ON_OPERATION_COMPLETE (default): Guarantees that the event is both received and applied by the target cluster. It is more time consuming, but it is the best way if you have strong consistency requirements."
                 },
                 "initial-publisher-state": {
-                  "enum": [
-                    "REPLICATING",
-                    "PAUSED",
-                    "STOPPED"
-                  ],
+                  "enum": ["REPLICATING", "PAUSED", "STOPPED"],
                   "default": "REPLICATING",
                   "description": "Defines the initial state in which a WAN publisher is started. \\n * REPLICATING (default): State where both enqueuing new events is allowed, enqueued events are replicated to the target cluster and WAN sync is enabled. \\n * PAUSED: State where new events are enqueued but they not are dequeued. Some events which have been dequeued before the state was switched may still be replicated to the target cluster but further events will not be replicated. WAN sync is enabled. \\n * STOPPED:  State where neither new events are enqueued nor dequeued. As with the PAUSED state, some events might still be replicated after the publisher has switched to this state. WAN sync is enabled."
                 },
@@ -4301,10 +4127,7 @@
                   "additionalProperties": false,
                   "properties": {
                     "consistency-check-strategy": {
-                      "enum": [
-                        "NONE",
-                        "MERKLE_TREES"
-                      ],
+                      "enum": ["NONE", "MERKLE_TREES"],
                       "description": "Sets the strategy for checking consistency of data between source and target cluster. Any inconsistency will not be reconciled, it will be merely reported via the usual mechanisms (e.g. statistics, diagnostics). The user must initiate WAN sync to reconcile there differences. For the check procedure to work properly, the target cluster should support the chosen strategy."
                     }
                   }
@@ -4368,19 +4191,12 @@
           "default": false
         },
         "class-cache-mode": {
-          "enum": [
-            "ETERNAL",
-            "OFF"
-          ],
+          "enum": ["ETERNAL", "OFF"],
           "default": "ETERNAL",
           "description": "Controls the local caching behavior for the classes loaded from the remote class repository. Available values are as follows:\\n * ETERNAL: Cache the loaded classes locally. This is the default value and suitable when you load long-living objects, such as domain objects stored in a map. \\n * OFF: Do not cache the loaded classes locally."
         },
         "provider-mode": {
-          "enum": [
-            "OFF",
-            "LOCAL_CLASSES_ONLY",
-            "LOCAL_AND_CACHED_CLASSES"
-          ],
+          "enum": ["OFF", "LOCAL_CLASSES_ONLY", "LOCAL_AND_CACHED_CLASSES"],
           "default": "LOCAL_AND_CACHED_CLASSES",
           "description": "Controls how the classes are served to the other cluster members. Available values are as follows: \\n * LOCAL_AND_CACHED_CLASSES: Serve classes loaded from both local classpath and from other members. This is the default value. \\n * LOCAL_CLASSES_ONLY: Serve classes from the local classpath only. Classes loaded from other members will be used locally, but they are not served to other members. \\n * OFF: Never serve classes to other members."
         },
@@ -4475,9 +4291,7 @@
           "description": "Enables or disables the TPC-aware mode."
         }
       },
-      "required": [
-        "enabled"
-      ],
+      "required": ["enabled"],
       "description": "Configures the client for TPC, which is the next generation Hazelcast that uses thread-per-core model. TPC-aware clients will maintain connections to all cores of all cluster members. The client will route partition-specific invocations to the correct core of the correct member in the best effort basis. This configuration is introduced as BETA, and it might be subject to changes, or it can be removed in future releases without a prior notice."
     },
     "OutboundPortDefinition": {
@@ -4622,11 +4436,7 @@
         },
         "reconnect-mode": {
           "description": "Defines the reconnection mode. The valid values are:\\n * \"ON\": Enables reconnection in a blocking manner where all the waiting invocations are blocked until a cluster connection is established or failed. This is the default value.\\n * \"OFF\": Disables the reconnection.\\n * \"ASYNC\": Enables reconnection in a non-blocking manner where all the waiting invocations receive a HazelcastClientOfflineException.",
-          "enum": [
-            "ASYNC",
-            "ON",
-            "OFF"
-          ],
+          "enum": ["ASYNC", "ON", "OFF"],
           "default": "ON"
         },
         "connection-retry": {
@@ -4707,10 +4517,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "class-name",
-          "service"
-        ]
+        "required": ["class-name", "service"]
       }
     },
     "LoadBalancer": {
@@ -4719,11 +4526,7 @@
       "additionalProperties": false,
       "properties": {
         "type": {
-          "enum": [
-            "random",
-            "round-robin",
-            "custom"
-          ]
+          "enum": ["random", "round-robin", "custom"]
         },
         "class-name": {
           "type": "string"
@@ -4740,9 +4543,7 @@
           }
         },
         {
-          "required": [
-            "class-name"
-          ]
+          "required": ["class-name"]
         }
       ]
     },
@@ -4836,11 +4637,7 @@
           },
           "topic-overload-policy": {
             "default": "BLOCK",
-            "enum": [
-              "BLOCK",
-              "DISCARD_OLDEST",
-              "DISCARD_NEWEST"
-            ],
+            "enum": ["BLOCK", "DISCARD_OLDEST", "DISCARD_NEWEST"],
             "description": "A policy to deal with an overloaded topic; so topic where there is no place to store new messages. This policy can only be used in combination with the com.hazelcast.core.HazelcastInstance#getReliableTopic(String). The reliable topic uses a com.hazelcast.ringbuffer.Ringbuffer to store the messages. A ringbuffer doesn't track where readers are, so it has no concept of a slow consumers. This provides many advantages like high performance reads, but it also gives the ability to the reader to re-read the same message multiple times in case of an error. A ringbuffer has a limited, fixed capacity. A fast producer may overwrite old messages that are still being read by a slow consumer. To prevent this, we may configure a time-to-live on the ringbuffer (see com.hazelcast.config.RingbufferConfig#setTimeToLiveSeconds(int). Once the time-to-live is configured, the TopicOverloadPolicy controls how the publisher is going to deal with the situation that a ringbuffer is full and the oldest item in the ringbuffer is not old enough to get overwritten. Keep in mind that this retention period (time-to-live) can keep messages from being overwritten, even though all readers might have already completed reading. Its default value is BLOCK. Available values are as follows: - DISCARD_OLDEST: Using this policy, a message that has not expired can be overwritten. No matter the retention period set, the overwrite will just overwrite the item. This can be a problem for slow consumers because they were promised a certain time window to process messages. But it will benefit producers and fast consumers since they are able to continue. This policy sacrifices the slow producer in favor of fast producers/consumers.\\n * DISCARD_NEWEST: Message that was to be published is discarded.\\n * BLOCK: The caller will wait until there is space in the Ringbuffer.\\n * ERROR: The publish call fails immediately."
           }
         }
@@ -4888,10 +4685,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "username",
-        "password"
-      ]
+      "required": ["username", "password"]
     },
     "KerberosIdentity": {
       "type": "object",
@@ -4927,19 +4721,13 @@
       "description": "Defines a static TokenCredentials instance as the client's identity. It has a \"value\" and it can have also \"encoding\" defined.",
       "properties": {
         "encoding": {
-          "enum": [
-            "none",
-            "base64"
-          ]
+          "enum": ["none", "base64"]
         },
         "value": {
           "type": "string"
         }
       },
-      "required": [
-        "encoding",
-        "value"
-      ]
+      "required": ["encoding", "value"]
     },
     "CredentialsFactoryIdentity": {
       "description": "Specifies the name and properties of your class that you developed by implementing Hazelcast's Credentials interface. This element has a mandatory \"class-name\" attribute where you should define the factory class implementing ICredentialsFactory used to create Credentials objects. With the \"properties\" child property, you can define properties for the factory class.",
@@ -4964,19 +4752,13 @@
           "properties": {
             "mode": {
               "type": "string",
-              "enum": [
-                "ALL_MEMBERS",
-                "MULTI_MEMBER",
-                "SINGLE_MEMBER"
-              ],
+              "enum": ["ALL_MEMBERS", "MULTI_MEMBER", "SINGLE_MEMBER"],
               "default": "ALL_MEMBERS",
               "description": "Defines the mode to use when connecting to the cluster - this can either be \"SINGLE_MEMBER\" to connect\nto a single member of the cluster, \"MULTI_MEMBER\" to connect to a subset of the cluster as defined by\nthe \"routing-strategy\" property, or \"ALL_MEMBERS\" to connect to all members of the cluster."
             },
             "routing-strategy": {
               "type": "string",
-              "enum": [
-                "PARTITION_GROUPS"
-              ],
+              "enum": ["PARTITION_GROUPS"],
               "default": "PARTITION_GROUPS",
               "description": "Determines the routing strategy to use when the routing mode is MULTI_MEMBER."
             }
@@ -5170,9 +4952,7 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "enabled"
-      ],
+      "required": ["enabled"],
       "description": "Enables/disables Integrity Checker. Integrity Checker can be disabled to improve startup time."
     },
     "DataConnectionConfig": {
@@ -5212,9 +4992,7 @@
           "description": "Configures the number of eventloops. It's equal to available processor count by default."
         }
       },
-      "required": [
-        "enabled"
-      ],
+      "required": ["enabled"],
       "description": "Hazelcast TPC is the next generation of Hazelcast built with thread per core architecture. It's still being developed and everything is subject to change. TPC is disabled by default."
     },
     "TpcSocketConfig": {
@@ -5243,9 +5021,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "name"
-      ]
+      "required": ["name"]
     },
     "UserCodeNamespacesConfig": {
       "type": "object",
@@ -5276,9 +5052,7 @@
         },
         "description": "A list of additional properties where each is a User Code Namespace configuration."
       },
-      "required": [
-        "enabled"
-      ],
+      "required": ["enabled"],
       "description": "The configuration object for User Code Namespaces."
     },
     "Namespace": {
@@ -5296,11 +5070,7 @@
           "description": "Defines an object that uniquely identifies a User Code Namespace resource. If a value is not set, the URL is used as the identifier."
         },
         "resource-type": {
-          "enum": [
-            "JAR",
-            "JARS_IN_ZIP",
-            "CLASS"
-          ],
+          "enum": ["JAR", "JARS_IN_ZIP", "CLASS"],
           "default": "JAR",
           "description": "The resource type. Valid values are CLASS, JAR or JARS_IN_ZIP."
         },
@@ -5311,11 +5081,7 @@
         }
       },
       "additionalProperties": false,
-      "required": [
-        "id",
-        "resource-type",
-        "url"
-      ],
+      "required": ["id", "resource-type", "url"],
       "description": "The base definition for a resource, which can either be a single JAR file or a ZIP archive of JAR files."
     },
     "RestConfig": {
@@ -5355,9 +5121,7 @@
           "$ref": "#/definitions/RestSSLConfig"
         }
       },
-      "required": [
-        "security-realm"
-      ],
+      "required": ["security-realm"],
       "description": "The configuration for the REST server. This feature is only available in Hazelcast Enterprise."
     },
     "RestSSLConfig": {
@@ -5455,11 +5219,7 @@
           "minimum": 1
         },
         "metric": {
-          "enum": [
-            "EUCLIDEAN",
-            "COSINE",
-            "DOT"
-          ]
+          "enum": ["EUCLIDEAN", "COSINE", "DOT"]
         },
         "max-degree": {
           "type": "integer",
@@ -5476,10 +5236,7 @@
           "default": true
         }
       },
-      "required": [
-        "dimension",
-        "metric"
-      ]
+      "required": ["dimension", "metric"]
     },
     "VectorCollection": {
       "type": "object",
@@ -5511,9 +5268,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "indexes"
-        ]
+        "required": ["indexes"]
       }
     }
   }

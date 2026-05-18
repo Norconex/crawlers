@@ -64,11 +64,11 @@ Mapping of source fields to target ones (XML tag name).
 
 ### fileNamePrefix
 
-TODO: Add documentation for this property.
+A string prepended to generated file names to distinguish them from other output files.
 
 ### fileNameSuffix
 
-TODO: Add documentation for this property.
+A string appended to generated file names (before the extension) to distinguish them from other output files.
 
 ### indent
 
@@ -76,15 +76,15 @@ Number of indentation spaces. Default does not indent.
 
 ### restrictions
 
-TODO: Add documentation for this property.
+Defines filter conditions that restrict which documents this committer processes. Documents not matching the restrictions are ignored by this committer.
 
 ### splitUpsertDelete
 
-TODO: Add documentation for this property.
+When enabled, a single update operation is split into separate upsert and delete operations for compatibility with the target system.
 
 ## Examples
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "XmlFileCommitter",
     "filePath": "/path/to/committer.xml"

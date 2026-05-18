@@ -9,11 +9,11 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Featured Image Resolver.
+Extracts and optionally scales a featured image from crawled web pages.
 
 ## Notes
 
-TODO: Add notes.
+Resolves and optionally saves a featured image from crawled web pages. Supports filtering by minimum dimensions, scaling, format conversion, and storage as inline data, disk file, or URL reference in document metadata.
 
 ## Properties
 
@@ -87,7 +87,7 @@ The following example extracts the first image being 300x400 or larger,  scaling
 
 
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "FeaturedImageResolver",
     "minDimensions": {

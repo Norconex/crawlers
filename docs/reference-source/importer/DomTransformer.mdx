@@ -15,7 +15,7 @@ Extract the value of one or more elements or attributes into a target field, or 
 
 Applies to HTML, XHTML, or XML-like tags document.
 
-This class constructs a DOM tree from a document or field content. That DOM tree is loaded entirely into memory. Use this transformer with caution if you know you'll need to parse huge files. It may be preferable to use [RegexTransformer](http://localhost:3000/en/crawler-doc/web#crawler.importer.handlers.handler.RegexTransformer.html) if this is a concern. Also, to help performance and avoid re-creating DOM tree before every DOM extraction you want to perform, try to combine multiple extractions in a single instance of this Transformer.
+This class constructs a DOM tree from a document or field content. That DOM tree is loaded entirely into memory. Use this transformer with caution if you know you'll need to parse huge files. It may be preferable to use `RegexTransformer` if this is a concern. Also, to help performance and avoid re-creating DOM tree before every DOM extraction you want to perform, try to combine multiple extractions in a single instance of this Transformer.
 
 The [jsoup](http://jsoup.org/) parser library is used to load a document content into a DOM tree. Elements are referenced using a [CSS or JQuery-like syntax](http://jsoup.org/cookbook/extracting-data/selector-syntax).
 
@@ -45,9 +45,7 @@ You can specify which `parser` to use when reading documents. The default is "ht
 
 
 ### Content Deletion from fields
-You can specify whether to `delete` any elements matched by the selector. You can use with a `toField` or on its own. Some options are ignored by deletions, such as `extract` or `defaultValue`. Because Transformer cannot modify the document content, deletion only applies to metadata fields. Use [DOMDeleteTransformer](https://opensource.norconex.com/importer/v3/apidocs/com/norconex/importer/handler/transformer/impl/DOMDeleteTransformer.html) to modify the document content.
-
-**DOMDeleteTransformer no longer exist???**
+You can specify whether to `delete` any elements matched by the selector. You can use with a `toField` or on its own. Some options are ignored by deletions, such as `extract` or `defaultValue`. Because Transformer cannot modify the document content, deletion only applies to metadata fields.
 
 ### Parser Handler Compatibility
 
@@ -148,7 +146,7 @@ The following example will store "Joe" in a "firstName" field and "Dalton" in a 
 
 
 
-<ConfigExample
+<ConfigBlock
   json={{
     "handler": {
       "class": "DomTransformer",

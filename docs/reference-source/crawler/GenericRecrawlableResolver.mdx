@@ -9,11 +9,11 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Generic Recrawlable Resolver.
+Determines whether a previously crawled document should be re-crawled.
 
 ## Notes
 
-TODO: Add notes.
+Determines whether a previously crawled document should be re-crawled on the current run, based on minimum recrawl frequency rules per content type or reference pattern, with optional sitemap directive support.
 
 ## Properties
 
@@ -31,7 +31,7 @@ The following example ensures PDFs are re-crawled no more frequently than once a
 
 
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "GenericRecrawlableResolver",
     "sitemapSupport": "LAST",

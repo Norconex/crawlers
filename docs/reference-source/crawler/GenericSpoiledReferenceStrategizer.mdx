@@ -13,7 +13,7 @@ Generic strategy mapping between each references that have turned "bad" and thei
 
 ## Notes
 
-TODO: Add notes.
+Defines how the crawler handles documents that could not be retrieved ("spoiled" references), mapping each failure reason to a strategy such as DELETE, GRACE_ONCE, or IGNORE. A fallback strategy applies to any reason not explicitly mapped.
 
 ## Properties
 
@@ -31,7 +31,7 @@ The following example represents the default configuration. It indicates that do
 
 
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "GenericSpoiledReferenceStrategizer",
     "fallbackStrategy": "DELETE",

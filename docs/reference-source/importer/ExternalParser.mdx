@@ -13,7 +13,7 @@ Parses and extracts text from a file using an external application
 
 ## Notes
 
-Content and metadata are extracted from documents using an external parser. The `ExternalParser` functions similarly to the `ExternalTransformer`, but with a key difference: after parsing, the document is marked with the status `"parsed"`. As a result, only handlers that support `post-parse` processing can be applied afterward. In contrast, the `ExternalTransformer` does not alter the document’s status. To use an external application to change a file content after parsing has already occurred, consider using [ExternalTransformer](http://localhost:3000/en/crawler-doc/web#crawler.importer.handlers.handler.ExternalTransformer) instead.
+Content and metadata are extracted from documents using an external parser. The `ExternalParser` functions similarly to the `ExternalTransformer`, but with a key difference: after parsing, the document is marked with the status `"parsed"`. As a result, only handlers that support `post-parse` processing can be applied afterward. In contrast, the `ExternalTransformer` does not alter the document’s status. To use an external application to change a file content after parsing has already occurred, consider using `ExternalTransformer` instead.
 
 ### Command-line arguments:
 
@@ -77,12 +77,11 @@ Sets the directory where to store temporary files used for the parser.
 
 ## Examples
 
-The following example invokes an external application processing for simple text files that accepts two files as arguments: the first one being the file to transform, the second one being holding the transformation result. It also extract a document number from STDOUT, found as "DocNo:1234" and storing it as "docnumber".  
-`TODO:` Add what fieldGroup and valueGroup doc
+The following example invokes an external application processing for simple text files that accepts two files as arguments: the first one being the file to transform, the second one being holding the transformation result. It also extract a document number from STDOUT, found as "DocNo:1234" and storing it as "docnumber". The `fieldGroup` and `valueGroup` values reference capture group indices in the regex pattern — here group 1 captures the field name and group 2 captures the value.
 
 
 
-<ConfigExample
+<ConfigBlock
   json={{
     "handler": {
       "class": "ExternalParser",

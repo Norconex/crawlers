@@ -9,21 +9,21 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Dom Link Extractor.
+Extracts links from HTML/XML documents using CSS/jQuery-style selectors.
 
 ## Notes
 
-TODO: Add notes.
+Extracts links from HTML, XHTML, or XML documents using CSS/jQuery-style selectors. Supports custom link selectors, extraction of specific element attributes, nofollow handling, and content-type restrictions.
 
 ## Properties
 
 ### charset
 
-TODO: Add documentation for this property.
+The character encoding to use when reading or writing the document.
 
 ### contentTypeMatcher
 
-TODO: Add documentation for this property.
+Restricts processing to documents whose content type matches the specified pattern. When not set, the handler applies to all content types.
 
 ### extractSelectors
 
@@ -31,15 +31,15 @@ TODO: Add documentation for this property.
 
 ### fieldMatcher
 
-TODO: Add documentation for this property.
+Matches document fields based on specified patterns and methods. Use this to restrict the handler to operate only on fields whose names satisfy the matcher criteria.
 
 ### ignoreLinkData
 
-TODO: Add documentation for this property.
+When enabled, extra data attributes on links (such as `data-*` attributes) are ignored during link extraction.
 
 ### ignoreNofollow
 
-TODO: Add documentation for this property.
+When enabled, links marked with `rel="nofollow"` are followed and extracted anyway, ignoring the nofollow directive.
 
 ### linkSelectors
 
@@ -51,21 +51,21 @@ TODO: Add documentation for this property.
 
 ### parser
 
-TODO: Add documentation for this property.
+Specifies whether to use the `HTML` or `XML` parser when reading document content into a DOM tree.
 
 ### restrictions
 
-TODO: Add documentation for this property.
+Defines filter conditions that restrict which documents this committer processes. Documents not matching the restrictions are ignored by this committer.
 
 ### schemes
 
-TODO: Add documentation for this property.
+A list of URL schemes (e.g., `http`, `https`, `ftp`) that are accepted or filtered.
 
 ## Examples
 
 The following example represents the default link extraction selectors  with the addition of one for URLs found in custom element attributes  named `data-myurl`.
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "DomLinkExtractor",
     "linkSelectors": [
