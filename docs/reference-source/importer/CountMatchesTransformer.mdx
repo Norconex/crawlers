@@ -25,15 +25,15 @@ Counts occurrences of patterns in document fields.
 
 ### fieldMatcher
 
-TODO: Add documentation for this property.
+Matches document fields based on specified patterns and methods. Use this to restrict the handler to operate only on fields whose names satisfy the matcher criteria.
 
 ### maxReadSize
 
-TODO: Add documentation for this property.
+The maximum number of characters to read from the document content at once. Use this to limit memory usage when processing large documents.
 
 ### onSet
 
-TODO: Add documentation for this property.
+Defines what to do when the target field already has one or more values. When unspecified, new values are appended to existing ones by default.
 
 ### sourceCharset
 
@@ -47,7 +47,7 @@ A target field name used to store the value.
 
 The following example will count the number of segments in a URL.
 
-<ConfigExample
+<ConfigBlock
   json={{
     "handler": {
       "class": "CountMatchesTransformer",

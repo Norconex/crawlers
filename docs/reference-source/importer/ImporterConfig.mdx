@@ -9,11 +9,11 @@ propertyCoverage: all
 
 ## Summary
 
-TODO:[ImporterConfig description placeholder]
+Configures the document importing pipeline with handlers for parsing, transforming, and filtering documents.
 
 ## Notes
 
-TODO: Add notes.
+Configures the document importing pipeline. Handlers are executed in order and can include transformers, parsers, splitters, and flow control wrappers. Handlers applied before a parser run as pre-parse handlers; those after run as post-parse handlers. Including a parser transitions the pipeline from pre-parse to post-parse mode.
 
 ## Properties
 
@@ -72,7 +72,7 @@ Following parsing, another conditional handler evaluates the `date_created` fiel
 
 **TODO:add example for responseProcessors and tempDir**
 
-<ConfigExample
+<ConfigBlock
   json={{
     "handlers": {
       "if": {

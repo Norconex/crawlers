@@ -6,13 +6,15 @@ validateComponent: false
 
 # Importer Flow Control
 
-Flow control defines how document handling branches and sequences inside importer pipelines.
+Flow control defines how document handling branches and sequences inside 
+importer pipelines.
 
 Use flow control when you need conditional behavior such as:
 
 - route a document to different handlers based on metadata or content
 - apply one handler chain when a condition matches and another when it does not
 - combine multiple conditions for advanced branching
+- reject documents meeting a condition
 
 ## Where It Applies
 
@@ -27,6 +29,7 @@ Start with these related types:
 - [AllOf](./importer/AllOf)
 - [AnyOf](./importer/AnyOf)
 - [NoneOf](./importer/NoneOf)
+- [Reject](./importer/Reject)
 
 ## Typical Pattern
 

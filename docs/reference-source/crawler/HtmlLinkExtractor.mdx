@@ -9,17 +9,17 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Html Link Extractor.
+Extracts hyperlinks from HTML documents by scanning tag attributes.
 
 ## Notes
 
-TODO: Add notes.
+Extracts links from HTML documents by scanning known HTML tags and attributes for URLs. Supports custom tag/attribute combinations, CSS selector-based inclusion and exclusion zones, content-type restrictions, nofollow handling, and URL length limits.
 
 ## Properties
 
 ### charset
 
-TODO: Add documentation for this property.
+The character encoding to use when reading or writing the document.
 
 ### commentsEnabled
 
@@ -27,7 +27,7 @@ TODO: Add documentation for this property.
 
 ### contentTypeMatcher
 
-TODO: Add documentation for this property.
+Restricts processing to documents whose content type matches the specified pattern. When not set, the handler applies to all content types.
 
 ### extractBetweens
 
@@ -39,15 +39,15 @@ TODO: Add documentation for this property.
 
 ### fieldMatcher
 
-TODO: Add documentation for this property.
+Matches document fields based on specified patterns and methods. Use this to restrict the handler to operate only on fields whose names satisfy the matcher criteria.
 
 ### ignoreLinkData
 
-TODO: Add documentation for this property.
+When enabled, extra data attributes on links (such as `data-*` attributes) are ignored during link extraction.
 
 ### ignoreNofollow
 
-TODO: Add documentation for this property.
+When enabled, links marked with `rel="nofollow"` are followed and extracted anyway, ignoring the nofollow directive.
 
 ### maxURLLength
 
@@ -63,11 +63,11 @@ TODO: Add documentation for this property.
 
 ### restrictions
 
-TODO: Add documentation for this property.
+Defines filter conditions that restrict which documents this committer processes. Documents not matching the restrictions are ignored by this committer.
 
 ### schemes
 
-TODO: Add documentation for this property.
+A list of URL schemes (e.g., `http`, `https`, `ftp`) that are accepted or filtered.
 
 ### tagAttribs
 
@@ -77,7 +77,7 @@ TODO: Add documentation for this property.
 
 The following example adds URLs from `<script>` tags to the  default list of URLs to be extracted.
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "HtmlLinkExtractor",
     "tagAttribs": {

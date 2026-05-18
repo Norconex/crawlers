@@ -13,11 +13,6 @@ Transforms a document using an external application to do so
 
 ## Notes
 
-**TODO: Example of fieldGroup and valueGroup doc
-**https://opensource.norconex.com/importer/v3/apidocs/com/norconex/importer/handler/ExternalHandler.html
-** Metadata extraction patterns:
-
-
 Executing an external application to extract data from and/or manipulate a document.
 
 ### Command-line arguments:
@@ -38,9 +33,9 @@ ${REFERENCE}
 
 Unique reference to the document being handled (URL, original file system location, etc.). When omitted, the document reference will not be made available to the external application.
 
-*There is no `${OUTPUT}` token (since Transformer do not modify content).????? TODO: not input or no output???*
+*There is no `${OUTPUT}` token since transformers do not modify document content (only metadata).*
 
-To parse/extract raw text from files, it is recommended to use [ExternalParser](http://localhost:3000/en/crawler-doc/web#crawler.importer.handlers.handler.ExternalParser) instead.
+To parse/extract raw text from files, it is recommended to use `ExternalParser` instead.
 
 ### Parser Handler Compatibility
 
@@ -66,11 +61,11 @@ Pattern only used when `metadataOutputFormat` is not specified
 
 ### metadataInputFormat
 
-json|xml|properties **TODO**
+Sets the format of the metadata input file sent to the external application. One of `json` (default), `xml`, or `properties` is expected. Only applicable when the `${INPUT_META}` token is part of the command.
 
 ### metadataOutputFormat
 
-json|xml|properties **TODO**
+Sets the format of the metadata output file from the external application. One of `json` (default), `xml`, or `properties` is expected. Set to null for relying on metadata extraction patterns instead. Only applicable when the `${OUTPUT_META}` token is part of the command.
 
 ### onSet
 
@@ -84,7 +79,7 @@ Sets the directory where to store temporary files used for the process.
 
 The following example invokes an external application that accepts a document to transform and outputs a file containing the new metadata information.
 
-<ConfigExample
+<ConfigBlock
   json={{
     "handler": {
       "class": "ExternalTransformer",

@@ -9,11 +9,11 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Archive Fetcher.
+Fetches documents contained within archive files (ZIP, TAR, etc.).
 
 ## Notes
 
-TODO: Add notes.
+Fetches documents from archive files (such as ZIP or TAR) on the local file system. Supports credential configuration and reference-level filtering.
 
 ## Properties
 
@@ -23,8 +23,8 @@ TODO: Add documentation for this property.
 
 ### domain
 
-TODO: Add documentation for this property.
+The domain name for authentication when accessing the remote resource.
 
 ### referenceFilters
 
-TODO: Add documentation for this property.
+Filters applied to document references (URLs or file paths) to control which ones are fetched. Documents whose references do not pass the filters are skipped.

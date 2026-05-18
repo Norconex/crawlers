@@ -9,11 +9,11 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Hazelcast Cluster Connector.
+Connects distributed crawler nodes using Hazelcast.
 
 ## Notes
 
-TODO: Add notes.
+Connects crawler nodes using Hazelcast for distributed crawling. Supports cluster naming, instance naming, node expiry timeout, and worker heartbeat configuration.
 
 ## Properties
 
@@ -35,4 +35,4 @@ TODO: Add documentation for this property.
 
 ### workerHeartbeatInterval
 
-TODO: Add documentation for this property.
+How frequently (in milliseconds) a worker signals that it is still alive. Used to detect stalled or crashed workers.

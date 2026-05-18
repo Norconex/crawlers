@@ -9,21 +9,21 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Hierarchy Operation.
+A single hierarchy expansion operation for the HierarchyTransformer.
 
 ## Notes
 
-TODO: Add notes.
+Defines a single hierarchy expansion operation for the HierarchyTransformer. Specifies the source field, separator character, optional target field and target separator, and whether to use regex for the separator and preserve empty segments.
 
 ## Properties
 
 ### fromField
 
-TODO: Add documentation for this property.
+The source metadata field whose value is read as input. When not set, the document content is used as the source.
 
 ### fromSeparator
 
-TODO: Add documentation for this property.
+The separator character or string used to delimit segments in the source hierarchy path.
 
 ### keepEmptySegments
 
@@ -31,16 +31,16 @@ TODO: Add documentation for this property.
 
 ### onSet
 
-TODO: Add documentation for this property.
+Defines what to do when the target field already has one or more values. When unspecified, new values are appended to existing ones by default.
 
 ### regex
 
-TODO: Add documentation for this property.
+A regular expression pattern used for matching.
 
 ### toField
 
-TODO: Add documentation for this property.
+The target metadata field name where the extracted or computed value will be stored. If a field of the same name already exists, the behavior is controlled by `onSet`.
 
 ### toSeparator
 
-TODO: Add documentation for this property.
+The separator character or string used to delimit segments in the target hierarchy path.

@@ -4,21 +4,22 @@ title: Crawl Sessions
 
 # Crawl Sessions
 
-A **crawl session** is a single named run of the crawler, backed by persistent on-disk state.
-Sessions are what give Norconex Crawler its enterprise reliability characteristics:
-you can stop, resume, and reschedule crawls without losing progress or recrawling everything.
+A **crawl session** is a single named run of the crawler, backed by persistent
+on-disk state. Sessions are what give Norconex Crawler its enterprise
+reliability characteristics: you can stop, resume, and reschedule crawls
+without losing progress or recrawling everything.
 
 ## Session identity
 
 Every crawler configuration has an `id` field.
-This ID is used as the name of the session state directory under the configured `workDir`.
+This ID is used as the name of the session state directory under the
+configured `workDir`.
 
 ```yaml
-crawlers:
-  - id: acme-website # ← session identity
-    workDir: /var/crawler/state
-    startUrls:
-      - https://www.example.com
+id: acme-website # ← session identity
+workDir: /var/crawler/state
+startReferences:
+  - https://www.example.com
 ```
 
 Two configs with the same `id` and `workDir` share the same session state.
@@ -38,44 +39,60 @@ unvisited references remain in the queue, already-committed documents are not re
 ## Deduplication
 
 The crawler tracks every document it has processed in the session store.
-On subsequent crawls, it detects whether a document has changed using:
+On subsequent crawls, it detects whether a document has changed using
+techniques such as:
 
 - **Checksum-based** (default): compare a hash of the document's content or metadata
-- **Modified date**: compare the `Last-Modified` HTTP header or filesystem timestamp
+- **Modified date**: compare the `Last-Modified` HTTP header or file system timestamp
 - **ETag**: use HTTP ETags for web resources
 
 Unchanged documents are skipped. Only new or modified documents are committed.
-Deleted documents (no longer reachable) can optionally trigger a delete event on the committer.
+Deleted documents (no longer reachable) can optionally trigger a delete event
+on the committer.
 
 ## Recrawl scheduling
 
-By default, a session runs once and exits. For continuous monitoring, configure a recrawl delay:
+A session runs once and exits. There is no built-in scheduler. Use an
+external scheduler — cron, a systemd timer, a Kubernetes CronJob, or any
+similar tool — to invoke `crawl-web.sh start` (or `crawl-fs.sh start`) on a
+schedule. The persistent session state ensures only new or changed documents
+are processed on each run.
+
+### Controlling re-crawl eligibility (Web Crawler only)
+
+On repeat crawl runs, the web crawler can skip documents that are not yet
+ready to be re-crawled. This is controlled by the `recrawlableResolver`
+setting. Documents the resolver marks as not ready are skipped entirely —
+no HTTP request is made and they are not committed.
+
+The default resolver, `GenericRecrawlableResolver`, supports two mechanisms:
+
+- **Sitemap directives** — reads `changefreq` and `lastmod` from `sitemap.xml`
+  to decide recrawl eligibility (enabled by default, checked first).
+- **Minimum frequencies** — define per-URL-pattern or per-content-type
+  minimums using values like `daily`, `weekly`, `monthly`, or a millisecond count.
 
 ```yaml
-crawlers:
-  - id: acme-website
-    recrawlDelay:
-      minDelay: PT4H # at least 4 hours between recrawls of the same page
+recrawlableResolver:
+  class: GenericRecrawlableResolver
+  sitemapSupport: FIRST # FIRST (default), LAST, or NEVER
+  minFrequencies:
+    - applyTo: REFERENCE
+      matcher:
+        pattern: ".*\\.pdf$"
+      value: weekly
+    - applyTo: REFERENCE
+      matcher:
+        pattern: ".*"
+      value: daily
 ```
 
-Or use an external scheduler (cron, systemd timer, Kubernetes CronJob) to invoke `crawler-cli.sh start` on a schedule.
-The session state ensures only changed content is processed on each run.
+The File System Crawler has no equivalent — all reachable documents are
+evaluated on every run (deduplication still skips unchanged ones).
 
 ## State storage
 
-Session state is stored in an embedded key-value store in the `workDir`.
-For clustered deployments, the state backend can be replaced with a distributed store (e.g., Hazelcast, JDBC).
-See the [Configuration Reference](https://crawlerconfig.norconex.com/docs) for storage backends.
-
-## Multiple crawlers in one session
-
-A single config file can contain multiple `crawlers` entries.
-They run sequentially by default. Use `parallelCrawlers: true` to run them concurrently.
-
-```yaml
-crawlers:
-  - id: website-a
-    startUrls: [https://a.example.com]
-  - id: website-b
-    startUrls: [https://b.example.com]
-```
+By default, session state is stored in an embedded key-value store in the
+`workDir`. For clustered deployments, the state backend can be replaced with
+a distributed store (e.g., Hazelcast, JDBC).
+See the [Configuration Reference](/docs) for storage backends.

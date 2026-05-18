@@ -9,23 +9,23 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Any Of.
+A compound condition that is true when any one child condition is true.
 
 ## Notes
 
-TODO: Add notes.
+A compound condition that evaluates to true when at least one of its child conditions is true. Used in importer flow control to match documents satisfying any one of multiple criteria.
 
 ## Properties
 
 ### conditions
 
-TODO: Add documentation for this property.
+A list of conditions that are evaluated to determine whether the handler should be applied.
 
 ## Examples
 
 
 
-<ConfigExample
+<ConfigBlock
   json={{
     "anyOf": []
   }}

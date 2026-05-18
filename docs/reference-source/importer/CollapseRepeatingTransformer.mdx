@@ -22,7 +22,7 @@ In addition to regular characters, you can specify these special characters in `
 - \t (tab)
 - \s (space)
 
-For more advanced replacement needs, consider using [ReplaceTransformer](http://localhost:3000/en/crawler-doc/web#crawler.importer.handlers.handler.ReplaceTransformer) instead.
+For more advanced replacement needs, consider using `ReplaceTransformer` instead.
 
 ### Parser Handler Compatibility
 
@@ -32,15 +32,15 @@ This functionality can be applied as either a `pre-parse` or `post-parse` handle
 
 ### fieldMatcher
 
-TODO: Add documentation for this property.
+Matches document fields based on specified patterns and methods. Use this to restrict the handler to operate only on fields whose names satisfy the matcher criteria.
 
 ### ignoreCase
 
-TODO: Add documentation for this property.
+When enabled, matching is performed without regard to character case.
 
 ### maxReadSize
 
-TODO: Add documentation for this property.
+The maximum number of characters to read from the document content at once. Use this to limit memory usage when processing large documents.
 
 ### sourceCharset
 
@@ -48,7 +48,7 @@ Sets the character encoding of the source document to ensure proper reading and 
 
 ### strings
 
-TODO: Add documentation for this property.
+The list of characters or strings whose consecutive repetitions should be collapsed to a single occurrence.
 
 ## Examples
 
@@ -56,7 +56,7 @@ The following example reduces multiple `line feed` and `tab` into a single one.
 
 
 
-<ConfigExample
+<ConfigBlock
   json={{
     "handler": {
       "class": "CollapseRepeatingTransformer",

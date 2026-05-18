@@ -13,7 +13,7 @@ Generate a MD5 checksum from content (default) or fields.
 
 ## Notes
 
-TODO: Add notes.
+Generates an MD5 checksum from a document's content, metadata fields, or both to detect changes between crawl sessions. Optionally stores the generated checksum value in a specified metadata field.
 
 ## Properties
 
@@ -41,7 +41,7 @@ A target field name used to store the value.
 
 The following example uses the document body (default) to create the checksum.
 
-<ConfigExample
+<ConfigBlock
   json={{
     "documentChecksummer": {
       "class": "Md5DocumentChecksummer"

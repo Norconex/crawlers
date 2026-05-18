@@ -4,68 +4,70 @@ title: Crawl Pipeline
 
 # Crawl Pipeline
 
-Every document processed by Norconex Crawler — whether a web page or a filesystem file — moves through the same four-stage pipeline.
+Every document processed by Norconex Crawler — whether a web page or a file
+system file — moves through the same three-stage pipeline.
 
 ```
-Crawl  ──►  Filter  ──►  Transform  ──►  Commit
+Crawl  ──►  Process  ──►  Commit
 ```
 
-Understanding this pipeline is the key to configuring and extending the crawler effectively.
+Understanding this pipeline is the key to configuring and extending the crawler
+effectively.
 
-## Stage 1: Crawl (Fetch)
+**Filtering** is not a separate stage — it is a cross-cutting capability
+available at multiple checkpoints within the pipeline, letting you discard
+unwanted references or documents before and after each major step.
 
-The crawler fetches documents from the configured sources.
+## Stage 1: Crawl
 
-- **Web Crawler**: Makes HTTP/S requests, follows links discovered in pages, respects `robots.txt` and `Crawl-Delay` directives.
-- **Filesystem Crawler**: Traverses directory trees, connects to remote systems (FTP, SFTP, WebDAV, HDFS, S3).
+The crawler discovers and fetches documents from the configured sources.
 
-After each fetch, the document's raw content and HTTP/filesystem metadata are available to subsequent stages.
+- **Web Crawler**: Makes HTTP/S requests, follows links discovered in pages,
+  respects `robots.txt` and `sitemap.xml` directives by default.
+- **File System Crawler**: Traverses directory trees, connects to remote
+  systems (FTP, SFTP, HDFS, S3, ...).
+
+Filtering happens at two checkpoints within this stage:
+
+- **Reference filters** — applied to each discovered URL or path _before_
+  fetching. References that don't pass are never fetched.
+- **Document filters** — applied to fetched content and metadata _after_
+  fetching. Documents that don't pass are discarded before processing.
 
 ### Queue management
 
-Before fetching, each candidate URL or path passes through a **queue processor**:
+Before fetching, each candidate reference passes through a **queue processor**:
 
 - Already-visited references are skipped (deduplication by URL or checksum)
-- Filtered-out references never enter the fetch queue
 - The queue persists to disk, enabling crawl resume after interruptions
 
-## Stage 2: Filter
+## Stage 2: Process (Import)
 
-Filters decide which documents proceed and which are discarded.
+Accepted documents enter the **Importer**, a configurable sub-pipeline that
+parses content, enriches metadata, and reshapes documents before they are
+committed. The Importer can also be used as a standalone library outside the
+crawler.
 
-There are two categories:
+See [Document Processing](./document-processing) for the full details of
+available handlers and configuration.
 
-| Type                 | Runs on                          | Examples                                 |
-| -------------------- | -------------------------------- | ---------------------------------------- |
-| **Reference filter** | The URL or path, before fetching | URL pattern, depth, domain               |
-| **Document filter**  | The fetched content and metadata | content type, file size, custom metadata |
+## Stage 3: Commit
 
-Filters are composable — you can stack multiple include/exclude rules.
-A document is discarded as soon as any filter rejects it; no further processing occurs.
+The final stage sends processed documents to one or more **Committers**.
 
-## Stage 3: Transform (Import Pipeline)
-
-Accepted documents enter the **Import module**, which is a separate sub-pipeline:
-
-1. **Parser** — extract text and metadata from raw content (PDF, DOCX, HTML, images via OCR, ...)
-2. **Transformers** — enrich, reshape, or filter metadata fields
-3. **Tagger** — apply additional field values (e.g., from a database lookup or regex extraction)
-4. **Splitter** — optionally split a single document into multiple logical documents
-
-The Import module is designed to be completely independent — you can use it outside the crawler to process files directly.
-
-## Stage 4: Commit
-
-The final stage sends the processed document to one or more **Committers**.
-
-A committer is a plugin that knows how to write to a specific destination:
+A committer is a plugin that writes to a specific destination:
 Elasticsearch, Solr, SQL, Kafka, Neo4j, Azure, and others.
 
-Committers receive a standardized document object (reference, content, metadata map) and handle the destination-specific protocol.
+Committers receive a standardized document object (reference, content,
+metadata map) and handle destination-specific protocols.
 Multiple committers can run in parallel for the same crawl session.
 
 ## Where to configure each stage
 
-The [Configuration Editor](https://crawlerconfig.norconex.com) shows every option for every pipeline stage,
-with inline documentation and sample values.
-All stages are configured in a single config file.
+All configurable options are described in the [Reference](/docs/reference/)
+section.
+
+The [Visual Configurator](https://crawlerconfig.norconex.com) makes it
+easy to configure every pipeline stage.
+
+All stages are configurable in a YAML, JSON, or XML config file.

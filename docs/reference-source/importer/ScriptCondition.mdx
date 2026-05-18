@@ -9,11 +9,11 @@ propertyCoverage: all
 
 ## Summary
 
-TODO
+Evaluates a custom script that returns true or false for flow control decisions.
 
 ## Notes
 
-TODO: Add notes.
+Evaluates a custom script that returns true or false to determine whether a document satisfies the condition. The script has access to the document reference, content, metadata, and parse status. Supports JavaScript and other configured scripting engines.
 
 ## Properties
 
@@ -23,16 +23,16 @@ TODO: Add documentation for this property.
 
 ### fieldMatcher
 
-TODO: Add documentation for this property.
+Matches document fields based on specified patterns and methods. Use this to restrict the handler to operate only on fields whose names satisfy the matcher criteria.
 
 ### maxReadSize
 
-TODO: Add documentation for this property.
+The maximum number of characters to read from the document content at once. Use this to limit memory usage when processing large documents.
 
 ### script
 
-TODO: Add documentation for this property.
+The script content or path to execute as part of this handler's processing logic.
 
 ### sourceCharset
 
-TODO: Add documentation for this property.
+Sets the character encoding of the source document to ensure proper reading and processing.

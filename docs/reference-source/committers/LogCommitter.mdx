@@ -13,7 +13,7 @@ Logs data associated with every document crawled without saving them.
 
 ## Notes
 
-TODO: Add notes.
+Logs all document data to the application log without saving the documents to any persistent store. Useful for debugging and development to inspect what documents and fields the crawler produces. Not intended for production use.
 
 ## Properties
 
@@ -35,4 +35,4 @@ The log level used when printing values.
 
 ### restrictions
 
-TODO: Add documentation for this property.
+Defines filter conditions that restrict which documents this committer processes. Documents not matching the restrictions are ignored by this committer.

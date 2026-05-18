@@ -52,8 +52,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @MockServerSettings
 @TestInstance(Lifecycle.PER_CLASS)
-@Timeout(60)
-public abstract class AbstractWebDriverHttpFetcherTest {
+@Timeout(120)
+public abstract class AbstractWebDriverHttpFetcherIT {
 
     private static final int SNIFFER_PORT_START = 50000;
     private static final int SNIFFER_PORT_END = 50049; // 50 ports
@@ -65,7 +65,7 @@ public abstract class AbstractWebDriverHttpFetcherTest {
 
     private WebDriverBrowser browserType;
 
-    public AbstractWebDriverHttpFetcherTest(WebDriverBrowser browserType) {
+    public AbstractWebDriverHttpFetcherIT(WebDriverBrowser browserType) {
         if (browserType != WebDriverBrowser.CHROME
                 && browserType != WebDriverBrowser.FIREFOX
                 && browserType != WebDriverBrowser.EDGE) {
@@ -108,7 +108,7 @@ public abstract class AbstractWebDriverHttpFetcherTest {
     private boolean isLocalBrowserAvailable() {
         return LOCAL_BROWSER_OK.computeIfAbsent(
                 browserType,
-                AbstractWebDriverHttpFetcherTest::isLocalBrowserDetectable);
+                AbstractWebDriverHttpFetcherIT::isLocalBrowserDetectable);
     }
 
     static boolean isLocalBrowserDetectable(WebDriverBrowser browser) {

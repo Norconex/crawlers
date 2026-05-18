@@ -24,7 +24,7 @@ Can be used both as a `pre-parse` or `post-parse` handler.
 
 ### operations
 
-TODO: Add documentation for this property.
+A list of DOM extraction operations to perform, each targeting a specific element selector and specifying what to extract and where to store it.
 
 ## Examples
 
@@ -32,7 +32,7 @@ The above example renames a "dc.title" field to "title", overwriting any existin
 
 
 
-<ConfigExample
+<ConfigBlock
   json={{
     "handler": {
       "class": "RenameTransformer",

@@ -39,7 +39,7 @@ Should be used as a pre-parse handler.
 
 ### contentTypeMatcher
 
-TODO: Add documentation for this property.
+Restricts processing to documents whose content type matches the specified pattern. When not set, the handler applies to all content types.
 
 ### discardOriginal
 
@@ -57,7 +57,7 @@ Defines the prefix added before the page number in a document reference. Default
 
 The following example will split PDFs and will append the page number to the original PDF reference as "#page1", "#page2", etc.
 
-<ConfigExample
+<ConfigBlock
   json={{
     "handler": {
       "class": "PdfPageSplitter",

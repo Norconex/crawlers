@@ -13,7 +13,7 @@ Commit documents to Apache Kafka.
 
 ## Notes
 
-TODO: Add notes.
+Commits crawled documents to an Apache Kafka topic. Supports optional topic creation, field mappings to Kafka fields, and configurable partition and replication settings.
 
 ## Properties
 
@@ -35,7 +35,7 @@ Number of partitions set at topic creation.
 
 ### queue
 
-TODO: Add documentation for this property.
+Configures the committer queue used to batch documents before sending them to the target system. Adjust queue settings to tune throughput and memory usage.
 
 ### replicationFactor
 
@@ -43,7 +43,7 @@ Replication factor set at topic creation.
 
 ### restrictions
 
-TODO: Add documentation for this property.
+Defines filter conditions that restrict which documents this committer processes. Documents not matching the restrictions are ignored by this committer.
 
 ### topicName
 
@@ -53,7 +53,7 @@ The Kafka topic name to possibly create and use as the target for storing docume
 
 The following example uses the minimum required settings to configure Apache Kafka Committer. The Kafka topic won't be created. As such, the topic must already exist in Apache Kafka.
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "ApacheKafkaCommitter",
     "bootstrapServers": "http://some_host:1234",

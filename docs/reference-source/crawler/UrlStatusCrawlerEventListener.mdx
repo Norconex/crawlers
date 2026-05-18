@@ -9,17 +9,17 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Url Status Crawler Event Listener.
+Records URLs and their HTTP status codes to a CSV report during a crawl.
 
 ## Notes
 
-TODO: Add notes.
+Listens for crawler events and records URLs along with their HTTP response status codes to a CSV report file. Useful for generating broken-link reports or auditing status codes returned during a crawl session.
 
 ## Properties
 
 ### fileNamePrefix
 
-TODO: Add documentation for this property.
+A string prepended to generated file names to distinguish them from other output files.
 
 ### outputDir
 
@@ -37,7 +37,7 @@ TODO: Add documentation for this property.
 
 The following example will generate a broken links report by recording 404 status codes (from HTTP responses).
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "UrlStatusCrawlerEventListener",
     "statusCodes": "404",

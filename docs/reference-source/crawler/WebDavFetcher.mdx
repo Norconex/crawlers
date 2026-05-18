@@ -13,7 +13,7 @@ Web Distributed Authoring and Versioning (WebDAV) fetcher.
 
 ## Notes
 
-TODO: Add notes.
+Fetches documents from WebDAV servers using the Web Distributed Authoring and Versioning protocol. Supports credentials, SSL/TLS configuration, connection pooling, redirect following, keep-alive, preemptive authentication, and proxy settings.
 
 ## Properties
 
@@ -27,7 +27,7 @@ Username and password to a protected WebDAV.
 
 ### domain
 
-TODO: Add documentation for this property.
+The domain name for authentication when accessing the remote resource.
 
 ### followRedirect
 
@@ -75,11 +75,11 @@ If required to authenticate to a proxy, the user's network domain.
 
 ### proxySettings
 
-TODO: Add documentation for this property.
+Configures an optional HTTP proxy for outbound connections. Leave unset to connect directly.
 
 ### referenceFilters
 
-TODO: Add documentation for this property.
+Filters applied to document references (URLs or file paths) to control which ones are fetched. Documents whose references do not pass the filters are skipped.
 
 ### soTimeout
 

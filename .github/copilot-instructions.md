@@ -2,7 +2,7 @@
 
 ## Repository Overview
 
-This is a Java-based Maven mono-repository containing the **Norconex Crawler v4 stack** - a comprehensive suite of web and filesystem crawlers with pluggable committers for various data stores. The crawler framework is designed to be highly configurable, extensible, and capable of handling complex crawling scenarios including document transformation, filtering, and routing to multiple backends.
+This is a Java-based Maven mono-repository containing the **Norconex Crawler v4 stack** - a comprehensive suite of web and file system crawlers with pluggable committers for various data stores. The crawler framework is designed to be highly configurable, extensible, and capable of handling complex crawling scenarios including document transformation, filtering, and routing to multiple backends.
 
 **Repository Type:** Multi-module Maven project (Java 21, Maven 3+)  
 **Size:** ~15 modules, ~350 Java files  

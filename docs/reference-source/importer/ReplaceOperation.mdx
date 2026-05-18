@@ -9,11 +9,11 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Replace Operation.
+A single value replacement operation for the ReplaceTransformer.
 
 ## Notes
 
-TODO: Add notes.
+Defines a single replacement operation for the ReplaceTransformer. Specifies source fields, the value pattern to match, the replacement value, an optional target field, and whether to discard values that were not changed by the replacement.
 
 ## Properties
 
@@ -23,15 +23,15 @@ TODO: Add documentation for this property.
 
 ### fieldMatcher
 
-TODO: Add documentation for this property.
+Matches document fields based on specified patterns and methods. Use this to restrict the handler to operate only on fields whose names satisfy the matcher criteria.
 
 ### onSet
 
-TODO: Add documentation for this property.
+Defines what to do when the target field already has one or more values. When unspecified, new values are appended to existing ones by default.
 
 ### toField
 
-TODO: Add documentation for this property.
+The target metadata field name where the extracted or computed value will be stored. If a field of the same name already exists, the behavior is controlled by `onSet`.
 
 ### toValue
 
@@ -39,4 +39,4 @@ TODO: Add documentation for this property.
 
 ### valueMatcher
 
-TODO: Add documentation for this property.
+Matches document field values based on specified patterns and methods. Use this to restrict the handler to operate only on fields whose values satisfy the matcher criteria.

@@ -19,7 +19,7 @@ Add the crawler(s) you need to your `pom.xml`:
   <version>4.x.x</version>
 </dependency>
 
-<!-- Filesystem Crawler -->
+<!-- File System Crawler -->
 <dependency>
   <groupId>com.norconex.crawler</groupId>
   <artifactId>nx-crawler-fs</artifactId>
@@ -29,17 +29,23 @@ Add the crawler(s) you need to your `pom.xml`:
 
 For committer dependencies, see the [Integrations](/integrations) page.
 
+:::info[File System Crawler]
+All the following examples use the Web Crawler. For the File System Crawler,
+replace `com.norconex.crawler.web.WebCrawler` with
+`com.norconex.crawler.fs.FsCrawler` (and `WebCrawlConfig` with `FsCrawlConfig`).
+:::
+
 ## Pattern 1 — Load config from file and run
 
-The simplest integration: point the crawler at a YAML/XML config file and run it programmatically.
+The simplest integration: point the crawler at a configuration file and run it
+programmatically, simulating launching it from the command-line.
 
 ```java
 import com.norconex.crawler.web.WebCrawler;
 
 public class MyCrawlerApp {
     public static void main(String[] args) throws Exception {
-        WebCrawler crawler = new WebCrawler();
-        crawler.start("path/to/my-crawl.yaml");
+        WebCrawler.launch("start", "-config=/path/to/my-crawl.yaml") ;
     }
 }
 ```
@@ -50,7 +56,7 @@ Build the entire configuration in code without a config file:
 
 ```java
 import com.norconex.crawler.web.WebCrawler;
-import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlConfig;
 import com.norconex.committer.elasticsearch.ElasticsearchCommitter;
 
 public class MyCrawlerApp {
@@ -59,52 +65,68 @@ public class MyCrawlerApp {
         esCommitter.setNodes("http://localhost:9200");
         esCommitter.setIndexName("my-content");
 
-        var config = new WebCrawlerConfig();
+        var config = new WebCrawlConfig();
         config.setId("my-crawl");
-        config.setStartURLs(List.of("https://example.com"));
+        config.setStartReferences(List.of("https://example.com"));
         config.setNumThreads(10);
         config.setCommitters(List.of(esCommitter));
+        // ...
 
-        var crawler = new WebCrawler();
-        crawler.start(config);
+        var crawler = WebCrawler.create(config);
+        crawler.crawl();
     }
 }
 ```
 
 ## Pattern 3 — Event-driven integration
 
-React to crawl lifecycle events to integrate with your application's monitoring or workflow:
+React to crawl lifecycle events to integrate with your application's monitoring
+or workflow:
 
 ```java
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.event.impl.CrawlerStartedEvent;
-import com.norconex.crawler.core.event.impl.CrawlerStoppedEvent;
-import com.norconex.crawler.core.event.impl.DocumentCommittedEvent;
+import com.norconex.crawler.web.WebCrawler;
+import com.norconex.crawler.web.WebCrawlerConfig;
 
-var crawler = new WebCrawler();
-crawler.getEventManager().addListener(event -> {
-    if (event instanceof CrawlerStartedEvent e) {
-        System.out.println("Crawl started: " + e.getSource().getId());
-    } else if (event instanceof DocumentCommittedEvent e) {
-        System.out.println("Committed: " + e.getCrawlDoc().getReference());
-    } else if (event instanceof CrawlerStoppedEvent e) {
-        System.out.println("Crawl finished.");
+public class MyCrawlerApp {
+    public static void main(String[] args) throws Exception {
+        var config = new WebCrawlerConfig();
+        // ...
+
+        config.addEventListener(event -> {
+            if (event instanceof CrawlerEvent e) {
+                System.out.println("Crawler event name: " + event.getName());
+                if (e.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
+                    System.out.println("Crawl started: "
+                            + e.getCrawlSession().getCrawlerId());
+                }
+                if (e.is(CrawlerEvent.CRAWLER_CRAWL_END)) {
+                    System.out.println("Crawl ended: "
+                            + e.getCrawlSession().getCrawlerId());
+                }
+            }
+        });
+
+        var crawler = WebCrawler.create(config);
+        crawler.crawl();
     }
-});
-crawler.start(config);
+}
 ```
 
-## Controlling a running crawl
+:::info[JMX Events]
+The crawler can also expose live data via JMX to facilitate integration
+with monitoring tools such as [Prometheus](https://prometheus.io/). To enable
+it, pass the JVM argument `-DenableJMX=true`.
+:::
+
+## Stopping a running crawl
 
 ```java
-// Start asynchronously
-crawler.startAsync(config);
+// Starts asynchronously
+crawler.crawl();
 
 // Stop gracefully (waits for in-flight documents to finish)
 crawler.stop();
-
-// Check status
-CrawlSessionStatus status = crawler.getSessionStatus();
 ```
 
 ## Next steps

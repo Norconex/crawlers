@@ -13,7 +13,7 @@ Commit documents to Elasticsearch or Amazon OpenSearch.
 
 ## Notes
 
-TODO: Add notes.
+Commits crawled documents to an Elasticsearch or Amazon OpenSearch index. Supports cluster node discovery, field mappings, dot replacement in field names, JSON field handling, and optional ID fix-up for documents with long references.
 
 ## Properties
 
@@ -63,15 +63,15 @@ One or more Elasticsearch nodes to connect to. Defaults to `http://localhost:920
 
 ### queue
 
-TODO: Add documentation for this property.
+Configures the committer queue used to batch documents before sending them to the target system. Adjust queue settings to tune throughput and memory usage.
 
 ### restrictions
 
-TODO: Add documentation for this property.
+Defines filter conditions that restrict which documents this committer processes. Documents not matching the restrictions are ignored by this committer.
 
 ### socketTimeout
 
-TODO: Add documentation for this property.
+The maximum time in milliseconds to wait for data on an established connection before giving up.
 
 ### sourceIdField
 
@@ -89,7 +89,7 @@ Type name used in older versions of Elasticsearch. Leave blank if using Elastics
 
 The following example uses the minimum required settings to configure Elasticsearch (or AWS OpenSearch) Committer.
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "ElasticsearchCommitter",
     "indexName": "some_index"

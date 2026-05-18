@@ -13,7 +13,7 @@ Commit documents to Apache Solr search engine.
 
 ## Notes
 
-TODO: Add notes.
+Commits crawled documents to an Apache Solr search engine. Supports multiple Solr client types, field mappings, optional explicit Solr commit control, custom URL parameters, and credential configuration.
 
 ## Properties
 
@@ -27,11 +27,11 @@ Mapping of source fields to target ones (Solr fields).
 
 ### queue
 
-TODO: Add documentation for this property.
+Configures the committer queue used to batch documents before sending them to the target system. Adjust queue settings to tune throughput and memory usage.
 
 ### restrictions
 
-TODO: Add documentation for this property.
+Defines filter conditions that restrict which documents this committer processes. Documents not matching the restrictions are ignored by this committer.
 
 ### solrClientType
 
@@ -63,7 +63,7 @@ Parameters to be added on Solr HTTP calls.
 
 ## Examples
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "SolrCommitter",
     "solrUrl": "http://localhost:8983/solr",

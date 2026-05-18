@@ -13,7 +13,7 @@ Filter references by matching text expression.
 
 ## Notes
 
-TODO: Add notes.
+Filters document references using a configurable text matcher. References that match the expression are either included or excluded depending on the `onMatch` setting.
 
 ## Properties
 
@@ -29,7 +29,7 @@ Use the following fields to dictate how references should be matched  by this fi
 
 The following will reject documents having "/login/" in their reference.
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "GenericReferenceFilter",
     "onMatch": "EXCLUDE",

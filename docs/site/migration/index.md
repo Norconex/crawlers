@@ -7,11 +7,13 @@ slug: /migration
 # Migrating from v3 to v4
 
 Norconex Crawler v4 is a significant evolution of the v3 series.
-The core concepts are the same, but the configuration format, class names, and Java API have changed substantially.
+The core concepts are the same, but the configuration format, class names,
+and Java API have changed substantially.
 
 ## The fastest migration path
 
-The [Configuration Editor](https://crawlerconfig.norconex.com) is the recommended way to migrate:
+The [Visual Configurator](https://crawlerconfig.norconex.com) is the
+recommended way to migrate:
 
 1. Open the Editor
 2. Paste your existing v3 config (XML or YAML)
@@ -22,15 +24,15 @@ This is significantly faster than manual migration for large configurations.
 
 ## What changed at a high level
 
-| Area                   | v3                                | v4                                     |
-| ---------------------- | --------------------------------- | -------------------------------------- |
-| **Config format**      | XML-first                         | XML, YAML, and JSON equally supported  |
-| **Module naming**      | `nx-collector-*`                  | `nx-crawler-*`                         |
-| **Top-level element**  | `<crawler>`                       | `crawlers` list with `crawlerDefaults` |
-| **Java API**           | Collector/Crawler split           | Unified `WebCrawler` / `FsCrawler`     |
-| **Config class names** | Fully qualified with legacy names | Simplified, consistent naming          |
-| **Event system**       | Custom listener interfaces        | Standard event bus                     |
-| **Committers**         | Separate repository               | Same mono-repo                         |
+| Area                    | v3                                       | v4                                    |
+| ----------------------- | ---------------------------------------- | ------------------------------------- |
+| **Config format**       | XML-first                                | XML, YAML, and JSON equally supported |
+| **Module naming**       | `nx-collector-*`                         | `nx-crawler-*`                        |
+| **Config structure**    | One file, multiple crawlers + collector  | One file = one crawler                |
+| **Java API**            | Collector/Crawler split                  | Unified `WebCrawler` / `FsCrawler`    |
+| **Config class names**  | Fully qualified with legacy names        | Simplified, consistent naming         |
+| **Event system**        | Custom listener interfaces               | Standard event bus                    |
+| **Committers**          | Separate repository                      | Same mono-repo                        |
 
 ## Detailed migration steps
 

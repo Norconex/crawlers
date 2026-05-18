@@ -30,7 +30,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Writes documents to filesystem.
+ * Writes documents to file system.
  * Not part of public API.
  */
 @Slf4j
