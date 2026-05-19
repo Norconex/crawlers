@@ -27,12 +27,12 @@ import org.apache.commons.io.IOUtils;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.operations.canon.impl.GenericCanonicalLinkDetector;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import org.junit.jupiter.api.Timeout;
 
 /**
@@ -47,22 +47,22 @@ class CanonicalRedirectLoopTest {
     private static final String CANONICAL_PATH = "/canonical";
     private static final String REDIRECT_PATH = "/redirect";
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testStartWithCanonical(
-            ClientAndServer client, WebCrawlConfig cfg) throws IOException {
+            ClientAndServer client, WebCrawlerConfig cfg) throws IOException {
         testLoop(CANONICAL_PATH, client, cfg);
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testStartWithRedirect(
-            ClientAndServer client, WebCrawlConfig cfg) throws IOException {
+            ClientAndServer client, WebCrawlerConfig cfg) throws IOException {
         testLoop(REDIRECT_PATH, client, cfg);
     }
 
     void testLoop(
             String startUrlPath,
             ClientAndServer client,
-            WebCrawlConfig config) throws IOException {
+            WebCrawlerConfig config) throws IOException {
 
         //--- Web site ---
 
@@ -94,7 +94,7 @@ class CanonicalRedirectLoopTest {
         WebTestUtil.ignoreAllIgnorables(config);
         config.setCanonicalLinkDetector(new GenericCanonicalLinkDetector());
 
-        var captures = WebCrawlTestCapturer.crawlAndCapture(config);
+        var captures = WebCrawlingTestCapturer.crawlAndCapture(config);
 
         //--- Assertions ---
         assertThat(captures.getCommitter().getUpsertRequests()).hasSize(1);

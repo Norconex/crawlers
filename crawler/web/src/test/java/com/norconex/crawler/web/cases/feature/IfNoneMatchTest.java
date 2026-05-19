@@ -29,10 +29,10 @@ import org.mockserver.matchers.Times;
 import org.mockserver.model.HttpStatusCode;
 
 import com.norconex.committer.core.CommitterException;
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import org.junit.jupiter.api.Timeout;
 
 /**
@@ -55,8 +55,8 @@ class IfNoneMatchTest {
 
     private String path = "/ifNoneMatch";
 
-    @WebCrawlTest
-    void testIfNoneMatch(ClientAndServer client, WebCrawlConfig cfg)
+    @WebCrawlingTest
+    void testIfNoneMatch(ClientAndServer client, WebCrawlerConfig cfg)
             throws CommitterException {
 
         cfg.setStartReferences(List.of(serverUrl(client, path)));
@@ -66,26 +66,26 @@ class IfNoneMatchTest {
 
         // First run is new
         whenETag(client, "etag-A");
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
         // Second run got the same ETag, so not modified
         whenETag(client, "etag-A");
-        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isZero();
         mem.clean();
 
         // Third run got different Etag, so modified
         whenETag(client, "etag-B");
-        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
         // Fourth run got same Etag, but we disable E-Tag support, so modified
         whenETag(client, "etag-B");
         WebTestUtil.firstHttpFetcherConfig(cfg).setETagDisabled(true);
-        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
     }

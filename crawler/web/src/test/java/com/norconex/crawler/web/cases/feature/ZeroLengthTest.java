@@ -23,9 +23,9 @@ import java.util.List;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.crawler.web.WebCrawlConfig;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import org.junit.jupiter.api.Timeout;
 
@@ -37,8 +37,8 @@ import org.junit.jupiter.api.Timeout;
 @Timeout(30)
 class ZeroLengthTest {
 
-    @WebCrawlTest
-    void testZeroLength(ClientAndServer client, WebCrawlConfig cfg) {
+    @WebCrawlingTest
+    void testZeroLength(ClientAndServer client, WebCrawlerConfig cfg) {
         var path = "/zeroLength";
 
         client
@@ -47,7 +47,7 @@ class ZeroLengthTest {
 
         cfg.setStartReferences(List.of(MockWebsite.serverUrl(client, path)));
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertCount()).isOne();
     }

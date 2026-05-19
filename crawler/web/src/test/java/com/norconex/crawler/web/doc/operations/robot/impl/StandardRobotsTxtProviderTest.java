@@ -37,13 +37,13 @@ import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
 import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilter;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxtFilter;
-import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
 
 @MockServerSettings
 @Timeout(30)
 class StandardRobotsTxtProviderTest {
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testGetRobotsTxt(ClientAndServer client, CrawlContext ctx) {
 
         client.when(request().withPath("/robots.txt"))

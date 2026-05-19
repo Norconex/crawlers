@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.doc.operations.scope;
 
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 
 public interface UrlScopeResolver {
 
@@ -29,5 +29,5 @@ public interface UrlScopeResolver {
     String RESOLVED_SITES_CACHE_NAME =
             UrlScopeResolver.class.getSimpleName() + ".resolvedSites";
 
-    UrlScope resolve(String inScopeURL, WebCrawlEntry candidateDocContext);
+    UrlScope resolve(String inScopeURL, WebCrawlerEntry candidateDocContext);
 }

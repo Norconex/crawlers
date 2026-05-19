@@ -25,11 +25,11 @@ import java.util.Set;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.crawler.web.WebCrawlConfig;
-import com.norconex.crawler.web.WebCrawlConfig.ReferencedLinkType;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlerConfig.ReferencedLinkType;
 import com.norconex.crawler.web.doc.WebDocMetadata;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.importer.doc.DocMetaConstants;
 import org.junit.jupiter.api.Timeout;
 
@@ -41,9 +41,9 @@ import org.junit.jupiter.api.Timeout;
 @Timeout(30)
 class RedirectRelativeLinksTest {
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testRedirectRelativeLinks(
-            ClientAndServer client, WebCrawlConfig cfg) {
+            ClientAndServer client, WebCrawlerConfig cfg) {
         var basePath = "/redirectRelativeLinks";
         var homePath = basePath + "/home.html";
         var finalPath = basePath + "/final/target.html";
@@ -77,7 +77,7 @@ class RedirectRelativeLinksTest {
                 ReferencedLinkType.INSCOPE, ReferencedLinkType.MAXDEPTH));
         cfg.setStartReferences(List.of(serverUrl(client, homePath)));
         cfg.setMaxDepth(0);
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertCount()).isOne();
 

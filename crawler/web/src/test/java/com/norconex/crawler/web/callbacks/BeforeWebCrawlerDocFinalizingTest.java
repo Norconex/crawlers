@@ -30,10 +30,10 @@ import com.norconex.crawler.core.doc.pipelines.queue.QueuePipeline;
 import com.norconex.crawler.core.ledger.CrawlEntryLedger;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.importer.doc.Doc;
 
-class BeforeWebCrawlDocFinalizingTest {
+class BeforeWebCrawlerDocFinalizingTest {
 
     @Test
     void accept_whenOutcomeIsUnmodified_requeuesCachedReferencedUrls() {
@@ -55,10 +55,10 @@ class BeforeWebCrawlDocFinalizingTest {
                 baselineEntry(ref, List.of(childRef)),
                 queuePipeline);
 
-        new BeforeWebCrawlDocFinalizing().accept(session, new Doc(ref));
+        new BeforeWebCrawlerDocFinalizing().accept(session, new Doc(ref));
 
         assertThat(queuedContexts).hasSize(1);
-        var child = (WebCrawlEntry) queuedContexts.get(0).getCrawlEntry();
+        var child = (WebCrawlerEntry) queuedContexts.get(0).getCrawlEntry();
         assertThat(child.getReference()).isEqualTo(childRef);
         assertThat(child.getReferrerReference()).isEqualTo(ref);
         assertThat(child.getDepth()).isEqualTo(3);
@@ -83,15 +83,15 @@ class BeforeWebCrawlDocFinalizingTest {
                 baselineEntry(ref, List.of("https://example.com/child")),
                 queuePipeline);
 
-        new BeforeWebCrawlDocFinalizing().accept(session, new Doc(ref));
+        new BeforeWebCrawlerDocFinalizing().accept(session, new Doc(ref));
 
         assertThat(queuedContexts).isEmpty();
     }
 
     private static CrawlSession mockSessionWithLedger(
             String ref,
-            WebCrawlEntry current,
-            WebCrawlEntry baseline,
+            WebCrawlerEntry current,
+            WebCrawlerEntry baseline,
             QueuePipeline queuePipeline) {
         var ledger = mock(CrawlEntryLedger.class);
         when(ledger.getEntry(ref)).thenReturn(Optional.of(current));
@@ -110,15 +110,15 @@ class BeforeWebCrawlDocFinalizingTest {
         return session;
     }
 
-    private static WebCrawlEntry currentEntry(
+    private static WebCrawlerEntry currentEntry(
             String ref, int depth, ProcessingOutcome outcome) {
-        var entry = new WebCrawlEntry(ref, depth);
+        var entry = new WebCrawlerEntry(ref, depth);
         entry.setProcessingOutcome(outcome);
         return entry;
     }
 
-    private static WebCrawlEntry baselineEntry(String ref, List<String> urls) {
-        var entry = new WebCrawlEntry(ref, 2);
+    private static WebCrawlerEntry baselineEntry(String ref, List<String> urls) {
+        var entry = new WebCrawlerEntry(ref, 2);
         entry.setReferencedUrls(urls);
         return entry;
     }

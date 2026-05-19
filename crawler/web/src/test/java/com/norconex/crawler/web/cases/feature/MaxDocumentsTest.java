@@ -22,9 +22,9 @@ import java.util.List;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.crawler.web.WebCrawlConfig;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import org.junit.jupiter.api.Timeout;
 
@@ -37,14 +37,14 @@ class MaxDocumentsTest {
 
     private static final int SITE_DEPTH = 40;
 
-    @WebCrawlTest
-    void testMaxDocuments(ClientAndServer client, WebCrawlConfig cfg) {
+    @WebCrawlingTest
+    void testMaxDocuments(ClientAndServer client, WebCrawlerConfig cfg) {
         MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 
         cfg.setStartReferences(
                 List.of(serverUrl(client, "/maxDocuments/0000")));
         cfg.setMaxDocuments(15);
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getRequestCount()).isEqualTo(15);
     }

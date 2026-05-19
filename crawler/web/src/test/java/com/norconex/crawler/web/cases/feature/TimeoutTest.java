@@ -28,10 +28,10 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import org.junit.jupiter.api.Timeout;
 
 /**
@@ -45,8 +45,8 @@ class TimeoutTest {
     private final String basePath = "/timeout";
     private final String homePath = basePath + "/index.html";
 
-    @WebCrawlTest
-    void testTimeout(ClientAndServer client, WebCrawlConfig cfg)
+    @WebCrawlingTest
+    void testTimeout(ClientAndServer client, WebCrawlerConfig cfg)
             throws CommitterException {
 
         cfg.setStartReferences(List.of(serverUrl(client, homePath)));
@@ -59,7 +59,7 @@ class TimeoutTest {
 
         whenDelayed(client, 0);
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertRequests())
                 .map(UpsertRequest::getReference)
@@ -72,7 +72,7 @@ class TimeoutTest {
         // First page should be skipped (timeout) but not children... even
         // if we could not go through parent to get to them
         whenDelayed(client, 2000);
-        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertRequests())
                 .map(UpsertRequest::getReference)
                 .containsExactlyInAnyOrder(

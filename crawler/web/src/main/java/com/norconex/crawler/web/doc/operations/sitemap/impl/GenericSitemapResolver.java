@@ -38,7 +38,7 @@ import com.norconex.crawler.web.doc.operations.sitemap.SitemapResolver;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.WebFetchRequest;
 import com.norconex.crawler.web.fetch.WebFetchResponse;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.crawler.web.util.Web;
 import com.norconex.importer.doc.Doc;
 
@@ -88,7 +88,7 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
         // TODO Delete stored sitemaps that were not updated in session (orphans)
 
         List<SitemapRecord> childSitemaps = new ArrayList<>();
-        var sitemapEntry = new WebCrawlEntry(location);
+        var sitemapEntry = new WebCrawlerEntry(location);
         SitemapRecord sitemapRec = null;
         FetchResult fetchResult = null;
 
@@ -169,13 +169,13 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
 
     // Follow redirects
     private FetchResult httpGet(
-            Fetcher fetcher, WebCrawlEntry entry, Doc doc)
+            Fetcher fetcher, WebCrawlerEntry entry, Doc doc)
             throws IOException {
         return httpGet(fetcher, entry, doc, 0);
     }
 
     private FetchResult httpGet(
-            Fetcher fetcher, WebCrawlEntry entry, Doc doc, int loop)
+            Fetcher fetcher, WebCrawlerEntry entry, Doc doc, int loop)
             throws IOException {
 
         var location = entry.getReference();

@@ -37,7 +37,7 @@ import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpAuthConfig;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
 
@@ -160,7 +160,7 @@ class ApacheHttpUtilTest {
     @Test
     void testApplyResponseHeaders() {
         var doc = CrawlDocStubs.crawlDoc("http://example.com/");
-        var entry = new WebCrawlEntry("http://example.com/", 0);
+        var entry = new WebCrawlerEntry("http://example.com/", 0);
 
         var response = new BasicHttpResponse(200);
         response.addHeader(HttpHeaders.CONTENT_TYPE,
@@ -185,7 +185,7 @@ class ApacheHttpUtilTest {
     @Test
     void testApplyResponseHeadersWithNoPrefix() {
         var doc = CrawlDocStubs.crawlDoc("http://example.com/");
-        var entry = new WebCrawlEntry("http://example.com/", 0);
+        var entry = new WebCrawlerEntry("http://example.com/", 0);
 
         var response = new BasicHttpResponse(200);
         response.addHeader("Cache-Control", "no-cache");
@@ -198,7 +198,7 @@ class ApacheHttpUtilTest {
     @Test
     void testApplyResponseHeadersWithBlankValue() {
         var doc = CrawlDocStubs.crawlDoc("http://example.com/");
-        var entry = new WebCrawlEntry("http://example.com/", 0);
+        var entry = new WebCrawlerEntry("http://example.com/", 0);
 
         var response = new BasicHttpResponse(200);
         response.addHeader("X-Empty", "");
@@ -211,13 +211,13 @@ class ApacheHttpUtilTest {
     @Test
     void testSetRequestIfModifiedSince_withProcessedAt() {
         var request = new HttpGet("http://example.com/");
-        var prevEntry = new WebCrawlEntry("http://example.com/", 0);
+        var prevEntry = new WebCrawlerEntry("http://example.com/", 0);
         prevEntry.setProcessedAt(
                 ZonedDateTime.parse("2024-01-15T10:30:00+00:00"));
 
         var docCtx = CrawlDocContext.builder()
                 .doc(CrawlDocStubs.crawlDoc("http://example.com/"))
-                .currentCrawlEntry(new WebCrawlEntry("http://example.com/", 0))
+                .currentCrawlEntry(new WebCrawlerEntry("http://example.com/", 0))
                 .previousCrawlEntry(prevEntry)
                 .build();
 
@@ -229,7 +229,7 @@ class ApacheHttpUtilTest {
     @Test
     void testSetRequestIfModifiedSince_withLastModified() {
         var request = new HttpGet("http://example.com/");
-        var prevEntry = new WebCrawlEntry("http://example.com/", 0);
+        var prevEntry = new WebCrawlerEntry("http://example.com/", 0);
         prevEntry.setLastModified(
                 ZonedDateTime.parse("2024-03-01T08:00:00+00:00"));
         prevEntry.setProcessedAt(
@@ -237,7 +237,7 @@ class ApacheHttpUtilTest {
 
         var docCtx = CrawlDocContext.builder()
                 .doc(CrawlDocStubs.crawlDoc("http://example.com/"))
-                .currentCrawlEntry(new WebCrawlEntry("http://example.com/", 0))
+                .currentCrawlEntry(new WebCrawlerEntry("http://example.com/", 0))
                 .previousCrawlEntry(prevEntry)
                 .build();
 
@@ -259,7 +259,7 @@ class ApacheHttpUtilTest {
 
         var docCtx = CrawlDocContext.builder()
                 .doc(CrawlDocStubs.crawlDoc("http://example.com/"))
-                .currentCrawlEntry(new WebCrawlEntry("http://example.com/", 0))
+                .currentCrawlEntry(new WebCrawlerEntry("http://example.com/", 0))
                 .build();
         ApacheHttpUtil.setRequestIfModifiedSince(request, docCtx);
         assertThat(request.getFirstHeader(HttpHeaders.IF_MODIFIED_SINCE))
@@ -269,12 +269,12 @@ class ApacheHttpUtilTest {
     @Test
     void testSetRequestIfNoneMatch_withEtag() {
         var request = new HttpGet("http://example.com/");
-        var prevEntry = new WebCrawlEntry("http://example.com/", 0);
+        var prevEntry = new WebCrawlerEntry("http://example.com/", 0);
         prevEntry.setEtag("\"etag-abc\"");
 
         var docCtx = CrawlDocContext.builder()
                 .doc(CrawlDocStubs.crawlDoc("http://example.com/"))
-                .currentCrawlEntry(new WebCrawlEntry("http://example.com/", 0))
+                .currentCrawlEntry(new WebCrawlerEntry("http://example.com/", 0))
                 .previousCrawlEntry(prevEntry)
                 .build();
 
@@ -286,12 +286,12 @@ class ApacheHttpUtilTest {
     @Test
     void testSetRequestIfNoneMatch_noEtag() {
         var request = new HttpGet("http://example.com/");
-        var prevEntry = new WebCrawlEntry("http://example.com/", 0);
+        var prevEntry = new WebCrawlerEntry("http://example.com/", 0);
         // ETag is null
 
         var docCtx = CrawlDocContext.builder()
                 .doc(CrawlDocStubs.crawlDoc("http://example.com/"))
-                .currentCrawlEntry(new WebCrawlEntry("http://example.com/", 0))
+                .currentCrawlEntry(new WebCrawlerEntry("http://example.com/", 0))
                 .previousCrawlEntry(prevEntry)
                 .build();
 

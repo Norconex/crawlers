@@ -19,7 +19,7 @@ import java.io.InputStream;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 
 /**
  * <p>Detects and return any canonical URL found in documents, whether from
@@ -28,7 +28,7 @@ import com.norconex.crawler.web.WebCrawlConfig;
  * of the document represented by the canonical URL.</p>
  *
  * <p>When metadata fetching is enabled via
- * {@link WebCrawlConfig#getMetadataFetchSupport()},
+ * {@link WebCrawlerConfig#getMetadataFetchSupport()},
  * a page won't be downloaded if a canonical link is found in the HTTP headers
  * (saving bandwidth and
  * processing). If not used, or if no canonical link was found, an attempt

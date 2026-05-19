@@ -22,8 +22,8 @@ public final class WebCrawlerCallbacks {
             CrawlCallbacks
                     .builder()
                     .beforeCommand(new BeforeWebCommand())
-                    .beforeDocumentProcessing(new WebCrawlDocInitializer())
-                    .beforeDocumentFinalizing(new BeforeWebCrawlDocFinalizing())
+                    .beforeDocumentProcessing(new WebCrawlerDocInitializer())
+                    .beforeDocumentFinalizing(new BeforeWebCrawlerDocFinalizing())
                     .build();
 
     private WebCrawlerCallbacks() {

@@ -28,9 +28,9 @@ import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.doc.operations.filter.OnMatch;
 import com.norconex.crawler.core.doc.operations.filter.impl.ExtensionReferenceFilter;
 import com.norconex.crawler.web.TestResource;
-import com.norconex.crawler.web.WebCrawlConfig;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import com.norconex.importer.handler.parser.impl.DefaultParser;
 import com.norconex.importer.handler.transformer.impl.UrlExtractorTransformer;
@@ -43,9 +43,9 @@ import org.junit.jupiter.api.Timeout;
 @Timeout(30)
 class PostImportLinksTest {
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testPostImportLinksURL(
-            ClientAndServer client, WebCrawlConfig cfg) {
+            ClientAndServer client, WebCrawlerConfig cfg) {
 
         var path = "/postImportLinks";
 
@@ -76,7 +76,7 @@ class PostImportLinksTest {
         cfg.getImporterConfig().setHandlers(
                 List.of(new DefaultParser(), tagger));
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertCount()).isOne();
 

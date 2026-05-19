@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 
 @Timeout(30)
 class GenericUrlScopeResolverTest {
@@ -112,7 +112,7 @@ class GenericUrlScopeResolverTest {
         assertThat(s.resolve(sub1, docCtx(sub1)).isInScope()).isTrue();
     }
 
-    private static WebCrawlEntry docCtx(String ref) {
-        return new WebCrawlEntry(ref);
+    private static WebCrawlerEntry docCtx(String ref) {
+        return new WebCrawlerEntry(ref);
     }
 }

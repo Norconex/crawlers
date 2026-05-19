@@ -306,7 +306,7 @@ public final class FsTestUtil {
                 .setStartReferences(List.of(refs))
                 .setFetchers(List.of(fetcher))
                 .setCommitters(List.of(mem));
-        new Crawler(FsCrawlDriverFactory.create(), config).crawl();
+        new Crawler(FsCrawlerDriverFactory.create(), config).crawl();
         return mem;
     }
 

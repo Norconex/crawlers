@@ -36,7 +36,7 @@ import com.norconex.crawler.web.doc.operations.scope.UrlScopeResolver;
 import com.norconex.crawler.web.doc.operations.scope.UrlScopeResolver.SitemapPresence;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapContext;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.crawler.web.util.Web;
 
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +63,7 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
     public boolean test(QueuePipelineContext ctx) { //NOSONAR
         ensureCache(ctx);
         var cfg = Web.config(ctx.getCrawlSession().getCrawlContext());
-        var docRec = (WebCrawlEntry) ctx.getCrawlEntry();
+        var docRec = (WebCrawlerEntry) ctx.getCrawlEntry();
 
         // Both a sitemap resolver and locator must be set (which they are
         // by default) to attempt sitemap discovery and processing for a
@@ -137,7 +137,7 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
             return;
         }
 
-        var docRec = (WebCrawlEntry) ctx.getCrawlEntry();
+        var docRec = (WebCrawlerEntry) ctx.getCrawlEntry();
 
         // Sitemap never processed, so do it
         final var urlCount = new AtomicInteger();
@@ -155,7 +155,7 @@ public class SitemapResolutionStage extends CrawlerLifeCycleListener
         var isDocFoundInSitemap = new AtomicBoolean(false);
 
         // Prepare URL consumer
-        Consumer<WebCrawlEntry> urlConsumer = rec -> {
+        Consumer<WebCrawlerEntry> urlConsumer = rec -> {
             var actualRec = rec;
             if (!isDocFoundInSitemap.get() && Strings.CS.equalsAny(
                     rec.getReference(),

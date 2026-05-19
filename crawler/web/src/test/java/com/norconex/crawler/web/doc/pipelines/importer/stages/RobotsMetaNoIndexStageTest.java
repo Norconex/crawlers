@@ -29,7 +29,7 @@ import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.doc.operations.robot.RobotsMeta;
 import com.norconex.crawler.web.doc.pipelines.importer.WebImporterPipelineContext;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
 
 @Timeout(30)
@@ -38,7 +38,7 @@ class RobotsMetaNoIndexStageTest {
     @Test
     void testExecuteStage(@TempDir Path tempDir) {
         var crawlSession = mock(CrawlSession.class);
-        var entry = new WebCrawlEntry("someRef");
+        var entry = new WebCrawlerEntry("someRef");
         var docCtx = CrawlDocContext.builder()
                 .doc(CrawlDocStubs.crawlDoc("someRef"))
                 .currentCrawlEntry(entry)

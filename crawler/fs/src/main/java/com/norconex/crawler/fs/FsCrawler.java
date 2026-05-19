@@ -39,10 +39,10 @@ public final class FsCrawler {
     }
 
     public static int launch(String... args) {
-        return CliCrawlerLauncher.launch(FsCrawlDriverFactory.create(), args);
+        return CliCrawlerLauncher.launch(FsCrawlerDriverFactory.create(), args);
     }
 
     public static Crawler create(CrawlConfig crawlConfig) {
-        return new Crawler(FsCrawlDriverFactory.create(), crawlConfig);
+        return new Crawler(FsCrawlerDriverFactory.create(), crawlConfig);
     }
 }

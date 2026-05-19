@@ -30,7 +30,7 @@ import lombok.ToString;
  * A URL being crawled holding relevant crawl information.
  */
 @Data
-public class WebCrawlEntry extends CrawlEntry {
+public class WebCrawlerEntry extends CrawlEntry {
 
     private static final long serialVersionUID = 1L;
 
@@ -81,14 +81,14 @@ public class WebCrawlEntry extends CrawlEntry {
      */
     private String httpReasonPhrase;
 
-    public WebCrawlEntry() {
+    public WebCrawlerEntry() {
     }
 
     /**
      * Copy constructor.
      * @param src the source to copy from
      */
-    public WebCrawlEntry(WebCrawlEntry src) {
+    public WebCrawlerEntry(WebCrawlerEntry src) {
         setReference(src.getReference());
         setDepth(src.getDepth());
         setProcessingStatus(src.getProcessingStatus());
@@ -115,7 +115,7 @@ public class WebCrawlEntry extends CrawlEntry {
         redirectTarget = src.redirectTarget;
     }
 
-    public WebCrawlEntry(String reference) {
+    public WebCrawlerEntry(String reference) {
         setReference(reference);
     }
 
@@ -124,7 +124,7 @@ public class WebCrawlEntry extends CrawlEntry {
      * @param url URL being crawled
      * @param depth URL depth
      */
-    public WebCrawlEntry(String url, int depth) {
+    public WebCrawlerEntry(String url, int depth) {
         setReference(url);
         setDepth(depth);
     }

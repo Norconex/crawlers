@@ -40,11 +40,11 @@ import org.openqa.selenium.manager.SeleniumManager;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.img.MutableImage;
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.fetch.util.DocImageHandlerConfig.Target;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 
 import lombok.extern.slf4j.Slf4j;
@@ -140,25 +140,25 @@ public abstract class AbstractWebDriverHttpFetcherIT {
         };
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testFetchingJsGeneratedContent(
-            ClientAndServer client, WebCrawlConfig cfg) {
+            ClientAndServer client, WebCrawlerConfig cfg) {
         MockWebsite.whenJsRenderedWebsite(client);
 
         WebTestUtil.ignoreAllIgnorables(cfg);
         cfg.setFetchers(List.of(createWebDriverHttpFetcher()));
         cfg.setMaxDepth(0);
         cfg.setStartReferences(List.of(hostUrl(client, "/index.html")));
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getRequestCount()).isOne();
         assertThat(WebTestUtil.docText(mem.getUpsertRequests().get(0)))
                 .contains("JavaScript-rendered!");
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     //    @Disabled("Does not work under GitHub actions.")
-    void testTakeScreenshots(ClientAndServer client, WebCrawlConfig cfg)
+    void testTakeScreenshots(ClientAndServer client, WebCrawlerConfig cfg)
             throws IOException {
 
         MockWebsite.whenJsRenderedWebsite(client);
@@ -175,7 +175,7 @@ public abstract class AbstractWebDriverHttpFetcherIT {
         cfg.setFetchers(List.of(f));
         cfg.setMaxDepth(0);
         cfg.setStartReferences(List.of(hostUrl(client, "/apple.html")));
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertCount()).isOne();
 
@@ -193,8 +193,8 @@ public abstract class AbstractWebDriverHttpFetcherIT {
     // Test using sniffer for capturing HTTP response headers and
     // using sniffer with large content (test case for:
     // https://github.com/Norconex/collector-http/issues/751)
-    @WebCrawlTest
-    void testHttpSniffer(ClientAndServer client, WebCrawlConfig cfg) {
+    @WebCrawlingTest
+    void testHttpSniffer(ClientAndServer client, WebCrawlerConfig cfg) {
         var path = "/sniffHeaders.html";
 
         // @formatter:off
@@ -224,7 +224,7 @@ public abstract class AbstractWebDriverHttpFetcherIT {
         cfg.setFetchers(List.of(fetcher));
         cfg.setMaxDepth(0);
         cfg.setStartReferences(List.of(hostUrl(client, path)));
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertRequests()).hasSize(1);
         var meta = mem.getUpsertRequests().get(0).getMetadata();
@@ -236,8 +236,8 @@ public abstract class AbstractWebDriverHttpFetcherIT {
                 .isGreaterThanOrEqualTo(LARGE_CONTENT_MIN_SIZE);
     }
 
-    @WebCrawlTest
-    void testPageScript(ClientAndServer client, WebCrawlConfig cfg) {
+    @WebCrawlingTest
+    void testPageScript(ClientAndServer client, WebCrawlerConfig cfg) {
         var path = "/pageScript.html";
 
         // @formatter:off
@@ -267,7 +267,7 @@ public abstract class AbstractWebDriverHttpFetcherIT {
         cfg.setFetchers(List.of(f));
         cfg.setMaxDepth(0);
         cfg.setStartReferences(List.of(hostUrl(client, path)));
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertCount()).isNotZero();
         var doc = mem.getUpsertRequests().get(0);
@@ -277,9 +277,9 @@ public abstract class AbstractWebDriverHttpFetcherIT {
         assertThat(WebTestUtil.docText(doc)).contains("Melon");
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testResolvingUserAgent(
-            ClientAndServer client, WebCrawlConfig cfg) {
+            ClientAndServer client, WebCrawlerConfig cfg) {
         var path = "/userAgent.html";
 
         // @formatter:off
@@ -306,7 +306,7 @@ public abstract class AbstractWebDriverHttpFetcherIT {
                 .setWaitForElementSelector("p")
                 .setWaitForElementTimeout(Duration.ofSeconds(10));
         cfg.setStartReferences(List.of(hostUrl(client, path)));
-        WebCrawlTestCapturer.crawlAndCapture(cfg);
+        WebCrawlingTestCapturer.crawlAndCapture(cfg);
         assertThat(fetcher.getUserAgent()).isNotBlank();
     }
 

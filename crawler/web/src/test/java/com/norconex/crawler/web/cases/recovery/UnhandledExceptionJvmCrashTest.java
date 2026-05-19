@@ -25,7 +25,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.test.CrawlTestHarness;
 import com.norconex.crawler.core.test.CrawlTestInstrument;
-import com.norconex.crawler.web.WebCrawlDriverFactory;
+import com.norconex.crawler.web.WebCrawlerDriverFactory;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,7 +41,7 @@ class UnhandledExceptionJvmCrashTest {
     void testUnhandledExceptionJvmCrash(@TempDir Path tempDir)
             throws Exception {
         var instrument = new CrawlTestInstrument()
-                .setDriverSupplierClass(WebCrawlDriverFactory.class)
+                .setDriverSupplierClass(WebCrawlerDriverFactory.class)
                 .setRecordEvents(true)
                 .setWorkDir(tempDir)
                 .setNewJvm(false)

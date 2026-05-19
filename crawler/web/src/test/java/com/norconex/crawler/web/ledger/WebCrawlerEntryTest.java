@@ -21,18 +21,18 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-class WebCrawlEntryTest {
+class WebCrawlerEntryTest {
 
     @Test
     void testSetReferenceDerivesUrlRoot() {
-        var entry = new WebCrawlEntry();
+        var entry = new WebCrawlerEntry();
         entry.setReference("http://www.example.com/path/to/page.html");
         assertThat(entry.getUrlRoot()).isEqualTo("http://www.example.com");
     }
 
     @Test
     void testSetReferenceNullClearsUrlRoot() {
-        var entry = new WebCrawlEntry("http://www.example.com/page.html");
+        var entry = new WebCrawlerEntry("http://www.example.com/page.html");
         assertThat(entry.getUrlRoot()).isEqualTo("http://www.example.com");
         entry.setReference(null);
         assertThat(entry.getUrlRoot()).isNull();
@@ -40,7 +40,7 @@ class WebCrawlEntryTest {
 
     @Test
     void testConstructorWithUrlAndDepth() {
-        var entry = new WebCrawlEntry("https://example.com/doc", 3);
+        var entry = new WebCrawlerEntry("https://example.com/doc", 3);
         assertThat(entry.getReference()).isEqualTo("https://example.com/doc");
         assertThat(entry.getDepth()).isEqualTo(3);
         assertThat(entry.getUrlRoot()).isEqualTo("https://example.com");
@@ -48,7 +48,7 @@ class WebCrawlEntryTest {
 
     @Test
     void testCopyConstructorCopiesAllFields() {
-        var src = new WebCrawlEntry("http://example.com/original", 2);
+        var src = new WebCrawlerEntry("http://example.com/original", 2);
         src.setFromSitemap(true);
         src.setSitemapLastMod(ZonedDateTime.now());
         src.setSitemapChangeFreq("daily");
@@ -63,7 +63,7 @@ class WebCrawlEntryTest {
         src.addRedirectURL("http://example.com/redirect-from");
         src.setRedirectTarget("http://example.com/redirect-to");
 
-        var copy = new WebCrawlEntry(src);
+        var copy = new WebCrawlerEntry(src);
 
         assertThat(copy.getReference()).isEqualTo(src.getReference());
         assertThat(copy.getDepth()).isEqualTo(src.getDepth());
@@ -91,11 +91,11 @@ class WebCrawlEntryTest {
 
     @Test
     void testCopyConstructorProducesIndependentLists() {
-        var src = new WebCrawlEntry("http://example.com/page", 0);
+        var src = new WebCrawlerEntry("http://example.com/page", 0);
         src.setReferencedUrls(List.of("http://example.com/link1"));
         src.addRedirectURL("http://example.com/redirect-from");
 
-        var copy = new WebCrawlEntry(src);
+        var copy = new WebCrawlerEntry(src);
 
         // Mutating via src setters should not affect copy
         src.setReferencedUrls(List.of("http://example.com/other"));
@@ -105,7 +105,7 @@ class WebCrawlEntryTest {
 
     @Test
     void testAddRedirectUrl() {
-        var entry = new WebCrawlEntry("http://example.com/final", 0);
+        var entry = new WebCrawlerEntry("http://example.com/final", 0);
         assertThat(entry.getRedirectTrail()).isEmpty();
 
         entry.addRedirectURL("http://example.com/first");
@@ -118,7 +118,7 @@ class WebCrawlEntryTest {
 
     @Test
     void testSetReferencedUrlsReplacesAll() {
-        var entry = new WebCrawlEntry("http://example.com/page", 0);
+        var entry = new WebCrawlerEntry("http://example.com/page", 0);
         entry.setReferencedUrls(
                 List.of("http://example.com/a", "http://example.com/b"));
         assertThat(entry.getReferencedUrls()).containsExactly(
@@ -131,7 +131,7 @@ class WebCrawlEntryTest {
 
     @Test
     void testSetRedirectTrailReplacesAll() {
-        var entry = new WebCrawlEntry("http://example.com/last", 0);
+        var entry = new WebCrawlerEntry("http://example.com/last", 0);
         entry.setRedirectTrail(
                 List.of("http://example.com/r1", "http://example.com/r2"));
         assertThat(entry.getRedirectTrail()).containsExactly(
@@ -144,7 +144,7 @@ class WebCrawlEntryTest {
 
     @Test
     void testSitemapFields() {
-        var entry = new WebCrawlEntry();
+        var entry = new WebCrawlerEntry();
         var now = ZonedDateTime.now();
         entry.setFromSitemap(true);
         entry.setSitemapLastMod(now);
@@ -159,7 +159,7 @@ class WebCrawlEntryTest {
 
     @Test
     void testHttpStatusAndEtag() {
-        var entry = new WebCrawlEntry("http://example.com/", 0);
+        var entry = new WebCrawlerEntry("http://example.com/", 0);
         entry.setHttpStatusCode(304);
         entry.setHttpReasonPhrase("Not Modified");
         entry.setEtag("\"strongEtag\"");

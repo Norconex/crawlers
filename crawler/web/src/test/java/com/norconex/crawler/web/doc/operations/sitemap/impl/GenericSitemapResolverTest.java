@@ -42,9 +42,9 @@ import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapContext;
-import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -53,7 +53,7 @@ import lombok.extern.slf4j.Slf4j;
 @Timeout(30)
 class GenericSitemapResolverTest {
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testResolveSitemaps(
             ClientAndServer client, CrawlContext ctx)
             throws IOException {
@@ -94,7 +94,7 @@ class GenericSitemapResolverTest {
                                         ""))));
 
         List<String> urls = new ArrayList<>();
-        var resolver = ((WebCrawlConfig) ctx.getCrawlConfig())
+        var resolver = ((WebCrawlerConfig) ctx.getCrawlConfig())
                 .getSitemapResolver();
 
         var session = mock(CrawlSession.class);

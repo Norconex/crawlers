@@ -29,7 +29,7 @@ import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.fs.doc.FsDocMetadata;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.FileFetchResponse;
-import com.norconex.crawler.fs.ledger.FsCrawlEntry;
+import com.norconex.crawler.fs.ledger.FsCrawlerEntry;
 import com.norconex.importer.doc.DocMetaConstants;
 
 import lombok.NonNull;
@@ -61,7 +61,7 @@ public class FileFetchStage extends AbstractImporterStage {
         }
 
         var docContext = pipeCtx.getDocContext();
-        var fsEntry = (FsCrawlEntry) docContext.getCurrentCrawlEntry();
+        var fsEntry = (FsCrawlerEntry) docContext.getCurrentCrawlEntry();
         var doc = docContext.getDoc();
         var crawlSession = pipeCtx.getCrawlSession();
         var crawlContext = crawlSession.getCrawlContext();

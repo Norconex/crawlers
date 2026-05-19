@@ -24,10 +24,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import org.junit.jupiter.api.Timeout;
 
@@ -38,8 +38,8 @@ import org.junit.jupiter.api.Timeout;
 @MockServerSettings
 @Timeout(30)
 class UserAgentTest {
-    @WebCrawlTest
-    void testUserAgent(ClientAndServer client, WebCrawlConfig cfg) {
+    @WebCrawlingTest
+    void testUserAgent(ClientAndServer client, WebCrawlerConfig cfg) {
 
         var path = "/userAgent";
         client
@@ -51,7 +51,7 @@ class UserAgentTest {
         cfg.setStartReferences(
                 List.of(MockWebsite.serverUrl(client, path)));
         WebTestUtil.firstHttpFetcherConfig(cfg).setUserAgent("Smith");
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertRequests())
                 .map(WebTestUtil::docText)

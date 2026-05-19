@@ -28,7 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.xml.Xml;
 import com.norconex.commons.lang.xml.XmlException;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapRecord;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.importer.doc.Doc;
 
 import lombok.RequiredArgsConstructor;
@@ -44,7 +44,7 @@ class SitemapParser {
     private final AtomicBoolean stopping;
 
     List<SitemapRecord> parse(
-            Doc sitemapDoc, Consumer<WebCrawlEntry> urlConsumer) {
+            Doc sitemapDoc, Consumer<WebCrawlerEntry> urlConsumer) {
 
         var location = sitemapDoc.getReference();
         List<SitemapRecord> children = new ArrayList<>();
@@ -94,7 +94,7 @@ class SitemapParser {
         return Optional.ofNullable(rec);
     }
 
-    private Optional<WebCrawlEntry> toDocRecord(
+    private Optional<WebCrawlerEntry> toDocRecord(
             Xml xml, String sitemapLocationDir) {
         var url = xml.getString("loc");
 
@@ -107,7 +107,7 @@ class SitemapParser {
             return Optional.empty();
         }
 
-        var doc = new WebCrawlEntry(url);
+        var doc = new WebCrawlerEntry(url);
         doc.setSitemapLastMod(SitemapUtil.toDateTime(xml.getString("lastmod")));
         doc.setSitemapChangeFreq(xml.getString("changefreq"));
         var priority = xml.getString("priority");

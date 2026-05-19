@@ -26,12 +26,12 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.operations.scope.impl.GenericUrlScopeResolver;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapLocator;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapResolver;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import org.junit.jupiter.api.Timeout;
 
@@ -68,8 +68,8 @@ class SitemapResolutionStageTest {
             """;
 
     // Should only crawl URLs in sitemap. Start URL not in sitemap.
-    @WebCrawlTest
-    void testStayOnSitemap(ClientAndServer client, WebCrawlConfig cfg) {
+    @WebCrawlingTest
+    void testStayOnSitemap(ClientAndServer client, WebCrawlerConfig cfg) {
         client.reset();
         var baseUrl = serverUrl(client, "");
         var sitemap = SITEMAP_XML.formatted(
@@ -92,7 +92,7 @@ class SitemapResolutionStageTest {
         ((GenericUrlScopeResolver) cfg.getUrlScopeResolver())
                 .getConfiguration().setStayOnSitemap(true);
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg)
                 .getCommitter();
 
         assertThat(mem.getRequestCount()).isEqualTo(3);
@@ -103,9 +103,9 @@ class SitemapResolutionStageTest {
     }
 
     // Should only crawl URLs in sitemap. Start URL included in sitemap.
-    @WebCrawlTest
+    @WebCrawlingTest
     void testStayOnSitemapStartInSitemap(
-            ClientAndServer client, WebCrawlConfig cfg) {
+            ClientAndServer client, WebCrawlerConfig cfg) {
         client.reset();
         var baseUrl = serverUrl(client, "");
         var sitemap = SITEMAP_XML.formatted(
@@ -128,7 +128,7 @@ class SitemapResolutionStageTest {
         ((GenericUrlScopeResolver) cfg.getUrlScopeResolver())
                 .getConfiguration().setStayOnSitemap(true);
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg)
                 .getCommitter();
 
         assertThat(mem.getRequestCount()).isEqualTo(3);

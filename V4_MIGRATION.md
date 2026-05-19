@@ -117,7 +117,7 @@ All notes we can take for users, to facilitate migration from V3 to V4.
 - `*.Http*` → `*.Web*`
 - Removed Crawler configuration option "keepDownloads" and corresponding
   CrawlerEvent.DOCUMENT_SAVED event in favor of new Importer SaveDocumentTagger.
-- References to HttpCollector or Collector changed to WebCrawlSession
+- References to HttpCollector or Collector changed to WebCrawlerSession
   and CrawlSession, respectively.
 - GenericRecrawlableResolver minimum frequencies now expect TextMatcher
   instead of regular expressions.

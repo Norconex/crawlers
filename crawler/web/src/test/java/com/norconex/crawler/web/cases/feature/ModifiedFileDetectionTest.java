@@ -28,10 +28,10 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.committer.core.CommitterException;
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import org.junit.jupiter.api.Timeout;
 
 /**
@@ -49,9 +49,9 @@ class ModifiedFileDetectionTest {
     private final String dynaContentPath = homePath + "/dynaContent";
     private final String dynaDateContentPath = homePath + "/dynaDateContent";
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testModifiedFileDetection(
-            ClientAndServer client, WebCrawlConfig cfg)
+            ClientAndServer client, WebCrawlerConfig cfg)
             throws CommitterException {
 
         // relies on default checksummers
@@ -59,7 +59,7 @@ class ModifiedFileDetectionTest {
 
         // First run is all new, so 4 docs
         whenLastModified(client, 0);
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isEqualTo(4);
         mem.clean();
 
@@ -79,7 +79,7 @@ class ModifiedFileDetectionTest {
         //     content, and since content has also changed, we flag it
         //     as modified.
         whenLastModified(client, 1);
-        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isEqualTo(1);
         mem.clean();
     }

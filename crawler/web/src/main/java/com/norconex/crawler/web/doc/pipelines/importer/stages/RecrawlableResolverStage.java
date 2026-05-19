@@ -21,7 +21,7 @@ import com.norconex.crawler.core.doc.pipelines.importer.stages.AbstractImporterS
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.crawler.web.util.Web;
 
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +46,7 @@ public class RecrawlableResolverStage extends AbstractImporterStage {
         }
 
         var cachedDocContext =
-                (WebCrawlEntry) pipeCtx.getDocContext()
+                (WebCrawlerEntry) pipeCtx.getDocContext()
                         .getPreviousCrawlEntry();
         if (cachedDocContext == null) {
             // this document was not previously crawled so process it.
@@ -54,7 +54,7 @@ public class RecrawlableResolverStage extends AbstractImporterStage {
         }
 
         var currentDocContext =
-                (WebCrawlEntry) pipeCtx.getDocContext()
+                (WebCrawlerEntry) pipeCtx.getDocContext()
                         .getCurrentCrawlEntry();
 
         var isRecrawlable = rr.isRecrawlable(cachedDocContext);

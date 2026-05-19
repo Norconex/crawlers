@@ -27,10 +27,10 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 
 /**
@@ -42,8 +42,8 @@ class CanonicalLinkTest {
 
     final AtomicInteger canCount = new AtomicInteger();
 
-    @WebCrawlTest
-    void testCanonicalLink(ClientAndServer client, WebCrawlConfig config) {
+    @WebCrawlingTest
+    void testCanonicalLink(ClientAndServer client, WebCrawlerConfig config) {
         var canonicalPath = "/canonical";
         var canonicalUrl = serverUrl(client, canonicalPath);
         var httpHeaderPath = "/httpHeader";
@@ -104,7 +104,7 @@ class CanonicalLinkTest {
             }
         });
 
-        var captures = WebCrawlTestCapturer.crawlAndCapture(config);
+        var captures = WebCrawlingTestCapturer.crawlAndCapture(config);
         assertThat(captures.getCommitter().getUpsertRequests()).hasSize(1);
         assertThat(canCount.get()).isEqualTo(2);
     }

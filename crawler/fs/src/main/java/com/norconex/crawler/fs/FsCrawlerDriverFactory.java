@@ -25,12 +25,12 @@ import com.norconex.crawler.fs.fetch.AggregatedFileFetchResponse;
 import com.norconex.crawler.fs.fetch.AggregatedFolderPathsResponse;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.impl.GenericFileFetchResponse;
-import com.norconex.crawler.fs.ledger.FsCrawlEntry;
+import com.norconex.crawler.fs.ledger.FsCrawlerEntry;
 
-public class FsCrawlDriverFactory implements Supplier<CrawlDriver> {
+public class FsCrawlerDriverFactory implements Supplier<CrawlDriver> {
 
     public static CrawlDriver create() {
-        return new FsCrawlDriverFactory().get();
+        return new FsCrawlerDriverFactory().get();
     }
 
     @Override
@@ -41,7 +41,7 @@ public class FsCrawlDriverFactory implements Supplier<CrawlDriver> {
                         .beforeCommand(new BeforeFsCommand())
                         .build())
                 .docPipelines(FsPipelines.create())
-                .crawlEntryType(FsCrawlEntry.class)
+                .crawlEntryType(FsCrawlerEntry.class)
                 .build();
     }
 

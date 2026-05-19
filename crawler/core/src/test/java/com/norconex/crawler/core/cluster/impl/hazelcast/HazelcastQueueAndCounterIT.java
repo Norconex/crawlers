@@ -26,6 +26,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.Timeout;
 
 import com.hazelcast.core.HazelcastInstance;
+
 @Timeout(30)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class HazelcastQueueAndCounterIT {
