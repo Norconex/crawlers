@@ -30,9 +30,9 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.crawler.web.WebCrawlConfig;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import org.junit.jupiter.api.Timeout;
 
@@ -43,8 +43,8 @@ import org.junit.jupiter.api.Timeout;
 @Timeout(30)
 class DeduplicationTest {
 
-    @WebCrawlTest
-    void testDeduplication(ClientAndServer client, WebCrawlConfig cfg) {
+    @WebCrawlingTest
+    void testDeduplication(ClientAndServer client, WebCrawlerConfig cfg) {
         var homePath = "/dedup";
         var noDuplPath = "/dedup/1-noDupl";
         var metaDuplPath = "/dedup/2-meta";
@@ -110,7 +110,7 @@ class DeduplicationTest {
         cfg.setMetadataDeduplicate(true);
         cfg.setDocumentDeduplicate(true);
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertRequests())
                 .map(UpsertRequest::getReference)

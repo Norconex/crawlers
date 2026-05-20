@@ -30,9 +30,9 @@ import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.DeleteRejectedEventListener;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListener;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListenerConfig.OnMultiple;
-import com.norconex.crawler.web.WebCrawlConfig;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import org.junit.jupiter.api.Timeout;
 
@@ -47,9 +47,9 @@ class StopCrawlerOnMaxEventTest {
 
     private static final int SITE_DEPTH = 50;
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testStopCrawlerOnMaxEvent(
-            ClientAndServer client, WebCrawlConfig cfg) {
+            ClientAndServer client, WebCrawlerConfig cfg) {
 
         MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 
@@ -74,7 +74,7 @@ class StopCrawlerOnMaxEventTest {
                                 .regex(".*[13579]$"))
                         .setOnMatch(OnMatch.EXCLUDE))));
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg)
                 .getCommitter();
 
         // Expected: 6 upserts, 0 deletes

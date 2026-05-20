@@ -32,16 +32,16 @@ import org.mockserver.model.MediaType;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchRequest;
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.operations.scope.impl.GenericUrlScopeResolver;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapLocator;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapResolver;
 import com.norconex.crawler.web.fetch.WebFetchRequest;
 import com.norconex.crawler.web.fetch.WebFetchResponse;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.crawler.web.mocks.MockWebsite;
 
 /**
@@ -74,8 +74,8 @@ class StayOnSitemapTest {
             </urlset>
             """;
 
-    @WebCrawlTest
-    void testStayOnSitemap(ClientAndServer client, WebCrawlConfig cfg)
+    @WebCrawlingTest
+    void testStayOnSitemap(ClientAndServer client, WebCrawlerConfig cfg)
             throws CommitterException {
         var exception = new AtomicReference<Exception>();
         var referrers = new ArrayList<String>();
@@ -95,7 +95,7 @@ class StayOnSitemapTest {
                             if (req instanceof WebFetchRequest webReq
                                     && webReq.getCrawlDocContext() != null
                                     && webReq.getCrawlDocContext()
-                                            .getCurrentCrawlEntry() instanceof WebCrawlEntry wdc) {
+                                            .getCurrentCrawlEntry() instanceof WebCrawlerEntry wdc) {
                                 Optional.ofNullable(
                                         wdc.getReferrerReference())
                                         .ifPresent(referrers::add);
@@ -113,7 +113,7 @@ class StayOnSitemapTest {
 
         mockServer(client);
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg)
                 .getCommitter();
 
         // There should be no exception, else, it likely means it tried

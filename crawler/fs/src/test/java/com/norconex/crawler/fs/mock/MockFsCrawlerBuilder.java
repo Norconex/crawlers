@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.fs.FsCrawlDriverFactory;
+import com.norconex.crawler.fs.FsCrawlerDriverFactory;
 
 /**
  * Builder for test {@link Crawler} instances pre-configured with the
@@ -53,6 +53,6 @@ public final class MockFsCrawlerBuilder {
                 .setWorkDir(workDir)
                 .setCommitters(List.of(mem));
         cfgModifier.accept(config);
-        return new Crawler(FsCrawlDriverFactory.create(), config);
+        return new Crawler(FsCrawlerDriverFactory.create(), config);
     }
 }

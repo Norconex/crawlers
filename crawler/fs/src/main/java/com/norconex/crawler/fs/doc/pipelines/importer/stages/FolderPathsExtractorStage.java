@@ -25,7 +25,7 @@ import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.fs.fetch.FolderPathsFetchRequest;
 import com.norconex.crawler.fs.fetch.FolderPathsFetchResponse;
 import com.norconex.crawler.fs.fetch.FsPath;
-import com.norconex.crawler.fs.ledger.FsCrawlEntry;
+import com.norconex.crawler.fs.ledger.FsCrawlerEntry;
 
 public class FolderPathsExtractorStage extends AbstractImporterStage {
 
@@ -45,7 +45,8 @@ public class FolderPathsExtractorStage extends AbstractImporterStage {
         var crawlContext = crawlSession.getCrawlContext();
         var fetcher = crawlContext.getFetcher();
 
-        var fsEntry = (FsCrawlEntry) ctx.getDocContext().getCurrentCrawlEntry();
+        var fsEntry =
+                (FsCrawlerEntry) ctx.getDocContext().getCurrentCrawlEntry();
         if (fsEntry.isFolder()) {
             Set<FsPath> paths;
             try {
@@ -58,7 +59,7 @@ public class FolderPathsExtractorStage extends AbstractImporterStage {
                         + ctx.getDocContext().getReference(), e);
             }
             for (FsPath fsPath : paths) {
-                var newEntry = (FsCrawlEntry) crawlContext
+                var newEntry = (FsCrawlerEntry) crawlContext
                         .createCrawlEntry(fsPath.getUri());
                 newEntry.setDepth(fsEntry.getDepth() + 1);
                 newEntry.setFile(fsPath.isFile());

@@ -25,7 +25,7 @@ import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContex
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.crawler.web.util.Web;
 
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +54,7 @@ public class PostImportLinksStage
         }
 
         var docRecord =
-                (WebCrawlEntry) ctx.getDocContext().getCurrentCrawlEntry();
+                (WebCrawlerEntry) ctx.getDocContext().getCurrentCrawlEntry();
 
         // Previously extracted URLs.
         Set<String> extractedURLs =
@@ -93,10 +93,10 @@ public class PostImportLinksStage
         var cfg = Web.config(ctx.getCrawlSession().getCrawlContext());
         var doc = ctx.getDocContext().getDoc();
         var docRecord =
-                (WebCrawlEntry) ctx.getDocContext().getCurrentCrawlEntry();
+                (WebCrawlerEntry) ctx.getDocContext().getCurrentCrawlEntry();
 
         try {
-            var scopedUrlCtx = new WebCrawlEntry(url);
+            var scopedUrlCtx = new WebCrawlerEntry(url);
             var urlScope = cfg.getUrlScopeResolver().resolve(
                     doc.getReference(), scopedUrlCtx);
             Web.fireIfUrlOutOfScope(ctx.getCrawlSession(), scopedUrlCtx,
@@ -105,7 +105,7 @@ public class PostImportLinksStage
                 LOG.trace("Post-import URL in crawl scope: {}", url);
                 // only queue if not queued already for this doc
                 if (inScopeUrls.add(url)) {
-                    var newDocRec = new WebCrawlEntry(
+                    var newDocRec = new WebCrawlerEntry(
                             url, docRecord.getDepth() + 1);
                     newDocRec.setReferrerReference(doc.getReference());
                     ctx.getCrawlSession().getCrawlContext()

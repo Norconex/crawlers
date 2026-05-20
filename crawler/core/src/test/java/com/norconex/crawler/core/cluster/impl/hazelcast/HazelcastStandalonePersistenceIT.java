@@ -30,6 +30,7 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
+
 /**
  * Smoke-tests JDBC persistence via the real hazelcast-standalone.yaml config.
  */

@@ -36,9 +36,9 @@ import com.norconex.committer.core.UpsertRequest;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.DeleteRejectedEventListener;
-import com.norconex.crawler.web.WebCrawlConfig;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 
 /**
  * Test the deletion of rejected references with
@@ -49,9 +49,9 @@ import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 class RejectedRefsDeletionTest {
     private static final String PATH = "/rejectedRefsDeletion";
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testRejectedRefsDeletionTest(
-            ClientAndServer client, WebCrawlConfig cfg) {
+            ClientAndServer client, WebCrawlerConfig cfg) {
         client
                 .when(request())
                 .respond(HttpClassCallback.callback(Callback.class));
@@ -71,7 +71,7 @@ class RejectedRefsDeletionTest {
             }
             return true;
         }));
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         // Expected:
         //   3 upserts, including main page,

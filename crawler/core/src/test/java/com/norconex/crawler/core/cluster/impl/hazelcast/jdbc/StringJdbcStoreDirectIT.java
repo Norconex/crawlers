@@ -35,6 +35,7 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastConfigurerContext;
 import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
+
 /**
  * Direct (Hazelcast-bypassing) unit tests for
  * {@link StringJdbcMapStore} and {@link StringJdbcQueueStore}.

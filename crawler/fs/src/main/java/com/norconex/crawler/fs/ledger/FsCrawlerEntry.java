@@ -26,21 +26,21 @@ import lombok.NonNull;
  * This is the file-system-specific extension of {@link CrawlEntry}.
  */
 @Data
-public class FsCrawlEntry extends CrawlEntry {
+public class FsCrawlerEntry extends CrawlEntry {
 
     private static final long serialVersionUID = 1L;
 
     private boolean file;
     private boolean folder;
 
-    public FsCrawlEntry() {
+    public FsCrawlerEntry() {
     }
 
-    public FsCrawlEntry(String reference) {
+    public FsCrawlerEntry(String reference) {
         setReference(reference);
     }
 
-    public FsCrawlEntry(String reference, int depth) {
+    public FsCrawlerEntry(String reference, int depth) {
         setReference(reference);
         setDepth(depth);
     }

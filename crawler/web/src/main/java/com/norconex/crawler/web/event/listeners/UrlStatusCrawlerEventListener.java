@@ -41,7 +41,7 @@ import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractor;
 import com.norconex.crawler.web.doc.operations.link.impl.TikaLinkExtractor;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -148,7 +148,7 @@ public class UrlStatusCrawlerEventListener implements
                 CrawlerEvent.REJECTED_NOTFOUND,
                 CrawlerEvent.REJECTED_UNMODIFIED,
                 WebCrawlerEvent.REJECTED_REDIRECTED)
-                && ce.getCrawlEntry() instanceof WebCrawlEntry crawlRef
+                && ce.getCrawlEntry() instanceof WebCrawlerEntry crawlRef
                 && (parsedCodes.isEmpty()
                         || parsedCodes.contains(crawlRef.getHttpStatusCode()))
                 && (csvPrinter != null)) {

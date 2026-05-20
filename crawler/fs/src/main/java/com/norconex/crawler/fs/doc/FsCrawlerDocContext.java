@@ -14,23 +14,23 @@
  */
 package com.norconex.crawler.fs.doc;
 
-import com.norconex.crawler.fs.ledger.FsCrawlEntry;
+import com.norconex.crawler.fs.ledger.FsCrawlerEntry;
 
-// TODO: Delete this file. Replaced by FsCrawlEntry.
-/** @deprecated Use {@link FsCrawlEntry} instead. */
+// TODO: Delete this file. Replaced by FsCrawlerEntry.
+/** @deprecated Use {@link FsCrawlerEntry} instead. */
 @Deprecated(since = "4.0.0", forRemoval = true)
-public class FsCrawlDocContext extends FsCrawlEntry {
+public class FsCrawlerDocContext extends FsCrawlerEntry {
 
     private static final long serialVersionUID = 1L;
 
-    public FsCrawlDocContext() {
+    public FsCrawlerDocContext() {
     }
 
-    public FsCrawlDocContext(String reference) {
+    public FsCrawlerDocContext(String reference) {
         super(reference);
     }
 
-    public FsCrawlDocContext(String reference, int depth) {
+    public FsCrawlerDocContext(String reference, int depth) {
         super(reference, depth);
     }
 }

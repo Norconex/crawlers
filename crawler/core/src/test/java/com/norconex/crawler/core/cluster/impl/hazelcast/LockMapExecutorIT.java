@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Timeout;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.norconex.crawler.core.cluster.ClusterException;
+
 @Timeout(30)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class LockMapExecutorIT {

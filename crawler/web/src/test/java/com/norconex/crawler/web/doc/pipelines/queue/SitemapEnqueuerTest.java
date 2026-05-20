@@ -29,14 +29,14 @@ import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.QueueBootstr
 import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.ledger.CrawlEntry;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.crawler.web.util.Web;
 
 @Timeout(30)
 class SitemapEnqueuerTest {
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testEnqueueNoSitemaps(CrawlContext ctx) {
         // No sitemap URLs configured → returns 0, resolver never called
         Web.config(ctx).setStartReferencesSitemaps(List.of());
@@ -53,7 +53,7 @@ class SitemapEnqueuerTest {
         assertThat(queued).isEmpty();
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testEnqueueSitemapsWithNullResolverThrows(CrawlContext ctx) {
         // Sitemap URLs are configured but resolver is null → ConfigurationException
         Web.config(ctx).setStartReferencesSitemaps(
@@ -69,7 +69,7 @@ class SitemapEnqueuerTest {
                 .isThrownBy(() -> new SitemapEnqueuer().enqueue(queueCtx));
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testEnqueueWithResolver(CrawlContext ctx) {
         // Resolver delivers 2 URLs → both queued, count = 2
         var url1 = "http://example.com/page1.html";
@@ -78,8 +78,8 @@ class SitemapEnqueuerTest {
         Web.config(ctx).setStartReferencesSitemaps(
                 List.of("http://example.com/sitemap.xml"));
         Web.config(ctx).setSitemapResolver(sitemapCtx -> {
-            sitemapCtx.getUrlConsumer().accept(new WebCrawlEntry(url1, 0));
-            sitemapCtx.getUrlConsumer().accept(new WebCrawlEntry(url2, 0));
+            sitemapCtx.getUrlConsumer().accept(new WebCrawlerEntry(url1, 0));
+            sitemapCtx.getUrlConsumer().accept(new WebCrawlerEntry(url2, 0));
         });
 
         var session = mock(CrawlSession.class);
@@ -94,7 +94,7 @@ class SitemapEnqueuerTest {
         assertThat(queued).hasSize(2);
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testEnqueueMultipleSitemaps(CrawlContext ctx) {
         // Two sitemap URLs, each delivers 1 URL → total count = 2
         Web.config(ctx).setStartReferencesSitemaps(List.of(
@@ -105,7 +105,7 @@ class SitemapEnqueuerTest {
             var location = sitemapCtx.getLocation();
             var page = location.replace("sitemap", "page").replace(".xml",
                     ".html");
-            sitemapCtx.getUrlConsumer().accept(new WebCrawlEntry(page, 0));
+            sitemapCtx.getUrlConsumer().accept(new WebCrawlerEntry(page, 0));
         });
 
         var session = mock(CrawlSession.class);
@@ -120,7 +120,7 @@ class SitemapEnqueuerTest {
         assertThat(queued).hasSize(2);
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testEnqueueResolverDeliversNoUrls(CrawlContext ctx) {
         // Resolver exists but delivers 0 URLs → count = 0
         Web.config(ctx).setStartReferencesSitemaps(

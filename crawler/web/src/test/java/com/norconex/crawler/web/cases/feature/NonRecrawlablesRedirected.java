@@ -27,9 +27,9 @@ import org.mockserver.model.MediaType;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.crawler.core.CrawlConfig.OrphansStrategy;
-import com.norconex.crawler.web.WebCrawlConfig;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 
 // Test for https://github.com/Norconex/crawlers/issues/1121
@@ -71,9 +71,9 @@ public class NonRecrawlablesRedirected {
             </urlset>
             """;
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testNonRecrawlablesRedirected(
-            ClientAndServer client, WebCrawlConfig cfg)
+            ClientAndServer client, WebCrawlerConfig cfg)
             throws CommitterException {
         cfg.setStartReferencesSitemaps(List.of(serverUrl(client, sitemapPath)));
         cfg.setOrphansStrategy(OrphansStrategy.DELETE);
@@ -83,25 +83,25 @@ public class NonRecrawlablesRedirected {
         mockServer(client);
 
         // Run #1
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isEqualTo(4);
         assertThat(mem.getDeleteCount()).isZero();
         mem.clean();
 
         // Run #2
-        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isEqualTo(3);
         assertThat(mem.getDeleteCount()).isZero();
         mem.clean();
 
         // Run #3
-        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isEqualTo(3);
         assertThat(mem.getDeleteCount()).isZero();
         mem.clean();
 
         // Run #4
-        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isEqualTo(3);
         assertThat(mem.getDeleteCount()).isZero();
         mem.clean();

@@ -27,13 +27,13 @@ import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.doc.pipelines.importer.stages.AbstractImporterStage;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.web.WebCrawlConfig.ReferencedLinkType;
+import com.norconex.crawler.web.WebCrawlerConfig.ReferencedLinkType;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.operations.link.Link;
 import com.norconex.crawler.web.doc.operations.link.LinkExtractor;
 import com.norconex.crawler.web.doc.pipelines.importer.WebImporterPipelineContext;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.crawler.web.util.Web;
 
 import lombok.extern.slf4j.Slf4j;
@@ -83,7 +83,7 @@ public class LinkExtractorStage extends AbstractImporterStage {
                 ctx.getDocContext().getDoc().getMetadata().add(
                         WebDocMetadata.REFERENCED_URLS, inScopeUrls);
             }
-            ((WebCrawlEntry) ctx.getDocContext().getCurrentCrawlEntry())
+            ((WebCrawlerEntry) ctx.getDocContext().getCurrentCrawlEntry())
                     .setReferencedUrls(Arrays.asList(inScopeUrls));
         }
 
@@ -115,7 +115,7 @@ public class LinkExtractorStage extends AbstractImporterStage {
         try {
             String reference = ctx.getDocContext().getReference();
 
-            var scopedUrlCtx = new WebCrawlEntry(link.getUrl());
+            var scopedUrlCtx = new WebCrawlerEntry(link.getUrl());
             var urlScope = Web.config(ctx.getCrawlSession().getCrawlContext())
                     .getUrlScopeResolver().resolve(reference, scopedUrlCtx);
             Web.fireIfUrlOutOfScope(ctx.getCrawlSession(), scopedUrlCtx,
@@ -198,7 +198,7 @@ public class LinkExtractorStage extends AbstractImporterStage {
         // i.e., those properly formatted.  If we do so, can it prevent
         // weird/custom URLs that some link extractors may find valid?
         if (uniqueExtractedURLs.add(link.getUrl())) {
-            var newURL = new WebCrawlEntry(
+            var newURL = new WebCrawlerEntry(
                     link.getUrl(),
                     ctx.getDocContext().getCurrentCrawlEntry().getDepth() + 1);
             newURL.setReferrerReference(link.getReferrer());

@@ -18,15 +18,15 @@ import java.util.List;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.web.WebCrawlConfig;
-import com.norconex.crawler.web.WebCrawlDriverFactory;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.WebCrawlerDriverFactory;
 
 /**
  * Utility class for running a web crawler in tests and capturing results.
  */
-public final class WebCrawlTestCapturer {
+public final class WebCrawlingTestCapturer {
 
-    private WebCrawlTestCapturer() {
+    private WebCrawlingTestCapturer() {
     }
 
     /**
@@ -38,13 +38,13 @@ public final class WebCrawlTestCapturer {
      * @param config the web crawler configuration to crawl with
      * @return crawl captures containing the memory committer results
      */
-    public static CrawlCaptures crawlAndCapture(WebCrawlConfig config) {
+    public static CrawlCaptures crawlAndCapture(WebCrawlerConfig config) {
         var mem = new MemoryCommitter();
         config.setCommitters(List.of(mem));
         if (org.apache.commons.lang3.StringUtils.isBlank(config.getId())) {
             config.setId("test-crawler");
         }
-        new Crawler(WebCrawlDriverFactory.create(), config).crawl();
+        new Crawler(WebCrawlerDriverFactory.create(), config).crawl();
         return new CrawlCaptures(mem);
     }
 

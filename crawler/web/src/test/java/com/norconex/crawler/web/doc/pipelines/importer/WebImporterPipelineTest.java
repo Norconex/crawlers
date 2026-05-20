@@ -40,29 +40,29 @@ import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.ledger.CrawlEntryLedger;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.WebCrawlConfig.ReferencedLinkType;
+import com.norconex.crawler.web.WebCrawlerConfig.ReferencedLinkType;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.doc.operations.canon.CanonicalLinkDetector;
 import com.norconex.crawler.web.doc.operations.scope.UrlScope;
 import com.norconex.crawler.web.doc.pipelines.importer.stages.CanonicalStage;
 import com.norconex.crawler.web.doc.pipelines.importer.stages.LinkExtractorStage;
 import com.norconex.crawler.web.doc.pipelines.importer.stages.RecrawlableResolverStage;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.crawler.web.util.Web;
 import com.norconex.importer.doc.Doc;
 
 @Timeout(30)
 class WebImporterPipelineTest {
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testCanonicalStageSameReferenceContent(CrawlContext crawlerCtx) {
         var reference = "http://www.example.com/file.pdf";
         var contentValid = "<html><head><title>Test</title>\n"
                 + "<link rel=\"canonical\"\n href=\"\n"
                 + reference + "\" />\n"
                 + "</head><body>Nothing of interest in body</body></html>";
-        var docEntry = new WebCrawlEntry(reference, 0);
+        var docEntry = new WebCrawlerEntry(reference, 0);
         @SuppressWarnings("resource")
         var doc = new Doc(reference).setInputStream(
                 new CachedStreamFactory(1000, 1000)
@@ -82,10 +82,10 @@ class WebImporterPipelineTest {
                                 .test(ctx));
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testCanonicalStageSameReferenceHeader(CrawlContext crawlerCtx) {
         var reference = "http://www.example.com/file.pdf";
-        var docEntry = new WebCrawlEntry(reference, 0);
+        var docEntry = new WebCrawlerEntry(reference, 0);
         @SuppressWarnings("resource")
         var doc = new Doc(reference).setInputStream(
                 new CachedStreamFactory(1, 1).newInputStream());
@@ -104,13 +104,13 @@ class WebImporterPipelineTest {
                                 .test(ctx));
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testKeepMaxDepthLinks(CrawlContext crawlerCtx) {
         var reference = "http://www.example.com/file.html";
         var content = "<html><head><title>Test</title>\n"
                 + "</head><body><a href=\"link.html\">A link</a></body></html>";
 
-        var docEntry = new WebCrawlEntry(reference, 2);
+        var docEntry = new WebCrawlerEntry(reference, 2);
         @SuppressWarnings("resource")
         var doc = new Doc(reference)
                 .setContentType(ContentType.HTML)
@@ -159,13 +159,13 @@ class WebImporterPipelineTest {
     // CanonicalStage – additional cases
     // -----------------------------------------------------------------------
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testCanonicalStageNullDetector(CrawlContext crawlerCtx) {
         // null detector → always pass (return true)
         Web.config(crawlerCtx).setCanonicalLinkDetector(null);
 
         var reference = "http://www.example.com/page.html";
-        var docEntry = new WebCrawlEntry(reference, 0);
+        var docEntry = new WebCrawlerEntry(reference, 0);
         @SuppressWarnings("resource")
         var doc = new Doc(reference).setInputStream(
                 new CachedStreamFactory(1, 1).newInputStream());
@@ -181,7 +181,7 @@ class WebImporterPipelineTest {
                 .isTrue();
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testCanonicalStageDifferentCanonicalUrl(CrawlContext crawlerCtx) {
         // Canonical URL is different from current URL → reject current, queue canonical
         var canonical = "http://www.example.com/canonical.html";
@@ -190,7 +190,7 @@ class WebImporterPipelineTest {
                 + "<link rel=\"canonical\" href=\"" + canonical + "\" />"
                 + "</head><body>Duplicate</body></html>";
 
-        var docEntry = new WebCrawlEntry(current, 0);
+        var docEntry = new WebCrawlerEntry(current, 0);
         @SuppressWarnings("resource")
         var doc = new Doc(current)
                 .setContentType(ContentType.HTML)
@@ -220,7 +220,7 @@ class WebImporterPipelineTest {
                 .isEqualTo(ProcessingOutcome.REJECTED);
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testCanonicalStageCircularRedirectTrail(CrawlContext crawlerCtx) {
         // Canonical URL already in redirect trail → process normally (return true)
         var canonical = "http://www.example.com/canonical.html";
@@ -229,7 +229,7 @@ class WebImporterPipelineTest {
                 + "<link rel=\"canonical\" href=\"" + canonical + "\" />"
                 + "</head><body>Content</body></html>";
 
-        var docEntry = new WebCrawlEntry(current, 0);
+        var docEntry = new WebCrawlerEntry(current, 0);
         docEntry.addRedirectURL(canonical); // seed the trail so canonical is "already seen"
         @SuppressWarnings("resource")
         var doc = new Doc(current).setInputStream(
@@ -250,13 +250,13 @@ class WebImporterPipelineTest {
                 .isTrue();
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testCanonicalStageDifferentUrlFromHeaders(CrawlContext crawlerCtx) {
         // Canonical URL in HTTP Link header is different from current → REJECTED
         var canonical = "http://www.example.com/canonical.html";
         var current = "http://www.example.com/dup.html";
 
-        var docEntry = new WebCrawlEntry(current, 0);
+        var docEntry = new WebCrawlerEntry(current, 0);
         @SuppressWarnings("resource")
         var doc = new Doc(current).setInputStream(
                 new CachedStreamFactory(1, 1).newInputStream());
@@ -284,7 +284,7 @@ class WebImporterPipelineTest {
                 .isEqualTo(ProcessingOutcome.REJECTED);
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testCanonicalStageCanonicalOutOfScope(CrawlContext crawlerCtx) {
         // Canonical URL detected but is out of crawl scope → process current URL normally
         var canonical = "http://out-of-scope.com/canonical.html";
@@ -298,7 +298,7 @@ class WebImporterPipelineTest {
                 (sourceUrl, targetEntry) -> UrlScope
                         .out("test: all out of scope"));
 
-        var docEntry = new WebCrawlEntry(current, 0);
+        var docEntry = new WebCrawlerEntry(current, 0);
         @SuppressWarnings("resource")
         var doc = new Doc(current).setInputStream(
                 new CachedStreamFactory(1000, 1000)
@@ -322,16 +322,16 @@ class WebImporterPipelineTest {
     // RecrawlableResolverStage – all branches
     // -----------------------------------------------------------------------
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testRecrawlableResolverStageOrphan(CrawlContext crawlerCtx) {
         // Orphan docs with a previous entry go through the recrawl resolver
         // just like regular docs – they are NOT unconditionally passed through
         Web.config(crawlerCtx).setRecrawlableResolver(prev -> false);
 
         var prevEntry =
-                new WebCrawlEntry("http://www.example.com/orphan.html", 0);
+                new WebCrawlerEntry("http://www.example.com/orphan.html", 0);
         var currentEntry =
-                new WebCrawlEntry("http://www.example.com/orphan.html", 0);
+                new WebCrawlerEntry("http://www.example.com/orphan.html", 0);
         currentEntry.setOrphan(true);
 
         @SuppressWarnings("resource")
@@ -352,12 +352,12 @@ class WebImporterPipelineTest {
                 .isEqualTo(ProcessingOutcome.PREMATURE);
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testRecrawlableResolverStageNoResolver(CrawlContext crawlerCtx) {
         // null resolver → always recrawlable
         Web.config(crawlerCtx).setRecrawlableResolver(null);
 
-        var docEntry = new WebCrawlEntry("http://www.example.com/page.html", 0);
+        var docEntry = new WebCrawlerEntry("http://www.example.com/page.html", 0);
         @SuppressWarnings("resource")
         var doc = new Doc(docEntry.getReference()).setInputStream(
                 new CachedStreamFactory(1, 1).newInputStream());
@@ -373,12 +373,12 @@ class WebImporterPipelineTest {
         assertThat(new RecrawlableResolverStage().test(ctx)).isTrue();
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testRecrawlableResolverStageNoPreviousEntry(CrawlContext crawlerCtx) {
         // No previous crawl entry (first crawl) → always recrawlable
         Web.config(crawlerCtx).setRecrawlableResolver(prev -> false); // always not-recrawlable
 
-        var docEntry = new WebCrawlEntry("http://www.example.com/page.html", 0);
+        var docEntry = new WebCrawlerEntry("http://www.example.com/page.html", 0);
         @SuppressWarnings("resource")
         var doc = new Doc(docEntry.getReference()).setInputStream(
                 new CachedStreamFactory(1, 1).newInputStream());
@@ -395,15 +395,15 @@ class WebImporterPipelineTest {
         assertThat(new RecrawlableResolverStage().test(ctx)).isTrue();
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testRecrawlableResolverStageNotRecrawlable(CrawlContext crawlerCtx) {
         // Resolver says "not recrawlable" → reject, set PREMATURE outcome
         Web.config(crawlerCtx).setRecrawlableResolver(prev -> false);
 
         var prevEntry =
-                new WebCrawlEntry("http://www.example.com/page.html", 0);
+                new WebCrawlerEntry("http://www.example.com/page.html", 0);
         var currentEntry =
-                new WebCrawlEntry("http://www.example.com/page.html", 0);
+                new WebCrawlerEntry("http://www.example.com/page.html", 0);
         @SuppressWarnings("resource")
         var doc = new Doc(currentEntry.getReference()).setInputStream(
                 new CachedStreamFactory(1, 1).newInputStream());
@@ -422,7 +422,7 @@ class WebImporterPipelineTest {
                 .isEqualTo(ProcessingOutcome.PREMATURE);
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testRecrawlableResolverStageRequeuesRedirectTarget(
             CrawlContext crawlerCtx) {
         // When the previous entry had a redirect target and the doc is not
@@ -432,11 +432,11 @@ class WebImporterPipelineTest {
 
         var targetUrl = "http://www.example.com/redirect-target.html";
         var prevEntry =
-                new WebCrawlEntry("http://www.example.com/page.html", 0);
+                new WebCrawlerEntry("http://www.example.com/page.html", 0);
         prevEntry.setRedirectTarget(targetUrl);
 
         var currentEntry =
-                new WebCrawlEntry("http://www.example.com/page.html", 0);
+                new WebCrawlerEntry("http://www.example.com/page.html", 0);
         @SuppressWarnings("resource")
         var doc = new Doc(currentEntry.getReference()).setInputStream(
                 new CachedStreamFactory(1, 1).newInputStream());
@@ -447,7 +447,7 @@ class WebImporterPipelineTest {
                 .build();
 
         // Mock ledger to return the redirect target entry
-        var targetEntry = new WebCrawlEntry(targetUrl, 0);
+        var targetEntry = new WebCrawlerEntry(targetUrl, 0);
         var ledger = mock(CrawlEntryLedger.class);
         when(crawlerCtx.getCrawlEntryLedger()).thenReturn(ledger);
         when(ledger.getBaselineEntry(targetUrl))
@@ -470,7 +470,7 @@ class WebImporterPipelineTest {
         verify(queuePipeline).accept(any());
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testCanonicalStageNullAfterNormalization(CrawlContext crawlerCtx) {
         // If the detected canonical URL normalizes to null, the stage returns
         // false (the current URL is rejected / not processed).
@@ -499,7 +499,7 @@ class WebImporterPipelineTest {
 
         var content = "<html><head><link rel=\"canonical\" href=\""
                 + canonical + "\" /></head><body></body></html>";
-        var docEntry = new WebCrawlEntry(current, 0);
+        var docEntry = new WebCrawlerEntry(current, 0);
         @SuppressWarnings("resource")
         var doc = new Doc(current).setInputStream(
                 new CachedStreamFactory(1000, 1000)

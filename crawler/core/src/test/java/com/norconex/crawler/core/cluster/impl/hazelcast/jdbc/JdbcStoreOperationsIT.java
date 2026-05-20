@@ -34,6 +34,7 @@ import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastConfigurerConte
 import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
+
 /**
  * Tests batch and bulk JDBC store operations via Hazelcast maps/queues
  * backed by the standalone hazelcast config.  Tests storeAll, loadAll,

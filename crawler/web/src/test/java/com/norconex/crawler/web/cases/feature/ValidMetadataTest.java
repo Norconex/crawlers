@@ -24,9 +24,9 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.crawler.web.WebCrawlConfig;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import com.norconex.importer.doc.DocMetaConstants;
 import org.junit.jupiter.api.Timeout;
@@ -40,8 +40,8 @@ class ValidMetadataTest {
 
     private static final int SITE_DEPTH = 20;
 
-    @WebCrawlTest
-    void testValidMetadata(ClientAndServer client, WebCrawlConfig cfg) {
+    @WebCrawlingTest
+    void testValidMetadata(ClientAndServer client, WebCrawlerConfig cfg) {
 
         MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 
@@ -50,7 +50,7 @@ class ValidMetadataTest {
                         "/validMetadata/0000")));
         cfg.setMaxDepth(10);
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg)
                 .getCommitter();
 
         // 0-depth + 10 others == 11 expected files

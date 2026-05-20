@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
 
 @Timeout(30)
@@ -36,7 +36,7 @@ class SitemapParserTest {
 
     @Test
     void testParse() throws IOException {
-        List<WebCrawlEntry> extractedLinks = new ArrayList<>();
+        List<WebCrawlerEntry> extractedLinks = new ArrayList<>();
         var p = new SitemapParser(false, new AtomicBoolean(false));
 
         try (var is = getClass().getResourceAsStream("sitemap.xml")) {
@@ -60,7 +60,7 @@ class SitemapParserTest {
                         "https://example.com/linkC",
                         "https://example.com/linkD"),
                 extractedLinks.stream()
-                        .map(WebCrawlEntry::getReference)
+                        .map(WebCrawlerEntry::getReference)
                         .collect(Collectors.toList()));
 
         // test second one:

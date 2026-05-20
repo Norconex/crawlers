@@ -39,7 +39,7 @@ import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
 
 /**
@@ -168,7 +168,7 @@ class HttpFetcherAcceptTest {
 
         cfg.setFetchers(List.of(headFetcher, getFetcher));
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertCount()).isEqualTo(expectedUpsertCount);
         if (expectedUpsertCount > 0) {

@@ -28,7 +28,7 @@ import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.crawler.core.cluster.impl.memory.MemoryClusterConnector;
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.doc.operations.delay.impl.GenericDelayResolver;
 
@@ -41,8 +41,8 @@ public final class CrawlerConfigStubs {
     private CrawlerConfigStubs() {
     }
 
-    public static WebCrawlConfig memoryCrawlerConfig(Path workDir) {
-        var cfg = (WebCrawlConfig) new WebCrawlConfig()
+    public static WebCrawlerConfig memoryCrawlerConfig(Path workDir) {
+        var cfg = (WebCrawlerConfig) new WebCrawlerConfig()
                 .setId(CRAWLER_ID)
                 .setNumThreads(1)
                 .setWorkDir(workDir)
@@ -66,9 +66,9 @@ public final class CrawlerConfigStubs {
      * @param workDir working directory
      * @return random crawler config
      */
-    public static WebCrawlConfig randomMemoryCrawlerConfig(Path workDir) {
-        var cfg = (WebCrawlConfig) WebTestUtil.randomize(
-                WebCrawlConfig.class)
+    public static WebCrawlerConfig randomMemoryCrawlerConfig(Path workDir) {
+        var cfg = (WebCrawlerConfig) WebTestUtil.randomize(
+                WebCrawlerConfig.class)
                 .setId(CRAWLER_ID)
                 .setNumThreads(1)
                 .setWorkDir(workDir)
@@ -80,7 +80,7 @@ public final class CrawlerConfigStubs {
 
     public static Path writeConfigToDir(
             Path workDir,
-            @NonNull Consumer<WebCrawlConfig> c) {
+            @NonNull Consumer<WebCrawlerConfig> c) {
         var config = memoryCrawlerConfig(workDir);
         c.accept(config);
         var file = config

@@ -30,7 +30,7 @@ import com.norconex.crawler.web.doc.operations.canon.CanonicalLinkDetector;
 import com.norconex.crawler.web.doc.operations.url.WebUrlNormalizer;
 import com.norconex.crawler.web.doc.pipelines.importer.WebImporterPipelineContext;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.crawler.web.util.Web;
 
 import lombok.NonNull;
@@ -114,7 +114,7 @@ public class CanonicalStage extends AbstractImporterStage {
         }
 
         var docRec =
-                (WebCrawlEntry) ctx.getDocContext()
+                (WebCrawlerEntry) ctx.getDocContext()
                         .getCurrentCrawlEntry();
         String reference = docRec.getReference();
 
@@ -162,11 +162,11 @@ public class CanonicalStage extends AbstractImporterStage {
             return true;
         }
 
-        var newRecord = new WebCrawlEntry(docRec);
+        var newRecord = new WebCrawlerEntry(docRec);
         newRecord.setReference(canURL);
         newRecord.setReferrerReference(reference);
 
-        var scopedUrlCtx = new WebCrawlEntry(canURL);
+        var scopedUrlCtx = new WebCrawlerEntry(canURL);
         var urlScope = Web
                 .config(ctx.getCrawlSession().getCrawlContext())
                 .getUrlScopeResolver()

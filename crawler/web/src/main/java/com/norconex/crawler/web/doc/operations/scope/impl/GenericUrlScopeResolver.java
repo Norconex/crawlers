@@ -25,7 +25,7 @@ import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.doc.operations.scope.UrlScope;
 import com.norconex.crawler.web.doc.operations.scope.UrlScopeResolver;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.crawler.web.util.Web;
 
 import lombok.EqualsAndHashCode;
@@ -84,7 +84,7 @@ public class GenericUrlScopeResolver
 
     @Override
     public UrlScope resolve(
-            String inScopeURL, WebCrawlEntry candidateDocContext) {
+            String inScopeURL, WebCrawlerEntry candidateDocContext) {
         // if not specifying any scope, candidate URL is good
         if (!configuration.isStayOnProtocol()
                 && !configuration.isStayOnDomain()

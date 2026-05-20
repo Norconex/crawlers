@@ -32,7 +32,7 @@ For committer dependencies, see the [Integrations](/integrations) page.
 :::info[File System Crawler]
 All the following examples use the Web Crawler. For the File System Crawler,
 replace `com.norconex.crawler.web.WebCrawler` with
-`com.norconex.crawler.fs.FsCrawler` (and `WebCrawlConfig` with `FsCrawlConfig`).
+`com.norconex.crawler.fs.FsCrawler` (and `WebCrawlerConfig` with `FsCrawlerConfig`).
 :::
 
 ## Pattern 1 — Load config from file and run
@@ -56,7 +56,7 @@ Build the entire configuration in code without a config file:
 
 ```java
 import com.norconex.crawler.web.WebCrawler;
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.committer.elasticsearch.ElasticsearchCommitter;
 
 public class MyCrawlerApp {
@@ -65,7 +65,7 @@ public class MyCrawlerApp {
         esCommitter.setNodes("http://localhost:9200");
         esCommitter.setIndexName("my-content");
 
-        var config = new WebCrawlConfig();
+        var config = new WebCrawlerConfig();
         config.setId("my-crawl");
         config.setStartReferences(List.of("https://example.com"));
         config.setNumThreads(10);

@@ -26,7 +26,7 @@ import org.apache.hc.client5.http.classic.methods.HttpHead;
 
 import com.google.common.net.InternetDomainName;
 import com.norconex.commons.lang.url.UrlNormalizer;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -68,7 +68,7 @@ public final class HstsResolver {
     @SuppressWarnings("null")
     public static void resolve(
             HttpClient httpClient,
-            WebCrawlEntry docRecord) {
+            WebCrawlerEntry docRecord) {
 
         // The idea: "public" suffixes are "effective" top-level domains
         // under which new domains can be registered. When considering a root
@@ -112,7 +112,7 @@ public final class HstsResolver {
     }
 
     private static synchronized void applyHstsSupport(
-            WebCrawlEntry docRecord, String domain, boolean isSubdomain) {
+            WebCrawlerEntry docRecord, String domain, boolean isSubdomain) {
         var support = DOMAIN_HSTS.getOrDefault(domain, HstsSupport.NO);
         if (support == HstsSupport.INCLUDE_SUBDOMAINS
                 || (support == HstsSupport.DOMAIN_ONLY && !isSubdomain)) {

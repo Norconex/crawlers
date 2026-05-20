@@ -30,10 +30,10 @@ import org.junit.jupiter.api.Timeout;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 
 /**
  * Test that large files are processed properly (&gt; 2MB).
@@ -42,8 +42,8 @@ import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
 @Timeout(30)
 class LargeContentTest {
 
-    @WebCrawlTest
-    void testLargeContent(ClientAndServer client, WebCrawlConfig cfg)
+    @WebCrawlingTest
+    void testLargeContent(ClientAndServer client, WebCrawlerConfig cfg)
             throws IOException {
 
         waitForServerRunning(client, Duration.ofSeconds(10));
@@ -62,7 +62,7 @@ class LargeContentTest {
                 .setConnectionRequestTimeout(
                         Duration.ofSeconds(60));
 
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg)
                 .getCommitter();
 
         var txt = IOUtils.toString(

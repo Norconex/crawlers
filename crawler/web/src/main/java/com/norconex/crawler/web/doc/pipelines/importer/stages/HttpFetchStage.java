@@ -31,7 +31,7 @@ import com.norconex.crawler.web.doc.pipelines.importer.WebImporterPipelineUtil;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.WebFetchRequest;
 import com.norconex.crawler.web.fetch.WebFetchResponse;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.importer.doc.DocMetaConstants;
 
 import lombok.NonNull;
@@ -62,7 +62,7 @@ public class HttpFetchStage extends AbstractImporterStage {
         }
 
         var docContext = pipeCtx.getDocContext();
-        var webEntry = (WebCrawlEntry) docContext.getCurrentCrawlEntry();
+        var webEntry = (WebCrawlerEntry) docContext.getCurrentCrawlEntry();
         var doc = docContext.getDoc();
         var crawlSession = pipeCtx.getCrawlSession();
         var crawlContext = crawlSession.getCrawlContext();
@@ -83,7 +83,7 @@ public class HttpFetchStage extends AbstractImporterStage {
         }
         var originalOutcome = webEntry.getProcessingOutcome();
         var previousEntry =
-                docContext.getPreviousCrawlEntry() instanceof WebCrawlEntry e
+                docContext.getPreviousCrawlEntry() instanceof WebCrawlerEntry e
                         ? e
                         : null;
 

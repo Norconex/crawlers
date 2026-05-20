@@ -64,7 +64,7 @@ import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.crawler.core.doc.CrawlDocContext;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpAuthConfig;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.importer.doc.Doc;
 
 import lombok.extern.slf4j.Slf4j;
@@ -113,7 +113,7 @@ public final class ApacheHttpUtil {
      * <p>
      * Applies the HTTP response headers to a document. This method will
      * do its best to derive relevant information from the HTTP headers
-     * that can be set on the document {@link WebCrawlEntry}:
+     * that can be set on the document {@link WebCrawlerEntry}:
      * </p>
      * <ul>
      *   <li>Content type</li>
@@ -131,7 +131,7 @@ public final class ApacheHttpUtil {
      */
     public static void applyResponseHeaders(
             HttpResponse response, String prefix, Doc doc,
-            WebCrawlEntry crawlEntry) {
+            WebCrawlerEntry crawlEntry) {
         var it = response.headerIterator();
         while (it.hasNext()) {
             var header = it.next();
@@ -181,7 +181,7 @@ public final class ApacheHttpUtil {
      * {@link Doc#setContentType(ContentType)} and
      * {@link Doc#setCharset(Charset)}.
      * This method is automatically invoked by
-     * {@link #applyResponseHeaders(HttpResponse, String, Doc, WebCrawlEntry)}
+     * {@link #applyResponseHeaders(HttpResponse, String, Doc, WebCrawlerEntry)}
      * when encountering a content type header.
      * @param value value to parse and set.
      * @param doc document info
@@ -215,7 +215,7 @@ public final class ApacheHttpUtil {
     public static void setRequestIfModifiedSince(
             HttpRequest request, CrawlDocContext docCtx) {
         if (docCtx != null && docCtx.getPreviousCrawlEntry() != null) {
-            var prevEntry = (WebCrawlEntry) docCtx.getPreviousCrawlEntry();
+            var prevEntry = (WebCrawlerEntry) docCtx.getPreviousCrawlEntry();
             // In case the server did not previously return the last modified
             // date but supports "If-Modified-Since" (odd), we try
             // with last crawl date if last modified is null.
@@ -239,7 +239,7 @@ public final class ApacheHttpUtil {
     public static void setRequestIfNoneMatch(
             HttpRequest request, CrawlDocContext docCtx) {
         if (docCtx != null && docCtx.getPreviousCrawlEntry() != null) {
-            var docRecord = (WebCrawlEntry) docCtx.getPreviousCrawlEntry();
+            var docRecord = (WebCrawlerEntry) docCtx.getPreviousCrawlEntry();
             if (docRecord.getEtag() != null) {
                 request.addHeader(
                         HttpHeaders.IF_NONE_MATCH, docRecord.getEtag());

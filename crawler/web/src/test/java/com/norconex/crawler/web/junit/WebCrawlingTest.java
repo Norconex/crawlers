@@ -30,14 +30,14 @@ import com.hazelcast.config.MapStoreConfig.InitialLoadMode;
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
 import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.operations.delay.impl.GenericDelayResolver;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.TYPE, ElementType.ANNOTATION_TYPE })
 @Test
-@ExtendWith(WebCrawlExtension.class)
-public @interface WebCrawlTest {
+@ExtendWith(WebCrawlingExtension.class)
+public @interface WebCrawlingTest {
 
     boolean randomConfig() default false;
 
@@ -49,9 +49,9 @@ public @interface WebCrawlTest {
             ? extends CrawlConfig>> configModifier() default DefaultWebCrawlerConfigModifier.class;
 
     public static final class DefaultWebCrawlerConfigModifier
-            implements Consumer<WebCrawlConfig> {
+            implements Consumer<WebCrawlerConfig> {
         @Override
-        public void accept(WebCrawlConfig cfg) {
+        public void accept(WebCrawlerConfig cfg) {
             cfg.setDelayResolver(configure(
                     new GenericDelayResolver(),
                     dr -> dr.setDefaultDelay(

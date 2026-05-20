@@ -26,11 +26,11 @@ import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxt;
 import com.norconex.crawler.web.doc.operations.scope.UrlScope;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 
 import lombok.NonNull;
 
@@ -50,7 +50,7 @@ public final class Web {
 
     public static void fireIfUrlOutOfScope(
             CrawlSession crawlSession,
-            WebCrawlEntry docContext,
+            WebCrawlerEntry docContext,
             UrlScope urlScope) {
         if (!urlScope.isInScope()) {
             crawlSession.fire(CrawlerEvent
@@ -64,8 +64,8 @@ public final class Web {
         }
     }
 
-    public static WebCrawlConfig config(CrawlContext crawlContext) {
-        return (WebCrawlConfig) crawlContext.getCrawlConfig();
+    public static WebCrawlerConfig config(CrawlContext crawlContext) {
+        return (WebCrawlerConfig) crawlContext.getCrawlConfig();
     }
 
     public static RobotsTxt robotsTxt(CrawlContext crawler, String reference) {
