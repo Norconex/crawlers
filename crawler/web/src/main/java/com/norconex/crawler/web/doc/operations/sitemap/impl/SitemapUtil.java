@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapRecord;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.importer.doc.Doc;
 
 import lombok.NonNull;
@@ -73,7 +73,7 @@ final class SitemapUtil {
     }
 
     static SitemapRecord toSitemapRecord(Doc doc,
-            WebCrawlEntry sitemapEntry) {
+            WebCrawlerEntry sitemapEntry) {
         var indexRec = new SitemapRecord();
         indexRec.setLastModified(sitemapEntry.getLastModified());
         indexRec.setCrawlDate(ZonedDateTime.now(ZoneOffset.UTC));

@@ -23,7 +23,7 @@ Matches document fields based on specified patterns and methods
 
 ### inclusive
 
-TODO: Add documentation for this property.
+When `true`, documents matching the criteria are included (accepted); when `false`, matching documents are excluded (rejected).
 
 ### maxReadSize
 
@@ -43,7 +43,7 @@ The above example will strip all text up to and including this HTML comment: &gt
 
 **TODO: do example still need CDATA??**
 
-<ConfigExample
+<ConfigBlock
   json={{
     "handler": {
       "class": "StripBeforeTransformer",

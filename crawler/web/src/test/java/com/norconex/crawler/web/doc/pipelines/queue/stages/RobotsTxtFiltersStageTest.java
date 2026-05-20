@@ -30,14 +30,14 @@ import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxt;
 import com.norconex.crawler.web.doc.operations.robot.impl.StandardRobotsTxtProvider;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.crawler.web.util.Web;
 
 @Timeout(30)
 class RobotsTxtFiltersStageTest {
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testAllow(CrawlContext ctx) {
         Web.config(ctx).setRobotsTxtProvider(new StandardRobotsTxtProvider() {
             @Override
@@ -75,7 +75,7 @@ class RobotsTxtFiltersStageTest {
                 "No match in robot.txt");
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testNullRobotsTxtProvider(CrawlContext ctx) {
         // null provider → bypass all robot filtering, always accept
         Web.config(ctx).setRobotsTxtProvider(null);
@@ -84,7 +84,7 @@ class RobotsTxtFiltersStageTest {
                 "Null provider must always return true");
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testNullRobotsTxt(CrawlContext ctx) {
         // provider that returns null robots.txt → no filters, accept all
         Web.config(ctx).setRobotsTxtProvider(
@@ -94,7 +94,7 @@ class RobotsTxtFiltersStageTest {
                 "Null robots.txt means no rules; URL must be accepted");
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testEqualLengthAllowTakesPrecedenceOverDisallow(CrawlContext ctx) {
         // Per RFC 9309: when two rules match with equal path length,
         // the less restrictive rule (Allow) takes precedence.
@@ -127,7 +127,7 @@ class RobotsTxtFiltersStageTest {
         var session = mock(CrawlSession.class);
         when(session.getCrawlContext()).thenReturn(crawlerCtx);
         var queueCtx = new QueuePipelineContext(
-                session, new WebCrawlEntry(url, 0));
+                session, new WebCrawlerEntry(url, 0));
         var filterStage = new RobotsTxtFiltersStage();
         return filterStage.test(queueCtx);
     }

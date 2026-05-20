@@ -13,7 +13,7 @@ Identifies the possible canonical URL of a document. Non-canonical documents are
 
 ## Notes
 
-TODO: Add notes.
+Detects the canonical URL of a web page and skips non-canonical versions in favor of the canonical one. This prevents duplicate content from being indexed when the same page is accessible via multiple URLs. Select one of the available implementations to configure canonical link detection behavior.
 
 ## Properties
 
@@ -21,7 +21,7 @@ TODO: Add notes.
 
 The following disables canonical link resolution.
 
-<ConfigExample
+<ConfigBlock
   json={{
     "canonicalLinkDetector": null
   }}

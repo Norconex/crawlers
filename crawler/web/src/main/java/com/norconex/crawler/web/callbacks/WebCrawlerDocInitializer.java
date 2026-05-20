@@ -23,25 +23,25 @@ import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.doc.WebDocMetadata;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.importer.doc.Doc;
 
 /**
  * Initialize a Web CrawlDoc.
  */
-class WebCrawlDocInitializer
+class WebCrawlerDocInitializer
         implements BiConsumer<CrawlSession, Doc> {
 
     @Override
     public void accept(CrawlSession crawler, Doc doc) {
-        var docRecord = (WebCrawlEntry) crawler.getCrawlContext()
+        var docRecord = (WebCrawlerEntry) crawler.getCrawlContext()
                 .getCrawlEntryLedger()
                 .getEntry(doc.getReference())
                 .orElse(null);
         if (docRecord == null) {
             return;
         }
-        var cachedDocRecord = (WebCrawlEntry) crawler.getCrawlContext()
+        var cachedDocRecord = (WebCrawlerEntry) crawler.getCrawlContext()
                 .getCrawlEntryLedger()
                 .getBaselineEntry(doc.getReference())
                 .orElse(null);

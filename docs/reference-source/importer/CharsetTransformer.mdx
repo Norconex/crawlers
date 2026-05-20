@@ -33,7 +33,7 @@ Because character encoding detection is not always accurate and because document
 
 ### fieldMatcher
 
-TODO: Add documentation for this property.
+Matches document fields based on specified patterns and methods. Use this to restrict the handler to operate only on fields whose names satisfy the matcher criteria.
 
 ### sourceCharset
 
@@ -47,7 +47,7 @@ Defines the character encoding to be applied to the document after processing, e
 
 The following example converts the characters of a "description" field from "ISO-8859-1" to "UTF-8".
 
-<ConfigExample
+<ConfigBlock
   json={{
     "handler": {
       "class": "CharsetTransformer",

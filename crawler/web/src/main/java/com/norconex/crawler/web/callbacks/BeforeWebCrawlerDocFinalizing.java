@@ -19,7 +19,7 @@ import java.util.function.BiConsumer;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.importer.doc.Doc;
 
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
  * Prepare web-document for finalization.
  */
 @Slf4j
-class BeforeWebCrawlDocFinalizing
+class BeforeWebCrawlerDocFinalizing
         implements BiConsumer<CrawlSession, Doc> {
 
     @Override
@@ -42,14 +42,14 @@ class BeforeWebCrawlDocFinalizing
         // be re-assigned the wrong depth if linked from another, deeper, page.
         // See: https://github.com/Norconex/collector-http/issues/278
 
-        var httpData = (WebCrawlEntry) crawler.getCrawlContext()
+        var httpData = (WebCrawlerEntry) crawler.getCrawlContext()
                 .getCrawlEntryLedger()
                 .getEntry(doc.getReference())
                 .orElse(null);
         if (httpData == null) {
             return;
         }
-        var httpCachedData = (WebCrawlEntry) crawler.getCrawlContext()
+        var httpCachedData = (WebCrawlerEntry) crawler.getCrawlContext()
                 .getCrawlEntryLedger()
                 .getBaselineEntry(doc.getReference())
                 .orElse(null);
@@ -79,7 +79,7 @@ class BeforeWebCrawlDocFinalizing
         var referencedUrls = httpCachedData.getReferencedUrls();
         for (String url : referencedUrls) {
 
-            var childData = new WebCrawlEntry(url, childDepth);
+            var childData = new WebCrawlerEntry(url, childDepth);
             childData.setReferrerReference(httpData.getReference());
             LOG.debug("Queueing skipped document's child: {}",
                     childData.getReference());

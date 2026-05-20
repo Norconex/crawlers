@@ -24,14 +24,14 @@ import java.util.List;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.core.context.CrawlContext;
 import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
 import com.norconex.crawler.web.util.Web;
 import org.junit.jupiter.api.Timeout;
 
 @Timeout(30)
 class GenericSitemapLocatorTest {
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testGenericSitemapLocator(CrawlContext ctx) {
 
         var locator = new GenericSitemapLocator();

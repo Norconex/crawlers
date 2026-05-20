@@ -34,6 +34,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.norconex.crawler.core.cluster.ClusterException;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastConfigurerContext;
 import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
+
 /**
  * Direct unit tests for {@link JdbcClient} covering
  * {@code getConnection()}, {@code tableExists()}, {@code ensureTableExists()},

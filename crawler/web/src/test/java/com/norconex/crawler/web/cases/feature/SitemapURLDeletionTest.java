@@ -31,10 +31,10 @@ import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.crawler.core.CrawlConfig.OrphansStrategy;
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapResolver;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import org.junit.jupiter.api.Timeout;
 
 /**
@@ -77,12 +77,12 @@ class SitemapURLDeletionTest {
             </urlset>
             """;
 
-    @WebCrawlTest(config = """
+    @WebCrawlingTest(config = """
             recrawlableResolver:
               class: GenericRecrawlableResolver
               sitemapSupport: NEVER
             """)
-    void testSitemapURLDeletion(ClientAndServer client, WebCrawlConfig cfg)
+    void testSitemapURLDeletion(ClientAndServer client, WebCrawlerConfig cfg)
             throws CommitterException {
 
         cfg.setSitemapResolver(new GenericSitemapResolver())
@@ -92,7 +92,7 @@ class SitemapURLDeletionTest {
 
         // First time, 3 upserts and 0 deletes
         whenSitemap(client, true);
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertRequests())
                 .map(UpsertRequest::getReference)
                 .containsExactlyInAnyOrder(
@@ -104,7 +104,7 @@ class SitemapURLDeletionTest {
 
         // Second time, 1 add and 1 delete (2 unmodified)
         whenSitemap(client, false);
-        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertRequests())
                 .map(UpsertRequest::getReference)
                 .containsExactlyInAnyOrder(serverUrl(client, page33Path));
@@ -116,9 +116,9 @@ class SitemapURLDeletionTest {
 
     // The URL that is 404 should not be deleted if marked not ready for
     // recrawl.
-    @WebCrawlTest
+    @WebCrawlingTest
     void testSitemapURLDeletionNotReadyForRecrawl(
-            ClientAndServer client, WebCrawlConfig cfg)
+            ClientAndServer client, WebCrawlerConfig cfg)
             throws CommitterException {
 
         cfg.setSitemapResolver(new GenericSitemapResolver())
@@ -128,7 +128,7 @@ class SitemapURLDeletionTest {
 
         // First time, 3 upserts and 0 deletes
         whenSitemap(client, true);
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertRequests())
                 .map(UpsertRequest::getReference)
                 .containsExactlyInAnyOrder(
@@ -140,7 +140,7 @@ class SitemapURLDeletionTest {
 
         // Second time, 1 add and 0 delete (not ready for recrawl)
         whenSitemap(client, false);
-        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertRequests())
                 .map(UpsertRequest::getReference)
                 .containsExactlyInAnyOrder(serverUrl(client, page33Path));

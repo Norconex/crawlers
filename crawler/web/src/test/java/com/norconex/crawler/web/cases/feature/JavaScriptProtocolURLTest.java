@@ -24,9 +24,9 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.crawler.web.WebCrawlConfig;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import org.junit.jupiter.api.Timeout;
 
@@ -38,9 +38,9 @@ import org.junit.jupiter.api.Timeout;
 @Timeout(30)
 class JavaScriptProtocolURLTest {
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testJavaScriptProtocolURL(
-            ClientAndServer client, WebCrawlConfig cfg) {
+            ClientAndServer client, WebCrawlerConfig cfg) {
         var firstPath = "/jsUrl";
         var secondPath = "/jsUrl/target";
 
@@ -63,7 +63,7 @@ class JavaScriptProtocolURLTest {
 
         cfg.setStartReferences(List.of(serverUrl(client, firstPath)));
         assertThatNoException().isThrownBy(() -> {
-            var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+            var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
             assertThat(mem.getUpsertRequests())
                     .map(UpsertRequest::getReference)

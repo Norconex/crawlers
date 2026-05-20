@@ -47,7 +47,7 @@ import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.Quality;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.Storage;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.StorageDiskStructure;
-import com.norconex.crawler.web.junit.WebCrawlTest;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import com.norconex.crawler.web.stubs.CrawlDocStubs;
 import com.norconex.importer.doc.Doc;
@@ -58,7 +58,7 @@ class FeaturedImageResolverTest {
 
     private @TempDir Path tempDir;
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testProcessFeaturedImage(
             ClientAndServer client, CrawlContext ctx)
             throws IOException {

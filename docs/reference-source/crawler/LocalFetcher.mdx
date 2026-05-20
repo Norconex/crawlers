@@ -13,13 +13,13 @@ Local file system fetcher.
 
 ## Notes
 
-TODO: Add notes.
+Fetches files from the local file system. Supports optional credentials and access control list (ACL) configuration for restricted file paths.
 
 ## Properties
 
 ### aclDisabled
 
-TODO: Add documentation for this property.
+When enabled, Access Control List (ACL) permissions are not applied or forwarded to the target system.
 
 ### credentials
 
@@ -27,8 +27,8 @@ Username and password when required by the local file system.
 
 ### domain
 
-TODO: Add documentation for this property.
+The domain name for authentication when accessing the remote resource.
 
 ### referenceFilters
 
-TODO: Add documentation for this property.
+Filters applied to document references (URLs or file paths) to control which ones are fetched. Documents whose references do not pass the filters are skipped.

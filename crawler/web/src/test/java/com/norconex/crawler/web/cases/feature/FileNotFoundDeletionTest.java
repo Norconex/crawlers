@@ -29,9 +29,9 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.matchers.Times;
 
 import com.norconex.committer.core.CommitterException;
-import com.norconex.crawler.web.WebCrawlConfig;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 
 /**
  * Test detection of page deletion (404 - File Not Found).
@@ -43,9 +43,9 @@ class FileNotFoundDeletionTest {
     private static final String HOME_PATH = "/notFoundDelete";
     private static final String TOGGLE_PATH = "/notFoundDeleteToggle";
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testFileNotFoundDeletion(
-            ClientAndServer client, WebCrawlConfig cfg)
+            ClientAndServer client, WebCrawlerConfig cfg)
             throws CommitterException {
 
         // @formatter:off
@@ -64,21 +64,21 @@ class FileNotFoundDeletionTest {
 
         // First run: 2 new docs
         whenPageFound(client);
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isEqualTo(2);
         assertThat(mem.getDeleteCount()).isZero();
         mem.clean();
 
         // Second run: 0 new doc (unmodified) and 1 delete (not found)
         whenPageNotFound(client);
-        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isZero();
         assertThat(mem.getDeleteCount()).isOne();
         mem.clean();
 
         // Third run: one doc is rediscovered and no delete
         whenPageFound(client);
-        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
         assertThat(mem.getDeleteCount()).isZero();
         mem.clean();

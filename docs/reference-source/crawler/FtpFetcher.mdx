@@ -13,7 +13,7 @@ File Transfer Protocol (FTP and FTPS) fetcher.
 
 ## Notes
 
-TODO: Add notes.
+Fetches documents from FTP and FTPS servers. Supports passive mode, explicit and implicit FTPS connection modes, data channel protection, keep-alive settings, custom date formats, server encoding, and credential configuration.
 
 ## Properties
 
@@ -59,7 +59,7 @@ The default date format used by the server.
 
 ### domain
 
-TODO: Add documentation for this property.
+The domain name for authentication when accessing the remote resource.
 
 ### fileType
 
@@ -75,7 +75,7 @@ Use FTP `PASV` command to connect in passive mode.
 
 ### proxySettings
 
-TODO: Add documentation for this property.
+Configures an optional HTTP proxy for outbound connections. Leave unset to connect directly.
 
 ### recentDateFormat
 
@@ -83,7 +83,7 @@ The server date format, if different than US format.
 
 ### referenceFilters
 
-TODO: Add documentation for this property.
+Filters applied to document references (URLs or file paths) to control which ones are fetched. Documents whose references do not pass the filters are skipped.
 
 ### remoteVerificationDisabled
 
@@ -103,7 +103,7 @@ A set of month names used by the server if different than  those expected by the
 
 ### socketTimeout
 
-TODO: Add documentation for this property.
+The maximum time in milliseconds to wait for data on an established connection before giving up.
 
 ### transferAbortedOkReplyCodes
 
@@ -111,13 +111,13 @@ List of reply codes (apart from 200) considered as OK when prematurely closing a
 
 ### userDirIsRoot
 
-TODO: Add documentation for this property.
+When enabled, the user's home directory on the remote server is treated as the root directory for navigation.
 
 ## Examples
 
 The following example sets the FTP settings required by some hosts  to get file listings on server directories.
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "FtpFetcher",
     "passiveMode": true,

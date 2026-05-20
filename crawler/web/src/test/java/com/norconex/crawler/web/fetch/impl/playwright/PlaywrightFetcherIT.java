@@ -30,9 +30,9 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.microsoft.playwright.BrowserType.LaunchOptions;
 import com.microsoft.playwright.Playwright;
-import com.norconex.crawler.web.WebCrawlConfig;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 
 /**
@@ -98,8 +98,8 @@ class PlaywrightFetcherIT {
      * Verifies that PlaywrightFetcher can fetch a simple HTML page and the
      * content is captured by the committer.
      */
-    @WebCrawlTest
-    void testFetchSimplePage(ClientAndServer client, WebCrawlConfig cfg)
+    @WebCrawlingTest
+    void testFetchSimplePage(ClientAndServer client, WebCrawlerConfig cfg)
             throws IOException {
         var pagePath = "/playwright/simple";
         MockWebsite.whenHtml(client, pagePath, "<p>Hello from Playwright!</p>");
@@ -107,7 +107,7 @@ class PlaywrightFetcherIT {
         cfg.setFetchers(List.of(chromeFetcher()));
         cfg.setStartReferences(List.of(serverUrl(client, pagePath)));
 
-        var captures = WebCrawlTestCapturer.crawlAndCapture(cfg);
+        var captures = WebCrawlingTestCapturer.crawlAndCapture(cfg);
         assertThat(captures.getCommitter().getUpsertRequests()).hasSize(1);
         assertThat(new String(
                 captures.getCommitter().getUpsertRequests()
@@ -119,16 +119,16 @@ class PlaywrightFetcherIT {
     /**
      * Verifies that PlaywrightFetcher captures HTTP response headers natively.
      */
-    @WebCrawlTest
+    @WebCrawlingTest
     void testHttpHeadersAreCaptured(ClientAndServer client,
-            WebCrawlConfig cfg) {
+            WebCrawlerConfig cfg) {
         var pagePath = "/playwright/headers";
         MockWebsite.whenHtml(client, pagePath, "<p>Headers test</p>");
 
         cfg.setFetchers(List.of(chromeFetcher()));
         cfg.setStartReferences(List.of(serverUrl(client, pagePath)));
 
-        var captures = WebCrawlTestCapturer.crawlAndCapture(cfg);
+        var captures = WebCrawlingTestCapturer.crawlAndCapture(cfg);
         assertThat(captures.getCommitter().getUpsertRequests()).hasSize(1);
         // MockServer always returns content-type; verify header capture works
         var meta = captures.getCommitter().getUpsertRequests()
@@ -139,15 +139,15 @@ class PlaywrightFetcherIT {
     /**
      * Verifies that Playwright follows links and crawls multiple pages.
      */
-    @WebCrawlTest
-    void testCrawlLinkedPages(ClientAndServer client, WebCrawlConfig cfg) {
+    @WebCrawlingTest
+    void testCrawlLinkedPages(ClientAndServer client, WebCrawlerConfig cfg) {
         MockWebsite.whenBoundedDepth(client, 2);
 
         cfg.setFetchers(List.of(chromeFetcher()));
         cfg.setStartReferences(List.of(serverUrl(client, "/0")));
         cfg.setMaxDepth(2);
 
-        var captures = WebCrawlTestCapturer.crawlAndCapture(cfg);
+        var captures = WebCrawlingTestCapturer.crawlAndCapture(cfg);
         assertThat(captures.getCommitter().getUpsertRequests())
                 .hasSizeGreaterThan(1);
     }
@@ -156,8 +156,8 @@ class PlaywrightFetcherIT {
      * Verifies that {@code latePageScript} modifies DOM content before
      * the rendered HTML is captured.
      */
-    @WebCrawlTest
-    void testPageScriptExecution(ClientAndServer client, WebCrawlConfig cfg)
+    @WebCrawlingTest
+    void testPageScriptExecution(ClientAndServer client, WebCrawlerConfig cfg)
             throws IOException {
         var pagePath = "/playwright/scripted";
         MockWebsite.whenHtml(client, pagePath,
@@ -174,7 +174,7 @@ class PlaywrightFetcherIT {
         cfg.setFetchers(List.of(fetcher));
         cfg.setStartReferences(List.of(serverUrl(client, pagePath)));
 
-        var captures = WebCrawlTestCapturer.crawlAndCapture(cfg);
+        var captures = WebCrawlingTestCapturer.crawlAndCapture(cfg);
         assertThat(captures.getCommitter().getUpsertRequests()).hasSize(1);
         assertThat(new String(
                 captures.getCommitter().getUpsertRequests()

@@ -9,11 +9,11 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Web Driver Fetcher.
+Fetches dynamically generated web pages using a WebDriver-based browser.
 
 ## Notes
 
-TODO: Add notes.
+Fetches dynamically generated web pages using a WebDriver-based browser (such as Firefox or Chrome via Selenium). Supports executing custom JavaScript before and after page load, waiting for specific DOM elements, HTTP traffic sniffing, screenshot capture, and remote WebDriver configuration.
 
 ## Properties
 
@@ -71,7 +71,7 @@ TODO: Add documentation for this property.
 
 ### referenceFilters
 
-TODO: Add documentation for this property.
+Filters applied to document references (URLs or file paths) to control which ones are fetched. Documents whose references do not pass the filters are skipped.
 
 ### remoteURL
 
@@ -113,7 +113,7 @@ TODO: Add documentation for this property.
 
 
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "WebDriverFetcher",
     "browser": "FIREFOX",

@@ -29,12 +29,12 @@ import com.norconex.crawler.web.doc.pipelines.WebDocPipelines;
 import com.norconex.crawler.web.doc.pipelines.queue.SitemapEnqueuer;
 import com.norconex.crawler.web.fetch.AggregatedWebFetchResponse;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetchResponse;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 
-public class WebCrawlDriverFactory implements Supplier<CrawlDriver> {
+public class WebCrawlerDriverFactory implements Supplier<CrawlDriver> {
 
     public static CrawlDriver create() {
-        return new WebCrawlDriverFactory().get();
+        return new WebCrawlerDriverFactory().get();
     }
 
     @Override
@@ -48,10 +48,10 @@ public class WebCrawlDriverFactory implements Supplier<CrawlDriver> {
                                 new RefListEnqueuer(),
                                 new RefFileEnqueuer(),
                                 new RefProviderEnqueuer()))))
-                .crawlerConfigClass(WebCrawlConfig.class)
+                .crawlerConfigClass(WebCrawlerConfig.class)
                 .callbacks(WebCrawlerCallbacks.get())
                 .docPipelines(WebDocPipelines.create())
-                .crawlEntryType(WebCrawlEntry.class)
+                .crawlEntryType(WebCrawlerEntry.class)
                 .build();
     }
 

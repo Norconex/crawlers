@@ -24,11 +24,11 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractor;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import org.junit.jupiter.api.Timeout;
 
@@ -41,8 +41,8 @@ import org.junit.jupiter.api.Timeout;
 @Timeout(30)
 class ScriptTagsTest {
 
-    @WebCrawlTest
-    void testScriptTags(ClientAndServer client, WebCrawlConfig cfg)
+    @WebCrawlingTest
+    void testScriptTags(ClientAndServer client, WebCrawlerConfig cfg)
             throws CommitterException {
 
         var homePath = "/scriptTags/index.html";
@@ -66,7 +66,7 @@ class ScriptTagsTest {
         var le = new HtmlLinkExtractor();
         le.getConfiguration().addLinkTag("script", "src");
         cfg.setLinkExtractors(List.of(le));
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertCount()).isEqualTo(2);
 

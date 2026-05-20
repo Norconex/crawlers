@@ -9,11 +9,11 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Http Client Fetcher.
+Fetches web documents using an HTTP client with authentication and SSL support.
 
 ## Notes
 
-TODO: Add notes.
+Fetches web documents using an HTTP client. Supports authentication (BASIC, DIGEST, NTLM, form-based, Kerberos), SSL configuration, cookie handling, ETag and If-Modified-Since headers, proxy settings, redirect handling, connection pooling, and custom request headers.
 
 ## Properties
 
@@ -95,7 +95,7 @@ TODO: Add documentation for this property.
 
 ### proxySettings
 
-TODO: Add documentation for this property.
+Configures an optional HTTP proxy for outbound connections. Leave unset to connect directly.
 
 ### redirectUrlProvider
 
@@ -103,7 +103,7 @@ TODO: Add documentation for this property.
 
 ### referenceFilters
 
-TODO: Add documentation for this property.
+Filters applied to document references (URLs or file paths) to control which ones are fetched. Documents whose references do not pass the filters are skipped.
 
 ### requestHeaders
 
@@ -115,7 +115,7 @@ TODO: Add documentation for this property.
 
 ### socketTimeout
 
-TODO: Add documentation for this property.
+The maximum time in milliseconds to wait for data on an established connection before giving up.
 
 ### sslProtocols
 
@@ -135,7 +135,7 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "HttpClientFetcher",
     "authentication": {

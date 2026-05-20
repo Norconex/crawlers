@@ -13,7 +13,7 @@ Commit documents to a Neo4j graph database.
 
 ## Notes
 
-TODO: Add notes.
+Commits crawled documents to a Neo4j graph database using configurable Cypher queries for upserts and deletes. Field mappings, multi-value joining, and optional parameters for missing fields are supported.
 
 ## Properties
 
@@ -51,11 +51,11 @@ Comma-separated list of parameter names that can be missing when creating the qu
 
 ### queue
 
-TODO: Add documentation for this property.
+Configures the committer queue used to batch documents before sending them to the target system. Adjust queue settings to tune throughput and memory usage.
 
 ### restrictions
 
-TODO: Add documentation for this property.
+Defines filter conditions that restrict which documents this committer processes. Documents not matching the restrictions are ignored by this committer.
 
 ### upsertCypher
 
@@ -69,7 +69,7 @@ Required connection URI. E.g., `bolt://localhost:7687`.
 
 The following example creates a graph of collected documents.
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "Neo4jCommitter",
     "uri": "bolt://localhost:7687",

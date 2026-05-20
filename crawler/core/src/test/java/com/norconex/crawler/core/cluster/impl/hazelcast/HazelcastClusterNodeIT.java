@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Timeout;
 
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+
 /**
  * Component tests for {@link HazelcastClusterNode}.
  *

@@ -21,25 +21,25 @@ import java.io.File;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.fs.ledger.FsCrawlEntry;
+import com.norconex.crawler.fs.ledger.FsCrawlerEntry;
 
-// TODO: Rename this file to FsCrawlEntryTest once FsCrawlDocContext is deleted.
+// TODO: Rename this file to FsCrawlerEntryTest once FsCrawlerDocContext is deleted.
 @Timeout(30)
-class FsCrawlDocContextTest {
+class FsCrawlerDocContextTest {
 
     @Test
     void test() {
         // Should make absolute
-        var rec = new FsCrawlEntry("ref");
+        var rec = new FsCrawlerEntry("ref");
         assertThat(rec.getReference()).isEqualTo(
                 new File("ref").getAbsolutePath());
 
         // Windows absolute path: already absolute, do not change
-        rec = new FsCrawlEntry("c:\\ref");
+        rec = new FsCrawlerEntry("c:\\ref");
         assertThat(rec.getReference()).isEqualTo("c:\\ref");
 
         // Not a local file, do not change
-        rec = new FsCrawlEntry("cmis:http://blah.com");
+        rec = new FsCrawlerEntry("cmis:http://blah.com");
         assertThat(rec.getReference()).isEqualTo("cmis:http://blah.com");
     }
 }

@@ -13,7 +13,7 @@ Splits HTML, XHTML, or XML document on elements matching a given selector.
 
 ## Notes
 
-This option builds a full DOM tree from the document content in memory. For large files, be cautious—this can use a lot of memory. For better performance with big files, consider a streaming approach like (e.g., [XMLStreamSplitter](http://localhost:3000/en/crawler-doc/web#crawler.importer.handlers.handler.XmlStreamSplitter)).
+This option builds a full DOM tree from the document content in memory. For large files, be cautious—this can use a lot of memory. For better performance with big files, consider a streaming approach like (e.g., `XmlStreamSplitter`).
 
 The [jsoup](http://jsoup.org/) parser library is used to load a document content into a DOM tree. Elements are referenced using a [CSS or JQuery-like syntax](http://jsoup.org/cookbook/extracting-data/selector-syntax).
 
@@ -105,7 +105,7 @@ Sets the character encoding of the source document to ensure proper reading and 
 
 The following example splits contant found in an HTML document, each one being stored within a div with a class named "contact".
 
-<ConfigExample
+<ConfigBlock
   json={{
     "handler": {
       "class": "DomSplitter",
@@ -118,7 +118,7 @@ The following example splits contant found in an HTML document, each one being s
 
 The following example splits content from a field named `embedded_file`, but only when the content type is `text/html`. It targets HTML elements matching the `div.contact` selector within that field
 
-<ConfigExample
+<ConfigBlock
   json={{
     "handler": {
       "class": "DomSplitter",

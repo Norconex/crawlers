@@ -124,7 +124,7 @@ class WebDriverFactoryTest {
     }
 
     private boolean isLocalFirefoxAvailable() {
-        return AbstractWebDriverHttpFetcherTest.isLocalBrowserDetectable(
+        return AbstractWebDriverHttpFetcherIT.isLocalBrowserDetectable(
                 WebDriverBrowser.FIREFOX);
     }
 }

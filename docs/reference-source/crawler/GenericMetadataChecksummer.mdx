@@ -13,7 +13,7 @@ Use one or more matching metadata field values.
 
 ## Notes
 
-TODO: Add notes.
+Generates a checksum from the values of one or more matching metadata fields to detect document changes between crawl sessions. When a document's metadata checksum matches its previous value, the document is considered unchanged.
 
 ## Properties
 
@@ -37,7 +37,7 @@ A target field name used to store the value.
 
 The following example uses a combination of two (fictitious) fields  called "docLastModified" and "docSize" to make the checksum.
 
-<ConfigExample
+<ConfigBlock
   json={{
     "metadataChecksummer": {
       "class": "GenericMetadataChecksummer",

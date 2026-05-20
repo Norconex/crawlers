@@ -9,17 +9,17 @@ propertyCoverage: all
 
 ## Summary
 
-TODO
+Evaluates to true when matching document fields are blank or empty.
 
 ## Notes
 
-TODO: Add notes.
+Evaluates to true when one or more matching document fields are blank (null, empty, or whitespace-only). Useful in importer flow control to route documents that are missing or have empty values for specific fields.
 
 ## Properties
 
 ### fieldMatcher
 
-TODO: Add documentation for this property.
+Matches document fields based on specified patterns and methods. Use this to restrict the handler to operate only on fields whose names satisfy the matcher criteria.
 
 ### matchAnyBlank
 

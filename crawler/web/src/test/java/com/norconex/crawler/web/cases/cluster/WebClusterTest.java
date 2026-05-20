@@ -24,9 +24,9 @@ import org.junit.jupiter.api.Timeout.ThreadMode;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 
-import com.norconex.crawler.web.WebCrawlConfig;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 
 /**
@@ -38,19 +38,19 @@ class WebClusterTest {
 
     private static final int SITE_DEPTH = 20;
 
-    @WebCrawlTest(
+    @WebCrawlingTest(
         config = """
             maxDepth: 10
             """
     )
-    void testMaxDepth(ClientAndServer client, WebCrawlConfig config)
+    void testMaxDepth(ClientAndServer client, WebCrawlerConfig config)
             throws Exception {
 
         MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 
         config.setStartReferences(
                 List.of(serverUrl(client, "/clusterTest/0000")));
-        var captures = WebCrawlTestCapturer.crawlAndCapture(config);
+        var captures = WebCrawlingTestCapturer.crawlAndCapture(config);
 
         // 0-depth + 10 others == 11 expected files
         assertThat(captures.getCommitter().getRequestCount()).isEqualTo(11);

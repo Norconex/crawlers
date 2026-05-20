@@ -9,11 +9,11 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Delete Rejected Event Listener.
+Sends deletion requests to the committer when documents are rejected or not found.
 
 ## Notes
 
-TODO: Add notes.
+Listens for crawler rejection events (such as "not found" or "filtered") and sends a deletion request to the committer for the affected document. Useful for keeping the index clean when documents are removed from or filtered out of the source.
 
 ## Properties
 
@@ -25,7 +25,7 @@ TODO: Add documentation for this property.
 
 The following example will send deletion requests whenever a reference  is not found (e.g., a 404 response from a web server) or if it was  filtered out by the crawler.
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "DeleteRejectedEventListener",
     "eventMatcher": {

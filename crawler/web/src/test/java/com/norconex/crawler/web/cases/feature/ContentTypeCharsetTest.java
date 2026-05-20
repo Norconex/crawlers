@@ -28,10 +28,10 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.importer.doc.DocMetaConstants;
 import org.junit.jupiter.api.Timeout;
 
@@ -44,9 +44,9 @@ import org.junit.jupiter.api.Timeout;
 @Timeout(30)
 class ContentTypeCharsetTest {
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testContentTypeCharset(
-            ClientAndServer client, WebCrawlConfig cfg) {
+            ClientAndServer client, WebCrawlerConfig cfg) {
 
         var urlPath = "/contentTypeCharset";
 
@@ -76,7 +76,7 @@ class ContentTypeCharsetTest {
 
         cfg.setWorkDir(cfg.getWorkDir().resolve("1"));
         cfg.setStartReferences(List.of(serverUrl(client, urlPath)));
-        var mem1 = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem1 = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem1.getUpsertRequests()).hasSize(1);
         var doc1 = mem1.getUpsertRequests().get(0);
@@ -94,7 +94,7 @@ class ContentTypeCharsetTest {
         fetcher.getConfiguration().setForceContentTypeDetection(true);
         fetcher.getConfiguration().setForceCharsetDetection(true);
         cfg.setFetchers(List.of(fetcher));
-        var mem2 = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem2 = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem2.getUpsertRequests()).hasSize(1);
         var doc2 = mem2.getUpsertRequests().get(0);

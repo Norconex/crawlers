@@ -13,7 +13,7 @@ Filter by one or more matching metadata field values.
 
 ## Notes
 
-TODO: Add notes.
+Filters documents based on metadata field names and values using configurable text matchers. Documents are included or excluded depending on whether a specified field matches the given value pattern.
 
 ## Properties
 
@@ -33,7 +33,7 @@ Use the following fields to dictate how field values should be matched by this f
 
 The following example filters out Zip documents base on a "Content-Type" metadata field.
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "GenericMetadataFilter",
     "onMatch": "EXCLUDE",

@@ -32,8 +32,8 @@ import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContex
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipeline;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.web.doc.operations.scope.UrlScope;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.crawler.web.util.Web;
 import com.norconex.importer.doc.Doc;
 
@@ -44,24 +44,24 @@ class PostImportLinksStageTest {
     // Pass-through cases (always return true)
     // -----------------------------------------------------------------------
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testBlankPatternPassesThrough(CrawlContext ctx) {
         // Default postImportLinks has an empty pattern → no-op, always true
         Web.config(ctx).setPostImportLinks(new TextMatcher()); // blank pattern
 
         var result = runStage(ctx, "http://example.com/page.html",
-                new WebCrawlEntry("http://example.com/page.html", 0));
+                new WebCrawlerEntry("http://example.com/page.html", 0));
 
         assertThat(result).isTrue();
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testNoMatchingFieldsPassesThrough(CrawlContext ctx)
             throws IOException {
         // Pattern set but no metadata field matches it → no-op, always true
         Web.config(ctx).setPostImportLinks(TextMatcher.basic("myLinks"));
 
-        var entry = new WebCrawlEntry("http://example.com/page.html", 0);
+        var entry = new WebCrawlerEntry("http://example.com/page.html", 0);
         try (@SuppressWarnings("resource")
         var doc = new Doc("http://example.com/page.html").setInputStream(
                 new CachedStreamFactory(1, 1).newInputStream())) {
@@ -84,7 +84,7 @@ class PostImportLinksStageTest {
     // In-scope URLs get queued
     // -----------------------------------------------------------------------
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testInScopeUrlsAreQueued(CrawlContext ctx) {
         Web.config(ctx).setPostImportLinks(TextMatcher.basic("myLinks"));
         // Accept all URLs as in-scope
@@ -99,7 +99,7 @@ class PostImportLinksStageTest {
         var url1 = "http://example.com/link1.html";
         var url2 = "http://example.com/link2.html";
 
-        var entry = new WebCrawlEntry("http://example.com/page.html", 1);
+        var entry = new WebCrawlerEntry("http://example.com/page.html", 1);
         var doc = buildDocWithLinks("http://example.com/page.html",
                 "myLinks", url1, url2);
 
@@ -123,7 +123,7 @@ class PostImportLinksStageTest {
     // Out-of-scope URLs are not queued
     // -----------------------------------------------------------------------
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testOutOfScopeUrlsNotQueued(CrawlContext ctx) {
         Web.config(ctx).setPostImportLinks(TextMatcher.basic("myLinks"));
         // Reject all URLs as out-of-scope
@@ -131,7 +131,7 @@ class PostImportLinksStageTest {
                 (src, target) -> UrlScope.out("all out of scope"));
 
         var url = "http://external.com/link.html";
-        var entry = new WebCrawlEntry("http://example.com/page.html", 0);
+        var entry = new WebCrawlerEntry("http://example.com/page.html", 0);
         var doc = buildDocWithLinks("http://example.com/page.html",
                 "myLinks", url);
 
@@ -155,14 +155,14 @@ class PostImportLinksStageTest {
     // postImportLinksKeep = false → field is removed from metadata
     // -----------------------------------------------------------------------
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testLinksFieldRemovedWhenKeepIsFalse(CrawlContext ctx) {
         Web.config(ctx).setPostImportLinks(TextMatcher.basic("myLinks"));
         Web.config(ctx).setPostImportLinksKeep(false); // default is false
         Web.config(ctx).setUrlScopeResolver(
                 (src, target) -> UrlScope.out("out"));
 
-        var entry = new WebCrawlEntry("http://example.com/page.html", 0);
+        var entry = new WebCrawlerEntry("http://example.com/page.html", 0);
         var doc = buildDocWithLinks("http://example.com/page.html",
                 "myLinks", "http://example.com/link.html");
 
@@ -185,7 +185,7 @@ class PostImportLinksStageTest {
     // postImportLinksKeep = true → field is retained in metadata
     // -----------------------------------------------------------------------
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testLinksFieldKeptWhenKeepIsTrue(CrawlContext ctx) {
         Web.config(ctx).setPostImportLinks(TextMatcher.basic("myLinks"));
         Web.config(ctx).setPostImportLinksKeep(true);
@@ -193,7 +193,7 @@ class PostImportLinksStageTest {
                 (src, target) -> UrlScope.out("out"));
 
         var url = "http://example.com/link.html";
-        var entry = new WebCrawlEntry("http://example.com/page.html", 0);
+        var entry = new WebCrawlerEntry("http://example.com/page.html", 0);
         var doc = buildDocWithLinks("http://example.com/page.html",
                 "myLinks", url);
 
@@ -216,7 +216,7 @@ class PostImportLinksStageTest {
     // Deduplication: URL already in referencedUrls is not re-queued
     // -----------------------------------------------------------------------
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testDuplicateUrlsNotRequeued(CrawlContext ctx) {
         Web.config(ctx).setPostImportLinks(TextMatcher.basic("myLinks"));
         Web.config(ctx).setUrlScopeResolver(
@@ -230,7 +230,7 @@ class PostImportLinksStageTest {
         var alreadyExtracted = "http://example.com/already.html";
         var newUrl = "http://example.com/new.html";
 
-        var entry = new WebCrawlEntry("http://example.com/page.html", 0);
+        var entry = new WebCrawlerEntry("http://example.com/page.html", 0);
         // Pre-load the already-extracted URL to simulate prior link extraction
         entry.setReferencedUrls(List.of(alreadyExtracted));
 
@@ -271,7 +271,7 @@ class PostImportLinksStageTest {
 
     @SuppressWarnings("resource")
     private static boolean runStage(
-            CrawlContext ctx, String ref, WebCrawlEntry entry) {
+            CrawlContext ctx, String ref, WebCrawlerEntry entry) {
         var doc = new Doc(ref).setInputStream(
                 new CachedStreamFactory(1, 1).newInputStream());
         var docCtx = CrawlDocContext.builder()

@@ -21,8 +21,8 @@ import java.io.Reader;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.commons.lang.bean.BeanMapper;
@@ -50,7 +50,7 @@ class WebCrawlerConfigTest {
             try (Reader r = new InputStreamReader(
                     getClass().getResourceAsStream(
                             "/validation/web-crawl-config-large.xml"))) {
-                var cfg = new WebCrawlConfig();
+                var cfg = new WebCrawlerConfig();
                 BeanMapper.DEFAULT.read(cfg, r, Format.XML);
                 BeanMapper.DEFAULT.assertWriteRead(cfg);
             } catch (Exception e) {

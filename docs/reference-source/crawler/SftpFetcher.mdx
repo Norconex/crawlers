@@ -13,7 +13,7 @@ SSH/Secure File Transfer Protocol.
 
 ## Notes
 
-TODO: Add notes.
+Fetches documents from SFTP (SSH File Transfer Protocol) servers. Supports credentials, compression, known hosts verification, preferred authentication method ordering, file name encoding, and strict host key checking.
 
 ## Properties
 
@@ -31,7 +31,7 @@ Username and password required to connect.
 
 ### domain
 
-TODO: Add documentation for this property.
+The domain name for authentication when accessing the remote resource.
 
 ### fileNameEncoding
 
@@ -47,7 +47,7 @@ Comma-separated order of authentication methods to try  (e.g., `publickey,passwo
 
 ### referenceFilters
 
-TODO: Add documentation for this property.
+Filters applied to document references (URLs or file paths) to control which ones are fetched. Documents whose references do not pass the filters are skipped.
 
 ### strictHostKeyChecking
 
@@ -55,4 +55,4 @@ Whether to verify the host key ("yes", "no" or "ask").
 
 ### userDirIsRoot
 
-TODO: Add documentation for this property.
+When enabled, the user's home directory on the remote server is treated as the root directory for navigation.

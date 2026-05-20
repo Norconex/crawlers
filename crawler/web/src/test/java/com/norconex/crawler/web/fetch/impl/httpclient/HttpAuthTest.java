@@ -32,10 +32,10 @@ import org.mockserver.model.HttpResponse;
 import org.mockserver.model.HttpStatusCode;
 
 import com.norconex.commons.lang.security.Credentials;
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 
 @MockServerSettings
@@ -47,9 +47,9 @@ class HttpAuthTest {
     private final String wrongFormActionPath = "/wrongFormAction";
     private final String protectedPath = "/protected.html";
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testBasicAuthentication(
-            ClientAndServer client, WebCrawlConfig cfg) {
+            ClientAndServer client, WebCrawlerConfig cfg) {
         client.reset();
         var protectedUrl = serverUrl(client, protectedPath);
 
@@ -86,7 +86,7 @@ class HttpAuthTest {
         fetchCfg.setIfModifiedSinceDisabled(true);
         fetchCfg.setSniDisabled(true);
         cfg.setStartReferences(List.of(protectedUrl));
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg)
                 .getCommitter();
 
         assertThat(mem.getUpsertCount()).isOne();
@@ -102,14 +102,14 @@ class HttpAuthTest {
         fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
         fetchCfg.setAuthentication(authCfg);
         cfg.setStartReferences(List.of(protectedUrl));
-        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertCount()).isZero();
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testFormAuthenticationUsingLoginPageWithGoodCredentials(
-            ClientAndServer client, WebCrawlConfig cfg) {
+            ClientAndServer client, WebCrawlerConfig cfg) {
         client.reset();
         var loginFormUrl = serverUrl(client, loginFormPath);
         var protectedUrl = serverUrl(client, protectedPath);
@@ -120,15 +120,15 @@ class HttpAuthTest {
         var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
         fetchCfg.setAuthentication(authConfirm(
                 loginFormUrl, "gooduser", "goodpassword"));
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg)
                 .getCommitter();
         var doc = mem.getUpsertRequests().get(0);
         assertThat(WebTestUtil.docText(doc)).isEqualTo("You got it!");
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testFormAuthenticationUsingLoginPageWithBadCredentials(
-            ClientAndServer client, WebCrawlConfig cfg) {
+            ClientAndServer client, WebCrawlerConfig cfg) {
         client.reset();
         var loginFormUrl = serverUrl(client, loginFormPath);
         var protectedUrl = serverUrl(client, protectedPath);
@@ -139,15 +139,15 @@ class HttpAuthTest {
         var fetchCfg = WebTestUtil.firstHttpFetcherConfig(cfg);
         fetchCfg.setAuthentication(authConfirm(
                 loginFormUrl, "baduser", "badpassword"));
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg)
                 .getCommitter();
 
         assertThat(mem.getUpsertCount()).isZero();
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testFormAuthenticationUsingActionUrlWithGoodCredentials(
-            ClientAndServer client, WebCrawlConfig cfg) {
+            ClientAndServer client, WebCrawlerConfig cfg) {
         client.reset();
         var loginFormActionUrl = serverUrl(client, loginFormActionPath);
         var protectedUrl = serverUrl(client, protectedPath);
@@ -160,7 +160,7 @@ class HttpAuthTest {
                 loginFormActionUrl, "gooduser", "goodpassword");
         authCfg.setFormSelector(null);
         fetchCfg.setAuthentication(authCfg);
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg)
                 .getCommitter();
 
         assertThat(mem.getUpsertRequests()).isNotEmpty();
@@ -168,9 +168,9 @@ class HttpAuthTest {
         assertThat(WebTestUtil.docText(doc)).isEqualTo("You got it!");
     }
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testFormAuthenticationUsingActionUrlWithBadCredentials(
-            ClientAndServer client, WebCrawlConfig cfg) {
+            ClientAndServer client, WebCrawlerConfig cfg) {
         client.reset();
         var loginFormActionUrl = serverUrl(client, loginFormActionPath);
         var protectedUrl = serverUrl(client, protectedPath);
@@ -183,7 +183,7 @@ class HttpAuthTest {
                 loginFormActionUrl, "baduser", "badpassword");
         authCfg.setFormSelector(null);
         fetchCfg.setAuthentication(authCfg);
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg)
                 .getCommitter();
 
         assertThat(mem.getUpsertCount()).isZero();

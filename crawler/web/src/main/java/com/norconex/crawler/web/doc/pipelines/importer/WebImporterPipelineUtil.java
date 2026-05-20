@@ -23,7 +23,7 @@ import com.norconex.crawler.web.doc.WebProcessingOutcome;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
 import com.norconex.crawler.web.fetch.WebFetchResponse;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetchResponse;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.crawler.web.util.Web;
 
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +45,7 @@ public final class WebImporterPipelineUtil {
         var crawlContext = crawlSession.getCrawlContext();
         var crawlEntryLedger = crawlContext.getCrawlEntryLedger();
         var docContext =
-                (WebCrawlEntry) ctx.getDocContext()
+                (WebCrawlerEntry) ctx.getDocContext()
                         .getCurrentCrawlEntry();
         String sourceURL = docContext.getReference();
         docContext.setRedirectTarget(redirectTargetURL);
@@ -150,7 +150,7 @@ public final class WebImporterPipelineUtil {
         }
 
         //--- Fresh URL, queue it! ---
-        var newRec = new WebCrawlEntry(
+        var newRec = new WebCrawlerEntry(
                 redirectTargetURL, docContext.getDepth());
         newRec.setReferrerReference(docContext.getReferrerReference());
         newRec.setReferrerLinkMetadata(

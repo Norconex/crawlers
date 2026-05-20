@@ -35,11 +35,11 @@ import org.mockserver.model.HttpResponse;
 import org.mockserver.model.HttpStatusCode;
 
 import com.norconex.committer.core.CommitterException;
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 
 /**
  * Tests that the "If-Modified-Since" is supported properly.
@@ -68,8 +68,8 @@ class IfModifiedSinceTest {
 
     private static ZonedDateTime serverDate = null;
 
-    @WebCrawlTest
-    void testIfModifiedSince(ClientAndServer client, WebCrawlConfig cfg)
+    @WebCrawlingTest
+    void testIfModifiedSince(ClientAndServer client, WebCrawlerConfig cfg)
             throws CommitterException {
         serverDate = fiveDaysAgo;
 
@@ -87,19 +87,19 @@ class IfModifiedSinceTest {
                 .getConfiguration().setETagDisabled(true);
 
         // First run is new
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg)
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg)
                 .getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
         // Second run got the same date, so not modified
-        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isZero();
         mem.clean();
 
         // Third run got different date, so modified
         serverDate = today;
-        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
@@ -107,7 +107,7 @@ class IfModifiedSinceTest {
         // so modified
         WebTestUtil.firstHttpFetcherConfig(cfg)
                 .setIfModifiedSinceDisabled(true);
-        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
     }

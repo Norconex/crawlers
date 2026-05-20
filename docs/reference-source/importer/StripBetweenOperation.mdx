@@ -9,11 +9,11 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Strip Between Operation.
+A start/end delimiter pair defining a text region to strip.
 
 ## Notes
 
-TODO: Add notes.
+Defines a pair of start and end string matchers used by the StripBetweenTransformer to identify a region of text to remove. The `inclusive` flag controls whether the start and end delimiters themselves are also removed.
 
 ## Properties
 
@@ -23,8 +23,8 @@ TODO: Add documentation for this property.
 
 ### inclusive
 
-TODO: Add documentation for this property.
+When `true`, documents matching the criteria are included (accepted); when `false`, matching documents are excluded (rejected).
 
 ### startMatcher
 
-TODO: Add documentation for this property.
+Restricts which start references are processed, based on a pattern match against each reference.

@@ -65,17 +65,12 @@ public class CrawlCommand implements Command {
         Thread.currentThread().setName(ctx.getId() + "/CRAWL");
         session.fire(CrawlerEvent.CRAWLER_CRAWL_BEGIN, session);
 
-        //XXX START TEST
-
         if (CollectionUtils.isNotEmpty(ctx.getBootstrappers())) {
             session.oncePerRun("crawl-bootstrappers", () -> {
                 LOG.info("Running bootstrappers...");
-                //TODO XXX rename getCrawlBootstrappers() or crawlRunBootstrappers
                 ctx.getBootstrappers().forEach(boot -> boot.bootstrap(session));
             });
-
         }
-        //XXX END TEST
 
         // Start monitoring for stop signals (crawl nodes only)
         session.getCluster().startStopMonitoring();

@@ -9,11 +9,11 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Text Between Operation.
+A start/end delimiter pair defining a text region to extract and store.
 
 ## Notes
 
-TODO: Add notes.
+Defines a pair of start and end string matchers used by the TextBetweenTransformer to identify and extract a region of text. The extracted text is stored in the specified target field. The `inclusive` flag controls whether the matched delimiters are included in the extracted value.
 
 ## Properties
 
@@ -23,20 +23,20 @@ TODO: Add documentation for this property.
 
 ### fieldMatcher
 
-TODO: Add documentation for this property.
+Matches document fields based on specified patterns and methods. Use this to restrict the handler to operate only on fields whose names satisfy the matcher criteria.
 
 ### inclusive
 
-TODO: Add documentation for this property.
+When `true`, documents matching the criteria are included (accepted); when `false`, matching documents are excluded (rejected).
 
 ### onSet
 
-TODO: Add documentation for this property.
+Defines what to do when the target field already has one or more values. When unspecified, new values are appended to existing ones by default.
 
 ### startMatcher
 
-TODO: Add documentation for this property.
+Restricts which start references are processed, based on a pattern match against each reference.
 
 ### toField
 
-TODO: Add documentation for this property.
+The target metadata field name where the extracted or computed value will be stored. If a field of the same name already exists, the behavior is controlled by `onSet`.

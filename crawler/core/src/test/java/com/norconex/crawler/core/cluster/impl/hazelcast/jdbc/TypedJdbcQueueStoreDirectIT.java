@@ -36,6 +36,7 @@ import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastConfigurerConte
 import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
+
 /**
  * Direct unit tests for {@link TypedJdbcQueueStore} covering
  * {@code storeAll()}, {@code store()}, {@code load()}, and {@code loadAll()}

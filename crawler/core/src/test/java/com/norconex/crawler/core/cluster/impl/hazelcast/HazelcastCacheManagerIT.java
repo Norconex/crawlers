@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Timeout;
 import com.hazelcast.core.HazelcastInstance;
 import com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListener;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
+
 /**
  * Tests for {@link HazelcastCacheManager} covering methods not exercised by
  * map/queue adapter tests (cacheExists, clearCaches, getCacheSet,

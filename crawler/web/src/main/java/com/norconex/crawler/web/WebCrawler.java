@@ -53,7 +53,8 @@ public final class WebCrawler {
      * @return execution status code
      */
     public static int launch(String... args) {
-        return CliCrawlerLauncher.launch(WebCrawlDriverFactory.create(), args);
+        return CliCrawlerLauncher.launch(WebCrawlerDriverFactory.create(),
+                args);
     }
 
     /**
@@ -61,7 +62,7 @@ public final class WebCrawler {
      * @param crawlerConfig Web Crawler configuration
      * @return crawler
      */
-    public static Crawler create(WebCrawlConfig crawlerConfig) {
-        return new Crawler(WebCrawlDriverFactory.create(), crawlerConfig);
+    public static Crawler create(WebCrawlerConfig crawlerConfig) {
+        return new Crawler(WebCrawlerDriverFactory.create(), crawlerConfig);
     }
 }

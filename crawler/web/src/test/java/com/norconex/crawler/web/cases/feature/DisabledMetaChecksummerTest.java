@@ -26,10 +26,10 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 import org.mockserver.model.MediaType;
 
 import com.norconex.committer.core.CommitterException;
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import org.junit.jupiter.api.Timeout;
 
@@ -45,9 +45,9 @@ class DisabledMetaChecksummerTest {
 
     private final String path = "/disabledMetaChecksummer";
 
-    @WebCrawlTest
+    @WebCrawlingTest
     void testDisabledMetaChecksummer(
-            ClientAndServer client, WebCrawlConfig cfg)
+            ClientAndServer client, WebCrawlerConfig cfg)
             throws CommitterException {
 
         cfg.setStartReferences(List.of(serverUrl(client, path)));
@@ -55,19 +55,19 @@ class DisabledMetaChecksummerTest {
 
         // first time, 1 new doc
         whenMetaChanges(client, 10, "abc");
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isOne();
         mem.clean();
 
         // second time, meta changes but not body
         whenMetaChanges(client, 8, "def");
-        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isZero();
         mem.clean();
 
         // third time, meta changes but not body
         whenMetaChanges(client, 4, "ghi");
-        mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(mem.getUpsertCount()).isZero();
         mem.clean();
     }

@@ -33,7 +33,7 @@ import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableRe
 import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableResolverConfig.MinFrequency.ApplyTo;
 import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableResolverConfig.SitemapSupport;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapChangeFrequency;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -80,7 +80,7 @@ public class GenericRecrawlableResolver implements
             new GenericRecrawlableResolverConfig();
 
     @Override
-    public boolean isRecrawlable(WebCrawlEntry prevData) {
+    public boolean isRecrawlable(WebCrawlerEntry prevData) {
 
         // if never crawled: yes, crawl it
         if (prevData.getProcessedAt() == null) {
@@ -112,7 +112,7 @@ public class GenericRecrawlableResolver implements
         return true;
     }
 
-    private MinFrequency getMatchingMinFrequency(WebCrawlEntry prevData) {
+    private MinFrequency getMatchingMinFrequency(WebCrawlerEntry prevData) {
         for (MinFrequency f : configuration.getMinFrequencies()) {
             var applyTo = ofNullable(f.getApplyTo()).orElse(ApplyTo.REFERENCE);
             var matchMe = applyTo == ApplyTo.REFERENCE
@@ -127,16 +127,16 @@ public class GenericRecrawlableResolver implements
         return null;
     }
 
-    private boolean hasSitemapFrequency(WebCrawlEntry prevData) {
+    private boolean hasSitemapFrequency(WebCrawlerEntry prevData) {
         return StringUtils.isNotBlank(prevData.getSitemapChangeFreq());
     }
 
-    private boolean hasSitemapLastModified(WebCrawlEntry prevData) {
+    private boolean hasSitemapLastModified(WebCrawlerEntry prevData) {
         return prevData.getSitemapLastMod() != null;
     }
 
     private boolean isRecrawlableFromMinFrequencies(
-            MinFrequency f, WebCrawlEntry prevData) {
+            MinFrequency f, WebCrawlerEntry prevData) {
         var value = f.getValue();
         if (StringUtils.isBlank(value)) {
             return true;
@@ -186,7 +186,7 @@ public class GenericRecrawlableResolver implements
         return false;
     }
 
-    private boolean isRecrawlableFromSitemap(WebCrawlEntry prevData) {
+    private boolean isRecrawlableFromSitemap(WebCrawlerEntry prevData) {
 
         // If sitemap specifies a last modified date and it is more recent
         // than the the document last crawl date, recrawl it (otherwise don't).
@@ -222,7 +222,7 @@ public class GenericRecrawlableResolver implements
     }
 
     private boolean isRecrawlableFromFrequency(
-            SitemapChangeFrequency cf, WebCrawlEntry prevData,
+            SitemapChangeFrequency cf, WebCrawlerEntry prevData,
             String context) {
         if (cf == null) {
             return true;

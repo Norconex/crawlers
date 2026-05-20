@@ -39,7 +39,7 @@ import com.norconex.committer.core.UpsertRequest;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.doc.operations.scope.impl.GenericUrlScopeResolver;
 import com.norconex.crawler.web.fetch.util.HstsResolver;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
 
 /**
@@ -248,7 +248,7 @@ class StrictTransportSecurityTest {
         }
 
         try {
-            var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+            var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
             assertThat(mem.getUpsertRequests())
                     .map(UpsertRequest::getReference)

@@ -20,7 +20,7 @@ import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.web.doc.pipelines.importer.WebImporterPipelineContext;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 
 /**
  * Robots Meta NoIndex Check.
@@ -34,7 +34,7 @@ public class RobotsMetaNoIndexStage extends AbstractImporterStage {
                 || !ctx.getRobotsMeta().isNoindex();
         if (!canIndex) {
             var crawlSession = ctx.getCrawlSession();
-            var docEntry = (WebCrawlEntry) ctx.getDocContext()
+            var docEntry = (WebCrawlerEntry) ctx.getDocContext()
                     .getCurrentCrawlEntry();
             crawlSession.fire(
                     CrawlerEvent.builder()

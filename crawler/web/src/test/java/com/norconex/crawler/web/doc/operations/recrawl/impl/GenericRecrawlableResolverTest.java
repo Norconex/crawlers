@@ -33,7 +33,7 @@ import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableResolverConfig.MinFrequency;
 import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableResolverConfig.MinFrequency.ApplyTo;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.crawler.web.doc.operations.recrawl.impl.GenericRecrawlableResolverConfig.SitemapSupport;
 
 import lombok.extern.slf4j.Slf4j;
@@ -69,7 +69,7 @@ class GenericRecrawlableResolverTest {
 
         var prevCrawlDate = ZonedDateTime.now().minusDays(10);
 
-        var prevCrawl = new WebCrawlEntry();
+        var prevCrawl = new WebCrawlerEntry();
         prevCrawl.setReference("http://example.com");
         prevCrawl.setProcessedAt(prevCrawlDate);
 
@@ -109,7 +109,7 @@ class GenericRecrawlableResolverTest {
         var r = new GenericRecrawlableResolver();
         BeanMapper.DEFAULT.read(r, new StringReader(xml), Format.XML);
         var prevCrawlDate = ZonedDateTime.now().minusDays(10);
-        var prevCrawl = new WebCrawlEntry();
+        var prevCrawl = new WebCrawlerEntry();
         prevCrawl.setReference("http://example.com");
         prevCrawl.setProcessedAt(prevCrawlDate);
 
@@ -149,10 +149,10 @@ class GenericRecrawlableResolverTest {
             String minFreqApplyTo,
             String minFreqValue,
             boolean expected) {
-        WebCrawlEntry prevRec;
+        WebCrawlerEntry prevRec;
         var url = "http://test.com/yes.html";
         var resolver = new GenericRecrawlableResolver();
-        prevRec = new WebCrawlEntry(url);
+        prevRec = new WebCrawlerEntry(url);
         prevRec.setContentType(ContentType.HTML);
         prevRec.setProcessedAt(ZonedDateTime.now().minusDays(3));
         prevRec.setSitemapChangeFreq(sitemapChangeFreq);
@@ -188,7 +188,7 @@ class GenericRecrawlableResolverTest {
         // no last crawl date
         assertThat(
                 new GenericRecrawlableResolver().isRecrawlable(
-                        new WebCrawlEntry(
+                        new WebCrawlerEntry(
                                 "http://blah.com")))
                                         .isTrue();
     }

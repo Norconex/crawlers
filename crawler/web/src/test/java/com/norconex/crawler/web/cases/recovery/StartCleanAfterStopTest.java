@@ -32,8 +32,8 @@ import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.test.CrawlTestHarness;
 import com.norconex.crawler.core.test.CrawlTestInstrument;
-import com.norconex.crawler.web.WebCrawlDriverFactory;
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerDriverFactory;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
 import com.norconex.crawler.web.mocks.MockWebsite;
 
@@ -61,13 +61,13 @@ class StartCleanAfterStopTest {
 
         var instrument = new CrawlTestInstrument()
                 .setDriverSupplierClass(
-                        WebCrawlDriverFactory.class)
+                        WebCrawlerDriverFactory.class)
                 .setRecordEvents(true)
                 .setWorkDir(tempDir)
                 .setNewJvm(false)
                 .setClustered(false)
                 .setConfigModifier(cfg -> {
-                    var webCfg = (WebCrawlConfig) cfg;
+                    var webCfg = (WebCrawlerConfig) cfg;
                     webCfg.setId("test-startclean-after-stop");
                     webCfg.setStartReferences(
                             List.of(serverUrl(
@@ -89,7 +89,7 @@ class StartCleanAfterStopTest {
             harness.waitFor(Duration.ofSeconds(12))
                     .anyNodeToHaveFired(
                             CrawlerEvent.DOCUMENT_IMPORTED);
-            new Crawler(WebCrawlDriverFactory.create(),
+            new Crawler(WebCrawlerDriverFactory.create(),
                     harness.getFirstNodeConfig()).stop();
             var firstResult =
                     futureResult.get(40, TimeUnit.SECONDS);
@@ -99,12 +99,12 @@ class StartCleanAfterStopTest {
             assertThat(firstTotalCount).isBetween(1, MAX_DOCS - 1);
 
             //--- Clean previous crawl stores ---
-            new Crawler(WebCrawlDriverFactory.create(),
+            new Crawler(WebCrawlerDriverFactory.create(),
                     harness.getFirstNodeConfig()).clean();
 
             //--- Fresh start (clean state, should process MAX_DOCS from scratch) ---
             instrument.setConfigModifier(cfg -> {
-                var webCfg = (WebCrawlConfig) cfg;
+                var webCfg = (WebCrawlerConfig) cfg;
                 webCfg.setId("test-startclean-after-stop");
                 webCfg.setStartReferences(
                         List.of(serverUrl(client, path

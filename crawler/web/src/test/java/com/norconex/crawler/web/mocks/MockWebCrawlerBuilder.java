@@ -18,8 +18,8 @@ import java.nio.file.Path;
 
 import com.norconex.crawler.core.CrawlConfig;
 import com.norconex.crawler.core.Crawler;
-import com.norconex.crawler.web.WebCrawlDriverFactory;
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerDriverFactory;
+import com.norconex.crawler.web.WebCrawlerConfig;
 
 /**
  * Builder for creating a web crawler instance for testing.
@@ -31,7 +31,7 @@ public final class MockWebCrawlerBuilder {
 
     public MockWebCrawlerBuilder(Path workDir) {
         this.workDir = workDir;
-        this.config = new WebCrawlConfig();
+        this.config = new WebCrawlerConfig();
     }
 
     public MockWebCrawlerBuilder config(CrawlConfig config) {
@@ -41,6 +41,6 @@ public final class MockWebCrawlerBuilder {
 
     public Crawler build() {
         config.setWorkDir(workDir);
-        return new Crawler(WebCrawlDriverFactory.create(), config);
+        return new Crawler(WebCrawlerDriverFactory.create(), config);
     }
 }

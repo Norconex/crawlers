@@ -104,7 +104,7 @@ import com.norconex.crawler.web.fetch.WebFetchResponse;
 import com.norconex.crawler.web.fetch.util.ApacheHttpUtil;
 import com.norconex.crawler.web.fetch.util.ApacheRedirectCaptureStrategy;
 import com.norconex.crawler.web.fetch.util.HstsResolver;
-import com.norconex.crawler.web.ledger.WebCrawlEntry;
+import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.importer.charset.CharsetDetector;
 import com.norconex.importer.doc.ContentTypeDetector;
 import com.norconex.importer.doc.Doc;
@@ -243,7 +243,7 @@ public class HttpClientFetcher
             if (!configuration.isHstsDisabled()) {
                 var docCtx = req.getCrawlDocContext();
                 if (docCtx != null) {
-                    var crawlEntry = (WebCrawlEntry) docCtx
+                    var crawlEntry = (WebCrawlerEntry) docCtx
                             .getCurrentCrawlEntry();
                     HstsResolver.resolve(httpClient, crawlEntry);
                     requestReference = crawlEntry.getReference();
@@ -326,7 +326,7 @@ public class HttpClientFetcher
             //--- Extract headers ---
             var docCtxForHeaders = req.getCrawlDocContext();
             var webEntryForHeaders = docCtxForHeaders != null
-                    ? (WebCrawlEntry) docCtxForHeaders
+                    ? (WebCrawlerEntry) docCtxForHeaders
                             .getCurrentCrawlEntry()
                     : null;
             ApacheHttpUtil.applyResponseHeaders(

@@ -9,11 +9,11 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Dom Operation.
+A single DOM extraction or deletion operation for the DomTransformer.
 
 ## Notes
 
-TODO: Add notes.
+Defines a single DOM extraction or deletion operation for the DomTransformer. Specifies a CSS/jQuery-style selector, the element attribute or content to extract, the target metadata field, and optional behavior for blank values and default values when no match is found.
 
 ## Properties
 
@@ -27,7 +27,7 @@ TODO: Add documentation for this property.
 
 ### extract
 
-TODO: Add documentation for this property.
+Specifies what to extract from the matched DOM element (e.g., `text`, `html`, `outerHtml`, `ownText`, `data`, `id`, `tagName`, `val`, `className`, `cssSelector`, or `attr(attributeKey)`).
 
 ### matchBlanks
 
@@ -35,12 +35,12 @@ TODO: Add documentation for this property.
 
 ### onSet
 
-TODO: Add documentation for this property.
+Defines what to do when the target field already has one or more values. When unspecified, new values are appended to existing ones by default.
 
 ### selector
 
-TODO: Add documentation for this property.
+A CSS or jQuery-like selector expression identifying which DOM elements to target.
 
 ### toField
 
-TODO: Add documentation for this property.
+The target metadata field name where the extracted or computed value will be stored. If a field of the same name already exists, the behavior is controlled by `onSet`.

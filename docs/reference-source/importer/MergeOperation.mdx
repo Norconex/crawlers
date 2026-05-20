@@ -9,11 +9,11 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Merge Operation.
+A single merge operation combining matching source fields into a target field.
 
 ## Notes
 
-TODO: Add notes.
+Defines a single merge operation for the MergeTransformer. Specifies the source fields to merge (by field matcher), the target field, and whether to combine all values into a single string with an optional separator. Optionally deletes the source fields after merging.
 
 ## Properties
 
@@ -23,7 +23,7 @@ TODO: Add documentation for this property.
 
 ### fieldMatcher
 
-TODO: Add documentation for this property.
+Matches document fields based on specified patterns and methods. Use this to restrict the handler to operate only on fields whose names satisfy the matcher criteria.
 
 ### singleValue
 
@@ -35,4 +35,4 @@ TODO: Add documentation for this property.
 
 ### toField
 
-TODO: Add documentation for this property.
+The target metadata field name where the extracted or computed value will be stored. If a field of the same name already exists, the behavior is controlled by `onSet`.

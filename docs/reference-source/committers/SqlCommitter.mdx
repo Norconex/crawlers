@@ -13,7 +13,7 @@ Commit documents to an SQL table.
 
 ## Notes
 
-TODO: Add notes.
+Commits crawled documents to a relational database table using JDBC. Supports dynamic table and field creation, field mappings, field name and value sanitization, and multi-value field joining.
 
 ## Properties
 
@@ -67,11 +67,11 @@ Additional connection properties as per database vendor specifications.
 
 ### queue
 
-TODO: Add documentation for this property.
+Configures the committer queue used to batch documents before sending them to the target system. Adjust queue settings to tune throughput and memory usage.
 
 ### restrictions
 
-TODO: Add documentation for this property.
+Defines filter conditions that restrict which documents this committer processes. Documents not matching the restrictions are ignored by this committer.
 
 ### tableName
 
@@ -85,7 +85,7 @@ Table field name where to store the document content. Leave blank  if you do not
 
 The following example uses an H2 database and creates the table and  fields as they are encountered, storing all new fields as `VARCHAR`,  making sure those new fields are no longer than 5000 characters.
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "SqlCommitter",
     "driverPath": "/path/to/driver/h2.jar",

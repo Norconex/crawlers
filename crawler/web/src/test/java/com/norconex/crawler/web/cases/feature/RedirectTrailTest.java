@@ -29,10 +29,10 @@ import org.mockserver.model.HttpClassCallback;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 
-import com.norconex.crawler.web.WebCrawlConfig;
+import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.WebDocMetadata;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import org.junit.jupiter.api.Timeout;
 
 /**
@@ -45,8 +45,8 @@ class RedirectTrailTest {
 
     private static final String PATH = "/redirectTrail";
 
-    @WebCrawlTest
-    void testRedirectTrailTest(ClientAndServer client, WebCrawlConfig cfg) {
+    @WebCrawlingTest
+    void testRedirectTrailTest(ClientAndServer client, WebCrawlerConfig cfg) {
 
         client
                 .when(request(PATH))
@@ -56,7 +56,7 @@ class RedirectTrailTest {
 
         cfg.setStartReferences(List.of(baseUrl + "?index=0"));
         cfg.setMaxDepth(0);
-        var mem = WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         assertThat(mem.getUpsertCount()).isOne();
 

@@ -32,18 +32,18 @@ import org.mockserver.model.HttpResponse;
 import org.mockserver.model.HttpStatusCode;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.web.WebCrawlConfig;
-import com.norconex.crawler.web.junit.WebCrawlTest;
-import com.norconex.crawler.web.junit.WebCrawlTestCapturer;
+import com.norconex.crawler.web.WebCrawlerConfig;
+import com.norconex.crawler.web.junit.WebCrawlingTest;
+import com.norconex.crawler.web.junit.WebCrawlingTestCapturer;
 import com.norconex.crawler.web.mocks.MockWebsite;
 import org.junit.jupiter.api.Timeout;
 
 @MockServerSettings
 @Timeout(60)
 class UrlStatusCrawlerEventListenerTest {
-    @WebCrawlTest
+    @WebCrawlingTest
     void testURLStatusCrawlerEventListener(
-            ClientAndServer client, WebCrawlConfig cfg) throws IOException {
+            ClientAndServer client, WebCrawlerConfig cfg) throws IOException {
 
         var urlStatusListener = new UrlStatusCrawlerEventListener();
         urlStatusListener.getConfiguration()
@@ -74,7 +74,7 @@ class UrlStatusCrawlerEventListenerTest {
                 serverUrl(client, ok2Path),
                 serverUrl(client, errorPath)))
                 .addEventListener(urlStatusListener);
-        WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
         var file = FileUtils.listFiles(
                 cfg.getWorkDir().resolve("statuses").toFile(), null, false)
@@ -103,7 +103,7 @@ class UrlStatusCrawlerEventListenerTest {
                 serverUrl(client, ok2Path),
                 serverUrl(client, errorPath)))
                 .addEventListener(urlStatusListener);
-        WebCrawlTestCapturer.crawlAndCapture(cfg).getCommitter();
+        WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
         assertThat(csvLines).size().isEqualTo(5);
 
         // test with inverted range
@@ -113,7 +113,7 @@ class UrlStatusCrawlerEventListenerTest {
                         () -> {
                             cfg.setStartReferences(List.of("http://blah.com"))
                                     .addEventListener(urlStatusListener);
-                            WebCrawlTestCapturer.crawlAndCapture(cfg)
+                            WebCrawlingTestCapturer.crawlAndCapture(cfg)
                                     .getCommitter();
                         });
 
@@ -124,7 +124,7 @@ class UrlStatusCrawlerEventListenerTest {
                         () -> {
                             cfg.setStartReferences(List.of("http://blah.com"))
                                     .addEventListener(urlStatusListener);
-                            WebCrawlTestCapturer.crawlAndCapture(cfg)
+                            WebCrawlingTestCapturer.crawlAndCapture(cfg)
                                     .getCommitter();
                         });
 
@@ -135,7 +135,7 @@ class UrlStatusCrawlerEventListenerTest {
                         () -> {
                             cfg.setStartReferences(List.of("http://blah.com"))
                                     .addEventListener(urlStatusListener);
-                            WebCrawlTestCapturer.crawlAndCapture(cfg)
+                            WebCrawlingTestCapturer.crawlAndCapture(cfg)
                                     .getCommitter();
                         });
     }

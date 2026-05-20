@@ -9,25 +9,25 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Regex Link Extractor.
+Extracts links from documents using regular expression patterns.
 
 ## Notes
 
-TODO: Add notes.
+Extracts links from documents using regular expressions. Each pattern can include a match group to capture the URL and an optional replacement expression to construct the final URL from the match. Supports content-type restrictions and URL length limits.
 
 ## Properties
 
 ### charset
 
-TODO: Add documentation for this property.
+The character encoding to use when reading or writing the document.
 
 ### contentTypeMatcher
 
-TODO: Add documentation for this property.
+Restricts processing to documents whose content type matches the specified pattern. When not set, the handler applies to all content types.
 
 ### fieldMatcher
 
-TODO: Add documentation for this property.
+Matches document fields based on specified patterns and methods. Use this to restrict the handler to operate only on fields whose names satisfy the matcher criteria.
 
 ### maxUrlLength
 
@@ -39,7 +39,7 @@ TODO: Add documentation for this property.
 
 ### restrictions
 
-TODO: Add documentation for this property.
+Defines filter conditions that restrict which documents this committer processes. Documents not matching the restrictions are ignored by this committer.
 
 ## Examples
 
@@ -47,7 +47,7 @@ The following example extracts page "ids" contained in square brackets and add t
 
 
 
-<ConfigExample
+<ConfigBlock
   json={{
     "class": "RegexLinkExtractor",
     "patterns": [

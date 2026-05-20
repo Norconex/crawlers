@@ -9,30 +9,30 @@ propertyCoverage: all
 
 ## Summary
 
-Configuration schema for Tika Link Extractor.
+Extracts links from documents using Apache Tika.
 
 ## Notes
 
-TODO: Add notes.
+Extracts links from documents using Apache Tika. Supports content-type restrictions, nofollow handling, and optional extraction from metadata fields in addition to document content.
 
 ## Properties
 
 ### contentTypeMatcher
 
-TODO: Add documentation for this property.
+Restricts processing to documents whose content type matches the specified pattern. When not set, the handler applies to all content types.
 
 ### fieldMatcher
 
-TODO: Add documentation for this property.
+Matches document fields based on specified patterns and methods. Use this to restrict the handler to operate only on fields whose names satisfy the matcher criteria.
 
 ### ignoreLinkData
 
-TODO: Add documentation for this property.
+When enabled, extra data attributes on links (such as `data-*` attributes) are ignored during link extraction.
 
 ### ignoreNofollow
 
-TODO: Add documentation for this property.
+When enabled, links marked with `rel="nofollow"` are followed and extracted anyway, ignoring the nofollow directive.
 
 ### restrictions
 
-TODO: Add documentation for this property.
+Defines filter conditions that restrict which documents this committer processes. Documents not matching the restrictions are ignored by this committer.

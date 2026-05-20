@@ -39,7 +39,7 @@ import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.session.CrawlSession;
 import com.norconex.crawler.fs.fetch.FolderPathsFetchResponse;
 import com.norconex.crawler.fs.fetch.FsPath;
-import com.norconex.crawler.fs.ledger.FsCrawlEntry;
+import com.norconex.crawler.fs.ledger.FsCrawlerEntry;
 import com.norconex.importer.doc.Doc;
 
 @Timeout(30)
@@ -51,7 +51,7 @@ class FolderPathsExtractorStageTest {
      * DocPipelines, and a CrawlDocContext wrapping the given entry.
      */
     private ImporterPipelineContext buildCtx(
-            FsCrawlEntry entry,
+            FsCrawlerEntry entry,
             Fetcher fetcher,
             QueuePipeline queuePipeline) {
 
@@ -67,7 +67,7 @@ class FolderPathsExtractorStageTest {
         when(crawlContext.getFetcher()).thenReturn(fetcher);
         when(crawlContext.getDocPipelines()).thenReturn(docPipelines);
         when(crawlContext.createCrawlEntry(any()))
-                .thenAnswer(inv -> new FsCrawlEntry(
+                .thenAnswer(inv -> new FsCrawlerEntry(
                         inv.getArgument(0, String.class)));
 
         var session = mock(CrawlSession.class);
@@ -83,7 +83,7 @@ class FolderPathsExtractorStageTest {
 
     @Test
     void testFetchExceptionWrapped() {
-        var entry = new FsCrawlEntry("file:///some/folder");
+        var entry = new FsCrawlerEntry("file:///some/folder");
         entry.setFolder(true);
 
         var fetcher = mock(Fetcher.class);
@@ -108,7 +108,7 @@ class FolderPathsExtractorStageTest {
 
     @Test
     void testFolderChildPathsQueued() {
-        var entry = new FsCrawlEntry("file:///some/folder");
+        var entry = new FsCrawlerEntry("file:///some/folder");
         entry.setFolder(true);
 
         var child1 = new FsPath("file:///some/folder/child1.txt");
@@ -141,7 +141,7 @@ class FolderPathsExtractorStageTest {
     @Test
     void testFolderAndFileEntryReturnsContinue() {
         // An entry that is both a folder and a file should return true
-        var entry = new FsCrawlEntry("file:///some/folderfile");
+        var entry = new FsCrawlerEntry("file:///some/folderfile");
         entry.setFolder(true);
         entry.setFile(true);
 
@@ -165,7 +165,7 @@ class FolderPathsExtractorStageTest {
     @Test
     void testNonFolderEntrySkipsAndReturnsFile() {
         // A file-only entry must skip folder logic and return isFile()
-        var entry = new FsCrawlEntry("file:///some/file.txt");
+        var entry = new FsCrawlerEntry("file:///some/file.txt");
         entry.setFile(true);
 
         var fetcher = mock(Fetcher.class);
