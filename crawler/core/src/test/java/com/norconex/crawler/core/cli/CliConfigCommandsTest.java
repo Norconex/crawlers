@@ -38,105 +38,105 @@ import com.norconex.crawler.core.test.standalone.StandaloneCliCrawlerLauncher;
 @Timeout(30)
 class CliConfigCommandsTest {
 
-        @TempDir
-        private Path tempDir;
+    @TempDir
+    private Path tempDir;
 
-        @Test
-        void testConfigCheckValidConfigSucceeds() {
-                // Out of the box, the default configuration should (serialize and)
-                // validate OK.
-                var config = new CrawlerConfig();
-                config.setStartReferences(List.of("http://example.com"));
+    @Test
+    void testConfigCheckValidConfigSucceeds() {
+        // Out of the box, the default configuration should (serialize and)
+        // validate OK.
+        var config = new CrawlerConfig();
+        config.setStartReferences(List.of("http://example.com"));
 
-                var exit = StandaloneCliCrawlerLauncher
-                                .builder()
-                                .args(List.of("configcheck"))
-                                .workDir(tempDir)
-                                .build()
-                                .launch(config);
+        var exit = StandaloneCliCrawlerLauncher
+                .builder()
+                .args(List.of("configcheck"))
+                .workDir(tempDir)
+                .build()
+                .launch(config);
 
-                assertThat(exit.isOK()).isTrue();
-                assertThat(exit.getStdOut()).containsIgnoringWhitespaces(
-                                "No configuration errors detected.");
-        }
+        assertThat(exit.isOK()).isTrue();
+        assertThat(exit.getStdOut()).containsIgnoringWhitespaces(
+                "No configuration errors detected.");
+    }
 
-        @Test
-        void testConfigCheckInvalidSyntaxShowsError() throws IOException {
-                var brokenConfigFile = tempDir.resolve("broken.xml");
-                Files.writeString(brokenConfigFile,
-                                "<crawler badAttr=\"badAttr\"></crawler>");
-                var captured = StandaloneCliCrawlerLauncher.capture(
-                                "configcheck", "-config=" + brokenConfigFile);
+    @Test
+    void testConfigCheckInvalidSyntaxShowsError() throws IOException {
+        var brokenConfigFile = tempDir.resolve("broken.xml");
+        Files.writeString(brokenConfigFile,
+                "<crawler badAttr=\"badAttr\"></crawler>");
+        var captured = StandaloneCliCrawlerLauncher.capture(
+                "configcheck", "-config=" + brokenConfigFile);
 
-                assertThat(captured.getReturnValue()).isNotZero();
-                assertThat(captured.getStdErr()).contains(
-                                "Unrecognized field \"badAttr\"");
-        }
+        assertThat(captured.getReturnValue()).isNotZero();
+        assertThat(captured.getStdErr()).contains(
+                "Unrecognized field \"badAttr\"");
+    }
 
-        @Test
-        void testConfigCheckConstraintViolationShowsError() throws IOException {
-                var invalidConfigFile = tempDir.resolve("invalid.xml");
-                Files.writeString(invalidConfigFile,
-                                "<crawler numThreads=\"0\"></crawler>");
-                var captured = StandaloneCliCrawlerLauncher.capture(
-                                "configcheck", "-config=" + invalidConfigFile);
+    @Test
+    void testConfigCheckConstraintViolationShowsError() throws IOException {
+        var invalidConfigFile = tempDir.resolve("invalid.xml");
+        Files.writeString(invalidConfigFile,
+                "<crawler numThreads=\"0\"></crawler>");
+        var captured = StandaloneCliCrawlerLauncher.capture(
+                "configcheck", "-config=" + invalidConfigFile);
 
-                assertThat(captured.getReturnValue()).isNotZero();
-                assertThat(captured.getStdErr()).contains("Invalid value");
-        }
+        assertThat(captured.getReturnValue()).isNotZero();
+        assertThat(captured.getStdErr()).contains("Invalid value");
+    }
 
-        @Test
-        void testConfigRenderNoDefaultValues() throws IOException {
-                var config = new CrawlerConfig();
-                config.setStartReferences(List.of("http://example.com"));
-                var exit = StandaloneCliCrawlerLauncher
-                                .builder()
-                                .args(List.of("configrender"))
-                                .workDir(tempDir)
-                                .build()
-                                .launch(config);
+    @Test
+    void testConfigRenderNoDefaultValues() throws IOException {
+        var config = new CrawlerConfig();
+        config.setStartReferences(List.of("http://example.com"));
+        var exit = StandaloneCliCrawlerLauncher
+                .builder()
+                .args(List.of("configrender"))
+                .workDir(tempDir)
+                .build()
+                .launch(config);
 
-                assertThat(exit.isOK()).isTrue();
-                // Should NOT contain default values (V4 behavior)
-                assertThat(exit.getStdOut()).doesNotContain("<importer");
-        }
+        assertThat(exit.isOK()).isTrue();
+        // Should NOT contain default values (V4 behavior)
+        assertThat(exit.getStdOut()).doesNotContain("<importer");
+    }
 
-        @Test
-        void testConfigRenderSavesToFile() throws IOException {
-                var config = new CrawlerConfig();
-                config.setStartReferences(List.of("http://example.com"));
+    @Test
+    void testConfigRenderSavesToFile() throws IOException {
+        var config = new CrawlerConfig();
+        config.setStartReferences(List.of("http://example.com"));
 
-                var outputFile = tempDir.resolve("rendered.xml");
-                var exit = StandaloneCliCrawlerLauncher
-                                .builder()
-                                .args(List.of("configrender",
-                                                "-output=" + outputFile))
-                                .workDir(tempDir)
-                                .build()
-                                .launch(config);
+        var outputFile = tempDir.resolve("rendered.xml");
+        var exit = StandaloneCliCrawlerLauncher
+                .builder()
+                .args(List.of("configrender",
+                        "-output=" + outputFile))
+                .workDir(tempDir)
+                .build()
+                .launch(config);
 
-                assertThat(exit.isOK()).isTrue();
-                assertThat(outputFile).exists();
+        assertThat(exit.isOK()).isTrue();
+        assertThat(outputFile).exists();
 
-                var renderedContent = Files.readString(outputFile);
-                assertThat(renderedContent).contains("startReferences");
-        }
+        var renderedContent = Files.readString(outputFile);
+        assertThat(renderedContent).contains("startReferences");
+    }
 
-        @Test
-        void testConfigRenderBadOutputTarget() throws IOException {
-                var config = new CrawlerConfig();
-                config.setStartReferences(List.of("http://example.com"));
+    @Test
+    void testConfigRenderBadOutputTarget() throws IOException {
+        var config = new CrawlerConfig();
+        config.setStartReferences(List.of("http://example.com"));
 
-                // use a directory instead of file to make it fail
-                var badOutputFile = tempDir.toAbsolutePath();
-                var exit = StandaloneCliCrawlerLauncher
-                                .builder()
-                                .args(List.of("configrender",
-                                                "-output=" + badOutputFile))
-                                .workDir(tempDir)
-                                .build()
-                                .launch(config);
-                assertThat(exit.isOK()).isFalse();
-                assertThat(exit.getStdErr()).contains("FileNotFoundException");
-        }
+        // use a directory instead of file to make it fail
+        var badOutputFile = tempDir.toAbsolutePath();
+        var exit = StandaloneCliCrawlerLauncher
+                .builder()
+                .args(List.of("configrender",
+                        "-output=" + badOutputFile))
+                .workDir(tempDir)
+                .build()
+                .launch(config);
+        assertThat(exit.isOK()).isFalse();
+        assertThat(exit.getStdErr()).contains("FileNotFoundException");
+    }
 }

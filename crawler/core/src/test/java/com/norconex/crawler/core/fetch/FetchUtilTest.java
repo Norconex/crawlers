@@ -34,112 +34,112 @@ import com.norconex.crawler.core.ledger.ProcessingOutcome;
 @Timeout(30)
 class FetchUtilTest {
 
-        private CrawlerContext crawler;
-        private CrawlerConfig config;
+    private CrawlerContext crawler;
+    private CrawlerConfig config;
 
-        @BeforeEach
-        void setUp() {
-                crawler = mock(CrawlerContext.class);
-                config = new CrawlerConfig();
-                when(crawler.getCrawlConfig()).thenReturn(config);
-        }
+    @BeforeEach
+    void setUp() {
+        crawler = mock(CrawlerContext.class);
+        config = new CrawlerConfig();
+        when(crawler.getCrawlConfig()).thenReturn(config);
+    }
 
-        // -----------------------------------------------------------------
-        // METADATA directive (HEAD-like)
-        // -----------------------------------------------------------------
+    // -----------------------------------------------------------------
+    // METADATA directive (HEAD-like)
+    // -----------------------------------------------------------------
 
-        @Test
-        void testMetadata_required_stopOnBadStatus() {
-                config.setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED);
-                assertThat(FetchUtil.shouldContinueOnBadStatus(
-                                crawler, null, FetchDirective.METADATA))
-                                                .isFalse();
-        }
+    @Test
+    void testMetadata_required_stopOnBadStatus() {
+        config.setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED);
+        assertThat(FetchUtil.shouldContinueOnBadStatus(
+                crawler, null, FetchDirective.METADATA))
+                        .isFalse();
+    }
 
-        @Test
-        void testMetadata_optional_withDocumentEnabled_shouldContinue() {
-                config.setMetadataFetchSupport(FetchDirectiveSupport.OPTIONAL);
-                config.setDocumentFetchSupport(FetchDirectiveSupport.REQUIRED);
-                assertThat(FetchUtil.shouldContinueOnBadStatus(
-                                crawler, null, FetchDirective.METADATA))
-                                                .isTrue();
-        }
+    @Test
+    void testMetadata_optional_withDocumentEnabled_shouldContinue() {
+        config.setMetadataFetchSupport(FetchDirectiveSupport.OPTIONAL);
+        config.setDocumentFetchSupport(FetchDirectiveSupport.REQUIRED);
+        assertThat(FetchUtil.shouldContinueOnBadStatus(
+                crawler, null, FetchDirective.METADATA))
+                        .isTrue();
+    }
 
-        @Test
-        void testMetadata_optional_withDocumentDisabled_shouldNotContinue() {
-                config.setMetadataFetchSupport(FetchDirectiveSupport.OPTIONAL);
-                config.setDocumentFetchSupport(FetchDirectiveSupport.DISABLED);
-                assertThat(FetchUtil.shouldContinueOnBadStatus(
-                                crawler, null, FetchDirective.METADATA))
-                                                .isFalse();
-        }
+    @Test
+    void testMetadata_optional_withDocumentDisabled_shouldNotContinue() {
+        config.setMetadataFetchSupport(FetchDirectiveSupport.OPTIONAL);
+        config.setDocumentFetchSupport(FetchDirectiveSupport.DISABLED);
+        assertThat(FetchUtil.shouldContinueOnBadStatus(
+                crawler, null, FetchDirective.METADATA))
+                        .isFalse();
+    }
 
-        // -----------------------------------------------------------------
-        // DOCUMENT directive (GET-like)
-        // -----------------------------------------------------------------
+    // -----------------------------------------------------------------
+    // DOCUMENT directive (GET-like)
+    // -----------------------------------------------------------------
 
-        @Test
-        void testDocument_required_stopOnBadStatus() {
-                config.setDocumentFetchSupport(FetchDirectiveSupport.REQUIRED);
-                assertThat(FetchUtil.shouldContinueOnBadStatus(
-                                crawler, ProcessingOutcome.NEW,
-                                FetchDirective.DOCUMENT))
-                                                .isFalse();
-        }
+    @Test
+    void testDocument_required_stopOnBadStatus() {
+        config.setDocumentFetchSupport(FetchDirectiveSupport.REQUIRED);
+        assertThat(FetchUtil.shouldContinueOnBadStatus(
+                crawler, ProcessingOutcome.NEW,
+                FetchDirective.DOCUMENT))
+                        .isFalse();
+    }
 
-        @Test
-        void testDocument_optional_metadataEnabled_priorSuccess_shouldContinue() {
-                config.setMetadataFetchSupport(FetchDirectiveSupport.OPTIONAL);
-                config.setDocumentFetchSupport(FetchDirectiveSupport.OPTIONAL);
-                assertThat(FetchUtil.shouldContinueOnBadStatus(
-                                crawler, ProcessingOutcome.NEW,
-                                FetchDirective.DOCUMENT))
-                                                .isTrue();
-        }
+    @Test
+    void testDocument_optional_metadataEnabled_priorSuccess_shouldContinue() {
+        config.setMetadataFetchSupport(FetchDirectiveSupport.OPTIONAL);
+        config.setDocumentFetchSupport(FetchDirectiveSupport.OPTIONAL);
+        assertThat(FetchUtil.shouldContinueOnBadStatus(
+                crawler, ProcessingOutcome.NEW,
+                FetchDirective.DOCUMENT))
+                        .isTrue();
+    }
 
-        @Test
-        void testDocument_optional_metadataDisabled_shouldNotContinue() {
-                config.setMetadataFetchSupport(FetchDirectiveSupport.DISABLED);
-                config.setDocumentFetchSupport(FetchDirectiveSupport.OPTIONAL);
-                assertThat(FetchUtil.shouldContinueOnBadStatus(
-                                crawler, ProcessingOutcome.NEW,
-                                FetchDirective.DOCUMENT))
-                                                .isFalse();
-        }
+    @Test
+    void testDocument_optional_metadataDisabled_shouldNotContinue() {
+        config.setMetadataFetchSupport(FetchDirectiveSupport.DISABLED);
+        config.setDocumentFetchSupport(FetchDirectiveSupport.OPTIONAL);
+        assertThat(FetchUtil.shouldContinueOnBadStatus(
+                crawler, ProcessingOutcome.NEW,
+                FetchDirective.DOCUMENT))
+                        .isFalse();
+    }
 
-        @Test
-        void testDocument_optional_metadataEnabled_priorError_shouldNotContinue() {
-                config.setMetadataFetchSupport(FetchDirectiveSupport.OPTIONAL);
-                config.setDocumentFetchSupport(FetchDirectiveSupport.OPTIONAL);
-                assertThat(FetchUtil.shouldContinueOnBadStatus(
-                                crawler, ProcessingOutcome.ERROR,
-                                FetchDirective.DOCUMENT))
-                                                .isFalse();
-        }
+    @Test
+    void testDocument_optional_metadataEnabled_priorError_shouldNotContinue() {
+        config.setMetadataFetchSupport(FetchDirectiveSupport.OPTIONAL);
+        config.setDocumentFetchSupport(FetchDirectiveSupport.OPTIONAL);
+        assertThat(FetchUtil.shouldContinueOnBadStatus(
+                crawler, ProcessingOutcome.ERROR,
+                FetchDirective.DOCUMENT))
+                        .isFalse();
+    }
 
-        // -----------------------------------------------------------------
-        // FetchDirectiveSupport helpers
-        // -----------------------------------------------------------------
+    // -----------------------------------------------------------------
+    // FetchDirectiveSupport helpers
+    // -----------------------------------------------------------------
 
-        @Test
-        void testFetchDirectiveSupport_is() {
-                assertThat(FetchDirectiveSupport.DISABLED
-                                .is(FetchDirectiveSupport.DISABLED)).isTrue();
-                assertThat(FetchDirectiveSupport.DISABLED.is(null)).isTrue();
-                assertThat(FetchDirectiveSupport.REQUIRED
-                                .is(FetchDirectiveSupport.REQUIRED)).isTrue();
-                assertThat(FetchDirectiveSupport.OPTIONAL
-                                .is(FetchDirectiveSupport.REQUIRED)).isFalse();
-        }
+    @Test
+    void testFetchDirectiveSupport_is() {
+        assertThat(FetchDirectiveSupport.DISABLED
+                .is(FetchDirectiveSupport.DISABLED)).isTrue();
+        assertThat(FetchDirectiveSupport.DISABLED.is(null)).isTrue();
+        assertThat(FetchDirectiveSupport.REQUIRED
+                .is(FetchDirectiveSupport.REQUIRED)).isTrue();
+        assertThat(FetchDirectiveSupport.OPTIONAL
+                .is(FetchDirectiveSupport.REQUIRED)).isFalse();
+    }
 
-        @Test
-        void testFetchDirectiveSupport_isEnabled() {
-                assertThat(FetchDirectiveSupport.isEnabled(
-                                FetchDirectiveSupport.OPTIONAL)).isTrue();
-                assertThat(FetchDirectiveSupport.isEnabled(
-                                FetchDirectiveSupport.REQUIRED)).isTrue();
-                assertThat(FetchDirectiveSupport.isEnabled(
-                                FetchDirectiveSupport.DISABLED)).isFalse();
-                assertThat(FetchDirectiveSupport.isEnabled(null)).isFalse();
-        }
+    @Test
+    void testFetchDirectiveSupport_isEnabled() {
+        assertThat(FetchDirectiveSupport.isEnabled(
+                FetchDirectiveSupport.OPTIONAL)).isTrue();
+        assertThat(FetchDirectiveSupport.isEnabled(
+                FetchDirectiveSupport.REQUIRED)).isTrue();
+        assertThat(FetchDirectiveSupport.isEnabled(
+                FetchDirectiveSupport.DISABLED)).isFalse();
+        assertThat(FetchDirectiveSupport.isEnabled(null)).isFalse();
+    }
 }

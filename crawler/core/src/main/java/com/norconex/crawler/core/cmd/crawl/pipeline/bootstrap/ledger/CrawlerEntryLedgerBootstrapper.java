@@ -36,7 +36,8 @@ import lombok.extern.slf4j.Slf4j;
  * </p>
  */
 @Slf4j
-public final class CrawlerEntryLedgerBootstrapper implements CrawlerBootstrapper {
+public final class CrawlerEntryLedgerBootstrapper
+        implements CrawlerBootstrapper {
 
     //NOTE: Runs after the DocProcessingLedger#init() method has been invoked.
 

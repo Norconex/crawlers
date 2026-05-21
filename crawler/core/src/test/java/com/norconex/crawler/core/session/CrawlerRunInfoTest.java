@@ -39,7 +39,8 @@ class CrawlerRunInfoTest {
         assertThat(info.getCrawlSessionId()).isEqualTo("cs-123");
         assertThat(info.getCrawlRunId()).isEqualTo("cr-456");
         assertThat(info.getCrawlMode()).isEqualTo(CrawlerMode.FULL);
-        assertThat(info.getCrawlResumeState()).isEqualTo(CrawlerResumeState.NEW);
+        assertThat(info.getCrawlResumeState())
+                .isEqualTo(CrawlerResumeState.NEW);
     }
 
     @Test

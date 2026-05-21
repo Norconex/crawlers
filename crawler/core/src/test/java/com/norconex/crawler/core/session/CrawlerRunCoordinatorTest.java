@@ -37,7 +37,8 @@ class CrawlerRunCoordinatorTest {
         sessionCache = new InMemoryCacheMap<>("session");
         runCache = new InMemoryCacheMap<>("run");
         runAttrs = new CrawlerAttributes(runCache);
-        coordinator = new CrawlerRunCoordinator(sessionCache, runCache, runAttrs);
+        coordinator =
+                new CrawlerRunCoordinator(sessionCache, runCache, runAttrs);
     }
 
     @Test

@@ -57,10 +57,13 @@ class CrawlerStateTest {
 
     @Test
     void testValueOf_knownStates() {
-        assertThat(CrawlerState.valueOf("RUNNING")).isEqualTo(CrawlerState.RUNNING);
-        assertThat(CrawlerState.valueOf("STOPPED")).isEqualTo(CrawlerState.STOPPED);
+        assertThat(CrawlerState.valueOf("RUNNING"))
+                .isEqualTo(CrawlerState.RUNNING);
+        assertThat(CrawlerState.valueOf("STOPPED"))
+                .isEqualTo(CrawlerState.STOPPED);
         assertThat(CrawlerState.valueOf("COMPLETED"))
                 .isEqualTo(CrawlerState.COMPLETED);
-        assertThat(CrawlerState.valueOf("FAILED")).isEqualTo(CrawlerState.FAILED);
+        assertThat(CrawlerState.valueOf("FAILED"))
+                .isEqualTo(CrawlerState.FAILED);
     }
 }

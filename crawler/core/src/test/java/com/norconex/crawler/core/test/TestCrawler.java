@@ -643,7 +643,8 @@ public class TestCrawler implements Closeable {
                 if (attempt == 1) {
                     LOG.trace("No node test results at: {}", resultPath);
                 }
-                return new CrawlerTestNodeOutput(List.of(), List.of(), Map.of());
+                return new CrawlerTestNodeOutput(List.of(), List.of(),
+                        Map.of());
             }
             try {
                 return CoreTestUtil.readFromFile(resultPath,
@@ -663,7 +664,8 @@ public class TestCrawler implements Closeable {
                         resultPath,
                         attempt,
                         e.getMessage());
-                return new CrawlerTestNodeOutput(List.of(), List.of(), Map.of());
+                return new CrawlerTestNodeOutput(List.of(), List.of(),
+                        Map.of());
             }
         }
         return new CrawlerTestNodeOutput(List.of(), List.of(), Map.of());

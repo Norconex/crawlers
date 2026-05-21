@@ -30,15 +30,15 @@ import com.norconex.crawler.core.session.CrawlerSession;
 @Timeout(30)
 class BeforeFsCommandTest {
 
-        @Test
-        void testAccept() {
-                var session =
-                                Mockito.mock(CrawlerSession.class,
-                                                Answers.RETURNS_DEEP_STUBS);
-                Mockito.when(session.getCrawlContext().getCrawlConfig())
-                                .thenReturn(new CrawlerConfig());
-                assertThatNoException()
-                                .isThrownBy(() -> new BeforeFsCommand()
-                                                .accept(session));
-        }
+    @Test
+    void testAccept() {
+        var session =
+                Mockito.mock(CrawlerSession.class,
+                        Answers.RETURNS_DEEP_STUBS);
+        Mockito.when(session.getCrawlContext().getCrawlConfig())
+                .thenReturn(new CrawlerConfig());
+        assertThatNoException()
+                .isThrownBy(() -> new BeforeFsCommand()
+                        .accept(session));
+    }
 }

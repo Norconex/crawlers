@@ -39,35 +39,35 @@ import com.norconex.crawler.web.doc.operations.delay.impl.GenericDelayResolver;
 @ExtendWith(WebCrawlingExtension.class)
 public @interface WebCrawlingTest {
 
-        boolean randomConfig() default false;
+    boolean randomConfig() default false;
 
-        String config() default "";
+    String config() default "";
 
-        String[] vars() default {};
+    String[] vars() default {};
 
-        Class<? extends Consumer<
-                        ? extends CrawlerConfig>> configModifier() default DefaultWebCrawlerConfigModifier.class;
+    Class<? extends Consumer<
+            ? extends CrawlerConfig>> configModifier() default DefaultWebCrawlerConfigModifier.class;
 
-        public static final class DefaultWebCrawlerConfigModifier
-                        implements Consumer<WebCrawlerConfig> {
-                @Override
-                public void accept(WebCrawlerConfig cfg) {
-                        cfg.setDelayResolver(configure(
-                                        new GenericDelayResolver(),
-                                        dr -> dr.setDefaultDelay(
-                                                        Duration.ofMillis(0))));
+    public static final class DefaultWebCrawlerConfigModifier
+            implements Consumer<WebCrawlerConfig> {
+        @Override
+        public void accept(WebCrawlerConfig cfg) {
+            cfg.setDelayResolver(configure(
+                    new GenericDelayResolver(),
+                    dr -> dr.setDefaultDelay(
+                            Duration.ofMillis(0))));
 
-                        var connector = cfg.getClusterConfig().getConnector();
-                        if (connector instanceof HazelcastClusterConnector hzConnector
-                                        && hzConnector.getConfiguration()
-                                                        .getConfigurer() instanceof JdbcHazelcastConfigurer jdbcConfigurer) {
-                                jdbcConfigurer
-                                                .setJetEnabled(false)
-                                                .setBackupCount(0)
-                                                .setInitialLoadMode(
-                                                                InitialLoadMode.EAGER);
-                        }
-                }
+            var connector = cfg.getClusterConfig().getConnector();
+            if (connector instanceof HazelcastClusterConnector hzConnector
+                    && hzConnector.getConfiguration()
+                            .getConfigurer() instanceof JdbcHazelcastConfigurer jdbcConfigurer) {
+                jdbcConfigurer
+                        .setJetEnabled(false)
+                        .setBackupCount(0)
+                        .setInitialLoadMode(
+                                InitialLoadMode.EAGER);
+            }
         }
+    }
 
 }

@@ -32,54 +32,54 @@ import lombok.Data;
 @Data
 public class ImporterPipelineContext {
 
-        private final CrawlerSession crawlSession;
-        private final CrawlerDocContext docContext;
+    private final CrawlerSession crawlSession;
+    private final CrawlerDocContext docContext;
 
-        private ImporterResponse importerResponse;
+    private ImporterResponse importerResponse;
 
-        //TODO see if we can work with this instead of "flags"
-        private boolean delete;
+    //TODO see if we can work with this instead of "flags"
+    private boolean delete;
 
-        //TODO needed? The orphan flag is stored in the document itself
-        // Shall we store the deletion flag in the document as well??
-        //private boolean orphan;
+    //TODO needed? The orphan flag is stored in the document itself
+    // Shall we store the deletion flag in the document as well??
+    //private boolean orphan;
 
-        /**
-         * Whether a metadata fetch request was performed already. Based on whether
-         * metadata fetch support is enabled via configuration
-         * and we are now doing a document fetch request (which suggests
-         * a METADATA request would have had to be performed).
-         * @param currentDirective the current directive
-         * @return <code>true</code> if the metadata directive was executed
-         */
-        public boolean isMetadataDirectiveExecuted(
-                        FetchDirective currentDirective) {
-                // If both DOCUMENT and METADATA fetching were requested and the
-                // current directive is DOCUMENT, then metadata had to be performed.
-                return currentDirective == FetchDirective.DOCUMENT
-                                && FetchDirectiveSupport.isEnabled(
-                                                crawlSession.getCrawlContext()
-                                                                .getCrawlConfig()
-                                                                .getMetadataFetchSupport());
-        }
+    /**
+     * Whether a metadata fetch request was performed already. Based on whether
+     * metadata fetch support is enabled via configuration
+     * and we are now doing a document fetch request (which suggests
+     * a METADATA request would have had to be performed).
+     * @param currentDirective the current directive
+     * @return <code>true</code> if the metadata directive was executed
+     */
+    public boolean isMetadataDirectiveExecuted(
+            FetchDirective currentDirective) {
+        // If both DOCUMENT and METADATA fetching were requested and the
+        // current directive is DOCUMENT, then metadata had to be performed.
+        return currentDirective == FetchDirective.DOCUMENT
+                && FetchDirectiveSupport.isEnabled(
+                        crawlSession.getCrawlContext()
+                                .getCrawlConfig()
+                                .getMetadataFetchSupport());
+    }
 
-        /**
-         * Whether a fetch directive has been enabled according to configuration.
-         * That is, its use is either "required" or "optional".
-         * @param directive fetch directive
-         * @return <code>true</code> if the supplied directive is enabled
-         */
-        public boolean isFetchDirectiveEnabled(FetchDirective directive) {
-                return (directive == FetchDirective.METADATA
-                                && FetchDirectiveSupport.isEnabled(
-                                                crawlSession.getCrawlContext()
-                                                                .getCrawlConfig()
-                                                                .getMetadataFetchSupport()))
-                                || (directive == FetchDirective.DOCUMENT
-                                                && FetchDirectiveSupport
-                                                                .isEnabled(
-                                                                                crawlSession.getCrawlContext()
-                                                                                                .getCrawlConfig()
-                                                                                                .getDocumentFetchSupport()));
-        }
+    /**
+     * Whether a fetch directive has been enabled according to configuration.
+     * That is, its use is either "required" or "optional".
+     * @param directive fetch directive
+     * @return <code>true</code> if the supplied directive is enabled
+     */
+    public boolean isFetchDirectiveEnabled(FetchDirective directive) {
+        return (directive == FetchDirective.METADATA
+                && FetchDirectiveSupport.isEnabled(
+                        crawlSession.getCrawlContext()
+                                .getCrawlConfig()
+                                .getMetadataFetchSupport()))
+                || (directive == FetchDirective.DOCUMENT
+                        && FetchDirectiveSupport
+                                .isEnabled(
+                                        crawlSession.getCrawlContext()
+                                                .getCrawlConfig()
+                                                .getDocumentFetchSupport()));
+    }
 }

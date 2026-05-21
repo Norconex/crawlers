@@ -45,15 +45,15 @@ import lombok.Data;
  */
 @Data
 public class GenericMetadataChecksummer
-                extends
-                AbstractMetadataChecksummer<GenericMetadataChecksummerConfig> {
+        extends
+        AbstractMetadataChecksummer<GenericMetadataChecksummerConfig> {
 
-        private final GenericMetadataChecksummerConfig configuration =
-                        new GenericMetadataChecksummerConfig();
+    private final GenericMetadataChecksummerConfig configuration =
+            new GenericMetadataChecksummerConfig();
 
-        @Override
-        protected String doCreateMetaChecksum(Properties metadata) {
-                return ChecksumUtil.metadataChecksumPlain(
-                                metadata, getConfiguration().getFieldMatcher());
-        }
+    @Override
+    protected String doCreateMetaChecksum(Properties metadata) {
+        return ChecksumUtil.metadataChecksumPlain(
+                metadata, getConfiguration().getFieldMatcher());
+    }
 }

@@ -192,7 +192,8 @@ public class CrawlerSession implements Closeable {
         runCoordinator = new CrawlerRunCoordinator(
                 sessionCache, runCache, new CrawlerAttributes(runCache));
         eventBus = new CrawlerEventBus(crawlContext.getEventManager());
-        crawlerAttributes = new CrawlerAttributes(cacheManager.getCrawlerCache());
+        crawlerAttributes =
+                new CrawlerAttributes(cacheManager.getCrawlerCache());
 
         var nodeName = cluster.getLocalNode().getNodeName();
         LOG.info("CrawlerSession.init() - Binding session to cluster node: {}",
@@ -232,7 +233,8 @@ public class CrawlerSession implements Closeable {
                         + "admin server...");
                 adminServer = new ClusterAdminServer(this);
                 adminServer.start();
-                LOG.info("CrawlerSession.init() - Cluster admin server started");
+                LOG.info(
+                        "CrawlerSession.init() - Cluster admin server started");
             } else {
                 LOG.info("CrawlerSession.init() - Cluster admin server is "
                         + "disabled");

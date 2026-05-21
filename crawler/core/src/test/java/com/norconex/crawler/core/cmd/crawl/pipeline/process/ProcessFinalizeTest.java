@@ -41,251 +41,251 @@ import com.norconex.importer.doc.Doc;
 @Timeout(30)
 class ProcessFinalizeTest {
 
-        @SuppressWarnings("unchecked")
-        private ProcessContext buildCtx(
-                        ProcessingOutcome currentOutcome,
-                        ProcessingOutcome previousOutcome,
-                        SpoiledReferenceStrategizer strategizer) {
+    @SuppressWarnings("unchecked")
+    private ProcessContext buildCtx(
+            ProcessingOutcome currentOutcome,
+            ProcessingOutcome previousOutcome,
+            SpoiledReferenceStrategizer strategizer) {
 
-                var entry = new CrawlerEntry("http://example.com/test");
-                entry.setProcessingOutcome(currentOutcome);
+        var entry = new CrawlerEntry("http://example.com/test");
+        entry.setProcessingOutcome(currentOutcome);
 
-                var docCtxBuilder = CrawlerDocContext.builder()
-                                .doc(new Doc("http://example.com/test"))
-                                .currentCrawlEntry(entry);
+        var docCtxBuilder = CrawlerDocContext.builder()
+                .doc(new Doc("http://example.com/test"))
+                .currentCrawlEntry(entry);
 
-                if (previousOutcome != null) {
-                        var prevEntry = new CrawlerEntry(
-                                        "http://example.com/test");
-                        prevEntry.setProcessingOutcome(previousOutcome);
-                        docCtxBuilder.previousCrawlEntry(prevEntry);
-                }
-                var docCtx = docCtxBuilder.build();
-
-                var config = mock(CrawlerConfig.class);
-                when(config.getSpoiledReferenceStrategizer())
-                                .thenReturn(strategizer);
-
-                var ledger = mock(CrawlerEntryLedger.class);
-                var committerService = mock(CommitterService.class);
-                var crawlCtx = mock(CrawlerContext.class);
-                when(crawlCtx.getCrawlEntryLedger()).thenReturn(ledger);
-                when(crawlCtx.getCrawlConfig()).thenReturn(config);
-                when(crawlCtx.getCommitterService())
-                                .thenReturn(committerService);
-
-                var session = mock(CrawlerSession.class);
-                when(session.getCrawlContext()).thenReturn(crawlCtx);
-
-                return new ProcessContext()
-                                .crawlSession(session)
-                                .docContext(docCtx);
+        if (previousOutcome != null) {
+            var prevEntry = new CrawlerEntry(
+                    "http://example.com/test");
+            prevEntry.setProcessingOutcome(previousOutcome);
+            docCtxBuilder.previousCrawlEntry(prevEntry);
         }
+        var docCtx = docCtxBuilder.build();
 
-        // -----------------------------------------------------------------
-        // Early-return paths
-        // -----------------------------------------------------------------
+        var config = mock(CrawlerConfig.class);
+        when(config.getSpoiledReferenceStrategizer())
+                .thenReturn(strategizer);
 
-        @Test
-        void execute_alreadyFinalized_returnsImmediately() {
-                var ctx = buildCtx(ProcessingOutcome.NEW, null, null);
-                ctx.finalized(true);
-                assertThatNoException()
-                                .isThrownBy(() -> ProcessFinalize.execute(ctx));
-                // finalized remains true, no state changes
-                assertThat(ctx.finalized()).isTrue();
-        }
+        var ledger = mock(CrawlerEntryLedger.class);
+        var committerService = mock(CommitterService.class);
+        var crawlCtx = mock(CrawlerContext.class);
+        when(crawlCtx.getCrawlEntryLedger()).thenReturn(ledger);
+        when(crawlCtx.getCrawlConfig()).thenReturn(config);
+        when(crawlCtx.getCommitterService())
+                .thenReturn(committerService);
 
-        @Test
-        void execute_nullDocContext_returnsImmediately() {
-                var session = mock(CrawlerSession.class);
-                var ctx = new ProcessContext().crawlSession(session);
-                assertThatNoException()
-                                .isThrownBy(() -> ProcessFinalize.execute(ctx));
-                assertThat(ctx.finalized()).isFalse();
-        }
+        var session = mock(CrawlerSession.class);
+        when(session.getCrawlContext()).thenReturn(crawlCtx);
 
-        // -----------------------------------------------------------------
-        // Null processing outcome → sets BAD_STATUS
-        // -----------------------------------------------------------------
+        return new ProcessContext()
+                .crawlSession(session)
+                .docContext(docCtx);
+    }
 
-        @Test
-        void execute_nullProcessingOutcome_setsBadStatus() {
-                var ctx = buildCtx(null, null, null); // no outcome set
-                ProcessFinalize.execute(ctx);
-                assertThat(ctx.docContext().getCurrentCrawlEntry()
-                                .getProcessingOutcome())
-                                                .isEqualTo(ProcessingOutcome.BAD_STATUS);
-        }
+    // -----------------------------------------------------------------
+    // Early-return paths
+    // -----------------------------------------------------------------
 
-        // -----------------------------------------------------------------
-        // Good state → marks finalized + processed, no delete
-        // -----------------------------------------------------------------
+    @Test
+    void execute_alreadyFinalized_returnsImmediately() {
+        var ctx = buildCtx(ProcessingOutcome.NEW, null, null);
+        ctx.finalized(true);
+        assertThatNoException()
+                .isThrownBy(() -> ProcessFinalize.execute(ctx));
+        // finalized remains true, no state changes
+        assertThat(ctx.finalized()).isTrue();
+    }
 
-        @Test
-        void execute_goodOutcome_setsFinalizedAndProcessed() {
-                var ctx = buildCtx(ProcessingOutcome.NEW, null, null);
-                assertThatNoException()
-                                .isThrownBy(() -> ProcessFinalize.execute(ctx));
-                assertThat(ctx.finalized()).isTrue();
-                // outcome unchanged (good state)
-                assertThat(ctx.docContext().getCurrentCrawlEntry()
-                                .getProcessingOutcome()).isEqualTo(
-                                                ProcessingOutcome.NEW);
-        }
+    @Test
+    void execute_nullDocContext_returnsImmediately() {
+        var session = mock(CrawlerSession.class);
+        var ctx = new ProcessContext().crawlSession(session);
+        assertThatNoException()
+                .isThrownBy(() -> ProcessFinalize.execute(ctx));
+        assertThat(ctx.finalized()).isFalse();
+    }
 
-        // -----------------------------------------------------------------
-        // Bad state, no previous entry → no delete even with DELETE strategy
-        // -----------------------------------------------------------------
+    // -----------------------------------------------------------------
+    // Null processing outcome → sets BAD_STATUS
+    // -----------------------------------------------------------------
 
-        @Test
-        void execute_badOutcome_noPreviousEntry_noDeleteCalled() {
-                // Default fallback = DELETE, but previousEntry is null → no delete
-                var ctx = buildCtx(ProcessingOutcome.ERROR, null, null);
-                assertThatNoException()
-                                .isThrownBy(() -> ProcessFinalize.execute(ctx));
-                // outcome is still ERROR (no DELETED override)
-                assertThat(ctx.docContext().getCurrentCrawlEntry()
-                                .getProcessingOutcome()).isEqualTo(
-                                                ProcessingOutcome.ERROR);
-        }
+    @Test
+    void execute_nullProcessingOutcome_setsBadStatus() {
+        var ctx = buildCtx(null, null, null); // no outcome set
+        ProcessFinalize.execute(ctx);
+        assertThat(ctx.docContext().getCurrentCrawlEntry()
+                .getProcessingOutcome())
+                        .isEqualTo(ProcessingOutcome.BAD_STATUS);
+    }
 
-        // -----------------------------------------------------------------
-        // dealWithBadState: IGNORE strategy
-        // -----------------------------------------------------------------
+    // -----------------------------------------------------------------
+    // Good state → marks finalized + processed, no delete
+    // -----------------------------------------------------------------
 
-        @Test
-        void execute_badOutcome_ignoreStrategy_doesNothing() {
-                var strategizer = mock(SpoiledReferenceStrategizer.class);
-                when(strategizer.resolveSpoiledReferenceStrategy(any(), any()))
-                                .thenReturn(SpoiledReferenceStrategy.IGNORE);
+    @Test
+    void execute_goodOutcome_setsFinalizedAndProcessed() {
+        var ctx = buildCtx(ProcessingOutcome.NEW, null, null);
+        assertThatNoException()
+                .isThrownBy(() -> ProcessFinalize.execute(ctx));
+        assertThat(ctx.finalized()).isTrue();
+        // outcome unchanged (good state)
+        assertThat(ctx.docContext().getCurrentCrawlEntry()
+                .getProcessingOutcome()).isEqualTo(
+                        ProcessingOutcome.NEW);
+    }
 
-                var ctx = buildCtx(ProcessingOutcome.ERROR,
-                                ProcessingOutcome.ERROR,
-                                strategizer);
-                assertThatNoException()
-                                .isThrownBy(() -> ProcessFinalize.execute(ctx));
-                // No delete → outcome stays ERROR
-                assertThat(ctx.docContext().getCurrentCrawlEntry()
-                                .getProcessingOutcome()).isEqualTo(
-                                                ProcessingOutcome.ERROR);
-        }
+    // -----------------------------------------------------------------
+    // Bad state, no previous entry → no delete even with DELETE strategy
+    // -----------------------------------------------------------------
 
-        // -----------------------------------------------------------------
-        // dealWithBadState: Previous entry with NULL outcome → legacy warning
-        // -----------------------------------------------------------------
+    @Test
+    void execute_badOutcome_noPreviousEntry_noDeleteCalled() {
+        // Default fallback = DELETE, but previousEntry is null → no delete
+        var ctx = buildCtx(ProcessingOutcome.ERROR, null, null);
+        assertThatNoException()
+                .isThrownBy(() -> ProcessFinalize.execute(ctx));
+        // outcome is still ERROR (no DELETED override)
+        assertThat(ctx.docContext().getCurrentCrawlEntry()
+                .getProcessingOutcome()).isEqualTo(
+                        ProcessingOutcome.ERROR);
+    }
 
-        @SuppressWarnings("unchecked")
-        @Test
-        void execute_badOutcome_previousWithNullOutcome_legacyWarningPath() {
-                // Build manually: previous entry with null outcome (legacy case)
-                var entry = new CrawlerEntry("http://example.com/legacy");
-                entry.setProcessingOutcome(ProcessingOutcome.ERROR);
+    // -----------------------------------------------------------------
+    // dealWithBadState: IGNORE strategy
+    // -----------------------------------------------------------------
 
-                var prevEntry = new CrawlerEntry("http://example.com/legacy");
-                // prevEntry intentionally has null outcome
+    @Test
+    void execute_badOutcome_ignoreStrategy_doesNothing() {
+        var strategizer = mock(SpoiledReferenceStrategizer.class);
+        when(strategizer.resolveSpoiledReferenceStrategy(any(), any()))
+                .thenReturn(SpoiledReferenceStrategy.IGNORE);
 
-                var docCtx = CrawlerDocContext.builder()
-                                .doc(new Doc("http://example.com/legacy"))
-                                .currentCrawlEntry(entry)
-                                .previousCrawlEntry(prevEntry)
-                                .build();
+        var ctx = buildCtx(ProcessingOutcome.ERROR,
+                ProcessingOutcome.ERROR,
+                strategizer);
+        assertThatNoException()
+                .isThrownBy(() -> ProcessFinalize.execute(ctx));
+        // No delete → outcome stays ERROR
+        assertThat(ctx.docContext().getCurrentCrawlEntry()
+                .getProcessingOutcome()).isEqualTo(
+                        ProcessingOutcome.ERROR);
+    }
 
-                var config = mock(CrawlerConfig.class);
-                var ledger = mock(CrawlerEntryLedger.class);
-                var crawlCtx = mock(CrawlerContext.class);
-                when(crawlCtx.getCrawlEntryLedger()).thenReturn(ledger);
-                when(crawlCtx.getCrawlConfig()).thenReturn(config);
-                when(crawlCtx.getCommitterService())
-                                .thenReturn(mock(CommitterService.class));
+    // -----------------------------------------------------------------
+    // dealWithBadState: Previous entry with NULL outcome → legacy warning
+    // -----------------------------------------------------------------
 
-                var session = mock(CrawlerSession.class);
-                when(session.getCrawlContext()).thenReturn(crawlCtx);
+    @SuppressWarnings("unchecked")
+    @Test
+    void execute_badOutcome_previousWithNullOutcome_legacyWarningPath() {
+        // Build manually: previous entry with null outcome (legacy case)
+        var entry = new CrawlerEntry("http://example.com/legacy");
+        entry.setProcessingOutcome(ProcessingOutcome.ERROR);
 
-                var ctx = new ProcessContext()
-                                .crawlSession(session)
-                                .docContext(docCtx);
+        var prevEntry = new CrawlerEntry("http://example.com/legacy");
+        // prevEntry intentionally has null outcome
 
-                // Should trigger legacy warning and return from dealWithBadState
-                assertThatNoException()
-                                .isThrownBy(() -> ProcessFinalize.execute(ctx));
-                // Outcome of prevEntry should now be ERROR (set by legacy warning)
-                assertThat(prevEntry.getProcessingOutcome())
-                                .isEqualTo(ProcessingOutcome.ERROR);
-        }
+        var docCtx = CrawlerDocContext.builder()
+                .doc(new Doc("http://example.com/legacy"))
+                .currentCrawlEntry(entry)
+                .previousCrawlEntry(prevEntry)
+                .build();
 
-        // -----------------------------------------------------------------
-        // dealWithBadState: DELETE strategy with prevEntry in bad state → calls delete
-        // -----------------------------------------------------------------
+        var config = mock(CrawlerConfig.class);
+        var ledger = mock(CrawlerEntryLedger.class);
+        var crawlCtx = mock(CrawlerContext.class);
+        when(crawlCtx.getCrawlEntryLedger()).thenReturn(ledger);
+        when(crawlCtx.getCrawlConfig()).thenReturn(config);
+        when(crawlCtx.getCommitterService())
+                .thenReturn(mock(CommitterService.class));
 
-        @Test
-        void execute_badOutcome_deleteStrategy_withBadPrevious_callsDelete() {
-                // Default fallback DELETE, prev has ERROR (bad state, not deleted)
-                var ctx = buildCtx(ProcessingOutcome.ERROR,
-                                ProcessingOutcome.ERROR,
-                                null);
-                assertThatNoException()
-                                .isThrownBy(() -> ProcessFinalize.execute(ctx));
-                // ProcessDelete.execute() should have set outcome to DELETED
-                assertThat(ctx.docContext().getCurrentCrawlEntry()
-                                .getProcessingOutcome()).isEqualTo(
-                                                ProcessingOutcome.DELETED);
-        }
+        var session = mock(CrawlerSession.class);
+        when(session.getCrawlContext()).thenReturn(crawlCtx);
 
-        // -----------------------------------------------------------------
-        // dealWithBadState: GRACE_ONCE with good previous → grace (no delete)
-        // -----------------------------------------------------------------
+        var ctx = new ProcessContext()
+                .crawlSession(session)
+                .docContext(docCtx);
 
-        @Test
-        void execute_badOutcome_graceOnceStrategy_previousGoodState_doesNotDelete() {
-                var strategizer = mock(SpoiledReferenceStrategizer.class);
-                when(strategizer.resolveSpoiledReferenceStrategy(any(), any()))
-                                .thenReturn(SpoiledReferenceStrategy.GRACE_ONCE);
+        // Should trigger legacy warning and return from dealWithBadState
+        assertThatNoException()
+                .isThrownBy(() -> ProcessFinalize.execute(ctx));
+        // Outcome of prevEntry should now be ERROR (set by legacy warning)
+        assertThat(prevEntry.getProcessingOutcome())
+                .isEqualTo(ProcessingOutcome.ERROR);
+    }
 
-                // Previous had good state → grace once (DEBUG log, no delete)
-                var ctx = buildCtx(ProcessingOutcome.ERROR,
-                                ProcessingOutcome.NEW,
-                                strategizer);
-                assertThatNoException()
-                                .isThrownBy(() -> ProcessFinalize.execute(ctx));
-                assertThat(ctx.docContext().getCurrentCrawlEntry()
-                                .getProcessingOutcome()).isEqualTo(
-                                                ProcessingOutcome.ERROR);
-        }
+    // -----------------------------------------------------------------
+    // dealWithBadState: DELETE strategy with prevEntry in bad state → calls delete
+    // -----------------------------------------------------------------
 
-        // -----------------------------------------------------------------
-        // dealWithBadState: GRACE_ONCE with bad previous → deletes
-        // -----------------------------------------------------------------
+    @Test
+    void execute_badOutcome_deleteStrategy_withBadPrevious_callsDelete() {
+        // Default fallback DELETE, prev has ERROR (bad state, not deleted)
+        var ctx = buildCtx(ProcessingOutcome.ERROR,
+                ProcessingOutcome.ERROR,
+                null);
+        assertThatNoException()
+                .isThrownBy(() -> ProcessFinalize.execute(ctx));
+        // ProcessDelete.execute() should have set outcome to DELETED
+        assertThat(ctx.docContext().getCurrentCrawlEntry()
+                .getProcessingOutcome()).isEqualTo(
+                        ProcessingOutcome.DELETED);
+    }
 
-        @Test
-        void execute_badOutcome_graceOnceStrategy_previousBadState_callsDelete() {
-                var strategizer = mock(SpoiledReferenceStrategizer.class);
-                when(strategizer.resolveSpoiledReferenceStrategy(any(), any()))
-                                .thenReturn(SpoiledReferenceStrategy.GRACE_ONCE);
+    // -----------------------------------------------------------------
+    // dealWithBadState: GRACE_ONCE with good previous → grace (no delete)
+    // -----------------------------------------------------------------
 
-                // Previous had bad state → GRACE_ONCE deletes on second bad
-                var ctx = buildCtx(ProcessingOutcome.ERROR,
-                                ProcessingOutcome.ERROR,
-                                strategizer);
-                assertThatNoException()
-                                .isThrownBy(() -> ProcessFinalize.execute(ctx));
-                assertThat(ctx.docContext().getCurrentCrawlEntry()
-                                .getProcessingOutcome()).isEqualTo(
-                                                ProcessingOutcome.DELETED);
-        }
+    @Test
+    void execute_badOutcome_graceOnceStrategy_previousGoodState_doesNotDelete() {
+        var strategizer = mock(SpoiledReferenceStrategizer.class);
+        when(strategizer.resolveSpoiledReferenceStrategy(any(), any()))
+                .thenReturn(SpoiledReferenceStrategy.GRACE_ONCE);
 
-        // -----------------------------------------------------------------
-        // dealWithBadState: DELETED state is not re-deleted
-        // -----------------------------------------------------------------
+        // Previous had good state → grace once (DEBUG log, no delete)
+        var ctx = buildCtx(ProcessingOutcome.ERROR,
+                ProcessingOutcome.NEW,
+                strategizer);
+        assertThatNoException()
+                .isThrownBy(() -> ProcessFinalize.execute(ctx));
+        assertThat(ctx.docContext().getCurrentCrawlEntry()
+                .getProcessingOutcome()).isEqualTo(
+                        ProcessingOutcome.ERROR);
+    }
 
-        @Test
-        void execute_alreadyDeletedOutcome_doesNotTriggerDelete() {
-                var ctx = buildCtx(ProcessingOutcome.DELETED, null, null);
-                assertThatNoException()
-                                .isThrownBy(() -> ProcessFinalize.execute(ctx));
-                // DELETED outcome → the bad-state check is gated by isOneOf(DELETED)
-                assertThat(ctx.docContext().getCurrentCrawlEntry()
-                                .getProcessingOutcome()).isEqualTo(
-                                                ProcessingOutcome.DELETED);
-        }
+    // -----------------------------------------------------------------
+    // dealWithBadState: GRACE_ONCE with bad previous → deletes
+    // -----------------------------------------------------------------
+
+    @Test
+    void execute_badOutcome_graceOnceStrategy_previousBadState_callsDelete() {
+        var strategizer = mock(SpoiledReferenceStrategizer.class);
+        when(strategizer.resolveSpoiledReferenceStrategy(any(), any()))
+                .thenReturn(SpoiledReferenceStrategy.GRACE_ONCE);
+
+        // Previous had bad state → GRACE_ONCE deletes on second bad
+        var ctx = buildCtx(ProcessingOutcome.ERROR,
+                ProcessingOutcome.ERROR,
+                strategizer);
+        assertThatNoException()
+                .isThrownBy(() -> ProcessFinalize.execute(ctx));
+        assertThat(ctx.docContext().getCurrentCrawlEntry()
+                .getProcessingOutcome()).isEqualTo(
+                        ProcessingOutcome.DELETED);
+    }
+
+    // -----------------------------------------------------------------
+    // dealWithBadState: DELETED state is not re-deleted
+    // -----------------------------------------------------------------
+
+    @Test
+    void execute_alreadyDeletedOutcome_doesNotTriggerDelete() {
+        var ctx = buildCtx(ProcessingOutcome.DELETED, null, null);
+        assertThatNoException()
+                .isThrownBy(() -> ProcessFinalize.execute(ctx));
+        // DELETED outcome → the bad-state check is gated by isOneOf(DELETED)
+        assertThat(ctx.docContext().getCurrentCrawlEntry()
+                .getProcessingOutcome()).isEqualTo(
+                        ProcessingOutcome.DELETED);
+    }
 }

@@ -48,81 +48,81 @@ import lombok.extern.slf4j.Slf4j;
 @Timeout(120)
 class StartCleanAfterStopTest {
 
-        private static final int MAX_DOCS = 12;
-        private static final int SITE_DEPTH = 12;
+    private static final int MAX_DOCS = 12;
+    private static final int SITE_DEPTH = 12;
 
-        @Test
-        void testStartCleanAfterStop(ClientAndServer client,
-                        @TempDir Path tempDir)
-                        throws Exception {
-                var path = "/startCleanAfterStop";
+    @Test
+    void testStartCleanAfterStop(ClientAndServer client,
+            @TempDir Path tempDir)
+            throws Exception {
+        var path = "/startCleanAfterStop";
 
-                MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
+        MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 
-                var instrument = new CrawlerTestInstrument()
-                                .setDriverSupplierClass(
-                                                WebCrawlerDriverFactory.class)
-                                .setRecordEvents(true)
-                                .setWorkDir(tempDir)
-                                .setNewJvm(false)
-                                .setClustered(false)
-                                .setConfigModifier(cfg -> {
-                                        var webCfg = (WebCrawlerConfig) cfg;
-                                        webCfg.setId("test-startclean-after-stop");
-                                        webCfg.setStartReferences(
-                                                        List.of(serverUrl(
-                                                                        client,
-                                                                        path + "/0000")));
-                                        webCfg.setNumThreads(1);
-                                        webCfg.setMaxDepth(6);
-                                        webCfg.setMaxDocuments(MAX_DOCS);
-                                        webCfg.setDelayResolver(WebTestUtil
-                                                        .delayResolver(200));
-                                        webCfg.setMetadataChecksummer(null);
-                                        webCfg.setDocumentChecksummer(null);
-                                });
+        var instrument = new CrawlerTestInstrument()
+                .setDriverSupplierClass(
+                        WebCrawlerDriverFactory.class)
+                .setRecordEvents(true)
+                .setWorkDir(tempDir)
+                .setNewJvm(false)
+                .setClustered(false)
+                .setConfigModifier(cfg -> {
+                    var webCfg = (WebCrawlerConfig) cfg;
+                    webCfg.setId("test-startclean-after-stop");
+                    webCfg.setStartReferences(
+                            List.of(serverUrl(
+                                    client,
+                                    path + "/0000")));
+                    webCfg.setNumThreads(1);
+                    webCfg.setMaxDepth(6);
+                    webCfg.setMaxDocuments(MAX_DOCS);
+                    webCfg.setDelayResolver(WebTestUtil
+                            .delayResolver(200));
+                    webCfg.setMetadataChecksummer(null);
+                    webCfg.setDocumentChecksummer(null);
+                });
 
-                try (var harness = new CrawlerTestHarness(instrument)) {
+        try (var harness = new CrawlerTestHarness(instrument)) {
 
-                        //--- First run (will be stopped mid-crawl) ---
-                        var futureResult = harness.launchAsync("node1");
-                        harness.waitFor(Duration.ofSeconds(12))
-                                        .anyNodeToHaveFired(
-                                                        CrawlerEvent.DOCUMENT_IMPORTED);
-                        new Crawler(WebCrawlerDriverFactory.create(),
-                                        harness.getFirstNodeConfig()).stop();
-                        var firstResult =
-                                        futureResult.get(40, TimeUnit.SECONDS);
-                        var firstTotalCount = firstResult
-                                        .getAllNodesEventNameBag()
-                                        .getCount(CrawlerEvent.DOCUMENT_IMPORTED);
-                        assertThat(firstTotalCount).isBetween(1, MAX_DOCS - 1);
+            //--- First run (will be stopped mid-crawl) ---
+            var futureResult = harness.launchAsync("node1");
+            harness.waitFor(Duration.ofSeconds(12))
+                    .anyNodeToHaveFired(
+                            CrawlerEvent.DOCUMENT_IMPORTED);
+            new Crawler(WebCrawlerDriverFactory.create(),
+                    harness.getFirstNodeConfig()).stop();
+            var firstResult =
+                    futureResult.get(40, TimeUnit.SECONDS);
+            var firstTotalCount = firstResult
+                    .getAllNodesEventNameBag()
+                    .getCount(CrawlerEvent.DOCUMENT_IMPORTED);
+            assertThat(firstTotalCount).isBetween(1, MAX_DOCS - 1);
 
-                        //--- Clean previous crawl stores ---
-                        new Crawler(WebCrawlerDriverFactory.create(),
-                                        harness.getFirstNodeConfig()).clean();
+            //--- Clean previous crawl stores ---
+            new Crawler(WebCrawlerDriverFactory.create(),
+                    harness.getFirstNodeConfig()).clean();
 
-                        //--- Fresh start (clean state, should process MAX_DOCS from scratch) ---
-                        instrument.setConfigModifier(cfg -> {
-                                var webCfg = (WebCrawlerConfig) cfg;
-                                webCfg.setId("test-startclean-after-stop");
-                                webCfg.setStartReferences(
-                                                List.of(serverUrl(client, path
-                                                                + "/0000")));
-                                webCfg.setNumThreads(1);
-                                webCfg.setMaxDepth(6);
-                                webCfg.setMaxDocuments(MAX_DOCS);
-                                webCfg.setDelayResolver(
-                                                WebTestUtil.delayResolver(0));
-                                webCfg.setMetadataChecksummer(null);
-                                webCfg.setDocumentChecksummer(null);
-                        });
-                        var secondResult = harness.launchSync("node1");
-                        var secondTotalCount = secondResult
-                                        .getAllNodesEventNameBag()
-                                        .getCount(CrawlerEvent.DOCUMENT_IMPORTED);
-                        var secondRunCount = secondTotalCount - firstTotalCount;
-                        assertThat(secondRunCount).isGreaterThan(0);
-                }
+            //--- Fresh start (clean state, should process MAX_DOCS from scratch) ---
+            instrument.setConfigModifier(cfg -> {
+                var webCfg = (WebCrawlerConfig) cfg;
+                webCfg.setId("test-startclean-after-stop");
+                webCfg.setStartReferences(
+                        List.of(serverUrl(client, path
+                                + "/0000")));
+                webCfg.setNumThreads(1);
+                webCfg.setMaxDepth(6);
+                webCfg.setMaxDocuments(MAX_DOCS);
+                webCfg.setDelayResolver(
+                        WebTestUtil.delayResolver(0));
+                webCfg.setMetadataChecksummer(null);
+                webCfg.setDocumentChecksummer(null);
+            });
+            var secondResult = harness.launchSync("node1");
+            var secondTotalCount = secondResult
+                    .getAllNodesEventNameBag()
+                    .getCount(CrawlerEvent.DOCUMENT_IMPORTED);
+            var secondRunCount = secondTotalCount - firstTotalCount;
+            assertThat(secondRunCount).isGreaterThan(0);
         }
+    }
 }

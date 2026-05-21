@@ -34,18 +34,18 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class ScreenshotHandlerConfig extends DocImageHandlerConfig {
 
-        public static final Path DEFAULT_SCREENSHOT_DIR =
-                        Paths.get("./screenshots");
-        public static final String DEFAULT_SCREENSHOT_DIR_FIELD =
-                        CrawlerDocMetaConstants.PREFIX + "screenshot-path";
-        public static final String DEFAULT_SCREENSHOT_META_FIELD =
-                        CrawlerDocMetaConstants.PREFIX + "screenshot";
+    public static final Path DEFAULT_SCREENSHOT_DIR =
+            Paths.get("./screenshots");
+    public static final String DEFAULT_SCREENSHOT_DIR_FIELD =
+            CrawlerDocMetaConstants.PREFIX + "screenshot-path";
+    public static final String DEFAULT_SCREENSHOT_META_FIELD =
+            CrawlerDocMetaConstants.PREFIX + "screenshot";
 
-        private String cssSelector;
+    private String cssSelector;
 
-        public ScreenshotHandlerConfig() {
-                setTargetDir(DEFAULT_SCREENSHOT_DIR);
-                setTargetDirField(DEFAULT_SCREENSHOT_DIR_FIELD);
-                setTargetMetaField(DEFAULT_SCREENSHOT_META_FIELD);
-        }
+    public ScreenshotHandlerConfig() {
+        setTargetDir(DEFAULT_SCREENSHOT_DIR);
+        setTargetDirField(DEFAULT_SCREENSHOT_DIR_FIELD);
+        setTargetMetaField(DEFAULT_SCREENSHOT_META_FIELD);
+    }
 }

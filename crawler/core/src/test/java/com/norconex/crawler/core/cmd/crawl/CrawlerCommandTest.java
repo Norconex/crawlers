@@ -166,7 +166,8 @@ class CrawlerCommandTest {
 
     @SuppressWarnings("unchecked")
     private Fixture newFixture(boolean coordinator,
-            List<CrawlerBootstrapper> bootstrappers, Duration maxCrawlDuration) {
+            List<CrawlerBootstrapper> bootstrappers,
+            Duration maxCrawlDuration) {
         var pipelineFactory = mock(CrawlerPipelineFactory.class);
         var session = mock(CrawlerSession.class);
         var context = mock(CrawlerContext.class);

@@ -33,41 +33,41 @@ import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 
 public class WebCrawlerDriverFactory implements Supplier<CrawlerDriver> {
 
-        public static CrawlerDriver create() {
-                return new WebCrawlerDriverFactory().get();
-        }
+    public static CrawlerDriver create() {
+        return new WebCrawlerDriverFactory().get();
+    }
 
-        @Override
-        public CrawlerDriver get() {
-                return CrawlerDriver.builder()
-                                .fetchDriver(createFetchDriver())
-                                .bootstrappers(List.of(
-                                                new CrawlerEntryLedgerBootstrapper(),
-                                                new QueueBootstrapper(List.of(
-                                                                new SitemapEnqueuer(),
-                                                                new RefListEnqueuer(),
-                                                                new RefFileEnqueuer(),
-                                                                new RefProviderEnqueuer()))))
-                                .crawlerConfigClass(WebCrawlerConfig.class)
-                                .callbacks(WebCrawlerCallbacks.get())
-                                .docPipelines(WebDocPipelines.create())
-                                .crawlEntryType(WebCrawlerEntry.class)
-                                .build();
-        }
+    @Override
+    public CrawlerDriver get() {
+        return CrawlerDriver.builder()
+                .fetchDriver(createFetchDriver())
+                .bootstrappers(List.of(
+                        new CrawlerEntryLedgerBootstrapper(),
+                        new QueueBootstrapper(List.of(
+                                new SitemapEnqueuer(),
+                                new RefListEnqueuer(),
+                                new RefFileEnqueuer(),
+                                new RefProviderEnqueuer()))))
+                .crawlerConfigClass(WebCrawlerConfig.class)
+                .callbacks(WebCrawlerCallbacks.get())
+                .docPipelines(WebDocPipelines.create())
+                .crawlEntryType(WebCrawlerEntry.class)
+                .build();
+    }
 
-        private static FetchDriver createFetchDriver() {
-                return new FetchDriver()
-                                .responseAggregator(
-                                                (req, resps) -> new AggregatedWebFetchResponse(
-                                                                resps))
-                                .unsuccesfulResponseFactory(
-                                                (state, msg, e) -> HttpClientFetchResponse
-                                                                .builder()
-                                                                .processingOutcome(
-                                                                                state)
-                                                                .reasonPhrase(msg)
-                                                                .exception(e)
-                                                                .statusCode(-1)
-                                                                .build());
-        }
+    private static FetchDriver createFetchDriver() {
+        return new FetchDriver()
+                .responseAggregator(
+                        (req, resps) -> new AggregatedWebFetchResponse(
+                                resps))
+                .unsuccesfulResponseFactory(
+                        (state, msg, e) -> HttpClientFetchResponse
+                                .builder()
+                                .processingOutcome(
+                                        state)
+                                .reasonPhrase(msg)
+                                .exception(e)
+                                .statusCode(-1)
+                                .build());
+    }
 }

@@ -40,44 +40,44 @@ import com.norconex.crawler.core.test.CrawlerTestDriver;
 @Timeout(60)
 class LedgerPersistenceTest {
 
-        @TempDir
-        private Path tempDir;
+    @TempDir
+    private Path tempDir;
 
-        @Test
-        void testMultipleRunsReusePersistentStateWithoutLocking() {
-                var workDir = tempDir.resolve("work");
-                var driver = CrawlerTestDriver.create();
+    @Test
+    void testMultipleRunsReusePersistentStateWithoutLocking() {
+        var workDir = tempDir.resolve("work");
+        var driver = CrawlerTestDriver.create();
 
-                var config = baseConfig(workDir);
+        var config = baseConfig(workDir);
 
-                // First run: processes the references and initializes the store
-                assertThatNoException()
-                                .as("first run with persistence should succeed")
-                                .isThrownBy(() -> new Crawler(driver, config)
-                                                .crawl());
+        // First run: processes the references and initializes the store
+        assertThatNoException()
+                .as("first run with persistence should succeed")
+                .isThrownBy(() -> new Crawler(driver, config)
+                        .crawl());
 
-                // Second run: same workDir & crawler id should be able to
-                // reuse stores without lock failures.
-                var secondConfig = baseConfig(workDir);
+        // Second run: same workDir & crawler id should be able to
+        // reuse stores without lock failures.
+        var secondConfig = baseConfig(workDir);
 
-                assertThatNoException()
-                                .as("second run with same workDir should also succeed")
-                                .isThrownBy(() -> new Crawler(driver,
-                                                secondConfig).crawl());
-        }
+        assertThatNoException()
+                .as("second run with same workDir should also succeed")
+                .isThrownBy(() -> new Crawler(driver,
+                        secondConfig).crawl());
+    }
 
-        private CrawlerConfig baseConfig(Path workDir) {
-                return new CrawlerConfig()
-                                .setId("ledger-persistence-test")
-                                .setWorkDir(workDir)
-                                .setStartReferences(List.of("ref-1", "ref-2",
-                                                "ref-3"))
-                                .setFetchers(List.of(Configurable.configure(
-                                                new MockFetcher(),
-                                                cfg -> cfg.setDelay(
-                                                                Duration.ofMillis(
-                                                                                10)))))
-                                .setNumThreads(1)
-                                .setIdleTimeout(Duration.ofMillis(500));
-        }
+    private CrawlerConfig baseConfig(Path workDir) {
+        return new CrawlerConfig()
+                .setId("ledger-persistence-test")
+                .setWorkDir(workDir)
+                .setStartReferences(List.of("ref-1", "ref-2",
+                        "ref-3"))
+                .setFetchers(List.of(Configurable.configure(
+                        new MockFetcher(),
+                        cfg -> cfg.setDelay(
+                                Duration.ofMillis(
+                                        10)))))
+                .setNumThreads(1)
+                .setIdleTimeout(Duration.ofMillis(500));
+    }
 }

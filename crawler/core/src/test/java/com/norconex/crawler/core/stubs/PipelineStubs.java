@@ -39,50 +39,50 @@ import com.norconex.crawler.core.mocks.fetch.MockFetchStage;
 
 public final class PipelineStubs {
 
-        private PipelineStubs() {
-        }
+    private PipelineStubs() {
+    }
 
-        public static CrawlerDocPipelines pipelines() {
-                return CrawlerDocPipelines
-                                .builder()
-                                .queuePipeline(QueuePipeline
-                                                .builder()
-                                                .stages(Predicates.allOf(
-                                                                new DepthValidationStage(),
-                                                                new ReferenceFiltersStage(),
-                                                                new QueueReferenceStage()))
-                                                .build())
-                                .importerPipeline(ImporterPipeline
-                                                .builder()
-                                                .stages(Predicates.allOf(
-                                                                new MockFetchStage(
-                                                                                METADATA),
-                                                                new MetadataFiltersStage(
-                                                                                METADATA),
-                                                                new MetadataChecksumStage(
-                                                                                METADATA),
-                                                                new MetadataDedupStage(
-                                                                                METADATA),
-                                                                new MockFetchStage(
-                                                                                DOCUMENT),
-                                                                new MetadataFiltersStage(
-                                                                                DOCUMENT),
-                                                                new MetadataChecksumStage(
-                                                                                DOCUMENT),
-                                                                new MetadataDedupStage(
-                                                                                DOCUMENT),
-                                                                new DocumentFiltersStage(),
-                                                                new DocumentPreProcessingStage(),
-                                                                new ImportModuleStage()))
-                                                .build())
-                                .committerPipeline(CommitterPipeline
-                                                .builder()
-                                                .stages(Predicates.allOf(
-                                                                new DocumentChecksumStage(),
-                                                                new DocumentDedupStage(),
-                                                                new DocumentPostProcessingStage(),
-                                                                new CommitModuleStage()))
-                                                .build())
-                                .build();
-        }
+    public static CrawlerDocPipelines pipelines() {
+        return CrawlerDocPipelines
+                .builder()
+                .queuePipeline(QueuePipeline
+                        .builder()
+                        .stages(Predicates.allOf(
+                                new DepthValidationStage(),
+                                new ReferenceFiltersStage(),
+                                new QueueReferenceStage()))
+                        .build())
+                .importerPipeline(ImporterPipeline
+                        .builder()
+                        .stages(Predicates.allOf(
+                                new MockFetchStage(
+                                        METADATA),
+                                new MetadataFiltersStage(
+                                        METADATA),
+                                new MetadataChecksumStage(
+                                        METADATA),
+                                new MetadataDedupStage(
+                                        METADATA),
+                                new MockFetchStage(
+                                        DOCUMENT),
+                                new MetadataFiltersStage(
+                                        DOCUMENT),
+                                new MetadataChecksumStage(
+                                        DOCUMENT),
+                                new MetadataDedupStage(
+                                        DOCUMENT),
+                                new DocumentFiltersStage(),
+                                new DocumentPreProcessingStage(),
+                                new ImportModuleStage()))
+                        .build())
+                .committerPipeline(CommitterPipeline
+                        .builder()
+                        .stages(Predicates.allOf(
+                                new DocumentChecksumStage(),
+                                new DocumentDedupStage(),
+                                new DocumentPostProcessingStage(),
+                                new CommitModuleStage()))
+                        .build())
+                .build();
+    }
 }

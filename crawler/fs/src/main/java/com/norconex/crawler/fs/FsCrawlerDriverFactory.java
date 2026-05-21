@@ -29,37 +29,37 @@ import com.norconex.crawler.fs.ledger.FsCrawlerEntry;
 
 public class FsCrawlerDriverFactory implements Supplier<CrawlerDriver> {
 
-        public static CrawlerDriver create() {
-                return new FsCrawlerDriverFactory().get();
-        }
+    public static CrawlerDriver create() {
+        return new FsCrawlerDriverFactory().get();
+    }
 
-        @Override
-        public CrawlerDriver get() {
-                return CrawlerDriver.builder()
-                                .fetchDriver(createFetchDriver())
-                                .callbacks(CrawlerCallbacks.builder()
-                                                .beforeCommand(new BeforeFsCommand())
-                                                .build())
-                                .docPipelines(FsPipelines.create())
-                                .crawlEntryType(FsCrawlerEntry.class)
-                                .build();
-        }
+    @Override
+    public CrawlerDriver get() {
+        return CrawlerDriver.builder()
+                .fetchDriver(createFetchDriver())
+                .callbacks(CrawlerCallbacks.builder()
+                        .beforeCommand(new BeforeFsCommand())
+                        .build())
+                .docPipelines(FsPipelines.create())
+                .crawlEntryType(FsCrawlerEntry.class)
+                .build();
+    }
 
-        private static FetchDriver createFetchDriver() {
-                return new FetchDriver()
-                                .responseAggregator(
-                                                (req, resps) -> (req instanceof FileFetchRequest
-                                                                ? new AggregatedFileFetchResponse(
-                                                                                resps)
-                                                                : new AggregatedFolderPathsResponse(
-                                                                                resps)))
-                                .unsuccesfulResponseFactory(
-                                                (state, msg, e) -> GenericFileFetchResponse
-                                                                .builder()
-                                                                .processingOutcome(
-                                                                                state)
-                                                                .reasonPhrase(msg)
-                                                                .exception(e)
-                                                                .build());
-        }
+    private static FetchDriver createFetchDriver() {
+        return new FetchDriver()
+                .responseAggregator(
+                        (req, resps) -> (req instanceof FileFetchRequest
+                                ? new AggregatedFileFetchResponse(
+                                        resps)
+                                : new AggregatedFolderPathsResponse(
+                                        resps)))
+                .unsuccesfulResponseFactory(
+                        (state, msg, e) -> GenericFileFetchResponse
+                                .builder()
+                                .processingOutcome(
+                                        state)
+                                .reasonPhrase(msg)
+                                .exception(e)
+                                .build());
+    }
 }

@@ -45,141 +45,141 @@ import com.norconex.crawler.core.session.CrawlerSession;
 @WithTestWatcherLogging
 class HazelcastPipelineManagerIT {
 
-        @TempDir
-        java.nio.file.Path tempDir;
+    @TempDir
+    java.nio.file.Path tempDir;
 
-        private HazelcastCluster cluster;
+    private HazelcastCluster cluster;
 
-        @AfterEach
-        void tearDown() {
-                if (cluster != null) {
-                        cluster.close();
-                        cluster = null;
-                }
-                HazelcastTestSupport.shutdownAll();
+    @AfterEach
+    void tearDown() {
+        if (cluster != null) {
+            cluster.close();
+            cluster = null;
         }
+        HazelcastTestSupport.shutdownAll();
+    }
 
-        // -----------------------------------------------------------------------
-        // getPipelineProgress — no active execution
-        // -----------------------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // getPipelineProgress — no active execution
+    // -----------------------------------------------------------------------
 
-        @Test
-        void getPipelineProgress_noActivePipeline_returnsPendingStatus()
-                        throws IOException {
-                var mgr = startManager("no-exec");
+    @Test
+    void getPipelineProgress_noActivePipeline_returnsPendingStatus()
+            throws IOException {
+        var mgr = startManager("no-exec");
 
-                var progress = mgr.getPipelineProgress("nonexistent-pipeline");
+        var progress = mgr.getPipelineProgress("nonexistent-pipeline");
 
-                assertThat(progress).isNotNull();
-                assertThat(progress.getStatus())
-                                .isSameAs(PipelineStatus.PENDING);
-        }
+        assertThat(progress).isNotNull();
+        assertThat(progress.getStatus())
+                .isSameAs(PipelineStatus.PENDING);
+    }
 
-        // -----------------------------------------------------------------------
-        // stopPipeline — unknown id
-        // -----------------------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // stopPipeline — unknown id
+    // -----------------------------------------------------------------------
 
-        @Test
-        void stopPipeline_unknownId_returnsAlreadyCompletedFuture()
-                        throws IOException {
-                var mgr = startManager("stop-unknown");
+    @Test
+    void stopPipeline_unknownId_returnsAlreadyCompletedFuture()
+            throws IOException {
+        var mgr = startManager("stop-unknown");
 
-                var future = mgr.stopPipeline("no-such-pipeline");
+        var future = mgr.stopPipeline("no-such-pipeline");
 
-                assertThat(future).isNotNull();
-                assertThat(future.isDone()).isTrue();
-                assertThatCode(() -> future.get()).doesNotThrowAnyException();
-        }
+        assertThat(future).isNotNull();
+        assertThat(future.isDone()).isTrue();
+        assertThatCode(() -> future.get()).doesNotThrowAnyException();
+    }
 
-        // -----------------------------------------------------------------------
-        // stop() — no active pipelines
-        // -----------------------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // stop() — no active pipelines
+    // -----------------------------------------------------------------------
 
-        @Test
-        void stop_withNoPipelinesRegistered_doesNotThrow() throws IOException {
-                var mgr = startManager("stop-empty");
+    @Test
+    void stop_withNoPipelinesRegistered_doesNotThrow() throws IOException {
+        var mgr = startManager("stop-empty");
 
-                assertThatCode(mgr::stop).doesNotThrowAnyException();
-        }
+        assertThatCode(mgr::stop).doesNotThrowAnyException();
+    }
 
-        // -----------------------------------------------------------------------
-        // close() / closed guard
-        // -----------------------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // close() / closed guard
+    // -----------------------------------------------------------------------
 
-        @Test
-        void close_thenExecutePipeline_throwsIllegalState() throws IOException {
-                var mgr = startManager("closed-guard");
-                var pipeline = new Pipeline("pipe-id");
+    @Test
+    void close_thenExecutePipeline_throwsIllegalState() throws IOException {
+        var mgr = startManager("closed-guard");
+        var pipeline = new Pipeline("pipe-id");
 
-                mgr.close();
+        mgr.close();
 
-                assertThatThrownBy(() -> mgr.executePipeline(pipeline))
-                                .isInstanceOf(IllegalStateException.class)
-                                .hasMessageContaining("closed");
-        }
+        assertThatThrownBy(() -> mgr.executePipeline(pipeline))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("closed");
+    }
 
-        // -----------------------------------------------------------------------
-        // Step-change listeners
-        // -----------------------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // Step-change listeners
+    // -----------------------------------------------------------------------
 
-        @Test
-        void addAndRemoveStepChangeListener_doesNotThrow() throws IOException {
-                var mgr = startManager("step-listener");
+    @Test
+    void addAndRemoveStepChangeListener_doesNotThrow() throws IOException {
+        var mgr = startManager("step-listener");
 
-                com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListener<
-                                StepRecord> listener =
-                                                (k, v) -> {};
+        com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListener<
+                StepRecord> listener =
+                        (k, v) -> {};
 
-                assertThatCode(() -> mgr.addStepChangeListener(listener))
-                                .doesNotThrowAnyException();
-                assertThatCode(() -> mgr.removeStepChangeListener(listener))
-                                .doesNotThrowAnyException();
-        }
+        assertThatCode(() -> mgr.addStepChangeListener(listener))
+                .doesNotThrowAnyException();
+        assertThatCode(() -> mgr.removeStepChangeListener(listener))
+                .doesNotThrowAnyException();
+    }
 
-        // -----------------------------------------------------------------------
-        // Worker-status listeners
-        // -----------------------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // Worker-status listeners
+    // -----------------------------------------------------------------------
 
-        @Test
-        void addAndRemoveWorkerStatusListener_doesNotThrow()
-                        throws IOException {
-                var mgr = startManager("worker-listener");
+    @Test
+    void addAndRemoveWorkerStatusListener_doesNotThrow()
+            throws IOException {
+        var mgr = startManager("worker-listener");
 
-                com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListener<
-                                StepRecord> listener =
-                                                (k, v) -> {};
+        com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListener<
+                StepRecord> listener =
+                        (k, v) -> {};
 
-                assertThatCode(() -> mgr.addWorkerStatusListener(listener))
-                                .doesNotThrowAnyException();
-                assertThatCode(() -> mgr.removeWorkerStatusListener(listener))
-                                .doesNotThrowAnyException();
-        }
+        assertThatCode(() -> mgr.addWorkerStatusListener(listener))
+                .doesNotThrowAnyException();
+        assertThatCode(() -> mgr.removeWorkerStatusListener(listener))
+                .doesNotThrowAnyException();
+    }
 
-        // -----------------------------------------------------------------------
-        // Helper
-        // -----------------------------------------------------------------------
+    // -----------------------------------------------------------------------
+    // Helper
+    // -----------------------------------------------------------------------
 
-        private HazelcastPipelineManager startManager(String suffix)
-                        throws IOException {
-                var workDir = Files.createDirectories(
-                                tempDir.resolve("hz-pm-" + suffix));
-                var config = new HazelcastClusterConnectorConfig()
-                                .setClusterName("pm-test-" + UUID.randomUUID()
-                                                .toString().substring(0, 8));
-                cluster = HazelcastTestSupport.newCluster(config);
-                cluster.init(workDir, false);
+    private HazelcastPipelineManager startManager(String suffix)
+            throws IOException {
+        var workDir = Files.createDirectories(
+                tempDir.resolve("hz-pm-" + suffix));
+        var config = new HazelcastClusterConnectorConfig()
+                .setClusterName("pm-test-" + UUID.randomUUID()
+                        .toString().substring(0, 8));
+        cluster = HazelcastTestSupport.newCluster(config);
+        cluster.init(workDir, false);
 
-                // Bind a minimal mock session so actions that reference it don't NPE
-                var mockSession =
-                                org.mockito.Mockito.mock(CrawlerSession.class);
-                org.mockito.Mockito.when(mockSession.getCrawlerId())
-                                .thenReturn("test-crawler");
-                org.mockito.Mockito.when(mockSession.getCrawlSessionId())
-                                .thenReturn("sess-" + suffix);
-                org.mockito.Mockito.when(mockSession.getCrawlRunId())
-                                .thenReturn("run-" + suffix);
-                cluster.bindSession(mockSession);
+        // Bind a minimal mock session so actions that reference it don't NPE
+        var mockSession =
+                org.mockito.Mockito.mock(CrawlerSession.class);
+        org.mockito.Mockito.when(mockSession.getCrawlerId())
+                .thenReturn("test-crawler");
+        org.mockito.Mockito.when(mockSession.getCrawlSessionId())
+                .thenReturn("sess-" + suffix);
+        org.mockito.Mockito.when(mockSession.getCrawlRunId())
+                .thenReturn("run-" + suffix);
+        cluster.bindSession(mockSession);
 
-                return (HazelcastPipelineManager) cluster.getPipelineManager();
-        }
+        return (HazelcastPipelineManager) cluster.getPipelineManager();
+    }
 }
