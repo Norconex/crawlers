@@ -16,20 +16,20 @@ package com.norconex.crawler.core.cmd.crawl.pipeline;
 
 import java.util.ArrayList;
 
-import com.norconex.crawler.core.CrawlConfig.OrphansStrategy;
+import com.norconex.crawler.core.CrawlerConfig.OrphansStrategy;
 import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.StartRefsQueueStep;
 import com.norconex.crawler.core.cmd.crawl.pipeline.orphans.RequeueOrphansForDeletionStep;
 import com.norconex.crawler.core.cmd.crawl.pipeline.orphans.RequeueOrphansForProcessingStep;
-import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessStep;
-import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlProcessStep.ProcessQueueAction;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlerProcessStep;
+import com.norconex.crawler.core.cmd.crawl.pipeline.process.CrawlerProcessStep.ProcessQueueAction;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class DefaultCrawlPipelineFactory implements CrawlPipelineFactory {
+public class DefaultCrawlPipelineFactory implements CrawlerPipelineFactory {
 
     //XXX     public static final String STEP_BOOTSTRAP = "bootstrap";
     public static final String STEP_INITIAL_QUEUE = "initialQueue";
@@ -38,14 +38,14 @@ public class DefaultCrawlPipelineFactory implements CrawlPipelineFactory {
     public static final String STEP_CRAWL_ORPHANS = "crawlOrphans";
 
     @Override
-    public Pipeline create(CrawlSession session) {
+    public Pipeline create(CrawlerSession session) {
         var steps = new ArrayList<Step>();
         //XXX        steps.add(new CrawlBootstrapStep(STEP_BOOTSTRAP));
 
         steps.add(new StartRefsQueueStep(STEP_INITIAL_QUEUE)
                 .setDistributed(false));
 
-        steps.add(new CrawlProcessStep(
+        steps.add(new CrawlerProcessStep(
                 STEP_CRAWL_DOCUMENTS, ProcessQueueAction.CRAWL_ALL)
                         .setDistributed(true));
 
@@ -56,13 +56,13 @@ public class DefaultCrawlPipelineFactory implements CrawlPipelineFactory {
         } else if (orphStrategy == OrphansStrategy.DELETE) {
             steps.add(new RequeueOrphansForDeletionStep(
                     "queueOrphansForDeletion"));
-            steps.add(new CrawlProcessStep(STEP_DELETE_ORPHANS,
+            steps.add(new CrawlerProcessStep(STEP_DELETE_ORPHANS,
                     ProcessQueueAction.DELETE_ALL)
                             .setDistributed(true));
         } else if (orphStrategy == OrphansStrategy.PROCESS) {
             steps.add(new RequeueOrphansForProcessingStep(
                     "queueOrphansForProcessing"));
-            steps.add(new CrawlProcessStep(STEP_CRAWL_ORPHANS,
+            steps.add(new CrawlerProcessStep(STEP_CRAWL_ORPHANS,
                     ProcessQueueAction.CRAWL_ALL)
                             .setDistributed(true));
         }

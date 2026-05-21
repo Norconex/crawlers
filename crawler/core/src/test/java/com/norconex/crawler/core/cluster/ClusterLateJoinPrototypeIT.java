@@ -29,14 +29,14 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
 import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
-import com.norconex.crawler.core.test.CrawlTestHarness;
-import com.norconex.crawler.core.test.CrawlTestInstrument;
+import com.norconex.crawler.core.test.CrawlerTestHarness;
+import com.norconex.crawler.core.test.CrawlerTestInstrument;
 
 @WithTestWatcherLogging
 @Timeout(180)
@@ -130,18 +130,18 @@ class ClusterLateJoinPrototypeIT {
         return Math.max(1, TimeUnit.NANOSECONDS.toMillis(remainingNanos));
     }
 
-    private CrawlTestHarness newHarness(
-            Consumer<CrawlTestInstrument> instrumentModifier) {
-        var instrument = new CrawlTestInstrument()
+    private CrawlerTestHarness newHarness(
+            Consumer<CrawlerTestInstrument> instrumentModifier) {
+        var instrument = new CrawlerTestInstrument()
                 .setRecordInterval(RESULT_RECORD_INTERVAL)
                 .setWorkDir(tempDir)
                 .setNewJvm(false)
                 .setClustered(true);
         instrumentModifier.accept(instrument);
-        return new CrawlTestHarness(instrument);
+        return new CrawlerTestHarness(instrument);
     }
 
-    private static Consumer<CrawlConfig> baseConfig(int numOfRefs,
+    private static Consumer<CrawlerConfig> baseConfig(int numOfRefs,
             long delayMs) {
         return cfg -> cfg
                 .setStartReferences(IntStream.range(0, numOfRefs)

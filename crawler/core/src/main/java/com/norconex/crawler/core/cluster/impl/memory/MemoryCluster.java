@@ -22,7 +22,7 @@ import com.norconex.crawler.core.cluster.CacheManager;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.ClusterNode;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,7 +54,7 @@ public class MemoryCluster implements Cluster {
     private final MemoryCacheManager cacheManager =
             new MemoryCacheManager();
     private LocalPipelineManager pipelineManager;
-    private CrawlSession session;
+    private CrawlerSession session;
     private Path currentWorkDir;
 
     @Override
@@ -79,7 +79,7 @@ public class MemoryCluster implements Cluster {
     }
 
     @Override
-    public void bindSession(CrawlSession session) {
+    public void bindSession(CrawlerSession session) {
         this.session = session;
         this.pipelineManager = session != null
                 ? new LocalPipelineManager(session)
@@ -112,7 +112,7 @@ public class MemoryCluster implements Cluster {
     }
 
     @Override
-    public CrawlSession getCrawlSession() {
+    public CrawlerSession getCrawlSession() {
         return session;
     }
 

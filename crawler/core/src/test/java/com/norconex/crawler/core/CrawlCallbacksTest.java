@@ -25,15 +25,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.event.Event;
-import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
+import com.norconex.crawler.core.cmd.crawl.CrawlerCommand;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 @Timeout(30)
-class CrawlCallbacksTest {
+class CrawlerCallbacksTest {
 
-    private CrawlConfig mockConfig() {
-        var cfg = new CrawlConfig();
+    private CrawlerConfig mockConfig() {
+        var cfg = new CrawlerConfig();
         cfg.setId("test");
         return cfg;
     }
@@ -41,7 +41,7 @@ class CrawlCallbacksTest {
     @Test
     void accept_nonCrawlerEvent_isIgnored() {
         List<String> received = new ArrayList<>();
-        var callbacks = CrawlCallbacks.builder()
+        var callbacks = CrawlerCallbacks.builder()
                 .beforeSession(cfg -> received.add("before"))
                 .build();
 
@@ -56,9 +56,9 @@ class CrawlCallbacksTest {
 
     @Test
     void accept_sessionBegin_invokesBeforeSession() {
-        List<CrawlConfig> received = new ArrayList<>();
+        List<CrawlerConfig> received = new ArrayList<>();
         var cfg = mockConfig();
-        var callbacks = CrawlCallbacks.builder()
+        var callbacks = CrawlerCallbacks.builder()
                 .beforeSession(received::add)
                 .build();
 
@@ -73,9 +73,9 @@ class CrawlCallbacksTest {
 
     @Test
     void accept_sessionEnd_invokesAfterSession() {
-        List<CrawlConfig> received = new ArrayList<>();
+        List<CrawlerConfig> received = new ArrayList<>();
         var cfg = mockConfig();
-        var callbacks = CrawlCallbacks.builder()
+        var callbacks = CrawlerCallbacks.builder()
                 .afterSession(received::add)
                 .build();
 
@@ -90,8 +90,8 @@ class CrawlCallbacksTest {
     @Test
     void accept_commandBegin_invokesBeforeCommand() {
         List<Class<?>> commandClasses = new ArrayList<>();
-        var session = mock(CrawlSession.class);
-        var callbacks = CrawlCallbacks.builder()
+        var session = mock(CrawlerSession.class);
+        var callbacks = CrawlerCallbacks.builder()
                 .beforeCommand((s, cls) -> commandClasses.add(cls))
                 .build();
 
@@ -99,17 +99,17 @@ class CrawlCallbacksTest {
                 .name(CrawlerEvent.CRAWLER_COMMAND_BEGIN)
                 .source(mockConfig())
                 .crawlSession(session)
-                .commandClass(CrawlCommand.class)
+                .commandClass(CrawlerCommand.class)
                 .build());
 
-        assertThat(commandClasses).containsExactly(CrawlCommand.class);
+        assertThat(commandClasses).containsExactly(CrawlerCommand.class);
     }
 
     @Test
     void accept_commandEnd_invokesAfterCommand() {
         List<Class<?>> commandClasses = new ArrayList<>();
-        var session = mock(CrawlSession.class);
-        var callbacks = CrawlCallbacks.builder()
+        var session = mock(CrawlerSession.class);
+        var callbacks = CrawlerCallbacks.builder()
                 .afterCommand((s, cls) -> commandClasses.add(cls))
                 .build();
 
@@ -117,18 +117,18 @@ class CrawlCallbacksTest {
                 .name(CrawlerEvent.CRAWLER_COMMAND_END)
                 .source(mockConfig())
                 .crawlSession(session)
-                .commandClass(CrawlCommand.class)
+                .commandClass(CrawlerCommand.class)
                 .build());
 
-        assertThat(commandClasses).containsExactly(CrawlCommand.class);
+        assertThat(commandClasses).containsExactly(CrawlerCommand.class);
     }
 
     @Test
     void accept_documentProcessingBegin_invokesBeforeDocProcessing() {
         List<Object> received = new ArrayList<>();
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         var docSource = mock(com.norconex.importer.doc.Doc.class);
-        var callbacks = CrawlCallbacks.builder()
+        var callbacks = CrawlerCallbacks.builder()
                 .beforeDocumentProcessing((s, doc) -> received.add(doc))
                 .build();
 
@@ -144,9 +144,9 @@ class CrawlCallbacksTest {
     @Test
     void accept_documentProcessingEnd_invokesAfterDocProcessing() {
         List<Object> received = new ArrayList<>();
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         var docSource = mock(com.norconex.importer.doc.Doc.class);
-        var callbacks = CrawlCallbacks.builder()
+        var callbacks = CrawlerCallbacks.builder()
                 .afterDocumentProcessing((s, doc) -> received.add(doc))
                 .build();
 
@@ -162,9 +162,9 @@ class CrawlCallbacksTest {
     @Test
     void accept_documentFinalizingBegin_invokesBeforeDocFinalizing() {
         List<Object> received = new ArrayList<>();
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         var docSource = mock(com.norconex.importer.doc.Doc.class);
-        var callbacks = CrawlCallbacks.builder()
+        var callbacks = CrawlerCallbacks.builder()
                 .beforeDocumentFinalizing((s, doc) -> received.add(doc))
                 .build();
 
@@ -180,9 +180,9 @@ class CrawlCallbacksTest {
     @Test
     void accept_documentFinalizingEnd_invokesAfterDocFinalizing() {
         List<Object> received = new ArrayList<>();
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         var docSource = mock(com.norconex.importer.doc.Doc.class);
-        var callbacks = CrawlCallbacks.builder()
+        var callbacks = CrawlerCallbacks.builder()
                 .afterDocumentFinalizing((s, doc) -> received.add(doc))
                 .build();
 
@@ -197,7 +197,7 @@ class CrawlCallbacksTest {
 
     @Test
     void accept_noCallbacksSet_doesNotThrow() {
-        var callbacks = CrawlCallbacks.builder().build();
+        var callbacks = CrawlerCallbacks.builder().build();
         var cfg = mockConfig();
 
         assertThatNoException().isThrownBy(() -> {
@@ -215,7 +215,7 @@ class CrawlCallbacksTest {
     @Test
     void accept_unknownEventName_doesNothing() {
         List<String> received = new ArrayList<>();
-        var callbacks = CrawlCallbacks.builder()
+        var callbacks = CrawlerCallbacks.builder()
                 .beforeSession(c -> received.add("session"))
                 .build();
 
@@ -230,16 +230,16 @@ class CrawlCallbacksTest {
     @Test
     void crawlCommandCallback_defaultImplementation_ignoresNonCrawlCommands() {
         List<String> received = new ArrayList<>();
-        CrawlCallbacks.CrawlCommandCallback cb =
+        CrawlerCallbacks.CrawlerCommandCallback cb =
                 session -> received.add("crawl");
 
         // Test with CrawlCommand (should invoke accept(session))
-        cb.accept(mock(CrawlSession.class), CrawlCommand.class);
+        cb.accept(mock(CrawlerSession.class), CrawlerCommand.class);
         assertThat(received).containsExactly("crawl");
 
         // Test with a non-CrawlCommand class (should be ignored)
         received.clear();
-        cb.accept(mock(CrawlSession.class),
+        cb.accept(mock(CrawlerSession.class),
                 com.norconex.crawler.core.cmd.clean.CleanCommand.class);
         assertThat(received).isEmpty();
     }

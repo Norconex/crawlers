@@ -24,20 +24,20 @@ import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventManager;
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.event.CrawlerEvent;
 
 @Timeout(30)
-class CrawlEventBusTest {
+class CrawlerEventBusTest {
 
     @Test
     void fire_dispatchesToRegisteredListener() {
         var received = new ArrayList<Event>();
         var manager = new EventManager();
         manager.addListener(received::add);
-        var bus = new CrawlEventBus(manager);
+        var bus = new CrawlerEventBus(manager);
 
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         config.setId("test");
         var event = CrawlerEvent.builder()
                 .name(CrawlerEvent.CRAWLER_SESSION_BEGIN)
@@ -54,8 +54,8 @@ class CrawlEventBusTest {
     @Test
     void fire_noListeners_doesNotThrow() {
         var manager = new EventManager();
-        var bus = new CrawlEventBus(manager);
-        var config = new CrawlConfig();
+        var bus = new CrawlerEventBus(manager);
+        var config = new CrawlerConfig();
         config.setId("test");
         var event = CrawlerEvent.builder()
                 .name(CrawlerEvent.CRAWLER_SESSION_END)
@@ -72,9 +72,9 @@ class CrawlEventBusTest {
         var manager = new EventManager();
         manager.addListener(e -> names.add("A:" + e.getName()));
         manager.addListener(e -> names.add("B:" + e.getName()));
-        var bus = new CrawlEventBus(manager);
+        var bus = new CrawlerEventBus(manager);
 
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         config.setId("test");
         bus.fire(CrawlerEvent.builder()
                 .name(CrawlerEvent.CRAWLER_CLEAN_BEGIN)

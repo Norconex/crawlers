@@ -25,7 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.ClusterConfig;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -46,12 +46,12 @@ public class ClusterAdminServer {
     private static final String TEXT_PLAIN = "text/plain";
 
     private final Cluster cluster;
-    private final CrawlSession session;
+    private final CrawlerSession session;
     private HttpServer httpServer;
     @Getter
     private int port;
 
-    public ClusterAdminServer(CrawlSession session) {
+    public ClusterAdminServer(CrawlerSession session) {
         this.session = session;
         cluster = session.getCluster();
     }

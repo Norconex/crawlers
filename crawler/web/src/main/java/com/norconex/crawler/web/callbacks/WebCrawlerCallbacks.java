@@ -14,12 +14,12 @@
  */
 package com.norconex.crawler.web.callbacks;
 
-import com.norconex.crawler.core.CrawlCallbacks;
+import com.norconex.crawler.core.CrawlerCallbacks;
 
 public final class WebCrawlerCallbacks {
 
-    private static final CrawlCallbacks CALLBACKS =
-            CrawlCallbacks
+    private static final CrawlerCallbacks CALLBACKS =
+            CrawlerCallbacks
                     .builder()
                     .beforeCommand(new BeforeWebCommand())
                     .beforeDocumentProcessing(new WebCrawlerDocInitializer())
@@ -29,7 +29,7 @@ public final class WebCrawlerCallbacks {
     private WebCrawlerCallbacks() {
     }
 
-    public static CrawlCallbacks get() {
+    public static CrawlerCallbacks get() {
         return CALLBACKS;
     }
 }

@@ -25,12 +25,12 @@ import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.io.CachedStreamFactory;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.context.CrawlContext;
-import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
+import com.norconex.crawler.core.context.CrawlerContext;
+import com.norconex.crawler.core.doc.CrawlerDocContext;
+import com.norconex.crawler.core.doc.pipelines.CrawlerDocPipelines;
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipeline;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.doc.operations.scope.UrlScope;
 import com.norconex.crawler.web.junit.WebCrawlingTest;
 import com.norconex.crawler.web.ledger.WebCrawlerEntry;
@@ -45,7 +45,7 @@ class PostImportLinksStageTest {
     // -----------------------------------------------------------------------
 
     @WebCrawlingTest
-    void testBlankPatternPassesThrough(CrawlContext ctx) {
+    void testBlankPatternPassesThrough(CrawlerContext ctx) {
         // Default postImportLinks has an empty pattern → no-op, always true
         Web.config(ctx).setPostImportLinks(new TextMatcher()); // blank pattern
 
@@ -56,7 +56,7 @@ class PostImportLinksStageTest {
     }
 
     @WebCrawlingTest
-    void testNoMatchingFieldsPassesThrough(CrawlContext ctx)
+    void testNoMatchingFieldsPassesThrough(CrawlerContext ctx)
             throws IOException {
         // Pattern set but no metadata field matches it → no-op, always true
         Web.config(ctx).setPostImportLinks(TextMatcher.basic("myLinks"));
@@ -67,12 +67,12 @@ class PostImportLinksStageTest {
                 new CachedStreamFactory(1, 1).newInputStream())) {
             // Intentionally no "myLinks" field in metadata
 
-            var docCtx = CrawlDocContext.builder()
+            var docCtx = CrawlerDocContext.builder()
                     .doc(doc)
                     .currentCrawlEntry(entry)
                     .build();
 
-            var session = mock(CrawlSession.class);
+            var session = mock(CrawlerSession.class);
             when(session.getCrawlContext()).thenReturn(ctx);
 
             var pipeCtx = new CommitterPipelineContext(session, docCtx);
@@ -85,14 +85,14 @@ class PostImportLinksStageTest {
     // -----------------------------------------------------------------------
 
     @WebCrawlingTest
-    void testInScopeUrlsAreQueued(CrawlContext ctx) {
+    void testInScopeUrlsAreQueued(CrawlerContext ctx) {
         Web.config(ctx).setPostImportLinks(TextMatcher.basic("myLinks"));
         // Accept all URLs as in-scope
         Web.config(ctx).setUrlScopeResolver(
                 (src, target) -> UrlScope.in());
 
         var queuePipeline = mock(QueuePipeline.class);
-        var pipelines = mock(CrawlDocPipelines.class);
+        var pipelines = mock(CrawlerDocPipelines.class);
         when(ctx.getDocPipelines()).thenReturn(pipelines);
         when(pipelines.getQueuePipeline()).thenReturn(queuePipeline);
 
@@ -103,10 +103,10 @@ class PostImportLinksStageTest {
         var doc = buildDocWithLinks("http://example.com/page.html",
                 "myLinks", url1, url2);
 
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(ctx);
 
-        var docCtx = CrawlDocContext.builder()
+        var docCtx = CrawlerDocContext.builder()
                 .doc(doc)
                 .currentCrawlEntry(entry)
                 .build();
@@ -124,7 +124,7 @@ class PostImportLinksStageTest {
     // -----------------------------------------------------------------------
 
     @WebCrawlingTest
-    void testOutOfScopeUrlsNotQueued(CrawlContext ctx) {
+    void testOutOfScopeUrlsNotQueued(CrawlerContext ctx) {
         Web.config(ctx).setPostImportLinks(TextMatcher.basic("myLinks"));
         // Reject all URLs as out-of-scope
         Web.config(ctx).setUrlScopeResolver(
@@ -135,10 +135,10 @@ class PostImportLinksStageTest {
         var doc = buildDocWithLinks("http://example.com/page.html",
                 "myLinks", url);
 
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(ctx);
 
-        var docCtx = CrawlDocContext.builder()
+        var docCtx = CrawlerDocContext.builder()
                 .doc(doc)
                 .currentCrawlEntry(entry)
                 .build();
@@ -156,7 +156,7 @@ class PostImportLinksStageTest {
     // -----------------------------------------------------------------------
 
     @WebCrawlingTest
-    void testLinksFieldRemovedWhenKeepIsFalse(CrawlContext ctx) {
+    void testLinksFieldRemovedWhenKeepIsFalse(CrawlerContext ctx) {
         Web.config(ctx).setPostImportLinks(TextMatcher.basic("myLinks"));
         Web.config(ctx).setPostImportLinksKeep(false); // default is false
         Web.config(ctx).setUrlScopeResolver(
@@ -166,10 +166,10 @@ class PostImportLinksStageTest {
         var doc = buildDocWithLinks("http://example.com/page.html",
                 "myLinks", "http://example.com/link.html");
 
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(ctx);
 
-        var docCtx = CrawlDocContext.builder()
+        var docCtx = CrawlerDocContext.builder()
                 .doc(doc)
                 .currentCrawlEntry(entry)
                 .build();
@@ -186,7 +186,7 @@ class PostImportLinksStageTest {
     // -----------------------------------------------------------------------
 
     @WebCrawlingTest
-    void testLinksFieldKeptWhenKeepIsTrue(CrawlContext ctx) {
+    void testLinksFieldKeptWhenKeepIsTrue(CrawlerContext ctx) {
         Web.config(ctx).setPostImportLinks(TextMatcher.basic("myLinks"));
         Web.config(ctx).setPostImportLinksKeep(true);
         Web.config(ctx).setUrlScopeResolver(
@@ -197,10 +197,10 @@ class PostImportLinksStageTest {
         var doc = buildDocWithLinks("http://example.com/page.html",
                 "myLinks", url);
 
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(ctx);
 
-        var docCtx = CrawlDocContext.builder()
+        var docCtx = CrawlerDocContext.builder()
                 .doc(doc)
                 .currentCrawlEntry(entry)
                 .build();
@@ -217,13 +217,13 @@ class PostImportLinksStageTest {
     // -----------------------------------------------------------------------
 
     @WebCrawlingTest
-    void testDuplicateUrlsNotRequeued(CrawlContext ctx) {
+    void testDuplicateUrlsNotRequeued(CrawlerContext ctx) {
         Web.config(ctx).setPostImportLinks(TextMatcher.basic("myLinks"));
         Web.config(ctx).setUrlScopeResolver(
                 (src, target) -> UrlScope.in());
 
         var queuePipeline = mock(QueuePipeline.class);
-        var pipelines = mock(CrawlDocPipelines.class);
+        var pipelines = mock(CrawlerDocPipelines.class);
         when(ctx.getDocPipelines()).thenReturn(pipelines);
         when(pipelines.getQueuePipeline()).thenReturn(queuePipeline);
 
@@ -237,10 +237,10 @@ class PostImportLinksStageTest {
         var doc = buildDocWithLinks("http://example.com/page.html",
                 "myLinks", alreadyExtracted, newUrl);
 
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(ctx);
 
-        var docCtx = CrawlDocContext.builder()
+        var docCtx = CrawlerDocContext.builder()
                 .doc(doc)
                 .currentCrawlEntry(entry)
                 .build();
@@ -271,14 +271,14 @@ class PostImportLinksStageTest {
 
     @SuppressWarnings("resource")
     private static boolean runStage(
-            CrawlContext ctx, String ref, WebCrawlerEntry entry) {
+            CrawlerContext ctx, String ref, WebCrawlerEntry entry) {
         var doc = new Doc(ref).setInputStream(
                 new CachedStreamFactory(1, 1).newInputStream());
-        var docCtx = CrawlDocContext.builder()
+        var docCtx = CrawlerDocContext.builder()
                 .doc(doc)
                 .currentCrawlEntry(entry)
                 .build();
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(ctx);
         return new PostImportLinksStage().test(
                 new CommitterPipelineContext(session, docCtx));

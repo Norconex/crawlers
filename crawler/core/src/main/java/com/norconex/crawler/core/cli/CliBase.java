@@ -20,8 +20,8 @@ import java.nio.file.Path;
 
 import com.norconex.commons.lang.ExceptionUtil;
 import com.norconex.commons.lang.config.ConfigurationLoader;
-import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.CrawlDriver;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlerDriver;
 import com.norconex.crawler.core.Crawler;
 
 import jakarta.validation.ConstraintViolationException;
@@ -84,7 +84,7 @@ public abstract class CliBase implements Runnable {
         return spec.commandLine().getErr();
     }
 
-    private CrawlConfig loadConfiguration(CrawlDriver driver) {
+    private CrawlerConfig loadConfiguration(CrawlerDriver driver) {
         if (getConfigFile() == null
                 || !Files.exists(getConfigFile())
                 || !getConfigFile().toFile().isFile()) {

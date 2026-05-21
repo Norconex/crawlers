@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.test.standalone.StandaloneCliCrawlerLauncher;
 
@@ -45,7 +45,7 @@ class CliConfigCommandsTest {
     void testConfigCheckValidConfigSucceeds() {
         // Out of the box, the default configuration should (serialize and)
         // validate OK.
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         config.setStartReferences(List.of("http://example.com"));
 
         var exit = StandaloneCliCrawlerLauncher
@@ -87,7 +87,7 @@ class CliConfigCommandsTest {
 
     @Test
     void testConfigRenderNoDefaultValues() throws IOException {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         config.setStartReferences(List.of("http://example.com"));
         var exit = StandaloneCliCrawlerLauncher
                 .builder()
@@ -103,7 +103,7 @@ class CliConfigCommandsTest {
 
     @Test
     void testConfigRenderSavesToFile() throws IOException {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         config.setStartReferences(List.of("http://example.com"));
 
         var outputFile = tempDir.resolve("rendered.xml");
@@ -124,7 +124,7 @@ class CliConfigCommandsTest {
 
     @Test
     void testConfigRenderBadOutputTarget() throws IOException {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         config.setStartReferences(List.of("http://example.com"));
 
         // use a directory instead of file to make it fail

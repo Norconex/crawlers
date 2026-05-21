@@ -23,9 +23,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.crawler.core.cluster.CacheMap;
-import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.context.CrawlerContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxt;
 import com.norconex.crawler.web.doc.operations.scope.UrlScope;
@@ -41,7 +41,7 @@ public final class Web {
 
     @SuppressWarnings("unchecked")
     public static <T> CacheMap<T> gridCache(
-            @NonNull CrawlSession crawlSession,
+            @NonNull CrawlerSession crawlSession,
             @NonNull String name,
             @NonNull Class<? extends T> type) {
         return crawlSession.getCluster().getCacheManager().getCacheMap(
@@ -49,7 +49,7 @@ public final class Web {
     }
 
     public static void fireIfUrlOutOfScope(
-            CrawlSession crawlSession,
+            CrawlerSession crawlSession,
             WebCrawlerEntry docContext,
             UrlScope urlScope) {
         if (!urlScope.isInScope()) {
@@ -64,11 +64,11 @@ public final class Web {
         }
     }
 
-    public static WebCrawlerConfig config(CrawlContext crawlContext) {
+    public static WebCrawlerConfig config(CrawlerContext crawlContext) {
         return (WebCrawlerConfig) crawlContext.getCrawlConfig();
     }
 
-    public static RobotsTxt robotsTxt(CrawlContext crawler, String reference) {
+    public static RobotsTxt robotsTxt(CrawlerContext crawler, String reference) {
         var cfg = Web.config(crawler);
         return Optional.ofNullable(cfg.getRobotsTxtProvider())
                 .map(rb -> rb.getRobotsTxt(crawler.getFetcher(), reference))

@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 @WithTestWatcherLogging
 @Timeout(30)
@@ -43,16 +43,16 @@ class PipelineTest {
             }
 
             @Override
-            public void execute(CrawlSession s) {
+            public void execute(CrawlerSession s) {
             }
 
             @Override
-            public void stop(CrawlSession s) {
+            public void stop(CrawlerSession s) {
             }
 
             @Override
             public PipelineStatus reduce(
-                    CrawlSession s, Bag<PipelineStatus> b) {
+                    CrawlerSession s, Bag<PipelineStatus> b) {
                 return PipelineStatus.COMPLETED;
             }
         };

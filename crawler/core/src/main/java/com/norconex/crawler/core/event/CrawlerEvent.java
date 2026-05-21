@@ -20,8 +20,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.commons.lang.event.Event;
 import com.norconex.crawler.core.cmd.Command;
-import com.norconex.crawler.core.ledger.CrawlEntry;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -78,12 +78,12 @@ public class CrawlerEvent extends Event {
 
     /**
      * Fired just before a crawl session is initialized. The event source
-     * is the {@link com.norconex.crawler.core.CrawlConfig}.
+     * is the {@link com.norconex.crawler.core.CrawlerConfig}.
      */
     public static final String CRAWLER_SESSION_BEGIN = "CRAWLER_SESSION_BEGIN";
     /**
      * Fired just after a crawl session has been closed. The event source
-     * is the {@link com.norconex.crawler.core.CrawlConfig}.
+     * is the {@link com.norconex.crawler.core.CrawlerConfig}.
      */
     public static final String CRAWLER_SESSION_END = "CRAWLER_SESSION_END";
 
@@ -208,8 +208,8 @@ public class CrawlerEvent extends Event {
      * Gets the document being processed associated with this event.
      * CRAWLER_* events will return a {@code null} doc.
      */
-    private final transient CrawlEntry crawlEntry;
-    private final transient CrawlSession crawlSession;
+    private final transient CrawlerEntry crawlEntry;
+    private final transient CrawlerSession crawlSession;
     /**
      * The command class firing a {@link #CRAWLER_COMMAND_BEGIN} or
      * {@link #CRAWLER_COMMAND_END} event, or {@code null} for all other events.
@@ -218,7 +218,7 @@ public class CrawlerEvent extends Event {
     //    private final transient Object subject;
     //TODO keep a reference to actual document?
 
-    public CrawlSession getCrawlSession() {
+    public CrawlerSession getCrawlSession() {
         return crawlSession;
     }
 

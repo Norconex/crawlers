@@ -30,9 +30,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.context.CrawlContext;
-import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.context.CrawlerContext;
+import com.norconex.crawler.core.doc.CrawlerDocContext;
 import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
 import com.norconex.crawler.core.doc.operations.filter.MetadataFilter;
 import com.norconex.crawler.core.doc.pipelines.DedupService;
@@ -40,9 +40,9 @@ import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
-import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.importer.doc.Doc;
 
 @Timeout(30)
@@ -50,8 +50,8 @@ class AdditionalImporterStagesTest {
 
     @Test
     void commonAttribsResolution_usesDocumentValuesWhenPresent() {
-        var current = new CrawlEntry("ref");
-        var previous = new CrawlEntry("ref");
+        var current = new CrawlerEntry("ref");
+        var previous = new CrawlerEntry("ref");
         previous.setContentType(ContentType.valueOf("application/old"));
         previous.setCharset(StandardCharsets.ISO_8859_1);
         var doc = new Doc("ref");
@@ -59,8 +59,8 @@ class AdditionalImporterStagesTest {
         doc.setCharset(StandardCharsets.UTF_8);
 
         var ctx = new ImporterPipelineContext(
-                mock(CrawlSession.class),
-                CrawlDocContext.builder()
+                mock(CrawlerSession.class),
+                CrawlerDocContext.builder()
                         .doc(doc)
                         .currentCrawlEntry(current)
                         .previousCrawlEntry(previous)
@@ -73,15 +73,15 @@ class AdditionalImporterStagesTest {
 
     @Test
     void commonAttribsResolution_appliesResolverDefaultsBeforePreviousValues() {
-        var current = new CrawlEntry("ref");
-        var previous = new CrawlEntry("ref");
+        var current = new CrawlerEntry("ref");
+        var previous = new CrawlerEntry("ref");
         previous.setContentType(ContentType.valueOf("application/json"));
         previous.setCharset(StandardCharsets.UTF_16);
         var doc = new Doc("ref");
 
         var ctx = new ImporterPipelineContext(
-                mock(CrawlSession.class),
-                CrawlDocContext.builder()
+                mock(CrawlerSession.class),
+                CrawlerDocContext.builder()
                         .doc(doc)
                         .currentCrawlEntry(current)
                         .previousCrawlEntry(previous)
@@ -95,15 +95,15 @@ class AdditionalImporterStagesTest {
 
     @Test
     void commonAttribsResolution_fallsBackToPreviousEntryWhenDocValuesStayNull() {
-        var current = new CrawlEntry("ref");
-        var previous = new CrawlEntry("ref");
+        var current = new CrawlerEntry("ref");
+        var previous = new CrawlerEntry("ref");
         previous.setContentType(ContentType.valueOf("application/json"));
         previous.setCharset(StandardCharsets.UTF_16);
         var doc = new NonDetectingDoc("ref");
 
         var ctx = new ImporterPipelineContext(
-                mock(CrawlSession.class),
-                CrawlDocContext.builder()
+                mock(CrawlerSession.class),
+                CrawlerDocContext.builder()
                         .doc(doc)
                         .currentCrawlEntry(current)
                         .previousCrawlEntry(previous)
@@ -117,12 +117,12 @@ class AdditionalImporterStagesTest {
 
     @Test
     void commonAttribsResolution_keepsCurrentValuesNullWithoutPreviousEntry() {
-        var current = new CrawlEntry("ref");
+        var current = new CrawlerEntry("ref");
         var doc = new NonDetectingDoc("ref");
 
         var ctx = new ImporterPipelineContext(
-                mock(CrawlSession.class),
-                CrawlDocContext.builder()
+                mock(CrawlerSession.class),
+                CrawlerDocContext.builder()
                         .doc(doc)
                         .currentCrawlEntry(current)
                         .build());
@@ -245,31 +245,31 @@ class AdditionalImporterStagesTest {
         verify(session, never()).fire(any());
     }
 
-    private CrawlSession sessionWithConfig(
-            java.util.function.Consumer<CrawlConfig> customizer) {
+    private CrawlerSession sessionWithConfig(
+            java.util.function.Consumer<CrawlerConfig> customizer) {
         return sessionWithConfig(customizer, mock(DedupService.class));
     }
 
-    private CrawlSession sessionWithConfig(
-            java.util.function.Consumer<CrawlConfig> customizer,
+    private CrawlerSession sessionWithConfig(
+            java.util.function.Consumer<CrawlerConfig> customizer,
             DedupService dedupService) {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         customizer.accept(config);
 
-        var crawlContext = mock(CrawlContext.class);
-        var session = mock(CrawlSession.class);
+        var crawlContext = mock(CrawlerContext.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(crawlContext);
         when(crawlContext.getCrawlConfig()).thenReturn(config);
         when(crawlContext.getDedupService()).thenReturn(dedupService);
         return session;
     }
 
-    private ImporterPipelineContext ctx(CrawlSession session, String ref) {
+    private ImporterPipelineContext ctx(CrawlerSession session, String ref) {
         var doc = new Doc(ref);
         doc.getMetadata().set("k", "v");
-        var docContext = CrawlDocContext.builder()
+        var docContext = CrawlerDocContext.builder()
                 .doc(doc)
-                .currentCrawlEntry(new CrawlEntry(ref))
+                .currentCrawlEntry(new CrawlerEntry(ref))
                 .build();
         return new ImporterPipelineContext(session, docContext);
     }

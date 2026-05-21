@@ -21,17 +21,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
 
 @Timeout(30)
 class SerializedRecordTest {
 
     @Test
     void wrap_nonNull_populatesFields() {
-        var entry = new CrawlEntry("http://example.com");
+        var entry = new CrawlerEntry("http://example.com");
         var record = SerializedRecord.wrap(entry);
 
-        assertThat(record.getClassName()).isEqualTo(CrawlEntry.class.getName());
+        assertThat(record.getClassName()).isEqualTo(CrawlerEntry.class.getName());
         assertThat(record.getSerialized()).isNotBlank();
     }
 
@@ -45,11 +45,11 @@ class SerializedRecordTest {
 
     @Test
     void unwrap_nonNull_reconstructsObject() {
-        var original = new CrawlEntry("http://test.com");
+        var original = new CrawlerEntry("http://test.com");
         original.setDepth(3);
         var record = SerializedRecord.wrap(original);
 
-        CrawlEntry restored = record.unwrap();
+        CrawlerEntry restored = record.unwrap();
 
         assertThat(restored).isNotNull();
         assertThat(restored.getReference()).isEqualTo("http://test.com");
@@ -59,19 +59,19 @@ class SerializedRecordTest {
     @Test
     void unwrap_nullSerialized_returnsNull() {
         var record = new SerializedRecord();
-        record.setClassName(CrawlEntry.class.getName());
+        record.setClassName(CrawlerEntry.class.getName());
         // serialized is null → should return null
 
-        assertThat(record.<CrawlEntry>unwrap()).isNull();
+        assertThat(record.<CrawlerEntry>unwrap()).isNull();
     }
 
     @Test
     void unwrap_emptySerialized_returnsNull() {
         var record = new SerializedRecord();
-        record.setClassName(CrawlEntry.class.getName());
+        record.setClassName(CrawlerEntry.class.getName());
         record.setSerialized("");
 
-        assertThat(record.<CrawlEntry>unwrap()).isNull();
+        assertThat(record.<CrawlerEntry>unwrap()).isNull();
     }
 
     @Test
@@ -97,10 +97,10 @@ class SerializedRecordTest {
 
     @Test
     void constructor_withObject_setsFieldsCorrectly() {
-        var entry = new CrawlEntry("ref://item");
+        var entry = new CrawlerEntry("ref://item");
         var record = new SerializedRecord(entry);
 
-        assertThat(record.getClassName()).isEqualTo(CrawlEntry.class.getName());
+        assertThat(record.getClassName()).isEqualTo(CrawlerEntry.class.getName());
         assertThat(record.getSerialized()).contains("ref://item");
     }
 

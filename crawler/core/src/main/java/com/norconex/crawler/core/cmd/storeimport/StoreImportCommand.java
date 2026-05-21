@@ -32,7 +32,7 @@ import com.norconex.crawler.core.cluster.SerializedCache;
 import com.norconex.crawler.core.cluster.SerializedCache.CacheType;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -45,7 +45,7 @@ public class StoreImportCommand implements Command {
     private final Path inFile;
 
     @Override
-    public void execute(CrawlSession session) {
+    public void execute(CrawlerSession session) {
         var ctx = session.getCrawlContext();
 
         Thread.currentThread().setName(ctx.getId() + "/STORE_IMPORT");
@@ -70,7 +70,7 @@ public class StoreImportCommand implements Command {
 
     }
 
-    private void importAllStores(CrawlSession session) throws IOException {
+    private void importAllStores(CrawlerSession session) throws IOException {
         List<SerializedCache> imports = new ArrayList<>();
         try (var zipIn = new ZipInputStream(
                 IOUtils.buffer(Files.newInputStream(inFile)))) {

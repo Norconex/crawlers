@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.doc;
 
-import static com.norconex.crawler.core.doc.CrawlDocMetaConstants.PREFIX;
+import static com.norconex.crawler.core.doc.CrawlerDocMetaConstants.PREFIX;
 
 import com.norconex.importer.doc.DocMetaConstants;
 

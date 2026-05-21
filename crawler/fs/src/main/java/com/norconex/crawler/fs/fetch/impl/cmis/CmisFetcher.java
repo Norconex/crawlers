@@ -27,7 +27,7 @@ import org.apache.commons.vfs2.FileSystemOptions;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.xml.Xml;
-import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
+import com.norconex.crawler.core.doc.CrawlerDocMetaConstants;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.impl.AbstractAuthVfsFetcher;
 import com.norconex.importer.doc.Doc;
@@ -54,7 +54,7 @@ import lombok.ToString;
 public class CmisFetcher extends AbstractAuthVfsFetcher<CmisFetcherConfig> {
 
     private static final String CMIS_PREFIX =
-            CrawlDocMetaConstants.PREFIX + "cmis.";
+            CrawlerDocMetaConstants.PREFIX + "cmis.";
 
     @Getter
     private final CmisFetcherConfig configuration = new CmisFetcherConfig();

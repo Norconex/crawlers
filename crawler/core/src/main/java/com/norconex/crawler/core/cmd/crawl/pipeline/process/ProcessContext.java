@@ -14,8 +14,8 @@
  */
 package com.norconex.crawler.core.cmd.crawl.pipeline.process;
 
-import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.doc.CrawlerDocContext;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.importer.response.ImporterResponse;
 
 import lombok.Data;
@@ -24,8 +24,8 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(fluent = true)
 class ProcessContext {
-    private CrawlSession crawlSession;
-    private CrawlDocContext docContext;
+    private CrawlerSession crawlSession;
+    private CrawlerDocContext docContext;
     //private CrawlEntry crawlEntry;
     private ImporterResponse importerResponse;
     //    private boolean orphan;

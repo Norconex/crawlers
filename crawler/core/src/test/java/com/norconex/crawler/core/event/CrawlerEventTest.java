@@ -19,8 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.cmd.crawl.CrawlerCommand;
 
 @Timeout(30)
 class CrawlerEventTest {
@@ -59,20 +59,20 @@ class CrawlerEventTest {
 
     @Test
     void commandClass_setViaBuilder() {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         config.setId("test");
         var event = CrawlerEvent.builder()
                 .name(CrawlerEvent.CRAWLER_COMMAND_BEGIN)
                 .source(config)
-                .commandClass(CrawlCommand.class)
+                .commandClass(CrawlerCommand.class)
                 .build();
 
-        assertThat(event.getCommandClass()).isEqualTo(CrawlCommand.class);
+        assertThat(event.getCommandClass()).isEqualTo(CrawlerCommand.class);
     }
 
     @Test
     void commandClass_defaultNull_forNonCommandEvent() {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         config.setId("test");
         var event = CrawlerEvent.builder()
                 .name(CrawlerEvent.CRAWLER_SESSION_BEGIN)
@@ -84,7 +84,7 @@ class CrawlerEventTest {
 
     @Test
     void getName_returnsEventName() {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         config.setId("test");
         var event = CrawlerEvent.builder()
                 .name(CrawlerEvent.CRAWLER_CRAWL_BEGIN)
@@ -96,7 +96,7 @@ class CrawlerEventTest {
 
     @Test
     void toString_containsExpectedInfo() {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         config.setId("myConfig");
         var event = CrawlerEvent.builder()
                 .name(CrawlerEvent.CRAWLER_SESSION_BEGIN)

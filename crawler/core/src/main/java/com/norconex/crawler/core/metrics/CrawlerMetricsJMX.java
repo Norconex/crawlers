@@ -27,7 +27,7 @@ import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.context.CrawlerContext;
 
 /**
  * Offers useful methods for registering and unregistering MXBean to JMX.
@@ -37,7 +37,7 @@ public final class CrawlerMetricsJMX {
     private CrawlerMetricsJMX() {
     }
 
-    public static void register(CrawlContext crawlContext) {
+    public static void register(CrawlerContext crawlContext) {
         Objects.requireNonNull(
                 crawlContext, "'crawlerContext' must not be null.");
         var mbs = ManagementFactory.getPlatformMBeanServer();
@@ -52,7 +52,7 @@ public final class CrawlerMetricsJMX {
         }
     }
 
-    public static void unregister(CrawlContext crawlContext) {
+    public static void unregister(CrawlerContext crawlContext) {
         Objects.requireNonNull(crawlContext, "'crawler' must not be null.");
         var mbs = ManagementFactory.getPlatformMBeanServer();
         try {
@@ -67,7 +67,7 @@ public final class CrawlerMetricsJMX {
         }
     }
 
-    private static ObjectName objectName(CrawlContext crawlContext)
+    private static ObjectName objectName(CrawlerContext crawlContext)
             throws MalformedObjectNameException {
         return new ObjectName(
                 crawlContext.getClass().getName()

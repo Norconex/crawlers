@@ -50,7 +50,7 @@ import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
 import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
@@ -300,7 +300,7 @@ public final class FsTestUtil {
             Path tempDir, Fetcher fetcher, String... refs)
             throws Exception {
         var mem = new MemoryCommitter();
-        var config = new CrawlConfig()
+        var config = new CrawlerConfig()
                 .setId("test-crawler")
                 .setWorkDir(tempDir)
                 .setStartReferences(List.of(refs))

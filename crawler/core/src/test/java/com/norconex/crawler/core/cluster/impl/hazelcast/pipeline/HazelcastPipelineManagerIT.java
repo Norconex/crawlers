@@ -34,7 +34,7 @@ import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 /**
  * Unit/component tests for the guard paths and query methods of
@@ -168,7 +168,7 @@ class HazelcastPipelineManagerIT {
         cluster.init(workDir, false);
 
         // Bind a minimal mock session so actions that reference it don't NPE
-        var mockSession = org.mockito.Mockito.mock(CrawlSession.class);
+        var mockSession = org.mockito.Mockito.mock(CrawlerSession.class);
         org.mockito.Mockito.when(mockSession.getCrawlerId())
                 .thenReturn("test-crawler");
         org.mockito.Mockito.when(mockSession.getCrawlSessionId())

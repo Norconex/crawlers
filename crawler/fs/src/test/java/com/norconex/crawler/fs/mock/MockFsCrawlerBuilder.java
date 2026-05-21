@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.norconex.committer.core.impl.MemoryCommitter;
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.fs.FsCrawlerDriverFactory;
 
@@ -30,13 +30,13 @@ import com.norconex.crawler.fs.FsCrawlerDriverFactory;
 public final class MockFsCrawlerBuilder {
 
     private final Path workDir;
-    private Consumer<CrawlConfig> cfgModifier = cfg -> {};
+    private Consumer<CrawlerConfig> cfgModifier = cfg -> {};
 
     public MockFsCrawlerBuilder(Path workDir) {
         this.workDir = workDir;
     }
 
-    public MockFsCrawlerBuilder configModifier(Consumer<CrawlConfig> modifier) {
+    public MockFsCrawlerBuilder configModifier(Consumer<CrawlerConfig> modifier) {
         this.cfgModifier = modifier;
         return this;
     }
@@ -48,7 +48,7 @@ public final class MockFsCrawlerBuilder {
      */
     public Crawler crawler() {
         var mem = new MemoryCommitter();
-        var config = new CrawlConfig()
+        var config = new CrawlerConfig()
                 .setId("test-crawler")
                 .setWorkDir(workDir)
                 .setCommitters(List.of(mem));

@@ -21,7 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.commons.lang.text.TextMatcher.Method;
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
+import com.norconex.crawler.core.doc.CrawlerDocMetaConstants;
 import com.norconex.crawler.core.doc.operations.checksum.AbstractDocumentChecksummer;
 import com.norconex.crawler.core.doc.operations.checksum.ChecksumUtil;
 import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
@@ -42,7 +42,7 @@ import lombok.Data;
  * <code>true</code>, the checksum will be
  * stored in the target field name specified. If you do not specify any,
  * it stores it under the metadata field name
- * {@value CrawlDocMetaConstants#CHECKSUM_METADATA}.
+ * {@value CrawlerDocMetaConstants#CHECKSUM_METADATA}.
  * </p>
  *
  * <p>

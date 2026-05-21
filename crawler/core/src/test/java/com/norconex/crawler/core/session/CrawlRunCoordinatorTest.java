@@ -25,19 +25,19 @@ import org.junit.jupiter.api.Timeout;
 import com.norconex.crawler.core.cluster.support.InMemoryCacheMap;
 
 @Timeout(30)
-class CrawlRunCoordinatorTest {
+class CrawlerRunCoordinatorTest {
 
     private InMemoryCacheMap<String> sessionCache;
     private InMemoryCacheMap<String> runCache;
-    private CrawlAttributes runAttrs;
-    private CrawlRunCoordinator coordinator;
+    private CrawlerAttributes runAttrs;
+    private CrawlerRunCoordinator coordinator;
 
     @BeforeEach
     void setUp() {
         sessionCache = new InMemoryCacheMap<>("session");
         runCache = new InMemoryCacheMap<>("run");
-        runAttrs = new CrawlAttributes(runCache);
-        coordinator = new CrawlRunCoordinator(sessionCache, runCache, runAttrs);
+        runAttrs = new CrawlerAttributes(runCache);
+        coordinator = new CrawlerRunCoordinator(sessionCache, runCache, runAttrs);
     }
 
     @Test

@@ -19,7 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.map.PropertySetter;
-import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
+import com.norconex.crawler.core.doc.CrawlerDocMetaConstants;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
  * to keep the generated checksum.  The checksum can be stored
  * in a target field name specified.  If no target field name is specified,
  * it stores it under the
- * metadata field name {@link CrawlDocMetaConstants#CHECKSUM_METADATA}.
+ * metadata field name {@link CrawlerDocMetaConstants#CHECKSUM_METADATA}.
  * </p><p>
  * <b>Implementors do not need to store the checksum themselves, this abstract
  * class does it.</b>
@@ -54,7 +54,7 @@ public abstract class AbstractMetadataChecksummer<
         if (getConfiguration().isKeep()) {
             var field = getConfiguration().getToField();
             if (StringUtils.isBlank(field)) {
-                field = CrawlDocMetaConstants.CHECKSUM_METADATA;
+                field = CrawlerDocMetaConstants.CHECKSUM_METADATA;
             }
             PropertySetter.orAppend(getConfiguration().getOnSet()).apply(
                     metadata, field, checksum);

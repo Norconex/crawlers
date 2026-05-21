@@ -24,11 +24,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.service.CommitterService;
-import com.norconex.crawler.core.context.CrawlContext;
-import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.context.CrawlerContext;
+import com.norconex.crawler.core.doc.CrawlerDocContext;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.importer.doc.Doc;
 
 /**
@@ -39,16 +39,16 @@ class ProcessDeleteTest {
 
     @SuppressWarnings("unchecked")
     private ProcessContext buildCtx(String ref) {
-        var entry = new CrawlEntry(ref);
+        var entry = new CrawlerEntry(ref);
         var doc = new Doc(ref);
-        var docContext = CrawlDocContext.builder()
+        var docContext = CrawlerDocContext.builder()
                 .doc(doc)
                 .currentCrawlEntry(entry)
                 .build();
 
         var committerService = mock(CommitterService.class);
-        var crawlContext = mock(CrawlContext.class);
-        var session = mock(CrawlSession.class);
+        var crawlContext = mock(CrawlerContext.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(crawlContext);
         when(crawlContext.getCommitterService()).thenReturn(committerService);
 

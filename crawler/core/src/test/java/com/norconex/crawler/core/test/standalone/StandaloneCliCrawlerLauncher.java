@@ -27,11 +27,11 @@ import com.norconex.committer.core.impl.MemoryCommitter;
 import com.norconex.commons.lang.ClassUtil;
 import com.norconex.commons.lang.SystemUtil;
 import com.norconex.commons.lang.SystemUtil.Captured;
-import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.CrawlDriver;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlerDriver;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 import com.norconex.crawler.core.test.CoreTestUtil;
-import com.norconex.crawler.core.test.CrawlTestDriver;
+import com.norconex.crawler.core.test.CrawlerTestDriver;
 import com.norconex.crawler.core.test.EventNameRecorder;
 
 import lombok.Builder;
@@ -41,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Test launcher for a <em>single</em> crawler running in the same JVM as the
- * test. You have the option to pass your own {@link CrawlConfig} or use
+ * test. You have the option to pass your own {@link CrawlerConfig} or use
  * the one that will be created for you, provided you supplied a command
  * argument.
  * <p>
@@ -77,16 +77,16 @@ public class StandaloneCliCrawlerLauncher {
      * Configuration modifier invoked after this test launcher has instrumented
      * the configuration.
      */
-    private final Consumer<CrawlConfig> configModifier;
+    private final Consumer<CrawlerConfig> configModifier;
     private final boolean printErrors;
-    private final CrawlDriver crawlDriver;
+    private final CrawlerDriver crawlDriver;
 
     public StandaloneCliResult launch() {
         return launch(null);
     }
 
-    public StandaloneCliResult launch(CrawlConfig crawlConfig) {
-        var driver = ofNullable(crawlDriver).orElseGet(CrawlTestDriver::create);
+    public StandaloneCliResult launch(CrawlerConfig crawlConfig) {
+        var driver = ofNullable(crawlDriver).orElseGet(CrawlerTestDriver::create);
         var allArgs = new ArrayList<>(args);
 
         // Only inject a config file if at least one real command is passed
@@ -145,26 +145,26 @@ public class StandaloneCliCrawlerLauncher {
     /**
      * Launches a crawler as if using {@link CliCrawlerLauncher} directly
      * (no configuration instrumentalization), with
-     * {@link CrawlTestDriver} to create the crawler driver,
+     * {@link CrawlerTestDriver} to create the crawler driver,
      * and captures the the return value, STDERR and STDOUT.
      * Unless required, use the {@link #builder()} approach instead.
      * @param args crawler arguments
      * @return captured output
      */
     public static Captured<Integer> capture(String... args) {
-        return capture(CrawlTestDriver.create(), args);
+        return capture(CrawlerTestDriver.create(), args);
     }
 
     /**
      * Launches a crawler as if using {@link CliCrawlerLauncher} directly
      * (no configuration instrumentalization), with the given
-     * {@link CrawlDriver}, and captures the return value, STDERR and STDOUT.
+     * {@link CrawlerDriver}, and captures the return value, STDERR and STDOUT.
      * Unless required, use the {@link #builder()} approach instead.
      * @param driver crawl driver
      * @param args crawler arguments
      * @return captured output
      */
-    public static Captured<Integer> capture(CrawlDriver driver,
+    public static Captured<Integer> capture(CrawlerDriver driver,
             String... args) {
         return SystemUtil.withOutputCapture(
                 () -> CliCrawlerLauncher.launch(driver, args));

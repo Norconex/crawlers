@@ -18,7 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.core5.http.HttpHeaders;
 
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
+import com.norconex.crawler.core.doc.CrawlerDocMetaConstants;
 import com.norconex.crawler.core.doc.operations.checksum.AbstractMetadataChecksummer;
 import com.norconex.crawler.core.doc.operations.checksum.BaseChecksummerConfig;
 import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
  * the checksum will be
  * stored in the target field name specified. If you do not specify any,
  * it stores it under the metadata field name
- * {@link CrawlDocMetaConstants#CHECKSUM_METADATA}.
+ * {@link CrawlerDocMetaConstants#CHECKSUM_METADATA}.
  * </p>
  * <p>
  * To use different fields (one or several) to constitute a checksum,

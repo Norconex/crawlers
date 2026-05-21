@@ -24,12 +24,12 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
-import com.norconex.crawler.core.context.CrawlContext;
-import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
+import com.norconex.crawler.core.context.CrawlerContext;
+import com.norconex.crawler.core.doc.pipelines.CrawlerDocPipelines;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipeline;
-import com.norconex.crawler.core.ledger.CrawlEntryLedger;
+import com.norconex.crawler.core.ledger.CrawlerEntryLedger;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.importer.doc.Doc;
 
@@ -88,24 +88,24 @@ class BeforeWebCrawlerDocFinalizingTest {
         assertThat(queuedContexts).isEmpty();
     }
 
-    private static CrawlSession mockSessionWithLedger(
+    private static CrawlerSession mockSessionWithLedger(
             String ref,
             WebCrawlerEntry current,
             WebCrawlerEntry baseline,
             QueuePipeline queuePipeline) {
-        var ledger = mock(CrawlEntryLedger.class);
+        var ledger = mock(CrawlerEntryLedger.class);
         when(ledger.getEntry(ref)).thenReturn(Optional.of(current));
         when(ledger.getBaselineEntry(ref)).thenReturn(Optional.of(baseline));
 
-        var docPipelines = CrawlDocPipelines.builder()
+        var docPipelines = CrawlerDocPipelines.builder()
                 .queuePipeline(queuePipeline)
                 .build();
 
-        var crawlContext = mock(CrawlContext.class);
+        var crawlContext = mock(CrawlerContext.class);
         when(crawlContext.getCrawlEntryLedger()).thenReturn(ledger);
         when(crawlContext.getDocPipelines()).thenReturn(docPipelines);
 
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(crawlContext);
         return session;
     }

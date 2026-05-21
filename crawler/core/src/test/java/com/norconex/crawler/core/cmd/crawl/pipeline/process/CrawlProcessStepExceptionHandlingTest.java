@@ -28,12 +28,12 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
-import com.norconex.crawler.core.test.CrawlTestHarness;
-import com.norconex.crawler.core.test.CrawlTestInstrument;
+import com.norconex.crawler.core.test.CrawlerTestHarness;
+import com.norconex.crawler.core.test.CrawlerTestInstrument;
 
 /**
  * End-to-end tests for the exception-handling paths in
@@ -54,7 +54,7 @@ import com.norconex.crawler.core.test.CrawlTestInstrument;
  */
 @Timeout(60)
 @WithTestWatcherLogging
-class CrawlProcessStepExceptionHandlingTest {
+class CrawlerProcessStepExceptionHandlingTest {
 
     @TempDir
     Path tempDir;
@@ -208,10 +208,10 @@ class CrawlProcessStepExceptionHandlingTest {
                 .toList();
     }
 
-    private CrawlTestHarness harness(
+    private CrawlerTestHarness harness(
             List<String> startRefs,
-            Consumer<CrawlConfig> cfgOverride) {
-        return new CrawlTestHarness(new CrawlTestInstrument()
+            Consumer<CrawlerConfig> cfgOverride) {
+        return new CrawlerTestHarness(new CrawlerTestInstrument()
                 .setRecordEvents(true)
                 .setConfigModifier(cfg -> {
                     cfg.setStartReferences(startRefs);

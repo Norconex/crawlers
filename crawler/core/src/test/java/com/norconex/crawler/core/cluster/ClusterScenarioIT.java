@@ -34,16 +34,16 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import com.norconex.committer.core.service.CommitterServiceEvent;
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
-import com.norconex.crawler.core.session.CrawlResumeState;
+import com.norconex.crawler.core.session.CrawlerResumeState;
 import com.norconex.crawler.core.test.CoreTestUtil;
-import com.norconex.crawler.core.test.CrawlTestDriver;
-import com.norconex.crawler.core.test.CrawlTestHarness;
-import com.norconex.crawler.core.test.CrawlTestInstrument;
+import com.norconex.crawler.core.test.CrawlerTestDriver;
+import com.norconex.crawler.core.test.CrawlerTestHarness;
+import com.norconex.crawler.core.test.CrawlerTestInstrument;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -165,7 +165,7 @@ class ClusterScenarioIT {
                             CLUSTER_JOIN_WAIT,
                             Duration.ofMillis(100))).isTrue());
             timing.measure("stop-request",
-                    () -> new Crawler(CrawlTestDriver
+                    () -> new Crawler(CrawlerTestDriver
                             .create(),
                             harness.getFirstNodeConfig())
                                     .stop());
@@ -208,7 +208,7 @@ class ClusterScenarioIT {
             assertThat(runInfo.getCrawlSessionId())
                     .isEqualTo(firstRunInfo.getCrawlSessionId());
             assertThat(runInfo.getCrawlResumeState())
-                    .isSameAs(CrawlResumeState.RESUMED);
+                    .isSameAs(CrawlerResumeState.RESUMED);
         } finally {
             timing.finish();
         }
@@ -419,18 +419,18 @@ class ClusterScenarioIT {
         }
     }
 
-    private CrawlTestHarness newHarness(boolean clustered,
-            Consumer<CrawlTestInstrument> instrumentModifier) {
-        var instrument = new CrawlTestInstrument()
+    private CrawlerTestHarness newHarness(boolean clustered,
+            Consumer<CrawlerTestInstrument> instrumentModifier) {
+        var instrument = new CrawlerTestInstrument()
                 .setRecordInterval(RESULT_RECORD_INTERVAL)
                 .setWorkDir(tempDir)
                 .setNewJvm(false)
                 .setClustered(clustered);
         instrumentModifier.accept(instrument);
-        return new CrawlTestHarness(instrument);
+        return new CrawlerTestHarness(instrument);
     }
 
-    private static Consumer<CrawlConfig> baseConfig(int numOfRefs,
+    private static Consumer<CrawlerConfig> baseConfig(int numOfRefs,
             long delayMs) {
         return cfg -> cfg
                 .setStartReferences(IntStream
@@ -440,7 +440,7 @@ class ClusterScenarioIT {
                 .setId("scenario-crawler-" + numOfRefs)
                 .setMaxQueueBatchSize(10)
                 .setNumThreads(2)
-                .setOrphansStrategy(CrawlConfig.OrphansStrategy.IGNORE)
+                .setOrphansStrategy(CrawlerConfig.OrphansStrategy.IGNORE)
                 .setIdleTimeout(TEST_IDLE_TIMEOUT)
                 .setFetchers(List.of(Configurable.configure(
                         new MockFetcher(),
@@ -448,9 +448,9 @@ class ClusterScenarioIT {
                                 .ofMillis(delayMs)))));
     }
 
-    private static com.norconex.crawler.core.test.CrawlTestNodeOutput
+    private static com.norconex.crawler.core.test.CrawlerTestNodeOutput
             requireCoordinator(
-                    com.norconex.crawler.core.test.CrawlTestHarnessResult result) {
+                    com.norconex.crawler.core.test.CrawlerTestHarnessResult result) {
         return result.getNodeOutputs().values().stream()
                 .filter(output -> !output.getCaches().isEmpty()
                         && output.getCaches()

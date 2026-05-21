@@ -18,7 +18,7 @@ import static com.norconex.crawler.core.fetch.FetchDirective.DOCUMENT;
 import static com.norconex.crawler.core.fetch.FetchDirective.METADATA;
 
 import com.norconex.commons.lang.function.Predicates;
-import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
+import com.norconex.crawler.core.doc.pipelines.CrawlerDocPipelines;
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipeline;
 import com.norconex.crawler.core.doc.pipelines.committer.stages.CommitModuleStage;
 import com.norconex.crawler.core.doc.pipelines.committer.stages.DocumentChecksumStage;
@@ -42,8 +42,8 @@ public final class PipelineStubs {
     private PipelineStubs() {
     }
 
-    public static CrawlDocPipelines pipelines() {
-        return CrawlDocPipelines
+    public static CrawlerDocPipelines pipelines() {
+        return CrawlerDocPipelines
                 .builder()
                 .queuePipeline(QueuePipeline
                         .builder()

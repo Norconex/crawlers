@@ -19,7 +19,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.cluster.admin.ClusterAdminClient;
 import com.norconex.crawler.core.cluster.admin.ClusterAdminServer;
 import com.norconex.crawler.core.util.ConfigUtil;
@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class StopCommand implements Runnable {
 
-    private final CrawlConfig crawlConfig;
+    private final CrawlerConfig crawlConfig;
     private final String[] nodeUrls;
 
     @Override

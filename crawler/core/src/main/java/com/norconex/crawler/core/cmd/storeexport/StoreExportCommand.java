@@ -32,7 +32,7 @@ import com.norconex.crawler.core.cluster.ClusterException;
 import com.norconex.crawler.core.cluster.SerializedCache;
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.core.util.SerialUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -49,7 +49,7 @@ public class StoreExportCommand implements Command {
     // set stopRequested on context?  Or do it higher up on context?
 
     @Override
-    public void execute(CrawlSession session) {
+    public void execute(CrawlerSession session) {
         var ctx = session.getCrawlContext();
 
         Thread.currentThread().setName(ctx.getId() + "/STORE_EXPORT");
@@ -74,7 +74,7 @@ public class StoreExportCommand implements Command {
         }
     }
 
-    private void exportAllStores(CrawlSession session)
+    private void exportAllStores(CrawlerSession session)
             throws IOException {
         var cacheManager = session.getCluster().getCacheManager();
         Files.createDirectories(exportDir);
@@ -107,7 +107,7 @@ public class StoreExportCommand implements Command {
     }
 
     private void exportOneStore(
-            CrawlSession session,
+            CrawlerSession session,
             SerializedCache serialCache,
             OutputStream out) throws IOException {
 

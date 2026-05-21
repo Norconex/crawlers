@@ -16,14 +16,14 @@ package com.norconex.crawler.core.metrics;
 
 import java.io.Closeable;
 
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 /**
  * Interface used to access crawler metrics across the application.
  */
 public interface CrawlerMetrics extends CrawlerMetricsMXBean, Closeable {
 
-    void init(CrawlSession session);
+    void init(CrawlerSession session);
 
     /**
      * Flushes the metrics. Implementation specific, but normally forces a

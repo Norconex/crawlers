@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Timeout;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.security.Credentials;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.doc.CrawlerDocContext;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpAuthConfig;
 import com.norconex.crawler.web.ledger.WebCrawlerEntry;
@@ -215,7 +215,7 @@ class ApacheHttpUtilTest {
         prevEntry.setProcessedAt(
                 ZonedDateTime.parse("2024-01-15T10:30:00+00:00"));
 
-        var docCtx = CrawlDocContext.builder()
+        var docCtx = CrawlerDocContext.builder()
                 .doc(CrawlDocStubs.crawlDoc("http://example.com/"))
                 .currentCrawlEntry(new WebCrawlerEntry("http://example.com/", 0))
                 .previousCrawlEntry(prevEntry)
@@ -235,7 +235,7 @@ class ApacheHttpUtilTest {
         prevEntry.setProcessedAt(
                 ZonedDateTime.parse("2024-03-02T09:00:00+00:00"));
 
-        var docCtx = CrawlDocContext.builder()
+        var docCtx = CrawlerDocContext.builder()
                 .doc(CrawlDocStubs.crawlDoc("http://example.com/"))
                 .currentCrawlEntry(new WebCrawlerEntry("http://example.com/", 0))
                 .previousCrawlEntry(prevEntry)
@@ -257,7 +257,7 @@ class ApacheHttpUtilTest {
         assertThat(request.getFirstHeader(HttpHeaders.IF_MODIFIED_SINCE))
                 .isNull();
 
-        var docCtx = CrawlDocContext.builder()
+        var docCtx = CrawlerDocContext.builder()
                 .doc(CrawlDocStubs.crawlDoc("http://example.com/"))
                 .currentCrawlEntry(new WebCrawlerEntry("http://example.com/", 0))
                 .build();
@@ -272,7 +272,7 @@ class ApacheHttpUtilTest {
         var prevEntry = new WebCrawlerEntry("http://example.com/", 0);
         prevEntry.setEtag("\"etag-abc\"");
 
-        var docCtx = CrawlDocContext.builder()
+        var docCtx = CrawlerDocContext.builder()
                 .doc(CrawlDocStubs.crawlDoc("http://example.com/"))
                 .currentCrawlEntry(new WebCrawlerEntry("http://example.com/", 0))
                 .previousCrawlEntry(prevEntry)
@@ -289,7 +289,7 @@ class ApacheHttpUtilTest {
         var prevEntry = new WebCrawlerEntry("http://example.com/", 0);
         // ETag is null
 
-        var docCtx = CrawlDocContext.builder()
+        var docCtx = CrawlerDocContext.builder()
                 .doc(CrawlDocStubs.crawlDoc("http://example.com/"))
                 .currentCrawlEntry(new WebCrawlerEntry("http://example.com/", 0))
                 .previousCrawlEntry(prevEntry)

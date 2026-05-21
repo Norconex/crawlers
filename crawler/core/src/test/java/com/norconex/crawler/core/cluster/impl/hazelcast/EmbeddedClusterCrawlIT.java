@@ -32,11 +32,11 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
-import com.norconex.crawler.core.test.CrawlTestDriver;
+import com.norconex.crawler.core.test.CrawlerTestDriver;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -116,9 +116,9 @@ class EmbeddedClusterCrawlIT {
         Future<?> f2 = null;
         try {
             f1 = executor.submit(
-                    () -> new Crawler(CrawlTestDriver.create(), cfg1).crawl());
+                    () -> new Crawler(CrawlerTestDriver.create(), cfg1).crawl());
             f2 = executor.submit(
-                    () -> new Crawler(CrawlTestDriver.create(), cfg2).crawl());
+                    () -> new Crawler(CrawlerTestDriver.create(), cfg2).crawl());
 
             f1.get(CRAWL_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             f2.get(CRAWL_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -144,7 +144,7 @@ class EmbeddedClusterCrawlIT {
         assertThat(importCount).isEqualTo(numRefs);
     }
 
-    private static CrawlConfig buildConfig(
+    private static CrawlerConfig buildConfig(
             String crawlerId,
             String clusterName,
             String jdbcUrl,
@@ -152,7 +152,7 @@ class EmbeddedClusterCrawlIT {
             List<String> startRefs,
             java.nio.file.Path workDir) {
 
-        var cfg = new CrawlConfig();
+        var cfg = new CrawlerConfig();
         cfg.setId(crawlerId);
         cfg.setWorkDir(workDir);
         cfg.setStartReferences(startRefs);

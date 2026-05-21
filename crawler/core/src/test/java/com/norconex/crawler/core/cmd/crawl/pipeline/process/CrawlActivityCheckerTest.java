@@ -23,32 +23,32 @@ import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.context.CrawlContext;
-import com.norconex.crawler.core.ledger.CrawlEntryLedger;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.context.CrawlerContext;
+import com.norconex.crawler.core.ledger.CrawlerEntryLedger;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 /**
- * Tests for {@link CrawlActivityChecker}.
+ * Tests for {@link CrawlerActivityChecker}.
  */
 @Timeout(30)
-class CrawlActivityCheckerTest {
+class CrawlerActivityCheckerTest {
 
-    private CrawlSession buildSession(boolean queueEmpty,
+    private CrawlerSession buildSession(boolean queueEmpty,
             boolean maxDocsReached) {
-        var ledger = mock(CrawlEntryLedger.class);
+        var ledger = mock(CrawlerEntryLedger.class);
         when(ledger.getQueuedEntryCount()).thenReturn(queueEmpty ? 0L : 1L);
         when(ledger.isMaxDocsProcessedReached()).thenReturn(maxDocsReached);
 
-        var config = mock(CrawlConfig.class);
+        var config = mock(CrawlerConfig.class);
         when(config.getMaxCrawlDuration()).thenReturn(null);
         when(config.getIdleTimeout()).thenReturn(null);
 
-        var crawlContext = mock(CrawlContext.class);
+        var crawlContext = mock(CrawlerContext.class);
         when(crawlContext.getCrawlEntryLedger()).thenReturn(ledger);
         when(crawlContext.getCrawlConfig()).thenReturn(config);
 
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(crawlContext);
         when(session.isStartRefsQueueingComplete()).thenReturn(true);
         return session;
@@ -58,23 +58,23 @@ class CrawlActivityCheckerTest {
     void constructor_withNullMaxDuration_doesNotThrow() {
         // null maxDuration → expireAt=0 (no expiry)
         var session = buildSession(false, false);
-        var checker = new CrawlActivityChecker(session, false);
+        var checker = new CrawlerActivityChecker(session, false);
         assertThat(checker).isNotNull();
     }
 
     @Test
     void isDeleting_reflectsConstructorFlag() {
         var session = buildSession(false, false);
-        assertThat(new CrawlActivityChecker(session, true).isDeleting())
+        assertThat(new CrawlerActivityChecker(session, true).isDeleting())
                 .isTrue();
-        assertThat(new CrawlActivityChecker(session, false).isDeleting())
+        assertThat(new CrawlerActivityChecker(session, false).isDeleting())
                 .isFalse();
     }
 
     @Test
     void isActive_whenQueueNotEmpty_returnsTrue() {
         var session = buildSession(false, false);
-        var checker = new CrawlActivityChecker(session, false);
+        var checker = new CrawlerActivityChecker(session, false);
         assertThat(checker.isActive()).isTrue();
     }
 
@@ -82,7 +82,7 @@ class CrawlActivityCheckerTest {
     void isActive_whenQueueEmptyAndInitialized_returnsFalse() {
         // queue empty + queuing complete + no idleTimeout → not active
         var session = buildSession(true, false);
-        var checker = new CrawlActivityChecker(session, false);
+        var checker = new CrawlerActivityChecker(session, false);
         assertThat(checker.isActive()).isFalse();
     }
 
@@ -90,14 +90,14 @@ class CrawlActivityCheckerTest {
     void canContinue_whenDeleting_returnsTrueEvenIfMaxDocsReached() {
         // deleting=true bypasses max-docs check
         var session = buildSession(false, true);
-        var checker = new CrawlActivityChecker(session, true);
+        var checker = new CrawlerActivityChecker(session, true);
         assertThat(checker.canContinue()).isTrue();
     }
 
     @Test
     void canContinue_whenMaxDocsReached_returnsFalse() {
         var session = buildSession(false, true);
-        var checker = new CrawlActivityChecker(session, false);
+        var checker = new CrawlerActivityChecker(session, false);
         // session.updateCrawlState is a no-op on mock
         assertThat(checker.canContinue()).isFalse();
     }
@@ -105,30 +105,30 @@ class CrawlActivityCheckerTest {
     @Test
     void doCanContinue_whenNothingReached_returnsTrue() {
         var session = buildSession(false, false);
-        var checker = new CrawlActivityChecker(session, false);
+        var checker = new CrawlerActivityChecker(session, false);
         assertThat(checker.doCanContinue()).isTrue();
     }
 
     @Test
     void canContinue_whenMaxDurationExpired_returnsFalse()
             throws InterruptedException {
-        var ledger = mock(CrawlEntryLedger.class);
+        var ledger = mock(CrawlerEntryLedger.class);
         when(ledger.getQueuedEntryCount()).thenReturn(1L);
         when(ledger.isMaxDocsProcessedReached()).thenReturn(false);
 
-        var config = mock(CrawlConfig.class);
+        var config = mock(CrawlerConfig.class);
         when(config.getMaxCrawlDuration()).thenReturn(Duration.ofMillis(1));
         when(config.getIdleTimeout()).thenReturn(null);
 
-        var crawlContext = mock(CrawlContext.class);
+        var crawlContext = mock(CrawlerContext.class);
         when(crawlContext.getCrawlEntryLedger()).thenReturn(ledger);
         when(crawlContext.getCrawlConfig()).thenReturn(config);
 
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(crawlContext);
         when(session.isStartRefsQueueingComplete()).thenReturn(true);
 
-        var checker = new CrawlActivityChecker(session, false);
+        var checker = new CrawlerActivityChecker(session, false);
         Thread.sleep(20); // ensure the 1ms duration has expired
         assertThat(checker.doCanContinue()).isFalse();
     }
@@ -137,7 +137,7 @@ class CrawlActivityCheckerTest {
     void isActive_afterBecomingInactive_returnsFalseFromCache() {
         // queue empty + fully initialized → isActive() sets isPresumedActive=false
         var session = buildSession(true, false);
-        var checker = new CrawlActivityChecker(session, false);
+        var checker = new CrawlerActivityChecker(session, false);
         // First call: resolves and sets isPresumedActive = false
         assertThat(checker.isActive()).isFalse();
         // Second call: early-return from cached isPresumedActive == false
@@ -148,7 +148,7 @@ class CrawlActivityCheckerTest {
     void canContinue_afterBecomingFalse_cachedFalseReturnedFast() {
         // maxDocsReached=true → canContinue() returns false and caches result
         var session = buildSession(false, true);
-        var checker = new CrawlActivityChecker(session, false);
+        var checker = new CrawlerActivityChecker(session, false);
         assertThat(checker.canContinue()).isFalse(); // sets canContinue=false
         // Second call takes the fast-path: !canContinue.get() → return false
         assertThat(checker.canContinue()).isFalse();
@@ -159,30 +159,30 @@ class CrawlActivityCheckerTest {
         // queue NOT empty (queueEmpty=false) but maxDocsReached=true
         // → isActive() → doIsActive() → !canContinue() path
         var session = buildSession(false, true);
-        var checker = new CrawlActivityChecker(session, false);
+        var checker = new CrawlerActivityChecker(session, false);
         assertThat(checker.isActive()).isFalse();
     }
 
     @Test
     void isActive_withShortIdleTimeout_queueStillEmpty_returnsFalse() {
         // queue initialized + empty + idleTimeout=50ms → wait loop runs ≈1s
-        var ledger = mock(CrawlEntryLedger.class);
+        var ledger = mock(CrawlerEntryLedger.class);
         when(ledger.getQueuedEntryCount()).thenReturn(0L);
         when(ledger.isMaxDocsProcessedReached()).thenReturn(false);
 
-        var config = mock(CrawlConfig.class);
+        var config = mock(CrawlerConfig.class);
         when(config.getMaxCrawlDuration()).thenReturn(null);
         when(config.getIdleTimeout()).thenReturn(Duration.ofMillis(50));
 
-        var crawlContext = mock(CrawlContext.class);
+        var crawlContext = mock(CrawlerContext.class);
         when(crawlContext.getCrawlEntryLedger()).thenReturn(ledger);
         when(crawlContext.getCrawlConfig()).thenReturn(config);
 
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(crawlContext);
         when(session.isStartRefsQueueingComplete()).thenReturn(true);
 
-        var checker = new CrawlActivityChecker(session, false);
+        var checker = new CrawlerActivityChecker(session, false);
         // Queue is empty + 50ms timeout elapses before poll loop finishes →
         // considered still empty → doIsActive returns false
         assertThat(checker.isActive()).isFalse();
@@ -193,26 +193,26 @@ class CrawlActivityCheckerTest {
             throws InterruptedException {
         // Session: queue empty + first call to isStartRefsQueueingComplete
         // returns false, second returns true → tests the do-while wait loop
-        var ledger = mock(CrawlEntryLedger.class);
+        var ledger = mock(CrawlerEntryLedger.class);
         when(ledger.getQueuedEntryCount()).thenReturn(0L);
         when(ledger.isMaxDocsProcessedReached()).thenReturn(false);
 
-        var config = mock(CrawlConfig.class);
+        var config = mock(CrawlerConfig.class);
         when(config.getMaxCrawlDuration()).thenReturn(null);
         when(config.getIdleTimeout()).thenReturn(null); // no idle timeout
 
-        var crawlContext = mock(CrawlContext.class);
+        var crawlContext = mock(CrawlerContext.class);
         when(crawlContext.getCrawlEntryLedger()).thenReturn(ledger);
         when(crawlContext.getCrawlConfig()).thenReturn(config);
 
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(crawlContext);
         // First call: not ready; subsequent calls: ready
         when(session.isStartRefsQueueingComplete())
                 .thenReturn(false)
                 .thenReturn(true);
 
-        var checker = new CrawlActivityChecker(session, false);
+        var checker = new CrawlerActivityChecker(session, false);
         // do-while loop fires once (sleeps 1s), then sees initialized=true
         // → queue is empty+initialized → idle check returns true → inactive
         assertThat(checker.isActive()).isFalse();

@@ -24,10 +24,10 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.context.CrawlerContext;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxt;
 import com.norconex.crawler.web.doc.operations.robot.impl.StandardRobotsTxtProvider;
 import com.norconex.crawler.web.junit.WebCrawlingTest;
@@ -38,7 +38,7 @@ import com.norconex.crawler.web.util.Web;
 class RobotsTxtFiltersStageTest {
 
     @WebCrawlingTest
-    void testAllow(CrawlContext ctx) {
+    void testAllow(CrawlerContext ctx) {
         Web.config(ctx).setRobotsTxtProvider(new StandardRobotsTxtProvider() {
             @Override
             public synchronized RobotsTxt getRobotsTxt(
@@ -76,7 +76,7 @@ class RobotsTxtFiltersStageTest {
     }
 
     @WebCrawlingTest
-    void testNullRobotsTxtProvider(CrawlContext ctx) {
+    void testNullRobotsTxtProvider(CrawlerContext ctx) {
         // null provider → bypass all robot filtering, always accept
         Web.config(ctx).setRobotsTxtProvider(null);
         Assertions.assertTrue(
@@ -85,7 +85,7 @@ class RobotsTxtFiltersStageTest {
     }
 
     @WebCrawlingTest
-    void testNullRobotsTxt(CrawlContext ctx) {
+    void testNullRobotsTxt(CrawlerContext ctx) {
         // provider that returns null robots.txt → no filters, accept all
         Web.config(ctx).setRobotsTxtProvider(
                 (fetcher, url) -> null);
@@ -95,7 +95,7 @@ class RobotsTxtFiltersStageTest {
     }
 
     @WebCrawlingTest
-    void testEqualLengthAllowTakesPrecedenceOverDisallow(CrawlContext ctx) {
+    void testEqualLengthAllowTakesPrecedenceOverDisallow(CrawlerContext ctx) {
         // Per RFC 9309: when two rules match with equal path length,
         // the less restrictive rule (Allow) takes precedence.
         Web.config(ctx).setRobotsTxtProvider(new StandardRobotsTxtProvider() {
@@ -123,8 +123,8 @@ class RobotsTxtFiltersStageTest {
                 "Equal-length Allow takes precedence over Disallow per RFC 9309");
     }
 
-    private boolean testAllowUrl(CrawlContext crawlerCtx, final String url) {
-        var session = mock(CrawlSession.class);
+    private boolean testAllowUrl(CrawlerContext crawlerCtx, final String url) {
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(crawlerCtx);
         var queueCtx = new QueuePipelineContext(
                 session, new WebCrawlerEntry(url, 0));

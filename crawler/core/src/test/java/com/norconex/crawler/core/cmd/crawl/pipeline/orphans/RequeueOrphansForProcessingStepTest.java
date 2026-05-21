@@ -28,13 +28,13 @@ import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.context.CrawlContext;
-import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
+import com.norconex.crawler.core.context.CrawlerContext;
+import com.norconex.crawler.core.doc.pipelines.CrawlerDocPipelines;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipeline;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
-import com.norconex.crawler.core.ledger.CrawlEntry;
-import com.norconex.crawler.core.ledger.CrawlEntryLedger;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
+import com.norconex.crawler.core.ledger.CrawlerEntryLedger;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 /**
  * Tests for {@link RequeueOrphansForProcessingStep}.
@@ -42,11 +42,11 @@ import com.norconex.crawler.core.session.CrawlSession;
 @Timeout(30)
 class RequeueOrphansForProcessingStepTest {
 
-    private CrawlSession buildSession(
-            CrawlEntryLedger ledger, QueuePipeline queuePipeline) {
-        var session = mock(CrawlSession.class);
-        var crawlContext = mock(CrawlContext.class);
-        var docPipelines = mock(CrawlDocPipelines.class);
+    private CrawlerSession buildSession(
+            CrawlerEntryLedger ledger, QueuePipeline queuePipeline) {
+        var session = mock(CrawlerSession.class);
+        var crawlContext = mock(CrawlerContext.class);
+        var docPipelines = mock(CrawlerDocPipelines.class);
         when(session.getCrawlContext()).thenReturn(crawlContext);
         when(crawlContext.getCrawlEntryLedger()).thenReturn(ledger);
         when(crawlContext.getDocPipelines()).thenReturn(docPipelines);
@@ -56,7 +56,7 @@ class RequeueOrphansForProcessingStepTest {
 
     @Test
     void noOrphans_doesNotQueueAnything() {
-        var ledger = mock(CrawlEntryLedger.class);
+        var ledger = mock(CrawlerEntryLedger.class);
         var queuePipeline = mock(QueuePipeline.class);
         when(ledger.getBaselineCount()).thenReturn(0L);
 
@@ -69,7 +69,7 @@ class RequeueOrphansForProcessingStepTest {
 
     @Test
     void maxDocsReached_doesNotQueueAnything() {
-        var ledger = mock(CrawlEntryLedger.class);
+        var ledger = mock(CrawlerEntryLedger.class);
         var queuePipeline = mock(QueuePipeline.class);
         when(ledger.getBaselineCount()).thenReturn(5L);
         when(ledger.isMaxDocsProcessedReached()).thenReturn(true);
@@ -83,15 +83,15 @@ class RequeueOrphansForProcessingStepTest {
 
     @Test
     void hasOrphans_queuesAll() {
-        var ledger = mock(CrawlEntryLedger.class);
+        var ledger = mock(CrawlerEntryLedger.class);
         var queuePipeline = mock(QueuePipeline.class);
-        var entry1 = new CrawlEntry("ref-1");
-        var entry2 = new CrawlEntry("ref-2");
+        var entry1 = new CrawlerEntry("ref-1");
+        var entry2 = new CrawlerEntry("ref-2");
 
         when(ledger.getBaselineCount()).thenReturn(2L);
         when(ledger.isMaxDocsProcessedReached()).thenReturn(false);
         doAnswer(inv -> {
-            Consumer<CrawlEntry> consumer = inv.getArgument(0);
+            Consumer<CrawlerEntry> consumer = inv.getArgument(0);
             consumer.accept(entry1);
             consumer.accept(entry2);
             return null;
@@ -106,16 +106,16 @@ class RequeueOrphansForProcessingStepTest {
 
     @Test
     void hasOrphans_setsOrphanFlagOnEachEntry() {
-        var ledger = mock(CrawlEntryLedger.class);
+        var ledger = mock(CrawlerEntryLedger.class);
         var queuePipeline = mock(QueuePipeline.class);
-        var entry1 = new CrawlEntry("ref-a");
-        var entry2 = new CrawlEntry("ref-b");
-        var processed = new ArrayList<CrawlEntry>();
+        var entry1 = new CrawlerEntry("ref-a");
+        var entry2 = new CrawlerEntry("ref-b");
+        var processed = new ArrayList<CrawlerEntry>();
 
         when(ledger.getBaselineCount()).thenReturn(2L);
         when(ledger.isMaxDocsProcessedReached()).thenReturn(false);
         doAnswer(inv -> {
-            Consumer<CrawlEntry> consumer = inv.getArgument(0);
+            Consumer<CrawlerEntry> consumer = inv.getArgument(0);
             consumer.accept(entry1);
             consumer.accept(entry2);
             return null;
@@ -130,8 +130,8 @@ class RequeueOrphansForProcessingStepTest {
         var step = new RequeueOrphansForProcessingStep("step-id");
         step.execute(session);
 
-        assertThat(processed).allMatch(CrawlEntry::isOrphan);
-        assertThat(processed).extracting(CrawlEntry::getReference)
+        assertThat(processed).allMatch(CrawlerEntry::isOrphan);
+        assertThat(processed).extracting(CrawlerEntry::getReference)
                 .containsExactlyInAnyOrder("ref-a", "ref-b");
     }
 }

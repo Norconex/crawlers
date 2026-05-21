@@ -22,7 +22,7 @@ import com.norconex.commons.lang.url.HttpURL;
 import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.doc.operations.scope.UrlScope;
 import com.norconex.crawler.web.doc.operations.scope.UrlScopeResolver;
 import com.norconex.crawler.web.ledger.WebCrawlerEntry;
@@ -74,7 +74,7 @@ public class GenericUrlScopeResolver
     @Override
     protected void onCrawlerCrawlBegin(CrawlerEvent event) {
         resolvedSites = Web.gridCache(
-                (CrawlSession) event.getSource(),
+                (CrawlerSession) event.getSource(),
                 RESOLVED_SITES_CACHE_NAME,
                 SitemapPresence.class);
         LOG.debug(RESOLVED_SITES_CACHE_NAME + " cache initialized.");

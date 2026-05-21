@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 
 @Timeout(30)
 class ConfigUtilTest {
@@ -32,7 +32,7 @@ class ConfigUtilTest {
 
     @Test
     void resolveWorkDir_usesDefaultWhenNotSet() {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         config.setId("my-crawler");
 
         var workDir = ConfigUtil.resolveWorkDir(config);
@@ -43,7 +43,7 @@ class ConfigUtilTest {
 
     @Test
     void resolveWorkDir_usesExplicitWorkDir() {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         config.setId("my-crawler");
         config.setWorkDir(tempDir);
 
@@ -56,7 +56,7 @@ class ConfigUtilTest {
 
     @Test
     void resolveTempDir_isSubdirOfWorkDir() {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         config.setId("crawler-1");
         config.setWorkDir(tempDir);
 
@@ -70,7 +70,7 @@ class ConfigUtilTest {
 
     @Test
     void resolveWorkDir_sanitizesSpecialCharsInId() {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         config.setId("crawler with spaces/and:special");
 
         var workDir = ConfigUtil.resolveWorkDir(config);

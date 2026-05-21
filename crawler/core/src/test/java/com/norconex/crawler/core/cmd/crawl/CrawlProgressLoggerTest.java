@@ -27,19 +27,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.cluster.pipeline.PipelineProgress;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
-import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.context.CrawlerContext;
 import com.norconex.crawler.core.metrics.CrawlerMetrics;
 
 /**
- * Tests for {@link CrawlProgressLogger}.
+ * Tests for {@link CrawlerProgressLogger}.
  */
 @Timeout(15)
-class CrawlProgressLoggerTest {
+class CrawlerProgressLoggerTest {
 
-    private CrawlContext buildContext(Duration minLoggingInterval) {
+    private CrawlerContext buildContext(Duration minLoggingInterval) {
         var metrics = mock(CrawlerMetrics.class);
         when(metrics.getProcessedCount()).thenReturn(50L);
         when(metrics.getQueuedCount()).thenReturn(10L);
@@ -48,11 +48,11 @@ class CrawlProgressLoggerTest {
         when(metrics.getEventCounts()).thenReturn(
                 Map.of("DOCUMENT_PROCESSED", 50L, "REJECTED_FILTER", 3L));
 
-        var config = mock(CrawlConfig.class);
+        var config = mock(CrawlerConfig.class);
         when(config.getMinProgressLoggingInterval())
                 .thenReturn(minLoggingInterval);
 
-        var ctx = mock(CrawlContext.class);
+        var ctx = mock(CrawlerContext.class);
         when(ctx.getMetrics()).thenReturn(metrics);
         when(ctx.getCrawlConfig()).thenReturn(config);
         return ctx;
@@ -64,13 +64,13 @@ class CrawlProgressLoggerTest {
 
     @Test
     void constructor_withNullMinInterval_isCreated() {
-        var logger = new CrawlProgressLogger(buildContext(null));
+        var logger = new CrawlerProgressLogger(buildContext(null));
         assertThat(logger).isNotNull();
     }
 
     @Test
     void constructor_withSupplier_isCreated() {
-        var logger = new CrawlProgressLogger(buildContext(null), () -> null);
+        var logger = new CrawlerProgressLogger(buildContext(null), () -> null);
         assertThat(logger).isNotNull();
     }
 
@@ -78,14 +78,14 @@ class CrawlProgressLoggerTest {
     void constructor_withBelowMinInterval_treatedAsNull() {
         // 500 ms < 1 s → minLoggingInterval is set to null internally
         var logger =
-                new CrawlProgressLogger(buildContext(Duration.ofMillis(500)));
+                new CrawlerProgressLogger(buildContext(Duration.ofMillis(500)));
         assertThat(logger).isNotNull();
     }
 
     @Test
     void constructor_withExactlyOneSecond_acceptsInterval() {
         var logger =
-                new CrawlProgressLogger(buildContext(Duration.ofSeconds(1)));
+                new CrawlerProgressLogger(buildContext(Duration.ofSeconds(1)));
         assertThat(logger).isNotNull();
     }
 
@@ -95,7 +95,7 @@ class CrawlProgressLoggerTest {
 
     @Test
     void getExecutionSummary_returnsFormattedOutput() {
-        var logger = new CrawlProgressLogger(buildContext(null));
+        var logger = new CrawlerProgressLogger(buildContext(null));
         var summary = logger.getExecutionSummary();
         assertThat(summary)
                 .contains("Total processed")
@@ -114,12 +114,12 @@ class CrawlProgressLoggerTest {
         when(metrics.getProcessingCount()).thenReturn(0L);
         when(metrics.getBaselineCount()).thenReturn(0L);
         when(metrics.getEventCounts()).thenReturn(Map.of());
-        var config = mock(CrawlConfig.class);
-        var ctx = mock(CrawlContext.class);
+        var config = mock(CrawlerConfig.class);
+        var ctx = mock(CrawlerContext.class);
         when(ctx.getMetrics()).thenReturn(metrics);
         when(ctx.getCrawlConfig()).thenReturn(config);
 
-        var logger = new CrawlProgressLogger(ctx);
+        var logger = new CrawlerProgressLogger(ctx);
         assertThatNoException().isThrownBy(logger::getExecutionSummary);
     }
 
@@ -131,7 +131,7 @@ class CrawlProgressLoggerTest {
     void setStopCheckCallback_callbackInvokedDuringLoop() {
         var called = new AtomicBoolean(false);
         var logger =
-                new CrawlProgressLogger(buildContext(Duration.ofSeconds(1)));
+                new CrawlerProgressLogger(buildContext(Duration.ofSeconds(1)));
         logger.setStopCheckCallback(() -> {
             called.set(true);
             logger.stop(); // exit the blocking start() loop
@@ -149,7 +149,7 @@ class CrawlProgressLoggerTest {
     void stop_whenNeverStarted_isIdempotent() {
         // Use valid interval so logProgress() in stop() does not NPE
         var logger =
-                new CrawlProgressLogger(buildContext(Duration.ofSeconds(1)));
+                new CrawlerProgressLogger(buildContext(Duration.ofSeconds(1)));
         assertThatNoException().isThrownBy(logger::stop);
         assertThatNoException().isThrownBy(logger::stop); // second call: no-op
     }
@@ -163,7 +163,7 @@ class CrawlProgressLoggerTest {
             throws InterruptedException {
         // minInterval=1s → scheduler fires logProgress() every ~1s
         var ctx = buildContext(Duration.ofSeconds(1));
-        var logger = new CrawlProgressLogger(ctx);
+        var logger = new CrawlerProgressLogger(ctx);
 
         var future = CompletableFuture.runAsync(logger::start);
         // Wait >1s so logProgress() body is executed by the scheduler
@@ -184,7 +184,7 @@ class CrawlProgressLoggerTest {
         when(progress.getStepCount()).thenReturn(2);
         when(progress.getStepMessage()).thenReturn("Fetching references...");
 
-        var logger = new CrawlProgressLogger(ctx, () -> progress);
+        var logger = new CrawlerProgressLogger(ctx, () -> progress);
 
         var future = CompletableFuture.runAsync(logger::start);
         Thread.sleep(1500);
@@ -202,7 +202,7 @@ class CrawlProgressLoggerTest {
         when(progress.getStepProgress()).thenReturn(0.0f);
         when(progress.getStatus()).thenReturn(null);
 
-        var logger = new CrawlProgressLogger(ctx, () -> progress);
+        var logger = new CrawlerProgressLogger(ctx, () -> progress);
 
         var future = CompletableFuture.runAsync(logger::start);
         Thread.sleep(1500);
@@ -214,7 +214,7 @@ class CrawlProgressLoggerTest {
     void start_stop_withNullSupplierResult_isResilient()
             throws InterruptedException {
         var ctx = buildContext(Duration.ofSeconds(1));
-        var logger = new CrawlProgressLogger(ctx, () -> null);
+        var logger = new CrawlerProgressLogger(ctx, () -> null);
 
         var future = CompletableFuture.runAsync(logger::start);
         Thread.sleep(1500);
@@ -226,7 +226,7 @@ class CrawlProgressLoggerTest {
     void start_stop_withThrowingSupplier_isResilient()
             throws InterruptedException {
         var ctx = buildContext(Duration.ofSeconds(1));
-        var logger = new CrawlProgressLogger(ctx,
+        var logger = new CrawlerProgressLogger(ctx,
                 () -> {
                     throw new RuntimeException("supplier failure");
                 });
@@ -249,7 +249,7 @@ class CrawlProgressLoggerTest {
         when(progress.getStepCount()).thenReturn(5);
         when(progress.getStepMessage()).thenReturn(null); // no extra message
 
-        var logger = new CrawlProgressLogger(ctx, () -> progress);
+        var logger = new CrawlerProgressLogger(ctx, () -> progress);
 
         var future = CompletableFuture.runAsync(logger::start);
         Thread.sleep(1500);

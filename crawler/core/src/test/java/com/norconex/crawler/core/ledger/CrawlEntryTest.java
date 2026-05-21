@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 @Timeout(30)
-class CrawlEntryTest {
+class CrawlerEntryTest {
 
     // -----------------------------------------------------------------
     // withReference
@@ -33,7 +33,7 @@ class CrawlEntryTest {
 
     @Test
     void withReference_createsClone_withNewReference() {
-        var original = new CrawlEntry("http://original.com");
+        var original = new CrawlerEntry("http://original.com");
         original.setDepth(3);
         original.setProcessingStatus(ProcessingStatus.QUEUED);
 
@@ -53,7 +53,7 @@ class CrawlEntryTest {
 
     @Test
     void getReferenceTrail_returnsUnmodifiableList() {
-        var entry = new CrawlEntry("http://test.com");
+        var entry = new CrawlerEntry("http://test.com");
         entry.addToReferenceTrail("http://hop1.com");
         entry.addToReferenceTrail("http://hop2.com");
 
@@ -66,7 +66,7 @@ class CrawlEntryTest {
 
     @Test
     void addToReferenceTrail_appendsInOrder() {
-        var entry = new CrawlEntry("ref://main");
+        var entry = new CrawlerEntry("ref://main");
         entry.addToReferenceTrail("ref://first");
         entry.addToReferenceTrail("ref://second");
         entry.addToReferenceTrail("ref://third");
@@ -77,7 +77,7 @@ class CrawlEntryTest {
 
     @Test
     void setReferenceTrail_replacesExistingTrail() {
-        var entry = new CrawlEntry("ref://main");
+        var entry = new CrawlerEntry("ref://main");
         entry.addToReferenceTrail("ref://old");
 
         entry.setReferenceTrail(List.of("ref://new1", "ref://new2"));
@@ -88,7 +88,7 @@ class CrawlEntryTest {
 
     @Test
     void setReferenceTrail_withNull_clearsTrail() {
-        var entry = new CrawlEntry("ref://main");
+        var entry = new CrawlerEntry("ref://main");
         entry.addToReferenceTrail("ref://existing");
 
         entry.setReferenceTrail(null);
@@ -98,7 +98,7 @@ class CrawlEntryTest {
 
     @Test
     void setReferenceTrail_withEmptyList_clearsTrail() {
-        var entry = new CrawlEntry("ref://main");
+        var entry = new CrawlerEntry("ref://main");
         entry.addToReferenceTrail("ref://existing");
 
         entry.setReferenceTrail(new ArrayList<>());
@@ -112,7 +112,7 @@ class CrawlEntryTest {
 
     @Test
     void setAndGetMetaChecksum() {
-        var entry = new CrawlEntry("ref://checksum");
+        var entry = new CrawlerEntry("ref://checksum");
         assertThat(entry.getMetaChecksum()).isNull();
 
         entry.setMetaChecksum("abc123");
@@ -128,7 +128,7 @@ class CrawlEntryTest {
 
     @Test
     void setAndGetContentChecksum() {
-        var entry = new CrawlEntry("ref://content");
+        var entry = new CrawlerEntry("ref://content");
         assertThat(entry.getContentChecksum()).isNull();
 
         entry.setContentChecksum("sha256-xyz");
@@ -144,7 +144,7 @@ class CrawlEntryTest {
 
     @Test
     void setAndGetQueuedAt() {
-        var entry = new CrawlEntry("ref://time");
+        var entry = new CrawlerEntry("ref://time");
         assertThat(entry.getQueuedAt()).isNull();
 
         var now = ZonedDateTime.now();
@@ -161,7 +161,7 @@ class CrawlEntryTest {
 
     @Test
     void defaultConstructor_createsEntryWithNullReference() {
-        var entry = new CrawlEntry();
+        var entry = new CrawlerEntry();
         assertThat(entry.getReference()).isNull();
         assertThat(entry.getDepth()).isZero();
         assertThat(entry.getProcessingStatus())

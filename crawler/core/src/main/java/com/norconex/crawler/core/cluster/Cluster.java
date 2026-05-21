@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 public interface Cluster extends Closeable {
 
@@ -47,14 +47,14 @@ public interface Cluster extends Closeable {
      * if the session has not been bound yet.
      * @return the crawl session
      */
-    CrawlSession getCrawlSession();
+    CrawlerSession getCrawlSession();
 
     /**
      * Binds the given crawl session to this cluster node. Called once during
      * session initialization.
      * @param session the crawl session
      */
-    void bindSession(CrawlSession session);
+    void bindSession(CrawlerSession session);
 
     void init(Path crawlerWorkDir, boolean isClustered,
             Map<String, Class<?>> cacheTypes);

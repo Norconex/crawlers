@@ -96,7 +96,7 @@ import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.doc.operations.url.impl.GenericUrlNormalizerConfig.Normalization;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.WebFetchRequest;
@@ -398,7 +398,7 @@ public class HttpClientFetcher
     }
 
     @Override
-    protected void fetcherStartup(CrawlSession crawler) {
+    protected void fetcherStartup(CrawlerSession crawler) {
         httpClient = createHttpClient();
         var userAgent = configuration.getUserAgent();
         if (StringUtils.isBlank(userAgent)) {
@@ -419,7 +419,7 @@ public class HttpClientFetcher
     }
 
     @Override
-    protected void fetcherShutdown(CrawlSession c) {
+    protected void fetcherShutdown(CrawlerSession c) {
         if (httpClient instanceof CloseableHttpClient hc) {
             try {
                 hc.close();

@@ -25,40 +25,40 @@ import org.mockito.Mock;
 import org.mockito.Mock.Strictness;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.ClusterNode;
 import com.norconex.crawler.core.cluster.support.InMemoryCacheManager;
-import com.norconex.crawler.core.context.CrawlContext;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.context.CrawlerContext;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 /**
- * Unit tests for {@link CrawlEntryLedger}.
+ * Unit tests for {@link CrawlerEntryLedger}.
  *
  * <p>Uses in-memory caches and Mockito stubs — no Hazelcast required.
  * Covers the full lifecycle: queue → process → processed → archive → resume.
  */
 @ExtendWith(MockitoExtension.class)
 @Timeout(30)
-class CrawlEntryLedgerTest {
+class CrawlerEntryLedgerTest {
 
     @Mock(strictness = Strictness.LENIENT)
-    CrawlSession session;
+    CrawlerSession session;
     @Mock(strictness = Strictness.LENIENT)
     Cluster cluster;
     @Mock(strictness = Strictness.LENIENT)
     ClusterNode localNode;
     @Mock(strictness = Strictness.LENIENT)
-    CrawlContext crawlContext;
+    CrawlerContext crawlContext;
 
     private InMemoryCacheManager cacheManager;
-    private CrawlEntryLedger ledger;
+    private CrawlerEntryLedger ledger;
 
     @BeforeEach
     void setUp() {
         cacheManager = new InMemoryCacheManager();
         // Wire in real CrawlConfig so maxDocuments defaults to -1 (unlimited).
-        var crawlConfig = new CrawlConfig();
+        var crawlConfig = new CrawlerConfig();
 
         lenient().when(session.getCluster()).thenReturn(cluster);
         lenient().when(cluster.getCacheManager()).thenReturn(cacheManager);
@@ -69,7 +69,7 @@ class CrawlEntryLedgerTest {
         lenient().when(crawlContext.getCrawlConfig()).thenReturn(crawlConfig);
         lenient().when(session.isResumed()).thenReturn(false);
 
-        ledger = new CrawlEntryLedger();
+        ledger = new CrawlerEntryLedger();
         ledger.init(session);
         // archiveCurrentLedger() requires the alias key to already exist in
         // session cache (coordinator responsibility before any rotation).
@@ -246,9 +246,9 @@ class CrawlEntryLedgerTest {
         assertThat(requeued).isTrue();
         assertThat(ledger.getQueueCount()).isEqualTo(1);
         assertThat(ledger.getEntry("ref-1")).get()
-                .extracting(CrawlEntry::getProcessingStatus,
-                        CrawlEntry::getProcessingOutcome,
-                        CrawlEntry::getDepth)
+                .extracting(CrawlerEntry::getProcessingStatus,
+                        CrawlerEntry::getProcessingOutcome,
+                        CrawlerEntry::getDepth)
                 .containsExactly(
                         ProcessingStatus.QUEUED,
                         ProcessingOutcome.NEW,
@@ -279,10 +279,10 @@ class CrawlEntryLedgerTest {
     @Test
     void testIsMaxDocsProcessedReached_trueAtLimit() {
         // Reinitialise with a 2-document limit.
-        var cappedConfig = new CrawlConfig();
+        var cappedConfig = new CrawlerConfig();
         cappedConfig.setMaxDocuments(2);
         lenient().when(crawlContext.getCrawlConfig()).thenReturn(cappedConfig);
-        ledger = new CrawlEntryLedger();
+        ledger = new CrawlerEntryLedger();
         ledger.init(session);
 
         // Queue 3, process 2.
@@ -353,7 +353,7 @@ class CrawlEntryLedgerTest {
     // Helpers
     // -----------------------------------------------------------------
 
-    private static CrawlEntry entry(String ref) {
-        return new CrawlEntry(ref);
+    private static CrawlerEntry entry(String ref) {
+        return new CrawlerEntry(ref);
     }
 }

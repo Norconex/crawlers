@@ -39,7 +39,7 @@ import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 
 import lombok.Getter;
@@ -50,7 +50,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PipelineWorkerState implements AutoCloseable {
     private final HazelcastCluster cluster;
     private final Pipeline pipeline;
-    private final CrawlSession session;
+    private final CrawlerSession session;
 
     // Cache Keys
     private final String pipelineKey; // sessionId:pipelineId

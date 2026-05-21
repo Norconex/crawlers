@@ -24,15 +24,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.service.CommitterService;
-import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.context.CrawlContext;
-import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.context.CrawlerContext;
+import com.norconex.crawler.core.doc.CrawlerDocContext;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategizer;
 import com.norconex.crawler.core.doc.operations.spoil.SpoiledReferenceStrategy;
-import com.norconex.crawler.core.ledger.CrawlEntry;
-import com.norconex.crawler.core.ledger.CrawlEntryLedger;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
+import com.norconex.crawler.core.ledger.CrawlerEntryLedger;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.importer.doc.Doc;
 
 /**
@@ -47,31 +47,31 @@ class ProcessFinalizeTest {
             ProcessingOutcome previousOutcome,
             SpoiledReferenceStrategizer strategizer) {
 
-        var entry = new CrawlEntry("http://example.com/test");
+        var entry = new CrawlerEntry("http://example.com/test");
         entry.setProcessingOutcome(currentOutcome);
 
-        var docCtxBuilder = CrawlDocContext.builder()
+        var docCtxBuilder = CrawlerDocContext.builder()
                 .doc(new Doc("http://example.com/test"))
                 .currentCrawlEntry(entry);
 
         if (previousOutcome != null) {
-            var prevEntry = new CrawlEntry("http://example.com/test");
+            var prevEntry = new CrawlerEntry("http://example.com/test");
             prevEntry.setProcessingOutcome(previousOutcome);
             docCtxBuilder.previousCrawlEntry(prevEntry);
         }
         var docCtx = docCtxBuilder.build();
 
-        var config = mock(CrawlConfig.class);
+        var config = mock(CrawlerConfig.class);
         when(config.getSpoiledReferenceStrategizer()).thenReturn(strategizer);
 
-        var ledger = mock(CrawlEntryLedger.class);
+        var ledger = mock(CrawlerEntryLedger.class);
         var committerService = mock(CommitterService.class);
-        var crawlCtx = mock(CrawlContext.class);
+        var crawlCtx = mock(CrawlerContext.class);
         when(crawlCtx.getCrawlEntryLedger()).thenReturn(ledger);
         when(crawlCtx.getCrawlConfig()).thenReturn(config);
         when(crawlCtx.getCommitterService()).thenReturn(committerService);
 
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(crawlCtx);
 
         return new ProcessContext()
@@ -94,7 +94,7 @@ class ProcessFinalizeTest {
 
     @Test
     void execute_nullDocContext_returnsImmediately() {
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         var ctx = new ProcessContext().crawlSession(session);
         assertThatNoException().isThrownBy(() -> ProcessFinalize.execute(ctx));
         assertThat(ctx.finalized()).isFalse();
@@ -167,27 +167,27 @@ class ProcessFinalizeTest {
     @Test
     void execute_badOutcome_previousWithNullOutcome_legacyWarningPath() {
         // Build manually: previous entry with null outcome (legacy case)
-        var entry = new CrawlEntry("http://example.com/legacy");
+        var entry = new CrawlerEntry("http://example.com/legacy");
         entry.setProcessingOutcome(ProcessingOutcome.ERROR);
 
-        var prevEntry = new CrawlEntry("http://example.com/legacy");
+        var prevEntry = new CrawlerEntry("http://example.com/legacy");
         // prevEntry intentionally has null outcome
 
-        var docCtx = CrawlDocContext.builder()
+        var docCtx = CrawlerDocContext.builder()
                 .doc(new Doc("http://example.com/legacy"))
                 .currentCrawlEntry(entry)
                 .previousCrawlEntry(prevEntry)
                 .build();
 
-        var config = mock(CrawlConfig.class);
-        var ledger = mock(CrawlEntryLedger.class);
-        var crawlCtx = mock(CrawlContext.class);
+        var config = mock(CrawlerConfig.class);
+        var ledger = mock(CrawlerEntryLedger.class);
+        var crawlCtx = mock(CrawlerContext.class);
         when(crawlCtx.getCrawlEntryLedger()).thenReturn(ledger);
         when(crawlCtx.getCrawlConfig()).thenReturn(config);
         when(crawlCtx.getCommitterService())
                 .thenReturn(mock(CommitterService.class));
 
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(crawlCtx);
 
         var ctx = new ProcessContext()

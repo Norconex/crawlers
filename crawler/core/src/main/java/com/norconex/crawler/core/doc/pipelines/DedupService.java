@@ -17,8 +17,8 @@ package com.norconex.crawler.core.doc.pipelines;
 import java.util.Optional;
 
 import com.norconex.crawler.core.cluster.CacheMap;
-import com.norconex.crawler.core.ledger.CrawlEntry;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,7 +31,7 @@ public class DedupService {
     private CacheMap<String> dedupMetadataStore; // checksum -> ref
     private CacheMap<String> dedupDocumentStore; // checksum -> ref
 
-    public void init(CrawlSession session) {
+    public void init(CrawlerSession session) {
         var ctx = session.getCrawlContext();
         var crawlConfig = ctx.getCrawlConfig();
         var cluster = session.getCluster();
@@ -64,7 +64,7 @@ public class DedupService {
      * @return the duplicate reference or empty
      */
     public Optional<String>
-            findOrTrackDocument(CrawlEntry crawlEntry) {
+            findOrTrackDocument(CrawlerEntry crawlEntry) {
         return doFindOrTrack(
                 dedupDocumentStore,
                 crawlEntry.getContentChecksum(),
@@ -78,7 +78,7 @@ public class DedupService {
      * @param crawlEntry doc to check for duplicates
      * @return the duplicate reference or empty
      */
-    public Optional<String> findOrTrackMetadata(CrawlEntry crawlEntry) {
+    public Optional<String> findOrTrackMetadata(CrawlerEntry crawlEntry) {
         return doFindOrTrack(
                 dedupMetadataStore,
                 crawlEntry.getMetaChecksum(),

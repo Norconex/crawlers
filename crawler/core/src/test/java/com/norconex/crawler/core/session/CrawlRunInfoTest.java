@@ -20,58 +20,58 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 /**
- * Unit tests for {@link CrawlRunInfo}.
+ * Unit tests for {@link CrawlerRunInfo}.
  */
 @Timeout(30)
-class CrawlRunInfoTest {
+class CrawlerRunInfoTest {
 
     @Test
     void testBuilder_allFields() {
-        var info = CrawlRunInfo.builder()
+        var info = CrawlerRunInfo.builder()
                 .crawlerId("my-crawler")
                 .crawlSessionId("cs-123")
                 .crawlRunId("cr-456")
-                .crawlMode(CrawlMode.FULL)
-                .crawlResumeState(CrawlResumeState.NEW)
+                .crawlMode(CrawlerMode.FULL)
+                .crawlResumeState(CrawlerResumeState.NEW)
                 .build();
 
         assertThat(info.getCrawlerId()).isEqualTo("my-crawler");
         assertThat(info.getCrawlSessionId()).isEqualTo("cs-123");
         assertThat(info.getCrawlRunId()).isEqualTo("cr-456");
-        assertThat(info.getCrawlMode()).isEqualTo(CrawlMode.FULL);
-        assertThat(info.getCrawlResumeState()).isEqualTo(CrawlResumeState.NEW);
+        assertThat(info.getCrawlMode()).isEqualTo(CrawlerMode.FULL);
+        assertThat(info.getCrawlResumeState()).isEqualTo(CrawlerResumeState.NEW);
     }
 
     @Test
     void testBuilder_incrementalResumed() {
-        var info = CrawlRunInfo.builder()
+        var info = CrawlerRunInfo.builder()
                 .crawlerId("c2")
                 .crawlSessionId("cs-789")
                 .crawlRunId("cr-abc")
-                .crawlMode(CrawlMode.INCREMENTAL)
-                .crawlResumeState(CrawlResumeState.RESUMED)
+                .crawlMode(CrawlerMode.INCREMENTAL)
+                .crawlResumeState(CrawlerResumeState.RESUMED)
                 .build();
 
-        assertThat(info.getCrawlMode()).isEqualTo(CrawlMode.INCREMENTAL);
+        assertThat(info.getCrawlMode()).isEqualTo(CrawlerMode.INCREMENTAL);
         assertThat(info.getCrawlResumeState())
-                .isEqualTo(CrawlResumeState.RESUMED);
+                .isEqualTo(CrawlerResumeState.RESUMED);
     }
 
     @Test
     void testValueEquality() {
-        var a = CrawlRunInfo.builder()
+        var a = CrawlerRunInfo.builder()
                 .crawlerId("c")
                 .crawlSessionId("cs-1")
                 .crawlRunId("cr-1")
-                .crawlMode(CrawlMode.FULL)
-                .crawlResumeState(CrawlResumeState.NEW)
+                .crawlMode(CrawlerMode.FULL)
+                .crawlResumeState(CrawlerResumeState.NEW)
                 .build();
-        var b = CrawlRunInfo.builder()
+        var b = CrawlerRunInfo.builder()
                 .crawlerId("c")
                 .crawlSessionId("cs-1")
                 .crawlRunId("cr-1")
-                .crawlMode(CrawlMode.FULL)
-                .crawlResumeState(CrawlResumeState.NEW)
+                .crawlMode(CrawlerMode.FULL)
+                .crawlResumeState(CrawlerResumeState.NEW)
                 .build();
         assertThat(a).isEqualTo(b);
         assertThat(a.hashCode()).isEqualTo(b.hashCode());
@@ -79,12 +79,12 @@ class CrawlRunInfoTest {
 
     @Test
     void testToString_containsKeyFields() {
-        var info = CrawlRunInfo.builder()
+        var info = CrawlerRunInfo.builder()
                 .crawlerId("my-crawler")
                 .crawlSessionId("cs-999")
                 .crawlRunId("cr-888")
-                .crawlMode(CrawlMode.FULL)
-                .crawlResumeState(CrawlResumeState.NEW)
+                .crawlMode(CrawlerMode.FULL)
+                .crawlResumeState(CrawlerResumeState.NEW)
                 .build();
         var s = info.toString();
         assertThat(s).contains("my-crawler");
@@ -94,15 +94,15 @@ class CrawlRunInfoTest {
 
     @Test
     void testCrawlMode_enumValues() {
-        assertThat(CrawlMode.values())
-                .containsExactlyInAnyOrder(CrawlMode.FULL,
-                        CrawlMode.INCREMENTAL);
+        assertThat(CrawlerMode.values())
+                .containsExactlyInAnyOrder(CrawlerMode.FULL,
+                        CrawlerMode.INCREMENTAL);
     }
 
     @Test
     void testCrawlResumeState_enumValues() {
-        assertThat(CrawlResumeState.values())
+        assertThat(CrawlerResumeState.values())
                 .containsExactlyInAnyOrder(
-                        CrawlResumeState.NEW, CrawlResumeState.RESUMED);
+                        CrawlerResumeState.NEW, CrawlerResumeState.RESUMED);
     }
 }

@@ -22,16 +22,16 @@ import static org.mockito.Mockito.when;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.context.CrawlContext;
-import com.norconex.crawler.core.ledger.CrawlEntryLedger;
-import com.norconex.crawler.core.session.CrawlAttributes;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.context.CrawlerContext;
+import com.norconex.crawler.core.ledger.CrawlerEntryLedger;
+import com.norconex.crawler.core.session.CrawlerAttributes;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 /**
- * Tests for {@link CrawlEntryLedgerBootstrapper}.
+ * Tests for {@link CrawlerEntryLedgerBootstrapper}.
  */
 @Timeout(30)
-class CrawlEntryLedgerBootstrapperTest {
+class CrawlerEntryLedgerBootstrapperTest {
 
     /**
      * Builds a mocked CrawlSession for testing.
@@ -41,9 +41,9 @@ class CrawlEntryLedgerBootstrapperTest {
      * @param allowBootstrap if true, setBooleanIfAbsent returns true (proceed);
      *                       if false, returns false (skip)
      */
-    private CrawlSession buildSession(
+    private CrawlerSession buildSession(
             boolean resumed, long queueCount, boolean allowBootstrap) {
-        var ledger = mock(CrawlEntryLedger.class);
+        var ledger = mock(CrawlerEntryLedger.class);
         when(ledger.getQueueCount()).thenReturn(queueCount);
         when(ledger.getProcessedCount()).thenReturn(0L);
         when(ledger.getBaselineCount()).thenReturn(0L);
@@ -52,15 +52,15 @@ class CrawlEntryLedgerBootstrapperTest {
                 com.norconex.crawler.core.ledger.ProcessingStatus.QUEUED))
                         .thenReturn(0L);
 
-        var crawlContext = mock(CrawlContext.class);
+        var crawlContext = mock(CrawlerContext.class);
         when(crawlContext.getCrawlEntryLedger()).thenReturn(ledger);
 
-        var attrs = mock(CrawlAttributes.class);
+        var attrs = mock(CrawlerAttributes.class);
         when(attrs.setBooleanIfAbsent(
-                CrawlEntryLedgerBootstrapper.BOOTSTRAP_KEY, true))
+                CrawlerEntryLedgerBootstrapper.BOOTSTRAP_KEY, true))
                         .thenReturn(allowBootstrap);
 
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(crawlContext);
         when(session.isResumed()).thenReturn(resumed);
         when(session.getCrawlRunAttributes()).thenReturn(attrs);
@@ -73,7 +73,7 @@ class CrawlEntryLedgerBootstrapperTest {
         var session = buildSession(false, 0, false);
         var ledger = session.getCrawlContext().getCrawlEntryLedger();
 
-        new CrawlEntryLedgerBootstrapper().bootstrap(session);
+        new CrawlerEntryLedgerBootstrapper().bootstrap(session);
 
         // Bootstrap key check was the early exit; ledger should not be touched
         verify(ledger, never()).ensureCurrentLedgerAliasExists();
@@ -88,7 +88,7 @@ class CrawlEntryLedgerBootstrapperTest {
         var session = buildSession(false, 0, true);
         var ledger = session.getCrawlContext().getCrawlEntryLedger();
 
-        new CrawlEntryLedgerBootstrapper().bootstrap(session);
+        new CrawlerEntryLedgerBootstrapper().bootstrap(session);
 
         verify(ledger).ensureCurrentLedgerAliasExists();
         verify(ledger).clearQueuedEntriesInLedger();
@@ -101,7 +101,7 @@ class CrawlEntryLedgerBootstrapperTest {
         var session = buildSession(true, 3, true);
         var ledger = session.getCrawlContext().getCrawlEntryLedger();
 
-        new CrawlEntryLedgerBootstrapper().bootstrap(session);
+        new CrawlerEntryLedgerBootstrapper().bootstrap(session);
 
         verify(ledger).ensureCurrentLedgerAliasExists();
         verify(ledger).requeueProcessingEntries();
@@ -117,7 +117,7 @@ class CrawlEntryLedgerBootstrapperTest {
         var session = buildSession(false, 7, true);
         var ledger = session.getCrawlContext().getCrawlEntryLedger();
 
-        new CrawlEntryLedgerBootstrapper().bootstrap(session);
+        new CrawlerEntryLedgerBootstrapper().bootstrap(session);
 
         verify(ledger).ensureCurrentLedgerAliasExists();
         verify(ledger, never()).clearQueuedEntriesInLedger();
@@ -130,9 +130,9 @@ class CrawlEntryLedgerBootstrapperTest {
         var session = buildSession(false, 0, true);
         var attrs = session.getCrawlRunAttributes();
 
-        new CrawlEntryLedgerBootstrapper().bootstrap(session);
+        new CrawlerEntryLedgerBootstrapper().bootstrap(session);
 
-        verify(attrs).setBoolean(CrawlEntryLedgerBootstrapper.BOOTSTRAP_KEY,
+        verify(attrs).setBoolean(CrawlerEntryLedgerBootstrapper.BOOTSTRAP_KEY,
                 false);
     }
 }

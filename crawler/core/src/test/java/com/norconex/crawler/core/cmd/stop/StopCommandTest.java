@@ -24,7 +24,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.cluster.admin.ClusterAdminServer;
 import com.norconex.crawler.core.util.ConfigUtil;
 
@@ -65,15 +65,15 @@ class StopCommandTest {
     }
 
     @SuppressWarnings("unchecked")
-    private List<String> resolveNodeUrls(CrawlConfig config) throws Exception {
+    private List<String> resolveNodeUrls(CrawlerConfig config) throws Exception {
         var command = new StopCommand(config, new String[0]);
         Method method = StopCommand.class.getDeclaredMethod("resolveNodeUrls");
         method.setAccessible(true);
         return (List<String>) method.invoke(command);
     }
 
-    private CrawlConfig crawlConfig(int adminPort) {
-        var config = new CrawlConfig();
+    private CrawlerConfig crawlConfig(int adminPort) {
+        var config = new CrawlerConfig();
         config.setId("stop-command-test");
         config.setWorkDir(tempDir);
         config.getClusterConfig().setAdminPort(adminPort);

@@ -15,9 +15,9 @@
 package com.norconex.crawler.web.doc.pipelines.importer;
 
 import com.norconex.commons.lang.bean.BeanUtil;
-import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.doc.CrawlerDocContext;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.doc.operations.robot.RobotsMeta;
 
 import lombok.Data;
@@ -38,7 +38,7 @@ public class WebImporterPipelineContext extends ImporterPipelineContext {
     }
 
     public WebImporterPipelineContext(
-            CrawlSession crawlSession, CrawlDocContext docContext) {
+            CrawlerSession crawlSession, CrawlerDocContext docContext) {
         super(crawlSession, docContext);
     }
 }

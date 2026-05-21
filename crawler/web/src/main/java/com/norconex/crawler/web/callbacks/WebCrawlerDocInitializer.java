@@ -20,8 +20,8 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.doc.CrawlerDocMetaConstants;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.importer.doc.Doc;
@@ -30,10 +30,10 @@ import com.norconex.importer.doc.Doc;
  * Initialize a Web CrawlDoc.
  */
 class WebCrawlerDocInitializer
-        implements BiConsumer<CrawlSession, Doc> {
+        implements BiConsumer<CrawlerSession, Doc> {
 
     @Override
-    public void accept(CrawlSession crawler, Doc doc) {
+    public void accept(CrawlerSession crawler, Doc doc) {
         var docRecord = (WebCrawlerEntry) crawler.getCrawlContext()
                 .getCrawlEntryLedger()
                 .getEntry(doc.getReference())
@@ -51,7 +51,7 @@ class WebCrawlerDocInitializer
         // (and use reflextion?)
 
         //TODO should DEPTH be set here now that is is in Core?
-        metadata.add(CrawlDocMetaConstants.DEPTH, docRecord.getDepth());
+        metadata.add(CrawlerDocMetaConstants.DEPTH, docRecord.getDepth());
         metadata.add(
                 WebDocMetadata.SM_CHANGE_FREQ,
                 docRecord.getSitemapChangeFreq());

@@ -22,8 +22,8 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 
 import com.norconex.commons.lang.bean.BeanMapper;
-import com.norconex.crawler.core.context.CrawlContext;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.context.CrawlerContext;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.junit.WebCrawlingTest;
 import com.norconex.crawler.web.util.Web;
 import org.junit.jupiter.api.Timeout;
@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Timeout;
 class GenericSitemapLocatorTest {
 
     @WebCrawlingTest
-    void testGenericSitemapLocator(CrawlContext ctx) {
+    void testGenericSitemapLocator(CrawlerContext ctx) {
 
         var locator = new GenericSitemapLocator();
         assertThat(locator.getConfiguration().getPaths()).contains(
@@ -49,7 +49,7 @@ class GenericSitemapLocatorTest {
                 .setStartReferences(List.of(
                         "http://example.com/index.html"));
 
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(ctx);
 
         assertThat(locator.locations(

@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.cmd.crawl.pipeline.process;
 
-import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.doc.CrawlerDocContext;
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipelineContext;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
@@ -100,7 +100,7 @@ final class ProcessUpsert {
             //TODO refactor Doc vs CrawlDoc to have only one instance
             // so we do not have to create such copy?
             var childResponseDoc = childResponse.getDoc();
-            var childDocContext = CrawlDocContext
+            var childDocContext = CrawlerDocContext
                     .builder()
                     .currentCrawlEntry(childCurrentEntry)
                     .previousCrawlEntry(childPreviousEntry)

@@ -40,8 +40,8 @@ import com.norconex.commons.lang.TimeIdGenerator;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.CrawlDriver;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.CrawlerDriver;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
 
@@ -90,24 +90,24 @@ public class TestCrawler implements Closeable {
     }
 
     @Getter
-    private final CrawlTestInstrument instrument;
-    private final CrawlConfig crawlConfig;
+    private final CrawlerTestInstrument instrument;
+    private final CrawlerConfig crawlConfig;
     private final EventNameRecorder eventNameRecorder = new EventNameRecorder();
     private final TestLogAppender logAppender = new TestLogAppender();
-    private final CrawlDriver crawlDriver;
+    private final CrawlerDriver crawlDriver;
     private final boolean client;
     private final AtomicReference<Process> childProcess =
             new AtomicReference<>();
 
-    public TestCrawler(@NonNull CrawlTestInstrument crawlTestInstrument) {
+    public TestCrawler(@NonNull CrawlerTestInstrument crawlTestInstrument) {
         this(crawlTestInstrument, false);
     }
 
     private TestCrawler(
-            @NonNull CrawlTestInstrument instrument, boolean remoteInstance) {
+            @NonNull CrawlerTestInstrument instrument, boolean remoteInstance) {
         Objects.requireNonNull(instrument.getWorkDir(), "workDir is required");
         var cfg = ofNullable(instrument.getCrawlConfig())
-                .orElseGet(CrawlConfig::new);
+                .orElseGet(CrawlerConfig::new);
         cfg.setWorkDir(instrument.getWorkDir());
         instrument.setCrawlConfig(cfg);
         this.instrument = instrument;
@@ -161,7 +161,7 @@ public class TestCrawler implements Closeable {
         }
     }
 
-    public CrawlTestNodeOutput crawl() {
+    public CrawlerTestNodeOutput crawl() {
         LOG.info("=== TestCrawler.crawl() called for node: {} ===",
                 instrument.getNodeName());
         if (instrument.isNewJvm()) {
@@ -174,11 +174,11 @@ public class TestCrawler implements Closeable {
         return doCrawl();
     }
 
-    public CompletableFuture<CrawlTestNodeOutput> crawlAsync() {
+    public CompletableFuture<CrawlerTestNodeOutput> crawlAsync() {
         return CompletableFuture.supplyAsync(this::crawl);
     }
 
-    public CrawlTestNodeOutput getResult() {
+    public CrawlerTestNodeOutput getResult() {
         if (client) {
             return deserializeNodeTestResults();
         }
@@ -195,7 +195,7 @@ public class TestCrawler implements Closeable {
             caches = rec.getCaches();
         }
 
-        return CrawlTestNodeOutput.builder()
+        return CrawlerTestNodeOutput.builder()
                 .eventNames(eventNames)
                 .logLines(logAppender.getMessages())
                 .caches(caches)
@@ -298,17 +298,17 @@ public class TestCrawler implements Closeable {
         try {
             var instPath = Path.of(args[0]);
             var instrument = CoreTestUtil.readFromFile(instPath,
-                    CrawlTestInstrument.class);
+                    CrawlerTestInstrument.class);
             var resultPath = instrument.getCrawlConfig().getWorkDir()
                     .resolve(TEST_RESULT_FILE_NAME);
             LOG.info("TestCrawler main() starting. PID: {}",
                     ProcessHandle.current().pid());
 
             try (var crawler = new TestCrawler(instrument, true)) {
-                CrawlTestNodeOutput finalResult;
+                CrawlerTestNodeOutput finalResult;
                 if (instrument.getRecordInterval() != null) {
                     final var resultHolder =
-                            new AtomicReference<CrawlTestNodeOutput>();
+                            new AtomicReference<CrawlerTestNodeOutput>();
                     final var crawlFailure =
                             new AtomicReference<Throwable>();
                     var crawlThread = new Thread(() -> {
@@ -417,14 +417,14 @@ public class TestCrawler implements Closeable {
         }
     }
 
-    private CrawlTestNodeOutput doCrawl() {
+    private CrawlerTestNodeOutput doCrawl() {
 
         instrumentCrawl();
 
         LOG.info("TestCrawl starting on node '{}' ...",
                 instrument.getNodeName());
 
-        CrawlTestNodeOutput result = null;
+        CrawlerTestNodeOutput result = null;
         try {
             new Crawler(crawlDriver, crawlConfig).crawl();
         } finally {
@@ -475,7 +475,7 @@ public class TestCrawler implements Closeable {
         crawlConfig.getClusterConfig().setClustered(instrument.isClustered());
     }
 
-    private CrawlTestNodeOutput launchNewJvm() {
+    private CrawlerTestNodeOutput launchNewJvm() {
         var nodeName = instrument.getNodeName();
         Objects.requireNonNull(nodeName, "nodeName is required");
 
@@ -624,7 +624,7 @@ public class TestCrawler implements Closeable {
         return deserializeNodeTestResults();
     }
 
-    private static boolean isTerminalResult(CrawlTestNodeOutput output) {
+    private static boolean isTerminalResult(CrawlerTestNodeOutput output) {
         if (output == null || output.getEventNames() == null) {
             return false;
         }
@@ -635,7 +635,7 @@ public class TestCrawler implements Closeable {
                 || output.getEventNames().contains("CRAWLER_CRAWL_FAIL");
     }
 
-    private CrawlTestNodeOutput deserializeNodeTestResults() {
+    private CrawlerTestNodeOutput deserializeNodeTestResults() {
         var resultPath = instrument.getCrawlConfig().getWorkDir()
                 .resolve(TEST_RESULT_FILE_NAME);
         for (var attempt = 1; attempt <= RESULT_READ_RETRY_COUNT; attempt++) {
@@ -643,11 +643,11 @@ public class TestCrawler implements Closeable {
                 if (attempt == 1) {
                     LOG.trace("No node test results at: {}", resultPath);
                 }
-                return new CrawlTestNodeOutput(List.of(), List.of(), Map.of());
+                return new CrawlerTestNodeOutput(List.of(), List.of(), Map.of());
             }
             try {
                 return CoreTestUtil.readFromFile(resultPath,
-                        CrawlTestNodeOutput.class);
+                        CrawlerTestNodeOutput.class);
             } catch (Exception e) {
                 if (attempt < RESULT_READ_RETRY_COUNT
                         && isTransientResultReadFailure(e)) {
@@ -663,10 +663,10 @@ public class TestCrawler implements Closeable {
                         resultPath,
                         attempt,
                         e.getMessage());
-                return new CrawlTestNodeOutput(List.of(), List.of(), Map.of());
+                return new CrawlerTestNodeOutput(List.of(), List.of(), Map.of());
             }
         }
-        return new CrawlTestNodeOutput(List.of(), List.of(), Map.of());
+        return new CrawlerTestNodeOutput(List.of(), List.of(), Map.of());
     }
 
     private void deleteStaleResultFile(String nodeName, Path resultPath) {

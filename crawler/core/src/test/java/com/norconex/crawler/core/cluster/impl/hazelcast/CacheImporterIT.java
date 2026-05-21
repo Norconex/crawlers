@@ -27,7 +27,7 @@ import com.norconex.crawler.core.cluster.SerializedCache;
 import com.norconex.crawler.core.cluster.SerializedCache.CacheType;
 import com.norconex.crawler.core.cluster.SerializedCache.SerializedEntry;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
-import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
 import com.norconex.crawler.core.util.SerialUtil;
 
 /**
@@ -178,24 +178,24 @@ class CacheImporterIT {
     @Test
     void importCaches_mapValidJson_deserialisesObject() {
         var mgr = newManager();
-        var original = new CrawlEntry("http://test.norconex.com");
+        var original = new CrawlerEntry("http://test.norconex.com");
         original.setDepth(5);
         var json = SerialUtil.toJsonString(original);
 
         var entries = List.of(new SerializedEntry("entry-1", json));
         var cache = mapCache(
                 "map-deser",
-                CrawlEntry.class.getName(),
+                CrawlerEntry.class.getName(),
                 entries);
 
         CacheImporter.importCaches(mgr, List.of(cache));
 
         var hz = mgr.getHazelcastInstance();
         var stored = hz.getMap("map-deser").get("entry-1");
-        assertThat(stored).isInstanceOf(CrawlEntry.class);
-        assertThat(((CrawlEntry) stored).getReference())
+        assertThat(stored).isInstanceOf(CrawlerEntry.class);
+        assertThat(((CrawlerEntry) stored).getReference())
                 .isEqualTo("http://test.norconex.com");
-        assertThat(((CrawlEntry) stored).getDepth()).isEqualTo(5);
+        assertThat(((CrawlerEntry) stored).getDepth()).isEqualTo(5);
     }
 
     // ------------------------------------------------------------------
@@ -210,7 +210,7 @@ class CacheImporterIT {
                         "this-is-not-valid-json-for-CrawlEntry{"));
         var cache = mapCache(
                 "map-bad-json",
-                CrawlEntry.class.getName(),
+                CrawlerEntry.class.getName(),
                 entries);
 
         // Must not throw; bad JSON → raw string fallback

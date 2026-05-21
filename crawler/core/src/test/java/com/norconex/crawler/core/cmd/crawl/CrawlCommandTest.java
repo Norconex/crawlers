@@ -40,14 +40,14 @@ import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
 import com.norconex.crawler.core.cluster.pipeline.PipelineResult;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
-import com.norconex.crawler.core.cmd.crawl.pipeline.CrawlPipelineFactory;
-import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapper;
-import com.norconex.crawler.core.context.CrawlContext;
-import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core.session.CrawlState;
+import com.norconex.crawler.core.cmd.crawl.pipeline.CrawlerPipelineFactory;
+import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlerBootstrapper;
+import com.norconex.crawler.core.context.CrawlerContext;
+import com.norconex.crawler.core.session.CrawlerSession;
+import com.norconex.crawler.core.session.CrawlerState;
 
 @Timeout(30)
-class CrawlCommandTest {
+class CrawlerCommandTest {
 
     @ParameterizedTest
     @CsvSource(
@@ -61,7 +61,7 @@ class CrawlCommandTest {
                 "RUNNING,FAILED" }
     )
     void execute_updatesCrawlStateFromPipelineStatus(
-            PipelineStatus pipelineStatus, CrawlState expectedState) {
+            PipelineStatus pipelineStatus, CrawlerState expectedState) {
         var fixture = newFixture(false, List.of(), null);
         when(fixture.pipelineManager.executePipeline(fixture.pipeline))
                 .thenReturn(CompletableFuture.completedFuture(
@@ -86,7 +86,7 @@ class CrawlCommandTest {
 
     @Test
     void execute_runsBootstrappersOncePerRun() {
-        var bootstrapper = mock(CrawlBootstrapper.class);
+        var bootstrapper = mock(CrawlerBootstrapper.class);
         var fixture = newFixture(false, List.of(bootstrapper), null);
         when(fixture.pipelineManager.executePipeline(fixture.pipeline))
                 .thenReturn(CompletableFuture.completedFuture(
@@ -120,7 +120,7 @@ class CrawlCommandTest {
             Thread.currentThread().setName(threadName);
         }
 
-        verify(fixture.session).updateCrawlState(CrawlState.STOPPED);
+        verify(fixture.session).updateCrawlState(CrawlerState.STOPPED);
     }
 
     @Test
@@ -134,7 +134,7 @@ class CrawlCommandTest {
         var threadName = Thread.currentThread().getName();
         try {
             fixture.command.execute(fixture.session);
-            verify(fixture.session).updateCrawlState(CrawlState.STOPPED);
+            verify(fixture.session).updateCrawlState(CrawlerState.STOPPED);
             org.assertj.core.api.Assertions
                     .assertThat(Thread.currentThread().isInterrupted())
                     .isTrue();
@@ -161,22 +161,22 @@ class CrawlCommandTest {
             Thread.currentThread().setName(threadName);
         }
 
-        verify(fixture.session).updateCrawlState(CrawlState.COMPLETED);
+        verify(fixture.session).updateCrawlState(CrawlerState.COMPLETED);
     }
 
     @SuppressWarnings("unchecked")
     private Fixture newFixture(boolean coordinator,
-            List<CrawlBootstrapper> bootstrappers, Duration maxCrawlDuration) {
-        var pipelineFactory = mock(CrawlPipelineFactory.class);
-        var session = mock(CrawlSession.class);
-        var context = mock(CrawlContext.class);
+            List<CrawlerBootstrapper> bootstrappers, Duration maxCrawlDuration) {
+        var pipelineFactory = mock(CrawlerPipelineFactory.class);
+        var session = mock(CrawlerSession.class);
+        var context = mock(CrawlerContext.class);
         var cluster = mock(Cluster.class);
         var localNode = mock(ClusterNode.class);
         var pipelineManager = mock(PipelineManager.class);
-        var crawlConfig = mock(com.norconex.crawler.core.CrawlConfig.class);
+        var crawlConfig = mock(com.norconex.crawler.core.CrawlerConfig.class);
 
         var pipeline = new Pipeline("pipe-1");
-        var command = new CrawlCommand(pipelineFactory);
+        var command = new CrawlerCommand(pipelineFactory);
 
         when(session.getCrawlContext()).thenReturn(context);
         when(session.getCluster()).thenReturn(cluster);
@@ -196,7 +196,7 @@ class CrawlCommandTest {
         }).when(session).oncePerRun(anyString(), any(Runnable.class));
 
         doAnswer(invocation -> {
-            var supplier = (Supplier<CrawlState>) invocation.getArgument(1);
+            var supplier = (Supplier<CrawlerState>) invocation.getArgument(1);
             return supplier.get();
         }).when(session).oncePerRunAndGet(anyString(), any(Supplier.class));
 
@@ -205,9 +205,9 @@ class CrawlCommandTest {
     }
 
     private record Fixture(
-            CrawlCommand command,
-            CrawlSession session,
-            CrawlContext context,
+            CrawlerCommand command,
+            CrawlerSession session,
+            CrawlerContext context,
             Cluster cluster,
             ClusterNode localNode,
             PipelineManager pipelineManager,

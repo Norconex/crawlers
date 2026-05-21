@@ -20,15 +20,15 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 import com.norconex.crawler.core.cmd.Command;
-import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
+import com.norconex.crawler.core.cmd.crawl.CrawlerCommand;
 import com.norconex.crawler.core.ledger.ProcessingStatus;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 import lombok.Getter;
 import lombok.Setter;
 
 public class CachesRecorder
-        implements BiConsumer<CrawlSession, Class<? extends Command>> {
+        implements BiConsumer<CrawlerSession, Class<? extends Command>> {
 
     @Getter
     private final Map<String, Map<String, String>> caches = new HashMap<>();
@@ -38,11 +38,11 @@ public class CachesRecorder
     private boolean enabled;
 
     @Override
-    public void accept(CrawlSession session, Class<? extends Command> cmdCls) {
+    public void accept(CrawlerSession session, Class<? extends Command> cmdCls) {
 
         // We only export caches from the coordinator and if the
         // command is a crawl command
-        if (!enabled || !CrawlCommand.class.equals(cmdCls)
+        if (!enabled || !CrawlerCommand.class.equals(cmdCls)
                 || !session.getCluster().getLocalNode().isCoordinator()) {
             return;
         }

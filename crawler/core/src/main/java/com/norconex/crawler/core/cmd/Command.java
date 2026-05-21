@@ -14,12 +14,12 @@
  */
 package com.norconex.crawler.core.cmd;
 
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 /**
  * A crawler command launched within an active crawl session.
  */
 @FunctionalInterface
 public interface Command {
-    void execute(CrawlSession session);
+    void execute(CrawlerSession session);
 }

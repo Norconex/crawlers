@@ -39,7 +39,7 @@ import com.norconex.crawler.core.cluster.impl.hazelcast.event.CoordinatorChangeL
 import com.norconex.crawler.core.cluster.impl.hazelcast.pipeline.HazelcastPipelineManager;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 import com.norconex.crawler.core.util.ThreadTracker;
 
@@ -76,7 +76,7 @@ public class HazelcastCluster implements Cluster {
     private HazelcastInstance hazelcastInstance;
     private UUID membershipListenerId;
     private boolean clustered;
-    private CrawlSession session;
+    private CrawlerSession session;
 
     public String getCrawlerId() {
         return session != null ? session.getCrawlerId() : null;
@@ -98,12 +98,12 @@ public class HazelcastCluster implements Cluster {
     }
 
     @Override
-    public CrawlSession getCrawlSession() {
+    public CrawlerSession getCrawlSession() {
         return session;
     }
 
     @Override
-    public void bindSession(CrawlSession session) {
+    public void bindSession(CrawlerSession session) {
         this.session = session;
     }
 

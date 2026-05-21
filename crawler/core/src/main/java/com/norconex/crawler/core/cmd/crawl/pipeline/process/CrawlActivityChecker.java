@@ -20,8 +20,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.norconex.commons.lang.Sleeper;
 import com.norconex.commons.lang.time.DurationFormatter;
-import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core.session.CrawlState;
+import com.norconex.crawler.core.session.CrawlerSession;
+import com.norconex.crawler.core.session.CrawlerState;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -33,8 +33,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 //TODO still needed? Done by cluster?
-class CrawlActivityChecker {
-    private final CrawlSession session;
+class CrawlerActivityChecker {
+    private final CrawlerSession session;
     @Getter
     private final boolean deleting;
     private final Instant expireAt;
@@ -44,7 +44,7 @@ class CrawlActivityChecker {
     private AtomicBoolean canContinue = new AtomicBoolean(true);
     //    private boolean maxDocsReached;
 
-    public CrawlActivityChecker(CrawlSession session, boolean deleting) {
+    public CrawlerActivityChecker(CrawlerSession session, boolean deleting) {
         this.session = session;
         this.deleting = deleting;
         var maxDuration = session
@@ -123,7 +123,7 @@ class CrawlActivityChecker {
         if (!can) {
             LOG.info("Stopping crawl execution (i.e., pause). Will "
                     + "resume on next start.");
-            session.updateCrawlState(CrawlState.STOPPED);
+            session.updateCrawlState(CrawlerState.STOPPED);
         }
 
         canContinue.set(can);

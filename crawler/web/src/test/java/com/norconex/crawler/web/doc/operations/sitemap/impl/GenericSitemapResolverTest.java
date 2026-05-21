@@ -39,9 +39,9 @@ import org.mockserver.model.MediaType;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.crawler.core.cluster.CacheManager;
 import com.norconex.crawler.core.cluster.Cluster;
-import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.context.CrawlerContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapContext;
 import com.norconex.crawler.web.junit.WebCrawlingTest;
@@ -55,7 +55,7 @@ class GenericSitemapResolverTest {
 
     @WebCrawlingTest
     void testResolveSitemaps(
-            ClientAndServer client, CrawlContext ctx)
+            ClientAndServer client, CrawlerContext ctx)
             throws IOException {
 
         // We test having a sitemap index file pointing to sitemap files, and
@@ -97,7 +97,7 @@ class GenericSitemapResolverTest {
         var resolver = ((WebCrawlerConfig) ctx.getCrawlConfig())
                 .getSitemapResolver();
 
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         var cluster = mock(Cluster.class);
         var cacheManager = mock(CacheManager.class);
         @SuppressWarnings("unchecked")

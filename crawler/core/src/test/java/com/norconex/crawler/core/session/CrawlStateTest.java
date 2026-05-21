@@ -24,43 +24,43 @@ import org.junit.jupiter.api.Timeout;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 
 /**
- * Unit tests for {@link CrawlState}.
+ * Unit tests for {@link CrawlerState}.
  */
 @WithTestWatcherLogging
 @Timeout(30)
-class CrawlStateTest {
+class CrawlerStateTest {
 
     @ParameterizedTest(name = "{0} should be terminal")
     @EnumSource(
-        value = CrawlState.class, names = { "STOPPED", "COMPLETED", "FAILED" }
+        value = CrawlerState.class, names = { "STOPPED", "COMPLETED", "FAILED" }
     )
-    void testIsTerminal_terminalStates(CrawlState state) {
+    void testIsTerminal_terminalStates(CrawlerState state) {
         assertThat(state.isTerminal()).isTrue();
     }
 
     @Test
     void testIsTerminal_runningIsNotTerminal() {
-        assertThat(CrawlState.RUNNING.isTerminal()).isFalse();
+        assertThat(CrawlerState.RUNNING.isTerminal()).isFalse();
     }
 
     @Test
     void testAllValuesExist() {
         // Confirm the enum has exactly the expected constants so that
         // any future additions are noticed here.
-        assertThat(CrawlState.values())
+        assertThat(CrawlerState.values())
                 .containsExactlyInAnyOrder(
-                        CrawlState.RUNNING,
-                        CrawlState.STOPPED,
-                        CrawlState.COMPLETED,
-                        CrawlState.FAILED);
+                        CrawlerState.RUNNING,
+                        CrawlerState.STOPPED,
+                        CrawlerState.COMPLETED,
+                        CrawlerState.FAILED);
     }
 
     @Test
     void testValueOf_knownStates() {
-        assertThat(CrawlState.valueOf("RUNNING")).isEqualTo(CrawlState.RUNNING);
-        assertThat(CrawlState.valueOf("STOPPED")).isEqualTo(CrawlState.STOPPED);
-        assertThat(CrawlState.valueOf("COMPLETED"))
-                .isEqualTo(CrawlState.COMPLETED);
-        assertThat(CrawlState.valueOf("FAILED")).isEqualTo(CrawlState.FAILED);
+        assertThat(CrawlerState.valueOf("RUNNING")).isEqualTo(CrawlerState.RUNNING);
+        assertThat(CrawlerState.valueOf("STOPPED")).isEqualTo(CrawlerState.STOPPED);
+        assertThat(CrawlerState.valueOf("COMPLETED"))
+                .isEqualTo(CrawlerState.COMPLETED);
+        assertThat(CrawlerState.valueOf("FAILED")).isEqualTo(CrawlerState.FAILED);
     }
 }

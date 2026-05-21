@@ -59,7 +59,7 @@ import com.norconex.commons.lang.CircularRange;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.io.CachedInputStream;
 import com.norconex.commons.lang.map.Properties;
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.cluster.ClusterConnector;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
@@ -142,7 +142,7 @@ public final class WebTestUtil {
      * @return Memory committer
      */
     public static MemoryCommitter
-            memoryCommitter(@NonNull CrawlConfig config) {
+            memoryCommitter(@NonNull CrawlerConfig config) {
         return (MemoryCommitter) config
                 .getCommitters()
                 .stream()
@@ -160,7 +160,7 @@ public final class WebTestUtil {
     }
 
     public static HttpClientFetcherConfig firstHttpFetcherConfig(
-            @NonNull CrawlConfig crawlConfig) {
+            @NonNull CrawlerConfig crawlConfig) {
         return ((HttpClientFetcher) crawlConfig
                 .getFetchers().get(0)).getConfiguration();
     }

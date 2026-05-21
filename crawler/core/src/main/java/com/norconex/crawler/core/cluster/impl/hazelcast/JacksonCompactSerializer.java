@@ -29,7 +29,7 @@ import lombok.RequiredArgsConstructor;
  * <p>
  * This avoids the overhead of Java {@code Serializable} class descriptors
  * while reusing the already-tested Jackson mapping for complex types such
- * as {@link com.norconex.crawler.core.ledger.CrawlEntry} and its
+ * as {@link com.norconex.crawler.core.ledger.CrawlerEntry} and its
  * subclasses.
  * </p>
  *

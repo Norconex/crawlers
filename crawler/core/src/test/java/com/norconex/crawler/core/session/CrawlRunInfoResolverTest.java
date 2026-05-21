@@ -34,19 +34,19 @@ import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.util.SerialUtil;
 
 /**
- * Unit tests for {@link CrawlRunInfoResolver}.
+ * Unit tests for {@link CrawlerRunInfoResolver}.
  *
  * All tests use in-memory caches (no Hazelcast) and a Mockito-stubbed
- * {@link CrawlSession}.  This verifies the resolver's decision logic
+ * {@link CrawlerSession}.  This verifies the resolver's decision logic
  * in isolation, covering every branch of the state-machine.
  */
 @ExtendWith(MockitoExtension.class)
 @WithTestWatcherLogging
 @Timeout(30)
-class CrawlRunInfoResolverTest {
+class CrawlerRunInfoResolverTest {
 
     @Mock(strictness = Strictness.LENIENT)
-    CrawlSession session;
+    CrawlerSession session;
     @Mock(strictness = Strictness.LENIENT)
     Cluster cluster;
 
@@ -68,12 +68,12 @@ class CrawlRunInfoResolverTest {
 
     @Test
     void testFirstCrawl_createsNewFullSession() {
-        var info = CrawlRunInfoResolver.resolve(session);
+        var info = CrawlerRunInfoResolver.resolve(session);
 
         assertThat(info.getCrawlResumeState())
-                .isEqualTo(CrawlResumeState.NEW);
+                .isEqualTo(CrawlerResumeState.NEW);
         assertThat(info.getCrawlMode())
-                .isEqualTo(CrawlMode.FULL);
+                .isEqualTo(CrawlerMode.FULL);
         assertThat(info.getCrawlSessionId()).startsWith("cs-");
         assertThat(info.getCrawlRunId()).startsWith("cr-");
         assertThat(info.getCrawlerId()).isEqualTo("crawler-1");
@@ -81,16 +81,16 @@ class CrawlRunInfoResolverTest {
 
     @Test
     void testFirstCrawl_persistsInfoToSessionCache() {
-        CrawlRunInfoResolver.resolve(session);
+        CrawlerRunInfoResolver.resolve(session);
 
         // The resolved info must be readable from the durable session cache
         // so that subsequent runs can detect whether to resume or go fresh.
         var stored = cacheManager.getCrawlSessionCache()
-                .get(CrawlRunInfoResolver.CRAWL_RUN_INFO_KEY);
+                .get(CrawlerRunInfoResolver.CRAWL_RUN_INFO_KEY);
         assertThat(stored).isPresent();
-        var reloaded = SerialUtil.fromJson(stored.get(), CrawlRunInfo.class);
+        var reloaded = SerialUtil.fromJson(stored.get(), CrawlerRunInfo.class);
         assertThat(reloaded.getCrawlResumeState())
-                .isEqualTo(CrawlResumeState.NEW);
+                .isEqualTo(CrawlerResumeState.NEW);
     }
 
     // -----------------------------------------------------------------
@@ -99,14 +99,14 @@ class CrawlRunInfoResolverTest {
 
     @Test
     void testCompletedSession_createsIncrementalNewSession() {
-        primeSessionCache(CrawlState.COMPLETED);
+        primeSessionCache(CrawlerState.COMPLETED);
 
-        var info = CrawlRunInfoResolver.resolve(session);
+        var info = CrawlerRunInfoResolver.resolve(session);
 
         assertThat(info.getCrawlResumeState())
-                .isEqualTo(CrawlResumeState.NEW);
+                .isEqualTo(CrawlerResumeState.NEW);
         assertThat(info.getCrawlMode())
-                .isEqualTo(CrawlMode.INCREMENTAL);
+                .isEqualTo(CrawlerMode.INCREMENTAL);
         // A new session means a new session ID (different from the prior one).
         assertThat(info.getCrawlSessionId()).isNotEqualTo("cs-prior");
     }
@@ -117,20 +117,20 @@ class CrawlRunInfoResolverTest {
 
     @ParameterizedTest(name = "Prior state {0} must trigger RESUMED")
     @EnumSource(
-        value = CrawlState.class, names = { "STOPPED", "RUNNING",
+        value = CrawlerState.class, names = { "STOPPED", "RUNNING",
                 "FAILED" }
     )
-    void testInterruptedSession_resumesSameSession(CrawlState state) {
+    void testInterruptedSession_resumesSameSession(CrawlerState state) {
         primeSessionCache(state);
 
-        var info = CrawlRunInfoResolver.resolve(session);
+        var info = CrawlerRunInfoResolver.resolve(session);
 
         assertThat(info.getCrawlResumeState())
-                .isEqualTo(CrawlResumeState.RESUMED);
+                .isEqualTo(CrawlerResumeState.RESUMED);
         // Session identity is preserved across the resume.
         assertThat(info.getCrawlSessionId()).isEqualTo("cs-prior");
         // Crawl mode is preserved from the prior run (was FULL).
-        assertThat(info.getCrawlMode()).isEqualTo(CrawlMode.FULL);
+        assertThat(info.getCrawlMode()).isEqualTo(CrawlerMode.FULL);
     }
 
     // -----------------------------------------------------------------
@@ -142,16 +142,16 @@ class CrawlRunInfoResolverTest {
         // Prior run info in session cache but loadState() returns nothing.
         var prior = priorRunInfo();
         cacheManager.getCrawlSessionCache().put(
-                CrawlRunInfoResolver.CRAWL_RUN_INFO_KEY,
+                CrawlerRunInfoResolver.CRAWL_RUN_INFO_KEY,
                 SerialUtil.toJsonString(prior));
         when(session.loadState()).thenReturn(null);
 
-        var info = CrawlRunInfoResolver.resolve(session);
+        var info = CrawlerRunInfoResolver.resolve(session);
 
         assertThat(info.getCrawlResumeState())
-                .isEqualTo(CrawlResumeState.NEW);
+                .isEqualTo(CrawlerResumeState.NEW);
         assertThat(info.getCrawlMode())
-                .isEqualTo(CrawlMode.FULL);
+                .isEqualTo(CrawlerMode.FULL);
     }
 
     // -----------------------------------------------------------------
@@ -163,8 +163,8 @@ class CrawlRunInfoResolverTest {
         // Simulates two nodes both calling resolve() on a shared cache:
         // the first call publishes to the ephemeral run cache; the second
         // call sees that entry and takes the fast-path without re-electing.
-        var first = CrawlRunInfoResolver.resolve(session);
-        var second = CrawlRunInfoResolver.resolve(session);
+        var first = CrawlerRunInfoResolver.resolve(session);
+        var second = CrawlerRunInfoResolver.resolve(session);
 
         // Both nodes must agree on the same runId and sessionId.
         assertThat(second.getCrawlRunId())
@@ -181,24 +181,24 @@ class CrawlRunInfoResolverTest {
      * Stores a CrawlRunInfo for a prior run in the durable session cache,
      * and primes the session-state so the resolver detects {@code priorState}.
      */
-    private void primeSessionCache(CrawlState priorState) {
+    private void primeSessionCache(CrawlerState priorState) {
         var prior = priorRunInfo();
         cacheManager.getCrawlSessionCache().put(
-                CrawlRunInfoResolver.CRAWL_RUN_INFO_KEY,
+                CrawlerRunInfoResolver.CRAWL_RUN_INFO_KEY,
                 SerialUtil.toJsonString(prior));
         when(session.loadState()).thenReturn(
-                new CrawlSession.State()
+                new CrawlerSession.State()
                         .setCrawlState(priorState)
                         .setLastUpdated(System.currentTimeMillis()));
     }
 
-    private static CrawlRunInfo priorRunInfo() {
-        return CrawlRunInfo.builder()
+    private static CrawlerRunInfo priorRunInfo() {
+        return CrawlerRunInfo.builder()
                 .crawlerId("crawler-1")
                 .crawlSessionId("cs-prior")
                 .crawlRunId("cr-prior")
-                .crawlMode(CrawlMode.FULL)
-                .crawlResumeState(CrawlResumeState.NEW)
+                .crawlMode(CrawlerMode.FULL)
+                .crawlResumeState(CrawlerResumeState.NEW)
                 .build();
     }
 }

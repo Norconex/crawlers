@@ -33,11 +33,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.ClusterConfig;
-import com.norconex.crawler.core.context.CrawlContext;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.context.CrawlerContext;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 @Timeout(30)
 class ClusterAdminServerTest {
@@ -132,10 +132,10 @@ class ClusterAdminServerTest {
     }
 
     private Fixture newFixture(int adminPort, Path workDir) {
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         var cluster = mock(Cluster.class);
-        var crawlContext = mock(CrawlContext.class);
-        var crawlConfig = new CrawlConfig();
+        var crawlContext = mock(CrawlerContext.class);
+        var crawlConfig = new CrawlerConfig();
         var clusterConfig = new ClusterConfig();
 
         clusterConfig.setAdminPort(adminPort);
@@ -150,6 +150,6 @@ class ClusterAdminServerTest {
         return new Fixture(session, cluster);
     }
 
-    private record Fixture(CrawlSession session, Cluster cluster) {
+    private record Fixture(CrawlerSession session, Cluster cluster) {
     }
 }

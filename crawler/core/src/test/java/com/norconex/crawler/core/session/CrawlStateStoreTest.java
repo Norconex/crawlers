@@ -23,21 +23,21 @@ import org.junit.jupiter.api.Timeout;
 import com.norconex.crawler.core.cluster.support.InMemoryCacheMap;
 
 @Timeout(30)
-class CrawlStateStoreTest {
+class CrawlerStateStoreTest {
 
     private InMemoryCacheMap<String> sessionCache;
-    private CrawlAttributes sessionAttrs;
+    private CrawlerAttributes sessionAttrs;
     private InMemoryCacheMap<String> runCache;
-    private CrawlAttributes runAttrs;
-    private CrawlStateStore store;
+    private CrawlerAttributes runAttrs;
+    private CrawlerStateStore store;
 
     @BeforeEach
     void setUp() {
         sessionCache = new InMemoryCacheMap<>("session-cache");
-        sessionAttrs = new CrawlAttributes(sessionCache);
+        sessionAttrs = new CrawlerAttributes(sessionCache);
         runCache = new InMemoryCacheMap<>("run-cache");
-        runAttrs = new CrawlAttributes(runCache);
-        store = new CrawlStateStore(sessionCache, sessionAttrs, runAttrs);
+        runAttrs = new CrawlerAttributes(runCache);
+        store = new CrawlerStateStore(sessionCache, sessionAttrs, runAttrs);
     }
 
     @Test
@@ -47,16 +47,16 @@ class CrawlStateStoreTest {
 
     @Test
     void updateAndGetCrawlState_roundTrip() {
-        store.updateCrawlState(CrawlState.RUNNING);
-        assertThat(store.getCrawlState()).isEqualTo(CrawlState.RUNNING);
+        store.updateCrawlState(CrawlerState.RUNNING);
+        assertThat(store.getCrawlState()).isEqualTo(CrawlerState.RUNNING);
     }
 
     @Test
     void loadState_afterUpdate_returnsState() {
-        store.updateCrawlState(CrawlState.COMPLETED);
+        store.updateCrawlState(CrawlerState.COMPLETED);
         var state = store.loadState();
         assertThat(state).isNotNull();
-        assertThat(state.getCrawlState()).isEqualTo(CrawlState.COMPLETED);
+        assertThat(state.getCrawlState()).isEqualTo(CrawlerState.COMPLETED);
     }
 
     @Test
@@ -89,7 +89,7 @@ class CrawlStateStoreTest {
 
     @Test
     void updateState_setsLastUpdated() {
-        store.updateCrawlState(CrawlState.RUNNING);
+        store.updateCrawlState(CrawlerState.RUNNING);
         var loaded = store.loadState();
         assertThat(loaded.getLastUpdated()).isGreaterThan(0L);
     }

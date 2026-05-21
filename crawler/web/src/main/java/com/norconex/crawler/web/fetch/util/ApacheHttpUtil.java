@@ -61,7 +61,7 @@ import com.norconex.commons.lang.encrypt.EncryptionUtil;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.map.PropertySetter;
 import com.norconex.commons.lang.url.HttpURL;
-import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.doc.CrawlerDocContext;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpAuthConfig;
 import com.norconex.crawler.web.ledger.WebCrawlerEntry;
@@ -213,7 +213,7 @@ public final class ApacheHttpUtil {
      * @param docCtx document context
      */
     public static void setRequestIfModifiedSince(
-            HttpRequest request, CrawlDocContext docCtx) {
+            HttpRequest request, CrawlerDocContext docCtx) {
         if (docCtx != null && docCtx.getPreviousCrawlEntry() != null) {
             var prevEntry = (WebCrawlerEntry) docCtx.getPreviousCrawlEntry();
             // In case the server did not previously return the last modified
@@ -237,7 +237,7 @@ public final class ApacheHttpUtil {
      * @param docCtx document
      */
     public static void setRequestIfNoneMatch(
-            HttpRequest request, CrawlDocContext docCtx) {
+            HttpRequest request, CrawlerDocContext docCtx) {
         if (docCtx != null && docCtx.getPreviousCrawlEntry() != null) {
             var docRecord = (WebCrawlerEntry) docCtx.getPreviousCrawlEntry();
             if (docRecord.getEtag() != null) {

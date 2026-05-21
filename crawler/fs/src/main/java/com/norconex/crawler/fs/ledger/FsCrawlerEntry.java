@@ -16,17 +16,17 @@ package com.norconex.crawler.fs.ledger;
 
 import java.io.File;
 
-import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
 
 import lombok.Data;
 import lombok.NonNull;
 
 /**
  * A path being crawled holding relevant crawl state information.
- * This is the file-system-specific extension of {@link CrawlEntry}.
+ * This is the file-system-specific extension of {@link CrawlerEntry}.
  */
 @Data
-public class FsCrawlerEntry extends CrawlEntry {
+public class FsCrawlerEntry extends CrawlerEntry {
 
     private static final long serialVersionUID = 1L;
 

@@ -24,7 +24,7 @@ import java.util.List;
 import org.imgscalr.Scalr.Method;
 
 import com.norconex.commons.lang.collection.CollectionUtil;
-import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
+import com.norconex.crawler.core.doc.CrawlerDocMetaConstants;
 
 import lombok.Data;
 import lombok.Getter;
@@ -44,11 +44,11 @@ public class FeaturedImageResolverConfig {
     // are overlaps
 
     public static final String FEATURED_IMAGE_URL_FIELD =
-            CrawlDocMetaConstants.PREFIX + "featured-image-url";
+            CrawlerDocMetaConstants.PREFIX + "featured-image-url";
     public static final String FEATURED_IMAGE_PATH_FIELD =
-            CrawlDocMetaConstants.PREFIX + "featured-image-path";
+            CrawlerDocMetaConstants.PREFIX + "featured-image-path";
     public static final String FEATURED_IMAGE_INLINE_FIELD =
-            CrawlDocMetaConstants.PREFIX + "featured-image-inline";
+            CrawlerDocMetaConstants.PREFIX + "featured-image-inline";
 
     public static final String DEFAULT_PAGE_CONTENT_TYPE_PATTERN =
             "text/html|application/(xhtml\\+xml|vnd\\.wap.xhtml\\+xml|x-asp)";

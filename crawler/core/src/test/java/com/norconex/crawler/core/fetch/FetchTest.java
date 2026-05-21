@@ -24,14 +24,14 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.context.CrawlerContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.core.mocks.fetch.MockFetchRequest;
 import com.norconex.crawler.core.mocks.fetch.MockFetchResponseImpl;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 @Timeout(30)
 class FetchTest {
@@ -310,7 +310,7 @@ class FetchTest {
     @Test
     void testAbstractFetcher_onCrawlBeginAndEndEvents_doNotThrow() {
         var fetcher = new MockFetcher();
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         var beginEvent = CrawlerEvent.builder()
                 .name(CrawlerEvent.CRAWLER_CRAWL_BEGIN)
                 .source(session)
@@ -327,8 +327,8 @@ class FetchTest {
 
     @Test
     void testFetchUtil_metadataRequired_shouldNotContinue() {
-        var ctx = mock(CrawlContext.class);
-        var cfg = new CrawlConfig();
+        var ctx = mock(CrawlerContext.class);
+        var cfg = new CrawlerConfig();
         cfg.setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED);
         when(ctx.getCrawlConfig()).thenReturn(cfg);
 
@@ -339,8 +339,8 @@ class FetchTest {
 
     @Test
     void testFetchUtil_metadataOptionalWithDocEnabled_shouldContinue() {
-        var ctx = mock(CrawlContext.class);
-        var cfg = new CrawlConfig();
+        var ctx = mock(CrawlerContext.class);
+        var cfg = new CrawlerConfig();
         cfg.setMetadataFetchSupport(FetchDirectiveSupport.OPTIONAL);
         cfg.setDocumentFetchSupport(FetchDirectiveSupport.REQUIRED);
         when(ctx.getCrawlConfig()).thenReturn(cfg);
@@ -352,8 +352,8 @@ class FetchTest {
 
     @Test
     void testFetchUtil_metadataOptionalWithDocDisabled_shouldNotContinue() {
-        var ctx = mock(CrawlContext.class);
-        var cfg = new CrawlConfig();
+        var ctx = mock(CrawlerContext.class);
+        var cfg = new CrawlerConfig();
         cfg.setMetadataFetchSupport(FetchDirectiveSupport.OPTIONAL);
         cfg.setDocumentFetchSupport(FetchDirectiveSupport.DISABLED);
         when(ctx.getCrawlConfig()).thenReturn(cfg);
@@ -365,8 +365,8 @@ class FetchTest {
 
     @Test
     void testFetchUtil_documentRequired_shouldNotContinue() {
-        var ctx = mock(CrawlContext.class);
-        var cfg = new CrawlConfig();
+        var ctx = mock(CrawlerContext.class);
+        var cfg = new CrawlerConfig();
         cfg.setDocumentFetchSupport(FetchDirectiveSupport.REQUIRED);
         when(ctx.getCrawlConfig()).thenReturn(cfg);
 
@@ -377,8 +377,8 @@ class FetchTest {
 
     @Test
     void testFetchUtil_documentOptionalWithMetaEnabledAndGoodStatus_shouldContinue() {
-        var ctx = mock(CrawlContext.class);
-        var cfg = new CrawlConfig();
+        var ctx = mock(CrawlerContext.class);
+        var cfg = new CrawlerConfig();
         cfg.setDocumentFetchSupport(FetchDirectiveSupport.OPTIONAL);
         cfg.setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED);
         when(ctx.getCrawlConfig()).thenReturn(cfg);
@@ -390,8 +390,8 @@ class FetchTest {
 
     @Test
     void testFetchUtil_documentOptionalWithMetaEnabledAndBadStatus_shouldNotContinue() {
-        var ctx = mock(CrawlContext.class);
-        var cfg = new CrawlConfig();
+        var ctx = mock(CrawlerContext.class);
+        var cfg = new CrawlerConfig();
         cfg.setDocumentFetchSupport(FetchDirectiveSupport.OPTIONAL);
         cfg.setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED);
         when(ctx.getCrawlConfig()).thenReturn(cfg);
@@ -403,8 +403,8 @@ class FetchTest {
 
     @Test
     void testFetchUtil_disabledDirective_shouldNotContinue() {
-        var ctx = mock(CrawlContext.class);
-        var cfg = new CrawlConfig();
+        var ctx = mock(CrawlerContext.class);
+        var cfg = new CrawlerConfig();
         // Set both directives to disabled
         cfg.setMetadataFetchSupport(FetchDirectiveSupport.DISABLED);
         cfg.setDocumentFetchSupport(FetchDirectiveSupport.DISABLED);

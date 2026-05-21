@@ -23,15 +23,15 @@ import org.junit.jupiter.api.Timeout;
 import com.norconex.crawler.core.cluster.support.InMemoryCacheMap;
 
 @Timeout(30)
-class CrawlAttributesTest {
+class CrawlerAttributesTest {
 
     private InMemoryCacheMap<String> cache;
-    private CrawlAttributes attrs;
+    private CrawlerAttributes attrs;
 
     @BeforeEach
     void setUp() {
         cache = new InMemoryCacheMap<>("test-attrs");
-        attrs = new CrawlAttributes(cache);
+        attrs = new CrawlerAttributes(cache);
     }
 
     @Test

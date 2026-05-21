@@ -23,8 +23,8 @@ import org.mockito.Answers;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 @ExtendWith(MockitoExtension.class)
 @Timeout(30)
@@ -33,9 +33,9 @@ class BeforeFsCommandTest {
     @Test
     void testAccept() {
         var session =
-                Mockito.mock(CrawlSession.class, Answers.RETURNS_DEEP_STUBS);
+                Mockito.mock(CrawlerSession.class, Answers.RETURNS_DEEP_STUBS);
         Mockito.when(session.getCrawlContext().getCrawlConfig())
-                .thenReturn(new CrawlConfig());
+                .thenReturn(new CrawlerConfig());
         assertThatNoException()
                 .isThrownBy(() -> new BeforeFsCommand().accept(session));
     }

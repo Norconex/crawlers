@@ -24,7 +24,7 @@ import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.norconex.commons.lang.Sleeper;
-import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
+import com.norconex.crawler.core.doc.CrawlerDocMetaConstants;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.Builder;
@@ -122,7 +122,7 @@ public class MultiFetcher implements Fetcher {
                 allResponses.add(fetchResponse);
 
                 doc.getMetadata().add(
-                        CrawlDocMetaConstants.FETCHER,
+                        CrawlerDocMetaConstants.FETCHER,
                         fetcher.getClass().getName());
 
                 if (fetchResponse.getProcessingOutcome() != null
