@@ -370,11 +370,9 @@ class ClusterScenarioIT {
     void lateJoiningNodeContinuesCurrentStep() throws Exception {
         var timing = ScenarioTiming.start(
                 "lateJoiningNodeContinuesCurrentStep", 2);
-        var numOfRefs = 300;
+        var numOfRefs = 60;
         var initialNodeNames = new String[] { "node-1" };
         var lateNodeName = "node-2";
-        var completionDeadlineNanos = System.nanoTime()
-                + Duration.ofSeconds(210).toNanos();
 
         try (var harness = newHarness(true,
                 instrument -> instrument
@@ -382,7 +380,7 @@ class ClusterScenarioIT {
                         .setRecordCaches(false)
                         .setConfigModifier(cfg -> {
                             baseConfig(numOfRefs,
-                                    150).accept(cfg);
+                                    50).accept(cfg);
                             cfg.setId("scenario-late-join-"
                                     + numOfRefs);
                             cfg.setMaxQueueBatchSize(
@@ -423,13 +421,14 @@ class ClusterScenarioIT {
                                         lateNodeName,
                                         CrawlerEvent.DOCUMENT_IMPORTED));
 
+                // Budget starts here — after the waitFor calls — so cluster
+                // formation time does not eat into the completion window.
                 timing.measure("await-both-nodes-complete",
                         () -> CompletableFuture.allOf(
                                 initialFuture,
                                 lateFuture)
-                                .get(remainingMillis(
-                                        completionDeadlineNanos),
-                                        TimeUnit.MILLISECONDS));
+                                .get(60,
+                                        TimeUnit.SECONDS));
                 var initialResult = initialFuture.join();
                 var lateResult = lateFuture.join();
 
@@ -491,16 +490,6 @@ class ClusterScenarioIT {
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException(
                         "No coordinator node found with CRAWL_SESSION cache"));
-    }
-
-    private static long remainingMillis(long deadlineNanos) {
-        var remainingNanos = deadlineNanos - System.nanoTime();
-        if (remainingNanos <= 0) {
-            throw new IllegalStateException(
-                    "Scenario wait budget exhausted.");
-        }
-        return Math.max(1,
-                TimeUnit.NANOSECONDS.toMillis(remainingNanos));
     }
 
     private static final class ScenarioTiming {

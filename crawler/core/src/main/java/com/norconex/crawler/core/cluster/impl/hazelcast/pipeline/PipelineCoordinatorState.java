@@ -17,10 +17,10 @@ package com.norconex.crawler.core.cluster.impl.hazelcast.pipeline;
 import static java.util.Optional.ofNullable;
 
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.collections4.Bag;
@@ -69,7 +69,7 @@ public class PipelineCoordinatorState implements AutoCloseable {
     private final StepRecord currentStepRecord;
 
     // Misc.
-    private final Map<String, StepRecord> workerStatusesMap = new HashMap<>();
+    private final Map<String, StepRecord> workerStatusesMap = new ConcurrentHashMap<>();
     private CacheEntryChangeListener<StepRecord> workerStatusChangeListener;
     private long nodeExpiryTimeoutMs = 5_000; // 5 seconds default, min
 
@@ -99,8 +99,8 @@ public class PipelineCoordinatorState implements AutoCloseable {
 
     public void setRunningStep(@NonNull Step step) {
         currentStepRecord.setStepId(step.getId());
-        pushPipelineStatus(PipelineStatus.RUNNING);
-        // Reload statuses for this step only (on this pipeline/session/run)
+        // Clear and reload BEFORE publishing RUNNING so that worker status
+        // events triggered by the publish are not lost to a subsequent clear.
         workerStatusesMap.clear();
         workerStatusCache.forEach((k, v) -> {
             if (k.startsWith(workerKeyPrefix)
@@ -109,6 +109,7 @@ public class PipelineCoordinatorState implements AutoCloseable {
                 updateWorkerStatusMap(k, v);
             }
         });
+        pushPipelineStatus(PipelineStatus.RUNNING);
     }
 
     public void pushPipelineStatus(@NonNull PipelineStatus status) {
@@ -141,11 +142,6 @@ public class PipelineCoordinatorState implements AutoCloseable {
                 }
                 Sleeper.sleepMillis(100);
                 continue;
-            }
-
-            // If no nodes left after filtering, we're done
-            if (nodeNames.isEmpty()) {
-                break;
             }
 
             var statuses = workerStatusesAsBag(nodeNames);
