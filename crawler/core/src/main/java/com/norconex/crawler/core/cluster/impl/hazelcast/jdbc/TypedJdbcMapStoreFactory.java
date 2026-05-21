@@ -117,7 +117,7 @@ public class TypedJdbcMapStoreFactory
     private Class<?> resolveValueClass(String mapName, Properties properties) {
         // The value-class-name property is set programmatically in
         // HazelcastCluster.applyCacheTypes() before Hazelcast starts,
-        // using the concrete type declared in CrawlDriver.cacheTypes().
+        // using the concrete type declared in CrawlerDriver.cacheTypes().
         // The YAML provides a sensible base-type default for any map whose
         // type was not explicitly overridden.
         if (properties != null) {

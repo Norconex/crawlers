@@ -20,7 +20,7 @@ import com.norconex.commons.lang.event.EventListener;
 import com.norconex.commons.lang.text.TextMatcher;
 import com.norconex.crawler.core.cluster.CacheSet;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.importer.doc.Doc;
 
 import lombok.EqualsAndHashCode;
@@ -101,7 +101,7 @@ public class DeleteRejectedEventListener implements
         }
     }
 
-    private void init(CrawlSession crawlSession) {
+    private void init(CrawlerSession crawlSession) {
         // Delete any previously created store. We do it here instead
         // of on completion in case users want to keep a record between
         // two crawl executions.
@@ -132,7 +132,7 @@ public class DeleteRejectedEventListener implements
         refCache.add(docInfo.getReference());
     }
 
-    private void commitDeletions(CrawlSession crawlSession) {
+    private void commitDeletions(CrawlerSession crawlSession) {
         crawlSession.oncePerSession("commit-event-deletions", () -> {
             if (!refCache.isEmpty()) {
 

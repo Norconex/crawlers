@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.hazelcast.config.MapStoreConfig.InitialLoadMode;
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
 import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
 import com.norconex.crawler.web.WebCrawlerConfig;
@@ -46,7 +46,7 @@ public @interface WebCrawlingTest {
     String[] vars() default {};
 
     Class<? extends Consumer<
-            ? extends CrawlConfig>> configModifier() default DefaultWebCrawlerConfigModifier.class;
+            ? extends CrawlerConfig>> configModifier() default DefaultWebCrawlerConfigModifier.class;
 
     public static final class DefaultWebCrawlerConfigModifier
             implements Consumer<WebCrawlerConfig> {

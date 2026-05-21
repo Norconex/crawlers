@@ -25,18 +25,18 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.context.CrawlContext;
-import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
+import com.norconex.crawler.core.context.CrawlerContext;
+import com.norconex.crawler.core.doc.CrawlerDocContext;
+import com.norconex.crawler.core.doc.pipelines.CrawlerDocPipelines;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipeline;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.fs.fetch.FolderPathsFetchResponse;
 import com.norconex.crawler.fs.fetch.FsPath;
 import com.norconex.crawler.fs.ledger.FsCrawlerEntry;
@@ -47,22 +47,22 @@ class FolderPathsExtractorStageTest {
 
     /**
      * Builds an {@link ImporterPipelineContext} backed by mocks,
-     * wiring together CrawlSession → CrawlContext → CrawlConfig/Fetcher/
-     * DocPipelines, and a CrawlDocContext wrapping the given entry.
+     * wiring together CrawlerSession → CrawlerContext → CrawlerConfig/Fetcher/
+     * DocPipelines, and a CrawlerDocContext wrapping the given entry.
      */
     private ImporterPipelineContext buildCtx(
             FsCrawlerEntry entry,
             Fetcher fetcher,
             QueuePipeline queuePipeline) {
 
-        var config = new CrawlConfig()
+        var config = new CrawlerConfig()
                 .setDocumentFetchSupport(FetchDirectiveSupport.REQUIRED);
 
-        var docPipelines = CrawlDocPipelines.builder()
+        var docPipelines = CrawlerDocPipelines.builder()
                 .queuePipeline(queuePipeline)
                 .build();
 
-        var crawlContext = mock(CrawlContext.class);
+        var crawlContext = mock(CrawlerContext.class);
         when(crawlContext.getCrawlConfig()).thenReturn(config);
         when(crawlContext.getFetcher()).thenReturn(fetcher);
         when(crawlContext.getDocPipelines()).thenReturn(docPipelines);
@@ -70,10 +70,10 @@ class FolderPathsExtractorStageTest {
                 .thenAnswer(inv -> new FsCrawlerEntry(
                         inv.getArgument(0, String.class)));
 
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(crawlContext);
 
-        var docContext = CrawlDocContext.builder()
+        var docContext = CrawlerDocContext.builder()
                 .doc(new Doc(entry.getReference()))
                 .currentCrawlEntry(entry)
                 .build();

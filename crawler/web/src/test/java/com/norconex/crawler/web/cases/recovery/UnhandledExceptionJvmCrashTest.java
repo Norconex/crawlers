@@ -23,8 +23,8 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.test.CrawlTestHarness;
-import com.norconex.crawler.core.test.CrawlTestInstrument;
+import com.norconex.crawler.core.test.CrawlerTestHarness;
+import com.norconex.crawler.core.test.CrawlerTestInstrument;
 import com.norconex.crawler.web.WebCrawlerDriverFactory;
 
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +40,7 @@ class UnhandledExceptionJvmCrashTest {
     @Test
     void testUnhandledExceptionJvmCrash(@TempDir Path tempDir)
             throws Exception {
-        var instrument = new CrawlTestInstrument()
+        var instrument = new CrawlerTestInstrument()
                 .setDriverSupplierClass(WebCrawlerDriverFactory.class)
                 .setRecordEvents(true)
                 .setWorkDir(tempDir)
@@ -51,7 +51,7 @@ class UnhandledExceptionJvmCrashTest {
                     cfg.addEventListener(new ThrowingEventListener());
                 });
 
-        try (var harness = new CrawlTestHarness(instrument)) {
+        try (var harness = new CrawlerTestHarness(instrument)) {
             RuntimeException thrown = null;
             try {
                 harness.launchSync("node1");

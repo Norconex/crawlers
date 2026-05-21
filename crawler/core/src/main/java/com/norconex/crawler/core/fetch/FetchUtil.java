@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.fetch;
 
-import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.context.CrawlerContext;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.NonNull;
@@ -28,7 +28,7 @@ public final class FetchUtil {
     }
 
     public static boolean shouldContinueOnBadStatus(
-            @NonNull CrawlContext crawler,
+            @NonNull CrawlerContext crawler,
             ProcessingOutcome originalOutcome,
             @NonNull FetchDirective fetchDirective) {
         // Note: a disabled directive should never get here,

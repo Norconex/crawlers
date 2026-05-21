@@ -21,7 +21,7 @@ import org.apache.commons.lang3.SerializationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
 import com.norconex.crawler.core.ledger.ProcessingStatus;
 
 @Timeout(30)
@@ -29,18 +29,18 @@ class SerialUtilTest {
 
     @Test
     void toJsonString_simpleObject_producesJson() {
-        var entry = new CrawlEntry("http://example.com");
+        var entry = new CrawlerEntry("http://example.com");
         var json = SerialUtil.toJsonString(entry);
         assertThat(json).contains("http://example.com");
     }
 
     @Test
     void fromJson_validJson_reconstructsObject() {
-        var original = new CrawlEntry("http://test.com");
+        var original = new CrawlerEntry("http://test.com");
         original.setProcessingStatus(ProcessingStatus.QUEUED);
         var json = SerialUtil.toJsonString(original);
 
-        var restored = SerialUtil.fromJson(json, CrawlEntry.class);
+        var restored = SerialUtil.fromJson(json, CrawlerEntry.class);
 
         assertThat(restored).isNotNull();
         assertThat(restored.getReference()).isEqualTo("http://test.com");
@@ -50,7 +50,7 @@ class SerialUtilTest {
 
     @Test
     void fromJson_nullString_returnsNull() {
-        assertThat(SerialUtil.fromJson((String) null, CrawlEntry.class))
+        assertThat(SerialUtil.fromJson((String) null, CrawlerEntry.class))
                 .isNull();
     }
 
@@ -58,31 +58,31 @@ class SerialUtilTest {
     void fromJson_emptyString_throwsException() {
         // Empty string is not valid JSON → expect a SerializationException
         assertThatThrownBy(
-                () -> SerialUtil.fromJson("", CrawlEntry.class))
+                () -> SerialUtil.fromJson("", CrawlerEntry.class))
                         .isInstanceOf(SerializationException.class);
     }
 
     @Test
     void toJsonString_simple_producesNonBlankJson() {
         // toJsonString has @NonNull, just verify basic contract
-        var entry = new CrawlEntry("ref://item2");
+        var entry = new CrawlerEntry("ref://item2");
         assertThat(SerialUtil.toJsonString(entry)).isNotBlank();
     }
 
     @Test
     void roundTrip_stringValue() {
         // Verify a simple object with a date field round-trips cleanly
-        var entry = new CrawlEntry("ref://item");
+        var entry = new CrawlerEntry("ref://item");
         entry.setDepth(5);
         var json = SerialUtil.toJsonString(entry);
-        var restored = SerialUtil.fromJson(json, CrawlEntry.class);
+        var restored = SerialUtil.fromJson(json, CrawlerEntry.class);
         assertThat(restored.getDepth()).isEqualTo(5);
     }
 
     @Test
     void fromJson_invalidJson_throwsException() {
         assertThatThrownBy(
-                () -> SerialUtil.fromJson("{invalid}", CrawlEntry.class))
+                () -> SerialUtil.fromJson("{invalid}", CrawlerEntry.class))
                         .isInstanceOf(SerializationException.class);
     }
 
@@ -98,7 +98,7 @@ class SerialUtilTest {
 
     @Test
     void toJsonReader_returnsReadableReader() throws Exception {
-        var entry = new CrawlEntry("ref://reader-test");
+        var entry = new CrawlerEntry("ref://reader-test");
         try (var reader = SerialUtil.toJsonReader(entry)) {
             assertThat(reader).isNotNull();
             char[] buf = new char[256];
@@ -110,11 +110,11 @@ class SerialUtilTest {
 
     @Test
     void fromJson_reader_reconstructsObject() {
-        var original = new CrawlEntry("ref://from-reader");
+        var original = new CrawlerEntry("ref://from-reader");
         original.setProcessingStatus(ProcessingStatus.PROCESSING);
         var json = SerialUtil.toJsonString(original);
         var reader = new java.io.StringReader(json);
-        var restored = SerialUtil.fromJson(reader, CrawlEntry.class);
+        var restored = SerialUtil.fromJson(reader, CrawlerEntry.class);
         assertThat(restored.getReference()).isEqualTo("ref://from-reader");
         assertThat(restored.getProcessingStatus())
                 .isEqualTo(ProcessingStatus.PROCESSING);
@@ -140,18 +140,18 @@ class SerialUtilTest {
         var is = new java.io.ByteArrayInputStream(jsonBytes);
         try (var parser = SerialUtil.jsonParser(is)) {
             assertThat(parser).isNotNull();
-            var entry = SerialUtil.fromJson(parser, CrawlEntry.class);
+            var entry = SerialUtil.fromJson(parser, CrawlerEntry.class);
             assertThat(entry.getReference()).isEqualTo("ref://parsed");
         }
     }
 
     @Test
     void fromJson_jsonNode_reconstructsObject() throws Exception {
-        var entry = new CrawlEntry("ref://from-node");
+        var entry = new CrawlerEntry("ref://from-node");
         entry.setDepth(3);
         var json = SerialUtil.toJsonString(entry);
         var node = SerialUtil.getMapper().readTree(json);
-        var restored = SerialUtil.fromJson(node, CrawlEntry.class);
+        var restored = SerialUtil.fromJson(node, CrawlerEntry.class);
         assertThat(restored.getReference()).isEqualTo("ref://from-node");
         assertThat(restored.getDepth()).isEqualTo(3);
     }

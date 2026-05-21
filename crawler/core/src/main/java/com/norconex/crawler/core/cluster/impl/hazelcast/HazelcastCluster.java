@@ -39,7 +39,7 @@ import com.norconex.crawler.core.cluster.impl.hazelcast.event.CoordinatorChangeL
 import com.norconex.crawler.core.cluster.impl.hazelcast.pipeline.HazelcastPipelineManager;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 import com.norconex.crawler.core.util.ThreadTracker;
 
@@ -76,7 +76,7 @@ public class HazelcastCluster implements Cluster {
     private HazelcastInstance hazelcastInstance;
     private UUID membershipListenerId;
     private boolean clustered;
-    private CrawlSession session;
+    private CrawlerSession session;
 
     public String getCrawlerId() {
         return session != null ? session.getCrawlerId() : null;
@@ -98,12 +98,12 @@ public class HazelcastCluster implements Cluster {
     }
 
     @Override
-    public CrawlSession getCrawlSession() {
+    public CrawlerSession getCrawlSession() {
         return session;
     }
 
     @Override
-    public void bindSession(CrawlSession session) {
+    public void bindSession(CrawlerSession session) {
         this.session = session;
     }
 
@@ -267,13 +267,13 @@ public class HazelcastCluster implements Cluster {
         // with Hazelcast predicates).
         compactCfg.addSerializer(new StepRecordCompactSerializer());
 
-        // NOTE: CrawlEntry types are intentionally NOT registered here.
+        // NOTE: CrawlerEntry types are intentionally NOT registered here.
         // JacksonCompactSerializer stores the entire object as a single
         // "json" string field, which prevents Hazelcast Predicates (e.g.,
         // Predicates.equal("processingStatus", ...)) from reading
         // individual fields.  Ledger queries rely on these predicates
         // for maxDocuments enforcement and status-based filtering, so
-        // CrawlEntry must use the default serialization path.
+        // CrawlerEntry must use the default serialization path.
     }
 
     protected HazelcastInstance createHazelcastInstance(Config hzConfig) {

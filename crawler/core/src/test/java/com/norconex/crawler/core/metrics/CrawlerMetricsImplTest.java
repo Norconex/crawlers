@@ -30,9 +30,9 @@ import com.norconex.commons.lang.event.EventManager;
 import com.norconex.crawler.core.cluster.CacheManager;
 import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.cluster.Cluster;
-import com.norconex.crawler.core.context.CrawlContext;
-import com.norconex.crawler.core.ledger.CrawlEntryLedger;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.context.CrawlerContext;
+import com.norconex.crawler.core.ledger.CrawlerEntryLedger;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 /**
  * Tests for {@link CrawlerMetricsImpl}.
@@ -46,10 +46,10 @@ class CrawlerMetricsImplTest {
     // eventManager.
     // ------------------------------------------------------------------
     private CrawlerMetricsImpl buildInitialized(
-            CrawlEntryLedger ledger,
+            CrawlerEntryLedger ledger,
             CacheMap<Long> eventCountsStore) {
         var eventManager = mock(EventManager.class);
-        var crawlContext = mock(CrawlContext.class);
+        var crawlContext = mock(CrawlerContext.class);
         when(crawlContext.getCrawlEntryLedger()).thenReturn(ledger);
         when(crawlContext.getEventManager()).thenReturn(eventManager);
 
@@ -60,7 +60,7 @@ class CrawlerMetricsImplTest {
         var cluster = mock(Cluster.class);
         when(cluster.getCacheManager()).thenReturn(cacheManager);
 
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(crawlContext);
         when(session.getCluster()).thenReturn(cluster);
 
@@ -150,7 +150,7 @@ class CrawlerMetricsImplTest {
     @SuppressWarnings("unchecked")
     @Test
     void getEventCounts_withInitAndStore_returnsMergedCounts() {
-        var ledger = mock(CrawlEntryLedger.class);
+        var ledger = mock(CrawlerEntryLedger.class);
         CacheMap<Long> store = mock(CacheMap.class);
         // Store contains one pre-existing count
         var metrics = buildInitialized(ledger, store);
@@ -164,7 +164,7 @@ class CrawlerMetricsImplTest {
 
     @Test
     void getProcessingCount_delegatesToLedger() {
-        var ledger = mock(CrawlEntryLedger.class);
+        var ledger = mock(CrawlerEntryLedger.class);
         when(ledger.getProcessingCount()).thenReturn(7L);
 
         @SuppressWarnings("unchecked")
@@ -175,7 +175,7 @@ class CrawlerMetricsImplTest {
 
     @Test
     void getProcessedCount_delegatesToLedger() {
-        var ledger = mock(CrawlEntryLedger.class);
+        var ledger = mock(CrawlerEntryLedger.class);
         when(ledger.getProcessedCount()).thenReturn(42L);
 
         @SuppressWarnings("unchecked")
@@ -186,7 +186,7 @@ class CrawlerMetricsImplTest {
 
     @Test
     void getQueuedCount_delegatesToLedger() {
-        var ledger = mock(CrawlEntryLedger.class);
+        var ledger = mock(CrawlerEntryLedger.class);
         when(ledger.getQueuedEntryCount()).thenReturn(12L);
 
         @SuppressWarnings("unchecked")
@@ -197,7 +197,7 @@ class CrawlerMetricsImplTest {
 
     @Test
     void getBaselineCount_delegatesToLedger() {
-        var ledger = mock(CrawlEntryLedger.class);
+        var ledger = mock(CrawlerEntryLedger.class);
         when(ledger.getBaselineCount()).thenReturn(100L);
 
         @SuppressWarnings("unchecked")
@@ -213,7 +213,7 @@ class CrawlerMetricsImplTest {
     @SuppressWarnings("unchecked")
     @Test
     void incrementCounter_withStore_updatesViaAtomicIncrement() {
-        var ledger = mock(CrawlEntryLedger.class);
+        var ledger = mock(CrawlerEntryLedger.class);
         CacheMap<Long> store = mock(CacheMap.class);
         // Simulate empty store (key absent) → putIfAbsent succeeds (null return)
         when(store.get(anyString())).thenReturn(Optional.empty());
@@ -232,7 +232,7 @@ class CrawlerMetricsImplTest {
     @SuppressWarnings("unchecked")
     @Test
     void close_withInitedStore_syncsAndCloses() {
-        var ledger = mock(CrawlEntryLedger.class);
+        var ledger = mock(CrawlerEntryLedger.class);
         when(ledger.getQueuedEntryCount()).thenReturn(3L);
         when(ledger.getProcessingCount()).thenReturn(1L);
         when(ledger.getProcessedCount()).thenReturn(99L);

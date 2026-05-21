@@ -18,7 +18,7 @@ import org.apache.commons.lang3.mutable.MutableLong;
 
 import com.norconex.crawler.core.cluster.pipeline.BaseStep;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,7 +35,7 @@ public class RequeueOrphansForProcessingStep extends BaseStep {
     // returns the type of processing we do on orphans, or null if there
     // is nothing to do
     @Override
-    public void execute(CrawlSession session) {
+    public void execute(CrawlerSession session) {
         var ctx = session.getCrawlContext();
 
         var orphanCount = ctx.getCrawlEntryLedger().getBaselineCount();

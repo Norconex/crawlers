@@ -15,7 +15,7 @@
 package com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue;
 
 import com.norconex.crawler.core.cluster.pipeline.BaseStep;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 public class StartRefsQueueStep extends BaseStep {
     public StartRefsQueueStep(String id) {
@@ -23,7 +23,7 @@ public class StartRefsQueueStep extends BaseStep {
     }
 
     @Override
-    public void execute(CrawlSession session) {
+    public void execute(CrawlerSession session) {
 
         new QueueBootstrapper().bootstrap(session);
 

@@ -28,7 +28,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
-import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.core.ledger.ProcessingStatus;
 
@@ -47,7 +47,7 @@ class CompactSerializerTest {
                     .getCompactSerializationConfig()
                     .addSerializer(new StepRecordCompactSerializer())
                     .addSerializer(
-                            new JacksonCompactSerializer<>(CrawlEntry.class));
+                            new JacksonCompactSerializer<>(CrawlerEntry.class));
             hz = HazelcastTestSupport.FACTORY.newHazelcastInstance(cfg);
         }
         return hz;
@@ -104,7 +104,7 @@ class CompactSerializerTest {
     @Test
     void testCrawlEntryRoundTrip() {
         var now = ZonedDateTime.now();
-        var original = new CrawlEntry("http://example.com/page1");
+        var original = new CrawlerEntry("http://example.com/page1");
         original.setDepth(3);
         original.setProcessingStatus(ProcessingStatus.PROCESSED);
         original.setProcessingOutcome(ProcessingOutcome.NEW);
@@ -121,7 +121,7 @@ class CompactSerializerTest {
         original.setDeleted(false);
 
         var mapName = "test-entry-" + UUID.randomUUID();
-        var map = hz().<String, CrawlEntry>getMap(mapName);
+        var map = hz().<String, CrawlerEntry>getMap(mapName);
         map.put("k1", original);
 
         var loaded = map.get("k1");
@@ -146,10 +146,10 @@ class CompactSerializerTest {
 
     @Test
     void testCrawlEntryMinimal() {
-        var original = new CrawlEntry();
+        var original = new CrawlerEntry();
 
         var mapName = "test-entry-min-" + UUID.randomUUID();
-        var map = hz().<String, CrawlEntry>getMap(mapName);
+        var map = hz().<String, CrawlerEntry>getMap(mapName);
         map.put("k1", original);
 
         var loaded = map.get("k1");

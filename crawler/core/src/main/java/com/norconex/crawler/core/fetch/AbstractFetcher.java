@@ -21,7 +21,7 @@ import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
 import com.norconex.crawler.core.doc.operations.filter.FilterGroupResolver;
 import com.norconex.crawler.core.doc.operations.filter.ReferenceFilter;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.importer.doc.Doc;
 
@@ -86,9 +86,9 @@ public abstract class AbstractFetcher<C extends BaseFetcherConfig>
         //TODO create init/destroy methods instead?
 
         if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
-            fetcherStartup((CrawlSession) event.getSource());
+            fetcherStartup((CrawlerSession) event.getSource());
         } else if (event.is(CrawlerEvent.CRAWLER_CRAWL_END)) {
-            fetcherShutdown((CrawlSession) event.getSource());
+            fetcherShutdown((CrawlerSession) event.getSource());
         }
     }
 
@@ -97,7 +97,7 @@ public abstract class AbstractFetcher<C extends BaseFetcherConfig>
      * Default implementation does nothing.
      * @param crawler crawler
      */
-    protected void fetcherStartup(CrawlSession crawler) {
+    protected void fetcherStartup(CrawlerSession crawler) {
         //NOOP
     }
 
@@ -106,7 +106,7 @@ public abstract class AbstractFetcher<C extends BaseFetcherConfig>
      * Default implementation does nothing.
      * @param crawler crawler
      */
-    protected void fetcherShutdown(CrawlSession crawler) {
+    protected void fetcherShutdown(CrawlerSession crawler) {
         //NOOP
     }
 

@@ -24,16 +24,16 @@ import static org.mockito.Mockito.when;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.context.CrawlContext;
-import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.context.CrawlerContext;
+import com.norconex.crawler.core.doc.CrawlerDocContext;
 import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
-import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.importer.doc.Doc;
 
 /**
@@ -44,18 +44,18 @@ class MetadataChecksumStageTest {
 
     // Helper: create a full ImporterPipelineContext for a given config
     private ImporterPipelineContext buildCtx(
-            CrawlConfig config, CrawlDocContext docContext) {
-        var session = mock(CrawlSession.class);
-        var crawlContext = mock(CrawlContext.class);
+            CrawlerConfig config, CrawlerDocContext docContext) {
+        var session = mock(CrawlerSession.class);
+        var crawlContext = mock(CrawlerContext.class);
         when(session.getCrawlContext()).thenReturn(crawlContext);
         when(crawlContext.getCrawlConfig()).thenReturn(config);
         return new ImporterPipelineContext(session, docContext);
     }
 
-    private CrawlDocContext simpleDocContext(String ref) {
-        return CrawlDocContext.builder()
+    private CrawlerDocContext simpleDocContext(String ref) {
+        return CrawlerDocContext.builder()
                 .doc(new Doc(ref))
-                .currentCrawlEntry(new CrawlEntry(ref))
+                .currentCrawlEntry(new CrawlerEntry(ref))
                 .build();
     }
 
@@ -65,7 +65,7 @@ class MetadataChecksumStageTest {
 
     @Test
     void directiveDisabled_returnsTrueEarly() {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         // DOCUMENT directive is REQUIRED by default; disable it
         config.setDocumentFetchSupport(FetchDirectiveSupport.DISABLED);
 
@@ -82,12 +82,12 @@ class MetadataChecksumStageTest {
     @Test
     void noChecksummer_setsNewOutcome_returnsTrue() {
         // Default config: documentFetchSupport=REQUIRED, metadataChecksummer=null
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         // Ensure metadataChecksummer is null (it is by default)
         assertThat(config.getMetadataChecksummer()).isNull();
 
-        var entry = new CrawlEntry("ref");
-        var docContext = CrawlDocContext.builder()
+        var entry = new CrawlerEntry("ref");
+        var docContext = CrawlerDocContext.builder()
                 .doc(new Doc("ref"))
                 .currentCrawlEntry(entry)
                 .build();
@@ -105,14 +105,14 @@ class MetadataChecksumStageTest {
 
     @Test
     void withChecksummer_noPreviousEntry_returnsTrueAsNew() {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         var checksummer = mock(MetadataChecksummer.class);
         when(checksummer.createMetadataChecksum(any()))
                 .thenReturn("checksum-abc");
         config.setMetadataChecksummer(checksummer);
 
-        var entry = new CrawlEntry("ref");
-        var docContext = CrawlDocContext.builder()
+        var entry = new CrawlerEntry("ref");
+        var docContext = CrawlerDocContext.builder()
                 .doc(new Doc("ref"))
                 .currentCrawlEntry(entry)
                 .build();
@@ -131,24 +131,24 @@ class MetadataChecksumStageTest {
 
     @Test
     void withChecksummer_sameChecksumAsPrevious_returnsFalseAndFiresEvent() {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         var checksummer = mock(MetadataChecksummer.class);
         when(checksummer.createMetadataChecksum(any()))
                 .thenReturn("same-checksum");
         config.setMetadataChecksummer(checksummer);
 
-        var entry = new CrawlEntry("ref");
-        var prevEntry = new CrawlEntry("ref");
+        var entry = new CrawlerEntry("ref");
+        var prevEntry = new CrawlerEntry("ref");
         prevEntry.setMetaChecksum("same-checksum"); // same as new
 
-        var docContext = CrawlDocContext.builder()
+        var docContext = CrawlerDocContext.builder()
                 .doc(new Doc("ref"))
                 .currentCrawlEntry(entry)
                 .previousCrawlEntry(prevEntry)
                 .build();
 
-        var session = mock(CrawlSession.class);
-        var crawlContext = mock(CrawlContext.class);
+        var session = mock(CrawlerSession.class);
+        var crawlContext = mock(CrawlerContext.class);
         when(session.getCrawlContext()).thenReturn(crawlContext);
         when(crawlContext.getCrawlConfig()).thenReturn(config);
         var ctx = new ImporterPipelineContext(session, docContext);
@@ -167,17 +167,17 @@ class MetadataChecksumStageTest {
 
     @Test
     void withChecksummer_differentChecksum_returnsTrue() {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         var checksummer = mock(MetadataChecksummer.class);
         when(checksummer.createMetadataChecksum(any()))
                 .thenReturn("new-checksum");
         config.setMetadataChecksummer(checksummer);
 
-        var entry = new CrawlEntry("ref");
-        var prevEntry = new CrawlEntry("ref");
+        var entry = new CrawlerEntry("ref");
+        var prevEntry = new CrawlerEntry("ref");
         prevEntry.setMetaChecksum("old-checksum"); // different from new
 
-        var docContext = CrawlDocContext.builder()
+        var docContext = CrawlerDocContext.builder()
                 .doc(new Doc("ref"))
                 .currentCrawlEntry(entry)
                 .previousCrawlEntry(prevEntry)

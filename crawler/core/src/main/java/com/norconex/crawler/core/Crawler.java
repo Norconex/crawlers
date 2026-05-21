@@ -21,13 +21,13 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.cmd.clean.CleanCommand;
-import com.norconex.crawler.core.cmd.crawl.CrawlCommand;
+import com.norconex.crawler.core.cmd.crawl.CrawlerCommand;
 import com.norconex.crawler.core.cmd.stop.StopCommand;
 import com.norconex.crawler.core.cmd.storeexport.StoreExportCommand;
 import com.norconex.crawler.core.cmd.storeimport.StoreImportCommand;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.session.CrawlSession;
-import com.norconex.crawler.core.session.CrawlSessionFactory;
+import com.norconex.crawler.core.session.CrawlerSession;
+import com.norconex.crawler.core.session.CrawlerSessionFactory;
 import com.norconex.crawler.core.util.ExceptionSwallower;
 import com.norconex.crawler.core.util.LogUtil;
 
@@ -38,11 +38,11 @@ import lombok.extern.slf4j.Slf4j;
 public class Crawler {
 
     @Getter
-    private final CrawlDriver crawlDriver;
+    private final CrawlerDriver crawlDriver;
     @Getter
-    private final CrawlConfig crawlConfig;
+    private final CrawlerConfig crawlConfig;
 
-    public Crawler(CrawlDriver crawlDriver, CrawlConfig crawlConfig) {
+    public Crawler(CrawlerDriver crawlDriver, CrawlerConfig crawlConfig) {
         this.crawlDriver = crawlDriver;
         this.crawlConfig = crawlConfig;
     }
@@ -60,7 +60,7 @@ public class Crawler {
      * @param startClean
      */
     public void crawl(boolean startClean) {
-        var crawlCmd = new CrawlCommand(crawlDriver.crawlPipelineFactory());
+        var crawlCmd = new CrawlerCommand(crawlDriver.crawlPipelineFactory());
         if (startClean) {
             executeCommand(new CleanCommand(), crawlCmd);
         } else {
@@ -84,7 +84,7 @@ public class Crawler {
         executeCommand(new StoreImportCommand(inFile));
     }
 
-    private void validateConfig(CrawlConfig config) {
+    private void validateConfig(CrawlerConfig config) {
         if (StringUtils.isBlank(config.getId())) {
             throw new CrawlerException(
                     "Crawler must be given a unique identifier (id).");
@@ -143,8 +143,9 @@ public class Crawler {
                 .build());
     }
 
-    public void withCrawlSession(Consumer<CrawlSession> c) {
-        try (var sess = CrawlSessionFactory.create(crawlDriver, crawlConfig)) {
+    public void withCrawlSession(Consumer<CrawlerSession> c) {
+        try (var sess =
+                CrawlerSessionFactory.create(crawlDriver, crawlConfig)) {
             c.accept(sess);
         }
     }

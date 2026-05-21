@@ -32,7 +32,7 @@ import com.hazelcast.config.QueueStoreConfig;
 import com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcMapStoreFactory;
 import com.norconex.crawler.core.cluster.impl.hazelcast.jdbc.TypedJdbcQueueStoreFactory;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
-import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -438,9 +438,9 @@ public class JdbcHazelcastConfigurer implements HazelcastConfigurer {
 
         // Ledger wildcard: value-class-name is the base type here, but it is
         // overridden at startup by HazelcastCluster.applyCacheTypes() with the
-        // concrete CrawlEntry subclass registered by the driver.
+        // concrete CrawlerEntry subclass registered by the driver.
         cfg.addMapConfig(buildMapConfig("ledger_*", backups,
-                CrawlEntry.class.getName(), effectiveSqlMerge, false));
+                CrawlerEntry.class.getName(), effectiveSqlMerge, false));
 
         // Ephemeral maps — in-memory only, no persistence.
         var ephStore = new MapStoreConfig();

@@ -24,7 +24,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.CrawlDriver;
+import com.norconex.crawler.core.CrawlerDriver;
 import com.norconex.crawler.core.Crawler;
 
 import picocli.CommandLine;
@@ -85,7 +85,7 @@ class CliStopTest {
     }
 
     private CliStop parseStop(String... args) {
-        var result = new CommandLine(new CliRunner(mock(CrawlDriver.class)))
+        var result = new CommandLine(new CliRunner(mock(CrawlerDriver.class)))
                 .parseArgs(args);
         return (CliStop) result.subcommand().commandSpec().userObject();
     }

@@ -14,14 +14,14 @@
  */
 package com.norconex.crawler.core.cluster.impl.hazelcast;
 
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 
 public final class HzUtil {
     private HzUtil() {
     }
 
     public static HazelcastClusterConnectorConfig
-            connectorConfig(CrawlConfig cfg) {
+            connectorConfig(CrawlerConfig cfg) {
         return ((HazelcastClusterConnector) cfg.getClusterConfig()
                 .getConnector()).getConfiguration();
     }

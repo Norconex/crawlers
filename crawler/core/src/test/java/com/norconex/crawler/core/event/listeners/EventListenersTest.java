@@ -27,12 +27,12 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListenerConfig.OnMultiple;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
-import com.norconex.crawler.core.test.CrawlTestDriver;
+import com.norconex.crawler.core.test.CrawlerTestDriver;
 
 /**
  * Tests for event listener classes: CrawlerLifeCycleListener,
@@ -138,7 +138,7 @@ class EventListenersTest {
                         TextMatcher.basic(
                                 CrawlerEvent.DOCUMENT_IMPORTED));
 
-        var config = new CrawlConfig()
+        var config = new CrawlerConfig()
                 .setId("stop-on-max-test")
                 .setWorkDir(tempDir.resolve("stop-on-max"))
                 // 10 references, but should stop after 2 DOCUMENT_IMPORTED
@@ -158,7 +158,7 @@ class EventListenersTest {
         assertThatNoException()
                 .as("crawl with stop-on-max should complete without error")
                 .isThrownBy(() -> new Crawler(
-                        CrawlTestDriver.create(),
+                        CrawlerTestDriver.create(),
                         config).crawl());
     }
 
@@ -214,7 +214,7 @@ class EventListenersTest {
         listener.getConfiguration().setEventMatcher(
                 TextMatcher.regex("DOCUMENT_PROCESSED.*"));
 
-        var config = new CrawlConfig()
+        var config = new CrawlerConfig()
                 .setId("delete-rejected-test")
                 .setWorkDir(tempDir.resolve("delete-rejected"))
                 .setStartReferences(List.of("ref-a", "ref-b",
@@ -230,7 +230,7 @@ class EventListenersTest {
         assertThatNoException()
                 .as("crawl with delete-rejected listener should complete OK")
                 .isThrownBy(() -> new Crawler(
-                        CrawlTestDriver.create(),
+                        CrawlerTestDriver.create(),
                         config).crawl());
     }
 

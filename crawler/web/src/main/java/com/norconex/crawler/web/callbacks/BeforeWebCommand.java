@@ -14,8 +14,8 @@
  */
 package com.norconex.crawler.web.callbacks;
 
-import com.norconex.crawler.core.CrawlCallbacks;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.CrawlerCallbacks;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.doc.operations.scope.impl.GenericUrlScopeResolver;
 import com.norconex.crawler.web.util.Web;
 
@@ -25,10 +25,10 @@ import lombok.extern.slf4j.Slf4j;
  * Web crawler-specific initialization before the crawler starts.
  */
 @Slf4j
-class BeforeWebCommand implements CrawlCallbacks.CrawlCommandCallback {
+class BeforeWebCommand implements CrawlerCallbacks.CrawlerCommandCallback {
 
     @Override
-    public void accept(CrawlSession session) {
+    public void accept(CrawlerSession session) {
         var cfg = Web.config(session.getCrawlContext());
         var scope = "";
         if (cfg.getUrlScopeResolver() instanceof GenericUrlScopeResolver res) {

@@ -19,8 +19,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.norconex.crawler.core.cluster.CacheMap;
-import com.norconex.crawler.core.ledger.CrawlEntryLedger;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.ledger.CrawlerEntryLedger;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,7 +32,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
     //            "crawlProcessedTotal";
     //    private static final String PROCESSED_TOTAL_KEY = "TOTAL";
 
-    private CrawlEntryLedger ledger;
+    private CrawlerEntryLedger ledger;
     private CacheMap<Long> eventCountsStore;
     //    private CacheMap<Long> processedTotalStore;
     private boolean closed;
@@ -45,7 +45,7 @@ public class CrawlerMetricsImpl implements CrawlerMetrics {
     }
 
     @Override
-    public void init(CrawlSession crawlSession) {
+    public void init(CrawlerSession crawlSession) {
         memCache.clear();
         var ctx = crawlSession.getCrawlContext();
         ledger = ctx.getCrawlEntryLedger();

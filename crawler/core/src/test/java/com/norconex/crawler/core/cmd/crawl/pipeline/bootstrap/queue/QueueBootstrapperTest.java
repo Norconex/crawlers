@@ -25,10 +25,10 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.context.CrawlContext;
-import com.norconex.crawler.core.ledger.CrawlEntry;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.context.CrawlerContext;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 /**
  * Tests for {@link QueueBootstrapper}.
@@ -36,13 +36,13 @@ import com.norconex.crawler.core.session.CrawlSession;
 @Timeout(30)
 class QueueBootstrapperTest {
 
-    private CrawlSession buildSession(CrawlConfig config) {
-        var crawlContext = mock(CrawlContext.class);
+    private CrawlerSession buildSession(CrawlerConfig config) {
+        var crawlContext = mock(CrawlerContext.class);
         when(crawlContext.getCrawlConfig()).thenReturn(config);
         when(crawlContext.createCrawlEntry(anyString()))
-                .thenAnswer(inv -> new CrawlEntry(inv.getArgument(0)));
+                .thenAnswer(inv -> new CrawlerEntry(inv.getArgument(0)));
 
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(crawlContext);
         when(session.isResumed()).thenReturn(false);
         return session;
@@ -67,8 +67,8 @@ class QueueBootstrapperTest {
 
     @Test
     void bootstrap_sync_withNoStartRefs_completesSuccessfully() {
-        // Default CrawlConfig has no start references and async=false (sync)
-        var config = new CrawlConfig();
+        // Default CrawlerConfig has no start references and async=false (sync)
+        var config = new CrawlerConfig();
         var session = buildSession(config);
 
         new QueueBootstrapper().bootstrap(session);
@@ -79,7 +79,7 @@ class QueueBootstrapperTest {
 
     @Test
     void bootstrap_sync_whenResumed_logsResumeAndCompletes() {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         var session = buildSession(config);
         when(session.isResumed()).thenReturn(true);
 
@@ -97,7 +97,7 @@ class QueueBootstrapperTest {
             return 0;
         };
 
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         var session = buildSession(config);
 
         new QueueBootstrapper(List.of(enqueuer)).bootstrap(session);

@@ -39,7 +39,7 @@ import com.norconex.crawler.core.doc.operations.filter.impl.GenericReferenceFilt
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxt;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxtFilter;
 import com.norconex.crawler.web.doc.operations.robot.RobotsTxtProvider;
@@ -73,11 +73,11 @@ public class StandardRobotsTxtProvider
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @JsonIgnore
-    private CrawlSession crawler;
+    private CrawlerSession crawler;
 
     @Override
     protected void onCrawlerCrawlBegin(CrawlerEvent event) {
-        crawler = (CrawlSession) event.getSource();
+        crawler = (CrawlerSession) event.getSource();
     }
 
     @Override

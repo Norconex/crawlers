@@ -43,7 +43,7 @@ import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.WebFetchRequest;
@@ -168,13 +168,13 @@ public class PlaywrightFetcher
             new CopyOnWriteArrayList<>();
 
     @Override
-    protected void fetcherStartup(CrawlSession c) {
+    protected void fetcherStartup(CrawlerSession c) {
         LOG.info("Starting Playwright fetcher ({} browser)...",
                 configuration.getBrowser());
     }
 
     @Override
-    protected void fetcherShutdown(CrawlSession c) {
+    protected void fetcherShutdown(CrawlerSession c) {
         LOG.info("Shutting down Playwright fetcher...");
         for (var pw : allPlaywrights) {
             try {

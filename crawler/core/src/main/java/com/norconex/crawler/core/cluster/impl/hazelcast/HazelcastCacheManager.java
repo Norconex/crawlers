@@ -74,7 +74,7 @@ public class HazelcastCacheManager implements CacheManager, Closeable {
         return new HazelcastSetAdapter(hazelcast.getSet(name));
     }
 
-    // Adapter for queue operations (to be used in CrawlEntryLedger)
+    // Adapter for queue operations (to be used in CrawlerEntryLedger)
     @Override
     public <T> CacheQueue<T> getCacheQueue(String name, Class<T> valueType) {
         // Use a Hazelcast IQueue so items are FIFO and distributable.

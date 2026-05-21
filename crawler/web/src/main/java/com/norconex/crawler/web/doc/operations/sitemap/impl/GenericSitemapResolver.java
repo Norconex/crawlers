@@ -31,7 +31,7 @@ import com.norconex.crawler.core.cluster.CacheMap;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapContext;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapRecord;
 import com.norconex.crawler.web.doc.operations.sitemap.SitemapResolver;
@@ -219,7 +219,7 @@ public class GenericSitemapResolver extends CrawlerLifeCycleListener
     @Override
     protected void onCrawlerCrawlBegin(CrawlerEvent event) {
         sitemapStore = Web.gridCache(
-                (CrawlSession) event.getSource(),
+                (CrawlerSession) event.getSource(),
                 SITEMAP_STORE_NAME,
                 SitemapRecord.class);
     }

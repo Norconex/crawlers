@@ -18,7 +18,7 @@ import java.util.function.BiConsumer;
 
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 import com.norconex.importer.doc.Doc;
 
@@ -29,10 +29,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 class BeforeWebCrawlerDocFinalizing
-        implements BiConsumer<CrawlSession, Doc> {
+        implements BiConsumer<CrawlerSession, Doc> {
 
     @Override
-    public void accept(CrawlSession crawler, Doc doc) {
+    public void accept(CrawlerSession crawler, Doc doc) {
         // If URLs were not yet extracted, it means no links will be followed.
         // In case the referring document was skipped or has a bad status
         // (which can always be temporary), we should queue for processing any
@@ -57,7 +57,8 @@ class BeforeWebCrawlerDocFinalizing
         // If never crawled before, or cached version has no extracted URLs,
         // abort now.
         if (httpCachedData == null
-                || httpCachedData.getReferencedUrls().isEmpty()) {
+                || httpCachedData.getReferencedUrls()
+                        .isEmpty()) {
             return;
         }
 
@@ -73,7 +74,8 @@ class BeforeWebCrawlerDocFinalizing
         }
 
         // OK, let's do this
-        LOG.debug("Queueing referenced URLs of {}", httpData.getReference());
+        LOG.debug("Queueing referenced URLs of {}",
+                httpData.getReference());
 
         var childDepth = httpData.getDepth() + 1;
         var referencedUrls = httpCachedData.getReferencedUrls();
@@ -83,9 +85,12 @@ class BeforeWebCrawlerDocFinalizing
             childData.setReferrerReference(httpData.getReference());
             LOG.debug("Queueing skipped document's child: {}",
                     childData.getReference());
-            crawler.getCrawlContext().getDocPipelines().getQueuePipeline()
+            crawler.getCrawlContext().getDocPipelines()
+                    .getQueuePipeline()
                     .accept(
-                            new QueuePipelineContext(crawler, childData));
+                            new QueuePipelineContext(
+                                    crawler,
+                                    childData));
         }
     }
 }

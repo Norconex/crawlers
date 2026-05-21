@@ -18,7 +18,7 @@ import static com.norconex.crawler.core.fetch.FetchDirective.DOCUMENT;
 import static com.norconex.crawler.core.fetch.FetchDirective.METADATA;
 
 import com.norconex.commons.lang.function.Predicates;
-import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
+import com.norconex.crawler.core.doc.pipelines.CrawlerDocPipelines;
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipeline;
 import com.norconex.crawler.core.doc.pipelines.committer.stages.CommitModuleStage;
 import com.norconex.crawler.core.doc.pipelines.committer.stages.DocumentChecksumStage;
@@ -53,8 +53,8 @@ public final class WebDocPipelines {
     private WebDocPipelines() {
     }
 
-    public static CrawlDocPipelines create() {
-        return CrawlDocPipelines.builder()
+    public static CrawlerDocPipelines create() {
+        return CrawlerDocPipelines.builder()
                 .queuePipeline(QueuePipeline.builder()
                         .stages(Predicates.allOf(
                                 new DepthValidationStage(),
@@ -64,10 +64,12 @@ public final class WebDocPipelines {
                                 new SitemapResolutionStage(),
                                 new QueueReferenceStage()))
                         .build())
-                .importerPipeline(ImporterPipeline.builder().contextAdapter(
-                        ctx -> ctx instanceof WebImporterPipelineContext wipc
-                                ? wipc
-                                : new WebImporterPipelineContext(ctx))
+                .importerPipeline(ImporterPipeline
+                        .builder().contextAdapter(
+                                ctx -> ctx instanceof WebImporterPipelineContext wipc
+                                        ? wipc
+                                        : new WebImporterPipelineContext(
+                                                ctx))
                         .stages(Predicates.allOf(
                                 // if an orphan is reprocessed, it could be that
                                 // it is no longer referenced because of
@@ -84,21 +86,31 @@ public final class WebDocPipelines {
 
                                 // When HTTP headers are fetched (HTTP "HEAD")
                                 // before document:
-                                new HttpFetchStage(METADATA),
-                                new MetadataFiltersStage(METADATA),
-                                new CanonicalStage(METADATA),
-                                new MetadataChecksumStage(METADATA),
-                                new MetadataDedupStage(METADATA),
+                                new HttpFetchStage(
+                                        METADATA),
+                                new MetadataFiltersStage(
+                                        METADATA),
+                                new CanonicalStage(
+                                        METADATA),
+                                new MetadataChecksumStage(
+                                        METADATA),
+                                new MetadataDedupStage(
+                                        METADATA),
 
                                 // HTTP "GET" and onward:
-                                new HttpFetchStage(DOCUMENT),
-                                new CanonicalStage(DOCUMENT),
+                                new HttpFetchStage(
+                                        DOCUMENT),
+                                new CanonicalStage(
+                                        DOCUMENT),
                                 new RobotsMetaCreateStage(),
                                 new LinkExtractorStage(),
                                 new RobotsMetaNoIndexStage(),
-                                new MetadataFiltersStage(DOCUMENT),
-                                new MetadataChecksumStage(DOCUMENT),
-                                new MetadataDedupStage(DOCUMENT),
+                                new MetadataFiltersStage(
+                                        DOCUMENT),
+                                new MetadataChecksumStage(
+                                        DOCUMENT),
+                                new MetadataDedupStage(
+                                        DOCUMENT),
                                 new DocumentFiltersStage(),
                                 new DocumentPreProcessingStage(),
                                 new ImportModuleStage()))

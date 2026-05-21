@@ -18,7 +18,7 @@ import static com.norconex.crawler.core.fetch.FetchDirective.DOCUMENT;
 import static com.norconex.crawler.core.fetch.FetchDirective.METADATA;
 
 import com.norconex.commons.lang.function.Predicates;
-import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
+import com.norconex.crawler.core.doc.pipelines.CrawlerDocPipelines;
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipeline;
 import com.norconex.crawler.core.doc.pipelines.committer.stages.CommitModuleStage;
 import com.norconex.crawler.core.doc.pipelines.committer.stages.DocumentChecksumStage;
@@ -44,8 +44,8 @@ public final class FsPipelines {
     private FsPipelines() {
     }
 
-    public static CrawlDocPipelines create() {
-        return CrawlDocPipelines
+    public static CrawlerDocPipelines create() {
+        return CrawlerDocPipelines
                 .builder()
                 .queuePipeline(QueuePipeline
                         .builder()
@@ -60,21 +60,31 @@ public final class FsPipelines {
                                 //--- METADATA ---
                                 // When the metadata fetch directive is enabled,
                                 // the following is executed
-                                new FileFetchStage(METADATA),
-                                new MetadataFiltersStage(METADATA),
+                                new FileFetchStage(
+                                        METADATA),
+                                new MetadataFiltersStage(
+                                        METADATA),
                                 // Child folders done right after filter to
                                 // give a chance to reject the folder before
                                 // getting its children.
-                                new FolderPathsExtractorStage(METADATA),
-                                new MetadataChecksumStage(METADATA),
-                                new MetadataDedupStage(FetchDirective.METADATA),
+                                new FolderPathsExtractorStage(
+                                        METADATA),
+                                new MetadataChecksumStage(
+                                        METADATA),
+                                new MetadataDedupStage(
+                                        FetchDirective.METADATA),
 
                                 //--- DOCUMENT ---
-                                new FileFetchStage(DOCUMENT),
-                                new MetadataFiltersStage(DOCUMENT),
-                                new FolderPathsExtractorStage(DOCUMENT),
-                                new MetadataChecksumStage(DOCUMENT),
-                                new MetadataDedupStage(DOCUMENT),
+                                new FileFetchStage(
+                                        DOCUMENT),
+                                new MetadataFiltersStage(
+                                        DOCUMENT),
+                                new FolderPathsExtractorStage(
+                                        DOCUMENT),
+                                new MetadataChecksumStage(
+                                        DOCUMENT),
+                                new MetadataDedupStage(
+                                        DOCUMENT),
                                 new DocumentFiltersStage(),
                                 new DocumentPreProcessingStage(),
                                 new ImportModuleStage()))

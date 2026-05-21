@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.fs.fetch.impl;
 
-import static com.norconex.crawler.core.doc.CrawlDocMetaConstants.PREFIX;
+import static com.norconex.crawler.core.doc.CrawlerDocMetaConstants.PREFIX;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -36,7 +36,7 @@ import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.FetchResponse;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.fs.doc.FsDocMetadata;
 import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.FileFetchResponse;
@@ -75,7 +75,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
     private FileSystemOptions fsOptions;
 
     @Override
-    protected void fetcherStartup(CrawlSession crawler) {
+    protected void fetcherStartup(CrawlerSession crawler) {
         try {
             fsManager = new StandardFileSystemManager();
             fsManager.setClassLoader(getClass().getClassLoader());
@@ -90,7 +90,7 @@ public abstract class AbstractVfsFetcher<C extends BaseFetcherConfig>
     }
 
     @Override
-    protected void fetcherShutdown(CrawlSession crawler) {
+    protected void fetcherShutdown(CrawlerSession crawler) {
         if (fsManager != null) {
             fsManager.close();
         }

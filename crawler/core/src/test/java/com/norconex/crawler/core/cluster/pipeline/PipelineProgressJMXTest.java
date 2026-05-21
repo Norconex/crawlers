@@ -25,7 +25,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.context.CrawlerContext;
 
 /**
  * Tests for {@link PipelineProgressJMX} register/unregister operations.
@@ -91,8 +91,8 @@ class PipelineProgressJMXTest {
     // Helpers
     // -----------------------------------------------------------------
 
-    private static CrawlContext buildMockContext(String crawlerId) {
-        var ctx = mock(CrawlContext.class);
+    private static CrawlerContext buildMockContext(String crawlerId) {
+        var ctx = mock(CrawlerContext.class);
         when(ctx.getId()).thenReturn(crawlerId);
         return ctx;
     }

@@ -16,7 +16,7 @@ package com.norconex.crawler.core.cluster.pipeline;
 
 import org.apache.commons.collections4.Bag;
 
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 import lombok.Data;
 
@@ -25,16 +25,16 @@ public interface Step {
 
     boolean isDistributed();
 
-    void execute(CrawlSession session);
+    void execute(CrawlerSession session);
 
     /**
      * Requests for the step to stop. The method may return before the
      * step is actually stopped (up to implementation).
      * @param session crawl session
      */
-    void stop(CrawlSession session);
+    void stop(CrawlerSession session);
 
-    PipelineStatus reduce(CrawlSession session, Bag<PipelineStatus> statuses);
+    PipelineStatus reduce(CrawlerSession session, Bag<PipelineStatus> statuses);
 
     /**
      * Indicates whether this step has been asked to stop.

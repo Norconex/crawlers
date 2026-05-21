@@ -23,10 +23,10 @@ import java.util.stream.Collectors;
 import com.norconex.commons.lang.config.Configurable;
 import com.norconex.commons.lang.event.Event;
 import com.norconex.commons.lang.event.EventListener;
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.StopCrawlerOnMaxEventListenerConfig.OnMultiple;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>
- * Alternative to {@link CrawlConfig#setMaxDocuments(int)} for issuing a
+ * Alternative to {@link CrawlerConfig#setMaxDocuments(int)} for issuing a
  * crawler stop request upon reaching specific event counts. The event counts
  * are only kept for a crawling session.  They are reset to zero upon restarting
  * the crawler.
@@ -101,7 +101,7 @@ public class StopCrawlerOnMaxEventListener implements
     private Map<String, AtomicLong> eventCounts = new ConcurrentHashMap<>();
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private CrawlSession crawlSession;
+    private CrawlerSession crawlSession;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

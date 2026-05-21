@@ -44,7 +44,7 @@ import com.norconex.crawler.core.fetch.AbstractFetcher;
 import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.doc.WebDocMetadata;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.WebFetchRequest;
@@ -124,7 +124,7 @@ public class WebDriverFetcher
     private WebDriverManager webDriverManager;
 
     @Override
-    protected void fetcherStartup(CrawlSession c) {
+    protected void fetcherStartup(CrawlerSession c) {
         LOG.info("Starting WebDriver HTTP fetcher...");
         if (configuration.getHttpSniffer() != null) {
             httpSniffer = configuration.getHttpSniffer();
@@ -135,7 +135,7 @@ public class WebDriverFetcher
     }
 
     @Override
-    protected void fetcherShutdown(CrawlSession c) {
+    protected void fetcherShutdown(CrawlerSession c) {
         try {
             if (httpSniffer != null) {
                 LOG.info("Shutting down {} HTTP sniffer...",

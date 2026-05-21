@@ -30,8 +30,8 @@ import org.mockserver.junit.jupiter.MockServerSettings;
 
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.test.CrawlTestHarness;
-import com.norconex.crawler.core.test.CrawlTestInstrument;
+import com.norconex.crawler.core.test.CrawlerTestHarness;
+import com.norconex.crawler.core.test.CrawlerTestInstrument;
 import com.norconex.crawler.web.WebCrawlerDriverFactory;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.WebTestUtil;
@@ -59,7 +59,7 @@ class StartCleanAfterStopTest {
 
         MockWebsite.whenBoundedDepth(client, SITE_DEPTH);
 
-        var instrument = new CrawlTestInstrument()
+        var instrument = new CrawlerTestInstrument()
                 .setDriverSupplierClass(
                         WebCrawlerDriverFactory.class)
                 .setRecordEvents(true)
@@ -82,7 +82,7 @@ class StartCleanAfterStopTest {
                     webCfg.setDocumentChecksummer(null);
                 });
 
-        try (var harness = new CrawlTestHarness(instrument)) {
+        try (var harness = new CrawlerTestHarness(instrument)) {
 
             //--- First run (will be stopped mid-crawl) ---
             var futureResult = harness.launchAsync("node1");

@@ -16,7 +16,7 @@ package com.norconex.crawler.core.cmd.clean;
 
 import com.norconex.crawler.core.cmd.Command;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CleanCommand implements Command {
 
     @Override
-    public void execute(CrawlSession session) {
+    public void execute(CrawlerSession session) {
         var ctx = session.getCrawlContext();
         Thread.currentThread().setName(ctx.getId() + "/CLEAN");
         session.fire(CrawlerEvent.CRAWLER_CLEAN_BEGIN, this);

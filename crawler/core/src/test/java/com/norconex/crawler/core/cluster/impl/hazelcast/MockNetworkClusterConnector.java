@@ -32,7 +32,7 @@ import com.norconex.crawler.core.cluster.Cluster;
  *
  * <h3>Example usage</h3>
  * <pre>
- *   var cfg = new CrawlConfig();
+ *   var cfg = new CrawlerConfig();
  *   cfg.getClusterConfig().setClustered(true);
  *   cfg.getClusterConfig().setConnector(new MockNetworkClusterConnector());
  *   // … configure start references, fetcher, etc.

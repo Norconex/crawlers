@@ -17,7 +17,7 @@ package com.norconex.crawler.web.fetch.util;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
+import com.norconex.crawler.core.doc.CrawlerDocMetaConstants;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -37,9 +37,9 @@ public class ScreenshotHandlerConfig extends DocImageHandlerConfig {
     public static final Path DEFAULT_SCREENSHOT_DIR =
             Paths.get("./screenshots");
     public static final String DEFAULT_SCREENSHOT_DIR_FIELD =
-            CrawlDocMetaConstants.PREFIX + "screenshot-path";
+            CrawlerDocMetaConstants.PREFIX + "screenshot-path";
     public static final String DEFAULT_SCREENSHOT_META_FIELD =
-            CrawlDocMetaConstants.PREFIX + "screenshot";
+            CrawlerDocMetaConstants.PREFIX + "screenshot";
 
     private String cssSelector;
 

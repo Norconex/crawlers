@@ -108,7 +108,8 @@ class HstsResolverTest {
         HstsResolver.resolve(httpClient, httpsSubEntry);
 
         // Now the http subdomain URL should also be upgraded
-        var httpSubEntry = new WebCrawlerEntry("http://sub.example.com/page", 0);
+        var httpSubEntry =
+                new WebCrawlerEntry("http://sub.example.com/page", 0);
         HstsResolver.resolve(httpClient, httpSubEntry);
         assertThat(httpSubEntry.getReference())
                 .as("Subdomain http URL should be upgraded once subdomain https was visited")

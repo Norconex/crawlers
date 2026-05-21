@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.fetch;
 
-import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.doc.CrawlerDocContext;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.importer.doc.Doc;
 
@@ -36,5 +36,5 @@ public class WebFetchRequest implements FetchRequest {
      * The crawl doc context, providing access to the current and previous
      * crawl entries (e.g. for ETag and If-Modified-Since support).
      */
-    private CrawlDocContext crawlDocContext;
+    private CrawlerDocContext crawlDocContext;
 }

@@ -16,7 +16,7 @@ package com.norconex.crawler.web.doc.operations.sitemap;
 
 import java.util.List;
 
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 /**
  * <p>
@@ -35,5 +35,5 @@ import com.norconex.crawler.core.session.CrawlSession;
  */
 @FunctionalInterface
 public interface SitemapLocator {
-    List<String> locations(String url, CrawlSession crawlSession);
+    List<String> locations(String url, CrawlerSession crawlSession);
 }

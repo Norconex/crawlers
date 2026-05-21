@@ -23,10 +23,10 @@ import java.util.function.Consumer;
 
 import org.apache.commons.collections4.CollectionUtils;
 
-import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlBootstrapper;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.CrawlerBootstrapper;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.core.util.LogUtil;
 
 import lombok.EqualsAndHashCode;
@@ -43,13 +43,13 @@ import lombok.extern.slf4j.Slf4j;
  *   <li>{@link RefProviderEnqueuer} (Java-based reference providers)</li>
  * </ul>
  * <p>
- * Those are configurable in {@link CrawlConfig}.
+ * Those are configurable in {@link CrawlerConfig}.
  * </p>
  */
 @Slf4j
 @EqualsAndHashCode
 //TODO XXX rename this if no longer a "bootstrapper" as we are moving the logic back to pipeline
-public class QueueBootstrapper implements CrawlBootstrapper {
+public class QueueBootstrapper implements CrawlerBootstrapper {
 
     //TODO XXX ******** make summary about crawl run, just total process for session? Or show delta? ***********
 
@@ -69,7 +69,7 @@ public class QueueBootstrapper implements CrawlBootstrapper {
     }
 
     @Override
-    public void bootstrap(CrawlSession session) {
+    public void bootstrap(CrawlerSession session) {
         var crawlContext = session.getCrawlContext();
         if (session.isResumed()) {
             LOG.info("Unfinished previous crawl detected. Resuming...");

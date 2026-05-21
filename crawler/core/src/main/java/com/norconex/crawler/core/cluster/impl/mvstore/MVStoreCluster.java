@@ -23,7 +23,7 @@ import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.ClusterNode;
 import com.norconex.crawler.core.cluster.impl.memory.LocalPipelineManager;
 import com.norconex.crawler.core.cluster.pipeline.PipelineManager;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,7 +59,7 @@ public class MVStoreCluster implements Cluster {
     private final MVStoreCacheManager cacheManager =
             new MVStoreCacheManager();
     private LocalPipelineManager pipelineManager;
-    private CrawlSession session;
+    private CrawlerSession session;
     private Path currentWorkDir;
 
     MVStoreCluster(MVStoreClusterConnectorConfig config) {
@@ -84,7 +84,7 @@ public class MVStoreCluster implements Cluster {
     }
 
     @Override
-    public void bindSession(CrawlSession session) {
+    public void bindSession(CrawlerSession session) {
         this.session = session;
         this.pipelineManager = session != null
                 ? new LocalPipelineManager(session)
@@ -117,7 +117,7 @@ public class MVStoreCluster implements Cluster {
     }
 
     @Override
-    public CrawlSession getCrawlSession() {
+    public CrawlerSession getCrawlSession() {
         return session;
     }
 

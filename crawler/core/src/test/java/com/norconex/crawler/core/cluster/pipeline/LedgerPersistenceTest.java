@@ -25,10 +25,10 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
-import com.norconex.crawler.core.test.CrawlTestDriver;
+import com.norconex.crawler.core.test.CrawlerTestDriver;
 
 /**
  * Verifies that ledger-backed persistence does not prevent multiple runs
@@ -46,7 +46,7 @@ class LedgerPersistenceTest {
     @Test
     void testMultipleRunsReusePersistentStateWithoutLocking() {
         var workDir = tempDir.resolve("work");
-        var driver = CrawlTestDriver.create();
+        var driver = CrawlerTestDriver.create();
 
         var config = baseConfig(workDir);
 
@@ -66,8 +66,8 @@ class LedgerPersistenceTest {
                         secondConfig).crawl());
     }
 
-    private CrawlConfig baseConfig(Path workDir) {
-        return new CrawlConfig()
+    private CrawlerConfig baseConfig(Path workDir) {
+        return new CrawlerConfig()
                 .setId("ledger-persistence-test")
                 .setWorkDir(workDir)
                 .setStartReferences(List.of("ref-1", "ref-2",

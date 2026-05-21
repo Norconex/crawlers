@@ -22,8 +22,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.context.CrawlerContext;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 /**
@@ -34,13 +34,13 @@ import com.norconex.crawler.core.ledger.ProcessingOutcome;
 @Timeout(30)
 class FetchUtilTest {
 
-    private CrawlContext crawler;
-    private CrawlConfig config;
+    private CrawlerContext crawler;
+    private CrawlerConfig config;
 
     @BeforeEach
     void setUp() {
-        crawler = mock(CrawlContext.class);
-        config = new CrawlConfig();
+        crawler = mock(CrawlerContext.class);
+        config = new CrawlerConfig();
         when(crawler.getCrawlConfig()).thenReturn(config);
     }
 
@@ -52,7 +52,8 @@ class FetchUtilTest {
     void testMetadata_required_stopOnBadStatus() {
         config.setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED);
         assertThat(FetchUtil.shouldContinueOnBadStatus(
-                crawler, null, FetchDirective.METADATA)).isFalse();
+                crawler, null, FetchDirective.METADATA))
+                        .isFalse();
     }
 
     @Test
@@ -60,7 +61,8 @@ class FetchUtilTest {
         config.setMetadataFetchSupport(FetchDirectiveSupport.OPTIONAL);
         config.setDocumentFetchSupport(FetchDirectiveSupport.REQUIRED);
         assertThat(FetchUtil.shouldContinueOnBadStatus(
-                crawler, null, FetchDirective.METADATA)).isTrue();
+                crawler, null, FetchDirective.METADATA))
+                        .isTrue();
     }
 
     @Test
@@ -68,7 +70,8 @@ class FetchUtilTest {
         config.setMetadataFetchSupport(FetchDirectiveSupport.OPTIONAL);
         config.setDocumentFetchSupport(FetchDirectiveSupport.DISABLED);
         assertThat(FetchUtil.shouldContinueOnBadStatus(
-                crawler, null, FetchDirective.METADATA)).isFalse();
+                crawler, null, FetchDirective.METADATA))
+                        .isFalse();
     }
 
     // -----------------------------------------------------------------
@@ -79,7 +82,8 @@ class FetchUtilTest {
     void testDocument_required_stopOnBadStatus() {
         config.setDocumentFetchSupport(FetchDirectiveSupport.REQUIRED);
         assertThat(FetchUtil.shouldContinueOnBadStatus(
-                crawler, ProcessingOutcome.NEW, FetchDirective.DOCUMENT))
+                crawler, ProcessingOutcome.NEW,
+                FetchDirective.DOCUMENT))
                         .isFalse();
     }
 
@@ -88,7 +92,8 @@ class FetchUtilTest {
         config.setMetadataFetchSupport(FetchDirectiveSupport.OPTIONAL);
         config.setDocumentFetchSupport(FetchDirectiveSupport.OPTIONAL);
         assertThat(FetchUtil.shouldContinueOnBadStatus(
-                crawler, ProcessingOutcome.NEW, FetchDirective.DOCUMENT))
+                crawler, ProcessingOutcome.NEW,
+                FetchDirective.DOCUMENT))
                         .isTrue();
     }
 
@@ -97,7 +102,8 @@ class FetchUtilTest {
         config.setMetadataFetchSupport(FetchDirectiveSupport.DISABLED);
         config.setDocumentFetchSupport(FetchDirectiveSupport.OPTIONAL);
         assertThat(FetchUtil.shouldContinueOnBadStatus(
-                crawler, ProcessingOutcome.NEW, FetchDirective.DOCUMENT))
+                crawler, ProcessingOutcome.NEW,
+                FetchDirective.DOCUMENT))
                         .isFalse();
     }
 
@@ -106,7 +112,8 @@ class FetchUtilTest {
         config.setMetadataFetchSupport(FetchDirectiveSupport.OPTIONAL);
         config.setDocumentFetchSupport(FetchDirectiveSupport.OPTIONAL);
         assertThat(FetchUtil.shouldContinueOnBadStatus(
-                crawler, ProcessingOutcome.ERROR, FetchDirective.DOCUMENT))
+                crawler, ProcessingOutcome.ERROR,
+                FetchDirective.DOCUMENT))
                         .isFalse();
     }
 
