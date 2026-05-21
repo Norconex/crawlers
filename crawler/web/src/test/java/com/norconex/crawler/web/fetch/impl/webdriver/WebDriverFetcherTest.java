@@ -103,7 +103,8 @@ class WebDriverFetcherTest {
 
         assertThat(result).isNotNull();
         assertThat(result.readAllBytes())
-                .isEqualTo("<html>test</html>".getBytes(StandardCharsets.UTF_8));
+                .isEqualTo(
+                        "<html>test</html>".getBytes(StandardCharsets.UTF_8));
     }
 
     @Test

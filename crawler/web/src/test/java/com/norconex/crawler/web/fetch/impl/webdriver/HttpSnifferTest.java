@@ -96,7 +96,8 @@ class HttpSnifferTest {
         var adapter = queue.poll();
         assertThat(adapter.getChainedProxyAddress())
                 .satisfies(addr -> {
-                    assertThat(addr.getHostName()).isEqualTo("proxy.example.com");
+                    assertThat(addr.getHostName())
+                            .isEqualTo("proxy.example.com");
                     assertThat(addr.getPort()).isEqualTo(3128);
                 });
         assertThat(adapter.getUsername()).isEqualTo("user");
@@ -109,7 +110,8 @@ class HttpSnifferTest {
         var filter = sniffer.new SniffingHttpFilter();
 
         assertThat(filter.getMaximumRequestBufferSizeInBytes()).isEqualTo(8192);
-        assertThat(filter.getMaximumResponseBufferSizeInBytes()).isEqualTo(8192);
+        assertThat(filter.getMaximumResponseBufferSizeInBytes())
+                .isEqualTo(8192);
     }
 
     @Test
@@ -143,7 +145,8 @@ class HttpSnifferTest {
         var sniffer = new HttpSniffer();
         var filter = sniffer.new SniffingHttpFilter();
         var httpRequest = new DefaultHttpRequest(
-                HttpVersion.HTTP_1_1, HttpMethod.GET, "http://example.com/page");
+                HttpVersion.HTTP_1_1, HttpMethod.GET,
+                "http://example.com/page");
 
         var filters = filter.filterRequest(httpRequest, null);
         var result = filters.clientToProxyRequest(httpRequest);
@@ -156,7 +159,8 @@ class HttpSnifferTest {
         var sniffer = new HttpSniffer();
         var filter = sniffer.new SniffingHttpFilter();
         var httpRequest = new DefaultHttpRequest(
-                HttpVersion.HTTP_1_1, HttpMethod.GET, "http://example.com/page");
+                HttpVersion.HTTP_1_1, HttpMethod.GET,
+                "http://example.com/page");
 
         var filters = filter.filterRequest(httpRequest, null);
         // No clientToProxyRequest call => requestId is null

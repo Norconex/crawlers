@@ -69,7 +69,8 @@ public class PipelineCoordinatorState implements AutoCloseable {
     private final StepRecord currentStepRecord;
 
     // Misc.
-    private final Map<String, StepRecord> workerStatusesMap = new ConcurrentHashMap<>();
+    private final Map<String, StepRecord> workerStatusesMap =
+            new ConcurrentHashMap<>();
     private CacheEntryChangeListener<StepRecord> workerStatusChangeListener;
     private long nodeExpiryTimeoutMs = 5_000; // 5 seconds default, min
 
