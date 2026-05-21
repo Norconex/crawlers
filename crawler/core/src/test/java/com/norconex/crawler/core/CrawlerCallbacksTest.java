@@ -233,11 +233,11 @@ class CrawlerCallbacksTest {
         CrawlerCallbacks.CrawlerCommandCallback cb =
                 session -> received.add("crawl");
 
-        // Test with CrawlCommand (should invoke accept(session))
+        // Test with CrawlerCommand (should invoke accept(session))
         cb.accept(mock(CrawlerSession.class), CrawlerCommand.class);
         assertThat(received).containsExactly("crawl");
 
-        // Test with a non-CrawlCommand class (should be ignored)
+        // Test with a non-CrawlerCommand class (should be ignored)
         received.clear();
         cb.accept(mock(CrawlerSession.class),
                 com.norconex.crawler.core.cmd.clean.CleanCommand.class);

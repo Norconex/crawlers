@@ -86,7 +86,8 @@ public class StandaloneCliCrawlerLauncher {
     }
 
     public StandaloneCliResult launch(CrawlerConfig crawlConfig) {
-        var driver = ofNullable(crawlDriver).orElseGet(CrawlerTestDriver::create);
+        var driver =
+                ofNullable(crawlDriver).orElseGet(CrawlerTestDriver::create);
         var allArgs = new ArrayList<>(args);
 
         // Only inject a config file if at least one real command is passed

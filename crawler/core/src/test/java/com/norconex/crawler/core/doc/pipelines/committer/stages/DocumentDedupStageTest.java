@@ -42,104 +42,108 @@ import com.norconex.importer.doc.Doc;
 @Timeout(30)
 class DocumentDedupStageTest {
 
-    private CommitterPipelineContext buildCtx(CrawlerSession session,
-            String ref) {
-        var entry = new CrawlerEntry(ref);
-        var doc = new Doc(ref);
-        var docContext = CrawlerDocContext.builder()
-                .doc(doc)
-                .currentCrawlEntry(entry)
-                .build();
-        return new CommitterPipelineContext(session, docContext);
-    }
+        private CommitterPipelineContext buildCtx(CrawlerSession session,
+                        String ref) {
+                var entry = new CrawlerEntry(ref);
+                var doc = new Doc(ref);
+                var docContext = CrawlerDocContext.builder()
+                                .doc(doc)
+                                .currentCrawlEntry(entry)
+                                .build();
+                return new CommitterPipelineContext(session, docContext);
+        }
 
-    private CrawlerSession buildSession(DedupService dedupService) {
-        var session = mock(CrawlerSession.class);
-        var crawlContext = mock(CrawlerContext.class);
-        when(session.getCrawlContext()).thenReturn(crawlContext);
-        when(crawlContext.getDedupService()).thenReturn(dedupService);
-        return session;
-    }
+        private CrawlerSession buildSession(DedupService dedupService) {
+                var session = mock(CrawlerSession.class);
+                var crawlContext = mock(CrawlerContext.class);
+                when(session.getCrawlContext()).thenReturn(crawlContext);
+                when(crawlContext.getDedupService()).thenReturn(dedupService);
+                return session;
+        }
 
-    @Test
-    void noDuplicate_returnsTrue() {
-        var dedupService = mock(DedupService.class);
-        when(dedupService.findOrTrackDocument(any(CrawlerEntry.class)))
-                .thenReturn(Optional.empty());
+        @Test
+        void noDuplicate_returnsTrue() {
+                var dedupService = mock(DedupService.class);
+                when(dedupService.findOrTrackDocument(any(CrawlerEntry.class)))
+                                .thenReturn(Optional.empty());
 
-        var session = buildSession(dedupService);
-        var ctx = buildCtx(session, "http://example.com/page");
+                var session = buildSession(dedupService);
+                var ctx = buildCtx(session, "http://example.com/page");
 
-        assertThat(new DocumentDedupStage().test(ctx)).isTrue();
-    }
+                assertThat(new DocumentDedupStage().test(ctx)).isTrue();
+        }
 
-    @Test
-    void noDuplicate_doesNotFireEvent() {
-        var dedupService = mock(DedupService.class);
-        when(dedupService.findOrTrackDocument(any(CrawlerEntry.class)))
-                .thenReturn(Optional.empty());
+        @Test
+        void noDuplicate_doesNotFireEvent() {
+                var dedupService = mock(DedupService.class);
+                when(dedupService.findOrTrackDocument(any(CrawlerEntry.class)))
+                                .thenReturn(Optional.empty());
 
-        var session = buildSession(dedupService);
-        var ctx = buildCtx(session, "http://example.com/page");
+                var session = buildSession(dedupService);
+                var ctx = buildCtx(session, "http://example.com/page");
 
-        new DocumentDedupStage().test(ctx);
+                new DocumentDedupStage().test(ctx);
 
-        verify(session, never()).fire(any());
-    }
+                verify(session, never()).fire(any());
+        }
 
-    @Test
-    void noDuplicate_doesNotSetRejectedOutcome() {
-        var dedupService = mock(DedupService.class);
-        when(dedupService.findOrTrackDocument(any(CrawlerEntry.class)))
-                .thenReturn(Optional.empty());
+        @Test
+        void noDuplicate_doesNotSetRejectedOutcome() {
+                var dedupService = mock(DedupService.class);
+                when(dedupService.findOrTrackDocument(any(CrawlerEntry.class)))
+                                .thenReturn(Optional.empty());
 
-        var session = buildSession(dedupService);
-        var ctx = buildCtx(session, "http://example.com/page");
+                var session = buildSession(dedupService);
+                var ctx = buildCtx(session, "http://example.com/page");
 
-        new DocumentDedupStage().test(ctx);
+                new DocumentDedupStage().test(ctx);
 
-        assertThat(ctx.getDocContext().getCurrentCrawlEntry()
-                .getProcessingOutcome()).isNull();
-    }
+                assertThat(ctx.getDocContext().getCurrentCrawlEntry()
+                                .getProcessingOutcome()).isNull();
+        }
 
-    @Test
-    void duplicateFound_returnsFalse() {
-        var dedupService = mock(DedupService.class);
-        when(dedupService.findOrTrackDocument(any(CrawlerEntry.class)))
-                .thenReturn(Optional.of("http://example.com/original"));
+        @Test
+        void duplicateFound_returnsFalse() {
+                var dedupService = mock(DedupService.class);
+                when(dedupService.findOrTrackDocument(any(CrawlerEntry.class)))
+                                .thenReturn(Optional.of(
+                                                "http://example.com/original"));
 
-        var session = buildSession(dedupService);
-        var ctx = buildCtx(session, "http://example.com/copy");
+                var session = buildSession(dedupService);
+                var ctx = buildCtx(session, "http://example.com/copy");
 
-        assertThat(new DocumentDedupStage().test(ctx)).isFalse();
-    }
+                assertThat(new DocumentDedupStage().test(ctx)).isFalse();
+        }
 
-    @Test
-    void duplicateFound_setsRejectedOutcome() {
-        var dedupService = mock(DedupService.class);
-        when(dedupService.findOrTrackDocument(any(CrawlerEntry.class)))
-                .thenReturn(Optional.of("http://example.com/original"));
+        @Test
+        void duplicateFound_setsRejectedOutcome() {
+                var dedupService = mock(DedupService.class);
+                when(dedupService.findOrTrackDocument(any(CrawlerEntry.class)))
+                                .thenReturn(Optional.of(
+                                                "http://example.com/original"));
 
-        var session = buildSession(dedupService);
-        var ctx = buildCtx(session, "http://example.com/copy");
+                var session = buildSession(dedupService);
+                var ctx = buildCtx(session, "http://example.com/copy");
 
-        new DocumentDedupStage().test(ctx);
+                new DocumentDedupStage().test(ctx);
 
-        assertThat(ctx.getDocContext().getCurrentCrawlEntry()
-                .getProcessingOutcome()).isEqualTo(ProcessingOutcome.REJECTED);
-    }
+                assertThat(ctx.getDocContext().getCurrentCrawlEntry()
+                                .getProcessingOutcome()).isEqualTo(
+                                                ProcessingOutcome.REJECTED);
+        }
 
-    @Test
-    void duplicateFound_firesRejectedDuplicateEvent() {
-        var dedupService = mock(DedupService.class);
-        when(dedupService.findOrTrackDocument(any(CrawlerEntry.class)))
-                .thenReturn(Optional.of("http://example.com/original"));
+        @Test
+        void duplicateFound_firesRejectedDuplicateEvent() {
+                var dedupService = mock(DedupService.class);
+                when(dedupService.findOrTrackDocument(any(CrawlerEntry.class)))
+                                .thenReturn(Optional.of(
+                                                "http://example.com/original"));
 
-        var session = buildSession(dedupService);
-        var ctx = buildCtx(session, "http://example.com/copy");
+                var session = buildSession(dedupService);
+                var ctx = buildCtx(session, "http://example.com/copy");
 
-        new DocumentDedupStage().test(ctx);
+                new DocumentDedupStage().test(ctx);
 
-        verify(session).fire(any(CrawlerEvent.class));
-    }
+                verify(session).fire(any(CrawlerEvent.class));
+        }
 }

@@ -47,8 +47,8 @@ class FolderPathsExtractorStageTest {
 
     /**
      * Builds an {@link ImporterPipelineContext} backed by mocks,
-     * wiring together CrawlSession → CrawlContext → CrawlConfig/Fetcher/
-     * DocPipelines, and a CrawlDocContext wrapping the given entry.
+     * wiring together CrawlerSession → CrawlerContext → CrawlerConfig/Fetcher/
+     * DocPipelines, and a CrawlerDocContext wrapping the given entry.
      */
     private ImporterPipelineContext buildCtx(
             FsCrawlerEntry entry,

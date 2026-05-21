@@ -94,7 +94,8 @@ class DedupServiceTest {
         assertThat(service.findOrTrackMetadata(metaEntry)).isEmpty();
     }
 
-    private CrawlerSession session(boolean metadataDedup, boolean documentDedup) {
+    private CrawlerSession session(boolean metadataDedup,
+            boolean documentDedup) {
         var config = new CrawlerConfig();
         config.setMetadataDeduplicate(metadataDedup);
         config.setDocumentDeduplicate(documentDedup);

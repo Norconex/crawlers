@@ -438,7 +438,7 @@ public class JdbcHazelcastConfigurer implements HazelcastConfigurer {
 
         // Ledger wildcard: value-class-name is the base type here, but it is
         // overridden at startup by HazelcastCluster.applyCacheTypes() with the
-        // concrete CrawlEntry subclass registered by the driver.
+        // concrete CrawlerEntry subclass registered by the driver.
         cfg.addMapConfig(buildMapConfig("ledger_*", backups,
                 CrawlerEntry.class.getName(), effectiveSqlMerge, false));
 

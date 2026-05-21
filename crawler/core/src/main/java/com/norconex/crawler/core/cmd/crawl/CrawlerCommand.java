@@ -117,9 +117,9 @@ public class CrawlerCommand implements Command {
             var pipeFuture = session.getCluster().getPipelineManager()
                     .executePipeline(pipeline);
 
-            // Max duration is already handled in CrawlProcessStep, here we
+            // Max duration is already handled in CrawlerProcessStep, here we
             // have it again just as a safeguard, but we pad to give time to
-            // CrawlProcessStep to finish normally after timeout.
+            // CrawlerProcessStep to finish normally after timeout.
             var maxDuration = ctx.getCrawlConfig().getMaxCrawlDuration();
             var result = (maxDuration != null && maxDuration.toMillis() > 0)
                     ? ConcurrentUtil.get(pipeFuture, 5, TimeUnit.MINUTES)

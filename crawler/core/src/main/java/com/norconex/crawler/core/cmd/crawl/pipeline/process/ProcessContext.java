@@ -26,7 +26,7 @@ import lombok.experimental.Accessors;
 class ProcessContext {
     private CrawlerSession crawlSession;
     private CrawlerDocContext docContext;
-    //private CrawlEntry crawlEntry;
+    //private CrawlerEntry crawlEntry;
     private ImporterResponse importerResponse;
     //    private boolean orphan;
     private boolean finalized;

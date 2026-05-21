@@ -232,11 +232,11 @@ public class CrawlerEvent extends Event {
     //    }
     //
     //    /**
-    //     * The {@link CrawlSession}.
+    //     * The {@link CrawlerSession}.
     //     */
     //    @Override
-    //    public CrawlSession getSource() {
-    //        return (CrawlSession) super.getSource();
+    //    public CrawlerSession getSource() {
+    //        return (CrawlerSession) super.getSource();
     //    }
 
     @Override

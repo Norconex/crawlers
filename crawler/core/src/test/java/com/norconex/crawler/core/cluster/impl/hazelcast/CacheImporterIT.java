@@ -207,7 +207,7 @@ class CacheImporterIT {
         var mgr = newManager();
         var entries = List.of(
                 new SerializedEntry("k1",
-                        "this-is-not-valid-json-for-CrawlEntry{"));
+                        "this-is-not-valid-json-for-CrawlerEntry{"));
         var cache = mapCache(
                 "map-bad-json",
                 CrawlerEntry.class.getName(),
@@ -218,7 +218,7 @@ class CacheImporterIT {
 
         var hz = mgr.getHazelcastInstance();
         assertThat(hz.getMap("map-bad-json").get("k1"))
-                .isEqualTo("this-is-not-valid-json-for-CrawlEntry{");
+                .isEqualTo("this-is-not-valid-json-for-CrawlerEntry{");
     }
 
     // ------------------------------------------------------------------

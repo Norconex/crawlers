@@ -31,37 +31,37 @@ import org.junit.jupiter.api.Timeout;
 @Timeout(30)
 class GenericSitemapLocatorTest {
 
-    @WebCrawlingTest
-    void testGenericSitemapLocator(CrawlerContext ctx) {
+        @WebCrawlingTest
+        void testGenericSitemapLocator(CrawlerContext ctx) {
 
-        var locator = new GenericSitemapLocator();
-        assertThat(locator.getConfiguration().getPaths()).contains(
-                "/sitemap.xml", "/sitemap_index.xml");
+                var locator = new GenericSitemapLocator();
+                assertThat(locator.getConfiguration().getPaths()).contains(
+                                "/sitemap.xml", "/sitemap_index.xml");
 
-        locator.getConfiguration()
-                .setPaths(List.of("abc.xml", "def.xml"));
-        assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT
-                        .assertWriteRead(locator));
+                locator.getConfiguration()
+                                .setPaths(List.of("abc.xml", "def.xml"));
+                assertThatNoException().isThrownBy(
+                                () -> BeanMapper.DEFAULT
+                                                .assertWriteRead(locator));
 
-        Web.config(ctx)
-                .setRobotsTxtProvider(null)
-                .setStartReferences(List.of(
-                        "http://example.com/index.html"));
+                Web.config(ctx)
+                                .setRobotsTxtProvider(null)
+                                .setStartReferences(List.of(
+                                                "http://example.com/index.html"));
 
-        var session = mock(CrawlerSession.class);
-        when(session.getCrawlContext()).thenReturn(ctx);
+                var session = mock(CrawlerSession.class);
+                when(session.getCrawlContext()).thenReturn(ctx);
 
-        assertThat(locator.locations(
-                "http://example.com/index.html", session))
-                        .containsExactly(
-                                "http://example.com/abc.xml",
-                                "http://example.com/def.xml");
+                assertThat(locator.locations(
+                                "http://example.com/index.html", session))
+                                                .containsExactly(
+                                                                "http://example.com/abc.xml",
+                                                                "http://example.com/def.xml");
 
-        // try with empty paths
-        locator.getConfiguration().setPaths(null);
-        assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT
-                        .assertWriteRead(locator));
-    }
+                // try with empty paths
+                locator.getConfiguration().setPaths(null);
+                assertThatNoException().isThrownBy(
+                                () -> BeanMapper.DEFAULT
+                                                .assertWriteRead(locator));
+        }
 }

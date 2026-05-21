@@ -133,7 +133,7 @@ public class CrawlerTestHarness implements Closeable {
                     POSTGRES.getContainerId(), schemaName,
                     POSTGRES.getJdbcUrl());
             LOG.info(
-                    "[TIMING] CrawlTestHarness id={} phase=cluster-setup elapsedMs={}",
+                    "[TIMING] CrawlerTestHarness id={} phase=cluster-setup elapsedMs={}",
                     id,
                     Duration.ofNanos(System.nanoTime() - clusterSetupStart)
                             .toMillis());
@@ -170,7 +170,7 @@ public class CrawlerTestHarness implements Closeable {
             // Note: postgres.stop() is NOT called here anymore to support
             // adding new nodes later or resuming crawls. It will be stopped
             // in close().
-            LOG.info("=== Returning CrawlTestHarnessResult with {} nodes ===",
+            LOG.info("=== Returning CrawlerTestHarnessResult with {} nodes ===",
                     results.size());
             return new CrawlerTestHarnessResult(results);
         });
@@ -270,7 +270,7 @@ public class CrawlerTestHarness implements Closeable {
 
     @Override
     public void close() throws IOException {
-        LOG.info("CrawlTestHarness.close() called for cleanup.");
+        LOG.info("CrawlerTestHarness.close() called for cleanup.");
         var closeStart = System.nanoTime();
         SchemaDropResult schemaDropResult = null;
         nodeCrawlers.forEach((name, crawler) -> {
@@ -300,10 +300,10 @@ public class CrawlerTestHarness implements Closeable {
                         schemaDropResult.failure());
             }
         }
-        LOG.info("[TIMING] CrawlTestHarness id={} phase=close elapsedMs={}",
+        LOG.info("[TIMING] CrawlerTestHarness id={} phase=close elapsedMs={}",
                 id,
                 Duration.ofNanos(System.nanoTime() - closeStart).toMillis());
-        LOG.info("CrawlTestHarness.close() cleanup complete.");
+        LOG.info("CrawlerTestHarness.close() cleanup complete.");
     }
 
     private CrawlerTestInstrument instrumentNode(String nodeName,
@@ -411,7 +411,7 @@ public class CrawlerTestHarness implements Closeable {
             }
             configurer.setTcpMembers(tcpMembers.toString());
 
-            LOG.info("CrawlTestHarness configured JDBC URL: {}",
+            LOG.info("CrawlerTestHarness configured JDBC URL: {}",
                     configurer.getJdbcUrl());
         }
         return instrument;
@@ -481,11 +481,11 @@ public class CrawlerTestHarness implements Closeable {
             LOG.info("Shared PostgreSQL container started: jdbcUrl='{}'",
                     POSTGRES.getJdbcUrl());
             LOG.info(
-                    "[TIMING] CrawlTestHarness phase=postgres-container-start elapsedMs={}",
+                    "[TIMING] CrawlerTestHarness phase=postgres-container-start elapsedMs={}",
                     Duration.ofNanos(System.nanoTime() - start).toMillis());
         } else {
             LOG.info(
-                    "[TIMING] CrawlTestHarness phase=postgres-container-start elapsedMs=0 reused=true");
+                    "[TIMING] CrawlerTestHarness phase=postgres-container-start elapsedMs=0 reused=true");
         }
     }
 
@@ -499,7 +499,7 @@ public class CrawlerTestHarness implements Closeable {
                             || message.contains(
                                     "Previous attempts to find a Docker environment failed"))) {
                 throw new TestAbortedException(
-                        "Docker is unavailable for CrawlTestHarness-based tests",
+                        "Docker is unavailable for CrawlerTestHarness-based tests",
                         error);
             }
             current = current.getCause();
@@ -511,7 +511,7 @@ public class CrawlerTestHarness implements Closeable {
         execPsql("CREATE SCHEMA IF NOT EXISTS \"" + schema + "\"");
         LOG.info("Created isolated PostgreSQL schema: {}", schema);
         LOG.info(
-                "[TIMING] CrawlTestHarness id={} phase=create-schema elapsedMs={} schema={}",
+                "[TIMING] CrawlerTestHarness id={} phase=create-schema elapsedMs={} schema={}",
                 id,
                 Duration.ofNanos(System.nanoTime() - start).toMillis(),
                 schema);
@@ -528,7 +528,7 @@ public class CrawlerTestHarness implements Closeable {
                         + "\" CASCADE");
                 LOG.info("Dropped PostgreSQL schema: {}", schema);
                 LOG.info(
-                        "[TIMING] CrawlTestHarness id={} phase=drop-schema elapsedMs={} schema={} attempts={}",
+                        "[TIMING] CrawlerTestHarness id={} phase=drop-schema elapsedMs={} schema={} attempts={}",
                         id,
                         Duration.ofNanos(System.nanoTime() - start).toMillis(),
                         schema,

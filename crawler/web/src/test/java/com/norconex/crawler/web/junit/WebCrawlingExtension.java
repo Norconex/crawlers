@@ -130,7 +130,8 @@ public class WebCrawlingExtension implements ParameterResolver {
         if (methodAnn != null) {
             return methodAnn;
         }
-        return extCtx.getRequiredTestClass().getAnnotation(WebCrawlingTest.class);
+        return extCtx.getRequiredTestClass()
+                .getAnnotation(WebCrawlingTest.class);
     }
 
     /**

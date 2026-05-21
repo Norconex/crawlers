@@ -55,7 +55,7 @@ public final class CrawlerRunInfoResolver {
             return SerialUtil.fromJson(existingJson, CrawlerRunInfo.class);
         }
 
-        // Try to derive next CrawlRunInfo based on prior persisted state
+        // Try to derive next CrawlerRunInfo based on prior persisted state
         var prior = load(session).orElse(null);
         LOG.debug("Prior run info loaded from cache: {}", prior);
         final CrawlerRunInfo info;
@@ -105,7 +105,7 @@ public final class CrawlerRunInfoResolver {
 
     private static String resolveCrawlRunId(CrawlerSession session) {
         // Always generate a new crawl run id per process start. The
-        // previous run id is persisted as part of CrawlRunInfo in the
+        // previous run id is persisted as part of CrawlerRunInfo in the
         // session cache and is used for resume detection. Reusing the
         // same run id across process lifecycles can prevent us from
         // correctly detecting prior STOPPED/FAILED runs.

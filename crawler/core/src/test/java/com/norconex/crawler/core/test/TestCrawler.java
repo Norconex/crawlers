@@ -116,7 +116,7 @@ public class TestCrawler implements Closeable {
                 instrument.getDriverSupplierClass()).get();
 
         // When running in a forked JVM the config was serialized/deserialized
-        // as the base CrawlConfig type (no @JsonTypeInfo on CrawlConfig).
+        // as the base CrawlerConfig type (no @JsonTypeInfo on CrawlerConfig).
         // Re-hydrate it as the concrete driver type so driver-specific
         // callbacks (e.g. BeforeWebCommand) can safely cast the config.
         if (remoteInstance) {

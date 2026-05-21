@@ -267,13 +267,13 @@ public class HazelcastCluster implements Cluster {
         // with Hazelcast predicates).
         compactCfg.addSerializer(new StepRecordCompactSerializer());
 
-        // NOTE: CrawlEntry types are intentionally NOT registered here.
+        // NOTE: CrawlerEntry types are intentionally NOT registered here.
         // JacksonCompactSerializer stores the entire object as a single
         // "json" string field, which prevents Hazelcast Predicates (e.g.,
         // Predicates.equal("processingStatus", ...)) from reading
         // individual fields.  Ledger queries rely on these predicates
         // for maxDocuments enforcement and status-based filtering, so
-        // CrawlEntry must use the default serialization path.
+        // CrawlerEntry must use the default serialization path.
     }
 
     protected HazelcastInstance createHazelcastInstance(Config hzConfig) {

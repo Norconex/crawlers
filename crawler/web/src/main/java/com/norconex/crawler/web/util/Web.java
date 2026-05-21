@@ -68,7 +68,8 @@ public final class Web {
         return (WebCrawlerConfig) crawlContext.getCrawlConfig();
     }
 
-    public static RobotsTxt robotsTxt(CrawlerContext crawler, String reference) {
+    public static RobotsTxt robotsTxt(CrawlerContext crawler,
+            String reference) {
         var cfg = Web.config(crawler);
         return Optional.ofNullable(cfg.getRobotsTxtProvider())
                 .map(rb -> rb.getRobotsTxt(crawler.getFetcher(), reference))

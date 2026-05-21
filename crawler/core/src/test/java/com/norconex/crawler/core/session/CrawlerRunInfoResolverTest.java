@@ -178,7 +178,7 @@ class CrawlerRunInfoResolverTest {
     // -----------------------------------------------------------------
 
     /**
-     * Stores a CrawlRunInfo for a prior run in the durable session cache,
+     * Stores a CrawlerRunInfo for a prior run in the durable session cache,
      * and primes the session-state so the resolver detects {@code priorState}.
      */
     private void primeSessionCache(CrawlerState priorState) {

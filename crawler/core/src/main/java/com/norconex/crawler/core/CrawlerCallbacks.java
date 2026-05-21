@@ -80,7 +80,7 @@ public class CrawlerCallbacks implements EventListener<Event> {
     /**
      * Invoked before the crawl session gets initialized (which is also
      * before any command gets executed). Modifying the
-     * CrawlConfig is generally safe here.
+     * CrawlerConfig is generally safe here.
      */
     Consumer<CrawlerConfig> beforeSession;
     /**

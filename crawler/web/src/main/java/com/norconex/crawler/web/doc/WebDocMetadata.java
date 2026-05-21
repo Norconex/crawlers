@@ -25,28 +25,29 @@ import com.norconex.importer.doc.DocMetaConstants;
  */
 public final class WebDocMetadata {
 
-    public static final String SM_LASTMOD = PREFIX + "sitemap-lastmod";
-    public static final String SM_CHANGE_FREQ = PREFIX + "sitemap-changefreq";
-    public static final String SM_PRORITY = PREFIX + "sitemap-priority";
-    public static final String REFERENCED_URLS = PREFIX + "referenced-urls";
-    public static final String REFERENCED_URLS_OUT_OF_SCOPE =
-            PREFIX + "referenced-urls-out-of-scope";
-    public static final String REFERRER_REFERENCE =
-            PREFIX + "referrer-reference";
-    /** @since 3.0.0 */
-    public static final String REFERRER_LINK_PREFIX =
-            PREFIX + "referrer-link-";
-    /** @since 2.8.0 */
-    public static final String REDIRECT_TRAIL = PREFIX + "redirect-trail";
-    /** @since 3.0.0 */
-    public static final String ORIGINAL_REFERENCE =
-            PREFIX + "original-reference";
+        public static final String SM_LASTMOD = PREFIX + "sitemap-lastmod";
+        public static final String SM_CHANGE_FREQ =
+                        PREFIX + "sitemap-changefreq";
+        public static final String SM_PRORITY = PREFIX + "sitemap-priority";
+        public static final String REFERENCED_URLS = PREFIX + "referenced-urls";
+        public static final String REFERENCED_URLS_OUT_OF_SCOPE =
+                        PREFIX + "referenced-urls-out-of-scope";
+        public static final String REFERRER_REFERENCE =
+                        PREFIX + "referrer-reference";
+        /** @since 3.0.0 */
+        public static final String REFERRER_LINK_PREFIX =
+                        PREFIX + "referrer-link-";
+        /** @since 2.8.0 */
+        public static final String REDIRECT_TRAIL = PREFIX + "redirect-trail";
+        /** @since 3.0.0 */
+        public static final String ORIGINAL_REFERENCE =
+                        PREFIX + "original-reference";
 
-    public static final String HTTP_STATUS_CODE =
-            PREFIX + "http-status-code";
-    public static final String HTTP_STATUS_REASON =
-            PREFIX + "http-status-reason";
+        public static final String HTTP_STATUS_CODE =
+                        PREFIX + "http-status-code";
+        public static final String HTTP_STATUS_REASON =
+                        PREFIX + "http-status-reason";
 
-    private WebDocMetadata() {
-    }
+        private WebDocMetadata() {
+        }
 }

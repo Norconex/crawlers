@@ -67,7 +67,7 @@ class QueueBootstrapperTest {
 
     @Test
     void bootstrap_sync_withNoStartRefs_completesSuccessfully() {
-        // Default CrawlConfig has no start references and async=false (sync)
+        // Default CrawlerConfig has no start references and async=false (sync)
         var config = new CrawlerConfig();
         var session = buildSession(config);
 

@@ -53,17 +53,17 @@ import lombok.extern.slf4j.Slf4j;
 @Timeout(30)
 class GenericSitemapResolverTest {
 
-    @WebCrawlingTest
-    void testResolveSitemaps(
-            ClientAndServer client, CrawlerContext ctx)
-            throws IOException {
+        @WebCrawlingTest
+        void testResolveSitemaps(
+                        ClientAndServer client, CrawlerContext ctx)
+                        throws IOException {
 
-        // We test having a sitemap index file pointing to sitemap files, and
-        // We test compression.
-        // We test redirect
+                // We test having a sitemap index file pointing to sitemap files, and
+                // We test compression.
+                // We test redirect
 
-        client.when(request().withPath("/sitemap-index"))
-                .respond(response().withBody("""
+                client.when(request().withPath("/sitemap-index"))
+                                .respond(response().withBody("""
                         <?xml version="1.0" encoding="UTF-8"?>
                         <sitemapindex \
                             xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
@@ -73,70 +73,71 @@ class GenericSitemapResolverTest {
                           </sitemap>
                         </sitemapindex>
                         """.formatted(serverUrl(client, "sitemap")),
-                        MediaType.XML_UTF_8));
+                                                MediaType.XML_UTF_8));
 
-        client.when(request().withPath("/sitemap"))
-                .respond(response()
-                        .withStatusCode(302)
-                        .withHeader(
-                                "Location",
-                                serverUrl(client,
-                                        "/sitemap-new")));
+                client.when(request().withPath("/sitemap"))
+                                .respond(response()
+                                                .withStatusCode(302)
+                                                .withHeader(
+                                                                "Location",
+                                                                serverUrl(client,
+                                                                                "/sitemap-new")));
 
-        client.when(request().withPath("/sitemap-new"))
-                .respond(response()
-                        .withHeader("Content-Encoding",
-                                "gzip")
-                        .withHeader("Content-type",
-                                "text/xml; charset=utf-8")
-                        .withBody(compressSitemap(
-                                serverUrl(client,
-                                        ""))));
+                client.when(request().withPath("/sitemap-new"))
+                                .respond(response()
+                                                .withHeader("Content-Encoding",
+                                                                "gzip")
+                                                .withHeader("Content-type",
+                                                                "text/xml; charset=utf-8")
+                                                .withBody(compressSitemap(
+                                                                serverUrl(client,
+                                                                                ""))));
 
-        List<String> urls = new ArrayList<>();
-        var resolver = ((WebCrawlerConfig) ctx.getCrawlConfig())
-                .getSitemapResolver();
+                List<String> urls = new ArrayList<>();
+                var resolver = ((WebCrawlerConfig) ctx.getCrawlConfig())
+                                .getSitemapResolver();
 
-        var session = mock(CrawlerSession.class);
-        var cluster = mock(Cluster.class);
-        var cacheManager = mock(CacheManager.class);
-        @SuppressWarnings("unchecked")
-        var sitemapStore =
-                (com.norconex.crawler.core.cluster.CacheMap<
-                        com.norconex.crawler.web.doc.operations.sitemap.SitemapRecord>) mock(
-                                com.norconex.crawler.core.cluster.CacheMap.class);
-        when(session.getCluster()).thenReturn(cluster);
-        when(cluster.getCacheManager()).thenReturn(cacheManager);
-        when(cacheManager.getCacheMap(
-                GenericSitemapResolver.SITEMAP_STORE_NAME,
-                com.norconex.crawler.web.doc.operations.sitemap.SitemapRecord.class))
-                        .thenReturn(sitemapStore);
-        when(sitemapStore.get(anyString())).thenReturn(Optional.empty());
+                var session = mock(CrawlerSession.class);
+                var cluster = mock(Cluster.class);
+                var cacheManager = mock(CacheManager.class);
+                @SuppressWarnings("unchecked")
+                var sitemapStore =
+                                (com.norconex.crawler.core.cluster.CacheMap<
+                                                com.norconex.crawler.web.doc.operations.sitemap.SitemapRecord>) mock(
+                                                                com.norconex.crawler.core.cluster.CacheMap.class);
+                when(session.getCluster()).thenReturn(cluster);
+                when(cluster.getCacheManager()).thenReturn(cacheManager);
+                when(cacheManager.getCacheMap(
+                                GenericSitemapResolver.SITEMAP_STORE_NAME,
+                                com.norconex.crawler.web.doc.operations.sitemap.SitemapRecord.class))
+                                                .thenReturn(sitemapStore);
+                when(sitemapStore.get(anyString()))
+                                .thenReturn(Optional.empty());
 
-        ((GenericSitemapResolver) resolver).onCrawlerCrawlBegin(
-                CrawlerEvent.builder()
-                        .name("test")
-                        .source(session)
-                        .crawlSession(session)
-                        .build());
+                ((GenericSitemapResolver) resolver).onCrawlerCrawlBegin(
+                                CrawlerEvent.builder()
+                                                .name("test")
+                                                .source(session)
+                                                .crawlSession(session)
+                                                .build());
 
-        resolver.resolve(
-                SitemapContext
-                        .builder()
-                        .fetcher(ctx.getFetcher())
-                        .location(serverUrl(client,
-                                "sitemap-index"))
-                        .urlConsumer(rec -> urls.add(rec
-                                .getReference()))
-                        .build());
+                resolver.resolve(
+                                SitemapContext
+                                                .builder()
+                                                .fetcher(ctx.getFetcher())
+                                                .location(serverUrl(client,
+                                                                "sitemap-index"))
+                                                .urlConsumer(rec -> urls.add(rec
+                                                                .getReference()))
+                                                .build());
 
-        assertThat(urls).containsExactly(
-                serverUrl(client, "/pageA.html"),
-                serverUrl(client, "/pageB.html"));
-    }
+                assertThat(urls).containsExactly(
+                                serverUrl(client, "/pageA.html"),
+                                serverUrl(client, "/pageB.html"));
+        }
 
-    private byte[] compressSitemap(String baseUrl) throws IOException {
-        var content = """
+        private byte[] compressSitemap(String baseUrl) throws IOException {
+                var content = """
                 <urlset>
                   <url>
                     <loc>%s</loc>
@@ -152,24 +153,24 @@ class GenericSitemapResolverTest {
                   </url>
                 </urlset>
                 """.formatted(
-                baseUrl + "pageA.html",
-                baseUrl + "pageB.html")
-                .getBytes();
-        var bos = new ByteArrayOutputStream(content.length);
-        var gzip = new GZIPOutputStream(bos);
-        gzip.write(content);
-        gzip.close();
-        var compressed = bos.toByteArray();
-        bos.close();
-        return compressed;
-    }
+                                baseUrl + "pageA.html",
+                                baseUrl + "pageB.html")
+                                .getBytes();
+                var bos = new ByteArrayOutputStream(content.length);
+                var gzip = new GZIPOutputStream(bos);
+                gzip.write(content);
+                gzip.close();
+                var compressed = bos.toByteArray();
+                bos.close();
+                return compressed;
+        }
 
-    @Test
-    void testWriteRead() {
-        var r = new GenericSitemapResolver();
-        r.getConfiguration().setLenient(true);
-        LOG.debug("Writing/Reading this: {}", r);
-        assertThatNoException().isThrownBy(
-                () -> BeanMapper.DEFAULT.assertWriteRead(r));
-    }
+        @Test
+        void testWriteRead() {
+                var r = new GenericSitemapResolver();
+                r.getConfiguration().setLenient(true);
+                LOG.debug("Writing/Reading this: {}", r);
+                assertThatNoException().isThrownBy(
+                                () -> BeanMapper.DEFAULT.assertWriteRead(r));
+        }
 }

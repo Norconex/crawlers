@@ -144,21 +144,21 @@ public class CrawlerSession implements Closeable {
 
     public CrawlerAttributes getSessionAttributes() {
         if (stateStore == null) {
-            throw new IllegalStateException("CrawlSession not initialized.");
+            throw new IllegalStateException("CrawlerSession not initialized.");
         }
         return stateStore.getSessionAttributes();
     }
 
     public CrawlerAttributes getCrawlRunAttributes() {
         if (runCoordinator == null) {
-            throw new IllegalStateException("CrawlSession not initialized.");
+            throw new IllegalStateException("CrawlerSession not initialized.");
         }
         return runCoordinator.getCrawlRunAttributes();
     }
 
     public CrawlerAttributes getCrawlerAttributes() {
         if (crawlerAttributes == null) {
-            throw new IllegalStateException("CrawlSession not initialized.");
+            throw new IllegalStateException("CrawlerSession not initialized.");
         }
         return crawlerAttributes;
     }
@@ -166,14 +166,14 @@ public class CrawlerSession implements Closeable {
     void init() {
         if (closed) {
             throw new IllegalStateException(
-                    "Cannot initialize a closed CrawlSession.");
+                    "Cannot initialize a closed CrawlerSession.");
         }
         var clusterConfig = crawlContext.getCrawlConfig().getClusterConfig();
 
-        LOG.info("CrawlSession.init() - Creating directories...");
+        LOG.info("CrawlerSession.init() - Creating directories...");
         createDir(crawlContext.getTempDir()); // also creates workDir
 
-        LOG.info("CrawlSession.init() - Initializing cluster...");
+        LOG.info("CrawlerSession.init() - Initializing cluster...");
         // Build cache types: framework adds ledger_* -> concrete entry type;
         // driver extensions may add their own map/type mappings.
         var cacheTypes =
@@ -182,7 +182,7 @@ public class CrawlerSession implements Closeable {
         cluster.init(crawlContext.getWorkDir(), clusterConfig.isClustered(),
                 cacheTypes);
 
-        LOG.info("CrawlSession.init() - Getting cache managers...");
+        LOG.info("CrawlerSession.init() - Getting cache managers...");
         var cacheManager = cluster.getCacheManager();
         var sessionCache = cacheManager.getCrawlSessionCache();
         var runCache = cacheManager.getCrawlRunCache();
@@ -195,52 +195,52 @@ public class CrawlerSession implements Closeable {
         crawlerAttributes = new CrawlerAttributes(cacheManager.getCrawlerCache());
 
         var nodeName = cluster.getLocalNode().getNodeName();
-        LOG.info("CrawlSession.init() - Binding session to cluster node: {}",
+        LOG.info("CrawlerSession.init() - Binding session to cluster node: {}",
                 nodeName);
         cluster.bindSession(this);
 
         try {
             //NOTE: this resolver will also clear the session cache if needed.
             // The crawlRunCache does not need clearing as it is ephemeral
-            LOG.info("CrawlSession.init() - Resolving crawl run info...");
+            LOG.info("CrawlerSession.init() - Resolving crawl run info...");
             crawlRunInfo = CrawlerRunInfoResolver.resolve(this);
-            LOG.info("CrawlSession.init() - Crawl run info resolved: "
+            LOG.info("CrawlerSession.init() - Crawl run info resolved: "
                     + "mode={}, resumeState={}",
                     crawlRunInfo.getCrawlMode(),
                     crawlRunInfo.getCrawlResumeState());
 
             //TODO will always setting it have an impact for non crawl commands?
             if (cluster.getLocalNode().isCoordinator()) {
-                LOG.info("CrawlSession.init() - Updating crawl state to "
+                LOG.info("CrawlerSession.init() - Updating crawl state to "
                         + "RUNNING (coordinator)...");
                 updateCrawlState(CrawlerState.RUNNING);
-                LOG.info("CrawlSession.init() - Crawl state updated "
+                LOG.info("CrawlerSession.init() - Crawl state updated "
                         + "successfully");
             } else {
-                LOG.info("CrawlSession.init() - Skipping state update "
+                LOG.info("CrawlerSession.init() - Skipping state update "
                         + "(not coordinator)");
             }
 
-            LOG.info("CrawlSession.init() - Initializing crawl context...");
+            LOG.info("CrawlerSession.init() - Initializing crawl context...");
             crawlContext.init(this);
-            LOG.info("CrawlSession.init() - Crawl context initialized "
+            LOG.info("CrawlerSession.init() - Crawl context initialized "
                     + "successfully");
 
             // Start the cluster admin server
             if (!clusterConfig.isAdminDisabled()) {
-                LOG.info("CrawlSession.init() - Starting cluster "
+                LOG.info("CrawlerSession.init() - Starting cluster "
                         + "admin server...");
                 adminServer = new ClusterAdminServer(this);
                 adminServer.start();
-                LOG.info("CrawlSession.init() - Cluster admin server started");
+                LOG.info("CrawlerSession.init() - Cluster admin server started");
             } else {
-                LOG.info("CrawlSession.init() - Cluster admin server is "
+                LOG.info("CrawlerSession.init() - Cluster admin server is "
                         + "disabled");
             }
 
-            LOG.info("CrawlSession.init() - Initialization complete!");
+            LOG.info("CrawlerSession.init() - Initialization complete!");
         } catch (RuntimeException e) {
-            LOG.error("CrawlSession.init() - Initialization failed!", e);
+            LOG.error("CrawlerSession.init() - Initialization failed!", e);
             cluster.bindSession(null);
             throw e;
         }
@@ -249,12 +249,12 @@ public class CrawlerSession implements Closeable {
     @Override
     public void close() {
         if (closed) {
-            LOG.debug("CrawlSession already closed.");
+            LOG.debug("CrawlerSession already closed.");
             return;
         }
         closed = true;
 
-        LOG.info("Closing CrawlSession...");
+        LOG.info("Closing CrawlerSession...");
 
         ExceptionSwallower.runWithInterruptClear(() -> {
             ExceptionSwallower.close(crawlContext, cluster);
@@ -266,7 +266,7 @@ public class CrawlerSession implements Closeable {
             adminServer.close();
         }
 
-        LOG.info("CrawlSession closed.");
+        LOG.info("CrawlerSession closed.");
 
         // Run post-close cleanup (e.g., logger stop) AFTER all
         // AutoCloseable resources have been closed and all cleanup

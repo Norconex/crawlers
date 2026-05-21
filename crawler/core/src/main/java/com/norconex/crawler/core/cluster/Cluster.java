@@ -71,7 +71,7 @@ public interface Cluster extends Closeable {
 
     /**
      * Starts monitoring for stop signals. Should only be called by commands
-     * that need to respond to stop requests (e.g., CrawlCommand).
+     * that need to respond to stop requests (e.g., CrawlerCommand).
      */
     void startStopMonitoring();
 

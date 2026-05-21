@@ -57,7 +57,7 @@ class CrawlerEntryLedgerTest {
     @BeforeEach
     void setUp() {
         cacheManager = new InMemoryCacheManager();
-        // Wire in real CrawlConfig so maxDocuments defaults to -1 (unlimited).
+        // Wire in real CrawlerConfig so maxDocuments defaults to -1 (unlimited).
         var crawlConfig = new CrawlerConfig();
 
         lenient().when(session.getCluster()).thenReturn(cluster);

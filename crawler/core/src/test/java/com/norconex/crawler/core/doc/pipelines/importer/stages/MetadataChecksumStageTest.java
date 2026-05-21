@@ -42,153 +42,153 @@ import com.norconex.importer.doc.Doc;
 @Timeout(30)
 class MetadataChecksumStageTest {
 
-    // Helper: create a full ImporterPipelineContext for a given config
-    private ImporterPipelineContext buildCtx(
-            CrawlerConfig config, CrawlerDocContext docContext) {
-        var session = mock(CrawlerSession.class);
-        var crawlContext = mock(CrawlerContext.class);
-        when(session.getCrawlContext()).thenReturn(crawlContext);
-        when(crawlContext.getCrawlConfig()).thenReturn(config);
-        return new ImporterPipelineContext(session, docContext);
-    }
+        // Helper: create a full ImporterPipelineContext for a given config
+        private ImporterPipelineContext buildCtx(
+                        CrawlerConfig config, CrawlerDocContext docContext) {
+                var session = mock(CrawlerSession.class);
+                var crawlContext = mock(CrawlerContext.class);
+                when(session.getCrawlContext()).thenReturn(crawlContext);
+                when(crawlContext.getCrawlConfig()).thenReturn(config);
+                return new ImporterPipelineContext(session, docContext);
+        }
 
-    private CrawlerDocContext simpleDocContext(String ref) {
-        return CrawlerDocContext.builder()
-                .doc(new Doc(ref))
-                .currentCrawlEntry(new CrawlerEntry(ref))
-                .build();
-    }
+        private CrawlerDocContext simpleDocContext(String ref) {
+                return CrawlerDocContext.builder()
+                                .doc(new Doc(ref))
+                                .currentCrawlEntry(new CrawlerEntry(ref))
+                                .build();
+        }
 
-    // -----------------------------------------------------------------
-    // Early return: directive disabled
-    // -----------------------------------------------------------------
+        // -----------------------------------------------------------------
+        // Early return: directive disabled
+        // -----------------------------------------------------------------
 
-    @Test
-    void directiveDisabled_returnsTrueEarly() {
-        var config = new CrawlerConfig();
-        // DOCUMENT directive is REQUIRED by default; disable it
-        config.setDocumentFetchSupport(FetchDirectiveSupport.DISABLED);
+        @Test
+        void directiveDisabled_returnsTrueEarly() {
+                var config = new CrawlerConfig();
+                // DOCUMENT directive is REQUIRED by default; disable it
+                config.setDocumentFetchSupport(FetchDirectiveSupport.DISABLED);
 
-        var ctx = buildCtx(config, simpleDocContext("ref"));
-        // Stage is created with DOCUMENT directive
-        var stage = new MetadataChecksumStage(FetchDirective.DOCUMENT);
-        assertThat(stage.test(ctx)).isTrue();
-    }
+                var ctx = buildCtx(config, simpleDocContext("ref"));
+                // Stage is created with DOCUMENT directive
+                var stage = new MetadataChecksumStage(FetchDirective.DOCUMENT);
+                assertThat(stage.test(ctx)).isTrue();
+        }
 
-    // -----------------------------------------------------------------
-    // No checksummer configured (null)
-    // -----------------------------------------------------------------
+        // -----------------------------------------------------------------
+        // No checksummer configured (null)
+        // -----------------------------------------------------------------
 
-    @Test
-    void noChecksummer_setsNewOutcome_returnsTrue() {
-        // Default config: documentFetchSupport=REQUIRED, metadataChecksummer=null
-        var config = new CrawlerConfig();
-        // Ensure metadataChecksummer is null (it is by default)
-        assertThat(config.getMetadataChecksummer()).isNull();
+        @Test
+        void noChecksummer_setsNewOutcome_returnsTrue() {
+                // Default config: documentFetchSupport=REQUIRED, metadataChecksummer=null
+                var config = new CrawlerConfig();
+                // Ensure metadataChecksummer is null (it is by default)
+                assertThat(config.getMetadataChecksummer()).isNull();
 
-        var entry = new CrawlerEntry("ref");
-        var docContext = CrawlerDocContext.builder()
-                .doc(new Doc("ref"))
-                .currentCrawlEntry(entry)
-                .build();
-        var ctx = buildCtx(config, docContext);
-        var stage = new MetadataChecksumStage(FetchDirective.DOCUMENT);
+                var entry = new CrawlerEntry("ref");
+                var docContext = CrawlerDocContext.builder()
+                                .doc(new Doc("ref"))
+                                .currentCrawlEntry(entry)
+                                .build();
+                var ctx = buildCtx(config, docContext);
+                var stage = new MetadataChecksumStage(FetchDirective.DOCUMENT);
 
-        assertThat(stage.test(ctx)).isTrue();
-        assertThat(entry.getProcessingOutcome())
-                .isEqualTo(ProcessingOutcome.NEW);
-    }
+                assertThat(stage.test(ctx)).isTrue();
+                assertThat(entry.getProcessingOutcome())
+                                .isEqualTo(ProcessingOutcome.NEW);
+        }
 
-    // -----------------------------------------------------------------
-    // With checksummer — no previous entry (treat as new)
-    // -----------------------------------------------------------------
+        // -----------------------------------------------------------------
+        // With checksummer — no previous entry (treat as new)
+        // -----------------------------------------------------------------
 
-    @Test
-    void withChecksummer_noPreviousEntry_returnsTrueAsNew() {
-        var config = new CrawlerConfig();
-        var checksummer = mock(MetadataChecksummer.class);
-        when(checksummer.createMetadataChecksum(any()))
-                .thenReturn("checksum-abc");
-        config.setMetadataChecksummer(checksummer);
+        @Test
+        void withChecksummer_noPreviousEntry_returnsTrueAsNew() {
+                var config = new CrawlerConfig();
+                var checksummer = mock(MetadataChecksummer.class);
+                when(checksummer.createMetadataChecksum(any()))
+                                .thenReturn("checksum-abc");
+                config.setMetadataChecksummer(checksummer);
 
-        var entry = new CrawlerEntry("ref");
-        var docContext = CrawlerDocContext.builder()
-                .doc(new Doc("ref"))
-                .currentCrawlEntry(entry)
-                .build();
+                var entry = new CrawlerEntry("ref");
+                var docContext = CrawlerDocContext.builder()
+                                .doc(new Doc("ref"))
+                                .currentCrawlEntry(entry)
+                                .build();
 
-        // No previousCrawlEntry → treated as new
-        var ctx = buildCtx(config, docContext);
-        var stage = new MetadataChecksumStage(FetchDirective.DOCUMENT);
+                // No previousCrawlEntry → treated as new
+                var ctx = buildCtx(config, docContext);
+                var stage = new MetadataChecksumStage(FetchDirective.DOCUMENT);
 
-        assertThat(stage.test(ctx)).isTrue();
-        assertThat(entry.getMetaChecksum()).isEqualTo("checksum-abc");
-    }
+                assertThat(stage.test(ctx)).isTrue();
+                assertThat(entry.getMetaChecksum()).isEqualTo("checksum-abc");
+        }
 
-    // -----------------------------------------------------------------
-    // With checksummer — same checksum (unmodified)
-    // -----------------------------------------------------------------
+        // -----------------------------------------------------------------
+        // With checksummer — same checksum (unmodified)
+        // -----------------------------------------------------------------
 
-    @Test
-    void withChecksummer_sameChecksumAsPrevious_returnsFalseAndFiresEvent() {
-        var config = new CrawlerConfig();
-        var checksummer = mock(MetadataChecksummer.class);
-        when(checksummer.createMetadataChecksum(any()))
-                .thenReturn("same-checksum");
-        config.setMetadataChecksummer(checksummer);
+        @Test
+        void withChecksummer_sameChecksumAsPrevious_returnsFalseAndFiresEvent() {
+                var config = new CrawlerConfig();
+                var checksummer = mock(MetadataChecksummer.class);
+                when(checksummer.createMetadataChecksum(any()))
+                                .thenReturn("same-checksum");
+                config.setMetadataChecksummer(checksummer);
 
-        var entry = new CrawlerEntry("ref");
-        var prevEntry = new CrawlerEntry("ref");
-        prevEntry.setMetaChecksum("same-checksum"); // same as new
+                var entry = new CrawlerEntry("ref");
+                var prevEntry = new CrawlerEntry("ref");
+                prevEntry.setMetaChecksum("same-checksum"); // same as new
 
-        var docContext = CrawlerDocContext.builder()
-                .doc(new Doc("ref"))
-                .currentCrawlEntry(entry)
-                .previousCrawlEntry(prevEntry)
-                .build();
+                var docContext = CrawlerDocContext.builder()
+                                .doc(new Doc("ref"))
+                                .currentCrawlEntry(entry)
+                                .previousCrawlEntry(prevEntry)
+                                .build();
 
-        var session = mock(CrawlerSession.class);
-        var crawlContext = mock(CrawlerContext.class);
-        when(session.getCrawlContext()).thenReturn(crawlContext);
-        when(crawlContext.getCrawlConfig()).thenReturn(config);
-        var ctx = new ImporterPipelineContext(session, docContext);
+                var session = mock(CrawlerSession.class);
+                var crawlContext = mock(CrawlerContext.class);
+                when(session.getCrawlContext()).thenReturn(crawlContext);
+                when(crawlContext.getCrawlConfig()).thenReturn(config);
+                var ctx = new ImporterPipelineContext(session, docContext);
 
-        var stage = new MetadataChecksumStage(FetchDirective.DOCUMENT);
+                var stage = new MetadataChecksumStage(FetchDirective.DOCUMENT);
 
-        assertThat(stage.test(ctx)).isFalse();
-        assertThat(entry.getProcessingOutcome())
-                .isEqualTo(ProcessingOutcome.UNMODIFIED);
-        verify(session).fire(any());
-    }
+                assertThat(stage.test(ctx)).isFalse();
+                assertThat(entry.getProcessingOutcome())
+                                .isEqualTo(ProcessingOutcome.UNMODIFIED);
+                verify(session).fire(any());
+        }
 
-    // -----------------------------------------------------------------
-    // With checksummer — different checksum (modified)
-    // -----------------------------------------------------------------
+        // -----------------------------------------------------------------
+        // With checksummer — different checksum (modified)
+        // -----------------------------------------------------------------
 
-    @Test
-    void withChecksummer_differentChecksum_returnsTrue() {
-        var config = new CrawlerConfig();
-        var checksummer = mock(MetadataChecksummer.class);
-        when(checksummer.createMetadataChecksum(any()))
-                .thenReturn("new-checksum");
-        config.setMetadataChecksummer(checksummer);
+        @Test
+        void withChecksummer_differentChecksum_returnsTrue() {
+                var config = new CrawlerConfig();
+                var checksummer = mock(MetadataChecksummer.class);
+                when(checksummer.createMetadataChecksum(any()))
+                                .thenReturn("new-checksum");
+                config.setMetadataChecksummer(checksummer);
 
-        var entry = new CrawlerEntry("ref");
-        var prevEntry = new CrawlerEntry("ref");
-        prevEntry.setMetaChecksum("old-checksum"); // different from new
+                var entry = new CrawlerEntry("ref");
+                var prevEntry = new CrawlerEntry("ref");
+                prevEntry.setMetaChecksum("old-checksum"); // different from new
 
-        var docContext = CrawlerDocContext.builder()
-                .doc(new Doc("ref"))
-                .currentCrawlEntry(entry)
-                .previousCrawlEntry(prevEntry)
-                .build();
+                var docContext = CrawlerDocContext.builder()
+                                .doc(new Doc("ref"))
+                                .currentCrawlEntry(entry)
+                                .previousCrawlEntry(prevEntry)
+                                .build();
 
-        var ctx = buildCtx(config, docContext);
-        var stage = new MetadataChecksumStage(FetchDirective.DOCUMENT);
+                var ctx = buildCtx(config, docContext);
+                var stage = new MetadataChecksumStage(FetchDirective.DOCUMENT);
 
-        assertThat(stage.test(ctx)).isTrue();
-        assertThat(entry.getProcessingOutcome())
-                .isEqualTo(ProcessingOutcome.MODIFIED);
-        verify(ctx.getCrawlSession(), never()).fire(any());
-    }
+                assertThat(stage.test(ctx)).isTrue();
+                assertThat(entry.getProcessingOutcome())
+                                .isEqualTo(ProcessingOutcome.MODIFIED);
+                verify(ctx.getCrawlSession(), never()).fire(any());
+        }
 }

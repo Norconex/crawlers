@@ -25,84 +25,86 @@ import com.norconex.crawler.core.cmd.crawl.CrawlerCommand;
 @Timeout(30)
 class CrawlerEventTest {
 
-    @Test
-    void sessionConstantsExist() {
-        assertThat(CrawlerEvent.CRAWLER_SESSION_BEGIN)
-                .isEqualTo("CRAWLER_SESSION_BEGIN");
-        assertThat(CrawlerEvent.CRAWLER_SESSION_END)
-                .isEqualTo("CRAWLER_SESSION_END");
-    }
+        @Test
+        void sessionConstantsExist() {
+                assertThat(CrawlerEvent.CRAWLER_SESSION_BEGIN)
+                                .isEqualTo("CRAWLER_SESSION_BEGIN");
+                assertThat(CrawlerEvent.CRAWLER_SESSION_END)
+                                .isEqualTo("CRAWLER_SESSION_END");
+        }
 
-    @Test
-    void commandConstantsExist() {
-        assertThat(CrawlerEvent.CRAWLER_COMMAND_BEGIN)
-                .isEqualTo("CRAWLER_COMMAND_BEGIN");
-        assertThat(CrawlerEvent.CRAWLER_COMMAND_END)
-                .isEqualTo("CRAWLER_COMMAND_END");
-    }
+        @Test
+        void commandConstantsExist() {
+                assertThat(CrawlerEvent.CRAWLER_COMMAND_BEGIN)
+                                .isEqualTo("CRAWLER_COMMAND_BEGIN");
+                assertThat(CrawlerEvent.CRAWLER_COMMAND_END)
+                                .isEqualTo("CRAWLER_COMMAND_END");
+        }
 
-    @Test
-    void documentProcessingConstantsExist() {
-        assertThat(CrawlerEvent.DOCUMENT_PROCESSING_BEGIN)
-                .isEqualTo("DOCUMENT_PROCESSING_BEGIN");
-        assertThat(CrawlerEvent.DOCUMENT_PROCESSING_END)
-                .isEqualTo("DOCUMENT_PROCESSING_END");
-    }
+        @Test
+        void documentProcessingConstantsExist() {
+                assertThat(CrawlerEvent.DOCUMENT_PROCESSING_BEGIN)
+                                .isEqualTo("DOCUMENT_PROCESSING_BEGIN");
+                assertThat(CrawlerEvent.DOCUMENT_PROCESSING_END)
+                                .isEqualTo("DOCUMENT_PROCESSING_END");
+        }
 
-    @Test
-    void documentFinalizingConstantsExist() {
-        assertThat(CrawlerEvent.DOCUMENT_FINALIZING_BEGIN)
-                .isEqualTo("DOCUMENT_FINALIZING_BEGIN");
-        assertThat(CrawlerEvent.DOCUMENT_FINALIZING_END)
-                .isEqualTo("DOCUMENT_FINALIZING_END");
-    }
+        @Test
+        void documentFinalizingConstantsExist() {
+                assertThat(CrawlerEvent.DOCUMENT_FINALIZING_BEGIN)
+                                .isEqualTo("DOCUMENT_FINALIZING_BEGIN");
+                assertThat(CrawlerEvent.DOCUMENT_FINALIZING_END)
+                                .isEqualTo("DOCUMENT_FINALIZING_END");
+        }
 
-    @Test
-    void commandClass_setViaBuilder() {
-        var config = new CrawlerConfig();
-        config.setId("test");
-        var event = CrawlerEvent.builder()
-                .name(CrawlerEvent.CRAWLER_COMMAND_BEGIN)
-                .source(config)
-                .commandClass(CrawlerCommand.class)
-                .build();
+        @Test
+        void commandClass_setViaBuilder() {
+                var config = new CrawlerConfig();
+                config.setId("test");
+                var event = CrawlerEvent.builder()
+                                .name(CrawlerEvent.CRAWLER_COMMAND_BEGIN)
+                                .source(config)
+                                .commandClass(CrawlerCommand.class)
+                                .build();
 
-        assertThat(event.getCommandClass()).isEqualTo(CrawlerCommand.class);
-    }
+                assertThat(event.getCommandClass())
+                                .isEqualTo(CrawlerCommand.class);
+        }
 
-    @Test
-    void commandClass_defaultNull_forNonCommandEvent() {
-        var config = new CrawlerConfig();
-        config.setId("test");
-        var event = CrawlerEvent.builder()
-                .name(CrawlerEvent.CRAWLER_SESSION_BEGIN)
-                .source(config)
-                .build();
+        @Test
+        void commandClass_defaultNull_forNonCommandEvent() {
+                var config = new CrawlerConfig();
+                config.setId("test");
+                var event = CrawlerEvent.builder()
+                                .name(CrawlerEvent.CRAWLER_SESSION_BEGIN)
+                                .source(config)
+                                .build();
 
-        assertThat(event.getCommandClass()).isNull();
-    }
+                assertThat(event.getCommandClass()).isNull();
+        }
 
-    @Test
-    void getName_returnsEventName() {
-        var config = new CrawlerConfig();
-        config.setId("test");
-        var event = CrawlerEvent.builder()
-                .name(CrawlerEvent.CRAWLER_CRAWL_BEGIN)
-                .source(config)
-                .build();
+        @Test
+        void getName_returnsEventName() {
+                var config = new CrawlerConfig();
+                config.setId("test");
+                var event = CrawlerEvent.builder()
+                                .name(CrawlerEvent.CRAWLER_CRAWL_BEGIN)
+                                .source(config)
+                                .build();
 
-        assertThat(event.getName()).isEqualTo(CrawlerEvent.CRAWLER_CRAWL_BEGIN);
-    }
+                assertThat(event.getName())
+                                .isEqualTo(CrawlerEvent.CRAWLER_CRAWL_BEGIN);
+        }
 
-    @Test
-    void toString_containsExpectedInfo() {
-        var config = new CrawlerConfig();
-        config.setId("myConfig");
-        var event = CrawlerEvent.builder()
-                .name(CrawlerEvent.CRAWLER_SESSION_BEGIN)
-                .source(config)
-                .build();
+        @Test
+        void toString_containsExpectedInfo() {
+                var config = new CrawlerConfig();
+                config.setId("myConfig");
+                var event = CrawlerEvent.builder()
+                                .name(CrawlerEvent.CRAWLER_SESSION_BEGIN)
+                                .source(config)
+                                .build();
 
-        assertThat(event.toString()).isNotBlank();
-    }
+                assertThat(event.toString()).isNotBlank();
+        }
 }

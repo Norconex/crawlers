@@ -36,7 +36,8 @@ public final class MockFsCrawlerBuilder {
         this.workDir = workDir;
     }
 
-    public MockFsCrawlerBuilder configModifier(Consumer<CrawlerConfig> modifier) {
+    public MockFsCrawlerBuilder
+            configModifier(Consumer<CrawlerConfig> modifier) {
         this.cfgModifier = modifier;
         return this;
     }

@@ -106,7 +106,7 @@ public class StopCommand implements Runnable {
     }
 
     //    @Override
-    //    public void execute(CrawlSession session) {
+    //    public void execute(CrawlerSession session) {
     //        LOG.info("StopCommand.execute() ENTRY - sending stop signal");
     //        var ctx = session.getCrawlContext();
     //        Thread.currentThread().setName(ctx.getId() + "/STOP");

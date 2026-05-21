@@ -36,7 +36,7 @@ import lombok.experimental.FieldNameConstants;
 /**
  * Holds minimal meta information and state necessary to the proper
  * (re)processing of a document in the context of a crawl.
- * Also persisted in the {@link CrawlEntryLedger}.
+ * Also persisted in the {@link CrawlerEntryLedger}.
  */
 @Data
 @FieldNameConstants

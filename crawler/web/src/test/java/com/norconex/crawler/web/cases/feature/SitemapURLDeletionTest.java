@@ -46,13 +46,13 @@ import org.junit.jupiter.api.Timeout;
 @Timeout(30)
 class SitemapURLDeletionTest {
 
-    private final String sitemapPath = "/sitemapUrlDeletion/sitemap.xml";
-    private final String page1Path = "/sitemapUrlDeletion/page1.html";
-    private final String page2Path = "/sitemapUrlDeletion/page2.html";
-    private final String page3Path = "/sitemapUrlDeletion/page3.html";
-    private final String page33Path = "/sitemapUrlDeletion/page33.html";
+        private final String sitemapPath = "/sitemapUrlDeletion/sitemap.xml";
+        private final String page1Path = "/sitemapUrlDeletion/page1.html";
+        private final String page2Path = "/sitemapUrlDeletion/page2.html";
+        private final String page3Path = "/sitemapUrlDeletion/page3.html";
+        private final String page33Path = "/sitemapUrlDeletion/page33.html";
 
-    private static final String SITEMAP_XML = """
+        private static final String SITEMAP_XML = """
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE xml>
             <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -77,78 +77,88 @@ class SitemapURLDeletionTest {
             </urlset>
             """;
 
-    @WebCrawlingTest(config = """
+        @WebCrawlingTest(config = """
             recrawlableResolver:
               class: GenericRecrawlableResolver
               sitemapSupport: NEVER
             """)
-    void testSitemapURLDeletion(ClientAndServer client, WebCrawlerConfig cfg)
-            throws CommitterException {
+        void testSitemapURLDeletion(ClientAndServer client,
+                        WebCrawlerConfig cfg)
+                        throws CommitterException {
 
-        cfg.setSitemapResolver(new GenericSitemapResolver())
-                .setStartReferencesSitemaps(
-                        List.of(serverUrl(client, sitemapPath)))
-                .setOrphansStrategy(OrphansStrategy.PROCESS);
+                cfg.setSitemapResolver(new GenericSitemapResolver())
+                                .setStartReferencesSitemaps(
+                                                List.of(serverUrl(client,
+                                                                sitemapPath)))
+                                .setOrphansStrategy(OrphansStrategy.PROCESS);
 
-        // First time, 3 upserts and 0 deletes
-        whenSitemap(client, true);
-        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
-        assertThat(mem.getUpsertRequests())
-                .map(UpsertRequest::getReference)
-                .containsExactlyInAnyOrder(
-                        serverUrl(client, page1Path),
-                        serverUrl(client, page2Path),
-                        serverUrl(client, page3Path));
-        assertThat(mem.getDeleteCount()).isZero();
-        mem.clean();
+                // First time, 3 upserts and 0 deletes
+                whenSitemap(client, true);
+                var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg)
+                                .getCommitter();
+                assertThat(mem.getUpsertRequests())
+                                .map(UpsertRequest::getReference)
+                                .containsExactlyInAnyOrder(
+                                                serverUrl(client, page1Path),
+                                                serverUrl(client, page2Path),
+                                                serverUrl(client, page3Path));
+                assertThat(mem.getDeleteCount()).isZero();
+                mem.clean();
 
-        // Second time, 1 add and 1 delete (2 unmodified)
-        whenSitemap(client, false);
-        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
-        assertThat(mem.getUpsertRequests())
-                .map(UpsertRequest::getReference)
-                .containsExactlyInAnyOrder(serverUrl(client, page33Path));
-        assertThat(mem.getDeleteRequests())
-                .map(DeleteRequest::getReference)
-                .containsExactlyInAnyOrder(serverUrl(client, page3Path));
-        mem.clean();
-    }
+                // Second time, 1 add and 1 delete (2 unmodified)
+                whenSitemap(client, false);
+                mem = WebCrawlingTestCapturer.crawlAndCapture(cfg)
+                                .getCommitter();
+                assertThat(mem.getUpsertRequests())
+                                .map(UpsertRequest::getReference)
+                                .containsExactlyInAnyOrder(
+                                                serverUrl(client, page33Path));
+                assertThat(mem.getDeleteRequests())
+                                .map(DeleteRequest::getReference)
+                                .containsExactlyInAnyOrder(
+                                                serverUrl(client, page3Path));
+                mem.clean();
+        }
 
-    // The URL that is 404 should not be deleted if marked not ready for
-    // recrawl.
-    @WebCrawlingTest
-    void testSitemapURLDeletionNotReadyForRecrawl(
-            ClientAndServer client, WebCrawlerConfig cfg)
-            throws CommitterException {
+        // The URL that is 404 should not be deleted if marked not ready for
+        // recrawl.
+        @WebCrawlingTest
+        void testSitemapURLDeletionNotReadyForRecrawl(
+                        ClientAndServer client, WebCrawlerConfig cfg)
+                        throws CommitterException {
 
-        cfg.setSitemapResolver(new GenericSitemapResolver())
-                .setStartReferencesSitemaps(
-                        List.of(serverUrl(client, sitemapPath)))
-                .setOrphansStrategy(OrphansStrategy.PROCESS);
+                cfg.setSitemapResolver(new GenericSitemapResolver())
+                                .setStartReferencesSitemaps(
+                                                List.of(serverUrl(client,
+                                                                sitemapPath)))
+                                .setOrphansStrategy(OrphansStrategy.PROCESS);
 
-        // First time, 3 upserts and 0 deletes
-        whenSitemap(client, true);
-        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
-        assertThat(mem.getUpsertRequests())
-                .map(UpsertRequest::getReference)
-                .containsExactlyInAnyOrder(
-                        serverUrl(client, page1Path),
-                        serverUrl(client, page2Path),
-                        serverUrl(client, page3Path));
-        assertThat(mem.getDeleteCount()).isZero();
-        mem.clean();
+                // First time, 3 upserts and 0 deletes
+                whenSitemap(client, true);
+                var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg)
+                                .getCommitter();
+                assertThat(mem.getUpsertRequests())
+                                .map(UpsertRequest::getReference)
+                                .containsExactlyInAnyOrder(
+                                                serverUrl(client, page1Path),
+                                                serverUrl(client, page2Path),
+                                                serverUrl(client, page3Path));
+                assertThat(mem.getDeleteCount()).isZero();
+                mem.clean();
 
-        // Second time, 1 add and 0 delete (not ready for recrawl)
-        whenSitemap(client, false);
-        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
-        assertThat(mem.getUpsertRequests())
-                .map(UpsertRequest::getReference)
-                .containsExactlyInAnyOrder(serverUrl(client, page33Path));
-        assertThat(mem.getDeleteRequests()).isEmpty();
-        mem.clean();
-    }
+                // Second time, 1 add and 0 delete (not ready for recrawl)
+                whenSitemap(client, false);
+                mem = WebCrawlingTestCapturer.crawlAndCapture(cfg)
+                                .getCommitter();
+                assertThat(mem.getUpsertRequests())
+                                .map(UpsertRequest::getReference)
+                                .containsExactlyInAnyOrder(
+                                                serverUrl(client, page33Path));
+                assertThat(mem.getDeleteRequests()).isEmpty();
+                mem.clean();
+        }
 
-    private void whenSitemap(ClientAndServer client, boolean firstTime) {
+        private void whenSitemap(ClientAndServer client, boolean firstTime) {
         // @formatter:off
         client.reset();
         client
@@ -184,5 +194,5 @@ class SitemapURLDeletionTest {
                     .withBody("Page 33 there second time only.", HTML_UTF_8));
         }
         // @formatter:on
-    }
+        }
 }

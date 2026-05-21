@@ -34,7 +34,7 @@ import com.norconex.crawler.core.session.CrawlerSession;
 class CrawlerEntryLedgerBootstrapperTest {
 
     /**
-     * Builds a mocked CrawlSession for testing.
+     * Builds a mocked CrawlerSession for testing.
      *
      * @param resumed        whether the session is resumed
      * @param queueCount     value returned by ledger.getQueueCount()

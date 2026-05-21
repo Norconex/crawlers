@@ -37,14 +37,14 @@ import com.norconex.crawler.web.mocks.MockWebsite;
 @MockServerSettings
 public class NonRecrawlablesRedirected {
 
-    private final String sitemapPath = "/sitemap.xml";
-    private final String page1Path = "/page1.html";
-    private final String page2Path = "/page2.html";
-    private final String page3Path = "/page3.html";
-    private final String page4Path = "/page4.html";
-    private final String page400Path = "/page400.html";
+   private final String sitemapPath = "/sitemap.xml";
+   private final String page1Path = "/page1.html";
+   private final String page2Path = "/page2.html";
+   private final String page3Path = "/page3.html";
+   private final String page4Path = "/page4.html";
+   private final String page400Path = "/page400.html";
 
-    private static final String SITEMAP_XML = """
+   private static final String SITEMAP_XML = """
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE xml>
             <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -71,75 +71,75 @@ public class NonRecrawlablesRedirected {
             </urlset>
             """;
 
-    @WebCrawlingTest
-    void testNonRecrawlablesRedirected(
-            ClientAndServer client, WebCrawlerConfig cfg)
-            throws CommitterException {
-        cfg.setStartReferencesSitemaps(List.of(serverUrl(client, sitemapPath)));
-        cfg.setOrphansStrategy(OrphansStrategy.DELETE);
-        cfg.setDocumentChecksummer(null);
-        cfg.setMetadataChecksummer(null);
+   @WebCrawlingTest
+   void testNonRecrawlablesRedirected(
+         ClientAndServer client, WebCrawlerConfig cfg)
+         throws CommitterException {
+      cfg.setStartReferencesSitemaps(List.of(serverUrl(client, sitemapPath)));
+      cfg.setOrphansStrategy(OrphansStrategy.DELETE);
+      cfg.setDocumentChecksummer(null);
+      cfg.setMetadataChecksummer(null);
 
-        mockServer(client);
+      mockServer(client);
 
-        // Run #1
-        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
-        assertThat(mem.getUpsertCount()).isEqualTo(4);
-        assertThat(mem.getDeleteCount()).isZero();
-        mem.clean();
+      // Run #1
+      var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
+      assertThat(mem.getUpsertCount()).isEqualTo(4);
+      assertThat(mem.getDeleteCount()).isZero();
+      mem.clean();
 
-        // Run #2
-        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
-        assertThat(mem.getUpsertCount()).isEqualTo(3);
-        assertThat(mem.getDeleteCount()).isZero();
-        mem.clean();
+      // Run #2
+      mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
+      assertThat(mem.getUpsertCount()).isEqualTo(3);
+      assertThat(mem.getDeleteCount()).isZero();
+      mem.clean();
 
-        // Run #3
-        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
-        assertThat(mem.getUpsertCount()).isEqualTo(3);
-        assertThat(mem.getDeleteCount()).isZero();
-        mem.clean();
+      // Run #3
+      mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
+      assertThat(mem.getUpsertCount()).isEqualTo(3);
+      assertThat(mem.getDeleteCount()).isZero();
+      mem.clean();
 
-        // Run #4
-        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
-        assertThat(mem.getUpsertCount()).isEqualTo(3);
-        assertThat(mem.getDeleteCount()).isZero();
-        mem.clean();
-    }
+      // Run #4
+      mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
+      assertThat(mem.getUpsertCount()).isEqualTo(3);
+      assertThat(mem.getDeleteCount()).isZero();
+      mem.clean();
+   }
 
-    private void mockServer(ClientAndServer client) {
-        client.reset();
+   private void mockServer(ClientAndServer client) {
+      client.reset();
 
-        // Sitemap
-        client.when(request(sitemapPath))
-                .respond(response().withBody(SITEMAP_XML.formatted(
-                        serverUrl(client, page1Path),
-                        serverUrl(client, page2Path),
-                        serverUrl(client, page3Path),
-                        serverUrl(client, page4Path),
-                        serverUrl(client, page400Path)),
-                        MediaType.XML_UTF_8));
+      // Sitemap
+      client.when(request(sitemapPath))
+            .respond(response().withBody(SITEMAP_XML.formatted(
+                  serverUrl(client, page1Path),
+                  serverUrl(client, page2Path),
+                  serverUrl(client, page3Path),
+                  serverUrl(client, page4Path),
+                  serverUrl(client, page400Path)),
+                  MediaType.XML_UTF_8));
 
-        // The links in ALL following pages should not be followed when
-        // sitemap is present and stayOnSitemap is true.
+      // The links in ALL following pages should not be followed when
+      // sitemap is present and stayOnSitemap is true.
 
-        var pathRegex = ".*page(\\d+).html$";
-        client.when(
-                request().withPath(pathRegex))
-                .respond(request -> {
-                    // Capture the matched group from the URL
-                    var pageNo = Integer.parseInt(request
-                            .getPath()
-                            .getValue()
-                            .replaceFirst(pathRegex, "$1"));
-                    if (pageNo <= 4) {
-                        return MockWebsite.redirectResponse(serverUrl(client,
-                                "/page%s.html".formatted(pageNo * 100)));
-                    }
-                    return MockWebsite.htmlResponseWithBody("""
+      var pathRegex = ".*page(\\d+).html$";
+      client.when(
+            request().withPath(pathRegex))
+            .respond(request -> {
+               // Capture the matched group from the URL
+               var pageNo = Integer.parseInt(request
+                     .getPath()
+                     .getValue()
+                     .replaceFirst(pathRegex, "$1"));
+               if (pageNo <= 4) {
+                  return MockWebsite.redirectResponse(serverUrl(client,
+                        "/page%s.html".formatted(pageNo * 100)));
+               }
+               return MockWebsite.htmlResponseWithBody("""
                             <h1>Page %1$s</h1>
                             <p>This is page %1$s.</p>
                             """.formatted(pageNo));
-                });
-    }
+            });
+   }
 }

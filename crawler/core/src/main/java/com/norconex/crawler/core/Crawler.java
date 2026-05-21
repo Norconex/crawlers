@@ -144,7 +144,8 @@ public class Crawler {
     }
 
     public void withCrawlSession(Consumer<CrawlerSession> c) {
-        try (var sess = CrawlerSessionFactory.create(crawlDriver, crawlConfig)) {
+        try (var sess =
+                CrawlerSessionFactory.create(crawlDriver, crawlConfig)) {
             c.accept(sess);
         }
     }

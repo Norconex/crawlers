@@ -82,7 +82,7 @@ import lombok.extern.slf4j.Slf4j;
 @NonNull
 public class CrawlerContext implements Closeable {
 
-    public static final String NAME = "CrawlContext";
+    public static final String NAME = "CrawlerContext";
 
     private final DedupService dedupService;
     private final CrawlerEntryLedger crawlEntryLedger;
@@ -143,7 +143,7 @@ public class CrawlerContext implements Closeable {
         getCrawlEntryLedger().init(session);
         // Publish the DOCUMENT_QUEUED application event from the component
         // that owns both session and ledger, keeping the ledger itself free
-        // of any dependency on CrawlerEvent or CrawlSession.
+        // of any dependency on CrawlerEvent or CrawlerSession.
         getCrawlEntryLedger()
                 .setQueuedListener(entry -> session.fire(CrawlerEvent.builder()
                         .name(CrawlerEvent.DOCUMENT_QUEUED)
@@ -166,7 +166,7 @@ public class CrawlerContext implements Closeable {
     // closes associated resources
     @Override
     public void close() {
-        LOG.info("Closing CrawlContext...");
+        LOG.info("Closing CrawlerContext...");
 
         // Defer shutdown
         swallow(() -> Optional.ofNullable(
@@ -193,6 +193,6 @@ public class CrawlerContext implements Closeable {
             }
         }, "Could not delete the temporary directory:" + tempDir);
 
-        LOG.info("CrawlContext closed.");
+        LOG.info("CrawlerContext closed.");
     }
 }

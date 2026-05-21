@@ -65,7 +65,8 @@ class StopCommandTest {
     }
 
     @SuppressWarnings("unchecked")
-    private List<String> resolveNodeUrls(CrawlerConfig config) throws Exception {
+    private List<String> resolveNodeUrls(CrawlerConfig config)
+            throws Exception {
         var command = new StopCommand(config, new String[0]);
         Method method = StopCommand.class.getDeclaredMethod("resolveNodeUrls");
         method.setAccessible(true);

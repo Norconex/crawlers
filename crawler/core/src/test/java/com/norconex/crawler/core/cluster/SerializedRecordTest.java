@@ -31,7 +31,8 @@ class SerializedRecordTest {
         var entry = new CrawlerEntry("http://example.com");
         var record = SerializedRecord.wrap(entry);
 
-        assertThat(record.getClassName()).isEqualTo(CrawlerEntry.class.getName());
+        assertThat(record.getClassName())
+                .isEqualTo(CrawlerEntry.class.getName());
         assertThat(record.getSerialized()).isNotBlank();
     }
 
@@ -100,7 +101,8 @@ class SerializedRecordTest {
         var entry = new CrawlerEntry("ref://item");
         var record = new SerializedRecord(entry);
 
-        assertThat(record.getClassName()).isEqualTo(CrawlerEntry.class.getName());
+        assertThat(record.getClassName())
+                .isEqualTo(CrawlerEntry.class.getName());
         assertThat(record.getSerialized()).contains("ref://item");
     }
 

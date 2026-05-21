@@ -25,10 +25,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BeforeFsCommand implements CrawlerCommandCallback {
 
-    @Override
-    public void accept(CrawlerSession session) {
-        var cfg = session.getCrawlContext().getCrawlConfig();
-        LOG.info("""
+  @Override
+  public void accept(CrawlerSession session) {
+    var cfg = session.getCrawlContext().getCrawlConfig();
+    LOG.info("""
 
                 Resuming:         %s
 
@@ -41,16 +41,16 @@ public class BeforeFsCommand implements CrawlerCommandCallback {
                   Checksummer:    %s
                   Deduplication:  %s
                 """.formatted(
-                yn(session.isResumed()),
-                yn(cfg.getMetadataChecksummer() != null),
-                yn(cfg.isMetadataDeduplicate()
-                        && cfg.getMetadataChecksummer() != null),
-                yn(cfg.getDocumentChecksummer() != null),
-                yn(cfg.isDocumentDeduplicate()
-                        && cfg.getDocumentChecksummer() != null)));
-    }
+        yn(session.isResumed()),
+        yn(cfg.getMetadataChecksummer() != null),
+        yn(cfg.isMetadataDeduplicate()
+            && cfg.getMetadataChecksummer() != null),
+        yn(cfg.getDocumentChecksummer() != null),
+        yn(cfg.isDocumentDeduplicate()
+            && cfg.getDocumentChecksummer() != null)));
+  }
 
-    private static String yn(boolean value) {
-        return value ? "Yes" : "No";
-    }
+  private static String yn(boolean value) {
+    return value ? "Yes" : "No";
+  }
 }

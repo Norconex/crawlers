@@ -37,7 +37,7 @@ import com.norconex.crawler.core.test.CrawlerTestInstrument;
 
 /**
  * End-to-end tests for the exception-handling paths in
- * {@code CrawlProcessStep.handleExceptionAndCheckIfStopCrawler}.
+ * {@code CrawlerProcessStep.handleExceptionAndCheckIfStopCrawler}.
  *
  * <p>To trigger {@code handleExceptionAndCheckIfStopCrawler}, an exception
  * must escape {@code ProcessUpsert.execute()}.  Because {@code MultiFetcher}

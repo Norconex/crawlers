@@ -200,7 +200,7 @@ public final class CrawlerEntryLedger {
      * Re-queues entries that were in QUEUED state from a previous run.
      * This is needed when the persistent queue fails to restore items
      * (e.g., due to partition ownership changes across restarts).
-     * Called by CrawlEntryLedgerBootstrapper during RUN LEVEL initialization.
+     * Called by CrawlerEntryLedgerBootstrapper during RUN LEVEL initialization.
      * @return the number of entries re-queued
      */
     public int requeueQueuedEntries() {
@@ -445,7 +445,7 @@ public final class CrawlerEntryLedger {
         if (LOG.isTraceEnabled()) {
             var queuedCount = activeLedger.count(
                     statusQueryFilter(ProcessingStatus.QUEUED));
-            LOG.trace("[{}] CrawlEntryLedger.nextQueuedBatch(batchSize={}) "
+            LOG.trace("[{}] CrawlerEntryLedger.nextQueuedBatch(batchSize={}) "
                     + "called. queuedCount={}.",
                     nodeName, batchSize, queuedCount);
         }
@@ -470,7 +470,7 @@ public final class CrawlerEntryLedger {
         }
 
         if (LOG.isTraceEnabled()) {
-            LOG.trace("[{}] CrawlEntryLedger.nextQueuedBatch returning "
+            LOG.trace("[{}] CrawlerEntryLedger.nextQueuedBatch returning "
                     + "{} entries.", nodeName, batch.size());
         }
         return batch;
@@ -510,7 +510,7 @@ public final class CrawlerEntryLedger {
         return requeuedCount;
     }
 
-    //    public Optional<CrawlEntry> nextQueued() {
+    //    public Optional<CrawlerEntry> nextQueued() {
     //        var query = statusQueryFilter(ProcessingStatus.QUEUED);
     //        var queuedEntries = currentLedger.queryIterator(query);
     //        if (!queuedEntries.hasNext()) {
@@ -695,7 +695,7 @@ public final class CrawlerEntryLedger {
     //     * @param reference the reference to claim
     //     * @return the updated entry if successfully claimed, otherwise empty
     //     */
-    //    private Optional<CrawlEntry> claimQueuedEntry(String reference) {
+    //    private Optional<CrawlerEntry> claimQueuedEntry(String reference) {
     //        var nodeName = session.getCluster().getLocalNode().getNodeName();
     //        var current = currentLedger.get(reference);
     //        if (current.isEmpty()) {
@@ -745,9 +745,9 @@ public final class CrawlerEntryLedger {
     //        // handles serialization/deserialization
     //        return "FROM %s WHERE processingStatus = '%s' ORDER BY %s"
     //                .formatted(
-    //                        CrawlEntry.class.getName(),
+    //                        CrawlerEntry.class.getName(),
     //                        ProcessingStatus.QUEUED.name(),
-    //                        CrawlEntry.Fields.queuedAt);
+    //                        CrawlerEntry.Fields.queuedAt);
     //    }
     //
     //    // To stream in slightly larger batches for efficiency on multi-nodes

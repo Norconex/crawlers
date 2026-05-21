@@ -117,7 +117,8 @@ class BeforeWebCrawlerDocFinalizingTest {
         return entry;
     }
 
-    private static WebCrawlerEntry baselineEntry(String ref, List<String> urls) {
+    private static WebCrawlerEntry baselineEntry(String ref,
+            List<String> urls) {
         var entry = new WebCrawlerEntry(ref, 2);
         entry.setReferencedUrls(urls);
         return entry;

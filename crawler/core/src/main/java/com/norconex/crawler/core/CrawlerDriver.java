@@ -43,57 +43,57 @@ import lombok.experimental.Accessors;
 @NonNull
 public class CrawlerDriver {
 
-    @Default
-    private final CrawlerPipelineFactory crawlPipelineFactory =
-            new DefaultCrawlPipelineFactory();
+        @Default
+        private final CrawlerPipelineFactory crawlPipelineFactory =
+                        new DefaultCrawlPipelineFactory();
 
-    @Default
-    private final Class<? extends CrawlerConfig> crawlerConfigClass =
-            CrawlerConfig.class;
+        @Default
+        private final Class<? extends CrawlerConfig> crawlerConfigClass =
+                        CrawlerConfig.class;
 
-    @Default
-    private final List<CrawlerBootstrapper> bootstrappers =
-            new ArrayList<>(List.of(
-                    new CrawlerEntryLedgerBootstrapper()));
+        @Default
+        private final List<CrawlerBootstrapper> bootstrappers =
+                        new ArrayList<>(List.of(
+                                        new CrawlerEntryLedgerBootstrapper()));
 
-    private final CrawlerDocPipelines docPipelines;
-    @Default
-    private final CrawlerCallbacks callbacks =
-            CrawlerCallbacks.builder().build();
-    @Default
-    private final BeanMapper beanMapper = BeanMapper.DEFAULT;
-    @Default
-    private final EventManager eventManager = new EventManager();
-    /**
-     * Provides a required fetcher implementation, responsible for obtaining
-     * resources being crawled.
-     */
-    private final FetchDriver fetchDriver;
+        private final CrawlerDocPipelines docPipelines;
+        @Default
+        private final CrawlerCallbacks callbacks =
+                        CrawlerCallbacks.builder().build();
+        @Default
+        private final BeanMapper beanMapper = BeanMapper.DEFAULT;
+        @Default
+        private final EventManager eventManager = new EventManager();
+        /**
+         * Provides a required fetcher implementation, responsible for obtaining
+         * resources being crawled.
+         */
+        private final FetchDriver fetchDriver;
 
-    /**
-     * The exact type of {@link CrawlerEntry} if your crawler is subclassing
-     * it. Defaults to {@link CrawlerEntry} class.
-     */
-    @Default
-    private final Class<? extends CrawlerEntry> crawlEntryType =
-            CrawlerEntry.class;
+        /**
+         * The exact type of {@link CrawlerEntry} if your crawler is subclassing
+         * it. Defaults to {@link CrawlerEntry} class.
+         */
+        @Default
+        private final Class<? extends CrawlerEntry> crawlEntryType =
+                        CrawlerEntry.class;
 
-    /**
-     * Optional map of Hazelcast map-config-name (or wildcard pattern as
-     * declared in the YAML, e.g. {@code "ledger_*"}) to the concrete Java
-     * type that should be (de)serialized for values in that map.
-     * The framework automatically adds the {@code ledger_*} mapping using
-     * {@link #crawlEntryType}. Extensions that persist their own types should
-     * add their entries here.
-     */
-    @Default
-    private final Map<String, Class<?>> cacheTypes = new HashMap<>();
+        /**
+         * Optional map of Hazelcast map-config-name (or wildcard pattern as
+         * declared in the YAML, e.g. {@code "ledger_*"}) to the concrete Java
+         * type that should be (de)serialized for values in that map.
+         * The framework automatically adds the {@code ledger_*} mapping using
+         * {@link #crawlEntryType}. Extensions that persist their own types should
+         * add their entries here.
+         */
+        @Default
+        private final Map<String, Class<?>> cacheTypes = new HashMap<>();
 
-    @Accessors(fluent = true)
-    @Data
-    @NonNull
-    public static class FetchDriver {
-        private UnsuccessfulResponseFactory unsuccesfulResponseFactory;
-        private ResponseAggregator responseAggregator;
-    }
+        @Accessors(fluent = true)
+        @Data
+        @NonNull
+        public static class FetchDriver {
+                private UnsuccessfulResponseFactory unsuccesfulResponseFactory;
+                private ResponseAggregator responseAggregator;
+        }
 }

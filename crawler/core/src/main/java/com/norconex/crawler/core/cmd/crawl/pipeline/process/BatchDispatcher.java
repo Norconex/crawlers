@@ -76,7 +76,7 @@ public class BatchDispatcher {
                     + "or global queue.",
                     nodeName);
             // Return null immediately if queue is empty
-            // Let CrawlActivityChecker handle idle timeout logic
+            // Let CrawlerActivityChecker handle idle timeout logic
             return null;
         }
     }

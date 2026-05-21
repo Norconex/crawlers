@@ -23,7 +23,8 @@ public final class WebCrawlerCallbacks {
                     .builder()
                     .beforeCommand(new BeforeWebCommand())
                     .beforeDocumentProcessing(new WebCrawlerDocInitializer())
-                    .beforeDocumentFinalizing(new BeforeWebCrawlerDocFinalizing())
+                    .beforeDocumentFinalizing(
+                            new BeforeWebCrawlerDocFinalizing())
                     .build();
 
     private WebCrawlerCallbacks() {

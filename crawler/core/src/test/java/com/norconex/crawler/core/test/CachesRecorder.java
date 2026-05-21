@@ -38,7 +38,8 @@ public class CachesRecorder
     private boolean enabled;
 
     @Override
-    public void accept(CrawlerSession session, Class<? extends Command> cmdCls) {
+    public void accept(CrawlerSession session,
+            Class<? extends Command> cmdCls) {
 
         // We only export caches from the coordinator and if the
         // command is a crawl command
