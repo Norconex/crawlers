@@ -17,8 +17,8 @@ package com.norconex.crawler.core.cmd.crawl.pipeline.process;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import com.norconex.crawler.core.ledger.CrawlEntry;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
@@ -36,13 +36,13 @@ public class BatchDispatcher {
      * so the local node queue never gets dry.
      */
     private final int lowWatermark;
-    private final CrawlSession session;
+    private final CrawlerSession session;
 
-    private final BlockingQueue<CrawlEntry> localQueue =
+    private final BlockingQueue<CrawlerEntry> localQueue =
             new LinkedBlockingQueue<>();
     private final Object refillLock = new Object();
 
-    public CrawlEntry take() {
+    public CrawlerEntry take() {
         var ledger = session.getCrawlContext().getCrawlEntryLedger();
         var nodeName = session.getCluster().getLocalNode().getNodeName();
         while (true) {
@@ -76,7 +76,7 @@ public class BatchDispatcher {
                     + "or global queue.",
                     nodeName);
             // Return null immediately if queue is empty
-            // Let CrawlActivityChecker handle idle timeout logic
+            // Let CrawlerActivityChecker handle idle timeout logic
             return null;
         }
     }

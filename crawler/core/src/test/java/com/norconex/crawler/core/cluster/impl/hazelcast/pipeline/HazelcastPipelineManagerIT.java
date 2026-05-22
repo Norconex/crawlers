@@ -34,7 +34,7 @@ import com.norconex.crawler.core.cluster.pipeline.Pipeline;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 /**
  * Unit/component tests for the guard paths and query methods of
@@ -71,7 +71,8 @@ class HazelcastPipelineManagerIT {
         var progress = mgr.getPipelineProgress("nonexistent-pipeline");
 
         assertThat(progress).isNotNull();
-        assertThat(progress.getStatus()).isSameAs(PipelineStatus.PENDING);
+        assertThat(progress.getStatus())
+                .isSameAs(PipelineStatus.PENDING);
     }
 
     // -----------------------------------------------------------------------
@@ -140,7 +141,8 @@ class HazelcastPipelineManagerIT {
     // -----------------------------------------------------------------------
 
     @Test
-    void addAndRemoveWorkerStatusListener_doesNotThrow() throws IOException {
+    void addAndRemoveWorkerStatusListener_doesNotThrow()
+            throws IOException {
         var mgr = startManager("worker-listener");
 
         com.norconex.crawler.core.cluster.impl.hazelcast.event.CacheEntryChangeListener<
@@ -168,7 +170,8 @@ class HazelcastPipelineManagerIT {
         cluster.init(workDir, false);
 
         // Bind a minimal mock session so actions that reference it don't NPE
-        var mockSession = org.mockito.Mockito.mock(CrawlSession.class);
+        var mockSession =
+                org.mockito.Mockito.mock(CrawlerSession.class);
         org.mockito.Mockito.when(mockSession.getCrawlerId())
                 .thenReturn("test-crawler");
         org.mockito.Mockito.when(mockSession.getCrawlSessionId())

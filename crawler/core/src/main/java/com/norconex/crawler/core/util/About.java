@@ -27,7 +27,7 @@ import org.apache.commons.lang3.SystemUtils;
 
 import com.norconex.committer.core.Committer;
 import com.norconex.commons.lang.PackageManifest;
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 
 public final class About {
     /** Simple ASCI art of Norconex. */
@@ -44,7 +44,7 @@ public final class About {
     private About() {
     }
 
-    public static String about(CrawlConfig config) {
+    public static String about(CrawlerConfig config) {
         try (var sw = new StringWriter(); var w = new PrintWriter(sw, true)) {
 
             w.println(NORCONEX_ASCII);
@@ -90,7 +90,7 @@ public final class About {
         return "Undefined";
     }
 
-    private static Set<Class<?>> configuredCommitters(CrawlConfig config) {
+    private static Set<Class<?>> configuredCommitters(CrawlerConfig config) {
         return config
                 .getCommitters()
                 .stream()

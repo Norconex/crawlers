@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.map.Properties;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
+import com.norconex.crawler.core.doc.CrawlerDocMetaConstants;
 import com.norconex.crawler.core.doc.operations.checksum.impl.GenericMetadataChecksummer;
 import com.norconex.crawler.core.doc.operations.checksum.impl.GenericMetadataChecksummerConfig;
 import com.norconex.crawler.core.doc.operations.checksum.impl.Md5DocumentChecksummer;
@@ -150,7 +150,7 @@ class ChecksumTest {
         meta.set("myField", "myValue");
 
         var checksum = checksummer.createMetadataChecksum(meta);
-        assertThat(meta.getString(CrawlDocMetaConstants.CHECKSUM_METADATA))
+        assertThat(meta.getString(CrawlerDocMetaConstants.CHECKSUM_METADATA))
                 .isEqualTo(checksum);
     }
 
@@ -197,7 +197,7 @@ class ChecksumTest {
 
         // Default field is CHECKSUM_DOC
         assertThat(doc.getMetadata()
-                .getString(CrawlDocMetaConstants.CHECKSUM_DOC))
+                .getString(CrawlerDocMetaConstants.CHECKSUM_DOC))
                         .isEqualTo(checksum);
     }
 

@@ -14,14 +14,14 @@
  */
 package com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue;
 
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Enqueues references from files obtained from the crawler configuration
- * {@link CrawlConfig#getStartReferencesProviders()}.
+ * {@link CrawlerConfig#getStartReferencesProviders()}.
  */
 @Slf4j
 public class RefProviderEnqueuer implements ReferenceEnqueuer {

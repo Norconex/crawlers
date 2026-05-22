@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.fs;
 
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.core.cli.CliCrawlerLauncher;
 
@@ -42,7 +42,7 @@ public final class FsCrawler {
         return CliCrawlerLauncher.launch(FsCrawlerDriverFactory.create(), args);
     }
 
-    public static Crawler create(CrawlConfig crawlConfig) {
+    public static Crawler create(CrawlerConfig crawlConfig) {
         return new Crawler(FsCrawlerDriverFactory.create(), crawlConfig);
     }
 }

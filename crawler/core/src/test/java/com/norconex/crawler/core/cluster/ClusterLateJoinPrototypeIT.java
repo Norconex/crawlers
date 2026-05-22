@@ -29,20 +29,21 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.commons.lang.config.Configurable;
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.cluster.impl.hazelcast.HazelcastClusterConnector;
 import com.norconex.crawler.core.cluster.impl.hazelcast.JdbcHazelcastConfigurer;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
-import com.norconex.crawler.core.test.CrawlTestHarness;
-import com.norconex.crawler.core.test.CrawlTestInstrument;
+import com.norconex.crawler.core.test.CrawlerTestHarness;
+import com.norconex.crawler.core.test.CrawlerTestInstrument;
 
 @WithTestWatcherLogging
 @Timeout(180)
 class ClusterLateJoinPrototypeIT {
 
-    private static final Duration CLUSTER_JOIN_WAIT = Duration.ofSeconds(120);
+    private static final Duration CLUSTER_JOIN_WAIT =
+            Duration.ofSeconds(120);
     private static final Duration RESULT_RECORD_INTERVAL =
             Duration.ofMillis(200);
     private static final Duration TEST_IDLE_TIMEOUT = Duration.ofSeconds(5);
@@ -64,30 +65,40 @@ class ClusterLateJoinPrototypeIT {
                 .setRecordCaches(false)
                 .setConfigModifier(cfg -> {
                     baseConfig(numOfRefs, 10).accept(cfg);
-                    cfg.setId("prototype-late-join-" + numOfRefs);
+                    cfg.setId("prototype-late-join-"
+                            + numOfRefs);
                     cfg.setMaxQueueBatchSize(1);
 
                     var connector = (HazelcastClusterConnector) cfg
-                            .getClusterConfig().getConnector();
-                    var hzConfig = connector.getConfiguration();
+                            .getClusterConfig()
+                            .getConnector();
+                    var hzConfig = connector
+                            .getConfiguration();
                     var configurer = (JdbcHazelcastConfigurer) hzConfig
                             .getConfigurer();
-                    configurer.setAutoDiscoveryEnabled(true);
+                    configurer.setAutoDiscoveryEnabled(
+                            true);
                 })
                 .setNodeConfigModifier((nodeName, cfg) -> {
                     if ("node-1".equals(nodeName)) {
                         cfg.setNumThreads(1);
-                        cfg.setFetchers(List.of(new ClusterJoinGateFetcher()
-                                .setRequiredNodeCount(2)
-                                .setGatedRefs(List.of("ref-0"))));
+                        cfg.setFetchers(List.of(
+                                new ClusterJoinGateFetcher()
+                                        .setRequiredNodeCount(
+                                                2)
+                                        .setGatedRefs(List
+                                                .of("ref-0"))));
                         return;
                     }
                     cfg.setNumThreads(2);
-                    cfg.setFetchers(List.of(Configurable.configure(
-                            new MockFetcher(),
-                            fcfg -> fcfg.setDelay(Duration.ZERO))));
+                    cfg.setFetchers(List.of(
+                            Configurable.configure(
+                                    new MockFetcher(),
+                                    fcfg -> fcfg.setDelay(
+                                            Duration.ZERO))));
                 }))) {
-            var initialFuture = harness.launchAsync(initialNodeNames);
+            var initialFuture =
+                    harness.launchAsync(initialNodeNames);
             harness.waitFor(CLUSTER_JOIN_WAIT).nodeToHaveFired(
                     initialNodeNames[0],
                     CrawlerEvent.DOCUMENT_PROCESSING_BEGIN);
@@ -101,7 +112,8 @@ class ClusterLateJoinPrototypeIT {
                     CrawlerEvent.DOCUMENT_IMPORTED);
 
             CompletableFuture.allOf(initialFuture, lateFuture)
-                    .get(remainingMillis(completionDeadlineNanos),
+                    .get(remainingMillis(
+                            completionDeadlineNanos),
                             TimeUnit.MILLISECONDS);
 
             var initialResult = initialFuture.join();
@@ -115,7 +127,8 @@ class ClusterLateJoinPrototypeIT {
                     .getCount(CrawlerEvent.DOCUMENT_IMPORTED))
                             .isGreaterThan(0);
             assertThat(
-                    initialResult.getNodeOutput("node-1").getEventNameBag()
+                    initialResult.getNodeOutput("node-1")
+                            .getEventNameBag()
                             .getCount(CrawlerEvent.DOCUMENT_IMPORTED))
                                     .isGreaterThan(0);
         }
@@ -127,24 +140,26 @@ class ClusterLateJoinPrototypeIT {
             throw new IllegalStateException(
                     "Prototype wait budget exhausted.");
         }
-        return Math.max(1, TimeUnit.NANOSECONDS.toMillis(remainingNanos));
+        return Math.max(1,
+                TimeUnit.NANOSECONDS.toMillis(remainingNanos));
     }
 
-    private CrawlTestHarness newHarness(
-            Consumer<CrawlTestInstrument> instrumentModifier) {
-        var instrument = new CrawlTestInstrument()
+    private CrawlerTestHarness newHarness(
+            Consumer<CrawlerTestInstrument> instrumentModifier) {
+        var instrument = new CrawlerTestInstrument()
                 .setRecordInterval(RESULT_RECORD_INTERVAL)
                 .setWorkDir(tempDir)
                 .setNewJvm(false)
                 .setClustered(true);
         instrumentModifier.accept(instrument);
-        return new CrawlTestHarness(instrument);
+        return new CrawlerTestHarness(instrument);
     }
 
-    private static Consumer<CrawlConfig> baseConfig(int numOfRefs,
+    private static Consumer<CrawlerConfig> baseConfig(int numOfRefs,
             long delayMs) {
         return cfg -> cfg
-                .setStartReferences(IntStream.range(0, numOfRefs)
+                .setStartReferences(IntStream
+                        .range(0, numOfRefs)
                         .mapToObj(i -> "ref-" + i)
                         .toList())
                 .setId("prototype-crawler-" + numOfRefs)
@@ -153,6 +168,7 @@ class ClusterLateJoinPrototypeIT {
                 .setIdleTimeout(TEST_IDLE_TIMEOUT)
                 .setFetchers(List.of(Configurable.configure(
                         new MockFetcher(),
-                        fcfg -> fcfg.setDelay(Duration.ofMillis(delayMs)))));
+                        fcfg -> fcfg.setDelay(Duration
+                                .ofMillis(delayMs)))));
     }
 }

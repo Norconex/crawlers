@@ -30,7 +30,7 @@ import org.mockserver.model.MediaType;
 import com.norconex.committer.core.CommitterException;
 import com.norconex.committer.core.DeleteRequest;
 import com.norconex.committer.core.UpsertRequest;
-import com.norconex.crawler.core.CrawlConfig.OrphansStrategy;
+import com.norconex.crawler.core.CrawlerConfig.OrphansStrategy;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.doc.operations.sitemap.impl.GenericSitemapResolver;
 import com.norconex.crawler.web.junit.WebCrawlingTest;
@@ -82,17 +82,20 @@ class SitemapURLDeletionTest {
               class: GenericRecrawlableResolver
               sitemapSupport: NEVER
             """)
-    void testSitemapURLDeletion(ClientAndServer client, WebCrawlerConfig cfg)
+    void testSitemapURLDeletion(ClientAndServer client,
+            WebCrawlerConfig cfg)
             throws CommitterException {
 
         cfg.setSitemapResolver(new GenericSitemapResolver())
                 .setStartReferencesSitemaps(
-                        List.of(serverUrl(client, sitemapPath)))
+                        List.of(serverUrl(client,
+                                sitemapPath)))
                 .setOrphansStrategy(OrphansStrategy.PROCESS);
 
         // First time, 3 upserts and 0 deletes
         whenSitemap(client, true);
-        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg)
+                .getCommitter();
         assertThat(mem.getUpsertRequests())
                 .map(UpsertRequest::getReference)
                 .containsExactlyInAnyOrder(
@@ -104,13 +107,16 @@ class SitemapURLDeletionTest {
 
         // Second time, 1 add and 1 delete (2 unmodified)
         whenSitemap(client, false);
-        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
+        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg)
+                .getCommitter();
         assertThat(mem.getUpsertRequests())
                 .map(UpsertRequest::getReference)
-                .containsExactlyInAnyOrder(serverUrl(client, page33Path));
+                .containsExactlyInAnyOrder(
+                        serverUrl(client, page33Path));
         assertThat(mem.getDeleteRequests())
                 .map(DeleteRequest::getReference)
-                .containsExactlyInAnyOrder(serverUrl(client, page3Path));
+                .containsExactlyInAnyOrder(
+                        serverUrl(client, page3Path));
         mem.clean();
     }
 
@@ -123,12 +129,14 @@ class SitemapURLDeletionTest {
 
         cfg.setSitemapResolver(new GenericSitemapResolver())
                 .setStartReferencesSitemaps(
-                        List.of(serverUrl(client, sitemapPath)))
+                        List.of(serverUrl(client,
+                                sitemapPath)))
                 .setOrphansStrategy(OrphansStrategy.PROCESS);
 
         // First time, 3 upserts and 0 deletes
         whenSitemap(client, true);
-        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
+        var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg)
+                .getCommitter();
         assertThat(mem.getUpsertRequests())
                 .map(UpsertRequest::getReference)
                 .containsExactlyInAnyOrder(
@@ -140,10 +148,12 @@ class SitemapURLDeletionTest {
 
         // Second time, 1 add and 0 delete (not ready for recrawl)
         whenSitemap(client, false);
-        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
+        mem = WebCrawlingTestCapturer.crawlAndCapture(cfg)
+                .getCommitter();
         assertThat(mem.getUpsertRequests())
                 .map(UpsertRequest::getReference)
-                .containsExactlyInAnyOrder(serverUrl(client, page33Path));
+                .containsExactlyInAnyOrder(
+                        serverUrl(client, page33Path));
         assertThat(mem.getDeleteRequests()).isEmpty();
         mem.clean();
     }

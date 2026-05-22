@@ -14,10 +14,10 @@
  */
 package com.norconex.crawler.core.doc.pipelines.importer;
 
-import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.doc.CrawlerDocContext;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.importer.response.ImporterResponse;
 
 import lombok.Data;
@@ -32,8 +32,8 @@ import lombok.Data;
 @Data
 public class ImporterPipelineContext {
 
-    private final CrawlSession crawlSession;
-    private final CrawlDocContext docContext;
+    private final CrawlerSession crawlSession;
+    private final CrawlerDocContext docContext;
 
     private ImporterResponse importerResponse;
 
@@ -58,7 +58,8 @@ public class ImporterPipelineContext {
         // current directive is DOCUMENT, then metadata had to be performed.
         return currentDirective == FetchDirective.DOCUMENT
                 && FetchDirectiveSupport.isEnabled(
-                        crawlSession.getCrawlContext().getCrawlConfig()
+                        crawlSession.getCrawlContext()
+                                .getCrawlConfig()
                                 .getMetadataFetchSupport());
     }
 
@@ -71,11 +72,14 @@ public class ImporterPipelineContext {
     public boolean isFetchDirectiveEnabled(FetchDirective directive) {
         return (directive == FetchDirective.METADATA
                 && FetchDirectiveSupport.isEnabled(
-                        crawlSession.getCrawlContext().getCrawlConfig()
+                        crawlSession.getCrawlContext()
+                                .getCrawlConfig()
                                 .getMetadataFetchSupport()))
                 || (directive == FetchDirective.DOCUMENT
-                        && FetchDirectiveSupport.isEnabled(
-                                crawlSession.getCrawlContext().getCrawlConfig()
-                                        .getDocumentFetchSupport()));
+                        && FetchDirectiveSupport
+                                .isEnabled(
+                                        crawlSession.getCrawlContext()
+                                                .getCrawlConfig()
+                                                .getDocumentFetchSupport()));
     }
 }

@@ -15,7 +15,7 @@
 package com.norconex.crawler.core.doc.operations.checksum;
 
 import com.norconex.commons.lang.map.PropertySetter;
-import com.norconex.crawler.core.doc.CrawlDocMetaConstants;
+import com.norconex.crawler.core.doc.CrawlerDocMetaConstants;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -25,7 +25,7 @@ import lombok.experimental.Accessors;
  * to keep the generated checksum.  The checksum can be stored
  * in a target field name specified.  If no target field name is specified,
  * it stores it under the
- * metadata field name {@link CrawlDocMetaConstants#CHECKSUM_METADATA}.
+ * metadata field name {@link CrawlerDocMetaConstants#CHECKSUM_METADATA}.
  * </p><p>
  * <b>Implementors do not need to store the checksum themselves, this abstract
  * class does it.</b>

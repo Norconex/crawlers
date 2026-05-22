@@ -96,7 +96,7 @@ import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.doc.operations.url.impl.GenericUrlNormalizerConfig.Normalization;
 import com.norconex.crawler.web.fetch.HttpMethod;
 import com.norconex.crawler.web.fetch.WebFetchRequest;
@@ -245,11 +245,15 @@ public class HttpClientFetcher
                 if (docCtx != null) {
                     var crawlEntry = (WebCrawlerEntry) docCtx
                             .getCurrentCrawlEntry();
-                    HstsResolver.resolve(httpClient, crawlEntry);
-                    requestReference = crawlEntry.getReference();
-                    if (!Strings.CS.equals(doc.getReference(),
+                    HstsResolver.resolve(httpClient,
+                            crawlEntry);
+                    requestReference = crawlEntry
+                            .getReference();
+                    if (!Strings.CS.equals(
+                            doc.getReference(),
                             requestReference)) {
-                        effectiveDoc = doc.withReference(requestReference);
+                        effectiveDoc = doc
+                                .withReference(requestReference);
                         docCtx.setDoc(effectiveDoc);
                     }
                 }
@@ -275,11 +279,13 @@ public class HttpClientFetcher
 
             if (!configuration.isETagDisabled()) {
                 ApacheHttpUtil.setRequestIfNoneMatch(
-                        request, req.getCrawlDocContext());
+                        request,
+                        req.getCrawlDocContext());
             }
             if (!configuration.isIfModifiedSinceDisabled()) {
                 ApacheHttpUtil.setRequestIfModifiedSince(
-                        request, req.getCrawlDocContext());
+                        request,
+                        req.getCrawlDocContext());
             }
 
             // Execute the method.
@@ -287,17 +293,22 @@ public class HttpClientFetcher
             if (kerberosSubject != null) {
                 return Subject.callAs(kerberosSubject,
                         (Callable<WebFetchResponse>) () -> executeRequest(
-                                execRequest, ctx, req,
-                                responseDoc, method));
+                                execRequest,
+                                ctx, req,
+                                responseDoc,
+                                method));
             }
             return executeRequest(
-                    execRequest, ctx, req, responseDoc, method);
+                    execRequest, ctx, req, responseDoc,
+                    method);
 
         } catch (Exception e) {
             analyseException(e);
             //MAYBE set exception on response instead?
             throw new FetchException(
-                    "Could not fetch document: " + doc.getReference(), e);
+                    "Could not fetch document: "
+                            + doc.getReference(),
+                    e);
         }
     }
 
@@ -313,7 +324,8 @@ public class HttpClientFetcher
 
             LOG.debug(
                     "Fetch status for: \"{}\": {} - {}",
-                    responseDoc.getReference(), statusCode, reason);
+                    responseDoc.getReference(), statusCode,
+                    reason);
 
             var responseBuilder = HttpClientFetchResponse.builder()
                     .statusCode(statusCode)
@@ -321,7 +333,8 @@ public class HttpClientFetcher
                     .userAgent(configuration.getUserAgent())
                     .redirectTarget(
                             ApacheRedirectCaptureStrategy
-                                    .getRedirectTarget(ctx));
+                                    .getRedirectTarget(
+                                            ctx));
 
             //--- Extract headers ---
             var docCtxForHeaders = req.getCrawlDocContext();
@@ -353,7 +366,8 @@ public class HttpClientFetcher
                     .contains(statusCode)) {
                 userToken = ctx.getUserToken();
                 return responseBuilder
-                        .processingOutcome(ProcessingOutcome.NEW)
+                        .processingOutcome(
+                                ProcessingOutcome.NEW)
                         .build();
             }
 
@@ -398,7 +412,7 @@ public class HttpClientFetcher
     }
 
     @Override
-    protected void fetcherStartup(CrawlSession crawler) {
+    protected void fetcherStartup(CrawlerSession crawler) {
         httpClient = createHttpClient();
         var userAgent = configuration.getUserAgent();
         if (StringUtils.isBlank(userAgent)) {
@@ -412,14 +426,15 @@ public class HttpClientFetcher
         }
 
         if (configuration.getAuthentication() != null
-                && HttpAuthMethod.FORM == configuration.getAuthentication()
+                && HttpAuthMethod.FORM == configuration
+                        .getAuthentication()
                         .getMethod()) {
             authenticateUsingForm(httpClient);
         }
     }
 
     @Override
-    protected void fetcherShutdown(CrawlSession c) {
+    protected void fetcherShutdown(CrawlerSession c) {
         if (httpClient instanceof CloseableHttpClient hc) {
             try {
                 hc.close();
@@ -443,7 +458,8 @@ public class HttpClientFetcher
                     || doc.getContentType() == null) {
                 doc.setContentType(
                         ContentTypeDetector.detect(
-                                doc.getInputStream(), doc.getReference()));
+                                doc.getInputStream(),
+                                doc.getReference()));
             }
         } catch (IOException e) {
             LOG.warn("Cannont perform content type detection.", e);
@@ -453,7 +469,8 @@ public class HttpClientFetcher
                     || doc.getCharset() == null) {
                 doc.setCharset(
                         CharsetDetector.builder()
-                                .build().detect(doc.getInputStream()));
+                                .build()
+                                .detect(doc.getInputStream()));
             }
         } catch (IOException e) {
             LOG.warn("Cannot perform charset type detection.", e);
@@ -473,12 +490,14 @@ public class HttpClientFetcher
         builder.setSchemePortResolver(schemePortResolver);
         builder.setDefaultRequestConfig(createRequestConfig());
         builder.setProxy(createProxy());
-        builder.setDefaultCredentialsProvider(createCredentialsProvider());
+        builder.setDefaultCredentialsProvider(
+                createCredentialsProvider());
         builder.setUserAgent(configuration.getUserAgent());
         builder.evictExpiredConnections();
         ofNullable(configuration.getMaxConnectionIdleTime()).ifPresent(
                 d -> builder
-                        .evictIdleConnections(ofMilliseconds(d.toMillis())));
+                        .evictIdleConnections(
+                                ofMilliseconds(d.toMillis())));
         builder.setDefaultHeaders(createDefaultRequestHeaders());
         builder.setDefaultCookieStore(createDefaultCookieStore());
         builder.setRedirectStrategy(
@@ -499,7 +518,8 @@ public class HttpClientFetcher
 
         ofNullable(configuration.getSocketTimeout()).ifPresent(
                 d -> tlsBuilder.setHandshakeTimeout(
-                        d.toMillis(), TimeUnit.MINUTES));
+                        d.toMillis(),
+                        TimeUnit.MINUTES));
         if (!configuration.getSslProtocols().isEmpty()) {
             tlsBuilder.setSupportedProtocols(
                     configuration
@@ -507,8 +527,10 @@ public class HttpClientFetcher
                             .toArray(EMPTY_STRING_ARRAY));
         }
         var connBuilder =
-                PoolingHttpClientConnectionManagerBuilder.create()
-                        .setDefaultTlsConfig(tlsBuilder.build())
+                PoolingHttpClientConnectionManagerBuilder
+                        .create()
+                        .setDefaultTlsConfig(tlsBuilder
+                                .build())
                         .setDefaultConnectionConfig(
                                 createConnectionConfig())
                         .setMaxConnTotal(
@@ -531,7 +553,8 @@ public class HttpClientFetcher
             @Override
             protected InetAddress determineLocalAddress(
                     HttpHost firstHop,
-                    HttpContext context) throws HttpException {
+                    HttpContext context)
+                    throws HttpException {
                 try {
                     return InetAddress.getByName(
                             configuration.getLocalAddress());
@@ -556,11 +579,13 @@ public class HttpClientFetcher
     protected void authenticateUsingForm(HttpClient httpClient) {
         try {
             ApacheHttpUtil.authenticateUsingForm(
-                    httpClient, configuration.getAuthentication());
+                    httpClient,
+                    configuration.getAuthentication());
         } catch (IOException | URISyntaxException e) {
             analyseException(e);
             throw new CrawlerException(
-                    "Could not perform FORM-based authentication.", e);
+                    "Could not perform FORM-based authentication.",
+                    e);
         }
     }
 
@@ -589,7 +614,9 @@ public class HttpClientFetcher
         for (String name : configuration.getRequestHeaderNames()) {
             headers.add(
                     new BasicHeader(
-                            name, configuration.getRequestHeader(name)));
+                            name,
+                            configuration.getRequestHeader(
+                                    name)));
         }
 
         //--- preemptive headers
@@ -599,10 +626,12 @@ public class HttpClientFetcher
         // together and we add the preemptive authentication directly
         // in the default HTTP headers.
         if (configuration.getAuthentication() != null
-                && configuration.getAuthentication().isPreemptive()) {
+                && configuration.getAuthentication()
+                        .isPreemptive()) {
             var authConfig = configuration.getAuthentication();
             if (StringUtils.isBlank(
-                    authConfig.getCredentials().getUsername())) {
+                    authConfig.getCredentials()
+                            .getUsername())) {
                 LOG.warn(
                         "Preemptive authentication is enabled while no "
                                 + "username was provided.");
@@ -621,7 +650,8 @@ public class HttpClientFetcher
             var encodedAuth = Base64.encodeBase64(
                     auth.getBytes(StandardCharsets.ISO_8859_1));
             var authHeader = "Basic " + new String(encodedAuth);
-            headers.add(new BasicHeader(HttpHeaders.AUTHORIZATION, authHeader));
+            headers.add(new BasicHeader(HttpHeaders.AUTHORIZATION,
+                    authHeader));
         }
         return headers;
     }
@@ -633,25 +663,32 @@ public class HttpClientFetcher
     protected RequestConfig createRequestConfig() {
         var builder = RequestConfig.custom();
 
-        ofNullable(configuration.getConnectionRequestTimeout()).ifPresent(
-                d -> builder.setConnectionRequestTimeout(
-                        d.toMillis(), TimeUnit.MILLISECONDS));
+        ofNullable(configuration.getConnectionRequestTimeout())
+                .ifPresent(
+                        d -> builder.setConnectionRequestTimeout(
+                                d.toMillis(),
+                                TimeUnit.MILLISECONDS));
         builder.setMaxRedirects(configuration.getMaxRedirects())
-                .setRedirectsEnabled(configuration.getMaxRedirects() > 0)
+                .setRedirectsEnabled(configuration
+                        .getMaxRedirects() > 0)
                 .setExpectContinueEnabled(
                         configuration.isExpectContinueEnabled())
                 .setCookieSpec(
                         Objects.toString(
-                                configuration.getCookieSpec(), null));
+                                configuration.getCookieSpec(),
+                                null));
         return builder.build();
     }
 
     protected HttpHost createProxy() {
         if (configuration.getProxySettings().isSet()) {
             return new HttpHost(
-                    configuration.getProxySettings().getScheme(),
-                    configuration.getProxySettings().getHost().getName(),
-                    configuration.getProxySettings().getHost().getPort());
+                    configuration.getProxySettings()
+                            .getScheme(),
+                    configuration.getProxySettings()
+                            .getHost().getName(),
+                    configuration.getProxySettings()
+                            .getHost().getPort());
         }
         return null;
     }
@@ -674,8 +711,10 @@ public class HttpClientFetcher
                             proxy.getRealm(),
                             null),
                     new UsernamePasswordCredentials(
-                            proxy.getCredentials().getUsername(),
-                            trimToEmpty(password).toCharArray()));
+                            proxy.getCredentials()
+                                    .getUsername(),
+                            trimToEmpty(password)
+                                    .toCharArray()));
         }
 
         //--- Auth ---
@@ -696,27 +735,37 @@ public class HttpClientFetcher
                         in a future release. Consider using a supported method \
                         such as BASIC, DIGEST, FORM, SPNEGO, or KERBEROS.""");
                 var ntlmCreds = new NTCredentials(
-                        authConfig.getCredentials().getUsername(),
-                        trimToEmpty(password).toCharArray(),
+                        authConfig.getCredentials()
+                                .getUsername(),
+                        trimToEmpty(password)
+                                .toCharArray(),
                         authConfig.getWorkstation(),
                         authConfig.getDomain());
                 creds = ntlmCreds;
             } else {
-                if (HttpAuthMethod.SPNEGO == authConfig.getMethod()
-                        || HttpAuthMethod.KERBEROS == authConfig.getMethod()) {
+                if (HttpAuthMethod.SPNEGO == authConfig
+                        .getMethod()
+                        || HttpAuthMethod.KERBEROS == authConfig
+                                .getMethod()) {
                     performKerberosLogin(authConfig);
                 }
                 creds = new UsernamePasswordCredentials(
-                        authConfig.getCredentials().getUsername(),
-                        trimToEmpty(password).toCharArray());
+                        authConfig.getCredentials()
+                                .getUsername(),
+                        trimToEmpty(password)
+                                .toCharArray());
             }
             credsProvider.setCredentials(
                     new AuthScope(
                             new HttpHost(
-                                    authConfig.getHost().getName(),
-                                    authConfig.getHost().getPort()),
+                                    authConfig.getHost()
+                                            .getName(),
+                                    authConfig.getHost()
+                                            .getPort()),
                             authConfig.getRealm(),
-                            Objects.toString(authConfig.getMethod(), null)),
+                            Objects.toString(
+                                    authConfig.getMethod(),
+                                    null)),
                     creds);
         }
         return credsProvider;
@@ -761,7 +810,8 @@ public class HttpClientFetcher
             System.setProperty(
                     "java.security.krb5.conf",
                     krbConfig.getKrb5ConfigPath()
-                            .toAbsolutePath().toString());
+                            .toAbsolutePath()
+                            .toString());
             LOG.debug(
                     "Kerberos: Using krb5.conf: {}",
                     krbConfig.getKrb5ConfigPath());
@@ -795,7 +845,8 @@ public class HttpClientFetcher
             options.put(
                     "keyTab",
                     krbConfig.getKeytabPath()
-                            .toAbsolutePath().toString());
+                            .toAbsolutePath()
+                            .toString());
             options.put("storeKey", "true");
             LOG.debug(
                     "Kerberos: Using keytab: {}",
@@ -859,13 +910,17 @@ public class HttpClientFetcher
         var builder = ConnectionConfig.custom();
         ofNullable(configuration.getConnectionTimeout()).ifPresent(
                 d -> builder.setConnectTimeout(
-                        d.toMillis(), TimeUnit.MILLISECONDS));
+                        d.toMillis(),
+                        TimeUnit.MILLISECONDS));
         ofNullable(configuration.getSocketTimeout()).ifPresent(
                 d -> builder.setSocketTimeout(
-                        Timeout.ofMilliseconds(d.toMillis())));
-        ofNullable(configuration.getMaxConnectionInactiveTime()).ifPresent(
-                d -> builder.setValidateAfterInactivity(
-                        TimeValue.ofMilliseconds(d.toMillis())));
+                        Timeout.ofMilliseconds(
+                                d.toMillis())));
+        ofNullable(configuration.getMaxConnectionInactiveTime())
+                .ifPresent(
+                        d -> builder.setValidateAfterInactivity(
+                                TimeValue.ofMilliseconds(
+                                        d.toMillis())));
         return builder.build();
     }
 
@@ -881,13 +936,15 @@ public class HttpClientFetcher
             try {
                 context = SSLContexts.custom()
                         .loadTrustMaterial(
-                                null, TrustAllStrategy.INSTANCE)
+                                null,
+                                TrustAllStrategy.INSTANCE)
                         .build();
             } catch (KeyManagementException
                     | NoSuchAlgorithmException
                     | KeyStoreException e) {
                 throw new CrawlerException(
-                        "Cannot create SSL context.", e);
+                        "Cannot create SSL context.",
+                        e);
             }
         }
 
@@ -947,11 +1004,13 @@ public class HttpClientFetcher
         // Use a trust strategy that always returns true
         try {
             return SSLContexts.custom()
-                    .loadTrustMaterial(null, TrustAllStrategy.INSTANCE)
+                    .loadTrustMaterial(null,
+                            TrustAllStrategy.INSTANCE)
                     .build();
         } catch (Exception e) {
             throw new CrawlerException(
-                    "Cannot create SSL context trusting all certificates.", e);
+                    "Cannot create SSL context trusting all certificates.",
+                    e);
         }
     }
 

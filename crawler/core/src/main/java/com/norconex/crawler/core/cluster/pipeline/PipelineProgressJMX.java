@@ -26,7 +26,7 @@ import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.context.CrawlerContext;
 
 /**
  * Registrar for the coordinator-only PipelineProgress MXBean.
@@ -36,7 +36,7 @@ public final class PipelineProgressJMX {
     private PipelineProgressJMX() {
     }
 
-    public static void register(CrawlContext ctx,
+    public static void register(CrawlerContext ctx,
             PipelineManager manager, String pipelineId) {
         var mbs = ManagementFactory.getPlatformMBeanServer();
         try {
@@ -50,7 +50,7 @@ public final class PipelineProgressJMX {
         }
     }
 
-    public static void unregister(CrawlContext ctx) {
+    public static void unregister(CrawlerContext ctx) {
         var mbs = ManagementFactory.getPlatformMBeanServer();
         try {
             var name = objectName(ctx);
@@ -64,7 +64,7 @@ public final class PipelineProgressJMX {
         }
     }
 
-    private static ObjectName objectName(CrawlContext ctx)
+    private static ObjectName objectName(CrawlerContext ctx)
             throws MalformedObjectNameException {
         return new ObjectName(
                 ctx.getClass().getName()

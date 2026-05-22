@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Timeout;
 
 import com.hazelcast.core.HazelcastInstance;
 import com.norconex.crawler.core.cluster.QueryFilter;
-import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
 import com.norconex.crawler.core.ledger.ProcessingStatus;
 
 /**
@@ -210,9 +210,9 @@ class HazelcastMapAdapterTest {
     @Test
     void testTypedMap_putAndGetRoundTrip() {
         var map = cacheManager.getCacheMap(mapPrefix + "entries",
-                CrawlEntry.class);
+                CrawlerEntry.class);
 
-        var entry = new CrawlEntry("https://example.com");
+        var entry = new CrawlerEntry("https://example.com");
         entry.setDepth(3);
         entry.setProcessingStatus(ProcessingStatus.QUEUED);
         map.put(entry.getReference(), entry);
@@ -227,19 +227,19 @@ class HazelcastMapAdapterTest {
     @Test
     void testTypedMap_replace_swapsValue() {
         var map = cacheManager.getCacheMap(mapPrefix + "replace",
-                CrawlEntry.class);
+                CrawlerEntry.class);
 
-        var queued = new CrawlEntry("ref-1");
+        var queued = new CrawlerEntry("ref-1");
         queued.setProcessingStatus(ProcessingStatus.QUEUED);
 
-        var processing = new CrawlEntry("ref-1");
+        var processing = new CrawlerEntry("ref-1");
         processing.setProcessingStatus(ProcessingStatus.PROCESSING);
 
         map.put("ref-1", queued);
         var replaced = map.replace("ref-1", queued, processing);
 
         assertThat(replaced).isTrue();
-        assertThat(map.get("ref-1").map(CrawlEntry::getProcessingStatus))
+        assertThat(map.get("ref-1").map(CrawlerEntry::getProcessingStatus))
                 .contains(ProcessingStatus.PROCESSING);
     }
 

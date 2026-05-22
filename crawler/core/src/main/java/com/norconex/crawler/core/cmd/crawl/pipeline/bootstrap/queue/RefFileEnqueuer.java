@@ -22,14 +22,14 @@ import java.nio.file.Path;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerException;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Enqueues references from files obtained from the crawler configuration
- * {@link CrawlConfig#getStartReferencesFiles()}.
+ * {@link CrawlerConfig#getStartReferencesFiles()}.
  */
 @Slf4j
 public class RefFileEnqueuer implements ReferenceEnqueuer {

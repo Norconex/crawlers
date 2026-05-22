@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.web.doc;
 
-import static com.norconex.crawler.core.doc.CrawlDocMetaConstants.PREFIX;
+import static com.norconex.crawler.core.doc.CrawlerDocMetaConstants.PREFIX;
 
 import com.norconex.importer.doc.DocMetaConstants;
 
@@ -26,7 +26,8 @@ import com.norconex.importer.doc.DocMetaConstants;
 public final class WebDocMetadata {
 
     public static final String SM_LASTMOD = PREFIX + "sitemap-lastmod";
-    public static final String SM_CHANGE_FREQ = PREFIX + "sitemap-changefreq";
+    public static final String SM_CHANGE_FREQ =
+            PREFIX + "sitemap-changefreq";
     public static final String SM_PRORITY = PREFIX + "sitemap-priority";
     public static final String REFERENCED_URLS = PREFIX + "referenced-urls";
     public static final String REFERENCED_URLS_OUT_OF_SCOPE =

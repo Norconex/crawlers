@@ -41,9 +41,9 @@ import com.norconex.commons.lang.ResourceLoader;
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.file.ContentType;
 import com.norconex.commons.lang.img.MutableImage;
-import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.context.CrawlerContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.Quality;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.Storage;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.StorageDiskStructure;
@@ -60,7 +60,7 @@ class FeaturedImageResolverTest {
 
     @WebCrawlingTest
     void testProcessFeaturedImage(
-            ClientAndServer client, CrawlContext ctx)
+            ClientAndServer client, CrawlerContext ctx)
             throws IOException {
         MockWebsite.whenPNG(client, "/640x480.png", IMG_640X480_PNG);
         MockWebsite.whenPNG(client, "/page/320x240.png",
@@ -83,7 +83,7 @@ class FeaturedImageResolverTest {
                 .setLargest(true)
                 .setImageCacheSize(0)
                 .setScaleDimensions(null);
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(ctx);
         fip.onCrawlerCrawlBegin(
                 CrawlerEvent.builder()
@@ -190,7 +190,7 @@ class FeaturedImageResolverTest {
         //        assertThat(read).isEqualTo(new FeaturedImageResolver());
         //
         ////        assertThatNoException().isThrownBy(
-        ////                () -> BeanMapper.DEFAULT.assertWriteRead(p));
+                ////                () -> BeanMapper.DEFAULT.assertWriteRead(p));
     }
 
     private Doc newDoc(String docUrl) {

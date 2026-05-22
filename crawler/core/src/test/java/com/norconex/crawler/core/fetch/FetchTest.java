@@ -24,14 +24,14 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.context.CrawlerContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 import com.norconex.crawler.core.mocks.fetch.MockFetchRequest;
 import com.norconex.crawler.core.mocks.fetch.MockFetchResponseImpl;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 @Timeout(30)
 class FetchTest {
@@ -57,7 +57,8 @@ class FetchTest {
                 .setStatusCode(200)
                 .setReasonPhrase("OK");
         var agg = new AggregatedFetchResponse(List.of(resp));
-        assertThat(agg.getProcessingOutcome()).isEqualTo(ProcessingOutcome.NEW);
+        assertThat(agg.getProcessingOutcome())
+                .isEqualTo(ProcessingOutcome.NEW);
         assertThat(agg.getStatusCode()).isEqualTo(200);
         assertThat(agg.getReasonPhrase()).isEqualTo("OK");
         assertThat(agg.getFetchResponses()).hasSize(1);
@@ -75,7 +76,8 @@ class FetchTest {
                 .setStatusCode(200)
                 .setReasonPhrase("OK");
         var agg = new AggregatedFetchResponse(List.of(resp1, resp2));
-        assertThat(agg.getProcessingOutcome()).isEqualTo(ProcessingOutcome.NEW);
+        assertThat(agg.getProcessingOutcome())
+                .isEqualTo(ProcessingOutcome.NEW);
         assertThat(agg.getStatusCode()).isEqualTo(200);
     }
 
@@ -88,10 +90,12 @@ class FetchTest {
         var fetcher1 = mock(Fetcher.class);
         var multi = MultiFetcher.builder()
                 .fetchers(List.of(fetcher1))
-                .responseAggregator((req, resps) -> resps.get(0))
+                .responseAggregator(
+                        (req, resps) -> resps.get(0))
                 .unsuccessfulResponseFactory(
                         (o, m, e) -> new MockFetchResponseImpl()
-                                .setProcessingOutcome(o))
+                                .setProcessingOutcome(
+                                        o))
                 .build();
         assertThat(multi.getFetchers()).hasSize(1);
     }
@@ -104,10 +108,12 @@ class FetchTest {
 
         var multi = MultiFetcher.builder()
                 .fetchers(List.of(fetcher1))
-                .responseAggregator((req, resps) -> resps.get(0))
+                .responseAggregator(
+                        (req, resps) -> resps.get(0))
                 .unsuccessfulResponseFactory(
                         (o, m, e) -> new MockFetchResponseImpl()
-                                .setProcessingOutcome(o))
+                                .setProcessingOutcome(
+                                        o))
                 .build();
         var request = new MockFetchRequest("test-ref");
         assertThat(multi.accept(request)).isTrue();
@@ -123,10 +129,12 @@ class FetchTest {
         var multi = MultiFetcher.builder()
                 .fetchers(List.of(fetcher1))
                 .responseAggregator(
-                        (req, resps) -> new AggregatedFetchResponse(resps))
+                        (req, resps) -> new AggregatedFetchResponse(
+                                resps))
                 .unsuccessfulResponseFactory(
                         (o, m, e) -> new MockFetchResponseImpl()
-                                .setProcessingOutcome(o))
+                                .setProcessingOutcome(
+                                        o))
                 .build();
 
         var request = new MockFetchRequest("test-ref");
@@ -150,10 +158,12 @@ class FetchTest {
         var multi = MultiFetcher.builder()
                 .fetchers(List.of(fetcher1))
                 .responseAggregator(
-                        (req, resps) -> new AggregatedFetchResponse(resps))
+                        (req, resps) -> new AggregatedFetchResponse(
+                                resps))
                 .unsuccessfulResponseFactory(
                         (o, m, e) -> new MockFetchResponseImpl()
-                                .setProcessingOutcome(o))
+                                .setProcessingOutcome(
+                                        o))
                 .build();
 
         var request = new MockFetchRequest("test-ref");
@@ -173,10 +183,12 @@ class FetchTest {
         var multi = MultiFetcher.builder()
                 .fetchers(List.of(fetcher1))
                 .responseAggregator(
-                        (req, resps) -> new AggregatedFetchResponse(resps))
+                        (req, resps) -> new AggregatedFetchResponse(
+                                resps))
                 .unsuccessfulResponseFactory(
                         (o, m, e) -> new MockFetchResponseImpl()
-                                .setProcessingOutcome(o))
+                                .setProcessingOutcome(
+                                        o))
                 .build();
 
         var request = new MockFetchRequest("test-ref");
@@ -191,15 +203,18 @@ class FetchTest {
         when(fetcher1.accept(org.mockito.ArgumentMatchers.any()))
                 .thenReturn(true);
         when(fetcher1.fetch(org.mockito.ArgumentMatchers.any()))
-                .thenThrow(new RuntimeException("Fetch failure"));
+                .thenThrow(new RuntimeException(
+                        "Fetch failure"));
 
         var multi = MultiFetcher.builder()
                 .fetchers(List.of(fetcher1))
                 .responseAggregator(
-                        (req, resps) -> new AggregatedFetchResponse(resps))
+                        (req, resps) -> new AggregatedFetchResponse(
+                                resps))
                 .unsuccessfulResponseFactory(
                         (o, m, e) -> new MockFetchResponseImpl()
-                                .setProcessingOutcome(o))
+                                .setProcessingOutcome(
+                                        o))
                 .build();
 
         var request = new MockFetchRequest("test-ref");
@@ -215,19 +230,23 @@ class FetchTest {
                 .thenReturn(true);
         var multi = MultiFetcher.builder()
                 .fetchers(List.of(fetcher1))
-                .responseAggregator((req, resps) -> resps.get(0))
+                .responseAggregator(
+                        (req, resps) -> resps.get(0))
                 .unsuccessfulResponseFactory(
                         (o, m, e) -> new MockFetchResponseImpl()
-                                .setProcessingOutcome(o))
+                                .setProcessingOutcome(
+                                        o))
                 .build();
         assertThat(multi.getFetchers()).hasSize(1);
         assertThat(multi.getMaxRetries()).isZero();
     }
 
     @Test
-    void testMultiFetcher_withRetries_retriesUntilSuccess() throws Exception {
+    void testMultiFetcher_withRetries_retriesUntilSuccess()
+            throws Exception {
         var badResponse = new MockFetchResponseImpl()
-                .setProcessingOutcome(ProcessingOutcome.BAD_STATUS);
+                .setProcessingOutcome(
+                        ProcessingOutcome.BAD_STATUS);
         var goodResponse = new MockFetchResponseImpl()
                 .setProcessingOutcome(ProcessingOutcome.NEW);
         var fetcher1 = mock(Fetcher.class);
@@ -241,10 +260,12 @@ class FetchTest {
         var multi = MultiFetcher.builder()
                 .fetchers(List.of(fetcher1))
                 .responseAggregator(
-                        (req, resps) -> resps.get(resps.size() - 1))
+                        (req, resps) -> resps.get(resps
+                                .size() - 1))
                 .unsuccessfulResponseFactory(
                         (o, m, e) -> new MockFetchResponseImpl()
-                                .setProcessingOutcome(o))
+                                .setProcessingOutcome(
+                                        o))
                 .maxRetries(3)
                 .build();
 
@@ -257,7 +278,8 @@ class FetchTest {
     void testMultiFetcher_withRetryDelay_allRetriesFail_returnsBadStatus()
             throws Exception {
         var badResponse = new MockFetchResponseImpl()
-                .setProcessingOutcome(ProcessingOutcome.BAD_STATUS);
+                .setProcessingOutcome(
+                        ProcessingOutcome.BAD_STATUS);
         var fetcher1 = mock(Fetcher.class);
         when(fetcher1.accept(org.mockito.ArgumentMatchers.any()))
                 .thenReturn(true);
@@ -267,15 +289,18 @@ class FetchTest {
         var multi = MultiFetcher.builder()
                 .fetchers(List.of(fetcher1))
                 .responseAggregator(
-                        (req, resps) -> resps.get(resps.size() - 1))
+                        (req, resps) -> resps.get(resps
+                                .size() - 1))
                 .unsuccessfulResponseFactory(
                         (o, m, e) -> new MockFetchResponseImpl()
-                                .setProcessingOutcome(o))
+                                .setProcessingOutcome(
+                                        o))
                 .maxRetries(1)
                 .retryDelay(java.time.Duration.ofMillis(1))
                 .build();
 
-        var response = multi.fetch(new MockFetchRequest("delay-retry-ref"));
+        var response = multi
+                .fetch(new MockFetchRequest("delay-retry-ref"));
         assertThat(response.getProcessingOutcome())
                 .isEqualTo(ProcessingOutcome.BAD_STATUS);
     }
@@ -287,30 +312,33 @@ class FetchTest {
     @Test
     void testAbstractFetcher_accept_noFilters_returnsTrue() {
         var fetcher = new MockFetcher();
-        assertThat(fetcher.accept(new MockFetchRequest("http://any.com")))
-                .isTrue();
+        assertThat(fetcher
+                .accept(new MockFetchRequest("http://any.com")))
+                        .isTrue();
     }
 
     @Test
     void testAbstractFetcher_accept_deniedRequest_returnsFalse() {
         var fetcher = new MockFetcher();
         fetcher.getConfiguration().setDenyRequest(Boolean.TRUE);
-        assertThat(fetcher.accept(new MockFetchRequest("http://any.com")))
-                .isFalse();
+        assertThat(fetcher
+                .accept(new MockFetchRequest("http://any.com")))
+                        .isFalse();
     }
 
     @Test
     void testAbstractFetcher_accept_notDeniedRequest_returnsTrue() {
         var fetcher = new MockFetcher();
         fetcher.getConfiguration().setDenyRequest(Boolean.FALSE);
-        assertThat(fetcher.accept(new MockFetchRequest("http://any.com")))
-                .isTrue();
+        assertThat(fetcher
+                .accept(new MockFetchRequest("http://any.com")))
+                        .isTrue();
     }
 
     @Test
     void testAbstractFetcher_onCrawlBeginAndEndEvents_doNotThrow() {
         var fetcher = new MockFetcher();
-        var session = mock(CrawlSession.class);
+        var session = mock(CrawlerSession.class);
         var beginEvent = CrawlerEvent.builder()
                 .name(CrawlerEvent.CRAWLER_CRAWL_BEGIN)
                 .source(session)
@@ -327,84 +355,90 @@ class FetchTest {
 
     @Test
     void testFetchUtil_metadataRequired_shouldNotContinue() {
-        var ctx = mock(CrawlContext.class);
-        var cfg = new CrawlConfig();
+        var ctx = mock(CrawlerContext.class);
+        var cfg = new CrawlerConfig();
         cfg.setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED);
         when(ctx.getCrawlConfig()).thenReturn(cfg);
 
         var result = FetchUtil.shouldContinueOnBadStatus(
-                ctx, ProcessingOutcome.ERROR, FetchDirective.METADATA);
+                ctx, ProcessingOutcome.ERROR,
+                FetchDirective.METADATA);
         assertThat(result).isFalse();
     }
 
     @Test
     void testFetchUtil_metadataOptionalWithDocEnabled_shouldContinue() {
-        var ctx = mock(CrawlContext.class);
-        var cfg = new CrawlConfig();
+        var ctx = mock(CrawlerContext.class);
+        var cfg = new CrawlerConfig();
         cfg.setMetadataFetchSupport(FetchDirectiveSupport.OPTIONAL);
         cfg.setDocumentFetchSupport(FetchDirectiveSupport.REQUIRED);
         when(ctx.getCrawlConfig()).thenReturn(cfg);
 
         var result = FetchUtil.shouldContinueOnBadStatus(
-                ctx, ProcessingOutcome.ERROR, FetchDirective.METADATA);
+                ctx, ProcessingOutcome.ERROR,
+                FetchDirective.METADATA);
         assertThat(result).isTrue();
     }
 
     @Test
     void testFetchUtil_metadataOptionalWithDocDisabled_shouldNotContinue() {
-        var ctx = mock(CrawlContext.class);
-        var cfg = new CrawlConfig();
+        var ctx = mock(CrawlerContext.class);
+        var cfg = new CrawlerConfig();
         cfg.setMetadataFetchSupport(FetchDirectiveSupport.OPTIONAL);
         cfg.setDocumentFetchSupport(FetchDirectiveSupport.DISABLED);
         when(ctx.getCrawlConfig()).thenReturn(cfg);
 
         var result = FetchUtil.shouldContinueOnBadStatus(
-                ctx, ProcessingOutcome.ERROR, FetchDirective.METADATA);
+                ctx, ProcessingOutcome.ERROR,
+                FetchDirective.METADATA);
         assertThat(result).isFalse();
     }
 
     @Test
     void testFetchUtil_documentRequired_shouldNotContinue() {
-        var ctx = mock(CrawlContext.class);
-        var cfg = new CrawlConfig();
+        var ctx = mock(CrawlerContext.class);
+        var cfg = new CrawlerConfig();
         cfg.setDocumentFetchSupport(FetchDirectiveSupport.REQUIRED);
         when(ctx.getCrawlConfig()).thenReturn(cfg);
 
         var result = FetchUtil.shouldContinueOnBadStatus(
-                ctx, ProcessingOutcome.ERROR, FetchDirective.DOCUMENT);
+                ctx, ProcessingOutcome.ERROR,
+                FetchDirective.DOCUMENT);
         assertThat(result).isFalse();
     }
 
     @Test
     void testFetchUtil_documentOptionalWithMetaEnabledAndGoodStatus_shouldContinue() {
-        var ctx = mock(CrawlContext.class);
-        var cfg = new CrawlConfig();
+        var ctx = mock(CrawlerContext.class);
+        var cfg = new CrawlerConfig();
         cfg.setDocumentFetchSupport(FetchDirectiveSupport.OPTIONAL);
         cfg.setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED);
         when(ctx.getCrawlConfig()).thenReturn(cfg);
 
         var result = FetchUtil.shouldContinueOnBadStatus(
-                ctx, ProcessingOutcome.NEW, FetchDirective.DOCUMENT);
+                ctx, ProcessingOutcome.NEW,
+                FetchDirective.DOCUMENT);
         assertThat(result).isTrue();
     }
 
     @Test
     void testFetchUtil_documentOptionalWithMetaEnabledAndBadStatus_shouldNotContinue() {
-        var ctx = mock(CrawlContext.class);
-        var cfg = new CrawlConfig();
+        var ctx = mock(CrawlerContext.class);
+        var cfg = new CrawlerConfig();
         cfg.setDocumentFetchSupport(FetchDirectiveSupport.OPTIONAL);
         cfg.setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED);
         when(ctx.getCrawlConfig()).thenReturn(cfg);
 
         var result = FetchUtil.shouldContinueOnBadStatus(
-                ctx, ProcessingOutcome.ERROR, FetchDirective.DOCUMENT);
+                ctx, ProcessingOutcome.ERROR,
+                FetchDirective.DOCUMENT);
         assertThat(result).isFalse();
     }
 
     @Test
     void testFetchUtil_disabledDirective_shouldNotContinue() {
-        var ctx = mock(CrawlContext.class);
-        var cfg = new CrawlConfig();
+        var ctx = mock(CrawlerContext.class);
+        var cfg = new CrawlerConfig();
         // Set both directives to disabled
         cfg.setMetadataFetchSupport(FetchDirectiveSupport.DISABLED);
         cfg.setDocumentFetchSupport(FetchDirectiveSupport.DISABLED);
@@ -412,9 +446,11 @@ class FetchTest {
 
         // A disabled directive means the fetch should not have happened
         var resultMeta = FetchUtil.shouldContinueOnBadStatus(
-                ctx, ProcessingOutcome.ERROR, FetchDirective.METADATA);
+                ctx, ProcessingOutcome.ERROR,
+                FetchDirective.METADATA);
         var resultDoc = FetchUtil.shouldContinueOnBadStatus(
-                ctx, ProcessingOutcome.ERROR, FetchDirective.DOCUMENT);
+                ctx, ProcessingOutcome.ERROR,
+                FetchDirective.DOCUMENT);
         assertThat(resultMeta).isFalse();
         assertThat(resultDoc).isFalse();
     }

@@ -17,9 +17,9 @@ package com.norconex.crawler.web;
 import java.util.List;
 import java.util.function.Supplier;
 
-import com.norconex.crawler.core.CrawlDriver;
-import com.norconex.crawler.core.CrawlDriver.FetchDriver;
-import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.ledger.CrawlEntryLedgerBootstrapper;
+import com.norconex.crawler.core.CrawlerDriver;
+import com.norconex.crawler.core.CrawlerDriver.FetchDriver;
+import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.ledger.CrawlerEntryLedgerBootstrapper;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.QueueBootstrapper;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.RefFileEnqueuer;
 import com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue.RefListEnqueuer;
@@ -31,18 +31,18 @@ import com.norconex.crawler.web.fetch.AggregatedWebFetchResponse;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetchResponse;
 import com.norconex.crawler.web.ledger.WebCrawlerEntry;
 
-public class WebCrawlerDriverFactory implements Supplier<CrawlDriver> {
+public class WebCrawlerDriverFactory implements Supplier<CrawlerDriver> {
 
-    public static CrawlDriver create() {
+    public static CrawlerDriver create() {
         return new WebCrawlerDriverFactory().get();
     }
 
     @Override
-    public CrawlDriver get() {
-        return CrawlDriver.builder()
+    public CrawlerDriver get() {
+        return CrawlerDriver.builder()
                 .fetchDriver(createFetchDriver())
                 .bootstrappers(List.of(
-                        new CrawlEntryLedgerBootstrapper(),
+                        new CrawlerEntryLedgerBootstrapper(),
                         new QueueBootstrapper(List.of(
                                 new SitemapEnqueuer(),
                                 new RefListEnqueuer(),

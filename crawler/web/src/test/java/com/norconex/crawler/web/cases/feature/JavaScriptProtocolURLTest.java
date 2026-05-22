@@ -63,7 +63,8 @@ class JavaScriptProtocolURLTest {
 
         cfg.setStartReferences(List.of(serverUrl(client, firstPath)));
         assertThatNoException().isThrownBy(() -> {
-            var mem = WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
+            var mem =
+                    WebCrawlingTestCapturer.crawlAndCapture(cfg).getCommitter();
 
             assertThat(mem.getUpsertRequests())
                     .map(UpsertRequest::getReference)

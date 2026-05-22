@@ -54,7 +54,7 @@ import com.norconex.crawler.core.doc.operations.DocumentConsumer;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.event.listeners.CrawlerLifeCycleListener;
 import com.norconex.crawler.core.fetch.Fetcher;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.Storage;
 import com.norconex.crawler.web.doc.operations.image.impl.FeaturedImageResolverConfig.StorageDiskStructure;
 import com.norconex.crawler.web.fetch.HttpMethod;
@@ -123,7 +123,7 @@ public class FeaturedImageResolver
 
     @Override
     protected void onCrawlerCrawlBegin(CrawlerEvent event) {
-        var workDir = ((CrawlSession) event.getSource())
+        var workDir = ((CrawlerSession) event.getSource())
                 .getCrawlContext().getWorkDir();
 
         // Initialize in-memory image cache

@@ -16,9 +16,9 @@ package com.norconex.crawler.fs;
 
 import java.util.function.Supplier;
 
-import com.norconex.crawler.core.CrawlCallbacks;
-import com.norconex.crawler.core.CrawlDriver;
-import com.norconex.crawler.core.CrawlDriver.FetchDriver;
+import com.norconex.crawler.core.CrawlerCallbacks;
+import com.norconex.crawler.core.CrawlerDriver;
+import com.norconex.crawler.core.CrawlerDriver.FetchDriver;
 import com.norconex.crawler.fs.callbacks.BeforeFsCommand;
 import com.norconex.crawler.fs.doc.pipelines.FsPipelines;
 import com.norconex.crawler.fs.fetch.AggregatedFileFetchResponse;
@@ -27,17 +27,17 @@ import com.norconex.crawler.fs.fetch.FileFetchRequest;
 import com.norconex.crawler.fs.fetch.impl.GenericFileFetchResponse;
 import com.norconex.crawler.fs.ledger.FsCrawlerEntry;
 
-public class FsCrawlerDriverFactory implements Supplier<CrawlDriver> {
+public class FsCrawlerDriverFactory implements Supplier<CrawlerDriver> {
 
-    public static CrawlDriver create() {
+    public static CrawlerDriver create() {
         return new FsCrawlerDriverFactory().get();
     }
 
     @Override
-    public CrawlDriver get() {
-        return CrawlDriver.builder()
+    public CrawlerDriver get() {
+        return CrawlerDriver.builder()
                 .fetchDriver(createFetchDriver())
-                .callbacks(CrawlCallbacks.builder()
+                .callbacks(CrawlerCallbacks.builder()
                         .beforeCommand(new BeforeFsCommand())
                         .build())
                 .docPipelines(FsPipelines.create())

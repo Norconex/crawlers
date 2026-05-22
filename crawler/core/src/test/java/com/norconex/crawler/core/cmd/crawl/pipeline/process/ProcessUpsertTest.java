@@ -30,16 +30,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 import com.norconex.committer.core.service.CommitterService;
-import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.context.CrawlContext;
-import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.doc.pipelines.CrawlDocPipelines;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.context.CrawlerContext;
+import com.norconex.crawler.core.doc.CrawlerDocContext;
+import com.norconex.crawler.core.doc.pipelines.CrawlerDocPipelines;
 import com.norconex.crawler.core.doc.pipelines.committer.CommitterPipeline;
 import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipeline;
-import com.norconex.crawler.core.ledger.CrawlEntry;
-import com.norconex.crawler.core.ledger.CrawlEntryLedger;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
+import com.norconex.crawler.core.ledger.CrawlerEntryLedger;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.importer.doc.Doc;
 import com.norconex.importer.response.ImporterResponse;
 import com.norconex.importer.response.ImporterResponse.Status;
@@ -50,9 +50,9 @@ import com.norconex.importer.response.ImporterResponse.Status;
 @Timeout(30)
 class ProcessUpsertTest {
 
-    private CrawlSession session;
-    private CrawlContext crawlCtx;
-    private CrawlEntryLedger ledger;
+    private CrawlerSession session;
+    private CrawlerContext crawlCtx;
+    private CrawlerEntryLedger ledger;
     private ImporterPipeline importerPipeline;
     private CommitterPipeline committerPipeline;
 
@@ -61,31 +61,33 @@ class ProcessUpsertTest {
     void setUp() {
         importerPipeline = mock(ImporterPipeline.class);
         committerPipeline = mock(CommitterPipeline.class);
-        ledger = mock(CrawlEntryLedger.class);
+        ledger = mock(CrawlerEntryLedger.class);
 
-        var config = mock(CrawlConfig.class);
+        var config = mock(CrawlerConfig.class);
         var committerService = mock(CommitterService.class);
 
-        var docPipelines = CrawlDocPipelines.builder()
+        var docPipelines = CrawlerDocPipelines.builder()
                 .importerPipeline(importerPipeline)
                 .committerPipeline(committerPipeline)
                 .build();
 
-        crawlCtx = mock(CrawlContext.class);
+        crawlCtx = mock(CrawlerContext.class);
         when(crawlCtx.getDocPipelines()).thenReturn(docPipelines);
         when(crawlCtx.getCrawlEntryLedger()).thenReturn(ledger);
         when(crawlCtx.getCrawlConfig()).thenReturn(config);
-        when(crawlCtx.getCommitterService()).thenReturn(committerService);
-        when(ledger.getBaselineEntry(anyString())).thenReturn(Optional.empty());
+        when(crawlCtx.getCommitterService())
+                .thenReturn(committerService);
+        when(ledger.getBaselineEntry(anyString()))
+                .thenReturn(Optional.empty());
 
-        session = mock(CrawlSession.class);
+        session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(crawlCtx);
     }
 
     private ProcessContext buildCtx(String ref, ProcessingOutcome outcome) {
-        var entry = new CrawlEntry(ref);
+        var entry = new CrawlerEntry(ref);
         entry.setProcessingOutcome(outcome);
-        var docCtx = CrawlDocContext.builder()
+        var docCtx = CrawlerDocContext.builder()
                 .doc(new Doc(ref))
                 .currentCrawlEntry(entry)
                 .build();
@@ -106,8 +108,9 @@ class ProcessUpsertTest {
         ProcessUpsert.execute(ctx);
 
         assertThat(
-                ctx.docContext().getCurrentCrawlEntry().getProcessingOutcome())
-                        .isEqualTo(ProcessingOutcome.REJECTED);
+                ctx.docContext().getCurrentCrawlEntry()
+                        .getProcessingOutcome())
+                                .isEqualTo(ProcessingOutcome.REJECTED);
         assertThat(ctx.finalized()).isTrue();
     }
 
@@ -115,12 +118,14 @@ class ProcessUpsertTest {
     void execute_nullResponse_modifiedEntry_setsRejectedAndFinalizes() {
         when(importerPipeline.apply(any())).thenReturn(null);
 
-        var ctx = buildCtx("ref:null-modified", ProcessingOutcome.MODIFIED);
+        var ctx = buildCtx("ref:null-modified",
+                ProcessingOutcome.MODIFIED);
         ProcessUpsert.execute(ctx);
 
         assertThat(
-                ctx.docContext().getCurrentCrawlEntry().getProcessingOutcome())
-                        .isEqualTo(ProcessingOutcome.REJECTED);
+                ctx.docContext().getCurrentCrawlEntry()
+                        .getProcessingOutcome())
+                                .isEqualTo(ProcessingOutcome.REJECTED);
         assertThat(ctx.finalized()).isTrue();
     }
 
@@ -129,12 +134,14 @@ class ProcessUpsertTest {
         // UNMODIFIED is not NEW/MODIFIED, so outcome should not change
         when(importerPipeline.apply(any())).thenReturn(null);
 
-        var ctx = buildCtx("ref:null-unmodified", ProcessingOutcome.UNMODIFIED);
+        var ctx = buildCtx("ref:null-unmodified",
+                ProcessingOutcome.UNMODIFIED);
         ProcessUpsert.execute(ctx);
 
         assertThat(
-                ctx.docContext().getCurrentCrawlEntry().getProcessingOutcome())
-                        .isEqualTo(ProcessingOutcome.UNMODIFIED);
+                ctx.docContext().getCurrentCrawlEntry()
+                        .getProcessingOutcome())
+                                .isEqualTo(ProcessingOutcome.UNMODIFIED);
         assertThat(ctx.finalized()).isTrue();
     }
 
@@ -143,9 +150,9 @@ class ProcessUpsertTest {
         // null outcome: the null-check guards the branch
         when(importerPipeline.apply(any())).thenReturn(null);
 
-        var entry = new CrawlEntry("ref:null-outcome");
+        var entry = new CrawlerEntry("ref:null-outcome");
         // leave processingOutcome null
-        var docCtx = CrawlDocContext.builder()
+        var docCtx = CrawlerDocContext.builder()
                 .doc(new Doc("ref:null-outcome"))
                 .currentCrawlEntry(entry)
                 .build();
@@ -157,8 +164,9 @@ class ProcessUpsertTest {
 
         // The null-check prevents REJECTED: ProcessFinalize then sets BAD_STATUS
         assertThat(
-                ctx.docContext().getCurrentCrawlEntry().getProcessingOutcome())
-                        .isEqualTo(ProcessingOutcome.BAD_STATUS);
+                ctx.docContext().getCurrentCrawlEntry()
+                        .getProcessingOutcome())
+                                .isEqualTo(ProcessingOutcome.BAD_STATUS);
         assertThat(ctx.finalized()).isTrue();
     }
 
@@ -168,15 +176,17 @@ class ProcessUpsertTest {
 
     @Test
     void execute_rejectedResponse_setsRejectedOutcomeAndFinalizes() {
-        var response = new ImporterResponse("ref:rejected", Status.REJECTED);
+        var response = new ImporterResponse("ref:rejected",
+                Status.REJECTED);
         when(importerPipeline.apply(any())).thenReturn(response);
 
         var ctx = buildCtx("ref:rejected", ProcessingOutcome.NEW);
         ProcessUpsert.execute(ctx);
 
         assertThat(
-                ctx.docContext().getCurrentCrawlEntry().getProcessingOutcome())
-                        .isEqualTo(ProcessingOutcome.REJECTED);
+                ctx.docContext().getCurrentCrawlEntry()
+                        .getProcessingOutcome())
+                                .isEqualTo(ProcessingOutcome.REJECTED);
         assertThat(ctx.finalized()).isTrue();
     }
 
@@ -189,8 +199,9 @@ class ProcessUpsertTest {
         ProcessUpsert.execute(ctx);
 
         assertThat(
-                ctx.docContext().getCurrentCrawlEntry().getProcessingOutcome())
-                        .isEqualTo(ProcessingOutcome.REJECTED);
+                ctx.docContext().getCurrentCrawlEntry()
+                        .getProcessingOutcome())
+                                .isEqualTo(ProcessingOutcome.REJECTED);
         assertThat(ctx.finalized()).isTrue();
     }
 
@@ -200,7 +211,8 @@ class ProcessUpsertTest {
 
     @Test
     void execute_successResponse_invokesCommitterPipeline() {
-        var response = new ImporterResponse("ref:success", Status.SUCCESS);
+        var response = new ImporterResponse("ref:success",
+                Status.SUCCESS);
         when(importerPipeline.apply(any())).thenReturn(response);
 
         var ctx = buildCtx("ref:success", ProcessingOutcome.NEW);
@@ -218,9 +230,11 @@ class ProcessUpsertTest {
 
     @Test
     void execute_successResponseWithChildren_processesEachChild() {
-        var child1 = new ImporterResponse("ref:child-1", Status.SUCCESS);
+        var child1 = new ImporterResponse("ref:child-1",
+                Status.SUCCESS);
         child1.setDoc(new Doc("ref:child-1"));
-        var child2 = new ImporterResponse("ref:child-2", Status.REJECTED);
+        var child2 = new ImporterResponse("ref:child-2",
+                Status.REJECTED);
         child2.setDoc(new Doc("ref:child-2"));
 
         var parent = new ImporterResponse("ref:parent", Status.SUCCESS);
@@ -228,9 +242,9 @@ class ProcessUpsertTest {
 
         when(importerPipeline.apply(any())).thenReturn(parent);
         when(crawlCtx.createCrawlEntry("ref:child-1"))
-                .thenReturn(new CrawlEntry("ref:child-1"));
+                .thenReturn(new CrawlerEntry("ref:child-1"));
         when(crawlCtx.createCrawlEntry("ref:child-2"))
-                .thenReturn(new CrawlEntry("ref:child-2"));
+                .thenReturn(new CrawlerEntry("ref:child-2"));
 
         var ctx = buildCtx("ref:parent", ProcessingOutcome.NEW);
         ProcessUpsert.execute(ctx);
@@ -242,14 +256,16 @@ class ProcessUpsertTest {
 
     @Test
     void execute_successResponseWithRejectedChild_finalizesChild() {
-        var child = new ImporterResponse("ref:rejected-child", Status.REJECTED);
+        var child = new ImporterResponse("ref:rejected-child",
+                Status.REJECTED);
         child.setDoc(new Doc("ref:rejected-child"));
 
-        var parent = new ImporterResponse("ref:parent-success", Status.SUCCESS);
+        var parent = new ImporterResponse("ref:parent-success",
+                Status.SUCCESS);
         parent.setNestedResponses(List.of(child));
 
         when(importerPipeline.apply(any())).thenReturn(parent);
-        var childEntry = new CrawlEntry("ref:rejected-child");
+        var childEntry = new CrawlerEntry("ref:rejected-child");
         when(crawlCtx.createCrawlEntry("ref:rejected-child"))
                 .thenReturn(childEntry);
 

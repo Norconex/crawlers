@@ -24,7 +24,7 @@ import com.norconex.crawler.core.cluster.pipeline.PipelineResult;
 import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,14 +38,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class LocalPipelineManager implements PipelineManager {
 
-    private final CrawlSession session;
+    private final CrawlerSession session;
     private volatile boolean stopRequested;
     private volatile Step currentStep;
     private volatile String currentStepId;
     private volatile int currentStepIndex;
     private volatile int stepCount;
 
-    public LocalPipelineManager(CrawlSession session) {
+    public LocalPipelineManager(CrawlerSession session) {
         this.session = session;
     }
 

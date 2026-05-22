@@ -22,7 +22,7 @@ import com.norconex.crawler.core.fetch.FetchException;
 import com.norconex.crawler.core.fetch.FetchRequest;
 import com.norconex.crawler.core.mocks.fetch.MockFetchResponse;
 import com.norconex.crawler.core.mocks.fetch.MockFetcher;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.core.util.ConcurrentUtil;
 
 public class ClusterJoinGateFetcher extends MockFetcher {
@@ -31,7 +31,7 @@ public class ClusterJoinGateFetcher extends MockFetcher {
             Duration.ofSeconds(120);
     private static final Duration CHECK_INTERVAL = Duration.ofMillis(100);
 
-    private transient CrawlSession session;
+    private transient CrawlerSession session;
     private final transient AtomicBoolean gateConsumed = new AtomicBoolean();
 
     private int requiredNodeCount = 2;
@@ -56,7 +56,7 @@ public class ClusterJoinGateFetcher extends MockFetcher {
     }
 
     @Override
-    protected void fetcherStartup(CrawlSession crawler) {
+    protected void fetcherStartup(CrawlerSession crawler) {
         session = crawler;
     }
 

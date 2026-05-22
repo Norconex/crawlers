@@ -25,8 +25,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.doc.CrawlDocContext;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.doc.CrawlerDocContext;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.doc.operations.robot.RobotsMeta;
 import com.norconex.crawler.web.doc.pipelines.importer.WebImporterPipelineContext;
 import com.norconex.crawler.web.ledger.WebCrawlerEntry;
@@ -37,9 +37,9 @@ class RobotsMetaNoIndexStageTest {
 
     @Test
     void testExecuteStage(@TempDir Path tempDir) {
-        var crawlSession = mock(CrawlSession.class);
+        var crawlSession = mock(CrawlerSession.class);
         var entry = new WebCrawlerEntry("someRef");
-        var docCtx = CrawlDocContext.builder()
+        var docCtx = CrawlerDocContext.builder()
                 .doc(CrawlDocStubs.crawlDoc("someRef"))
                 .currentCrawlEntry(entry)
                 .build();

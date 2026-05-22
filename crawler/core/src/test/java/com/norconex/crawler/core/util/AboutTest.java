@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 
 /**
  * Unit tests for {@link About}.
@@ -37,7 +37,7 @@ class AboutTest {
 
     @Test
     void testAbout_withConfig_containsRuntimeInfo() {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         var result = About.about(config);
 
         // Should always list the Java runtime section
@@ -47,7 +47,7 @@ class AboutTest {
 
     @Test
     void testAbout_withConfig_noCommitters_showsNone() {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         // Default config has no committers configured
         var result = About.about(config);
         assertThat(result).contains("Committers:");

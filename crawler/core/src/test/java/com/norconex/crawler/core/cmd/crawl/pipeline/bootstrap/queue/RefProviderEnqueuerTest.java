@@ -26,11 +26,11 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.context.CrawlerContext;
 import com.norconex.crawler.core.doc.pipelines.queue.ReferencesProvider;
-import com.norconex.crawler.core.ledger.CrawlEntry;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 /**
  * Tests for {@link RefProviderEnqueuer}.
@@ -39,20 +39,20 @@ import com.norconex.crawler.core.session.CrawlSession;
 class RefProviderEnqueuerTest {
 
     private QueueBootstrapContext buildCtx(
-            CrawlConfig config, List<CrawlEntry> queued) {
-        var session = mock(CrawlSession.class);
-        var crawlContext = mock(CrawlContext.class);
+            CrawlerConfig config, List<CrawlerEntry> queued) {
+        var session = mock(CrawlerSession.class);
+        var crawlContext = mock(CrawlerContext.class);
         when(session.getCrawlContext()).thenReturn(crawlContext);
         when(crawlContext.getCrawlConfig()).thenReturn(config);
         when(crawlContext.createCrawlEntry(anyString()))
-                .thenAnswer(inv -> new CrawlEntry(inv.getArgument(0)));
+                .thenAnswer(inv -> new CrawlerEntry(inv.getArgument(0)));
         return new QueueBootstrapContext(session, queued::add);
     }
 
     @Test
     void noProviders_returnsZero() {
-        var config = new CrawlConfig();
-        var queued = new ArrayList<CrawlEntry>();
+        var config = new CrawlerConfig();
+        var queued = new ArrayList<CrawlerEntry>();
         var ctx = buildCtx(config, queued);
 
         assertThat(new RefProviderEnqueuer().enqueue(ctx)).isZero();
@@ -61,22 +61,22 @@ class RefProviderEnqueuerTest {
 
     @Test
     void oneProviderWithTwoRefs_queuesBoth() {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         ReferencesProvider provider =
                 () -> List.of("ref-1", "ref-2").iterator();
         config.setStartReferencesProviders(List.of(provider));
 
-        var queued = new ArrayList<CrawlEntry>();
+        var queued = new ArrayList<CrawlerEntry>();
         var ctx = buildCtx(config, queued);
 
         assertThat(new RefProviderEnqueuer().enqueue(ctx)).isEqualTo(2);
-        assertThat(queued).extracting(CrawlEntry::getReference)
+        assertThat(queued).extracting(CrawlerEntry::getReference)
                 .containsExactlyInAnyOrder("ref-1", "ref-2");
     }
 
     @Test
     void nullProviderInList_isSkipped() {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         ReferencesProvider provider =
                 () -> List.of("ref-a").iterator();
         var providers = new ArrayList<ReferencesProvider>();
@@ -84,21 +84,21 @@ class RefProviderEnqueuerTest {
         providers.add(provider);
         config.setStartReferencesProviders(providers);
 
-        var queued = new ArrayList<CrawlEntry>();
+        var queued = new ArrayList<CrawlerEntry>();
         var ctx = buildCtx(config, queued);
 
         assertThat(new RefProviderEnqueuer().enqueue(ctx)).isEqualTo(1);
-        assertThat(queued).extracting(CrawlEntry::getReference)
+        assertThat(queued).extracting(CrawlerEntry::getReference)
                 .containsExactly("ref-a");
     }
 
     @Test
     void providerReturnsEmptyIterator_queuesNothing() {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         ReferencesProvider provider = Collections::emptyIterator;
         config.setStartReferencesProviders(List.of(provider));
 
-        var queued = new ArrayList<CrawlEntry>();
+        var queued = new ArrayList<CrawlerEntry>();
         var ctx = buildCtx(config, queued);
 
         assertThat(new RefProviderEnqueuer().enqueue(ctx)).isZero();
@@ -107,16 +107,16 @@ class RefProviderEnqueuerTest {
 
     @Test
     void twoProviders_queuesFromBoth() {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         ReferencesProvider p1 = () -> List.of("a", "b").iterator();
         ReferencesProvider p2 = () -> List.of("c").iterator();
         config.setStartReferencesProviders(List.of(p1, p2));
 
-        var queued = new ArrayList<CrawlEntry>();
+        var queued = new ArrayList<CrawlerEntry>();
         var ctx = buildCtx(config, queued);
 
         assertThat(new RefProviderEnqueuer().enqueue(ctx)).isEqualTo(3);
-        assertThat(queued).extracting(CrawlEntry::getReference)
+        assertThat(queued).extracting(CrawlerEntry::getReference)
                 .containsExactlyInAnyOrder("a", "b", "c");
     }
 }

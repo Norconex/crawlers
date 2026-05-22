@@ -24,7 +24,7 @@ import java.util.Set;
 import com.norconex.commons.lang.bean.jackson.JsonXmlCollection;
 import com.norconex.commons.lang.collection.CollectionUtil;
 import com.norconex.commons.lang.text.TextMatcher;
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.doc.operations.checksum.DocumentChecksummer;
 import com.norconex.crawler.core.doc.operations.checksum.MetadataChecksummer;
 import com.norconex.crawler.core.doc.operations.checksum.impl.Md5DocumentChecksummer;
@@ -66,7 +66,7 @@ import lombok.experimental.FieldNameConstants;
 /**
  * <p>
  * Web Crawler configuration, adding more options to the base
- * {@link CrawlConfig}.
+ * {@link CrawlerConfig}.
  * </p>
  * <h2>Start URLs</h2>
  * <p>
@@ -456,7 +456,7 @@ import lombok.experimental.FieldNameConstants;
 @Accessors(chain = true)
 @FieldNameConstants
 //@JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME)
-public class WebCrawlerConfig extends CrawlConfig {
+public class WebCrawlerConfig extends CrawlerConfig {
 
     /**
      * Flags for storing as metadata a page referenced links.

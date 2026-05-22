@@ -37,7 +37,7 @@ import com.norconex.commons.lang.event.EventListener;
 import com.norconex.commons.lang.file.FileUtil;
 import com.norconex.crawler.core.CrawlerException;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.doc.operations.link.impl.HtmlLinkExtractor;
 import com.norconex.crawler.web.doc.operations.link.impl.TikaLinkExtractor;
 import com.norconex.crawler.web.event.WebCrawlerEvent;
@@ -126,7 +126,7 @@ public class UrlStatusCrawlerEventListener implements
     @Override
     public void accept(Event event) {
         if (event.is(CrawlerEvent.CRAWLER_CRAWL_BEGIN)) {
-            init((CrawlSession) event.getSource());
+            init((CrawlerSession) event.getSource());
             return;
         }
         if (event.is(CrawlerEvent.CRAWLER_CRAWL_END)) {
@@ -171,7 +171,7 @@ public class UrlStatusCrawlerEventListener implements
         }
     }
 
-    private void init(CrawlSession session) {
+    private void init(CrawlerSession session) {
 
         var baseDir = getBaseDir(session);
         var timestamp = "";
@@ -219,7 +219,7 @@ public class UrlStatusCrawlerEventListener implements
         }
     }
 
-    private Path getBaseDir(CrawlSession session) {
+    private Path getBaseDir(CrawlerSession session) {
         if (configuration.getOutputDir() == null) {
             return session.getCrawlContext().getWorkDir();
         }

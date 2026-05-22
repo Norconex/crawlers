@@ -24,12 +24,12 @@ import static org.mockito.Mockito.when;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.context.CrawlerContext;
 import com.norconex.crawler.core.doc.pipelines.queue.QueuePipelineContext;
-import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 /**
  * Tests for {@link DepthValidationStage}.
@@ -38,10 +38,10 @@ import com.norconex.crawler.core.session.CrawlSession;
 class DepthValidationStageTest {
 
     // Helper: build a QueuePipelineContext with the given maxDepth and entry
-    private QueuePipelineContext buildCtx(int maxDepth, CrawlEntry entry) {
-        var session = mock(CrawlSession.class);
-        var crawlContext = mock(CrawlContext.class);
-        var config = new CrawlConfig();
+    private QueuePipelineContext buildCtx(int maxDepth, CrawlerEntry entry) {
+        var session = mock(CrawlerSession.class);
+        var crawlContext = mock(CrawlerContext.class);
+        var config = new CrawlerConfig();
         config.setMaxDepth(maxDepth);
         when(session.getCrawlContext()).thenReturn(crawlContext);
         when(crawlContext.getCrawlConfig()).thenReturn(config);
@@ -54,7 +54,7 @@ class DepthValidationStageTest {
 
     @Test
     void depthWithinLimit_returnsTrue() {
-        var entry = new CrawlEntry("http://example.com");
+        var entry = new CrawlerEntry("http://example.com");
         entry.setDepth(2);
 
         var ctx = buildCtx(5, entry);
@@ -63,7 +63,7 @@ class DepthValidationStageTest {
 
     @Test
     void depthExactlyAtLimit_returnsTrue() {
-        var entry = new CrawlEntry("http://example.com");
+        var entry = new CrawlerEntry("http://example.com");
         entry.setDepth(3);
 
         var ctx = buildCtx(3, entry);
@@ -76,7 +76,7 @@ class DepthValidationStageTest {
 
     @Test
     void unlimitedDepth_anyDepth_returnsTrue() {
-        var entry = new CrawlEntry("http://example.com");
+        var entry = new CrawlerEntry("http://example.com");
         entry.setDepth(9999);
 
         var ctx = buildCtx(-1, entry);
@@ -89,7 +89,7 @@ class DepthValidationStageTest {
 
     @Test
     void depthExceedsLimit_returnsFalse() {
-        var entry = new CrawlEntry("http://example.com");
+        var entry = new CrawlerEntry("http://example.com");
         entry.setDepth(6);
 
         var ctx = buildCtx(5, entry);
@@ -98,7 +98,7 @@ class DepthValidationStageTest {
 
     @Test
     void depthExceedsLimit_setsOutcomeTooDeep() {
-        var entry = new CrawlEntry("http://example.com");
+        var entry = new CrawlerEntry("http://example.com");
         entry.setDepth(4);
 
         var ctx = buildCtx(2, entry);
@@ -109,12 +109,12 @@ class DepthValidationStageTest {
 
     @Test
     void depthExceedsLimit_firesRejectedEvent() {
-        var entry = new CrawlEntry("http://example.com");
+        var entry = new CrawlerEntry("http://example.com");
         entry.setDepth(10);
 
-        var session = mock(CrawlSession.class);
-        var crawlContext = mock(CrawlContext.class);
-        var config = new CrawlConfig();
+        var session = mock(CrawlerSession.class);
+        var crawlContext = mock(CrawlerContext.class);
+        var config = new CrawlerConfig();
         config.setMaxDepth(5);
         when(session.getCrawlContext()).thenReturn(crawlContext);
         when(crawlContext.getCrawlConfig()).thenReturn(config);
@@ -127,12 +127,12 @@ class DepthValidationStageTest {
 
     @Test
     void depthWithinLimit_doesNotFireEvent() {
-        var entry = new CrawlEntry("http://example.com");
+        var entry = new CrawlerEntry("http://example.com");
         entry.setDepth(1);
 
-        var session = mock(CrawlSession.class);
-        var crawlContext = mock(CrawlContext.class);
-        var config = new CrawlConfig();
+        var session = mock(CrawlerSession.class);
+        var crawlContext = mock(CrawlerContext.class);
+        var config = new CrawlerConfig();
         config.setMaxDepth(5);
         when(session.getCrawlContext()).thenReturn(crawlContext);
         when(crawlContext.getCrawlConfig()).thenReturn(config);

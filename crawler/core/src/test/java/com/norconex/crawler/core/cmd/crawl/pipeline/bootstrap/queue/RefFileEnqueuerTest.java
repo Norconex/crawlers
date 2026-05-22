@@ -29,11 +29,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.Timeout;
 
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.CrawlerException;
-import com.norconex.crawler.core.context.CrawlContext;
-import com.norconex.crawler.core.ledger.CrawlEntry;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.context.CrawlerContext;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 /**
  * Tests for {@link RefFileEnqueuer}.
@@ -46,13 +46,13 @@ class RefFileEnqueuerTest {
 
     // Helper: create a QueueBootstrapContext with the given config
     private QueueBootstrapContext buildContext(
-            CrawlConfig config, List<CrawlEntry> queued) throws Exception {
-        var session = mock(CrawlSession.class);
-        var crawlContext = mock(CrawlContext.class);
+            CrawlerConfig config, List<CrawlerEntry> queued) throws Exception {
+        var session = mock(CrawlerSession.class);
+        var crawlContext = mock(CrawlerContext.class);
         when(session.getCrawlContext()).thenReturn(crawlContext);
         when(crawlContext.getCrawlConfig()).thenReturn(config);
         when(crawlContext.createCrawlEntry(anyString()))
-                .thenAnswer(inv -> new CrawlEntry(inv.getArgument(0)));
+                .thenAnswer(inv -> new CrawlerEntry(inv.getArgument(0)));
         return new QueueBootstrapContext(session, entry -> queued.add(entry));
     }
 
@@ -65,10 +65,10 @@ class RefFileEnqueuerTest {
         var refsFile = tempDir.resolve("empty.txt");
         Files.writeString(refsFile, "");
 
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         config.setStartReferencesFiles(List.of(refsFile));
 
-        var queued = new ArrayList<CrawlEntry>();
+        var queued = new ArrayList<CrawlerEntry>();
         var ctx = buildContext(config, queued);
 
         var result = new RefFileEnqueuer().enqueue(ctx);
@@ -82,16 +82,16 @@ class RefFileEnqueuerTest {
         var refsFile = tempDir.resolve("refs.txt");
         Files.writeString(refsFile, "http://a.com\nhttp://b.com\nhttp://c.com");
 
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         config.setStartReferencesFiles(List.of(refsFile));
 
-        var queued = new ArrayList<CrawlEntry>();
+        var queued = new ArrayList<CrawlerEntry>();
         var ctx = buildContext(config, queued);
 
         var result = new RefFileEnqueuer().enqueue(ctx);
 
         assertThat(result).isEqualTo(3);
-        assertThat(queued).extracting(CrawlEntry::getReference)
+        assertThat(queued).extracting(CrawlerEntry::getReference)
                 .containsExactly(
                         "http://a.com", "http://b.com", "http://c.com");
     }
@@ -109,16 +109,16 @@ class RefFileEnqueuerTest {
         var refsFile = tempDir.resolve("with-comments.txt");
         Files.writeString(refsFile, content);
 
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         config.setStartReferencesFiles(List.of(refsFile));
 
-        var queued = new ArrayList<CrawlEntry>();
+        var queued = new ArrayList<CrawlerEntry>();
         var ctx = buildContext(config, queued);
 
         var result = new RefFileEnqueuer().enqueue(ctx);
 
         assertThat(result).isEqualTo(2);
-        assertThat(queued).extracting(CrawlEntry::getReference)
+        assertThat(queued).extracting(CrawlerEntry::getReference)
                 .containsExactly("http://valid.com", "http://also-valid.com");
     }
 
@@ -129,16 +129,16 @@ class RefFileEnqueuerTest {
         Files.writeString(file1, "http://site1.com");
         Files.writeString(file2, "http://site2.com\nhttp://site3.com");
 
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         config.setStartReferencesFiles(List.of(file1, file2));
 
-        var queued = new ArrayList<CrawlEntry>();
+        var queued = new ArrayList<CrawlerEntry>();
         var ctx = buildContext(config, queued);
 
         var result = new RefFileEnqueuer().enqueue(ctx);
 
         assertThat(result).isEqualTo(3);
-        assertThat(queued).extracting(CrawlEntry::getReference)
+        assertThat(queued).extracting(CrawlerEntry::getReference)
                 .containsExactlyInAnyOrder(
                         "http://site1.com",
                         "http://site2.com",
@@ -153,10 +153,10 @@ class RefFileEnqueuerTest {
     void nonExistentFile_throwsCrawlerException() throws Exception {
         var nonExistent = tempDir.resolve("does-not-exist.txt");
 
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         config.setStartReferencesFiles(List.of(nonExistent));
 
-        var queued = new ArrayList<CrawlEntry>();
+        var queued = new ArrayList<CrawlerEntry>();
         var ctx = buildContext(config, queued);
 
         assertThatExceptionOfType(CrawlerException.class)
@@ -170,10 +170,10 @@ class RefFileEnqueuerTest {
 
     @Test
     void noFilesConfigured_returnsZero() throws Exception {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         config.setStartReferencesFiles(List.of());
 
-        var queued = new ArrayList<CrawlEntry>();
+        var queued = new ArrayList<CrawlerEntry>();
         var ctx = buildContext(config, queued);
 
         var result = new RefFileEnqueuer().enqueue(ctx);

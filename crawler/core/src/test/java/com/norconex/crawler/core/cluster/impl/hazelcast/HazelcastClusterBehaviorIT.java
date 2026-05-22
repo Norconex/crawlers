@@ -37,7 +37,7 @@ import com.norconex.crawler.core.cluster.pipeline.PipelineStatus;
 import com.norconex.crawler.core.cluster.pipeline.Step;
 import com.norconex.crawler.core.cluster.pipeline.StepRecord;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 /**
  * Tests for uncovered {@link HazelcastCluster} methods: session binding,
@@ -91,15 +91,15 @@ class HazelcastClusterBehaviorIT {
             }
 
             @Override
-            public void execute(CrawlSession s) {
+            public void execute(CrawlerSession s) {
             }
 
             @Override
-            public void stop(CrawlSession s) {
+            public void stop(CrawlerSession s) {
             }
 
             @Override
-            public PipelineStatus reduce(CrawlSession s,
+            public PipelineStatus reduce(CrawlerSession s,
                     Bag<PipelineStatus> b) {
                 return PipelineStatus.COMPLETED;
             }
@@ -119,7 +119,7 @@ class HazelcastClusterBehaviorIT {
     @Test
     void getCrawlerId_afterBindSession_returnsCrawlerId() throws IOException {
         startCluster("with-session");
-        var mockSession = mock(CrawlSession.class);
+        var mockSession = mock(CrawlerSession.class);
         when(mockSession.getCrawlerId()).thenReturn("my-crawler");
         cluster.bindSession(mockSession);
 
@@ -218,7 +218,7 @@ class HazelcastClusterBehaviorIT {
             throws IOException {
         startCluster("pipe-first");
 
-        var mockSession = mock(CrawlSession.class);
+        var mockSession = mock(CrawlerSession.class);
         when(mockSession.getCrawlSessionId()).thenReturn("sess-1");
         when(mockSession.getCrawlRunId()).thenReturn("run-1");
         cluster.bindSession(mockSession);
@@ -241,7 +241,7 @@ class HazelcastClusterBehaviorIT {
             throws IOException {
         startCluster("pipe-existing");
 
-        var mockSession = mock(CrawlSession.class);
+        var mockSession = mock(CrawlerSession.class);
         when(mockSession.getCrawlSessionId()).thenReturn("sess-2");
         when(mockSession.getCrawlRunId()).thenReturn("run-2");
         cluster.bindSession(mockSession);
@@ -272,7 +272,7 @@ class HazelcastClusterBehaviorIT {
             throws IOException {
         startCluster("pipe-terminal");
 
-        var mockSession = mock(CrawlSession.class);
+        var mockSession = mock(CrawlerSession.class);
         when(mockSession.getCrawlSessionId()).thenReturn("sess-3");
         when(mockSession.getCrawlRunId()).thenReturn("run-3");
         cluster.bindSession(mockSession);

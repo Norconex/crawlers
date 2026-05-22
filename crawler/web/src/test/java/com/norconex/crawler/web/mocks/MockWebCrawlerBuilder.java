@@ -16,7 +16,7 @@ package com.norconex.crawler.web.mocks;
 
 import java.nio.file.Path;
 
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.Crawler;
 import com.norconex.crawler.web.WebCrawlerDriverFactory;
 import com.norconex.crawler.web.WebCrawlerConfig;
@@ -27,14 +27,14 @@ import com.norconex.crawler.web.WebCrawlerConfig;
 public final class MockWebCrawlerBuilder {
 
     private final Path workDir;
-    private CrawlConfig config;
+    private CrawlerConfig config;
 
     public MockWebCrawlerBuilder(Path workDir) {
         this.workDir = workDir;
         this.config = new WebCrawlerConfig();
     }
 
-    public MockWebCrawlerBuilder config(CrawlConfig config) {
+    public MockWebCrawlerBuilder config(CrawlerConfig config) {
         this.config = config;
         return this;
     }

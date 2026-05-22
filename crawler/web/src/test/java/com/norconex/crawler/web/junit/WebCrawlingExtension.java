@@ -32,9 +32,9 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 
 import com.norconex.commons.lang.bean.BeanMapper;
 import com.norconex.commons.lang.bean.BeanMapper.Format;
-import com.norconex.crawler.core.context.CrawlContext;
+import com.norconex.crawler.core.context.CrawlerContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.crawler.web.WebCrawlerConfig;
 import com.norconex.crawler.web.fetch.impl.httpclient.HttpClientFetcher;
 import com.norconex.crawler.web.junit.WebCrawlingTest.DefaultWebCrawlerConfigModifier;
@@ -42,7 +42,7 @@ import com.norconex.crawler.web.stubs.CrawlerConfigStubs;
 
 /**
  * JUnit 5 extension backing the {@link WebCrawlingTest} annotation.
- * Resolves {@link WebCrawlerConfig} and {@link CrawlContext} parameters
+ * Resolves {@link WebCrawlerConfig} and {@link CrawlerContext} parameters
  * for test methods.
  */
 public class WebCrawlingExtension implements ParameterResolver {
@@ -56,7 +56,7 @@ public class WebCrawlingExtension implements ParameterResolver {
             ParameterContext paramCtx, ExtensionContext extCtx)
             throws ParameterResolutionException {
         var type = paramCtx.getParameter().getType();
-        return type == WebCrawlerConfig.class || type == CrawlContext.class;
+        return type == WebCrawlerConfig.class || type == CrawlerContext.class;
     }
 
     @Override
@@ -70,7 +70,7 @@ public class WebCrawlingExtension implements ParameterResolver {
         if (type == WebCrawlerConfig.class) {
             return config;
         }
-        if (type == CrawlContext.class) {
+        if (type == CrawlerContext.class) {
             return mockCrawlContext(config);
         }
         return null;
@@ -130,23 +130,24 @@ public class WebCrawlingExtension implements ParameterResolver {
         if (methodAnn != null) {
             return methodAnn;
         }
-        return extCtx.getRequiredTestClass().getAnnotation(WebCrawlingTest.class);
+        return extCtx.getRequiredTestClass()
+                .getAnnotation(WebCrawlingTest.class);
     }
 
     /**
-     * Creates a Mockito mock of {@link CrawlContext} that returns the
+     * Creates a Mockito mock of {@link CrawlerContext} that returns the
      * given config from {@code getCrawlConfig()} and an initialized
      * {@link HttpClientFetcher} from {@code getFetcher()}.
      */
-    private CrawlContext mockCrawlContext(WebCrawlerConfig config) {
-        var ctx = mock(CrawlContext.class);
+    private CrawlerContext mockCrawlContext(WebCrawlerConfig config) {
+        var ctx = mock(CrawlerContext.class);
         when(ctx.getCrawlConfig()).thenReturn(config);
 
         // Create and initialize an HTTP fetcher (calls fetcherStartup internally)
         var fetcher = new HttpClientFetcher();
         fetcher.accept(CrawlerEvent.builder()
                 .name(CrawlerEvent.CRAWLER_CRAWL_BEGIN)
-                .source(mock(CrawlSession.class))
+                .source(mock(CrawlerSession.class))
                 .build());
         when(ctx.getFetcher()).thenReturn(fetcher);
         return ctx;

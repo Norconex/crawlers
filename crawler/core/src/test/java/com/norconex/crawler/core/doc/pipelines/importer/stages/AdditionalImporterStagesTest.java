@@ -30,9 +30,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 import com.norconex.commons.lang.file.ContentType;
-import com.norconex.crawler.core.CrawlConfig;
-import com.norconex.crawler.core.context.CrawlContext;
-import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.CrawlerConfig;
+import com.norconex.crawler.core.context.CrawlerContext;
+import com.norconex.crawler.core.doc.CrawlerDocContext;
 import com.norconex.crawler.core.doc.operations.filter.DocumentFilter;
 import com.norconex.crawler.core.doc.operations.filter.MetadataFilter;
 import com.norconex.crawler.core.doc.pipelines.DedupService;
@@ -40,9 +40,9 @@ import com.norconex.crawler.core.doc.pipelines.importer.ImporterPipelineContext;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.fetch.FetchDirective;
 import com.norconex.crawler.core.fetch.FetchDirectiveSupport;
-import com.norconex.crawler.core.ledger.CrawlEntry;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 import com.norconex.importer.doc.Doc;
 
 @Timeout(30)
@@ -50,8 +50,8 @@ class AdditionalImporterStagesTest {
 
     @Test
     void commonAttribsResolution_usesDocumentValuesWhenPresent() {
-        var current = new CrawlEntry("ref");
-        var previous = new CrawlEntry("ref");
+        var current = new CrawlerEntry("ref");
+        var previous = new CrawlerEntry("ref");
         previous.setContentType(ContentType.valueOf("application/old"));
         previous.setCharset(StandardCharsets.ISO_8859_1);
         var doc = new Doc("ref");
@@ -59,75 +59,87 @@ class AdditionalImporterStagesTest {
         doc.setCharset(StandardCharsets.UTF_8);
 
         var ctx = new ImporterPipelineContext(
-                mock(CrawlSession.class),
-                CrawlDocContext.builder()
+                mock(CrawlerSession.class),
+                CrawlerDocContext.builder()
                         .doc(doc)
                         .currentCrawlEntry(current)
                         .previousCrawlEntry(previous)
                         .build());
 
-        assertThat(new CommonAttribsResolutionStage().test(ctx)).isTrue();
-        assertThat(current.getContentType()).isEqualTo(ContentType.TEXT);
-        assertThat(current.getCharset()).isEqualTo(StandardCharsets.UTF_8);
+        assertThat(new CommonAttribsResolutionStage().test(ctx))
+                .isTrue();
+        assertThat(current.getContentType())
+                .isEqualTo(ContentType.TEXT);
+        assertThat(current.getCharset())
+                .isEqualTo(StandardCharsets.UTF_8);
     }
 
     @Test
     void commonAttribsResolution_appliesResolverDefaultsBeforePreviousValues() {
-        var current = new CrawlEntry("ref");
-        var previous = new CrawlEntry("ref");
-        previous.setContentType(ContentType.valueOf("application/json"));
+        var current = new CrawlerEntry("ref");
+        var previous = new CrawlerEntry("ref");
+        previous.setContentType(
+                ContentType.valueOf("application/json"));
         previous.setCharset(StandardCharsets.UTF_16);
         var doc = new Doc("ref");
 
         var ctx = new ImporterPipelineContext(
-                mock(CrawlSession.class),
-                CrawlDocContext.builder()
+                mock(CrawlerSession.class),
+                CrawlerDocContext.builder()
                         .doc(doc)
                         .currentCrawlEntry(current)
                         .previousCrawlEntry(previous)
                         .build());
 
-        assertThat(new CommonAttribsResolutionStage().test(ctx)).isTrue();
+        assertThat(new CommonAttribsResolutionStage().test(ctx))
+                .isTrue();
         assertThat(current.getContentType())
-                .isEqualTo(ContentType.valueOf("application/octet-stream"));
-        assertThat(current.getCharset()).isEqualTo(StandardCharsets.UTF_8);
+                .isEqualTo(ContentType.valueOf(
+                        "application/octet-stream"));
+        assertThat(current.getCharset())
+                .isEqualTo(StandardCharsets.UTF_8);
     }
 
     @Test
     void commonAttribsResolution_fallsBackToPreviousEntryWhenDocValuesStayNull() {
-        var current = new CrawlEntry("ref");
-        var previous = new CrawlEntry("ref");
-        previous.setContentType(ContentType.valueOf("application/json"));
+        var current = new CrawlerEntry("ref");
+        var previous = new CrawlerEntry("ref");
+        previous.setContentType(
+                ContentType.valueOf("application/json"));
         previous.setCharset(StandardCharsets.UTF_16);
         var doc = new NonDetectingDoc("ref");
 
         var ctx = new ImporterPipelineContext(
-                mock(CrawlSession.class),
-                CrawlDocContext.builder()
+                mock(CrawlerSession.class),
+                CrawlerDocContext.builder()
                         .doc(doc)
                         .currentCrawlEntry(current)
                         .previousCrawlEntry(previous)
                         .build());
 
-        assertThat(new CommonAttribsResolutionStage().test(ctx)).isTrue();
+        assertThat(new CommonAttribsResolutionStage().test(ctx))
+                .isTrue();
         assertThat(current.getContentType())
-                .isEqualTo(ContentType.valueOf("application/json"));
-        assertThat(current.getCharset()).isEqualTo(StandardCharsets.UTF_16);
+                .isEqualTo(ContentType
+                        .valueOf("application/json"));
+        assertThat(current.getCharset())
+                .isEqualTo(StandardCharsets.UTF_16);
     }
 
     @Test
     void commonAttribsResolution_keepsCurrentValuesNullWithoutPreviousEntry() {
-        var current = new CrawlEntry("ref");
+        var current = new CrawlerEntry("ref");
         var doc = new NonDetectingDoc("ref");
 
         var ctx = new ImporterPipelineContext(
-                mock(CrawlSession.class),
-                CrawlDocContext.builder()
+                mock(CrawlerSession.class),
+                CrawlerDocContext.builder()
                         .doc(doc)
                         .currentCrawlEntry(current)
                         .build());
 
-        assertThat(new CommonAttribsResolutionStage().test(ctx)).isTrue();
+        assertThat(new CommonAttribsResolutionStage().test(ctx))
+                .isTrue();
         assertThat(current.getContentType()).isNull();
         assertThat(current.getCharset()).isNull();
     }
@@ -136,12 +148,14 @@ class AdditionalImporterStagesTest {
     void documentFiltersStage_rejectsDocumentAndFiresEvent() {
         DocumentFilter filter = doc -> false;
         var session = sessionWithConfig(
-                config -> config.setDocumentFilters(List.of(filter)));
+                config -> config.setDocumentFilters(
+                        List.of(filter)));
         var ctx = ctx(session, "ref");
 
         assertThat(new DocumentFiltersStage().test(ctx)).isFalse();
         assertThat(ctx.getDocContext().getCurrentCrawlEntry()
-                .getProcessingOutcome()).isEqualTo(ProcessingOutcome.REJECTED);
+                .getProcessingOutcome()).isEqualTo(
+                        ProcessingOutcome.REJECTED);
         verify(session).fire(any(CrawlerEvent.class));
     }
 
@@ -149,7 +163,8 @@ class AdditionalImporterStagesTest {
     void documentFiltersStage_acceptsDocumentWithoutEvent() {
         DocumentFilter filter = doc -> true;
         var session = sessionWithConfig(
-                config -> config.setDocumentFilters(List.of(filter)));
+                config -> config.setDocumentFilters(
+                        List.of(filter)));
         var ctx = ctx(session, "ref");
 
         assertThat(new DocumentFiltersStage().test(ctx)).isTrue();
@@ -159,11 +174,13 @@ class AdditionalImporterStagesTest {
     @Test
     void metadataFiltersStage_returnsEarlyWhenMetadataAlreadyExecuted() {
         var session = sessionWithConfig(config -> config
-                .setMetadataFetchSupport(FetchDirectiveSupport.REQUIRED));
+                .setMetadataFetchSupport(
+                        FetchDirectiveSupport.REQUIRED));
         var ctx = ctx(session, "ref");
 
-        assertThat(new MetadataFiltersStage(FetchDirective.DOCUMENT).test(ctx))
-                .isTrue();
+        assertThat(new MetadataFiltersStage(FetchDirective.DOCUMENT)
+                .test(ctx))
+                        .isTrue();
         verify(session, never()).fire(any());
     }
 
@@ -171,15 +188,18 @@ class AdditionalImporterStagesTest {
     void metadataFiltersStage_rejectsMetadataAndSetsOutcome() {
         MetadataFilter filter = (ref, meta) -> false;
         var session = sessionWithConfig(config -> {
-            config.setMetadataFetchSupport(FetchDirectiveSupport.OPTIONAL);
+            config.setMetadataFetchSupport(
+                    FetchDirectiveSupport.OPTIONAL);
             config.setMetadataFilters(List.of(filter));
         });
         var ctx = ctx(session, "ref");
 
-        assertThat(new MetadataFiltersStage(FetchDirective.METADATA).test(ctx))
-                .isFalse();
+        assertThat(new MetadataFiltersStage(FetchDirective.METADATA)
+                .test(ctx))
+                        .isFalse();
         assertThat(ctx.getDocContext().getCurrentCrawlEntry()
-                .getProcessingOutcome()).isEqualTo(ProcessingOutcome.REJECTED);
+                .getProcessingOutcome()).isEqualTo(
+                        ProcessingOutcome.REJECTED);
         verify(session).fire(any(CrawlerEvent.class));
     }
 
@@ -187,13 +207,15 @@ class AdditionalImporterStagesTest {
     void metadataFiltersStage_acceptsMetadataWithoutEvent() {
         MetadataFilter filter = (ref, meta) -> true;
         var session = sessionWithConfig(config -> {
-            config.setMetadataFetchSupport(FetchDirectiveSupport.OPTIONAL);
+            config.setMetadataFetchSupport(
+                    FetchDirectiveSupport.OPTIONAL);
             config.setMetadataFilters(List.of(filter));
         });
         var ctx = ctx(session, "ref");
 
-        assertThat(new MetadataFiltersStage(FetchDirective.METADATA).test(ctx))
-                .isTrue();
+        assertThat(new MetadataFiltersStage(FetchDirective.METADATA)
+                .test(ctx))
+                        .isTrue();
         verify(session, never()).fire(any());
     }
 
@@ -206,8 +228,9 @@ class AdditionalImporterStagesTest {
                 dedupService);
         var ctx = ctx(session, "ref");
 
-        assertThat(new MetadataDedupStage(FetchDirective.DOCUMENT).test(ctx))
-                .isTrue();
+        assertThat(new MetadataDedupStage(FetchDirective.DOCUMENT)
+                .test(ctx))
+                        .isTrue();
         verify(dedupService, never()).findOrTrackMetadata(any());
     }
 
@@ -222,10 +245,12 @@ class AdditionalImporterStagesTest {
                 dedupService);
         var ctx = ctx(session, "ref");
 
-        assertThat(new MetadataDedupStage(FetchDirective.METADATA).test(ctx))
-                .isFalse();
+        assertThat(new MetadataDedupStage(FetchDirective.METADATA)
+                .test(ctx))
+                        .isFalse();
         assertThat(ctx.getDocContext().getCurrentCrawlEntry()
-                .getProcessingOutcome()).isEqualTo(ProcessingOutcome.REJECTED);
+                .getProcessingOutcome()).isEqualTo(
+                        ProcessingOutcome.REJECTED);
         verify(session).fire(any(CrawlerEvent.class));
     }
 
@@ -240,36 +265,38 @@ class AdditionalImporterStagesTest {
                 dedupService);
         var ctx = ctx(session, "ref");
 
-        assertThat(new MetadataDedupStage(FetchDirective.METADATA).test(ctx))
-                .isTrue();
+        assertThat(new MetadataDedupStage(FetchDirective.METADATA)
+                .test(ctx))
+                        .isTrue();
         verify(session, never()).fire(any());
     }
 
-    private CrawlSession sessionWithConfig(
-            java.util.function.Consumer<CrawlConfig> customizer) {
+    private CrawlerSession sessionWithConfig(
+            java.util.function.Consumer<CrawlerConfig> customizer) {
         return sessionWithConfig(customizer, mock(DedupService.class));
     }
 
-    private CrawlSession sessionWithConfig(
-            java.util.function.Consumer<CrawlConfig> customizer,
+    private CrawlerSession sessionWithConfig(
+            java.util.function.Consumer<CrawlerConfig> customizer,
             DedupService dedupService) {
-        var config = new CrawlConfig();
+        var config = new CrawlerConfig();
         customizer.accept(config);
 
-        var crawlContext = mock(CrawlContext.class);
-        var session = mock(CrawlSession.class);
+        var crawlContext = mock(CrawlerContext.class);
+        var session = mock(CrawlerSession.class);
         when(session.getCrawlContext()).thenReturn(crawlContext);
         when(crawlContext.getCrawlConfig()).thenReturn(config);
         when(crawlContext.getDedupService()).thenReturn(dedupService);
         return session;
     }
 
-    private ImporterPipelineContext ctx(CrawlSession session, String ref) {
+    private ImporterPipelineContext ctx(CrawlerSession session,
+            String ref) {
         var doc = new Doc(ref);
         doc.getMetadata().set("k", "v");
-        var docContext = CrawlDocContext.builder()
+        var docContext = CrawlerDocContext.builder()
                 .doc(doc)
-                .currentCrawlEntry(new CrawlEntry(ref))
+                .currentCrawlEntry(new CrawlerEntry(ref))
                 .build();
         return new ImporterPipelineContext(session, docContext);
     }
@@ -285,12 +312,14 @@ class AdditionalImporterStagesTest {
 
         @Override
         public ContentType getContentType() {
-            return blockDetectedValues.get() ? null : super.getContentType();
+            return blockDetectedValues.get() ? null
+                    : super.getContentType();
         }
 
         @Override
         public java.nio.charset.Charset getCharset() {
-            return blockDetectedValues.get() ? null : super.getCharset();
+            return blockDetectedValues.get() ? null
+                    : super.getCharset();
         }
 
         @Override

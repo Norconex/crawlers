@@ -14,8 +14,8 @@
  */
 package com.norconex.crawler.fs.callbacks;
 
-import com.norconex.crawler.core.CrawlCallbacks.CrawlCommandCallback;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.CrawlerCallbacks.CrawlerCommandCallback;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,10 +23,10 @@ import lombok.extern.slf4j.Slf4j;
  * File system crawler-specific initialization before the crawler starts.
  */
 @Slf4j
-public class BeforeFsCommand implements CrawlCommandCallback {
+public class BeforeFsCommand implements CrawlerCommandCallback {
 
     @Override
-    public void accept(CrawlSession session) {
+    public void accept(CrawlerSession session) {
         var cfg = session.getCrawlContext().getCrawlConfig();
         LOG.info("""
 

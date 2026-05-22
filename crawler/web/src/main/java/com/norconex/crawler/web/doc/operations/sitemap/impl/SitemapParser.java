@@ -115,6 +115,7 @@ class SitemapParser {
             try {
                 doc.setSitemapPriority(Float.parseFloat(priority));
             } catch (NumberFormatException e) {
+                doc.setSitemapPriority(0f);
                 LOG.info("Invalid sitemap urlset/url/priority: {}", priority);
             }
         }

@@ -16,8 +16,8 @@ package com.norconex.crawler.core.cmd.crawl.pipeline.bootstrap.queue;
 
 import java.util.function.Consumer;
 
-import com.norconex.crawler.core.ledger.CrawlEntry;
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.ledger.CrawlerEntry;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,8 +31,8 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 public class QueueBootstrapContext {
     @Getter
-    private final CrawlSession crawlSession;
-    private final Consumer<CrawlEntry> queuer;
+    private final CrawlerSession crawlSession;
+    private final Consumer<CrawlerEntry> queuer;
 
     public void queue(@NonNull String reference) {
         var rec = crawlSession.getCrawlContext().createCrawlEntry(reference);
@@ -40,7 +40,7 @@ public class QueueBootstrapContext {
         queue(rec);
     }
 
-    public void queue(@NonNull CrawlEntry entry) {
+    public void queue(@NonNull CrawlerEntry entry) {
         queuer.accept(entry);
     }
 }

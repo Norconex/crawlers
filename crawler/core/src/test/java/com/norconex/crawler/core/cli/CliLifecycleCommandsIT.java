@@ -31,7 +31,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.norconex.committer.core.CommitterEvent;
 import com.norconex.committer.core.service.CommitterServiceEvent;
-import com.norconex.crawler.core.CrawlConfig;
+import com.norconex.crawler.core.CrawlerConfig;
 import com.norconex.crawler.core.event.CrawlerEvent;
 import com.norconex.crawler.core.junit.CrawlerExecutionAssertions;
 import com.norconex.crawler.core.junit.WithTestWatcherLogging;
@@ -271,7 +271,8 @@ class CliLifecycleCommandsIT {
         // stopped, which is tested somewhere else.
         var exit = StandaloneCliCrawlerLauncher
                 .builder()
-                .args(List.of("stop", "-url", unavailableAdminUrl()))
+                .args(List.of("stop", "-url",
+                        unavailableAdminUrl()))
                 .workDir(tempDir)
                 .printErrors(false)
                 .build()
@@ -292,8 +293,9 @@ class CliLifecycleCommandsIT {
         var server = startStopAdminServer();
         try {
             var config = twoDocsConfig();
-            config.getClusterConfig().setAdminPort(server.getAddress()
-                    .getPort());
+            config.getClusterConfig()
+                    .setAdminPort(server.getAddress()
+                            .getPort());
 
             var exit = StandaloneCliCrawlerLauncher
                     .builder()
@@ -316,7 +318,8 @@ class CliLifecycleCommandsIT {
             return "http://localhost:" + socket.getLocalPort();
         } catch (IOException e) {
             throw new IllegalStateException(
-                    "Could not allocate a temporary free port for test.", e);
+                    "Could not allocate a temporary free port for test.",
+                    e);
         }
     }
 
@@ -335,8 +338,8 @@ class CliLifecycleCommandsIT {
         return server;
     }
 
-    private CrawlConfig twoDocsConfig() {
-        var config = new CrawlConfig();
+    private CrawlerConfig twoDocsConfig() {
+        var config = new CrawlerConfig();
         config.setStartReferences(List.of(
                 "http://example.com/test1",
                 "http://example.com/test2"));
@@ -344,8 +347,8 @@ class CliLifecycleCommandsIT {
         return config;
     }
 
-    private CrawlConfig oneDocConfig() {
-        var config = new CrawlConfig();
+    private CrawlerConfig oneDocConfig() {
+        var config = new CrawlerConfig();
         config.setNumThreads(1);
         config.setStartReferences(List.of(
                 "http://example.com/test1"));

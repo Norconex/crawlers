@@ -14,7 +14,7 @@
  */
 package com.norconex.crawler.core.cli;
 
-import com.norconex.crawler.core.CrawlDriver;
+import com.norconex.crawler.core.CrawlerDriver;
 import com.norconex.crawler.core.util.About;
 
 import lombok.EqualsAndHashCode;
@@ -66,7 +66,7 @@ public class CliRunner implements Runnable {
 
     @Getter
     @NonNull
-    private final CrawlDriver crawlDriver;
+    private final CrawlerDriver crawlDriver;
 
     @Option(
         names = { "-h", "-help" },

@@ -17,7 +17,7 @@ package com.norconex.crawler.core.cluster.pipeline;
 import org.apache.commons.collections4.Bag;
 import org.apache.commons.collections4.bag.HashBag;
 
-import com.norconex.crawler.core.session.CrawlSession;
+import com.norconex.crawler.core.session.CrawlerSession;
 
 import lombok.AccessLevel;
 import lombok.Data;
@@ -38,13 +38,13 @@ public abstract class BaseStep implements Step {
     private volatile boolean stopRequested;
 
     @Override
-    public void stop(CrawlSession session) {
+    public void stop(CrawlerSession session) {
         stopRequested = true;
     }
 
     @Override
     public PipelineStatus reduce(
-            CrawlSession session, Bag<PipelineStatus> statuses) {
+            CrawlerSession session, Bag<PipelineStatus> statuses) {
         // Treat empty status bag as not-yet-started
         // all pending
         if (statuses.isEmpty() || statuses.stream()

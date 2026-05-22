@@ -18,7 +18,7 @@ import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.norconex.crawler.core.doc.CrawlDocContext;
+import com.norconex.crawler.core.doc.CrawlerDocContext;
 import com.norconex.crawler.core.ledger.ProcessingOutcome;
 
 import lombok.extern.slf4j.Slf4j;
@@ -33,12 +33,12 @@ public final class ChecksumStageUtil {
     }
 
     public static boolean resolveMetaChecksum(
-            String newChecksum, CrawlDocContext docCtx) {
+            String newChecksum, CrawlerDocContext docCtx) {
         return resolveChecksum(true, newChecksum, docCtx);
     }
 
     public static boolean resolveDocumentChecksum(
-            String newChecksum, CrawlDocContext docCtx) {
+            String newChecksum, CrawlerDocContext docCtx) {
         return resolveChecksum(false, newChecksum, docCtx);
     }
 
@@ -46,7 +46,7 @@ public final class ChecksumStageUtil {
     private static boolean resolveChecksum(
             boolean isMeta,
             String newChecksum,
-            CrawlDocContext docCtx) {
+            CrawlerDocContext docCtx) {
         var currentCrawlEntry = docCtx.getCurrentCrawlEntry();
 
         // Set new checksum on crawlData + metadata
