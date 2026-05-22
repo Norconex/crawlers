@@ -60,17 +60,74 @@ TODO: Add documentation for this property.
 
 ## Examples
 
-The following example demonstrates a flexible handler configuration that processes data based on its content type and metadata. 
+The following example demonstrates a flexible handler configuration that processes data based on its content type and metadata.
 
-First, the conditional checks the `Content-Type` field to determine if the content is HTML. It rejected using the `Reject` handler, if the content is HTML. Otherwise, the `DefaultParser` is applied to parse the non-HTML data. 
+First, an `if` condition checks the `Content-Type` field. If the content is HTML, it is rejected via the `Reject` handler. Otherwise, the `DefaultParser` is applied to parse the non-HTML data.
 
-Following parsing, another conditional handler evaluates the `date_created` field using a `DateCondition`. If the date is within the range, the content is committed to an Elasticsearch index named `new` using the `ElasticsearchCommitter`. If the date does not meet the condition, the content is committed to an Elasticsearch index named `archive`.
+Following parsing, a second `if` condition evaluates the `date_created` field using a `DateCondition`. If the date falls within the specified range, the content is committed to an Elasticsearch index named `new`. Otherwise it goes to the `archive` index.
 
-**TODO: Importer example under ImporterConfig but Importer documentation is under WebCrawlerconfig**
+<ConfigBlock
+  json={{
+    "handlers": [
+      {
+        "if": {
+          "condition": {
+            "class": "FieldCondition",
+            "fieldMatcher": {
+              "pattern": "Content-Type"
+            },
+            "valueMatcher": {
+              "operator": "==",
+              "value": "text/html"
+            }
+          },
+          "then": {
+            "handler": {
+              "class": "Reject"
+            }
+          },
+          "else": {
+            "handler": {
+              "class": "DefaultParser"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "condition": {
+            "class": "DateCondition",
+            "fieldMatcher": {
+              "pattern": "date_created"
+            },
+            "valueMatcherStart": {
+              "operator": ">=",
+              "date": "NOW-10Y"
+            },
+            "valueMatcherEnd": {
+              "operator": "<",
+              "date": "NOW-1Y"
+            }
+          },
+          "then": {
+            "handler": {
+              "class": "ElasticsearchCommitter",
+              "indexName": "new"
+            }
+          },
+          "else": {
+            "handler": {
+              "class": "ElasticsearchCommitter",
+              "indexName": "archive"
+            }
+          }
+        }
+      }
+    ]
+  }}
+/>
 
-**TODO:check Markdown show differe in Document and Example**
-
-**TODO:add example for responseProcessors and tempDir**
+The following example uses a `DateCondition` to either split the document with `CsvSplitter` or reject it.
 
 <ConfigBlock
   json={{
