@@ -61,6 +61,7 @@ def plusLicensePattern = ~/^\([^()]+(?:\([^()]*\)[^()]*)*\)/
 def normalizeForMatch = { str ->
     str?.toLowerCase()
         ?.replaceAll(/\b(v(er|ersion)?\.?\s*)(?=[0-9])/, 'version ')
+        ?.replaceAll(/(\d+)(\.0)+(?![.\d])/, '$1')
         ?.replaceAll(/[^a-zA-Z0-9]/, ' ')
         ?.replaceAll(/\s+/, ' ')
         ?.trim()
@@ -125,7 +126,7 @@ Files.readAllLines(thirdPartyFile).each { line ->
             } ? mapping : null
         }
         if (!result) {
-            throw new RuntimeException("No mapping found for license \"${license}\" in line: \"${trimmedLine}\"")
+            throw new RuntimeException("No mapping found for license \"${license}\" (normalized: \"${normalized}\") in line: \"${trimmedLine}\"")
         }
         [spdx_id: result.spdx_id, full_name: result.full_name]
     }
