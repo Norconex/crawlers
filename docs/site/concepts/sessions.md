@@ -95,4 +95,4 @@ evaluated on every run (deduplication still skips unchanged ones).
 By default, session state is stored in an embedded key-value store in the
 `workDir`. For clustered deployments, the state backend can be replaced with
 a distributed store (e.g., Hazelcast, JDBC).
-See the [Configuration Reference](/docs) for storage backends.
+See the [Configuration Reference](/docs/reference/) for storage backends.
