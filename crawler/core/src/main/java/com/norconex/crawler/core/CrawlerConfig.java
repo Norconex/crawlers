@@ -206,28 +206,27 @@ public class CrawlerConfig {
 
     /**
      * <p>
-     * The maximum number of documents that can be processed before stopping.
-     * Not all processed documents make it to your Committers
-     * as some can be rejected.
+     * The maximum number of documents that can be processed in a single
+     * crawler run before stopping. Not all processed documents make it to
+     * your Committers as some can be rejected.
      * </p>
      * <p>
      * In multi-threaded or clustered environments, the actual number
      * of documents processed may be a bit higher than the specified
-     * maximum due to concurrency.
-     * Upon reaching the configured maximum, the crawler will finish with
-     * its documents actively being processed before stopping.
+     * maximum due to concurrency. Upon reaching the configured maximum,
+     * the crawler will finish with its documents actively being processed
+     * before stopping.
      * </p>
      * <p>
-     * Reaching the maximum value will stop the crawler but it will not
-     * otherwise consider the crawler session "complete", but rather
-     * on "pause".  On next run, the crawler will resume the same session,
-     * processing an additional number of documents up to the maximum
-     * specified.
-     * This maximum allows crawling one or more sources
-     * in chunks, processing a maximum number of documents each time.
-     * When the session fully completes, the next run will start a new
-     * crawl session. To prevent resuming a partial crawl session,
-     * explicitly clean the crawl store first.
+     * Reaching the maximum value stops the current run, but it does not
+     * otherwise consider the crawler session "complete". If there are still
+     * queued documents left to process, the session is effectively paused and
+     * the next run resumes it, processing an additional number of documents up
+     * to the same maximum. This maximum therefore allows crawling one or more
+     * sources in chunks, processing a bounded number of documents on each run.
+     * When the session fully completes, the next run starts a new crawl
+     * session. To prevent resuming a partial crawl session, explicitly clean
+     * the crawl store first.
      * </p>
      * <p>
      * For more control on what events may stop the crawler, consider using
@@ -239,49 +238,6 @@ public class CrawlerConfig {
      */
     @JsonAlias({ "maxDocumentsPerRun", "maxRunDocuments" })
     private int maxDocuments = -1;
-
-    /**
-     * Preferred alias for {@link #getMaxDocuments()} to emphasize that the
-     * cap applies to a single run.
-     *
-     * @return maximum documents processed per run, or {@code -1} for unlimited
-     */
-    public int getMaxDocumentsPerRun() {
-        return maxDocuments;
-    }
-
-    /**
-     * Preferred alias for {@link #setMaxDocuments(int)} to emphasize that the
-     * cap applies to a single run.
-     *
-     * @param maxDocumentsPerRun maximum documents processed per run,
-     * {@code -1} for unlimited
-     * @return this config
-     */
-    public CrawlerConfig setMaxDocumentsPerRun(int maxDocumentsPerRun) {
-        this.maxDocuments = maxDocumentsPerRun;
-        return this;
-    }
-
-    /**
-     * Backward-compatible alias of {@link #getMaxDocumentsPerRun()}.
-     *
-     * @return maximum documents processed per run, or {@code -1} for unlimited
-     */
-    public int getMaxRunDocuments() {
-        return getMaxDocumentsPerRun();
-    }
-
-    /**
-     * Backward-compatible alias of {@link #setMaxDocumentsPerRun(int)}.
-     *
-     * @param maxRunDocuments maximum documents processed per run,
-     * {@code -1} for unlimited
-     * @return this config
-     */
-    public CrawlerConfig setMaxRunDocuments(int maxRunDocuments) {
-        return setMaxDocumentsPerRun(maxRunDocuments);
-    }
 
     /**
      * The maximum number of references a node will read at once from the queue,
