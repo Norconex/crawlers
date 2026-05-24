@@ -19,24 +19,31 @@ Controls how document images are handled during crawling, including the output f
 
 ### imageFormat
 
-TODO: Add documentation for this property.
+The image format used when saving images to disk (e.g., `png`, `jpeg`, `gif`). Defaults to `png`.
 
 ### targetDir
 
-TODO: Add documentation for this property.
+Directory path where captured images are saved when `DIRECTORY` is one of the configured targets.
 
 ### targetDirField
 
-TODO: Add documentation for this property.
+Name of the metadata field where the path to the saved image file is stored. Only populated when `DIRECTORY` is one of the configured targets.
 
 ### targetDirStructure
 
-TODO: Add documentation for this property.
+Directory structure used when saving images to disk. One of:
+
+- `URL2PATH` — Creates subdirectories derived from the document URL segments.
+- `DATE` — Creates subdirectories organized by date (e.g., `2000/12/31/`).
+- `DATETIME` — Creates subdirectories organized by date and time down to seconds (e.g., `2000/12/31/13/34/12/`). This is the default.
 
 ### targetMetaField
 
-TODO: Add documentation for this property.
+Name of the metadata field where the image itself is stored as a Base64-encoded string. Only populated when `METADATA` is one of the configured targets.
 
 ### targets
 
-TODO: Add documentation for this property.
+One or more storage destinations for captured images. Supported values:
+
+- `DIRECTORY` — Saves the image to a local directory (default).
+- `METADATA` — Stores the image as a Base64-encoded value in a metadata field.

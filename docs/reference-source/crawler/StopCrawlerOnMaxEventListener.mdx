@@ -19,15 +19,15 @@ The following example will stop the crawler when the sum of committed  documents
 
 ### eventMatcher
 
-TODO: Add documentation for this property.
+A text matcher identifying which crawler events are counted toward the maximum threshold. When the threshold is reached, the crawler is stopped.
 
 ### maximum
 
-TODO: Add documentation for this property.
+The maximum number of matching events before the crawler is stopped.
 
 ### onMultiple
 
-TODO: Add documentation for this property.
+Determines how the maximum count is evaluated when multiple event types are matched. `ANY` stops when any single event type reaches the maximum; `ALL` stops when all matched event types reach the maximum; `SUM` stops when the combined total of all matching events reaches the maximum. Default is `ANY`.
 
 ## Examples
 

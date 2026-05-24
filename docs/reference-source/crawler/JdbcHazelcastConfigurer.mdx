@@ -19,51 +19,51 @@ Configures Hazelcast for the distributed crawler cluster using a JDBC-backed map
 
 ### autoDiscoveryEnabled
 
-TODO: Add documentation for this property.
+When enabled, Hazelcast uses automatic member discovery in clustered mode instead of the explicit `tcpMembers` list. Default is `false`.
 
 ### backupCount
 
-TODO: Add documentation for this property.
+The number of synchronous data backups in the Hazelcast cluster. Default (`-1`) means automatic: 0 for standalone mode, 1 for clustered mode.
 
 ### columnKeyType
 
-TODO: Add documentation for this property.
+The SQL column type used for map and queue keys in the JDBC store schema. Default is `VARCHAR(4096)`.
 
 ### columnValueType
 
-TODO: Add documentation for this property.
+The SQL column type used for map values in the JDBC store schema. Default is `TEXT`.
 
 ### hazelcastProperties
 
-TODO: Add documentation for this property.
+Additional Hazelcast properties to set on the configuration. These are passed directly to the Hazelcast instance and can override any internal defaults.
 
 ### initialLoadMode
 
-TODO: Add documentation for this property.
+Controls when the Hazelcast map store loads data from the JDBC database. `LAZY` (default) defers loading until entries are accessed. `EAGER` loads all entries at cluster startup.
 
 ### jdbcDriver
 
-TODO: Add documentation for this property.
+The JDBC driver class name. When not set, HikariCP attempts to auto-detect the driver from the JDBC URL.
 
 ### jdbcPassword
 
-TODO: Add documentation for this property.
+The JDBC database password. Defaults to an empty string (the H2 default).
 
 ### jdbcUrl
 
-TODO: Add documentation for this property.
+The JDBC connection URL for the data store. In standalone mode, defaults to an embedded H2 file database in the crawler work directory. In clustered mode, this must be set explicitly to point to a shared external database.
 
 ### jdbcUsername
 
-TODO: Add documentation for this property.
+The JDBC database username. Defaults to `"sa"` (the H2 default).
 
 ### jetEnabled
 
-TODO: Add documentation for this property.
+Whether the Hazelcast Jet engine is enabled. Default (`null`) enables Jet for backward compatibility. Set to `false` when Jet is unused and a leaner cluster runtime is preferred.
 
 ### maxPoolSize
 
-TODO: Add documentation for this property.
+The maximum JDBC connection pool size. Default (`0`) means automatic: 10 for standalone mode, 20 for clustered mode.
 
 ### queueStoreEnabled
 
@@ -71,15 +71,15 @@ Whether to enable the queue store for persistence.
 
 ### sqlMerge
 
-TODO: Add documentation for this property.
+The SQL upsert template used for map stores. The token `{tableName}` is replaced at runtime. Defaults to H2 `MERGE … KEY …` syntax for standalone mode and PostgreSQL `INSERT … ON CONFLICT …` syntax for clustered mode. Override for other database dialects.
 
 ### tcpMembers
 
-TODO: Add documentation for this property.
+A comma-separated list of `host:port` addresses for TCP/IP member discovery in clustered mode (e.g., `"192.168.1.10:5701,192.168.1.11:5701"`). Defaults to local addresses when in clustered mode.
 
 ### writeDelaySeconds
 
-TODO: Add documentation for this property.
+The write-behind delay in seconds. A value of `0` makes writes synchronous (write-through). Default is `5`, which batches writes for better throughput. Pipeline coordination maps always use write-through regardless of this setting.
 
 ### writeBatchSize
 

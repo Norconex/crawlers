@@ -19,15 +19,15 @@ Defines a regular expression and its associated matching behavior through a set 
 
 ### canonEq
 
-TODO: Add documentation for this property.
+When enabled, two characters are considered to match if and only if their full canonical decompositions match (corresponds to Java's `Pattern.CANON_EQ` flag).
 
 ### comments
 
-TODO: Add documentation for this property.
+When enabled, whitespace and comments starting with `#` are ignored in the pattern, making it easier to write well-documented regular expressions (corresponds to Java's `Pattern.COMMENTS` flag).
 
 ### dotAll
 
-TODO: Add documentation for this property.
+When enabled, the `.` character matches any character including line terminators (corresponds to Java's `Pattern.DOTALL` flag).
 
 ### ignoreCase
 
@@ -35,19 +35,19 @@ When enabled, matching is performed without regard to character case.
 
 ### ignoreDiacritic
 
-TODO: Add documentation for this property.
+When enabled, diacritical marks (e.g., accents) are ignored when performing matching or replacing.
 
 ### literal
 
-TODO: Add documentation for this property.
+When enabled, the pattern is treated as a literal string and all metacharacters or escape sequences lose their special meaning (corresponds to Java's `Pattern.LITERAL` flag).
 
 ### matchEmpty
 
-TODO: Add documentation for this property.
+When enabled, `null` or empty strings are considered a positive match regardless of the pattern. To also treat blank (whitespace-only) values as matches, enable `trim` as well.
 
 ### multiline
 
-TODO: Add documentation for this property.
+When enabled, `^` and `$` match the beginning and end of each line rather than the entire input (corresponds to Java's `Pattern.MULTILINE` flag).
 
 ### pattern
 
@@ -59,12 +59,12 @@ When enabled, leading and trailing whitespace is removed from the field value be
 
 ### unicodeCase
 
-TODO: Add documentation for this property.
+When enabled in combination with `ignoreCase`, Unicode-aware case folding is applied during case-insensitive matching (corresponds to Java's `Pattern.UNICODE_CASE` flag).
 
 ### unicodeCharacterClass
 
-TODO: Add documentation for this property.
+When enabled, predefined character classes and POSIX character classes conform to the Unicode Standard (corresponds to Java's `Pattern.UNICODE_CHARACTER_CLASS` flag).
 
 ### unixLines
 
-TODO: Add documentation for this property.
+When enabled, only the `\n` character is recognized as a line terminator for the `.`, `^`, and `$` operators (corresponds to Java's `Pattern.UNIX_LINES` flag).

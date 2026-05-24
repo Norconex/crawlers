@@ -19,83 +19,83 @@ The top-level configuration for a web crawler. Extends the base crawl configurat
 
 ### canonicalLinkDetector
 
-TODO: Add documentation for this property.
+The detector used to identify canonical link declarations in HTTP responses and HTML meta tags, rejecting non-canonical URLs to avoid duplicates. Defaults to `GenericCanonicalLinkDetector`. Set to `null` to disable canonical link detection.
 
 ### cluster
 
-TODO: Add documentation for this property.
+Cluster configuration for the crawler, including the connector type, whether clustering is enabled, and administrative port settings.
 
 ### committers
 
-TODO: Add documentation for this property.
+One or more Committers responsible for persisting crawled documents to a target repository. Multiple committers can be configured to send data to different destinations simultaneously.
 
 ### deferredShutdownDuration
 
-TODO: Add documentation for this property.
+The amount of time to defer crawler shutdown after it finishes executing. Useful for giving external processes with polling intervals enough time to read the final state before the crawler exits. Default is zero (no deferred shutdown).
 
 ### delayResolver
 
-TODO: Add documentation for this property.
+Dictates the minimum amount of time to wait between web requests, helping crawlers be respectful of target web sites. Defaults to `GenericDelayResolver`.
 
 ### documentChecksummer
 
-TODO: Add documentation for this property.
+Generates a checksum from a document's content to detect changes between crawl sessions. Set to `null` to disable document checksumming. Defaults to `Md5DocumentChecksummer`.
 
 ### documentDeduplicate
 
-TODO: Add documentation for this property.
+When enabled, documents sharing the same document checksum within a crawl session are treated as duplicates and rejected. Requires a document checksummer to be configured. Not recommended unless checksums are guaranteed to be sufficiently unique.
 
 ### documentFetchSupport
 
-TODO: Add documentation for this property.
+Controls how the HTTP GET request (document fetch) is handled. Supported values are `DISABLED` (no GET request is made), `OPTIONAL` (a failed GET does not stop processing if HEAD succeeded), and `REQUIRED` (a failed GET rejects the document). Default is `REQUIRED`.
 
 ### documentFilters
 
-TODO: Add documentation for this property.
+Filters applied after a document is downloaded but before it is imported, allowing rejection based on the document's content or metadata.
 
 ### eventListeners
 
-TODO: Add documentation for this property.
+A list of event listeners that are notified of crawler events such as document rejection, import completion, commit, and more. These are in addition to any configuration objects that automatically implement the listener interface.
 
 ### fetchers
 
-TODO: Add documentation for this property.
+One or more fetchers responsible for downloading documents and their metadata. Fetchers are tried in order; the first one that accepts and successfully processes a reference is used, and the others are skipped. Defaults to `HttpClientFetcher`.
 
 ### fetchersMaxRetries
 
-TODO: Add documentation for this property.
+The maximum number of times a fetcher will re-attempt fetching a resource after a failure. Default is zero (no retries).
 
 ### fetchersRetryDelay
 
-TODO: Add documentation for this property.
+The amount of time to wait before a failing fetcher re-attempts fetching a resource. Default is zero (no delay between retries).
 
 ### id
 
-TODO: Add documentation for this property.
+The unique identifier for this crawler. Must be unique among all crawlers in the same crawl session. Used to distinguish crawlers and facilitate integration and tracking.
 
 ### idleTimeout
 
-TODO: Add documentation for this property.
+The maximum amount of time to wait before shutting down a crawler that has an empty queue and no active processing. A non-zero value is useful when an external process populates the queue asynchronously. Default is 5 seconds.
 
 ### importer
 
-TODO: Add documentation for this property.
+The Importer module configuration, responsible for transforming, parsing, and enriching documents after they are fetched.
 
 ### keepReferencedLinks
 
-TODO: Add documentation for this property.
+Specifies which types of extracted links are stored as document metadata. Supported values are `INSCOPE` (default, stores in-scope links), `OUTSCOPE` (stores out-of-scope links), and `MAXDEPTH` (also stores links found on pages at the maximum crawl depth).
 
 ### linkExtractors
 
-TODO: Add documentation for this property.
+One or more link extractors responsible for identifying URLs in crawled documents for further crawling. Multiple extractors can handle different content types. Defaults to `HtmlLinkExtractor`.
 
 ### maxCrawlDuration
 
-TODO: Add documentation for this property.
+The maximum amount of time a crawler is allowed to run. A zero or negative value means unlimited. Default is zero (unlimited).
 
 ### maxDepth
 
-TODO: Add documentation for this property.
+The maximum crawl depth, representing how many link-levels away from a start URL the crawler will follow. Default is `-1` (unlimited).
 
 ### maxDocuments
 
@@ -105,39 +105,39 @@ not completed, and the next run resumes the same session.
 
 ### maxQueueBatchSize
 
-TODO: Add documentation for this property.
+The maximum number of references a node reads at once from the queue to process locally. Default is 50.
 
 ### maxStreamCachePoolSize
 
-TODO: Add documentation for this property.
+The maximum number of bytes used for in-memory caching of all reusable streams combined at any given time. When this limit is reached, file-based caching is used instead. Default is 1 GB.
 
 ### maxStreamCacheSize
 
-TODO: Add documentation for this property.
+The maximum number of bytes used for in-memory caching of a single reusable stream. When this per-stream limit is reached, file-based caching is used. Default is 100 MB.
 
 ### metadataChecksummer
 
-TODO: Add documentation for this property.
+Generates a checksum from a document's metadata to detect changes between crawl sessions. Set to `null` to disable metadata checksumming. Defaults to `LastModifiedMetadataChecksummer` for web crawls.
 
 ### metadataDeduplicate
 
-TODO: Add documentation for this property.
+When enabled, documents sharing the same metadata checksum within a crawl session are treated as duplicates and rejected. Requires a metadata checksummer to be configured. Not recommended unless checksums are guaranteed to be sufficiently unique.
 
 ### metadataFetchSupport
 
-TODO: Add documentation for this property.
+Controls how the HTTP HEAD request (metadata fetch) is handled. Supported values are `DISABLED` (no HEAD request, default), `OPTIONAL` (a failed HEAD does not stop processing if GET succeeds), and `REQUIRED` (a failed HEAD rejects the document).
 
 ### metadataFilters
 
-TODO: Add documentation for this property.
+Filters applied to document metadata fields, allowing rejection of documents before content downloading (when using HTTP HEAD) or after downloading (when using HTTP GET only).
 
 ### minProgressLoggingInterval
 
-TODO: Add documentation for this property.
+The minimum amount of time to wait between each logging of crawling progress. A `null` value or a value below 1 second disables progress logging. Default is 30 seconds.
 
 ### numThreads
 
-TODO: Add documentation for this property.
+The maximum number of concurrent processing threads for the crawler. In clustered mode, this value applies per node. Default is 2.
 
 ### orphansStrategy
 
@@ -149,11 +149,11 @@ A list of document consumers invoked after the document has been processed by th
 
 ### postImportLinks
 
-TODO: Add documentation for this property.
+A field matcher identifying post-import metadata fields that contain URLs to be queued for crawling. Used for advanced cases where link extraction is deferred to the import phase.
 
 ### postImportLinksKeep
 
-TODO: Add documentation for this property.
+When enabled, the metadata fields matched by `postImportLinks` are retained on the document after their URLs have been queued. By default, those fields are deleted after processing.
 
 ### preImportConsumers
 
@@ -161,7 +161,7 @@ A list of document consumers invoked before the document is sent to the importer
 
 ### recrawlableResolver
 
-TODO: Add documentation for this property.
+Determines whether a previously crawled URL is ready to be re-crawled in the current session, based on elapsed time or other criteria. Defaults to `GenericRecrawlableResolver`.
 
 ### referenceFilters
 
@@ -169,19 +169,19 @@ Filters applied to document references (URLs or file paths) to control which one
 
 ### robotsMetaProvider
 
-TODO: Add documentation for this property.
+Provides robots metadata rules from HTTP response headers (e.g., `X-Robots-Tag`) for individual pages. Defaults to `StandardRobotsMetaProvider`. Set to `null` to disable robots metadata support.
 
 ### robotsTxtProvider
 
-TODO: Add documentation for this property.
+Provides robots.txt crawling rules for web sites. Defaults to `StandardRobotsTxtProvider`. Set to `null` to disable robots.txt support.
 
 ### sitemapLocator
 
-TODO: Add documentation for this property.
+Locates sitemaps for web sites by checking common paths or reading robots.txt. Defaults to `GenericSitemapLocator`. Set to `null` to disable automatic sitemap detection (only sitemap start references will be used).
 
 ### sitemapResolver
 
-TODO: Add documentation for this property.
+Resolves and processes sitemap files, extracting URLs for crawling. Defaults to `GenericSitemapResolver`. Set to `null` to disable all sitemap support.
 
 ### spoiledReferenceStrategizer
 
@@ -205,15 +205,15 @@ A list of pluggable providers that supply the initial references to crawl, used 
 
 ### startReferencesSitemaps
 
-TODO: Add documentation for this property.
+One or more sitemap XML URLs to use as starting points for crawling. The sitemap resolver will process these to extract the URLs to crawl.
 
 ### urlNormalizers
 
-TODO: Add documentation for this property.
+One or more URL normalizers that convert URLs to a canonical form to prevent the same page from being crawled multiple times under different URL variations. Executed in order. Defaults to `GenericUrlNormalizer`.
 
 ### urlScopeResolver
 
-TODO: Add documentation for this property.
+Determines whether a discovered URL is within the crawl scope (e.g., confined to the same domain or site). Defaults to `GenericUrlScopeResolver`.
 
 ### workDir
 

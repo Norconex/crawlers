@@ -19,11 +19,11 @@ Determines whether a previously crawled document should be re-crawled on the cur
 
 ### minFrequencies
 
-TODO: Add documentation for this property.
+A list of minimum recrawl frequency rules. Each rule specifies a frequency value (e.g., `hourly`, `daily`, `monthly`, or milliseconds) and a matcher applied to either the document reference or content type to determine when a document is eligible to be re-crawled.
 
 ### sitemapSupport
 
-TODO: Add documentation for this property.
+Controls how sitemap recrawl directives (frequency and last-modified) interact with the configured minimum frequency rules. Supported values are `FIRST` (sitemap takes precedence, default), `LAST` (minimum frequency rules take precedence), and `NEVER` (sitemap directives are ignored).
 
 ## Examples
 

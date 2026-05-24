@@ -19,12 +19,12 @@ Defines a minimum recrawl frequency entry, specifying how often documents matchi
 
 ### applyTo
 
-TODO: Add documentation for this property.
+Specifies whether the `matcher` is applied to the document reference or its content type. Supported values are `REFERENCE` (default) and `CONTENT_TYPE`.
 
 ### matcher
 
-TODO: Add documentation for this property.
+A text matcher applied to either the document reference or content type (as defined by `applyTo`) to identify which documents this frequency rule applies to.
 
 ### value
 
-TODO: Add documentation for this property.
+The minimum recrawl frequency as a string. Can be one of `always`, `hourly`, `daily`, `weekly`, `monthly`, `yearly`, `never`, or a numeric value in milliseconds representing the minimum time between crawl sessions.

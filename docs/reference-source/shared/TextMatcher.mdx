@@ -23,23 +23,23 @@ When enabled, matching is performed without regard to character case.
 
 ### ignoreDiacritic
 
-TODO: Add documentation for this property.
+When enabled, diacritical marks (e.g., accents) are ignored when performing matching or replacing.
 
 ### matchEmpty
 
-TODO: Add documentation for this property.
+When enabled, `null` or empty strings are considered a positive match. To also treat blank (whitespace-only) values as matches, enable `trim` as well.
 
 ### method
 
-TODO: Add documentation for this property.
+The matching method to use. Supported values are: `BASIC` (default, exact text match), `CSV` (comma-separated list of basic matches), `WILDCARD` (`*` matches any series of characters, `?` matches any single character), and `REGEX` (Java-style regular expression matching).
 
 ### negateMatches
 
-TODO: Add documentation for this property.
+When enabled, the result of a match is inverted — a pattern that would normally match will instead be treated as a non-match, and vice versa.
 
 ### partial
 
-TODO: Add documentation for this property.
+When enabled, the pattern only needs to match a portion of the text rather than the entire value. By default the full text must match.
 
 ### pattern
 
@@ -47,7 +47,7 @@ The text or expression used for matching, whose interpretation depends on the se
 
 ### replaceAll
 
-TODO: Add documentation for this property.
+When enabled, all occurrences of the pattern are replaced. When disabled, only the first occurrence is replaced. Only applicable when replacement is supported.
 
 ### trim
 

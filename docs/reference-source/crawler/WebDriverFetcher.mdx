@@ -19,55 +19,55 @@ Fetches dynamically generated web pages using a WebDriver-based browser (such as
 
 ### arguments
 
-TODO: Add documentation for this property.
+Optional command-line arguments passed to the browser or web driver executable (e.g., `--headless`, `--no-sandbox`).
 
 ### browser
 
-TODO: Add documentation for this property.
+The browser to use for crawling, which also determines the WebDriver to use. Default is `FIREFOX`.
 
 ### browserMaxAge
 
-TODO: Add documentation for this property.
+The maximum duration a browser instance is kept alive before being restarted. Restarting browsers periodically helps prevent memory accumulation and performance degradation. Default is `null` (no age-based restart).
 
 ### browserMaxNavigations
 
-TODO: Add documentation for this property.
+The maximum number of page navigations before a browser instance is restarted. Helps prevent memory issues with long-running browsers. Default is `-1` (unlimited, no restart).
 
 ### browserPath
 
-TODO: Add documentation for this property.
+The local file path to the browser executable. When not set, the browser is expected to be found automatically. Not used when `remoteURL` is configured.
 
 ### capabilities
 
-TODO: Add documentation for this property.
+Optional key-value pairs of browser or driver capabilities (configuration options). Many are browser-specific; refer to vendor documentation for supported values.
 
 ### cleanupInterval
 
-TODO: Add documentation for this property.
+The interval between checks for idle browser instances that can be closed and cleaned up. Default is 10 seconds.
 
 ### driverPath
 
-TODO: Add documentation for this property.
+The local file path to the WebDriver executable (e.g., `geckodriver`, `chromedriver`). When not set, automatic detection is attempted. Not used when `remoteURL` is configured.
 
 ### earlyPageScript
 
-TODO: Add documentation for this property.
+Optional JavaScript code executed immediately after a page is requested, before waiting for the page to fully load.
 
 ### httpSniffer
 
-TODO: Add documentation for this property.
+An optional HTTP traffic sniffer configured to intercept browser requests and responses, enabling capture of HTTP headers and other traffic details.
 
 ### implicitlyWait
 
-TODO: Add documentation for this property.
+The WebDriver implicit wait timeout — how long the driver will wait for an element to appear when searching before throwing an exception.
 
 ### latePageScript
 
-TODO: Add documentation for this property.
+Optional JavaScript code executed after the page load wait completes, just before the page content is captured.
 
 ### pageLoadTimeout
 
-TODO: Add documentation for this property.
+The maximum time the WebDriver will wait for a page to fully load before proceeding.
 
 ### referenceFilters
 
@@ -75,39 +75,39 @@ Filters applied to document references (URLs or file paths) to control which one
 
 ### remoteURL
 
-TODO: Add documentation for this property.
+The URL of a remote WebDriver cluster (e.g., Selenium Grid). When set, the fetcher connects to this remote instance instead of using a local browser and driver.
 
 ### screenshotHandler
 
-TODO: Add documentation for this property.
+When configured, captures a screenshot of each crawled web page. Specify a `WebDriverScreenshotHandler` with target directory and format settings.
 
 ### scriptTimeout
 
-TODO: Add documentation for this property.
+The maximum time the WebDriver will wait for a JavaScript script to finish executing.
 
 ### threadWait
 
-TODO: Add documentation for this property.
+A simple thread sleep duration to give the browser extra time to load the page. Use as a last resort when other wait mechanisms are insufficient for a particular browser or web driver.
 
 ### useHtmlUnit
 
-TODO: Add documentation for this property.
+When enabled, uses HtmlUnit WebDriver as a wrapper around the selected browser instead of direct browser WebDriver. This is an experimental feature and not all browsers are supported.
 
 ### waitForElementSelector
 
-TODO: Add documentation for this property.
+A selector expression used to identify an element that must appear in the browser before proceeding. The type of selector is determined by `waitForElementType`.
 
 ### waitForElementTimeout
 
-TODO: Add documentation for this property.
+The maximum time to wait for the element specified by `waitForElementSelector` to appear in the browser before timing out.
 
 ### waitForElementType
 
-TODO: Add documentation for this property.
+The type of reference used by `waitForElementSelector` to locate the element to wait for. Supported values include `TAGNAME`, `CLASSNAME`, `CSSSELECTOR`, `ID`, `LINKTEXT`, `NAME`, `PARTIALLINKTEXT`, and `XPATH`. Default is `TAGNAME`.
 
 ### windowSize
 
-TODO: Add documentation for this property.
+The browser window dimensions (width x height in pixels) to use when rendering pages. Useful for controlling responsive layout behavior.
 
 ## Examples
 

@@ -19,16 +19,16 @@ Configures distributed crawler cluster settings, including whether clustering is
 
 ### adminDisabled
 
-TODO: Add documentation for this property.
+When enabled, the crawler administrative server endpoints are not launched.
 
 ### adminPort
 
-TODO: Add documentation for this property.
+The port each cluster node listens on for administrative commands. If the specified port is in use, the next available port is used instead. Default is 27295.
 
 ### clustered
 
-TODO: Add documentation for this property.
+When enabled, the crawler operates in cluster mode with multiple nodes. When disabled (default), the crawler runs as a standalone instance optimized for single-node performance.
 
 ### connector
 
-TODO: Add documentation for this property.
+The cluster connector implementation used to run the crawler. Defaults to `MVStoreClusterConnector` (file-backed, no external infrastructure needed). Use `HazelcastClusterConnector` for multi-node clustered mode, or `MemoryClusterConnector` for a non-persistent in-memory alternative.

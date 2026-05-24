@@ -19,79 +19,79 @@ Fetches web documents using an HTTP client. Supports authentication (BASIC, DIGE
 
 ### authentication
 
-TODO: Add documentation for this property.
+Authentication configuration for sites requiring login. Supports methods such as BASIC, DIGEST, NTLM, form-based, and Kerberos. Default is `null` (no authentication).
 
 ### connectionRequestTimeout
 
-TODO: Add documentation for this property.
+The maximum time to wait when requesting a connection from the connection pool. Default is 30 seconds.
 
 ### connectionTimeout
 
-TODO: Add documentation for this property.
+The maximum time to wait for a connection to be established with the target server. Default is 30 seconds.
 
 ### cookieSpec
 
-TODO: Add documentation for this property.
+The cookie specification policy to use when handling cookies. Supported values are `RELAXED` (default, lenient parsing), `STRICT` (strict RFC-compliant parsing), and `IGNORE` (cookies are ignored entirely).
 
 ### etagDisabled
 
-TODO: Add documentation for this property.
+When enabled, the `If-None-Match` ETag HTTP request header is not sent. By default, ETags are used so servers can skip sending unchanged content.
 
 ### expectContinueEnabled
 
-TODO: Add documentation for this property.
+When enabled, the `Expect: 100-continue` handshake is used before sending the request body, allowing the server to reject the request early based on headers alone.
 
 ### forceCharsetDetection
 
-TODO: Add documentation for this property.
+When enabled, the character encoding is detected from content rather than relying on the charset value in the `Content-Type` HTTP response header.
 
 ### forceContentTypeDetection
 
-TODO: Add documentation for this property.
+When enabled, the content type is detected from the document content rather than relying on the `Content-Type` HTTP response header.
 
 ### headersPrefix
 
-TODO: Add documentation for this property.
+An optional prefix to prepend to HTTP response header field names when storing them as document metadata. Default is `null` (no prefix added).
 
 ### hstsDisabled
 
-TODO: Add documentation for this property.
+When enabled, HTTP Strict Transport Security (HSTS) enforcement is disabled, preventing the crawler from automatically upgrading HTTP URLs to HTTPS based on the `Strict-Transport-Security` response header.
 
 ### httpMethods
 
-TODO: Add documentation for this property.
+The list of HTTP methods accepted by this fetcher. Defaults to `GET` and `HEAD`.
 
 ### ifModifiedSinceDisabled
 
-TODO: Add documentation for this property.
+When enabled, the `If-Modified-Since` HTTP request header is not sent. By default, this header is sent so servers can respond with `304 Not Modified` when content has not changed.
 
 ### localAddress
 
-TODO: Add documentation for this property.
+The local network address (IP) to use for outbound connections. Useful when the machine has multiple network interfaces and a specific one should be used.
 
 ### maxConnectionIdleTime
 
-TODO: Add documentation for this property.
+The period of time after which idle connections are evicted from the connection pool. Default is 10 seconds.
 
 ### maxConnectionInactiveTime
 
-TODO: Add documentation for this property.
+The period of inactivity after which a connection is proactively checked to detect stale connections. Default is 0 (not proactively checked).
 
 ### maxConnections
 
-TODO: Add documentation for this property.
+The maximum total number of connections that can be created in the connection pool. Typically set to at least the number of crawler threads. Default is 200.
 
 ### maxConnectionsPerRoute
 
-TODO: Add documentation for this property.
+The maximum number of concurrent connections to any single host/route. Default is 20.
 
 ### maxRedirects
 
-TODO: Add documentation for this property.
+The maximum number of redirects to follow before giving up, which helps prevent infinite redirect loops. Set to zero to disable redirect following. Default is 50.
 
 ### notFoundStatusCodes
 
-TODO: Add documentation for this property.
+HTTP response status codes to be treated as "not found", causing the document to be marked as deleted. Default is `[404]`.
 
 ### proxySettings
 
@@ -99,7 +99,7 @@ Configures an optional HTTP proxy for outbound connections. Leave unset to conne
 
 ### redirectUrlProvider
 
-TODO: Add documentation for this property.
+Provides the target URL to use when a redirect is encountered. Defaults to `GenericRedirectUrlProvider`.
 
 ### referenceFilters
 
@@ -107,11 +107,11 @@ Filters applied to document references (URLs or file paths) to control which one
 
 ### requestHeaders
 
-TODO: Add documentation for this property.
+Custom HTTP headers to be sent with every HTTP request, in addition to default headers provided by the HTTP client.
 
 ### sniDisabled
 
-TODO: Add documentation for this property.
+When enabled, Server Name Indication (SNI) is disabled for SSL/TLS connections. SNI is required for some HTTPS sites that host multiple domains on a single IP.
 
 ### socketTimeout
 
@@ -119,19 +119,19 @@ The maximum time in milliseconds to wait for data on an established connection b
 
 ### sslProtocols
 
-TODO: Add documentation for this property.
+The list of SSL/TLS protocols to support (e.g., `TLSv1.2`, `TLSv1.3`). Default is `null`, which uses the protocols configured by the Java platform.
 
 ### trustAllSSLCertificates
 
-TODO: Add documentation for this property.
+When enabled, all SSL certificates are trusted, including self-signed or invalid ones. This is a security risk and should only be used in controlled environments. Consider installing a proper certificate instead.
 
 ### userAgent
 
-TODO: Add documentation for this property.
+The user-agent string used to identify the crawler to target web sites. It is highly recommended to always set a meaningful user agent so web site administrators can identify the crawler.
 
 ### validStatusCodes
 
-TODO: Add documentation for this property.
+HTTP response status codes considered successful. Documents with other status codes are not processed normally. Default is `[200]`.
 
 ## Examples
 

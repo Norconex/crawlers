@@ -27,7 +27,7 @@ Restricts processing to documents whose content type matches the specified patte
 
 ### extractSelectors
 
-TODO: Add documentation for this property.
+CSS/jQuery-style selectors identifying portions of a document to be included for link extraction. Only links within the matched elements are considered by the link selectors.
 
 ### fieldMatcher
 
@@ -43,11 +43,11 @@ When enabled, links marked with `rel="nofollow"` are followed and extracted anyw
 
 ### linkSelectors
 
-TODO: Add documentation for this property.
+CSS/jQuery-style selectors paired with extraction expressions that identify which elements to scan and what data to extract as a URL (e.g., `attr(href)` to extract an attribute value, or `text` for the element's text content). Defaults include selectors for `a[href]`, `[src]`, `link[href]`, and `meta[http-equiv='refresh']`.
 
 ### noExtractSelectors
 
-TODO: Add documentation for this property.
+CSS/jQuery-style selectors identifying portions of a document to be excluded from link extraction. Link selectors are not applied to elements matching these selectors.
 
 ### parser
 

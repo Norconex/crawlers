@@ -19,11 +19,11 @@ Defines how the crawler handles documents that could not be retrieved ("spoiled"
 
 ### fallbackStrategy
 
-TODO: Add documentation for this property.
+The strategy to apply for any spoiled reference reason not explicitly mapped. Default is `DELETE`. Supported values are `DELETE` (send to committer for deletion), `GRACE_ONCE` (retry one more time on the next crawl), and `IGNORE` (do nothing).
 
 ### mappings
 
-TODO: Add documentation for this property.
+A map of processing outcomes to spoiled reference strategies. Supported outcomes include `NOT_FOUND`, `BAD_STATUS`, and `ERROR`. Each maps to a strategy of `DELETE`, `GRACE_ONCE`, or `IGNORE`. Default maps `NOT_FOUND` to `DELETE` and `BAD_STATUS`/`ERROR` to `GRACE_ONCE`.
 
 ## Examples
 

@@ -19,11 +19,11 @@ Connects crawler nodes using Hazelcast for distributed crawling. Supports cluste
 
 ### clusterName
 
-TODO: Add documentation for this property.
+The name identifying the Hazelcast cluster. All nodes sharing the same cluster name will automatically join the same cluster. Default is `"crawler-cluster"`.
 
 ### configurer
 
-TODO: Add documentation for this property.
+The configurer responsible for building the Hazelcast configuration. Defaults to `JdbcHazelcastConfigurer`, which uses JDBC persistence with an embedded H2 database in standalone mode. Advanced users can provide a custom `HazelcastConfigurer` implementation.
 
 ### instanceName
 
@@ -31,7 +31,7 @@ Name of the Hazelcast instance to use for this cluster connector.
 
 ### nodeExpiryTimeout
 
-TODO: Add documentation for this property.
+The maximum time to wait before declaring a node as expired in a distributed crawl. Minimum effective value is 5 seconds. Default is 30 seconds. Not applicable in standalone mode.
 
 ### workerHeartbeatInterval
 

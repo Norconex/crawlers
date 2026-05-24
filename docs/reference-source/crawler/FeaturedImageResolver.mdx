@@ -19,67 +19,67 @@ Resolves and optionally saves a featured image from crawled web pages. Supports 
 
 ### domSelector
 
-TODO: Add documentation for this property.
+An optional CSS-like selector to target specific image elements within a page. When not set, all `<img>` elements in the page are considered.
 
 ### imageCacheDir
 
-TODO: Add documentation for this property.
+The directory to use for the on-disk image cache when the in-memory cache is full. When not set, a default location within the crawler working directory is used.
 
 ### imageCacheSize
 
-TODO: Add documentation for this property.
+The maximum number of images to keep in memory cache to avoid re-downloading and re-scaling the same images across multiple pages. Set to `0` to disable caching. Default is 200.
 
 ### imageFormat
 
-TODO: Add documentation for this property.
+The target image format for stored images (e.g., `jpg`, `png`, `gif`, `bmp`). Default is `png`.
 
 ### largest
 
-TODO: Add documentation for this property.
+When enabled and multiple qualifying images are found on a page, the largest image (by dimensions) is selected as the featured image. By default, the first qualifying image encountered is used.
 
 ### minDimensions
 
-TODO: Add documentation for this property.
+The minimum pixel dimensions (width and height) an image must meet to be considered as the featured image. Default is 400x400.
 
 ### pageContentTypePattern
 
-TODO: Add documentation for this property.
+A regular expression matching the content types of pages from which featured images will be extracted. Default matches HTML and XHTML content types.
 
 ### scaleDimensions
 
-TODO: Add documentation for this property.
+The target pixel dimensions (width and height) to scale the featured image to before storing it. Default is 150x150.
 
 ### scaleQuality
 
-TODO: Add documentation for this property.
+The image scaling quality. Options are `AUTO` (default, balances quality and speed), `LOW`, `MEDIUM`, `HIGH`, and `MAX`. Lower quality is faster but produces less sharp images.
 
 ### scaleStretch
 
-TODO: Add documentation for this property.
+When enabled, the image is stretched to exactly match the `scaleDimensions`, ignoring aspect ratio. By default, the image is scaled while preserving its aspect ratio.
 
 ### storageDiskDir
 
-TODO: Add documentation for this property.
+The directory path where featured images are saved to disk when `DISK` is one of the configured storages. Defaults to a `featuredImages` subdirectory of the crawler working directory.
 
 ### storageDiskField
 
-TODO: Add documentation for this property.
+The metadata field name where the local file path of the saved image is stored when using `DISK` storage. Default is the crawler's built-in `featured-image-path` field.
 
 ### storageDiskStructure
 
-TODO: Add documentation for this property.
+The directory structure to use when saving images to disk with `DISK` storage. Options are `URL2PATH` (directories mirror URL segments), `DATE` (organized by date), and `DATETIME` (organized by date and time). Default is `URL2PATH`.
 
 ### storageInlineField
 
-TODO: Add documentation for this property.
+The metadata field name where the Base64-encoded inline image string is stored when using `INLINE` storage. The string is ready to use in an HTML `<img src="...">` tag. Default is the crawler's built-in `featured-image-inline` field.
 
 ### storages
 
-TODO: Add documentation for this property.
+One or more storage types for the featured image. Supported values are `URL` (default, stores the image URL as metadata), `INLINE` (stores a Base64-encoded image in metadata), and `DISK` (saves the image to the file system).
 
 ### storageUrlField
 
-TODO: Add documentation for this property.
+The metadata field name where the absolute URL of the featured image is stored when using `URL` storage. Default is the crawler's built-in `featured-image-url` field.
 
 ## Examples
 

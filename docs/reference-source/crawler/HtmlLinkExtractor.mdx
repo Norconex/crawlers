@@ -23,7 +23,7 @@ The character encoding to use when reading or writing the document.
 
 ### commentsEnabled
 
-TODO: Add documentation for this property.
+When enabled, links found inside HTML comments are also extracted. By default, link extraction ignores HTML comments.
 
 ### contentTypeMatcher
 
@@ -31,11 +31,11 @@ Restricts processing to documents whose content type matches the specified patte
 
 ### extractBetweens
 
-TODO: Add documentation for this property.
+Regex pattern pairs (start/end) delimiting portions of a document to be included for link extraction. Only links found within the matched regions are extracted.
 
 ### extractSelectors
 
-TODO: Add documentation for this property.
+CSS/jQuery-style selectors identifying portions of a document to be included for link extraction. Only links within the matched elements are extracted.
 
 ### fieldMatcher
 
@@ -51,15 +51,15 @@ When enabled, links marked with `rel="nofollow"` are followed and extracted anyw
 
 ### maxURLLength
 
-TODO: Add documentation for this property.
+The maximum supported URL length in characters. URLs exceeding this length are ignored. Default is 2048.
 
 ### noExtractBetweens
 
-TODO: Add documentation for this property.
+Regex pattern pairs (start/end) delimiting portions of a document to be excluded from link extraction. Links found within the matched regions are not extracted.
 
 ### noExtractSelectors
 
-TODO: Add documentation for this property.
+CSS/jQuery-style selectors identifying portions of a document to be excluded from link extraction. Links within the matched elements are not extracted.
 
 ### restrictions
 
@@ -71,7 +71,7 @@ A list of URL schemes (e.g., `http`, `https`, `ftp`) that are accepted or filter
 
 ### tagAttribs
 
-TODO: Add documentation for this property.
+A map of HTML tag names to the list of attributes from which URLs are extracted. For example, `a` maps to `href`, `img` maps to `src`. By default includes `a[href]`, `frame[src]`, `iframe[src]`, `img[src]`, and `meta[http-equiv]`.
 
 ## Examples
 
