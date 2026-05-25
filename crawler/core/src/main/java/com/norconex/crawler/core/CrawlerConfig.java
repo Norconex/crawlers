@@ -163,24 +163,6 @@ public class CrawlerConfig {
     @JsonProperty("cluster")
     private ClusterConfig clusterConfig = new ClusterConfig();
 
-    //    /**
-    //     * The cluster used to run the crawler. Default (Hazelcast) handles
-    //     * both running the crawler on single and multiple nodes.
-    //     */
-    //    private ClusterConnector clusterConnector =
-    //            new HazelcastClusterConnector();
-    //    /**
-    //     * Disable launching the crawler administrative server endpoints.
-    //     */
-    //    private boolean clusterAdminDisabled;
-    //    /**
-    //     * Port the crawler cluster listens to for administrative commands,
-    //     * on each nodes. Incremented
-    //     * to the next available port in case of conflicts.
-    //     * Default is 27295 (mnemonic: ‘CRAWL’ on a phone keypad).
-    //     */
-    //    private int clusterAdminPort = DEFAULT_ADMIN_PORT;
-
     /**
      * Whether the start references should be loaded asynchronously. When
      * <code>true</code>, the crawler will start processing the start
