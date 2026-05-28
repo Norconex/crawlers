@@ -14,13 +14,13 @@
  */
 package com.norconex.crawler.core.cluster.impl.mvstore;
 
+import com.norconex.commons.lang.config.Configurable;
 import com.norconex.crawler.core.cluster.Cluster;
 import com.norconex.crawler.core.cluster.ClusterConnector;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.Accessors;
 
 /**
  * Connector that creates a file-backed {@link MVStoreCluster} using
@@ -31,9 +31,10 @@ import lombok.experimental.Accessors;
  * <p>The cluster instance is cached so that multiple crawler sessions
  * using the same connector share the same MVStore file.</p>
  */
-@Data
-@Accessors(chain = true)
-public class MVStoreClusterConnector implements ClusterConnector {
+@EqualsAndHashCode
+@Getter
+public class MVStoreClusterConnector implements ClusterConnector,
+        Configurable<MVStoreClusterConnectorConfig> {
 
     private MVStoreClusterConnectorConfig configuration =
             new MVStoreClusterConnectorConfig();
