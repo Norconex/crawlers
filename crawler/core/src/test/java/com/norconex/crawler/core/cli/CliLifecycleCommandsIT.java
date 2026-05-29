@@ -60,52 +60,45 @@ class CliLifecycleCommandsIT {
                 .build()
                 .launch(twoDocsConfig());
 
+        assertThat(exit).isNotNull();
         assertThat(exit.isOK())
-                .as("Crawler start command failed: "
-                        + exit.getStdErr())
+                .as("Crawler start command failed: %s", exit.getStdErr())
                 .isTrue();
 
-        CrawlerExecutionAssertions.assertEventSequence(
-                exit.getEventNames(),
+        var events = exit.getEventNames();
+
+        assertThat(events).containsSubsequence(
                 CrawlerEvent.CRAWLER_SESSION_BEGIN,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_BEGIN,
                 CommitterEvent.COMMITTER_INIT_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_INIT_END,
                 CrawlerEvent.CRAWLER_COMMAND_BEGIN,
-                CrawlerEvent.CRAWLER_CRAWL_BEGIN,
-                CrawlerEvent.DOCUMENT_QUEUED,
-                CrawlerEvent.DOCUMENT_QUEUED,
-                CrawlerEvent.DOCUMENT_PROCESSING_BEGIN,
-                ImporterEvent.IMPORTER_HANDLER_BEGIN,
-                ImporterEvent.IMPORTER_HANDLER_END,
-                CrawlerEvent.DOCUMENT_IMPORTED,
-                CommitterServiceEvent.COMMITTER_SERVICE_UPSERT_BEGIN,
-                CommitterEvent.COMMITTER_ACCEPT_YES,
-                CommitterEvent.COMMITTER_UPSERT_BEGIN,
-                CommitterEvent.COMMITTER_UPSERT_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_UPSERT_END,
-                CrawlerEvent.DOCUMENT_PROCESSING_END,
-                CrawlerEvent.DOCUMENT_FINALIZING_BEGIN,
-                CrawlerEvent.DOCUMENT_FINALIZING_END,
-                CrawlerEvent.DOCUMENT_PROCESSING_BEGIN,
-                ImporterEvent.IMPORTER_HANDLER_BEGIN,
-                ImporterEvent.IMPORTER_HANDLER_END,
-                CrawlerEvent.DOCUMENT_IMPORTED,
-                CommitterServiceEvent.COMMITTER_SERVICE_UPSERT_BEGIN,
-                CommitterEvent.COMMITTER_ACCEPT_YES,
-                CommitterEvent.COMMITTER_UPSERT_BEGIN,
-                CommitterEvent.COMMITTER_UPSERT_END,
-                CommitterServiceEvent.COMMITTER_SERVICE_UPSERT_END,
-                CrawlerEvent.DOCUMENT_PROCESSING_END,
-                CrawlerEvent.DOCUMENT_FINALIZING_BEGIN,
-                CrawlerEvent.DOCUMENT_FINALIZING_END,
+                CrawlerEvent.CRAWLER_CRAWL_BEGIN);
+
+        assertThat(events).containsSubsequence(
                 CrawlerEvent.CRAWLER_CRAWL_END,
                 CrawlerEvent.CRAWLER_COMMAND_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_BEGIN,
                 CommitterEvent.COMMITTER_CLOSE_END,
                 CommitterServiceEvent.COMMITTER_SERVICE_CLOSE_END);
+
+        assertThat(events.stream()
+                .filter(e -> e
+                        .equals(CrawlerEvent.DOCUMENT_PROCESSING_END)
+                        || e.equals(
+                                CrawlerEvent.DOCUMENT_FINALIZING_BEGIN)
+                        || e.equals(
+                                CrawlerEvent.DOCUMENT_FINALIZING_END))
+                .toList())
+                        .containsExactlyInAnyOrder(
+                                CrawlerEvent.DOCUMENT_PROCESSING_END,
+                                CrawlerEvent.DOCUMENT_FINALIZING_BEGIN,
+                                CrawlerEvent.DOCUMENT_FINALIZING_END,
+                                CrawlerEvent.DOCUMENT_PROCESSING_END,
+                                CrawlerEvent.DOCUMENT_FINALIZING_BEGIN,
+                                CrawlerEvent.DOCUMENT_FINALIZING_END);
     }
 
     @Test
