@@ -1079,16 +1079,6 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>versions-maven-plugin</artifactId>
           <version>${versions-maven-plugin.version}</version>
-          <executions>
-            <execution>
-              <phase>compile</phase>
-              <goals>
-                <goal>display-dependency-updates</goal>
-                <goal>display-plugin-updates</goal>
-                <goal>display-property-updates</goal>
-              </goals>
-            </execution>
-          </executions>            
           <inherited>true</inherited>
         </plugin>
         

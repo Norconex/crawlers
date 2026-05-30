@@ -1,0 +1,58 @@
+#-------------------------------------------------------------------------------
+# Copyright 2026 Norconex Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#-------------------------------------------------------------------------------
+
+# Runs a weekly Maven dependency update report and prints the results to the
+# workflow log so GitHub's normal workflow notification email can point back to
+# the report output.
+
+name: Dependency Update Report
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21 and Maven
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Show Maven version
+        run: mvn --version
+
+      - name: Print dependency update report
+        run: |
+          echo "Running Maven dependency update report..."
+          mvn -B -ntp \
+            -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+            versions:display-dependency-updates \
+            versions:display-plugin-updates \
+            versions:display-property-updates
