@@ -1256,6 +1256,11 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>license-maven-plugin</artifactId>      
       </plugin>          
+
+      <plugin>
+        <groupId>org.codehaus.gmavenplus</groupId>
+        <artifactId>gmavenplus-plugin</artifactId>
+      </plugin>
       
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
