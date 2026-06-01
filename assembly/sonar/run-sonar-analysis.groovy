@@ -37,9 +37,18 @@ procBuilder.directory(project.basedir)
 def process = procBuilder.start()
 
 def out = new BufferedReader(new InputStreamReader(process.inputStream))
-out.eachLine { println it }
+def outputLines = []
+out.eachLine {
+    outputLines << it
+    println it
+}
 
 def exitCode = process.waitFor()
 if (exitCode != 0) {
-    throw new IllegalStateException("[Sonar] Analysis failed for $projectKey (exit code $exitCode)")
+    def tailSize = Math.min(60, outputLines.size())
+    def tail = outputLines.subList(outputLines.size() - tailSize, outputLines.size())
+            .join(System.lineSeparator())
+    throw new IllegalStateException(
+            "[Sonar] Analysis failed for $projectKey (exit code $exitCode). "
+                    + "Last scanner output lines:\n$tail")
 }
