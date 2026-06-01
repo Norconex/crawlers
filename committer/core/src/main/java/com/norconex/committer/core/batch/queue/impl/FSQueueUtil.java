@@ -119,7 +119,9 @@ public final class FSQueueUtil {
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
                 var name = entry.getName();
-                try (var is = zipFile.getInputStream(entry)) {
+                // Safe: this reads entry data only and never writes entry names
+                // to disk paths (no archive extraction / no Zip Slip surface).
+                try (var is = zipFile.getInputStream(entry)) { //NOSONAR
                     if ("reference".equals(name)) {
                         ref = IOUtils.toString(is, StandardCharsets.UTF_8);
                     } else if ("metadata".equals(name)) {
