@@ -3,6 +3,11 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.util.regex.Pattern
 
+if (project.packaging == 'pom') {
+    println "[Licenses] Skipping ${project.artifactId} (packaging=pom)"
+    return
+}
+
 // Input and output paths
 def thirdPartyFile = project.basedir.toPath().resolve(
     "target/generated-sources/license/THIRD-PARTY.txt")
@@ -12,6 +17,11 @@ def licenseTargetDir = project.basedir.toPath().resolve(
     "target/generated-resources/licenses")
 def mappingFile = project.parent.basedir.toPath().resolve(
     "assembly/licenses/license_mappings.json")
+
+if (!Files.exists(thirdPartyFile)) {
+    println "[Licenses] Skipping ${project.artifactId} (missing THIRD-PARTY.txt)"
+    return
+}
 // Ensure target directory exists
 Files.createDirectories(licenseTargetDir)
 

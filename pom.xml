@@ -911,7 +911,7 @@
               <phase>prepare-package</phase> 
               <configuration>
                 <scripts>
-                  <script>${project.parent.basedir}/assembly/licenses/copy-licenses.groovy</script>
+                  <script>${maven.multiModuleProjectDirectory}/assembly/licenses/copy-licenses.groovy</script>
                 </scripts>
               </configuration>
             </execution>
@@ -924,7 +924,7 @@
               <phase>verify</phase> 
               <configuration>
                 <scripts>
-                  <script>${project.parent.basedir}/assembly/sonar/run-sonar-analysis.groovy</script>
+                  <script>${maven.multiModuleProjectDirectory}/assembly/sonar/run-sonar-analysis.groovy</script>
                 </scripts>
               </configuration>
             </execution>
