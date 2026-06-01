@@ -46,7 +46,7 @@ import lombok.ToString;
  * as needed in the provided SQL(s) table and field creation, respectively:
  * </p>
  *
- * <h4>Table creation</h4>
+ * <h3>Table creation</h3>
  * <dl>
  *   <dt>{tableName}</dt>
  *   <dd>
@@ -59,7 +59,7 @@ import lombok.ToString;
  *     supplied with {@link SqlCommitterConfig#setPrimaryKey(String)}.
  *   </dd>
  * </dl>
- * <h4>Field creation</h4>
+ * <h3>Field creation</h3>
  * <dl>
  *   <dt>{fieldName}</dt>
  *   <dd>
