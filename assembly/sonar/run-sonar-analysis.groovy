@@ -115,34 +115,31 @@ def awaitQualityGate = { Properties reportTask, long timeoutSeconds ->
                 return
             }
             if (status != "OK") {
-                def dashboardSuffix = dashboardUrl
-                    ? "${System.lineSeparator()}Dashboard: ${dashboardUrl}"
-                    : ""
-                throw new IllegalStateException(
-                    "[Sonar] Quality Gate failed for ${projectKey}: ${status}"
-                        + "${System.lineSeparator()}"
-                        + "${formatConditions(projectStatus.conditions as List)}"
-                        + dashboardSuffix)
+                def msg = "[Sonar] Quality Gate failed for ${projectKey}: ${status}" +
+                    "${System.lineSeparator()}" +
+                    "${formatConditions(projectStatus.conditions as List)}"
+                if (dashboardUrl) {
+                    msg += "${System.lineSeparator()}Dashboard: ${dashboardUrl}"
+                }
+                throw new IllegalStateException(msg)
             }
             return
         }
 
         if (ceStatus in ["FAILED", "CANCELED"]) {
-                def dashboardSuffix = dashboardUrl
-                    ? "${System.lineSeparator()}Dashboard: ${dashboardUrl}"
-                    : ""
-            throw new IllegalStateException(
-                    "[Sonar] Compute Engine task ended with status ${ceStatus} for ${projectKey}"
-                        + dashboardSuffix)
+            def msg = "[Sonar] Compute Engine task ended with status ${ceStatus} for ${projectKey}"
+            if (dashboardUrl) {
+                msg += "${System.lineSeparator()}Dashboard: ${dashboardUrl}"
+            }
+            throw new IllegalStateException(msg)
         }
 
         if (System.nanoTime() >= deadline) {
-                def dashboardSuffix = dashboardUrl
-                    ? "${System.lineSeparator()}Dashboard: ${dashboardUrl}"
-                    : ""
-            throw new TimeoutException(
-                    "[Sonar] Timed out waiting ${timeoutSeconds}s for SonarCloud analysis of ${projectKey}"
-                        + dashboardSuffix)
+            def msg = "[Sonar] Timed out waiting ${timeoutSeconds}s for SonarCloud analysis of ${projectKey}"
+            if (dashboardUrl) {
+                msg += "${System.lineSeparator()}Dashboard: ${dashboardUrl}"
+            }
+            throw new TimeoutException(msg)
         }
         Thread.sleep(5_000)
     }
