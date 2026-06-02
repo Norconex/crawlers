@@ -25,6 +25,9 @@ println "[Sonar] Running analysis for: $projectKey"
 def qualityGateWait = project.properties.get("sonar.qualitygate.wait")
 def qualityGateTimeout = project.properties.get("sonar.qualitygate.timeout")
 def shouldWaitForQualityGate = qualityGateWait?.toBoolean() ?: false
+def mvnExecutable = System.getProperty("os.name", "")
+    .toLowerCase()
+    .contains("win") ? "mvn.cmd" : "mvn"
 
 def jsonSlurper = new JsonSlurper()
 
@@ -112,38 +115,41 @@ def awaitQualityGate = { Properties reportTask, long timeoutSeconds ->
                 return
             }
             if (status != "OK") {
+                def dashboardSuffix = dashboardUrl
+                    ? "${System.lineSeparator()}Dashboard: ${dashboardUrl}"
+                    : ""
                 throw new IllegalStateException(
-                        "[Sonar] Quality Gate failed for ${projectKey}: ${status}"
-                                + System.lineSeparator()
-                                + formatConditions(projectStatus.conditions as List)
-                                + (dashboardUrl
-                                    ? System.lineSeparator() + "Dashboard: ${dashboardUrl}"
-                                    : ""))
+                    "[Sonar] Quality Gate failed for ${projectKey}: ${status}"
+                        + "${System.lineSeparator()}"
+                        + "${formatConditions(projectStatus.conditions as List)}"
+                        + dashboardSuffix)
             }
             return
         }
 
         if (ceStatus in ["FAILED", "CANCELED"]) {
+                def dashboardSuffix = dashboardUrl
+                    ? "${System.lineSeparator()}Dashboard: ${dashboardUrl}"
+                    : ""
             throw new IllegalStateException(
                     "[Sonar] Compute Engine task ended with status ${ceStatus} for ${projectKey}"
-                            + (dashboardUrl
-                                ? System.lineSeparator() + "Dashboard: ${dashboardUrl}"
-                                : ""))
+                        + dashboardSuffix)
         }
 
         if (System.nanoTime() >= deadline) {
+                def dashboardSuffix = dashboardUrl
+                    ? "${System.lineSeparator()}Dashboard: ${dashboardUrl}"
+                    : ""
             throw new TimeoutException(
                     "[Sonar] Timed out waiting ${timeoutSeconds}s for SonarCloud analysis of ${projectKey}"
-                            + (dashboardUrl
-                                ? System.lineSeparator() + "Dashboard: ${dashboardUrl}"
-                                : ""))
+                        + dashboardSuffix)
         }
         Thread.sleep(5_000)
     }
 }
 
 def mvnCmd = [
-    "mvn", "sonar:sonar",
+    mvnExecutable, "sonar:sonar",
     "-Dsonar.login=${sonarLogin}",
     "-Dsonar.projectKey=${projectKey}"
 ].collect { it.toString() }
@@ -175,8 +181,8 @@ if (exitCode != 0) {
     def tail = outputLines.subList(outputLines.size() - tailSize, outputLines.size())
             .join(System.lineSeparator())
     throw new IllegalStateException(
-            "[Sonar] Analysis failed for $projectKey (exit code $exitCode). "
-                    + "Last scanner output lines:\n$tail")
+            "[Sonar] Analysis failed for $projectKey (exit code $exitCode). " +
+                "Last scanner output lines:\n$tail")
 }
 
         if (shouldWaitForQualityGate) {
