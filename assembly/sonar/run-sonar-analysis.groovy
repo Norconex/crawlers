@@ -177,9 +177,9 @@ if (exitCode != 0) {
     def tailSize = Math.min(60, outputLines.size())
     def tail = outputLines.subList(outputLines.size() - tailSize, outputLines.size())
             .join(System.lineSeparator())
-    throw new IllegalStateException(
-            "[Sonar] Analysis failed for $projectKey (exit code $exitCode). " +
-                "Last scanner output lines:\n$tail")
+    def msg = "[Sonar] Analysis failed for $projectKey (exit code $exitCode). " +
+        "Last scanner output lines:\n$tail"
+    throw new IllegalStateException(msg)
 }
 
         if (shouldWaitForQualityGate) {
