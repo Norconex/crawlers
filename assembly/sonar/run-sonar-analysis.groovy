@@ -100,8 +100,8 @@ def awaitQualityGate = { Properties reportTask, long timeoutSeconds ->
                         "[Sonar] Compute Engine task succeeded without analysisId for ${projectKey}")
             }
 
-            def projectStatusUrl = serverUrl + "/api/qualitygates/project_status?analysisId="
-                    + URLEncoder.encode(analysisId, StandardCharsets.UTF_8)
+            def projectStatusUrl = serverUrl + "/api/qualitygates/project_status?analysisId=" +
+                    URLEncoder.encode(analysisId, StandardCharsets.UTF_8)
             def qualityGateResponse = readJson(projectStatusUrl)
             def projectStatus = qualityGateResponse.projectStatus ?: [:]
             def status = projectStatus.status ?: "UNKNOWN"
