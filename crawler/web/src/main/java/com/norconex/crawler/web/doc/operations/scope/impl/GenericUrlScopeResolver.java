@@ -66,11 +66,6 @@ public class GenericUrlScopeResolver
     private GenericUrlScopeResolverConfig configuration =
             new GenericUrlScopeResolverConfig();
 
-    //    @JsonIgnore
-    //    @EqualsAndHashCode.Exclude
-    //    @ToString.Exclude
-    //    private WebCrawlerSessionAttributes crawlerContext;
-
     @Override
     protected void onCrawlerCrawlBegin(CrawlerEvent event) {
         resolvedSites = Web.gridCache(
@@ -78,8 +73,6 @@ public class GenericUrlScopeResolver
                 RESOLVED_SITES_CACHE_NAME,
                 SitemapPresence.class);
         LOG.debug(RESOLVED_SITES_CACHE_NAME + " cache initialized.");
-        //        crawlerContext =
-        //                (WebCrawlerSessionAttributes) event.getSource().getAttributes();
     }
 
     @Override
@@ -154,7 +147,6 @@ public class GenericUrlScopeResolver
     private boolean siteHasSitemap(String inScope) {
         var urlRoot = HttpURL.getRoot(inScope);
         var sitemapPresence = resolvedSites.get(urlRoot).orElse(null);
-        //        var sitemapPresence = crawlerContext.getResolvedWebsites().get(urlRoot);
         // At this point, the sitemap should never be "RESOLVING".
         return sitemapPresence == SitemapPresence.PRESENT;
     }
