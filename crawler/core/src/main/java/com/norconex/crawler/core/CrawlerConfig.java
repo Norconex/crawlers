@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -218,7 +217,6 @@ public class CrawlerConfig {
      * Default is -1 (unlimited).
      * </p>
      */
-    @JsonAlias({ "maxDocumentsPerRun", "maxRunDocuments" })
     private int maxDocuments = -1;
 
     /**
