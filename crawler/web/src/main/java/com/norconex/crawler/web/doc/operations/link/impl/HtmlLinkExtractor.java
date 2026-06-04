@@ -484,6 +484,12 @@ public class HtmlLinkExtractor
                 && !configuration.isIgnoreNofollow()
                 && tag.attribs.getStrings("rel")
                         .stream()
+                        .flatMap(s -> {
+                            var values = StringUtils.split(s, " ,\t\n\r");
+                            return values == null
+                                    ? java.util.stream.Stream.<String>empty()
+                                    : java.util.Arrays.stream(values);
+                        })
                         .anyMatch(
                                 s -> "nofollow"
                                         .equalsIgnoreCase(trimToEmpty(s)));
