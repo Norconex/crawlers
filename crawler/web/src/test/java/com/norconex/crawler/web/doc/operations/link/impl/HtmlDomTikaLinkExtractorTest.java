@@ -132,6 +132,27 @@ class HtmlDomTikaLinkExtractorTest {
         assertThat(actualUrls).containsExactlyInAnyOrder(expectedURLs);
     }
 
+    @LinkExtractorsTest
+    void testNofollowRelVariantsAreIgnoredByDefault(LinkExtractor extractor)
+            throws IOException {
+        var docURL = "http://www.example.com/test/rel-variants.html";
+        var content = """
+                                <html><body>
+                                <a href=\"/nofollow-spaces.html\" rel=\" nofollow \">A</a>
+                                <a href=\"/nofollow-case.html\" rel=\"NoFoLlOw\">B</a>
+                                <a href=\"/nofollow-multi.html\" rel=\"noopener nofollow ugc\">C</a>
+                                <a href=\"/follow.html\" rel=\"noopener\">D</a>
+                                </body></html>
+                                """;
+
+        var links = extractor.extractLinks(
+                CrawlDocStubs.crawlDocHtml(docURL, content));
+
+        var actualUrls = links.stream().map(Link::getUrl).toList();
+        assertThat(actualUrls)
+                .containsExactly("http://www.example.com/follow.html");
+    }
+
     //--- BASE HREF Tests ------------------------------------------------------
 
     @LinkExtractorsTest

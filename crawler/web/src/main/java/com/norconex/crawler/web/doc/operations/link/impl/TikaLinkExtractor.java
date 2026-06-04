@@ -154,8 +154,7 @@ public class TikaLinkExtractor
             com.norconex.crawler.web.doc.operations.link.Link> toNxLink(
                     String referrerUrl, Link tikaLink) {
         if (!configuration.isIgnoreNofollow()
-                && "nofollow".equalsIgnoreCase(
-                        StringUtils.trim(tikaLink.getRel()))) {
+                && hasActiveDoNotFollow(tikaLink)) {
             return Optional.empty();
         }
         var extractedURL = tikaLink.getUri();
@@ -180,6 +179,23 @@ public class TikaLinkExtractor
             return Optional.of(nxLink);
         }
         return Optional.empty();
+    }
+
+    private boolean hasActiveDoNotFollow(Link tikaLink) {
+        var rel = StringUtils.trimToNull(tikaLink.getRel());
+        if (rel == null) {
+            return false;
+        }
+        var values = StringUtils.split(rel, " ,\t\n\r");
+        if (values == null) {
+            return false;
+        }
+        for (String value : values) {
+            if ("nofollow".equalsIgnoreCase(StringUtils.trim(value))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void tikaMetaToNxMeta(

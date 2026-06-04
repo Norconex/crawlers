@@ -216,7 +216,7 @@ public class DomLinkExtractor
     private Link extractLink(Element elm, String extract) {
         var url = trimToNull(DomUtil.getElementValue(elm, extract));
         if (url == null || (!configuration.isIgnoreNofollow()
-                && elm.is("[rel='nofollow']"))) {
+                && hasActiveDoNotFollow(elm))) {
             return null;
         }
 
@@ -273,6 +273,26 @@ public class DomLinkExtractor
             }
         }
         return link;
+    }
+
+    private boolean hasActiveDoNotFollow(Element elm) {
+        if (!"a".equals(elm.tagName()) || !elm.hasAttr("rel")) {
+            return false;
+        }
+        var rel = elm.attr("rel");
+        if (StringUtils.isBlank(rel)) {
+            return false;
+        }
+        var values = StringUtils.split(rel, " ,\t\n\r");
+        if (values == null) {
+            return false;
+        }
+        for (String value : values) {
+            if ("nofollow".equalsIgnoreCase(StringUtils.trim(value))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Document excludeUnwantedContent(Document doc) {
