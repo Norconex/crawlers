@@ -19,11 +19,40 @@ Notes are missing. Add implementation details, caveats, and examples.
 
 ## Properties
 
-### `configuration`
+### `autoCommitBufferSize`
 
-:::warning[Missing Documentation]
-Property `configuration` is missing documentation. Please update this section.
-:::
+Maximum size of the write buffer in KB before an automatic commit is triggered.
+A larger buffer can improve write throughput at the cost of higher memory usage
+and a larger potential data loss window on an unclean shutdown. Default: `1024`.
+
+### `autoCommitDelay`
+
+Maximum delay in milliseconds before uncommitted changes are automatically
+flushed to disk. Lower values reduce the data loss window on crash but increase
+I/O frequency. Default: `1000`.
+
+### `autoCompactFillRate`
+
+Minimum percentage of live data required in a storage chunk before the store
+considers that chunk worth compacting. Lower values tolerate more fragmentation
+before compaction triggers; higher values compact more aggressively. Default: `40`.
+
+### `cacheSize`
+
+Size of the read cache in MB. A larger cache improves read performance for
+frequently accessed data at the cost of heap memory. Default: `16`.
+
+### `compress`
+
+Compression level applied to stored data pages. `0` = no compression,
+`1` = fast LZF compression, `2` = Deflate high compression (smallest files,
+highest CPU cost). Default: `0`.
+
+### `pageSplitSize`
+
+Target page size in bytes. Pages that grow beyond this threshold are split
+during write operations. Smaller values reduce read amplification; larger values
+reduce page-management overhead. Default: `4096`.
 
 ## Examples
 

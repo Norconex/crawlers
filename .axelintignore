@@ -1,0 +1,3 @@
+# Ignore test HTML files with intentional "bad" HTML for edge case testing
+**/test/**/*.html
+**/tests/**/*.html
