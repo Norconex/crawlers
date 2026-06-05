@@ -178,6 +178,9 @@ jobs:
             -Dsonar.qualitygate.wait=false \
             -C \
             -B
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_CENTRAL_TOKEN: ${{ secrets.OSSRH_TOKEN }}
 
       #--- Step ------------------------------------------------------------------
 
