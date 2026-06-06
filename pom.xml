@@ -89,7 +89,7 @@
     <easy-random.version>5.0.0</easy-random.version>
     <junit-jupiter.version>6.0.3</junit-jupiter.version>
     <junit-platform.version>6.1.0</junit-platform.version>
-    <mockito.version>5.21.0</mockito.version>
+    <mockito.version>5.23.0</mockito.version>
     <!-- Must match byte-buddy-agent version bundled with Mockito; Hazelcast pulls in
          an older 1.12.21 which lacks ClassFileVersion.JAVA_V21, breaking inline mocking -->
     <bytebuddy.version>1.18.8</bytebuddy.version>
