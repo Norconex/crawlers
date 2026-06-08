@@ -465,7 +465,9 @@ public class CrawlerTestHarness implements Closeable {
                 Thread.sleep(pollIntervalMs);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                return;
+                throw new IllegalStateException(
+                        "Interrupted while waiting for Hazelcast threads to terminate",
+                        e);
             }
         }
         throw new IllegalStateException(
