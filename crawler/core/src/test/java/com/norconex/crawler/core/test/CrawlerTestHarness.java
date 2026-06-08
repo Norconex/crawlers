@@ -468,11 +468,10 @@ public class CrawlerTestHarness implements Closeable {
                 return;
             }
         }
-        LOG.warn(
-                "Hazelcast threads with prefix '{}' did not all terminate "
-                        + "within {}ms; proceeding anyway "
-                        + "(BindException may occur on next run)",
-                prefix, timeoutMs);
+        throw new IllegalStateException(
+                "Hazelcast threads with prefix '" + prefix
+                        + "' did not all terminate within " + timeoutMs
+                        + "ms; refusing to continue to avoid BindException on next run");
     }
 
     private static int findFreeLocalPortRangeBase(int rangeSize) {
