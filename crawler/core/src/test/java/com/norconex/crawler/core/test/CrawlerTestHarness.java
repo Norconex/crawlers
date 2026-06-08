@@ -441,9 +441,9 @@ public class CrawlerTestHarness implements Closeable {
         var prefix = "hz." + hazelcastClusterName + "-";
         var timeoutMs = 30_000L;
         var pollIntervalMs = 100L;
-        var deadline = System.currentTimeMillis() + timeoutMs;
+        var deadlineNanos = System.nanoTime() + timeoutMs * 1_000_000L;
         var mxBean = ManagementFactory.getThreadMXBean();
-        while (System.currentTimeMillis() < deadline) {
+        while (System.nanoTime() < deadlineNanos) {
             var threadIds = mxBean.getAllThreadIds();
             var infos = mxBean.getThreadInfo(threadIds, 0);
             var stillRunning = false;
