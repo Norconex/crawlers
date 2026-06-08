@@ -70,6 +70,7 @@ public class CrawlerTestHarness implements Closeable {
     private static final int SCHEMA_DROP_RETRY_COUNT = 4;
     private static final Duration SCHEMA_DROP_RETRY_DELAY =
             Duration.ofMillis(250);
+    private static final int MIN_HAZELCAST_PORT_RANGE_SIZE = 8;
 
     // Shared across all harness instances: started once per JVM, never
     // stopped mid-run (Testcontainers Ryuk / JVM-shutdown hook cleans it
@@ -137,7 +138,11 @@ public class CrawlerTestHarness implements Closeable {
 
             // Pick an isolated port range for this harness instance so repeated
             // invocations (e.g., parameterized tests) don't collide on 5701+.
-            hazelcastPortCount = Math.max(2, nodeNames.length);
+            // Keep a wider bind range than the node count so clustered tests
+            // can still start when one or more ports in the range are
+            // temporarily occupied by other test processes.
+            hazelcastPortCount = Math.max(MIN_HAZELCAST_PORT_RANGE_SIZE,
+                    nodeNames.length);
             hazelcastPortBase = findFreeLocalPortRangeBase(hazelcastPortCount);
 
             LOG.info("Postgres ready: id='{}', schema='{}', jdbcUrl='{}'",
