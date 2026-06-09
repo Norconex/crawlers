@@ -168,10 +168,16 @@ public class CrawlerTestHarness implements Closeable {
             nodeCrawlers.put(nodeName, testCrawler);
             activeCrawlerCount.incrementAndGet();
 
-            var future = CompletableFuture.supplyAsync(
-                    testCrawler::crawl, executor)
-                    .whenComplete((result, thrown) -> activeCrawlerCount
-                            .decrementAndGet());
+            CompletableFuture<CrawlerTestNodeOutput> future;
+            try {
+                future = CompletableFuture.supplyAsync(
+                        testCrawler::crawl, executor)
+                        .whenComplete((result, thrown) -> activeCrawlerCount
+                                .decrementAndGet());
+            } catch (RuntimeException e) {
+                activeCrawlerCount.decrementAndGet();
+                throw e;
+            }
 
             futures.put(nodeName, future);
             LOG.debug("Launched \"{}\".", nodeName);
