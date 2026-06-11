@@ -49,6 +49,50 @@ git config --global user.signingkey YOUR_GPG_KEY_ID
 
 ---
 
+## 🔑 Creating a GPG Key (First-Time Setup)
+
+If you do not already have a GPG key, here is the quickest way to create one. For the full walkthrough, see **[GitHub's official GPG documentation](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key)**.
+
+**1. Generate a key**
+
+```bash
+gpg --full-generate-key
+```
+
+When prompted: choose **RSA and RSA**, size **4096**, and enter the name and email that match your Git `user.name` / `user.email`.
+
+**2. Find your key ID**
+
+```bash
+gpg --list-secret-keys --keyid-format=long
+```
+
+Your key ID is the value after the slash on the `sec` line — for example, `3AA5C34371567BD2` in `sec rsa4096/3AA5C34371567BD2`.
+
+**3. Configure Git to use it**
+
+```bash
+git config --global user.signingkey YOUR_KEY_ID
+git config --global commit.gpgsign true
+git config --global format.signoff true
+```
+
+**4. Add your public key to GitHub**
+
+```bash
+gpg --armor --export YOUR_KEY_ID
+```
+
+Copy the output and paste it into **GitHub → Settings → SSH and GPG keys → New GPG key**.
+
+**Windows users:** also run this so IDEs can find the GPG binary (replace path with actual install location):
+
+```bash
+git config --global gpg.program "C:\Program Files\GnuPG\bin\gpg.exe"
+```
+
+---
+
 ## 🛑 Fixing a Failed PR Check
 
 If the automated GitHub protection check blocks your PR due to a missing sign-off, you can easily fix it without rewriting your code.
