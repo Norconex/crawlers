@@ -1,10 +1,10 @@
-name: Notify Private Site Build
+name: Notify Code Changes
 
 on:
     push:
         branches:
             - main
-        paths:
+        paths-ignore:
             - "docs/site/**"
             - "docs/reference-source/**"
     workflow_dispatch:
@@ -30,7 +30,7 @@ jobs:
                     exit 1
                   fi
 
-            - name: Trigger private website build
+            - name: Trigger private website rebuild (code changes)
               env:
                   DISPATCH_TOKEN: ${{ secrets[env.DISPATCH_SECRET_NAME] }}
               run: |
@@ -48,9 +48,7 @@ jobs:
                       "source_branch": "${{ github.ref_name }}",
                       "source_ref": "${{ github.ref }}",
                       "source_sha": "${{ github.sha }}",
-                      "site_docs_dir": "docs/site",
-                      "reference_source_dir": "docs/reference-source",
-                      "changes_type": "docs-only"
+                      "changes_type": "code"
                     }
                   }
                   EOF
