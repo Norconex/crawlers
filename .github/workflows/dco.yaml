@@ -13,9 +13,14 @@ jobs:
     name: "DCO Sign-off Check"
     runs-on: ubuntu-latest
     steps:
+      - name: "DCO Sign-off Info"
+        run: |
+          echo "If this check fails, one or more commits are missing a \`Signed-off-by:\` line." >> $GITHUB_STEP_SUMMARY
+          echo "See [CONTRIBUTING.md]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/main/CONTRIBUTING.md) to learn how to sign off commits and fix existing ones." >> $GITHUB_STEP_SUMMARY
+
       - name: "DCO Check"
         uses: KineticCafe/actions-dco@v1
         with:
-          # Exempt Dependabot, whose commits GitHub signs but does not sign off.
           exempt-authors: |
             49699333+dependabot[bot]@users.noreply.github.com
+            19733683+snyk-bot@users.noreply.github.com
