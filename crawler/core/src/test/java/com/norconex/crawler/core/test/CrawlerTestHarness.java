@@ -34,6 +34,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.collections4.OrderedMap;
 import org.apache.commons.collections4.map.ListOrderedMap;
@@ -101,6 +102,7 @@ public class CrawlerTestHarness implements Closeable {
             new ListOrderedMap<>();
     private final ExecutorService executor =
             Executors.newVirtualThreadPerTaskExecutor();
+    private final AtomicInteger activeCrawlerCount = new AtomicInteger();
 
     public CompletableFuture<CrawlerTestHarnessResult> launchAsync(
             @NonNull String... nodeNames) {
@@ -132,7 +134,8 @@ public class CrawlerTestHarness implements Closeable {
             // daemon threads (e.g. partition-operation) are still running and
             // holding OS server-socket resources, which would cause BindException
             // if the same port range is reused immediately.
-            if (hazelcastPortBase != null) {
+            if (hazelcastPortBase != null
+                    && activeCrawlerCount.get() == 0) {
                 awaitHazelcastThreadsTerminated();
             }
 
@@ -163,9 +166,18 @@ public class CrawlerTestHarness implements Closeable {
 
             var testCrawler = new TestCrawler(instrument);
             nodeCrawlers.put(nodeName, testCrawler);
+            activeCrawlerCount.incrementAndGet();
 
-            var future = CompletableFuture.supplyAsync(
-                    testCrawler::crawl, executor);
+            CompletableFuture<CrawlerTestNodeOutput> future;
+            try {
+                future = CompletableFuture.supplyAsync(
+                        testCrawler::crawl, executor)
+                        .whenComplete((result, thrown) -> activeCrawlerCount
+                                .decrementAndGet());
+            } catch (RuntimeException e) {
+                activeCrawlerCount.decrementAndGet();
+                throw e;
+            }
 
             futures.put(nodeName, future);
             LOG.debug("Launched \"{}\".", nodeName);
