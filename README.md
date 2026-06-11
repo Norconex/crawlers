@@ -19,7 +19,7 @@ Until v4 is officially released, this branch should not be considered stable.
 
 # Contributing
 
-
+Contributions are welcome — whether it's a bug report, a fix, a new feature, or improved documentation. Before submitting a pull request, please read [CONTRIBUTING.md](CONTRIBUTING.md) for the sign-off and commit signing requirements that all contributions must meet.
 
 # Projects
 
