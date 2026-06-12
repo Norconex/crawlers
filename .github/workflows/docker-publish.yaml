@@ -61,7 +61,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Determine whether this is a release (DockerHub + GHCR) or edge (GHCR) build,
       # and compute the Docker tags accordingly.
