@@ -34,16 +34,38 @@ git commit -s -S -m "Your descriptive commit message"
 
 ## 🤖 Automate Both Flags Natively
 
-You do not need to type `-s -S` manually every time. You can instruct Git to apply both flags automatically across your entire machine for every IDE and CLI commit:
+You do not need to type `-s -S` manually every time.
+
+**DCO Sign-off** — Git has no built-in config for auto-appending `Signed-off-by` to commits. The reliable way is a `prepare-commit-msg` hook. To apply it globally across every repo on your machine:
 
 ```bash
-# 1. Automate the DCO Sign-off text line
-git config --global format.signoff true
+# 1. Create a global hooks directory
+mkdir -p ~/.git-hooks
 
-# 2. Automate GPG Cryptographic Key signing
+# 2. Create the hook
+cat > ~/.git-hooks/prepare-commit-msg << 'EOF'
+#!/bin/sh
+case "$2" in
+  merge|squash) exit 0 ;;
+esac
+NAME=$(git config user.name)
+EMAIL=$(git config user.email)
+SOB="Signed-off-by: ${NAME} <${EMAIL}>"
+grep -qF "$SOB" "$1" && exit 0
+printf "\n%s\n" "$SOB" >> "$1"
+EOF
+
+# 3. Register the hooks directory with Git
+git config --global core.hooksPath ~/.git-hooks
+```
+
+**GPG Cryptographic Signing** — this one does have a native Git config:
+
+```bash
+# 1. Automate GPG signing
 git config --global commit.gpgsign true
 
-# 3. Associate your personal GPG Key ID with Git
+# 2. Associate your personal GPG Key ID with Git
 git config --global user.signingkey YOUR_GPG_KEY_ID
 ```
 
@@ -74,7 +96,6 @@ Your key ID is the value after the slash on the `sec` line — for example, `3AA
 ```bash
 git config --global user.signingkey YOUR_KEY_ID
 git config --global commit.gpgsign true
-git config --global format.signoff true
 ```
 
 **4. Add your public key to GitHub**
