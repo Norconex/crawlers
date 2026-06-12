@@ -35,6 +35,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120  # 2-hour timeout for comprehensive tests
 
+    permissions:
+      # write required for dependency submission
+      contents: write
+
     steps:
       - uses: actions/checkout@v6
 
@@ -69,3 +73,11 @@ jobs:
             **/target/surefire-reports/
             **/target/failsafe-reports/
           retention-days: 30
+
+      # Uploads the resolved dependency graph (including transitives) to
+      # GitHub so Dependabot can alert on vulnerable transitive dependencies.
+      # Runs nightly rather than on every push to main to keep the CI/CD
+      # critical path lean.
+      - name: Update Maven dependency graph
+        if: github.repository == 'Norconex/crawler'
+        uses: advanced-security/maven-dependency-submission-action@v5

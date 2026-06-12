@@ -61,7 +61,7 @@
     <commons-text.version>1.15.0</commons-text.version>
     
     <!-- Other dependencies -->
-    <ant.version>1.10.15</ant.version>
+    <ant.version>1.10.17</ant.version>
     <h2.version>2.4.240</h2.version>
     <httpclient5.version>5.6</httpclient5.version>
     <jackson.version>2.18.6</jackson.version>
@@ -87,12 +87,12 @@
     <!-- Test/Provided dependencies -->
     <assertj.version>3.27.7</assertj.version>
     <easy-random.version>5.0.0</easy-random.version>
-    <junit-jupiter.version>6.0.3</junit-jupiter.version>
+    <junit-jupiter.version>6.1.0</junit-jupiter.version>
     <junit-platform.version>6.1.0</junit-platform.version>
     <mockito.version>5.23.0</mockito.version>
     <!-- Must match byte-buddy-agent version bundled with Mockito; Hazelcast pulls in
          an older 1.12.21 which lacks ClassFileVersion.JAVA_V21, breaking inline mocking -->
-    <bytebuddy.version>1.18.8</bytebuddy.version>
+    <bytebuddy.version>1.18.10</bytebuddy.version>
     <mockserver.version>6.0.0</mockserver.version>
     <testcontainers.version>2.0.5</testcontainers.version>
     <!--

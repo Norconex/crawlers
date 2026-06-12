@@ -31,7 +31,7 @@ on:
     # Only run this workflow if one or more files were changed and not part of
     # 'paths-ignore'.
     paths-ignore:
-      - ./V4_MIGRATION.md
+      - "V4_MIGRATION.md"
       - "**/README.md"
       - "**/TODO.txt"
       - "docs/**"
@@ -42,7 +42,7 @@ on:
     # Unfortunately GitHub actions does not yet support Yaml anchors and aliases
     # so we have to repeat the paths-ignore here.
     paths-ignore:
-      - ./V4_MIGRATION.md
+      - "V4_MIGRATION.md"
       - "**/README.md"
       - "**/TODO.txt"
       - "docs/**"
@@ -54,10 +54,6 @@ jobs:
     # Env. vars. defined here are available to all steps.
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SHOULD_UPDATE_DEPENDENCY_GRAPH:
-        ${{ github.repository == 'Norconex/crawlers' &&
-        github.event_name == 'push' && (github.ref == 'refs/heads/main' ||
-        startsWith(github.ref, 'refs/heads/release/')) }}
 
     permissions:
       id-token: write
@@ -73,13 +69,6 @@ jobs:
           # depth 0 means checkout all commits... we need that
           # in case there are many commits in a push/PR
           fetch-depth: 0
-
-      #--- Step ------------------------------------------------------------------
-      - name: Get project version
-        id: get_version
-        run: |
-          version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          echo "version=$version" >> $GITHUB_OUTPUT
 
       #--- Step ------------------------------------------------------------------
 
@@ -111,6 +100,16 @@ jobs:
 
       #--- Step ------------------------------------------------------------------
 
+      # Runs after setup-java so it benefits from the JDK and Maven cache.
+      # -N (non-recursive): only the root POM is needed for the version.
+      - name: Get project version
+        id: get_version
+        run: |
+          version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout -N)
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      #--- Step ------------------------------------------------------------------
+
       - name: Cache SonarCloud packages
         if: env.SONAR_TOKEN != ''
         uses: actions/cache@v5
@@ -118,20 +117,6 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-
-      #--- Step ------------------------------------------------------------------
-
-      # Resolving before other mvn commands will fail early if there is an issue.
-      # Downloaded items won't be downloaded again in this workflow.
-      # We use :go-offline instead of :resolve to warm the cache.
-      # This prefetch is best effort only: transient snapshot repository
-      # access errors must not fail the entire workflow before the real build.
-      - name: Resolve Maven Dependencies
-        continue-on-error: true
-        run: |
-          mvn dependency:go-offline -nsu \
-            -Dmaven.wagon.rss.buffer.size=2048 \
-            -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
 
       #--- Step ------------------------------------------------------------------
 
@@ -395,10 +380,3 @@ jobs:
           # PAT required so this commit triggers CI for the new SNAPSHOT version.
           GITHUB_TOKEN: ${{ secrets.RELEASE_PAT }}
 
-      #--- Step ------------------------------------------------------------------
-
-      # Uploads the full dependency graph to GitHub to improve the quality
-      # of Dependabot alerts this repository can receive
-      - name: Update Maven dependency graph
-        if: ${{ env.SHOULD_UPDATE_DEPENDENCY_GRAPH == 'true' }}
-        uses: advanced-security/maven-dependency-submission-action@v5
