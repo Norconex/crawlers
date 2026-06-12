@@ -1,0 +1,220 @@
+name: Publish Docker Images
+
+# Release tags  (v4.0.1)  → DockerHub with version tags + latest
+# Push to main             → GHCR with 'edge' tag (unstable, for testing)
+# schedule (weekly)        → DockerHub rebuild of latest stable release (base image patches)
+# workflow_dispatch        → DockerHub re-publish (supply version) or GHCR edge (leave blank)
+on:
+  push:
+    tags:
+      - 'v[0-9]*.[0-9]*.[0-9]*'
+    branches:
+      - main
+  schedule:
+    # Every Monday at 04:00 UTC — refreshes base image layers with OS/JRE patches.
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'DockerHub version to re-publish (e.g. 4.0.1, no "v" prefix). Leave empty for GHCR edge build.'
+        required: false
+        type: string
+
+permissions:
+  contents: read   # for checkout and gh release list
+  packages: write  # for pushing to GHCR
+
+env:
+  # All committer artifact names (nx-committer-{name}), excluding 'core' which is bundled.
+  COMMITTERS: >-
+    amazoncloudsearch azurecognitivesearch apachekafka elasticsearch idol neo4j solr sql
+
+jobs:
+  publish:
+    name: ${{ matrix.image }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: crawler-fs
+            crawler_type: fs
+            playwright: false
+          - image: crawler-web
+            crawler_type: web
+            playwright: false
+          - image: crawler-web-playwright
+            crawler_type: web
+            playwright: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Determine whether this is a release (DockerHub) or edge (GHCR) build,
+      # and compute the Docker tags accordingly.
+      - name: Resolve build context
+        id: ctx
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          IS_TAG=$([[ "${GITHUB_REF}" == refs/tags/* ]] && echo true || echo false)
+          HAS_VERSION=$([[ -n "${{ inputs.version }}" ]] && echo true || echo false)
+          IS_SCHEDULE=$([[ "${{ github.event_name }}" == "schedule" ]] && echo true || echo false)
+
+          if [[ "$IS_TAG" == "true" ]] || [[ "$HAS_VERSION" == "true" ]]; then
+            VERSION="${{ inputs.version }}"
+            [[ -z "$VERSION" ]] && VERSION="${GITHUB_REF_NAME#v}"
+          elif [[ "$IS_SCHEDULE" == "true" ]]; then
+            # Scheduled rebuild: resolve the latest published stable release.
+            # The crawler code is unchanged; only base image layers (OS/JRE) are refreshed.
+              --exclude-pre-releases --limit 1 \
+              --json tagName -q '.[0].tagName | ltrimstr("v")')
+            if [[ -z "$VERSION" ]]; then
+              echo "No stable release found; nothing to rebuild." && exit 0
+            fi
+            echo "Scheduled rebuild targeting release v${VERSION}"
+          fi
+
+          if [[ -n "$VERSION" ]]; then
+            MAJOR="${VERSION%%.*}"
+            MINOR="${VERSION%.*}"
+            IMG="norconex/${{ matrix.image }}"
+            echo "mode=release"                                                          >> $GITHUB_OUTPUT
+            echo "version=${VERSION}"                                                    >> $GITHUB_OUTPUT
+            echo "tags=${IMG}:${VERSION},${IMG}:${MINOR},${IMG}:${MAJOR},${IMG}:latest" >> $GITHUB_OUTPUT
+          else
+            IMG="ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}"
+            echo "mode=edge"                                                             >> $GITHUB_OUTPUT
+            echo "version=edge"                                                          >> $GITHUB_OUTPUT
+            echo "tags=${IMG}:edge"                                                      >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to DockerHub
+        if: steps.ctx.outputs.mode == 'release'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+      - name: Log in to GHCR
+        if: steps.ctx.outputs.mode == 'edge'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      # ── RELEASE: download pre-built ZIPs from the GitHub release ───────────
+
+      - name: Download crawler ZIP from GitHub release
+        if: steps.ctx.outputs.mode == 'release'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=${{ steps.ctx.outputs.version }}
+          TYPE=${{ matrix.crawler_type }}
+          mkdir -p docker-context
+          gh release download "v${VERSION}" \
+            --pattern "nx-crawler-${TYPE}-${VERSION}-full.zip" \
+            --output docker-context/crawler.zip
+
+      - name: Download and extract committer ZIPs from GitHub release
+        if: steps.ctx.outputs.mode == 'release'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=${{ steps.ctx.outputs.version }}
+          mkdir -p docker-context/committers /tmp/committer-zips
+          for COMMITTER in $COMMITTERS; do
+            gh release download "v${VERSION}" \
+              --pattern "nx-committer-${COMMITTER}-${VERSION}.zip" \
+              --dir /tmp/committer-zips/
+            unzip -n -j "/tmp/committer-zips/nx-committer-${COMMITTER}-${VERSION}.zip" \
+              "*/lib/*.jar" -d docker-context/committers/
+          done
+
+      # ── EDGE: build ZIPs from source ───────────────────────────────────────
+
+      - name: Build crawler distribution from source (edge)
+        if: steps.ctx.outputs.mode == 'edge'
+        run: |
+          TYPE=${{ matrix.crawler_type }}
+          # Default build (no profile) produces the full distribution.
+          mvn --batch-mode package -DskipTests -q -pl crawler/${TYPE} -am
+          mkdir -p docker-context
+          # Exclude the -standard ZIP; keep only the full distribution.
+          find crawler/${TYPE}/target -name "nx-crawler-${TYPE}-*.zip" \
+            ! -name "*-standard*" \
+            -exec cp {} docker-context/crawler.zip \;
+
+      - name: Build and extract committer JARs from source (edge)
+        if: steps.ctx.outputs.mode == 'edge'
+        run: |
+          MODULES=$(echo $COMMITTERS | tr ' ' '\n' \
+            | sed 's|^|committer/|' | paste -sd ',')
+          mvn --batch-mode package -DskipTests -q -pl "$MODULES" -am
+          mkdir -p docker-context/committers
+          for COMMITTER in $COMMITTERS; do
+            find committer/${COMMITTER}/target -name "*.zip" \
+              -exec unzip -n -j {} "*/lib/*.jar" -d docker-context/committers/ \;
+          done
+
+      # ── Playwright JARs (playwright image only, both modes) ─────────────────
+      # The Playwright dependency is 'provided' scope in the web crawler POM, so it is
+      # intentionally excluded from the distribution ZIP. We download it separately here
+      # and bundle it only into the playwright image.
+
+      - name: Download Playwright JARs from Maven Central
+        if: ${{ matrix.playwright }}
+        run: |
+          PW_VERSION=$(mvn help:evaluate \
+            -Dexpression=playwright.version -q -DforceStdout \
+            -pl crawler/web)
+          # Use a temporary POM so Maven resolves playwright + all transitive dependencies.
+          cat > /tmp/pw-pom.xml << EOF
+          <project>
+            <modelVersion>4.0.0</modelVersion>
+            <groupId>temp</groupId>
+            <artifactId>pw-download</artifactId>
+            <version>1</version>
+            <dependencies>
+              <dependency>
+                <groupId>com.microsoft.playwright</groupId>
+                <artifactId>playwright</artifactId>
+                <version>${PW_VERSION}</version>
+              </dependency>
+            </dependencies>
+          </project>
+          EOF
+          mkdir -p docker-context/playwright-libs
+          mvn --batch-mode -f /tmp/pw-pom.xml dependency:copy-dependencies \
+            -DoutputDirectory=docker-context/playwright-libs
+
+      # ── Build and push ──────────────────────────────────────────────────────
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: docker-context
+          file: .github/docker/Dockerfile.${{ matrix.image }}
+          push: true
+          tags: ${{ steps.ctx.outputs.tags }}
+          platforms: linux/amd64,linux/arm64
+          # Cache scoped per image so matrix jobs don't share incompatible layers.
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
+          build-args: |
+            VERSION=${{ steps.ctx.outputs.version }}
