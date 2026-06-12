@@ -1,18 +1,18 @@
 name: Publish Docker Images
 
-# Release tags  (v4.0.1)  → DockerHub with version tags + latest
+# Release tags  (v4.0.1)  → DockerHub + GHCR with version tags + latest
 # Push to main             → GHCR with 'edge' tag (unstable, for testing)
-# schedule (weekly)        → DockerHub rebuild of latest stable release (base image patches)
-# workflow_dispatch        → DockerHub re-publish (supply version) or GHCR edge (leave blank)
+# schedule (weekly)        → DockerHub + GHCR rebuild of latest stable release (base image patches)
+# workflow_dispatch        → stable re-publish to both (supply version) or GHCR edge (leave blank)
 on:
   push:
     tags:
-      - 'v[0-9]*.[0-9]*.[0-9]*'
+      - "v[0-9]*.[0-9]*.[0-9]*"
     branches:
       - main
   schedule:
     # Every Monday at 04:00 UTC — refreshes base image layers with OS/JRE patches.
-    - cron: '0 4 * * 1'
+    - cron: "0 4 * * 1"
   workflow_dispatch:
     inputs:
       version:
@@ -21,8 +21,8 @@ on:
         type: string
 
 permissions:
-  contents: read   # for checkout and gh release list
-  packages: write  # for pushing to GHCR
+  contents: read # for checkout and gh release list
+  packages: write # for pushing to GHCR
 
 env:
   # All committer artifact names (nx-committer-{name}), excluding 'core' which is bundled.
@@ -51,7 +51,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Determine whether this is a release (DockerHub) or edge (GHCR) build,
+      # Determine whether this is a release (DockerHub + GHCR) or edge (GHCR) build,
       # and compute the Docker tags accordingly.
       - name: Resolve build context
         id: ctx
@@ -68,6 +68,7 @@ jobs:
           elif [[ "$IS_SCHEDULE" == "true" ]]; then
             # Scheduled rebuild: resolve the latest published stable release.
             # The crawler code is unchanged; only base image layers (OS/JRE) are refreshed.
+            VERSION=$(gh release list \
               --exclude-pre-releases --limit 1 \
               --json tagName -q '.[0].tagName | ltrimstr("v")')
             if [[ -z "$VERSION" ]]; then
@@ -79,15 +80,16 @@ jobs:
           if [[ -n "$VERSION" ]]; then
             MAJOR="${VERSION%%.*}"
             MINOR="${VERSION%.*}"
-            IMG="norconex/${{ matrix.image }}"
-            echo "mode=release"                                                          >> $GITHUB_OUTPUT
-            echo "version=${VERSION}"                                                    >> $GITHUB_OUTPUT
-            echo "tags=${IMG}:${VERSION},${IMG}:${MINOR},${IMG}:${MAJOR},${IMG}:latest" >> $GITHUB_OUTPUT
+            DOCKERHUB_IMG="norconex/${{ matrix.image }}"
+            GHCR_IMG="ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}"
+            echo "mode=release" >> $GITHUB_OUTPUT
+            echo "version=${VERSION}" >> $GITHUB_OUTPUT
+            echo "tags=${DOCKERHUB_IMG}:${VERSION},${DOCKERHUB_IMG}:${MINOR},${DOCKERHUB_IMG}:${MAJOR},${DOCKERHUB_IMG}:latest,${GHCR_IMG}:${VERSION},${GHCR_IMG}:${MINOR},${GHCR_IMG}:${MAJOR},${GHCR_IMG}:latest" >> $GITHUB_OUTPUT
           else
             IMG="ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}"
-            echo "mode=edge"                                                             >> $GITHUB_OUTPUT
-            echo "version=edge"                                                          >> $GITHUB_OUTPUT
-            echo "tags=${IMG}:edge"                                                      >> $GITHUB_OUTPUT
+            echo "mode=edge" >> $GITHUB_OUTPUT
+            echo "version=edge" >> $GITHUB_OUTPUT
+            echo "tags=${IMG}:edge" >> $GITHUB_OUTPUT
           fi
 
       - name: Set up QEMU
@@ -103,7 +105,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
       - name: Log in to GHCR
-        if: steps.ctx.outputs.mode == 'edge'
+        if: steps.ctx.outputs.mode == 'edge' || steps.ctx.outputs.mode == 'release'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -114,7 +116,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: "21"
           cache: maven
 
       # ── RELEASE: download pre-built ZIPs from the GitHub release ───────────
