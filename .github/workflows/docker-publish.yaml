@@ -215,7 +215,8 @@ jobs:
           EOF
           mkdir -p docker-context/playwright-libs
           mvn --batch-mode -f /tmp/pw-pom.xml dependency:copy-dependencies \
-            -DoutputDirectory=docker-context/playwright-libs
+            -DoutputDirectory="$PWD/docker-context/playwright-libs"
+          test -f "docker-context/playwright-libs/playwright-${PW_VERSION}.jar"
 
       # ── Build and push ──────────────────────────────────────────────────────
 

@@ -26,7 +26,7 @@ import com.norconex.crawler.core.fetch.Fetcher;
 import com.norconex.crawler.fs.fetch.impl.AbstractFileFetcherTest;
 
 @Timeout(30)
-class FtpFetcherTest extends AbstractFileFetcherTest {
+class FtpFetcherIT extends AbstractFileFetcherTest {
 
     private static MockFtpServer server;
 
