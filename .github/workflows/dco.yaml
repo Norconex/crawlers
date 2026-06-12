@@ -14,11 +14,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "DCO Check"
-        uses: KineticCafe/actions-dco@v1
+        uses: KineticCafe/actions-dco@v3.1.0
         with:
-          exempt-authors: |
-            49699333+dependabot[bot]@users.noreply.github.com
-            19733683+snyk-bot@users.noreply.github.com
+          config: |
+            # Keep humans accountable for DCO while allowing known automation bots.
+            bot.policy = "well-known"
+            bot.categories = ["dependency-updaters", "ci-cd", "release"]
+
+            # Extra safety allowlist for bot author emails that may not map cleanly.
+            exempt-authors = [
+              "49699333+dependabot[bot]@users.noreply.github.com",
+              "19733683+snyk-bot@users.noreply.github.com"
+            ]
 
       - name: "DCO Sign-off Guidance"
         if: failure()
