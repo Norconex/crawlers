@@ -91,8 +91,7 @@ jobs:
             MAJOR="${VERSION%%.*}"
             MINOR="${VERSION%.*}"
             DOCKERHUB_IMG="norconex/${{ matrix.image }}"
-            GHCR_IMG="ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}"
-            echo "mode=release" >> $GITHUB_OUTPUT
+            GHCR_IMG="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/${{ matrix.image }}"
             echo "version=${VERSION}" >> $GITHUB_OUTPUT
             echo "tags=${DOCKERHUB_IMG}:${VERSION},${DOCKERHUB_IMG}:${MINOR},${DOCKERHUB_IMG}:${MAJOR},${DOCKERHUB_IMG}:latest,${GHCR_IMG}:${VERSION},${GHCR_IMG}:${MINOR},${GHCR_IMG}:${MAJOR},${GHCR_IMG}:latest" >> $GITHUB_OUTPUT
           else
