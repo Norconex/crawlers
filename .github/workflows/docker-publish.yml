@@ -2,7 +2,7 @@ name: Publish Docker Images
 
 # Release tags  (v4.0.1)  → DockerHub with version tags + latest
 # Push to main             → GHCR with 'edge' tag (unstable, for testing)
-# schedule (monthly)       → DockerHub rebuild of latest stable release (base image patches)
+# schedule (weekly)        → DockerHub rebuild of latest stable release (base image patches)
 # workflow_dispatch        → DockerHub re-publish (supply version) or GHCR edge (leave blank)
 on:
   push:
