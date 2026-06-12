@@ -66,9 +66,8 @@ jobs:
             VERSION="${{ inputs.version }}"
             [[ -z "$VERSION" ]] && VERSION="${GITHUB_REF_NAME#v}"
           elif [[ "$IS_SCHEDULE" == "true" ]]; then
-            # Monthly rebuild: resolve the latest published stable release.
+            # Scheduled rebuild: resolve the latest published stable release.
             # The crawler code is unchanged; only base image layers (OS/JRE) are refreshed.
-            VERSION=$(gh release list \
               --exclude-pre-releases --limit 1 \
               --json tagName -q '.[0].tagName | ltrimstr("v")')
             if [[ -z "$VERSION" ]]; then
