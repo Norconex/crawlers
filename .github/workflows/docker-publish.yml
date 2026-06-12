@@ -1,9 +1,19 @@
 name: Publish Docker Images
 
-# Release tags  (v4.0.1)  → DockerHub + GHCR with version tags + latest
-# Push to main             → GHCR with 'edge' tag (unstable, for testing)
-# schedule (weekly)        → DockerHub + GHCR rebuild of latest stable release (base image patches)
-# workflow_dispatch        → stable re-publish to both (supply version) or GHCR edge (leave blank)
+# Publishing matrix:
+#
+# Event                      Trigger              Registries        Tags
+# ─────────────────────────  ──────────────────   ──────────────    ──────────────────────────────
+# Release tag                git push v4.0.1      DockerHub + GHCR  4.0.1, 4.0, 4, latest
+# Main branch push           git push main        GHCR only         edge
+# Scheduled (Monday 04:00)   cron                 DockerHub + GHCR  latest stable (multi-arch rebuild)
+# Manual dispatch            workflow_dispatch    DockerHub + GHCR  (version param) or edge (empty)
+#
+# Old triggers (kept for reference):
+#   Release tags  (v4.0.1)  → DockerHub + GHCR with version tags + latest
+#   Push to main             → GHCR with 'edge' tag (unstable, for testing)
+#   schedule (weekly)        → DockerHub + GHCR rebuild of latest stable release (base image patches)
+#   workflow_dispatch        → stable re-publish to both (supply version) or GHCR edge (leave blank)
 on:
   push:
     tags:
@@ -16,7 +26,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'DockerHub version to re-publish (e.g. 4.0.1, no "v" prefix). Leave empty for GHCR edge build.'
+        description: 'Release version to re-publish to both registries (e.g. 4.0.1, no "v" prefix). Leave empty for GHCR edge build.'
         required: false
         type: string
 
