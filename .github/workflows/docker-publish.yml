@@ -95,7 +95,7 @@ jobs:
             echo "version=${VERSION}" >> $GITHUB_OUTPUT
             echo "tags=${DOCKERHUB_IMG}:${VERSION},${DOCKERHUB_IMG}:${MINOR},${DOCKERHUB_IMG}:${MAJOR},${DOCKERHUB_IMG}:latest,${GHCR_IMG}:${VERSION},${GHCR_IMG}:${MINOR},${GHCR_IMG}:${MAJOR},${GHCR_IMG}:latest" >> $GITHUB_OUTPUT
           else
-            IMG="ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}"
+            IMG="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/${{ matrix.image }}"
             echo "mode=edge" >> $GITHUB_OUTPUT
             echo "version=edge" >> $GITHUB_OUTPUT
             echo "tags=${IMG}:edge" >> $GITHUB_OUTPUT
