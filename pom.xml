@@ -915,19 +915,6 @@
                 </scripts>
               </configuration>
             </execution>
-            <execution>
-              <?m2e ignore?>
-              <id>verify-sonar</id>
-              <goals>
-                <goal>execute</goal>
-              </goals>
-              <phase>verify</phase> 
-              <configuration>
-                <scripts>
-                  <script>${maven.multiModuleProjectDirectory}/assembly/sonar/run-sonar-analysis.groovy</script>
-                </scripts>
-              </configuration>
-            </execution>
           </executions>
           <dependencies>
             <dependency>
