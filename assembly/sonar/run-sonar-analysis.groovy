@@ -298,17 +298,17 @@ if (gatedDirs) {
 
 // ── Result reporting ──────────────────────────────────────────────────────────
 
-def gatedMode = !gatedDirs.isEmpty()
+def warnOnlyAsyncUploads = gateMode == "changed" && !gatedDirs.isEmpty()
 
 // Non-gated upload failures are warnings only — don't block CI.
-if (gatedMode) {
+if (warnOnlyAsyncUploads) {
     uploadErrors.findAll { dir, _ -> !gatedDirs.contains(dir) }.each { dir, err ->
         println "[Sonar] WARNING — async upload failed for ${dir}: ${err.message}"
     }
 }
 
 // Gated failures (upload or gate) block the build.
-def buildFailures = (gatedMode
+def buildFailures = (warnOnlyAsyncUploads
         ? uploadErrors.findAll { dir, _ -> gatedDirs.contains(dir) }
         : uploadErrors) + gateErrors
 if (buildFailures) {
