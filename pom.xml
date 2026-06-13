@@ -145,6 +145,37 @@
   </distributionManagement>
 
   <profiles>
+    <!-- Invoked explicitly from CI/CD steps to run the parallel Sonar
+         orchestrator at the root level only. Usage:
+           mvn -N -q -Psonar-parallel initialize -Dsonar.gate.mode=... -->
+    <profile>
+      <id>sonar-parallel</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.gmavenplus</groupId>
+            <artifactId>gmavenplus-plugin</artifactId>
+            <executions>
+              <execution>
+                <?m2e ignore?>
+                <id>run-sonar-parallel</id>
+                <phase>initialize</phase>
+                <goals>
+                  <goal>execute</goal>
+                </goals>
+                <configuration>
+                  <scripts>
+                    <script>${maven.multiModuleProjectDirectory}/assembly/sonar/run-sonar-analysis.groovy</script>
+                  </scripts>
+                </configuration>
+                <inherited>false</inherited>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
     <!-- IDEs do not always know what to do with the Jacoco @{argLine}
      placeholder typically required for Jacoco codecoverage to integrate
      with Surefire. So by default we don't have it. When we want to include

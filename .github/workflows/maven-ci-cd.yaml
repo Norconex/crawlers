@@ -175,8 +175,7 @@ jobs:
           github.event.pull_request.head.repo.full_name == github.repository &&
           !contains(github.actor, '[bot]')
         run: |
-          mvn -N -q groovy:execute \
-            -Dsource=assembly/sonar/run-sonar-analysis.groovy \
+          mvn -N -q -Psonar-parallel initialize \
             -Dsonar.gate.mode=changed \
             "-Dsonar.base.sha=${{ github.event.pull_request.base.sha }}" \
             "-Dsonar.pullrequest.key=${{ github.event.number }}" \
@@ -289,8 +288,7 @@ jobs:
           github.event_name == 'push' && github.ref == 'refs/heads/main' &&
           endsWith(steps.get_version.outputs.version, '-SNAPSHOT')
         run: |
-          mvn -N -q groovy:execute \
-            -Dsource=assembly/sonar/run-sonar-analysis.groovy \
+          mvn -N -q -Psonar-parallel initialize \
             -Dsonar.gate.mode=changed \
             -Dsonar.base.sha=${{ github.event.before }} \
             -Dsonar.qualitygate.timeout=300
@@ -332,8 +330,7 @@ jobs:
           startsWith(github.ref, 'refs/heads/release/') &&
           !endsWith(steps.get_version.outputs.version, '-SNAPSHOT')
         run: |
-          mvn -N -q groovy:execute \
-            -Dsource=assembly/sonar/run-sonar-analysis.groovy \
+          mvn -N -q -Psonar-parallel initialize \
             -Dsonar.gate.mode=all \
             -Dsonar.qualitygate.timeout=300
 

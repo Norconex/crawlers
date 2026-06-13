@@ -91,8 +91,7 @@ jobs:
       - name: Sonar analysis (nightly — parallel, gate all modules)
         if: env.SONAR_TOKEN != ''
         run: |
-          mvn -N -q groovy:execute \
-            -Dsource=assembly/sonar/run-sonar-analysis.groovy \
+          mvn -N -q -Psonar-parallel initialize \
             -Dsonar.gate.mode=all \
             -Dsonar.qualitygate.timeout=300
 
