@@ -108,8 +108,14 @@ if (gateMode == "all") {
 
 } else if (gateMode == "changed") {
     def gitResult = ["git", "diff", "--name-only", baseSha, "HEAD"].execute(null, rootDir)
+    def stdout = new StringWriter()
+    def stderr = new StringWriter()
+    gitResult.consumeProcessOutput(stdout, stderr)
     gitResult.waitFor()
-    def changedFiles = gitResult.text.readLines()
+    if (gitResult.exitValue() != 0) {
+        throw new IllegalStateException("[Sonar] git diff failed (baseSha=${baseSha}): ${stderr.toString().trim()}")
+    }
+    def changedFiles = stdout.toString().readLines()
 
     def directlyChanged = [] as Set
     changedFiles.each { file ->
@@ -185,10 +191,16 @@ def awaitQualityGate = { String moduleKey, String moduleDir, long timeout ->
 
     def deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeout)
     while (true) {
-        def ceStatus = (readJson(ceTaskUrl).task ?: [:]).status ?: "UNKNOWN"
+        def ceTask = readJson(ceTaskUrl).task ?: [:]
+        def ceStatus = ceTask.status ?: "UNKNOWN"
 
         if (ceStatus == "SUCCESS") {
-            def analysisId = readJson(ceTaskUrl).task?.analysisId
+            def analysisId = ceTask.analysisId
+            if (!analysisId) {
+                throw new IllegalStateException(
+                    "[Sonar] Missing analysisId for ${moduleKey}" +
+                    (dashboardUrl ? " — ${dashboardUrl}" : ""))
+            }
             def gateResp   = readJson(
                 "${serverUrl}/api/qualitygates/project_status?analysisId=" +
                 URLEncoder.encode(analysisId, StandardCharsets.UTF_8))
@@ -285,13 +297,19 @@ if (gatedDirs) {
 
 // ── Result reporting ──────────────────────────────────────────────────────────
 
+def warnOnlyAsyncUploads = gateMode == "changed" && !gatedDirs.isEmpty()
+
 // Non-gated upload failures are warnings only — don't block CI.
-uploadErrors.findAll { dir, _ -> !gatedDirs.contains(dir) }.each { dir, err ->
-    println "[Sonar] WARNING — async upload failed for ${dir}: ${err.message}"
+if (warnOnlyAsyncUploads) {
+    uploadErrors.findAll { dir, _ -> !gatedDirs.contains(dir) }.each { dir, err ->
+        println "[Sonar] WARNING — async upload failed for ${dir}: ${err.message}"
+    }
 }
 
 // Gated failures (upload or gate) block the build.
-def buildFailures = uploadErrors.findAll { dir, _ -> gatedDirs.contains(dir) } + gateErrors
+def buildFailures = (warnOnlyAsyncUploads
+        ? uploadErrors.findAll { dir, _ -> gatedDirs.contains(dir) }
+        : uploadErrors) + gateErrors
 if (buildFailures) {
     def detail = buildFailures.collect { dir, err -> "  ${dir}: ${err.message}" }.join('\n')
     throw new IllegalStateException("[Sonar] Build failed — quality gate(s) did not pass:\n${detail}")
