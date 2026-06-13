@@ -227,6 +227,13 @@ jobs:
           file: .github/docker/Dockerfile.${{ matrix.image }}
           push: true
           tags: ${{ steps.ctx.outputs.tags }}
+          # The 'source' label links GHCR packages to this repository so they
+          # appear on the repo's Packages section.
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.title=${{ matrix.image }}
+            org.opencontainers.image.version=${{ steps.ctx.outputs.version }}
+            org.opencontainers.image.licenses=Apache-2.0
           platforms: linux/amd64,linux/arm64
           # Cache scoped per image so matrix jobs don't share incompatible layers.
           cache-from: type=gha,scope=${{ matrix.image }}
