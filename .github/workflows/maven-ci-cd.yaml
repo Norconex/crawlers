@@ -56,6 +56,7 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     permissions:
+      actions: read
       id-token: write
       # write is required for release tagging and dependency submission
       contents: write
