@@ -159,7 +159,7 @@ jobs:
             -Dmaven.wagon.rss.buffer.size=2048 \
             -Dlog4j.configurationFile=${{ github.workspace }}/.github/log4j2-ci.xml \
             -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-            -Pjacoco \
+            -Pjacoco,parallel-tests \
             -C \
             -B
         env:
@@ -197,7 +197,7 @@ jobs:
             -Dmaven.wagon.rss.buffer.size=2048 \
             -Dlog4j.configurationFile=${{ github.workspace }}/.github/log4j2-ci.xml \
             -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-            -Pjacoco \
+            -Pjacoco,parallel-tests \
             -C \
             -B
         env:

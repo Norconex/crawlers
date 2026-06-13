@@ -145,6 +145,34 @@
   </distributionManagement>
 
   <profiles>
+    <!-- Enables JUnit 5 parallel class execution for unit tests (Surefire only).
+         Integration tests (Failsafe) are intentionally left sequential.
+         Classes that bind ports or use shared state are annotated @Isolated
+         so JUnit 5 pulls them out of the parallel pool automatically.
+         Usage: add -Pparallel-tests to any Maven command. -->
+    <profile>
+      <id>parallel-tests</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <properties>
+                <configurationParameters>
+                  junit.jupiter.execution.parallel.enabled=true
+                  junit.jupiter.execution.parallel.mode.default=same_thread
+                  junit.jupiter.execution.parallel.mode.classes.default=concurrent
+                  junit.jupiter.execution.parallel.config.strategy=dynamic
+                  junit.jupiter.execution.parallel.config.dynamic.factor=1
+                </configurationParameters>
+              </properties>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
     <!-- Invoked explicitly from CI/CD steps to run the parallel Sonar
          orchestrator at the root level only. Usage:
            mvn -N -q -Psonar-parallel initialize -Dsonar.gate.mode=... -->
