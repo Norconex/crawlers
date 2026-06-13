@@ -191,10 +191,16 @@ def awaitQualityGate = { String moduleKey, String moduleDir, long timeout ->
 
     def deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeout)
     while (true) {
-        def ceStatus = (readJson(ceTaskUrl).task ?: [:]).status ?: "UNKNOWN"
+        def ceTask = readJson(ceTaskUrl).task ?: [:]
+        def ceStatus = ceTask.status ?: "UNKNOWN"
 
         if (ceStatus == "SUCCESS") {
-            def analysisId = readJson(ceTaskUrl).task?.analysisId
+            def analysisId = ceTask.analysisId
+            if (!analysisId) {
+                throw new IllegalStateException(
+                    "[Sonar] Missing analysisId for ${moduleKey}" +
+                    (dashboardUrl ? " — ${dashboardUrl}" : ""))
+            }
             def gateResp   = readJson(
                 "${serverUrl}/api/qualitygates/project_status?analysisId=" +
                 URLEncoder.encode(analysisId, StandardCharsets.UTF_8))
