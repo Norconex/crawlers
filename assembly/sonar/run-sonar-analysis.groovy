@@ -298,13 +298,19 @@ if (gatedDirs) {
 
 // ── Result reporting ──────────────────────────────────────────────────────────
 
+def gatedMode = !gatedDirs.isEmpty()
+
 // Non-gated upload failures are warnings only — don't block CI.
-uploadErrors.findAll { dir, _ -> !gatedDirs.contains(dir) }.each { dir, err ->
-    println "[Sonar] WARNING — async upload failed for ${dir}: ${err.message}"
+if (gatedMode) {
+    uploadErrors.findAll { dir, _ -> !gatedDirs.contains(dir) }.each { dir, err ->
+        println "[Sonar] WARNING — async upload failed for ${dir}: ${err.message}"
+    }
 }
 
 // Gated failures (upload or gate) block the build.
-def buildFailures = uploadErrors.findAll { dir, _ -> gatedDirs.contains(dir) } + gateErrors
+def buildFailures = (gatedMode
+        ? uploadErrors.findAll { dir, _ -> gatedDirs.contains(dir) }
+        : uploadErrors) + gateErrors
 if (buildFailures) {
     def detail = buildFailures.collect { dir, err -> "  ${dir}: ${err.message}" }.join('\n')
     throw new IllegalStateException("[Sonar] Build failed — quality gate(s) did not pass:\n${detail}")
