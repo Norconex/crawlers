@@ -108,8 +108,14 @@ if (gateMode == "all") {
 
 } else if (gateMode == "changed") {
     def gitResult = ["git", "diff", "--name-only", baseSha, "HEAD"].execute(null, rootDir)
+    def stdout = new StringWriter()
+    def stderr = new StringWriter()
+    gitResult.consumeProcessOutput(stdout, stderr)
     gitResult.waitFor()
-    def changedFiles = gitResult.text.readLines()
+    if (gitResult.exitValue() != 0) {
+        throw new IllegalStateException("[Sonar] git diff failed (baseSha=${baseSha}): ${stderr.toString().trim()}")
+    }
+    def changedFiles = stdout.toString().readLines()
 
     def directlyChanged = [] as Set
     changedFiles.each { file ->
