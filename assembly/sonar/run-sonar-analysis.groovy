@@ -228,7 +228,6 @@ modules.each { mod ->
         println "[Sonar] Starting upload: ${mod.key}"
 
         def cmd = [mvnExec, "sonar:sonar",
-                   "-pl", mod.dir,
                    "-Dsonar.login=${sonarToken}",
                    "-Dsonar.projectKey=${mod.key}",
                    "-Dsonar.qualitygate.wait=false",
@@ -240,7 +239,7 @@ modules.each { mod ->
 
         def proc = new ProcessBuilder(cmd.collect { it.toString() })
             .redirectErrorStream(true)
-            .directory(rootDir)
+            .directory(new File(rootDir, mod.dir))
             .start()
         def output   = proc.inputStream.text
         def exitCode = proc.waitFor()
