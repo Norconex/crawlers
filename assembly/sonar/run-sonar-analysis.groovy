@@ -73,7 +73,6 @@ def modules = [
     [dir: "crawler/fs",                     key: "com.norconex.crawler:nx-crawler-fs"],
     [dir: "crawler/web",                    key: "com.norconex.crawler:nx-crawler-web"],
     [dir: "committer/core",                 key: "com.norconex.crawler:nx-committer-core"],
-    [dir: "committer/amazoncloudsearch",    key: "com.norconex.crawler:nx-committer-amazoncloudsearch"],
     [dir: "committer/apachekafka",          key: "com.norconex.crawler:nx-committer-apachekafka"],
     [dir: "committer/azurecognitivesearch", key: "com.norconex.crawler:nx-committer-azurecognitivesearch"],
     [dir: "committer/elasticsearch",        key: "com.norconex.crawler:nx-committer-elasticsearch"],
@@ -83,12 +82,14 @@ def modules = [
     [dir: "committer/sql",                 key: "com.norconex.crawler:nx-committer-sql"],
 ]
 
+println "[Sonar] Skipping committer/amazoncloudsearch from Sonar orchestration: deprecated module; Amazon CloudSearch is legacy/existing-customers-only."
+
 // ── Downstream dependency graph ───────────────────────────────────────────────
 // When a module dir is changed, gate-waiting also covers its downstream modules.
 // Only intra-monorepo compile-time dependencies are listed here.
 
 def allCommitters = [
-    "committer/core", "committer/amazoncloudsearch", "committer/apachekafka",
+    "committer/core", "committer/apachekafka",
     "committer/azurecognitivesearch", "committer/elasticsearch", "committer/idol",
     "committer/neo4j", "committer/solr", "committer/sql"
 ]
